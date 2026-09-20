@@ -12,7 +12,7 @@
 // default DEFAULT_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true).
 // Returns { export(), overrides(), setTheme(name), reset(), destroy() }. The pure logic is js/theme-editor-logic.js and js/theme.js.
-// Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-textarea, pk-button, pk-stat, pk-table).
+// Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, parseOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../js/theme.js';
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries } from '../js/theme-editor-logic.js';
@@ -22,19 +22,18 @@ import { loadElements } from '../js/loader.js';
 const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
 const OWN_STYLES = ['./theme-editor.css'];
 const TOKENS = './tokens.css';
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start';
 const MAX_STORED = 100000;
 
 export { DEFAULT_PAIRS };
 
-// What the Preview tab shows: SDK controls that read tokens only.
+// What the Preview tab shows: SDK elements that read tokens only.
 const PREVIEW = `
-<div class="toolbar"><div class="toolbar-lead"><strong class="toolbar-title">Preview</strong><span class="toolbar-note">every control reads tokens only</span></div><div class="toolbar-actions"><button class="btn-mini btn-ghost">Ghost</button><button class="btn-mini btn-primary">Primary</button></div></div>
-<section class="card"><div class="card-header"><h2>Card title</h2><span class="muted">muted text</span></div><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
-<label class="ff"><span>Field</span><input type="text" value="Input value"></label>
-<div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start u-mt-3"><span class="chip">Default</span><span class="chip chip-success">Registered</span><span class="chip chip-warn">Warn</span><span class="chip chip-danger">Danger</span></div></section>
-<div class="notice notice--warning">A warning notice.</div><div class="notice notice--success">A success notice.</div>
-<table class="data"><thead><tr><th>SKU</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>AC-001</code></td><td class="num">$4.99</td></tr></tbody></table>`;
+<pk-toolbar heading="Preview" note="every control reads tokens only"><pk-button slot="actions" size="mini" variant="ghost">Ghost</pk-button><pk-button slot="actions" size="mini">Primary</pk-button></pk-toolbar>
+<pk-card heading="Card title"><span slot="actions" class="muted">muted text</span><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
+<pk-input label="Field" value="Input value"></pk-input>
+<pk-cluster class="u-mt-3"><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-card>
+<pk-alert kind="warning">A warning notice.</pk-alert><pk-alert kind="success">A success notice.</pk-alert>
+<pk-table density="compact"><table><thead><tr><th>SKU</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>AC-001</code></td><td class="num">$4.99</td></tr></tbody></table></pk-table>`;
 
 function h(doc, tag, props = {}, ...children) {
     const el = doc.createElement(tag);
@@ -107,7 +106,7 @@ export async function mountThemeEditor(container, options = {}) {
     const resetAll = h(doc, 'pk-button', { variant: 'warn', size: 'mini' }, 'Reset all');
     const shown = h(doc, 'span', { class: 'muted', role: 'status' });
     const count = h(doc, 'pk-stat', { label: 'Overrides', value: '0', tile: true });
-    const warn = h(doc, 'div', { class: 'notice notice--warning', role: 'status' });
+    const warn = h(doc, 'pk-alert', { kind: 'warning' });
     warn.hidden = true;
     const list = h(doc, 'div', { class: 'te-list' });
     const pairTable = h(doc, 'pk-table', {
@@ -129,11 +128,11 @@ export async function mountThemeEditor(container, options = {}) {
         h(doc, 'pk-tab', { value: 'export' }, 'Export / import'),
         h(doc, 'pk-tab-panel', { value: 'export' },
             h(doc, 'p', { class: 'muted' }, 'Names are lowercase custom properties; values use only letters, digits and # % . , ( ) - + / and spaces, at most 200 characters.'),
-            rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'div', { class: `${CLUSTER} u-mt-3` }, importBtn, copyBtn, downloadBtn), message));
+            rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message));
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
         h(doc, 'div', { class: 'te-toolbar' }, find, kindSelect, themeSelect, scopeSelect),
-        h(doc, 'div', { class: `${CLUSTER} te-summary` }, count, shown, resetAll),
+        h(doc, 'pk-cluster', { justify: 'between' }, count, shown, resetAll),
         tabs);
     if (height) { root.classList.add('te--fixed'); root.style.height = height; }
     container.replaceChildren(root);
@@ -142,7 +141,7 @@ export async function mountThemeEditor(container, options = {}) {
     if (showPreview) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
-        previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}</body></html>`;
+        previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
         previewFrame.addEventListener('load', () => applyToPreview(buildOverrides(state.overrides).css));
         ui.previewHost.append(previewFrame);
     }
@@ -166,7 +165,7 @@ export async function mountThemeEditor(container, options = {}) {
         if (chip) {
             const r = chipFor(name, '--color-panel');
             chip.textContent = r.ratio === null ? '' : `${r.ratio.toFixed(1)}:1`;
-            chip.className = `chip ${r.bad ? 'chip-danger' : 'chip-success'}`;
+            chip.setAttribute('variant', r.bad ? 'danger' : 'ok');
         }
     }
 
@@ -177,7 +176,7 @@ export async function mountThemeEditor(container, options = {}) {
             ? h(doc, 'pk-colour-input', { label: name, value: hex })
             : h(doc, 'pk-input', { label: name, value });
         const reset = h(doc, 'pk-button', { variant: 'ghost', size: 'mini', label: `Reset ${name}` }, 'Reset');
-        const chip = /^--color-(text|muted|link|accent)$/.test(name) ? h(doc, 'span', { 'data-pair': name }) : null;
+        const chip = /^--color-(text|muted|link|accent)$/.test(name) ? h(doc, 'pk-badge', { 'data-pair': name }) : null;
         const row = h(doc, 'div', { class: 'te-row', 'data-token': name }, h(doc, 'code', { class: 'te-name' }, name), control, ...(chip ? [chip] : []), reset);
         rowsByName.set(name, row);
         return row;
@@ -207,7 +206,7 @@ export async function mountThemeEditor(container, options = {}) {
         jsonBox.value = JSON.stringify(state.overrides, null, 2);
         const n = overrideCount(state.overrides);
         count.setAttribute('value', String(n));
-        rejectedBox.replaceChildren(...(rejected.length ? [h(doc, 'div', { class: 'notice notice--warning', role: 'alert' }, ...rejected.flatMap((r, i) => (i ? [h(doc, 'br'), r] : [r])))] : []));
+        rejectedBox.replaceChildren(...(rejected.length ? [h(doc, 'pk-alert', { kind: 'warning' }, ...rejected.flatMap((r, i) => (i ? [h(doc, 'br'), r] : [r])))] : []));
     }
 
     function apply() {
@@ -226,7 +225,7 @@ export async function mountThemeEditor(container, options = {}) {
     }
 
     function note(kind, text) {
-        message.replaceChildren(h(doc, 'div', { class: `notice notice--${kind}`, role: kind === 'error' ? 'alert' : 'status' }, text));
+        message.replaceChildren(h(doc, 'pk-alert', { kind: kind === 'error' ? 'danger' : kind }, text));
     }
 
     function importText(text) {
@@ -300,3 +299,6 @@ export async function mountThemeEditor(container, options = {}) {
     apply(); paintList();
     return api;
 }
+
+// The Preview frame loads this same module as its script: inside it, the only job is to define the pk-* elements the frame shows.
+if (globalThis.document?.documentElement?.hasAttribute('data-te-preview')) loadElements(document).catch(() => {});

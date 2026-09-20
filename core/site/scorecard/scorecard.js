@@ -24,7 +24,7 @@ async function workspaceFill({ host }) {
         f.src = '../../samples/templates/workspace/workspace.html?nav=side';
         host.append(f);
         await new Promise(r => f.addEventListener('load', () => setTimeout(r, 400), { once: true }));
-        const d = f.contentDocument; const ws = d.querySelector('.workspace'); const foot = d.querySelector('.shell-footer');
+        const d = f.contentDocument; const ws = d.querySelector('pk-workspace, .workspace'); const foot = d.querySelector('[slot="footer"], .shell-footer');
         const bottom = ws.getBoundingClientRect().bottom; const want = h - (foot?.getBoundingClientRect().height ?? 0);
         const scroll = d.documentElement.scrollHeight > h + 1;
         if (bottom < want - 2 || scroll) failures.push({ w, h, bottom: Math.round(bottom), want: Math.round(want), pageScroll: scroll });
@@ -94,9 +94,9 @@ async function main() {
 }
 
 main().catch(err => {
-    const n = document.createElement('div');
-    n.className = 'notice notice--error gx-notice-file';
-    n.setAttribute('role', 'alert');
+    const n = document.createElement('pk-alert');
+    n.setAttribute('kind', 'danger');
+    n.className = 'gx-notice-file';
     n.textContent = `The scorecard could not start: ${err.message}. Serve the Plainkit folder with a static server.`;
     document.body.append(n);
 });

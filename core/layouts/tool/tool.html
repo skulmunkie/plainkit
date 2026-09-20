@@ -1,1 +1,3 @@
-<section class="card"><div class="form-row"><input type="file" aria-label="Feed file"><button class="btn-primary">Import</button></div></section><p class="muted loading" role="status">Reading file…</p><div class="remedy"><div class="remedy-body">Two rows have no SKU.</div><div class="remedy-actions"><button class="btn-mini btn-primary">Review rows</button></div></div>
+<pk-card><pk-cluster align="end"><pk-dropzone label="Feed file" accept=".csv,text/csv">Drop a file here or click to choose</pk-dropzone><pk-button>Import</pk-button></pk-cluster></pk-card>
+<pk-cluster><pk-spinner label="Reading file"></pk-spinner><span class="muted" role="status">Reading file…</span></pk-cluster>
+<pk-alert kind="warning">Two rows have no SKU.<pk-button slot="action" size="mini">Review rows</pk-button></pk-alert>

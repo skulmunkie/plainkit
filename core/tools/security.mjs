@@ -94,7 +94,7 @@ const ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 export const bySeverity = f => f.reduce((o, x) => ({ ...o, [x.severity]: (o[x.severity] ?? 0) + 1 }), { critical: 0, high: 0, medium: 0, low: 0 });
 export const worstFirst = f => [...f].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);
 
-export { unsafeRegex } from '../js/code-explorer/providers.js';
+export { unsafeRegex } from '../modules/code-explorer/providers.js';
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const findings = worstFirst(scan());

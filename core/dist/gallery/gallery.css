@@ -1,16 +1,16 @@
-/* Gallery page chrome: entry cards, frames, foundation swatches. Tokens only; nothing here restyles an SDK control. */
+/* Gallery page chrome: the shell around the nav, the bars, the view and the inspector; entry cards, frames, foundation swatches. The chrome and the
+   pages are pk-* elements (pk-side-nav, pk-button, pk-drawer, pk-card, pk-page-header ...); this file holds only what the gallery itself needs. Tokens only. */
 
+[hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, .gx-group) { display: none; }
+
+/* ---- entries, frames, foundations ---- */
 .gx-entry { margin-bottom: var(--space-4); scroll-margin-top: var(--space-2); }
 
 .gx-entry h4 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-base); }
 
-.gx-toolbar [aria-pressed="true"] { background: var(--color-accent); color: var(--btn-primary-fg); }
-
 .gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 
 .gx-slot { min-width: 0; }
-
-.gx-code { margin: var(--space-2) 0; padding: var(--space-2) var(--space-3); background: var(--color-surface-alt); border-radius: var(--radius-sm); font-size: var(--text-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .gx-table { table-layout: auto; }
 
@@ -36,74 +36,56 @@
 
 .gx-icon { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-md); font-size: var(--text-xs); }
 
-.gx-icon .icon { width: 1.75rem; height: 1.75rem; }
-
 .gx-pair { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: var(--space-3); align-items: start; }
 
 .gx-notice-file { margin: var(--space-4); }
 
-@media (max-width: 1024px) {
-    .gx-pair { grid-template-columns: minmax(0, 1fr); }
-}
-
-
-.gx-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
-
-.gx-toolbar .ff { flex: none; min-width: 0; flex-direction: row; align-items: center; }
-
-.gx-toolbar [aria-pressed="true"] { background: var(--color-accent); color: var(--btn-primary-fg); }
-
-.gx-contents { display: none; }
-
-/* The chrome fills whatever box the host gives it (a fixed-height container scrolls the contents and the view inside; an auto-height one grows with the page). */
-.gx-mount { display: flex; flex-direction: column; min-height: 0; }
-.gx-mount > .workspace--fill { flex: 1; min-height: 0; }
-
-.gx-head { margin-bottom: var(--gap-section); }
-.gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 1024px) { .gx-el-play { grid-template-columns: minmax(0, 1fr); } }
-.gx-el-live { padding: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-start; }
-.gx-el-stage { display: contents; }
-/* Playground controls: a label and its control share one cell (a checkbox sits inline with its label), cells flow to the width. */
-.gx-el-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--gap-control) var(--space-3); align-content: start; }
-.gx-el-controls .ff { min-width: 0; }
-.gx-el-check { align-self: end; min-height: var(--touch-target); }
-.gx-el-events { margin-top: var(--space-3); }
-
-/* Progressive disclosure: reference sections and secondary panels fold; the summary is a full-height tap target. */
-.gx-fold > summary, .gx-disclose > summary { display: flex; align-items: center; min-height: var(--touch-target); cursor: pointer; }
-.gx-fold-title { font-weight: 600; font-size: var(--text-base); }
-.gx-fold[open] > .gx-fold-title { margin-bottom: var(--space-2); }
-.gx-disclose { margin-top: var(--space-2); border-top: 1px solid var(--color-border); }
-.gx-disclose > summary { color: var(--color-muted); }
-.gx-el-group { margin-top: var(--space-5); }
-.gx-el-group > h2 { margin-bottom: var(--space-2); font-size: var(--text-base); }
-.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: 10rem; overflow-y: auto; }
-
-.gx-head h1 { margin-bottom: var(--gap-heading); font-size: 1.5rem; }
-
-.gx-tile { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; color: inherit; text-decoration: none; }
-
-.gx-tile:hover { border-color: var(--color-accent); }
-
-.gx-states { display: flex; flex-wrap: wrap; gap: var(--gap-control); }
+.gx-stage { height: calc(100dvh - 24rem); min-height: 30rem; margin-inline: auto; }
 
 .gx-find { margin-bottom: var(--space-4); }
 
-@media (max-width: 1024px) {
-    .gx-contents { display: inline-flex; }
-}
+.gx-head { --pk-page-header-title-size: calc(var(--text-lg) * 1.4); margin-bottom: var(--gap-section); }
 
-.gx-stage { height: calc(100dvh - 24rem); min-height: 30rem; margin-inline: auto; }
+.gx-page { inline-size: 100%; max-inline-size: 72rem; margin-inline: auto; }
 
-.gx-view { padding: var(--pad-page); }
+.gx-el-group { margin-top: var(--space-5); }
+.gx-el-group > h2 { margin-bottom: var(--space-2); font-size: var(--text-base); }
 
-/* The docked inspector sits over the pane's right edge: keep the page gutter as well as the inspector's width (the rule above would otherwise replace the workspace padding). */
-.gx-view.workspace-pane--inspecting { padding-inline-end: calc(var(--inspector-w) + var(--pad-page)); }
+/* Element pages: the playground puts the live element beside its controls; the reference folds. */
+.gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gx-el-live { padding: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-start; }
+.gx-el-stage { display: contents; }
+.gx-el-controls > * { min-inline-size: 0; }
+.gx-el-controls :is(pk-input, pk-select) { display: block; contain: inline-size; }
+.gx-el-check { align-self: end; min-height: var(--touch-target); }
+.gx-el-events { margin-top: var(--space-3); }
+.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: 10rem; overflow-y: auto; }
+.gx-disclose { margin-top: var(--space-2); border-top: 1px solid var(--color-border); }
 
-.gx-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* The parameter lists of a Blazor component in the inspector. */
+.gx-params { margin: 0; padding: 0; list-style: none; }
+.gx-params > li { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+.gx-param-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
+.gx-param-type { color: var(--color-muted); font-size: var(--text-sm); min-width: 0; overflow-wrap: anywhere; }
+.gx-param-text { margin: var(--space-1) 0 0; font-size: var(--text-md); color: var(--color-muted); }
 
-.gx-body > .workspace-pane { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+/* ---- the shell: nav, main column (bar, view, inspector) ---- */
+/* The chrome fills whatever box the host gives it (a fixed-height container scrolls the contents and the view inside; an auto-height one grows with the page). */
+.gx-mount { display: flex; flex-direction: column; min-height: 0; }
+.gx-mount > .gx-shell { flex: 1; min-height: 0; }
+
+.gx-nav { --shell-nav-w: 17.5rem; }
+
+.gx-shell { display: flex; min-height: 0; min-width: 0; }
+
+.gx-main { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-panel); }
+
+/* The nav's section titles are links to the section overview; the element styles the rows, this styles the titles between them. */
+.gx-nav-title { display: block; padding: var(--space-3) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; }
+.gx-nav-title:hover { color: var(--color-text); }
+.gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+
+.gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
 
 .gx-group { display: flex; align-items: center; gap: var(--space-2); }
 
@@ -111,34 +93,58 @@
 
 .gx-end, .gx-inspect { margin-inline-start: auto; }
 
-.workspace-bar .btn-group > button { min-height: 2.25rem; padding-inline: var(--space-3); font-size: var(--text-md); }
+.gx-contents, .gx-phone-only { display: none; }
 
-.workspace-bar [aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--btn-primary-fg); }
+/* A link that looks like a ghost button (pk-button has no href form): back to the list, open in a new page. */
+.gx-linkbtn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); box-sizing: border-box; min-height: var(--ctl-h); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--field-muted); font-size: var(--text-read); font-weight: 500; text-decoration: none; white-space: nowrap; }
+.gx-linkbtn:hover { color: var(--color-text); border-color: var(--color-text); }
+.gx-linkbtn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
-.gx-resize { position: absolute; top: 0; bottom: 0; left: 0; width: var(--space-2); cursor: ew-resize; z-index: var(--z-sticky); }
+.gx-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
+.gx-view { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; padding: var(--pad-page); }
+
+/* The docked inspector sits over the pane's right edge: keep the page gutter as well as the inspector's width. */
+.gx-view.gx-view--inspecting { padding-inline-end: calc(var(--inspector-w) + var(--pad-page)); }
+
+.gx-resize { position: absolute; top: 0; bottom: 0; inset-inline-end: var(--inspector-w); width: var(--space-2); cursor: ew-resize; z-index: var(--z-sticky); }
 .gx-resize:hover, .gx-resize:focus-visible { background: var(--color-accent); }
 
-.gx-params { margin: 0; padding: 0; list-style: none; }
+/* Full-page samples (a template, pattern or layout): the nav and the wide toolbar give way to one slim bar and the stage takes the whole main area. */
+.gx-bar.gx-pagebar { display: none; }
+.gx-full > .gx-nav, .gx-full .gx-bar-main { display: none; }
+.gx-full .gx-bar.gx-pagebar { display: flex; flex-wrap: nowrap; gap: var(--space-3); padding-block: var(--space-1); }
+.gx-full > .gx-main .gx-body > .gx-view { padding: 0; overflow: hidden; }
+.gx-stagebox { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--color-surface-alt); }
+.gx-page-frame { flex: none; display: block; width: 100%; max-width: 100%; height: 100%; border: 0; background: var(--color-bg); }
+.gx-page-frame--phone { border-inline: 1px solid var(--color-border); }
+.gx-pagebar .gx-title { flex: 1; min-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gx-pagebar .gx-linkbtn { min-height: var(--touch-target); }
 
-.gx-params > li { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+/* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
+.gx-pagebar .gx-compact-only { display: none; }
 
-.gx-param-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
+@media (max-width: 1100px) {
+    .gx-pagebar .gx-wide-only { display: none; }
+    .gx-pagebar .gx-compact-only { display: inline-flex; }
+    .gx-pagebar > .gx-linkbtn, .gx-pagebar > pk-button { min-width: var(--touch-target); }
+}
 
-.gx-param-type { color: var(--color-muted); font-size: var(--text-sm); min-width: 0; overflow-wrap: anywhere; }
+/* The nav becomes an off-canvas drawer (the element's own breakpoint): the Contents button opens it. */
+@media (max-width: 1024px) {
+    .gx-contents { display: inline-block; }
+}
 
-.gx-param-text { margin: var(--space-1) 0 0; font-size: var(--text-md); color: var(--color-muted); }
-
-.gx-phone-only { display: none; }
-
-.gx-menu-field { padding: var(--space-2); }
+@media (max-width: 1024px) {
+    .gx-el-play { grid-template-columns: minmax(0, 1fr); }
+    .gx-pair { grid-template-columns: minmax(0, 1fr); }
+}
 
 @media (max-width: 640px) {
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
-    .gx-view, .gx-view.workspace-pane--inspecting { padding: var(--space-3) var(--space-2); }
-    .gx-view .gx-entry { padding-inline: var(--space-2); }
+    .gx-view, .gx-view.gx-view--inspecting { padding: var(--space-3) var(--space-2); }
+    .gx-view .gx-entry { --pk-card-padding: var(--space-2); }
     .gx-pair > div:first-child { display: none; }
-    .gx-view .page-crumbs a { display: inline-flex; align-items: center; min-height: var(--touch-target); }
 
     /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
     .gx-table, .gx-table tbody, .gx-table tr, .gx-table td { display: block; }
@@ -149,14 +155,16 @@
 
     .gx-desktop-only { display: none; }
 
-    .gx-phone-only { display: block; }
+    .gx-phone-only { display: inline-block; }
 
-    .workspace-bar { flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-2); }
+    .gx-bar { flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-2); }
 
-    .workspace-bar .btn-ghost { padding-inline: var(--space-2); }
+    .gx-bar .gx-end { margin-inline-start: auto; }
+    .gx-bar .gx-end ~ .gx-inspect { margin-inline-start: 0; }
 
-    .workspace-bar .gx-end { margin-inline-start: auto; }
-    .workspace-bar .gx-end ~ .gx-inspect { margin-inline-start: 0; }
+    .gx-bar { --ctl-h: var(--touch-target); }
+    .gx-bar pk-button { --pk-button-padding: var(--space-2); }
+    .gx-bar > pk-button, .gx-bar pk-dropdown > pk-button { min-height: var(--touch-target); white-space: nowrap; }
 
-    .workspace-bar > .btn-ghost, .workspace-bar .dropdown > .btn-ghost { min-height: var(--touch-target); white-space: nowrap; }
+    .gx-resize { display: none; }
 }

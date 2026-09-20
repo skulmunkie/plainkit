@@ -5,17 +5,19 @@ import { setTheme, currentTheme } from '../../js/theme.js';
 mountShell({ page: 'settings', title: null });
 const root = document.documentElement;
 const $ = s => document.querySelector(s);
-const paint = () => document.querySelectorAll('[data-theme-set]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeSet === currentTheme(root))));
+const paint = () => document.querySelectorAll('pk-button[value]').forEach(b => b.toggleAttribute('pressed', b.getAttribute('value') === currentTheme(root)));
 
 paint();
-$('#set-scale').value = readSetting('pk-gallery-scale') ?? '1';
-$('#set-width').value = readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop';
-document.addEventListener('click', e => {
-    const b = e.target.closest('[data-theme-set]');
-    if (!b) return;
-    setTheme(root, b.dataset.themeSet); writeSetting('pk-site-theme', b.dataset.themeSet); paint();
-    document.dispatchEvent(new CustomEvent('site-theme', { detail: b.dataset.themeSet }));
-    const t = $('#site-theme'); if (t) t.textContent = b.dataset.themeSet === 'dark' ? 'Light theme' : 'Dark theme';
+// Attributes, not properties: the elements may not be upgraded yet, and a property set now would shadow their accessor.
+$('#set-scale').setAttribute('value', readSetting('pk-gallery-scale') ?? '1');
+$('#set-width').setAttribute('value', readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
+$('pk-button-group').addEventListener('pk-toggle', e => {
+    const name = e.target.closest('pk-button')?.getAttribute('value');
+    if (!name || name === currentTheme(root)) return;
+    setTheme(root, name); writeSetting('pk-site-theme', name); paint();
+    document.dispatchEvent(new CustomEvent('site-theme', { detail: name }));
+    const t = $('#site-theme'); if (t) t.textContent = name === 'dark' ? 'Light theme' : 'Dark theme';
 });
-$('#set-scale').addEventListener('change', e => writeSetting('pk-gallery-scale', e.target.value));
-$('#set-width').addEventListener('change', e => writeSetting('pk-gallery-width', e.target.value));
+document.addEventListener('site-theme', paint);
+$('#set-scale').addEventListener('pk-value-change', e => writeSetting('pk-gallery-scale', e.detail.value));
+$('#set-width').addEventListener('pk-value-change', e => writeSetting('pk-gallery-width', e.detail.value));

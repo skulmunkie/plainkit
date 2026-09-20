@@ -1,1 +1,6 @@
-<div class="stack"><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button class="btn-ghost">Notifications <span class="snav-badge">3</span></button></div><div class="notice notice--success">Item saved.</div><div class="notice notice--warning">Two items need a price.</div><div class="stack-sm"><div class="toast" role="status">Item archived. <button class="btn-mini btn-ghost">Undo</button></div><div class="toast" role="status">Export ready. <a href="#">Download</a></div></div></div>
+<pk-stack>
+<pk-cluster><pk-button variant="ghost">Notifications <pk-badge count="3" variant="danger"></pk-badge></pk-button></pk-cluster>
+<pk-alert kind="success">Item saved.</pk-alert>
+<pk-alert kind="warning">Two items need a price.</pk-alert>
+<pk-stack gap="sm"><pk-toast>Item archived.<pk-button slot="action" size="mini" variant="ghost">Undo</pk-button></pk-toast><pk-toast>Export ready.<a slot="action" href="#">Download</a></pk-toast></pk-stack>
+</pk-stack>

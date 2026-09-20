@@ -2,15 +2,17 @@
   "id": "setup",
   "title": "Setup / CRUD page",
   "summary": "A short list of small records with an add form above it.",
-  "built": "PageHeader, Card, FormRow, FormField, CheckField, Button, DataTable.",
+  "built": "Card, Field row, Field, Checkbox, Button, Table.",
   "mobile": "Form rows stack; the table scrolls inside its own wrapper.",
   "used": [
     "button",
     "card",
-    "form-field",
-    "table-content",
-    "utilities",
-    "workspace"
+    "checkbox",
+    "field",
+    "field-row",
+    "input",
+    "stack",
+    "table"
   ],
   "order": 3
 }

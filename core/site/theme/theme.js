@@ -15,9 +15,9 @@ async function main() {
 }
 
 main().catch(err => {
-    const n = document.createElement('div');
-    n.className = 'notice notice--error gx-notice-file';
-    n.setAttribute('role', 'alert');
+    const n = document.createElement('pk-alert');
+    n.setAttribute('kind', 'danger');
+    n.className = 'gx-notice-file';
     n.textContent = `The theme editor could not start: ${err.message}. Serve the Plainkit folder with a static server.`;
     document.body.append(n);
 });

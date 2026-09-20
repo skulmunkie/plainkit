@@ -1,7 +1,7 @@
 // The dev console as a module: mountConsole(container, options) is a live view of what the page, the SDK and the app are doing:
 // everything sent to console.*, uncaught errors and rejected promises, every pk-* event the SDK's elements fire, the network requests
 // the page made, which pk-* elements are on the page (and whether each is registered), and the environment (theme, density, viewport,
-// preferences, Blazor). Built only from SDK components (pk-tabs, pk-table, pk-input, pk-button, pk-button-group); it draws nothing itself.
+// preferences, Blazor). Built only from SDK components (pk-tabs, pk-table, pk-input, pk-button, pk-button-group, pk-cluster); it draws nothing itself.
 //
 //   const dev = await mountConsole(el, { tab: 'console', height: '28rem', theme: 'dark' });
 //   dev.log('warn', 'Something to look at');
@@ -26,7 +26,6 @@ export const DEFAULTS = Object.freeze({ max: 500, capture: ['console', 'errors',
 const FALLBACK_EVENTS = ['pk-change', 'pk-value-change', 'pk-dismiss', 'pk-close', 'pk-tab-change', 'pk-tab-close', 'pk-select', 'pk-sort', 'pk-filter', 'pk-toggle', 'pk-activate', 'pk-search', 'pk-row-click', 'pk-copy', 'pk-remove', 'pk-page-change'];
 
 const TABS = [['console', 'Console'], ['events', 'Events'], ['network', 'Network'], ['elements', 'Elements'], ['environment', 'Environment']];
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start';
 const CONSOLE_METHODS = { debug: 'debug', log: 'log', info: 'info', warn: 'warn', error: 'error' };
 
 function h(doc, tag, props = {}, ...children) {
@@ -77,7 +76,7 @@ export async function mountConsole(container, options = {}) {
     const copy = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Copy as JSON');
     const status = h(doc, 'span', { class: 'muted', role: 'status' });
     const panel = (key, ...body) => tabs.append(h(doc, 'pk-tab-panel', { value: key }, ...body));
-    panel('console', h(doc, 'div', { class: CLUSTER }, search, levels, clear, copy, status), table('console', 'Console', logColumns));
+    panel('console', h(doc, 'pk-cluster', {}, search, levels, clear, copy, status), table('console', 'Console', logColumns));
     panel('events', table('events', 'SDK events', [{ key: 'time', label: 'Time' }, { key: 'message', label: 'Event' }]));
     panel('network', table('network', 'Network', [{ key: 'time', label: 'Time' }, { key: 'message', label: 'Request' }]));
     panel('elements', table('elements', 'pk-* elements on this page', [{ key: 'tag', label: 'Element' }, { key: 'count', label: 'On page', align: 'end' }, { key: 'defined', label: 'Registered' }]));

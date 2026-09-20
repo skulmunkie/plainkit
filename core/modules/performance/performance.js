@@ -1,7 +1,7 @@
 // The performance monitor as a module: mountPerformance(container, options) shows how the page is doing right now: the Core Web Vitals
 // (LCP, CLS, INP, FCP, TTFB), a live frame rate, main-thread long tasks, DOM size, JS heap and what the page loaded. It observes the
 // browser's own performance APIs, adds no dependency and makes no network request. Built only from SDK components (pk-stat, pk-table,
-// pk-button, card); nothing here draws its own widgets.
+// pk-button, pk-card, pk-cluster); nothing here draws its own widgets.
 //
 //   const perf = await mountPerformance(el, { interval: 1000, history: 60, theme: 'dark', height: '32rem' });
 //   perf.snapshot();   // the numbers as an object
@@ -20,7 +20,6 @@ const OWN_STYLES = ['./performance.css'];
 
 export const DEFAULTS = Object.freeze({ interval: 1000, history: 60 });
 
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-stretch cluster--justify-start';
 const TONES = { good: 'positive', warn: 'warning', poor: 'critical', '': 'neutral' };
 
 function h(doc, tag, props = {}, ...children) {
@@ -101,9 +100,9 @@ export async function mountPerformance(container, options = {}) {
     const kinds = h(doc, 'p', { class: 'muted' });
     const resources = h(doc, 'pk-table', { label: 'Slowest requests', density: 'compact', columns: JSON.stringify([{ key: 'name', label: 'Request' }, { key: 'time', label: 'Time', align: 'end' }, { key: 'size', label: 'Size', align: 'end' }]) });
     const root = h(doc, 'section', { 'aria-label': 'Performance monitor', class: 'pf-module' },
-        h(doc, 'div', { class: CLUSTER }, h(doc, 'h2', {}, 'Performance'), toggle, status),
-        h(doc, 'div', { class: CLUSTER }, ...Object.values(stats)),
-        h(doc, 'section', { class: 'card' }, h(doc, 'div', { class: 'card-header section-header' }, h(doc, 'h3', { class: 'section-header-title' }, 'What loaded')), kinds, resources));
+        h(doc, 'pk-cluster', {}, h(doc, 'h2', {}, 'Performance'), toggle, status),
+        h(doc, 'pk-cluster', { align: 'stretch' }, ...Object.values(stats)),
+        h(doc, 'pk-card', { heading: 'What loaded', level: 3 }, kinds, resources));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);

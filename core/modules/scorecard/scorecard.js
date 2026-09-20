@@ -34,7 +34,7 @@ import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { sameOrigin } from '../../js/framework-checks.js';
 import { watchVitals, timeRows, recalcMs, readTexts, measureSizes } from './measure.js';
-import { h, card, missing, scoreTiles, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
+import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./scorecard.css'];
@@ -111,7 +111,7 @@ export async function runTargets(targets, { host, themes = DEFAULTS.themes, widt
 }
 
 const chips = findings => (findings.length
-    ? findings.slice(0, 6).map(f => `<span class="chip ${f.severity === 'error' ? 'chip-danger' : 'chip-warn'}" title="${esc(f.selector)}: ${esc(f.message)} (${esc(f.contexts.join(', '))})">${esc(f.check)}${f.count > 1 ? ` x${f.count}` : ''}</span>`).join(' ') + (findings.length > 6 ? ` <span class="muted">+${findings.length - 6} more</span>` : '')
+    ? findings.slice(0, 6).map(f => `<pk-badge variant="${f.severity === 'error' ? 'danger' : 'warn'}" title="${esc(f.selector)}: ${esc(f.message)} (${esc(f.contexts.join(', '))})">${esc(f.check)}${f.count > 1 ? ` x${f.count}` : ''}</pk-badge>`).join(' ') + (findings.length > 6 ? ` <span class="muted">+${findings.length - 6} more</span>` : '')
     : '<span class="muted">none</span>');
 
 // The ranked table, worst first. changes: [{ name, delta }] from scoring.deltas; link(item) gives the name a link target (or nothing).
@@ -121,7 +121,7 @@ export function rankedTable(items, { changes = [], link, label = 'Target' } = {}
         const name = href ? `<a href="${esc(href)}">${esc(i.name)}</a>` : esc(i.name);
         return `<tr><td>${name}${i.kind ? ` <span class="muted u-text-xs">${esc(i.kind)}</span>` : ''}</td><td class="num ${tone(i.score)}">${i.score}</td><td class="num">${fmtDelta(changes.find(x => x.name === i.name)?.delta)}</td><td>${chips(i.findings)}</td></tr>`;
     });
-    return `<div class="u-scroll-x"><table class="data sc-table"><thead><tr><th>${esc(label)}</th><th class="num">Score</th><th class="num">Change</th><th>Failing items</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+    return `<pk-table label="${esc(label)} ranking" density="compact"><table class="sc-table"><thead><tr><th>${esc(label)}</th><th class="num">Score</th><th class="num">Change</th><th>Failing items</th></tr></thead><tbody>${rows.join('')}</tbody></table></pk-table>`;
 }
 
 const storage = { getItem: k => { try { return localStorage.getItem(k); } catch { return null; } }, setItem: (k, v) => { try { localStorage.setItem(k, v); } catch { /* blocked: the run is still shown */ } } };
@@ -141,15 +141,15 @@ export async function mountScorecard(container, options = {}) {
     if (runs && !normalizeTargets(targets).length) throw new Error('mountScorecard needs targets: URLs, { name, url }, { name, html } or { name, srcdoc }');
     const doc = container.ownerDocument;
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
-    const multi = sections.size > 1 || !sections.has('ranked');
     const root = doc.createElement('div');
     root.className = 'sc-module';
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.height = height; root.style.overflow = 'auto'; }
-    root.replaceChildren(fromHtml(doc, `${runs ? `<div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button type="button" class="btn-primary" data-sc-run>Run scorecard</button></div>
-        <div class="sc-progress muted" role="status" aria-live="polite" data-sc-progress></div>
-        <div data-sc-result><div class="empty-state"><p class="empty-state-title">${NOT_YET[0]}</p><p class="empty-state-description">${NOT_YET[1]}</p></div></div>` : ''}
-        <div class="sc-frames" aria-hidden="true" data-sc-frames></div>`));
+    root.replaceChildren(...(runs ? [
+        h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard')),
+        h(doc, 'div', { class: 'sc-progress muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
+        h(doc, 'div', { 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
+        h(doc, 'div', { class: 'sc-frames', 'aria-hidden': 'true', 'data-sc-frames': true }));
     container.replaceChildren(root);
     const $ = s => root.querySelector(s);
     let items = [];
@@ -237,7 +237,7 @@ export async function mountScorecard(container, options = {}) {
     async function run() {
         const button = $('[data-sc-run]');
         if (!button) return items;
-        button.disabled = true;
+        button.setAttribute('disabled', '');
         try {
             const perf = sections.has('performance');
             const scoring = perf ? await load(data.scoring) : null;
@@ -263,10 +263,8 @@ export async function mountScorecard(container, options = {}) {
             last = { items, overall, ...(report ?? {}) };
             const result = $('[data-sc-result]');
             if (!perf) {
-                const big = `<div class="stat-card sc-score-big"><span class="stat-card-label">Overall</span><div class="stat-card-value-row"><span class="stat-card-value ${tone(overall)}">${overall}</span> ${fmtDelta(d.overall)}</div></div>`;
-                if (multi) result.replaceChildren(fromHtml(doc, big), card(doc, 'Ranked: worst first', fromHtml(doc, rankedTable(items, { changes, link }))));
-                else result.replaceChildren(fromHtml(doc, `${big}
-                    <section class="card sc-section"><div class="card-header section-header"><h2 class="section-header-title">Ranked: worst first</h2></div>${rankedTable(items, { changes, link })}</section>`));
+                result.replaceChildren(h(doc, 'div', { class: 'sc-scores' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', fromHtml(doc, rankedTable(items, { changes, link }))));
+                loadElements(result).catch(() => {});
             } else {
                 const parts = [scoreTiles(doc, report.scores, { deltas: d, history })];
                 if (sections.has('ranked')) {
@@ -278,12 +276,12 @@ export async function mountScorecard(container, options = {}) {
                 loadElements(result).catch(() => {});
             }
             setProgress(`Done. Overall ${overall}.`);
-        } catch (err) { setProgress(`The run failed: ${err.message}`); } finally { button.disabled = false; }
+        } catch (err) { setProgress(`The run failed: ${err.message}`); } finally { button.removeAttribute('disabled'); }
         return items;
     }
 
     $('[data-sc-run]')?.addEventListener('click', run);
-    if (multi) loadElements(root).catch(() => {});
+    loadElements(root).catch(() => {});
     if (autorun && runs) await run();
     return { run, results: () => items, report: () => last, ready, destroy: () => root.remove() };
 }

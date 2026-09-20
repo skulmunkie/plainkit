@@ -9,14 +9,20 @@
 <link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
-<main id="content">
-<div class="workspace workspace--fill" data-pk-workspace>
-  <aside class="workspace-nav u-p-p75r-1r"><label class="ff"><span>Filter</span><input type="search" placeholder="Filter the list"></label><div class="ft"><ul class="ft-list"><li><button class="ft-row ft-folder"><span class="ft-caret">▾</span>Group<span class="ft-count muted">2</span></button><ul class="ft-list"><li><button class="ft-row ft-file ft-selected"><span class="ft-name">First item</span></button></li><li><button class="ft-row ft-file"><span class="ft-name">Second item</span></button></li></ul></li></ul></div></aside>
-  <main class="workspace-main"><div class="tabs tabs--scroll" role="tablist" data-pk-tabs="toggle"><button class="tab tab--phone-only" role="tab" aria-selected="false" tabindex="-1" data-pk-workspace-nav>List</button><button class="tab active" role="tab" aria-selected="true" tabindex="0" data-pk-panel="one">First item</button><button class="tab-close" aria-label="Close First item">&#10005;</button><button class="tab" role="tab" aria-selected="false" tabindex="-1" data-pk-panel="two">Second item</button><button type="button" class="btn-mini btn-ghost" aria-pressed="false" data-pk-toggle="#ws-inspector">Inspector</button></div>
-  <div class="workspace-pane u-p-p75r-1r"><div data-pk-panel-id="one" class="stack"><h2>First item</h2><p>The pane shows what the active tab selects.</p><pk-field-list><dt>Name</dt><dd>Item one</dd><dt>Status</dt><dd>Active</dd><dt>Created</dt><dd>Sep 12</dd><dt>Amount</dt><dd>$12.00</dd></pk-field-list></div><div data-pk-panel-id="two" hidden><p>Second item content.</p></div></div>
-  <div class="flyout-panel flyout-panel--docked" id="ws-inspector" role="complementary" aria-label="Inspector" hidden><header class="flyout-header"><h2>Inspector</h2><button type="button" class="btn-mini btn-ghost flyout-close" aria-label="Close inspector" data-pk-toggle="#ws-inspector">&#10005;</button></header><div class="flyout-body"><p class="muted">A docked inspector covers the pane, not the page.</p></div></div></main>
-</div>
-</main>
+<pk-workspace id="content" fill nav-label="List" main-label="Content" aside-label="Inspector">
+  <pk-stack slot="nav" gap="sm">
+    <pk-input type="search" label="Filter the list" placeholder="Filter the list"></pk-input>
+    <pk-tree label="Items"><pk-tree-item label="Group" expanded><pk-tree-item label="First item" selected></pk-tree-item><pk-tree-item label="Second item"></pk-tree-item></pk-tree-item></pk-tree>
+  </pk-stack>
+  <pk-tabs value="one" scroll>
+    <pk-tab value="one" closable>First item</pk-tab>
+    <pk-tab value="two">Second item</pk-tab>
+    <pk-button slot="trailing" id="inspector-toggle" toggle variant="ghost" size="mini">Inspector</pk-button>
+    <pk-tab-panel value="one"><pk-stack><h2>First item</h2><p>The pane shows what the active tab selects.</p><pk-field-list><dt>Name</dt><dd>Item one</dd><dt>Status</dt><dd>Active</dd><dt>Created</dt><dd>Sep 12</dd><dt>Amount</dt><dd>$12.00</dd></pk-field-list></pk-stack></pk-tab-panel>
+    <pk-tab-panel value="two"><p>Second item content.</p></pk-tab-panel>
+  </pk-tabs>
+  <pk-stack slot="aside" gap="sm"><pk-toolbar heading="Inspector"><pk-button id="inspector-close" slot="actions" size="mini" variant="plain" icon label="Close inspector">&#10005;</pk-button></pk-toolbar><p class="muted">A docked inspector covers the pane, not the page.</p></pk-stack>
+</pk-workspace>
 <script type="module" src="workspace.js"></script>
 
 </body>

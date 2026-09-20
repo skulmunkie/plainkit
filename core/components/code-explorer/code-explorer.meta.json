@@ -33,7 +33,7 @@
         "tk-type"
       ],
       "css": [
-        "components/code-explorer/code-explorer.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [],
       "snippet": "<div class=\"cv\"><div class=\"cv-title\">…</div><div class=\"cv-scroll\"><div class=\"cv-row\"><span class=\"cv-no\">1</span><span class=\"cv-code\">…</span></div></div></div>",
@@ -69,7 +69,7 @@
         "ft-lines"
       ],
       "css": [
-        "components/code-explorer/code-explorer.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [],
       "snippet": "<div class=\"ft\"><ul class=\"ft-list\"><li><button class=\"ft-row ft-file\"><span class=\"ft-name\">file</span></button></li></ul></div>",
@@ -104,7 +104,7 @@
         "co-d2"
       ],
       "css": [
-        "components/code-explorer/code-explorer.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [],
       "snippet": "<ul class=\"co\"><li><button class=\"co-item\"><span class=\"co-kind\">class</span><span class=\"co-name\">Foo</span></button></li></ul>",
@@ -135,7 +135,7 @@
         "csr-text"
       ],
       "css": [
-        "components/code-explorer/code-explorer.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [],
       "snippet": "<div class=\"csr\"><div class=\"csr-group\"><div class=\"csr-title\">file</div><button class=\"csr-hit\"><span class=\"csr-no\">1</span><span class=\"csr-text\"><mark>hit</mark></span></button></div></div>",
@@ -152,27 +152,18 @@
       "kind": "Code",
       "purpose": "The whole code explorer as ONE custom element: file tree, tab strip of open files, code viewer and a docked outline / usages inspector. It reads through a provider (snapshot file, JSON API, or live feed) and hides what the source cannot do.",
       "replaces": "a hand-built two-pane tool page",
-      "mobile": "One panel at a time below 640px; the phone-only Files tab swaps the pane for the tree.",
+      "mobile": "One pane at a time below 640px: pk-workspace shows a strip (Files, Code, Inspector) that switches it.",
       "states": [
         "snapshot",
         "api",
         "feed"
       ],
-      "classes": [
-        "workspace",
-        "workspace--fill",
-        "workspace-nav",
-        "workspace-main",
-        "workspace-pane"
-      ],
+      "classes": [],
       "css": [
-        "components/code-explorer/code-explorer.css",
-        "components/workspace/workspace.css",
-        "components/tabs/tabs.css",
-        "components/flyout/flyout.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [
-        "js/code-explorer/element.js"
+        "modules/code-explorer/element.js"
       ],
       "snippet": "<code-explorer source=\"snapshot\" src=\"snapshot.json\"></code-explorer>\n<code-explorer source=\"api\" src=\"/api/code\"></code-explorer>\n<code-explorer source=\"feed\" src=\"/api/code/events\" base=\"/api/code\"></code-explorer>",
       "blazor": {
@@ -199,7 +190,7 @@
         "cnb-file"
       ],
       "css": [
-        "components/code-explorer/code-explorer.css"
+        "modules/code-explorer/code-explorer.css"
       ],
       "js": [],
       "snippet": "<div class=\"cnb\"><ol class=\"cnb-trail\"><li><button class=\"cnb-folder\">dir</button></li><li><span class=\"cnb-file\">file</span></li></ol></div>",

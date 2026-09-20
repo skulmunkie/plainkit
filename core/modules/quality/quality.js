@@ -21,8 +21,6 @@ import { loadElements } from '../../js/loader.js';
 const STYLES = ['../../plainkit.css'];
 export const PHONE_MAX = 640;
 
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start';
-
 function h(doc, tag, props = {}, ...children) {
     const el = doc.createElement(tag);
     for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
@@ -54,7 +52,7 @@ export async function mountQuality(container, options = {}) {
         columns: JSON.stringify([{ key: 'severity', label: 'Severity' }, { key: 'check', label: 'Check' }, { key: 'selector', label: 'Where' }, { key: 'message', label: 'What is wrong' }, { key: 'count', label: 'Times', align: 'end' }]),
     });
     const root = h(doc, 'section', { class: 'ql-module', 'aria-label': 'Quality checks' },
-        h(doc, 'div', { class: CLUSTER }, run, status), h(doc, 'div', { class: 'u-mt-3' }, score), h(doc, 'div', { class: 'u-mt-3' }, table));
+        h(doc, 'pk-cluster', {}, run, status), h(doc, 'div', { class: 'u-mt-3' }, score), h(doc, 'div', { class: 'u-mt-3' }, table));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);

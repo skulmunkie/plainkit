@@ -4,16 +4,14 @@
   "summary": "Stat tiles, a chart area and a table.",
   "slots": "stat tiles, chart, table",
   "used": [
+    "badge",
     "card",
-    "chip",
-    "cluster",
-    "extras",
-    "flyout",
+    "grid",
+    "progress",
     "shell",
-    "spacing",
-    "table-content",
-    "utilities",
-    "workspace"
+    "stack",
+    "stat",
+    "table"
   ],
   "order": 4
 }

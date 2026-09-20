@@ -18,7 +18,7 @@ test('relocate drops one level from specifiers that climb out of the gallery fol
 });
 
 test('dist/gallery holds the modules, data, styles and templates the embed page needs', () => {
-    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/crud/crud.html', 'templates/chrome.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
+    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/crud/crud.html', 'templates/chrome.js', 'preview.html', 'preview.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
     assert.ok(out.has('dist/js/gallery-options.js'));
     for (const f of ['standalone.js', 'index.html']) assert.ok(!out.has(`dist/gallery/${f}`), `${f} is the SDK site's own host page`);
 });
@@ -52,7 +52,22 @@ test('the embed page and the templates carry no inline script, style or handler'
         assert.ok(!/<script(?![^>]*\ssrc=)[^>]*>/i.test(t), `${f} has an inline script`);
         assert.ok(!/<style[\s>]|\sstyle\s*=|\son[a-z]+\s*=/i.test(t), `${f} has an inline style or handler`);
     }
-    assert.match(out.get('dist/gallery/embed.html'), /plainkit-compat\.css/, 'sample frames need the class-based components');
+    // The chrome is pk-* elements: the embed page does not load the class-based components; the sample frames do (paths.js PAGE_CSS).
+    assert.doesNotMatch(out.get('dist/gallery/embed.html'), /plainkit-compat\.css/, 'the gallery chrome needs no class-based component');
+    assert.match(out.get('dist/gallery/paths.js'), /PAGE_CSS = \[[^\]]*plainkit-compat\.css/, 'sample frames need the class-based components');
+});
+
+test('the preview host ships in dist/gallery with its paths relocated, and the templates send ?width=phone to it', () => {
+    const html = out.get('dist/gallery/preview.html');
+    assert.match(html, /href="\.\.\/plainkit\.css"/);
+    assert.match(html, /plainkit-compat\.css/, 'patterns use the class-based components');
+    assert.match(html, /<script type="module" src="preview\.js">/);
+    const js = out.get('dist/gallery/preview.js');
+    assert.match(js, /from '\.\.\/js\/plainkit\.js'/);
+    assert.match(js, /import\('\.\/gallery\.data\.js'\)/);
+    assert.ok(!/site\/gallery|\.\.\/\.\.\//.test(js.replace(/\/\/ .*$/gm, '')), 'no source paths');
+    assert.match(out.get('dist/gallery/templates/chrome.js'), /new URL\("\.\.\/preview\.html"/);
+    assert.match(out.get('dist/gallery/paths.js'), /PREVIEW = 'preview\.html'/);
 });
 
 test('nothing in dist/gallery names the source tree', () => {

@@ -6,8 +6,12 @@
   "used": [
     "button",
     "card",
-    "extras",
-    "form-field",
+    "field",
+    "grid",
+    "input",
+    "stack",
+    "step",
+    "stepper",
     "toolbar"
   ],
   "order": 6

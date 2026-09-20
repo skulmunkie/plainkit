@@ -26,6 +26,20 @@ export function applyToFrame(frame, { theme, scale, width }) {
     fit(frame);
 }
 
+// A full-page frame: the page inside scrolls itself, so the frame is never resized to its content; only its width (desktop is the whole
+// stage, phone a centred 375px device) and the theme and text size inside change.
+export function applyToPage(frame, { theme, scale, width }) {
+    const doc = frame.contentDocument;
+    if (doc?.documentElement) {
+        if (theme) doc.documentElement.setAttribute('data-theme', theme);
+        if (scale !== undefined) doc.documentElement.style.fontSize = scale === 1 ? '' : `${(14 * scale).toFixed(2)}px`;
+    }
+    if (width !== undefined) {
+        frame.style.width = width === 'phone' ? `${PHONE_WIDTH}px` : '100%';
+        frame.classList.toggle('gx-page-frame--phone', width === 'phone');
+    }
+}
+
 // Make the frame as tall as its content (or its fixed height when the sample asks for one).
 export function fit(frame) {
     const fixed = Number(frame.dataset.height);

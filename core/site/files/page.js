@@ -9,8 +9,9 @@ const explorer = mountCodeExplorer(document.querySelector('.site-body'), {
     theme: document.documentElement.getAttribute('data-theme'),
 });
 explorer.catch(error => {
-    const n = document.createElement('div');
-    n.className = 'notice notice--error gx-notice-file';
+    const n = document.createElement('pk-alert');
+    n.setAttribute('kind', 'danger');
+    n.className = 'gx-notice-file';
     n.textContent = `Could not load snapshot.json: ${error.message}. Run node core/tools/snapshot.mjs to regenerate it.`;
     document.body.append(n);
 });

@@ -16,3 +16,6 @@ export const HAS_SITE = true;
 
 // Where the full-page templates live, relative to this folder.
 export const TEMPLATES_DIR = '../../samples/templates/';
+
+// The page that hosts a pattern or layout fragment as a whole page (also what "Open in new page" opens).
+export const PREVIEW = 'preview.html';

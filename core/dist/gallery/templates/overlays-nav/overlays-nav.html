@@ -30,85 +30,93 @@
     <pk-nav-item slot="footer" href="#">Settings</pk-nav-item>
   </pk-side-nav>
 
-  <div slot="header" class="cluster cluster--horizontal">
-    <button type="button" class="btn-ghost" data-nav-toggle aria-label="Open the menu">Menu</button>
+  <pk-cluster slot="header">
+    <pk-button variant="ghost" data-nav-toggle label="Open the menu">Menu</pk-button>
     <pk-breadcrumb label="Breadcrumb"><a href="#">Home</a><a href="#">Products</a><a href="#">Books</a><a href="#">Item 12</a><a href="#" aria-current="page">Variants</a></pk-breadcrumb>
     <pk-dropdown>
-      <button type="button" slot="trigger" class="btn-mini btn-ghost">Account</button>
+      <pk-button slot="trigger" variant="ghost" size="mini">Account</pk-button>
       <pk-menu-item type="header">Signed in as Ada</pk-menu-item>
       <pk-menu-item href="#">Profile</pk-menu-item>
       <pk-menu-item type="checkbox" checked>Email alerts</pk-menu-item>
       <pk-menu-item type="divider"></pk-menu-item>
       <pk-menu-item danger>Sign out</pk-menu-item>
     </pk-dropdown>
-  </div>
+  </pk-cluster>
 
-  <div id="main-body" class="container stack">
+  <pk-stack id="main-body" class="container">
     <pk-alert kind="warning" banner dismissible>Scheduled maintenance tonight at 22:00.<a slot="action" href="#">Details</a></pk-alert>
 
-    <main id="main" tabindex="-1" class="stack">
-      <h1>Create product</h1>
-      <pk-stepper label="Create product" current="1" clickable>
-        <pk-step title="Basics" description="Name and type"></pk-step>
-        <pk-step title="Pricing" description="Cost and price"></pk-step>
-        <pk-step title="Images"></pk-step>
-        <pk-step title="Review"></pk-step>
-      </pk-stepper>
+    <main id="main" tabindex="-1">
+      <pk-stack>
+        <h1>Create product</h1>
+        <pk-stepper label="Create product" current="1" clickable>
+          <pk-step heading="Basics" description="Name and type"></pk-step>
+          <pk-step heading="Pricing" description="Cost and price"></pk-step>
+          <pk-step heading="Images"></pk-step>
+          <pk-step heading="Review"></pk-step>
+        </pk-stepper>
 
-      <div class="split">
-        <article id="article" class="stack">
-          <section class="card stack">
-            <h2 id="pricing">Pricing</h2>
-            <pk-alert kind="info" heading="Tip">Cost is stamped on the ledger when the purchase order arrives.</pk-alert>
-            <div class="cluster cluster--horizontal">
-              <pk-select name="currency" value="usd"><option value="usd">USD</option><option value="cad">CAD</option><option value="eur">EUR</option></pk-select>
-              <pk-tooltip text="Saves the draft without publishing"><button type="button" class="btn-ghost">Save draft</button></pk-tooltip>
-              <pk-popover variant="confirm" heading="Discard changes?" message="Unsaved edits are lost." confirm-label="Discard" danger><button type="button" slot="trigger" class="btn-warn">Discard</button></pk-popover>
-            </div>
-          </section>
+        <div class="split">
+          <pk-stack id="article">
+            <pk-card>
+              <pk-stack>
+                <h2 id="pricing">Pricing</h2>
+                <pk-alert kind="info" heading="Tip">Cost is stamped on the ledger when the purchase order arrives.</pk-alert>
+                <pk-cluster>
+                  <pk-select name="currency" value="usd"><option value="usd">USD</option><option value="cad">CAD</option><option value="eur">EUR</option></pk-select>
+                  <pk-tooltip text="Saves the draft without publishing"><pk-button variant="ghost">Save draft</pk-button></pk-tooltip>
+                  <pk-popover variant="confirm" heading="Discard changes?" message="Unsaved edits are lost." confirm-label="Discard" danger><pk-button slot="trigger" variant="warn">Discard</pk-button></pk-popover>
+                </pk-cluster>
+              </pk-stack>
+            </pk-card>
 
-          <section class="card stack">
-            <h2 id="actions">Actions</h2>
-            <div class="cluster cluster--horizontal">
-              <button type="button" class="btn-primary" data-open="#filters">Open filters drawer</button>
-              <button type="button" class="btn-ghost" data-open="#terms">Open dialog</button>
-              <button type="button" class="btn-ghost" data-toast="success">Show a toast</button>
-              <button type="button" class="btn-ghost" data-open="#palette">Command palette (Ctrl+K)</button>
-            </div>
-            <pk-context-menu>
-              <div class="card"><p>Right-click, long-press or press Shift+F10 here.</p></div>
-              <pk-menu-item slot="menu">Rename</pk-menu-item>
-              <pk-menu-item slot="menu">Duplicate</pk-menu-item>
-              <pk-menu-item slot="menu" danger>Delete</pk-menu-item>
-            </pk-context-menu>
-          </section>
+            <pk-card>
+              <pk-stack>
+                <h2 id="actions">Actions</h2>
+                <pk-cluster>
+                  <pk-button data-open="#filters">Open filters drawer</pk-button>
+                  <pk-button variant="ghost" data-open="#terms">Open dialog</pk-button>
+                  <pk-button variant="ghost" data-toast="success">Show a toast</pk-button>
+                  <pk-button variant="ghost" data-open="#palette">Command palette (Ctrl+K)</pk-button>
+                </pk-cluster>
+                <pk-context-menu>
+                  <pk-card><p>Right-click, long-press or press Shift+F10 here.</p></pk-card>
+                  <pk-menu-item slot="menu">Rename</pk-menu-item>
+                  <pk-menu-item slot="menu">Duplicate</pk-menu-item>
+                  <pk-menu-item slot="menu" danger>Delete</pk-menu-item>
+                </pk-context-menu>
+              </pk-stack>
+            </pk-card>
 
-          <section class="card stack">
-            <h2 id="loading">Loading state</h2>
-            <pk-loading-overlay busy label="Loading variants…"><div class="card"><p>Variant list.</p><p class="muted">Covered and inert while busy.</p></div></pk-loading-overlay>
-          </section>
+            <pk-card>
+              <pk-stack>
+                <h2 id="loading">Loading state</h2>
+                <pk-loading-overlay busy label="Loading variants…"><pk-card><p>Variant list.</p><p class="muted">Covered and inert while busy.</p></pk-card></pk-loading-overlay>
+              </pk-stack>
+            </pk-card>
 
-          <pk-pager label="Page navigation"><a slot="prev" href="#">Previous: Basics</a><span>Step 2 of 4</span><a slot="next" href="#">Next: Images</a></pk-pager>
-        </article>
+            <pk-pager label="Page navigation"><a slot="prev" href="#">Previous: Basics</a><span>Step 2 of 4</span><a slot="next" href="#">Next: Images</a></pk-pager>
+          </pk-stack>
 
-        <pk-toc for="#article" scroller="#main-body" title="On this page" label="On this page"></pk-toc>
-      </div>
+          <pk-toc for="#article" scroller="#main-body" title="On this page" label="On this page"></pk-toc>
+        </div>
+      </pk-stack>
     </main>
-  </div>
+  </pk-stack>
 
   <span slot="footer">Plainkit sample</span>
 </pk-app-shell>
 
 <pk-drawer id="filters" side="right" heading="Filters">
   <p>Filter controls go here.</p>
-  <button type="button" slot="footer" class="btn-ghost" data-close>Cancel</button>
-  <button type="button" slot="footer" class="btn-primary" data-close>Apply</button>
+  <pk-button slot="footer" variant="ghost" data-close>Cancel</pk-button>
+  <pk-button slot="footer" data-close>Apply</pk-button>
 </pk-drawer>
 
 <pk-dialog id="terms" heading="Publish this product?" size="sm">
   <p>It will appear on every connected channel. You can archive it later.</p>
-  <button type="button" slot="footer" class="btn-ghost" data-close>Cancel</button>
-  <button type="button" slot="footer" class="btn-primary" data-close>Publish</button>
+  <pk-button slot="footer" variant="ghost" data-close>Cancel</pk-button>
+  <pk-button slot="footer" data-close>Publish</pk-button>
 </pk-dialog>
 
 <pk-command-palette id="palette"></pk-command-palette>

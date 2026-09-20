@@ -1,15 +1,15 @@
 // The code explorer as a module: mountCodeExplorer(container, options) puts a file tree, tabs, a code viewer, search and an outline in
-// `container`, fed by a snapshot (see tools/snapshot.mjs for producing one and js/code-explorer/providers.js for the format).
+// `container`, fed by a snapshot (see tools/snapshot.mjs for producing one and modules/code-explorer/providers.js for the format).
 //
 //   const explorer = await mountCodeExplorer(el, { snapshot: 'snapshot.json', file: 'src/app.js', search: 'TODO', theme: 'light', height: '32rem' });
 //
 // Options: snapshot (a URL of a snapshot JSON, or the parsed object), provider (a ready provider instead of a snapshot), file (open
 // this path, `line` picks the row), search (run this query), theme ('dark' | 'light'), height (any CSS length, or 'fill'; default 32rem).
 // Returns { element, openFile(path, { line }), search(query), destroy() }. The document must be able to load the SDK stylesheets; any
-// that are missing are added.
+// that are missing are added (the explorer's own stylesheet is added by the element).
 
-import '../../js/code-explorer/element.js';
-import { SnapshotProvider } from '../../js/code-explorer/providers.js';
+import './element.js';
+import { SnapshotProvider } from './providers.js';
 import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
 
 const STYLES = ['../../plainkit.css'];

@@ -170,7 +170,7 @@ export function build({ write = true } = {}) {
     }
     for (const f of fs.readdirSync(path.join(root, 'js'), { recursive: true })) {
         const src = path.join(root, 'js', f);
-        if (fs.statSync(src).isFile() && f.endsWith('.js')) w(`dist/js/${f.replace(/\\/g, '/')}`, read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'")); // in dist the gallery sits next to js/, not under site/
+        if (fs.statSync(src).isFile() && f.endsWith('.js')) w(`dist/js/${f.replace(/\\/g, '/')}`, read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'").replace("'../../modules/", "'../../")); // in dist the gallery sits next to js/, not under site/
     }
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).

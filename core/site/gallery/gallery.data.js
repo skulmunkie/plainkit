@@ -263,7 +263,7 @@ export const CONTROLS = [
             "tk-type"
         ],
         "css": [
-            "components/code-explorer/code-explorer.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [],
         "snippet": "<div class=\"cv\"><div class=\"cv-title\">…</div><div class=\"cv-scroll\"><div class=\"cv-row\"><span class=\"cv-no\">1</span><span class=\"cv-code\">…</span></div></div></div>",
@@ -305,7 +305,7 @@ export const CONTROLS = [
             "ft-lines"
         ],
         "css": [
-            "components/code-explorer/code-explorer.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [],
         "snippet": "<div class=\"ft\"><ul class=\"ft-list\"><li><button class=\"ft-row ft-file\"><span class=\"ft-name\">file</span></button></li></ul></div>",
@@ -346,7 +346,7 @@ export const CONTROLS = [
             "co-d2"
         ],
         "css": [
-            "components/code-explorer/code-explorer.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [],
         "snippet": "<ul class=\"co\"><li><button class=\"co-item\"><span class=\"co-kind\">class</span><span class=\"co-name\">Foo</span></button></li></ul>",
@@ -383,7 +383,7 @@ export const CONTROLS = [
             "csr-text"
         ],
         "css": [
-            "components/code-explorer/code-explorer.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [],
         "snippet": "<div class=\"csr\"><div class=\"csr-group\"><div class=\"csr-title\">file</div><button class=\"csr-hit\"><span class=\"csr-no\">1</span><span class=\"csr-text\"><mark>hit</mark></span></button></div></div>",
@@ -406,27 +406,18 @@ export const CONTROLS = [
         "kind": "Code",
         "purpose": "The whole code explorer as ONE custom element: file tree, tab strip of open files, code viewer and a docked outline / usages inspector. It reads through a provider (snapshot file, JSON API, or live feed) and hides what the source cannot do.",
         "replaces": "a hand-built two-pane tool page",
-        "mobile": "One panel at a time below 640px; the phone-only Files tab swaps the pane for the tree.",
+        "mobile": "One pane at a time below 640px: pk-workspace shows a strip (Files, Code, Inspector) that switches it.",
         "states": [
             "snapshot",
             "api",
             "feed"
         ],
-        "classes": [
-            "workspace",
-            "workspace--fill",
-            "workspace-nav",
-            "workspace-main",
-            "workspace-pane"
-        ],
+        "classes": [],
         "css": [
-            "components/code-explorer/code-explorer.css",
-            "components/workspace/workspace.css",
-            "components/tabs/tabs.css",
-            "components/flyout/flyout.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [
-            "js/code-explorer/element.js"
+            "modules/code-explorer/element.js"
         ],
         "snippet": "<code-explorer source=\"snapshot\" src=\"snapshot.json\"></code-explorer>\n<code-explorer source=\"api\" src=\"/api/code\"></code-explorer>\n<code-explorer source=\"feed\" src=\"/api/code/events\" base=\"/api/code\"></code-explorer>",
         "blazor": {
@@ -461,7 +452,7 @@ export const CONTROLS = [
             "cnb-file"
         ],
         "css": [
-            "components/code-explorer/code-explorer.css"
+            "modules/code-explorer/code-explorer.css"
         ],
         "js": [],
         "snippet": "<div class=\"cnb\"><ol class=\"cnb-trail\"><li><button class=\"cnb-folder\">dir</button></li><li><span class=\"cnb-file\">file</span></li></ol></div>",
@@ -2210,7 +2201,8 @@ export const TEMPLATES = [
             "button",
             "card",
             "field-list",
-            "flyout"
+            "flyout",
+            "stack"
         ],
         "order": 1,
         "file": "samples/templates/page/page.html"
@@ -2222,14 +2214,16 @@ export const TEMPLATES = [
         "slots": "nav rail, tab strip, pane, docked inspector",
         "used": [
             "button",
-            "code-explorer",
-            "extras",
             "field-list",
             "flyout",
-            "form-field",
-            "spacing",
+            "input",
+            "stack",
+            "tab",
+            "tab-panel",
             "tabs",
-            "utilities",
+            "toolbar",
+            "tree",
+            "tree-item",
             "workspace"
         ],
         "order": 2,
@@ -2241,19 +2235,20 @@ export const TEMPLATES = [
         "summary": "A filtered, paged list beside a record, with create, edit and delete-confirm dialogs.",
         "slots": "filters, list, pagination, detail, create/edit form, delete confirm",
         "used": [
+            "badge",
             "button",
             "card",
-            "chip",
             "cluster",
-            "extras",
+            "dialog",
+            "field",
             "field-list",
-            "form-field",
-            "modal",
+            "grid",
+            "input",
+            "pagination",
+            "select",
             "shell",
-            "spacing",
-            "table-content",
-            "utilities",
-            "workspace"
+            "stack",
+            "table"
         ],
         "order": 3,
         "file": "samples/templates/crud/crud.html"
@@ -2264,16 +2259,14 @@ export const TEMPLATES = [
         "summary": "Stat tiles, a chart area and a table.",
         "slots": "stat tiles, chart, table",
         "used": [
+            "badge",
             "card",
-            "chip",
-            "cluster",
-            "extras",
-            "flyout",
+            "grid",
+            "progress",
             "shell",
-            "spacing",
-            "table-content",
-            "utilities",
-            "workspace"
+            "stack",
+            "stat",
+            "table"
         ],
         "order": 4,
         "file": "samples/templates/dashboard/dashboard.html"
@@ -2286,12 +2279,15 @@ export const TEMPLATES = [
         "used": [
             "button",
             "card",
-            "cluster",
-            "extras",
+            "field",
             "flyout",
-            "form-field",
-            "shell",
-            "spacing"
+            "form-actions",
+            "grid",
+            "input",
+            "range",
+            "select",
+            "stack",
+            "switch"
         ],
         "order": 5,
         "file": "samples/templates/form/form.html"
@@ -2304,8 +2300,12 @@ export const TEMPLATES = [
         "used": [
             "button",
             "card",
-            "extras",
-            "form-field",
+            "field",
+            "grid",
+            "input",
+            "stack",
+            "step",
+            "stepper",
             "toolbar"
         ],
         "order": 6,
@@ -2318,10 +2318,14 @@ export const TEMPLATES = [
         "slots": "master list, detail, tabs",
         "used": [
             "card",
-            "extras",
             "field-list",
+            "list-group",
             "shell",
-            "tabs"
+            "tab",
+            "tab-panel",
+            "tabs",
+            "timeline",
+            "timeline-item"
         ],
         "order": 7,
         "file": "samples/templates/master-detail/master-detail.html"
@@ -2332,16 +2336,16 @@ export const TEMPLATES = [
         "summary": "What a region shows with no data, on failure and while loading.",
         "slots": "empty state, error notice with remedy, skeleton",
         "used": [
+            "alert",
             "button",
             "card",
+            "cluster",
             "empty-state",
-            "extras",
             "flyout",
-            "loading",
-            "notice",
-            "remedy",
-            "shell",
-            "spacing"
+            "grid",
+            "skeleton",
+            "spinner",
+            "stack"
         ],
         "order": 8,
         "file": "samples/templates/states/states.html"
@@ -2354,10 +2358,13 @@ export const TEMPLATES = [
         "used": [
             "button",
             "card",
+            "checkbox",
+            "field",
             "flyout",
-            "form-field",
+            "input",
             "shell",
-            "spacing"
+            "stack",
+            "utilities"
         ],
         "order": 9,
         "file": "samples/templates/auth/auth.html"
@@ -2391,7 +2398,7 @@ export const TEMPLATES = [
             "shell",
             "side-nav",
             "skip-link",
-            "spacing",
+            "stack",
             "step",
             "stepper",
             "toc",
@@ -2407,132 +2414,144 @@ export const PATTERNS = [
         "id": "filter-table",
         "title": "Filter bar, table and bulk actions",
         "summary": "Filter chips and a search over a sortable table with row selection; choosing rows reveals a bulk-action bar.",
-        "built": "FormField, Chip, DataTable, CheckField, Button group, Pagination, Toolbar.",
+        "built": "Table, Input, Select, Field, Tag, Badge, Button group, Pagination, Cluster.",
         "mobile": "Filters wrap; the table scrolls inside its wrapper; the bulk bar stays under the header.",
         "used": [
+            "badge",
             "button",
-            "chip",
+            "button-group",
             "cluster",
-            "extras",
+            "field",
+            "field-row",
             "flyout",
-            "form-field",
-            "spacing",
-            "table-content",
-            "toolbar",
-            "utilities",
-            "workspace"
+            "input",
+            "pagination",
+            "select",
+            "stack",
+            "table",
+            "tag"
         ],
         "order": 1,
-        "html": "<div class=\"stack\"><div class=\"toolbar\"><div class=\"toolbar-lead\"><strong class=\"toolbar-title\">Items</strong><span class=\"toolbar-note\">2 selected</span></div><div class=\"toolbar-actions\"><div class=\"btn-group\" role=\"group\" aria-label=\"Bulk actions\"><button class=\"btn-ghost\">Archive</button><button class=\"btn-ghost\">Export</button><button class=\"btn-warn\">Delete</button></div></div></div><div class=\"form-grid\"><label class=\"ff\"><span>Search</span><input type=\"search\" placeholder=\"Name or SKU\"></label><label class=\"ff\"><span>Status</span><select><option>Any</option><option>Active</option><option>Draft</option></select></label></div><div class=\"cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start\"><span class=\"muted\">Applied:</span><span class=\"chip\">Status: Active</span><span class=\"chip\">Price &gt; $5</span><button class=\"btn-mini btn-ghost\">Clear all</button></div><div class=\"u-scroll-x\"><table class=\"data data--striped data--hover\"><thead><tr><th><input type=\"checkbox\" aria-label=\"Select all\"></th><th aria-sort=\"ascending\">Name</th><th>Status</th><th class=\"num\">Amount</th></tr></thead><tbody><tr><td><input type=\"checkbox\" aria-label=\"Select Item one\" checked></td><td>Item one</td><td><span class=\"chip chip-success\">Active</span></td><td class=\"num\">$12.00</td></tr><tr><td><input type=\"checkbox\" aria-label=\"Select Item two\" checked></td><td>Item two</td><td><span class=\"chip chip-muted\">Draft</span></td><td class=\"num\">$8.50</td></tr><tr><td><input type=\"checkbox\" aria-label=\"Select Item three\"></td><td>Item three</td><td><span class=\"chip chip-warn\">Review</span></td><td class=\"num\">$20.00</td></tr><tr><td><input type=\"checkbox\" aria-label=\"Select Item four\"></td><td>Item four</td><td><span class=\"chip chip-success\">Active</span></td><td class=\"num\">$5.25</td></tr></tbody></table></div><ul class=\"pagination\" aria-label=\"Pages\"><li><a class=\"page-link\" href=\"#\">Prev</a></li><li><a class=\"page-link\" href=\"#\" aria-current=\"page\">1</a></li><li><a class=\"page-link\" href=\"#\">2</a></li><li><a class=\"page-link\" href=\"#\">Next</a></li></ul></div>",
+        "html": "<pk-table label=\"Items\" caption=\"Items\" striped hover selectable cards filterable sort=\"name\" selected='[1,2]' columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"status\",\"label\":\"Status\"},{\"key\":\"amount\",\"label\":\"Amount\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"name\":\"Item one\",\"status\":\"Active\",\"amount\":\"$12.00\"},{\"id\":2,\"name\":\"Item two\",\"status\":\"Draft\",\"amount\":\"$8.50\"},{\"id\":3,\"name\":\"Item three\",\"status\":\"Review\",\"amount\":\"$20.00\"},{\"id\":4,\"name\":\"Item four\",\"status\":\"Active\",\"amount\":\"$5.25\"}]'>\n<pk-stack slot=\"toolbar\" gap=\"sm\">\n<pk-field-row><pk-field label=\"Search\"><pk-input type=\"search\" placeholder=\"Name or SKU\"></pk-input></pk-field><pk-field label=\"Status\"><pk-select value=\"Any\"><option>Any</option><option>Active</option><option>Draft</option></pk-select></pk-field></pk-field-row>\n<pk-cluster><span class=\"muted\">Applied:</span><pk-tag removable>Status: Active</pk-tag><pk-tag removable>Price &gt; $5</pk-tag><pk-button size=\"mini\" variant=\"ghost\">Clear all</pk-button></pk-cluster>\n</pk-stack>\n<pk-button-group slot=\"bulk\" label=\"Bulk actions\"><pk-button size=\"mini\" variant=\"ghost\">Archive</pk-button><pk-button size=\"mini\" variant=\"ghost\">Export</pk-button><pk-button size=\"mini\" variant=\"warn\">Delete</pk-button></pk-button-group>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge>\n<pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n<pk-badge slot=\"cell-3-status\" variant=\"warn\">Review</pk-badge>\n<pk-badge slot=\"cell-4-status\" variant=\"ok\">Active</pk-badge>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"2\" label=\"Pages\"></pk-pagination>\n</pk-table>",
         "file": "samples/patterns/filter-table/filter-table.html"
     },
     {
         "id": "master-detail-pattern",
         "title": "Master and detail with tabs",
         "summary": "A selectable list beside a record with tabs; the selected row is marked and the detail keeps its own actions.",
-        "built": "List group, Tabs, FieldList, Timeline, Button.",
+        "built": "Grid, Card, List group, Tabs, Field list, Timeline, Badge, Button.",
         "mobile": "The two columns stack; selecting a row scrolls to the detail.",
         "used": [
+            "badge",
             "button",
             "card",
-            "chip",
-            "extras",
             "field-list",
-            "shell",
-            "tabs"
+            "grid",
+            "list-group",
+            "tab",
+            "tab-panel",
+            "tabs",
+            "timeline",
+            "timeline-item"
         ],
         "order": 2,
-        "html": "<div class=\"split\"><section class=\"card\"><div class=\"card-header\"><h2>Items</h2></div><ul class=\"list-group\"><li><a href=\"#\">Item one</a></li><li><a href=\"#\" aria-current=\"true\"><strong>Item two</strong></a></li><li><a href=\"#\">Item three</a></li></ul></section><section class=\"card\"><div class=\"card-header\"><h2>Item two</h2><button class=\"btn-mini btn-ghost\">Edit</button></div><div class=\"tabs\" role=\"tablist\" data-pk-tabs=\"toggle\"><button class=\"tab active\" role=\"tab\" aria-selected=\"true\" tabindex=\"0\">Overview</button><button class=\"tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">History</button></div><pk-field-list><dt>Name</dt><dd>Item two</dd><dt>Status</dt><dd><span class=\"chip chip-muted\">Draft</span></dd></pk-field-list><ul class=\"timeline\"><li>Created</li><li>Edited</li></ul></section></div>",
+        "html": "<pk-grid columns=\"2\" min=\"18rem\">\n<pk-card heading=\"Items\"><pk-list-group variant=\"action\" label=\"Items\" flush><a href=\"#\">Item one</a><a href=\"#\" aria-current=\"true\"><strong>Item two</strong></a><a href=\"#\">Item three</a></pk-list-group></pk-card>\n<pk-card heading=\"Item two\"><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Edit</pk-button>\n<pk-tabs value=\"overview\"><pk-tab value=\"overview\">Overview</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"overview\"><pk-field-list><dt>Name</dt><dd>Item two</dd><dt>Status</dt><dd><pk-badge variant=\"muted\">Draft</pk-badge></dd></pk-field-list></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-timeline label=\"History\"><pk-timeline-item heading=\"Edited\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" status=\"done\"></pk-timeline-item></pk-timeline></pk-tab-panel>\n</pk-tabs></pk-card>\n</pk-grid>",
         "file": "samples/patterns/master-detail-pattern/master-detail-pattern.html"
     },
     {
         "id": "confirm-delete",
         "title": "Confirm before delete",
         "summary": "A destructive action asks first: the modal names what will be lost and offers Cancel; the backdrop never dismisses it.",
-        "built": "Button, Modal, Notice.",
+        "built": "Button, Dialog, Alert, Card, Stack.",
         "mobile": "The modal fills the screen; both buttons are full-size targets.",
         "used": [
+            "alert",
             "button",
             "card",
-            "modal",
-            "notice",
-            "spacing"
+            "dialog",
+            "stack"
         ],
         "order": 3,
-        "html": "<section class=\"card stack\"><div class=\"card-header\"><h2>Item two</h2></div><p>Deleting removes the item and its history.</p><div><button class=\"btn-warn\" data-pk-open=\"#confirm\">Delete item</button></div></section><div class=\"modal-overlay\" id=\"confirm\" data-pk-overlay hidden><div class=\"modal-card\"><div class=\"card-header\"><h2>Delete Item two?</h2></div><div class=\"modal-body stack-sm\"><div class=\"notice notice--warning\">This cannot be undone.</div><p>Its 3 history entries are deleted as well.</p></div><div class=\"modal-footer modal-footer--end\"><button class=\"btn-warn\" data-pk-close>Delete</button><button class=\"btn-ghost\" data-pk-close>Cancel</button></div></div></div>",
+        "html": "<pk-card heading=\"Item two\"><pk-stack gap=\"sm\"><p>Deleting removes the item and its history.</p><div><pk-button variant=\"warn\" data-open=\"#confirm\">Delete item</pk-button></div></pk-stack></pk-card>\n<pk-dialog id=\"confirm\" heading=\"Delete Item two?\" size=\"sm\"><pk-stack gap=\"sm\"><pk-alert kind=\"warning\">This cannot be undone.</pk-alert><p>Its 3 history entries are deleted as well.</p></pk-stack><pk-button slot=\"footer\" variant=\"ghost\" data-close>Cancel</pk-button><pk-button slot=\"footer\" variant=\"warn\" data-close>Delete</pk-button></pk-dialog>",
         "file": "samples/patterns/confirm-delete/confirm-delete.html"
     },
     {
         "id": "unsaved-settings",
         "title": "Settings with unsaved changes",
         "summary": "A sectioned form with a sticky save bar that says there are unsaved changes and offers Discard.",
-        "built": "Card, FormField, Switch, Notice, Button.",
+        "built": "Card, Field, Input, Select, Switch, Range, Accordion item, Form actions, Alert, Button.",
         "mobile": "The save bar sticks to the bottom; buttons stay 44px.",
         "used": [
+            "accordion-item",
+            "alert",
             "button",
             "card",
-            "cluster",
-            "extras",
-            "form-field",
-            "maint-section",
-            "notice",
-            "spacing",
-            "utilities"
+            "field",
+            "field-row",
+            "form-actions",
+            "input",
+            "range",
+            "select",
+            "stack",
+            "switch"
         ],
         "order": 4,
-        "html": "<form class=\"stack\"><section class=\"card\"><div class=\"card-header\"><h2>Store</h2></div><div class=\"form-grid\"><label class=\"ff\"><span>Name</span><input type=\"text\" value=\"Example store\"><span class=\"field-help\">Shown on packing slips.</span></label><label class=\"ff\"><span>Currency</span><select><option>USD</option></select></label></div></section><section class=\"card\"><div class=\"card-header\"><h2>Sync</h2></div><label class=\"switch\"><input type=\"checkbox\" checked><span>Sync automatically</span></label></section><details class=\"maint-section\"><summary class=\"maint-section-header\">Advanced</summary><div class=\"u-pt-3\"><label class=\"ff\"><span>Rate limit</span><input type=\"range\" min=\"10\" max=\"120\" value=\"60\"></label></div></details><div class=\"cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start\"><button class=\"btn-primary\" type=\"button\">Save</button><button class=\"btn-ghost\" type=\"button\">Discard</button><span class=\"notice notice--warning notice--compact\">Unsaved changes</span></div></form>",
+        "html": "<form><pk-stack>\n<pk-card heading=\"Store\"><pk-field-row><pk-field label=\"Name\" help=\"Shown on packing slips.\"><pk-input value=\"Example store\"></pk-input></pk-field><pk-field label=\"Currency\"><pk-select value=\"USD\"><option>USD</option></pk-select></pk-field></pk-field-row></pk-card>\n<pk-card heading=\"Sync\"><pk-switch checked>Sync automatically</pk-switch></pk-card>\n<pk-accordion-item heading=\"Advanced\"><pk-field label=\"Rate limit\"><pk-range min=\"10\" max=\"120\" value=\"60\" output></pk-range></pk-field></pk-accordion-item>\n<pk-form-actions sticky><span slot=\"status\"><pk-alert kind=\"warning\" plain inline compact>Unsaved changes</pk-alert></span><pk-button type=\"button\">Save</pk-button><pk-button type=\"button\" variant=\"ghost\">Discard</pk-button></pk-form-actions>\n</pk-stack></form>",
         "file": "samples/patterns/unsaved-settings/unsaved-settings.html"
     },
     {
         "id": "notifications",
         "title": "Notifications and toasts",
         "summary": "Transient toasts for confirmations, inline notices for what needs attention, and a count badge on the bell.",
-        "built": "Toast, Notice, Button, Badge (snav-badge).",
+        "built": "Toast, Alert, Button, Badge.",
         "mobile": "Toasts stack full-width at the bottom.",
         "used": [
+            "alert",
+            "badge",
             "button",
             "cluster",
-            "extras",
-            "nav",
-            "notice",
-            "spacing"
+            "stack",
+            "toast"
         ],
         "order": 5,
-        "html": "<div class=\"stack\"><div class=\"cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start\"><button class=\"btn-ghost\">Notifications <span class=\"snav-badge\">3</span></button></div><div class=\"notice notice--success\">Item saved.</div><div class=\"notice notice--warning\">Two items need a price.</div><div class=\"stack-sm\"><div class=\"toast\" role=\"status\">Item archived. <button class=\"btn-mini btn-ghost\">Undo</button></div><div class=\"toast\" role=\"status\">Export ready. <a href=\"#\">Download</a></div></div></div>",
+        "html": "<pk-stack>\n<pk-cluster><pk-button variant=\"ghost\">Notifications <pk-badge count=\"3\" variant=\"danger\"></pk-badge></pk-button></pk-cluster>\n<pk-alert kind=\"success\">Item saved.</pk-alert>\n<pk-alert kind=\"warning\">Two items need a price.</pk-alert>\n<pk-stack gap=\"sm\"><pk-toast>Item archived.<pk-button slot=\"action\" size=\"mini\" variant=\"ghost\">Undo</pk-button></pk-toast><pk-toast>Export ready.<a slot=\"action\" href=\"#\">Download</a></pk-toast></pk-stack>\n</pk-stack>",
         "file": "samples/patterns/notifications/notifications.html"
     },
     {
         "id": "search-results",
         "title": "Search results and command palette",
         "summary": "A search field with a keyboard hint over results grouped by type, each row showing a snippet with the match marked.",
-        "built": "Input group, kbd, Code search results, Empty state.",
+        "built": "Input, List group, Typography (kbd, mark).",
         "mobile": "The field is full width; results are single-line rows with 44px targets.",
         "used": [
-            "code-explorer",
-            "extras",
             "flyout",
-            "spacing"
+            "input",
+            "list-group",
+            "stack",
+            "typography"
         ],
         "order": 6,
-        "html": "<div class=\"stack\"><div class=\"input-group\"><span class=\"input-group-text\">Search</span><input type=\"search\" aria-label=\"Search everything\" value=\"item\"><span class=\"input-group-text\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></div><div class=\"csr\"><div class=\"csr-group\"><div class=\"csr-title\">Products <span class=\"muted\">(2)</span></div><button type=\"button\" class=\"csr-hit\"><span class=\"csr-no\">1</span><span class=\"csr-text\"><mark>Item</mark> one</span></button><button type=\"button\" class=\"csr-hit\"><span class=\"csr-no\">2</span><span class=\"csr-text\"><mark>Item</mark> two</span></button></div><div class=\"csr-group\"><div class=\"csr-title\">Orders <span class=\"muted\">(1)</span></div><button type=\"button\" class=\"csr-hit\"><span class=\"csr-no\">1</span><span class=\"csr-text\">Order for <mark>item</mark> three</span></button></div></div></div>",
+        "html": "<pk-stack>\n<pk-input type=\"search\" label=\"Search everything\" value=\"item\"><span slot=\"prefix\">Search</span><span slot=\"suffix\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></pk-input>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Products <span class=\"muted\">(2)</span></p><pk-list-group variant=\"action\" label=\"Products\"><button type=\"button\"><span><span class=\"muted\">1</span> <mark>Item</mark> one</span></button><button type=\"button\"><span><span class=\"muted\">2</span> <mark>Item</mark> two</span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Orders <span class=\"muted\">(1)</span></p><pk-list-group variant=\"action\" label=\"Orders\"><button type=\"button\"><span><span class=\"muted\">1</span> Order for <mark>item</mark> three</span></button></pk-list-group></pk-stack>\n</pk-stack>",
         "file": "samples/patterns/search-results/search-results.html"
     },
     {
         "id": "onboarding",
         "title": "Onboarding checklist",
         "summary": "A short checklist with a progress bar: done, current and upcoming steps, and one clear next action.",
-        "built": "Stepper, Progress, List group, Button.",
+        "built": "Card, Progress, Stepper, List group, Button.",
         "mobile": "The stepper wraps; the next action is full width.",
         "used": [
             "button",
             "card",
-            "extras",
             "flyout",
-            "spacing",
-            "utilities"
+            "list-group",
+            "progress",
+            "stack",
+            "step",
+            "stepper"
         ],
         "order": 7,
-        "html": "<section class=\"card stack\"><div class=\"card-header\"><h2>Get set up</h2><span class=\"muted\">2 of 4 done</span></div><div class=\"progress\" role=\"progressbar\" aria-label=\"Setup progress\" aria-valuenow=\"50\" aria-valuemin=\"0\" aria-valuemax=\"100\"><span></span></div><ol class=\"stepper\"><li class=\"done\">Create account</li><li class=\"done\">Add a product</li><li class=\"active\">Connect a channel</li><li>Invite a teammate</li></ol><ul class=\"list-group\"><li>Connect a channel <button class=\"btn-mini btn-primary u-ml-auto\">Start</button></li><li class=\"muted\">Invite a teammate</li></ul></section>",
+        "html": "<pk-card heading=\"Get set up\"><span slot=\"actions\" class=\"muted\">2 of 4 done</span>\n<pk-stack>\n<pk-progress label=\"Setup progress\" value=\"50\"></pk-progress>\n<pk-stepper label=\"Setup steps\" current=\"2\"><pk-step heading=\"Create account\"></pk-step><pk-step heading=\"Add a product\"></pk-step><pk-step heading=\"Connect a channel\"></pk-step><pk-step heading=\"Invite a teammate\"></pk-step></pk-stepper>\n<pk-list-group label=\"Next steps\"><div>Connect a channel <pk-button size=\"mini\">Start</pk-button></div><div class=\"muted\">Invite a teammate</div></pk-list-group>\n</pk-stack></pk-card>",
         "file": "samples/patterns/onboarding/onboarding.html"
     },
     {
@@ -2551,21 +2570,20 @@ export const PATTERNS = [
             "calendar",
             "card",
             "chart",
-            "chip",
             "cluster",
             "code-block",
             "divider",
             "empty-state",
             "field-list",
+            "grid",
             "hint",
             "list-group",
             "media",
             "pagination",
             "progress",
-            "shell",
             "skeleton",
-            "spacing",
             "spinner",
+            "stack",
             "stat",
             "table",
             "tag",
@@ -2576,7 +2594,7 @@ export const PATTERNS = [
             "typography"
         ],
         "order": 8,
-        "html": "<div class=\"stack\">\n<div class=\"grid\">\n<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values=\"[12,15,14,17,18]\"></pk-stat>\n<pk-stat label=\"Open orders\" value=\"37\" delta=\"-3\" versus=\"last week\"></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert tone=\"positive\" versus=\"last month\"></pk-stat>\n<pk-stat label=\"Negative on hand\" value=\"3\" tone=\"critical\" href=\"#products\"></pk-stat>\n</div>\n<div class=\"split\">\n<pk-card heading=\"Sales by month\"><pk-chart kind=\"bar\" caption=\"Sales, thousands of dollars\"><table><thead><tr><th>Month</th><th>Sales</th></tr></thead><tbody><tr><th scope=\"row\">Jun</th><td>12</td></tr><tr><th scope=\"row\">Jul</th><td>15</td></tr><tr><th scope=\"row\">Aug</th><td>17</td></tr><tr><th scope=\"row\">Sep</th><td>18</td></tr></tbody></table></pk-chart></pk-card>\n<pk-card heading=\"Orders by channel\"><pk-chart kind=\"donut\" caption=\"Orders by channel\"><table><thead><tr><th>Channel</th><th>Orders</th></tr></thead><tbody><tr><th scope=\"row\">Web</th><td>52</td></tr><tr><th scope=\"row\">Market</th><td>31</td></tr><tr><th scope=\"row\">Live</th><td>17</td></tr></tbody></table></pk-chart></pk-card>\n</div>\n<pk-card heading=\"Fulfilment\"><div class=\"stack-sm\"><pk-chart kind=\"stack\" caption=\"Orders by stage\"><table><thead><tr><th>Stage</th><th>Orders</th></tr></thead><tbody><tr><th scope=\"row\">Shipped</th><td>50</td></tr><tr><th scope=\"row\">Packed</th><td>30</td></tr><tr><th scope=\"row\">Waiting</th><td>20</td></tr></tbody></table></pk-chart><pk-progress label=\"Receiving PO 1042\" value=\"18\" max=\"24\" show-value variant=\"ok\"></pk-progress></div></pk-card>\n<pk-table label=\"Products\" caption=\"Stock by product\" striped hover selectable sticky-header cards filterable max-height=\"24rem\" columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"title\",\"label\":\"Title\",\"sortable\":true},{\"key\":\"publisher\",\"label\":\"Publisher\",\"sortable\":true,\"hidePhone\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true},{\"key\":\"onHand\",\"label\":\"On hand\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"sku\":\"AC-001\",\"title\":\"Widget 1\",\"publisher\":\"Red\",\"price\":\"$4.99\",\"onHand\":12},{\"id\":2,\"sku\":\"AC-002\",\"title\":\"Widget 2\",\"publisher\":\"Red\",\"price\":\"$3.99\",\"onHand\":4},{\"id\":3,\"sku\":\"AC-010\",\"title\":\"Widget 10\",\"publisher\":\"Green\",\"price\":\"$4.99\",\"onHand\":21},{\"id\":4,\"sku\":\"AC-005\",\"title\":\"Saga #5\",\"publisher\":\"Blue\",\"price\":\"$16.99\",\"onHand\":7}]'>\n<pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n<pk-empty-state slot=\"empty\" heading=\"No products match\" description=\"Clear the filters to see everything.\"></pk-empty-state>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"12\" total=\"290\" page-size=\"25\"></pk-pagination>\n</pk-table>\n<pk-list-group variant=\"action\" label=\"Shortcuts\"><a href=\"#products\">Receive PO 1042 <pk-badge count=\"3\" variant=\"warn\"></pk-badge></a><a href=\"#products\">Print labels <pk-badge count=\"120\"></pk-badge></a><a href=\"#products\" aria-current=\"page\">Low stock report</a></pk-list-group>\n<div class=\"split\">\n<pk-card heading=\"Order 1042\"><pk-timeline label=\"Order history\"><pk-timeline-item heading=\"Delivered\" time=\"2026-09-18\" status=\"done\">Left at the front desk.</pk-timeline-item><pk-timeline-item heading=\"Shipped\" time=\"2026-09-16\" status=\"done\">Tracking 9400 1000 0000.</pk-timeline-item><pk-timeline-item heading=\"Packed\" time=\"2026-09-15\" status=\"active\"></pk-timeline-item><pk-timeline-item heading=\"Payment failed once\" time=\"2026-09-14\" status=\"danger\">Retried and cleared.</pk-timeline-item></pk-timeline></pk-card>\n<pk-card heading=\"Team\"><div class=\"stack-sm\"><pk-avatar-group max=\"3\" label=\"Assigned to Ada, Sam, Ana and 2 others\"><pk-avatar name=\"Ada Lovelace\" status=\"online\"></pk-avatar><pk-avatar name=\"Sam Lee\" status=\"away\"></pk-avatar><pk-avatar name=\"Ana Ruiz\"></pk-avatar><pk-avatar name=\"Jo Park\"></pk-avatar><pk-avatar name=\"Ty Ng\"></pk-avatar></pk-avatar-group><div class=\"cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start\"><pk-tag removable>Green</pk-tag><pk-tag removable>Variant</pk-tag><pk-tag>Signed</pk-tag></div><div class=\"cluster cluster--horizontal cluster--gap-md cluster--align-center cluster--justify-start\"><pk-badge dot variant=\"ok\">Online</pk-badge><pk-badge dot variant=\"warn\">Syncing</pk-badge><pk-badge dot variant=\"danger\">Offline</pk-badge></div></div></pk-card>\n</div>\n<div class=\"split\">\n<pk-card heading=\"Product\"><pk-field-list><dt>SKU</dt><dd><code>AC-001</code></dd><dt>Status</dt><dd><span class=\"chip chip-success\">Active</span></dd><dt>Vendor</dt><dd>Acme Supply</dd><dt>Cost</dt><dd>$2.10</dd></pk-field-list><pk-divider>Notes</pk-divider><pk-hint label=\"What is landed cost?\">Freight and duties added to the item cost; it is a margin view and never changes the recorded cost.</pk-hint></pk-card>\n<pk-card heading=\"Widget 1\" orientation=\"horizontal\"><pk-media slot=\"media\" ratio=\"4/3\" caption=\"Variant cover\"><svg viewBox=\"0 0 4 3\" role=\"img\" aria-label=\"Placeholder cover\"><rect width=\"4\" height=\"3\" fill=\"currentColor\" opacity=\"0.15\"></rect></svg></pk-media><p>First printing, near mint.</p></pk-card>\n</div>\n<div class=\"split\">\n<pk-card heading=\"Receive date\"><pk-calendar value=\"2026-09-19\" marks='[\"2026-09-05\",\"2026-09-24\"]'></pk-calendar></pk-card>\n<pk-card heading=\"Categories\"><pk-tree label=\"Categories\"><pk-tree-item label=\"Books\" expanded selected><pk-tree-item label=\"Green\"></pk-tree-item><pk-tree-item label=\"DC\"></pk-tree-item></pk-tree-item><pk-tree-item label=\"Cards\"><pk-tree-item label=\"Puzzles\"></pk-tree-item></pk-tree-item></pk-tree></pk-card>\n</div>\n<pk-accordion exclusive><pk-accordion-item heading=\"Shipping\" open>Ships in 2 business days.</pk-accordion-item><pk-accordion-item heading=\"Returns\">30 days, unopened.</pk-accordion-item></pk-accordion>\n<pk-code-block label=\"import.json\" line-numbers max-height=\"12rem\">{ \"sku\": \"AC-001\", \"qty\": 24, \"unitCost\": 2.10 }</pk-code-block>\n<div class=\"cluster cluster--horizontal cluster--gap-md cluster--align-center cluster--justify-start\"><pk-skeleton variant=\"circle\"></pk-skeleton><pk-spinner label=\"Saving\"></pk-spinner><pk-spinner variant=\"dots\" label=\"Working\"></pk-spinner></div>\n<div class=\"prose\"><p class=\"eyebrow\">Note</p><p class=\"lead\">Press <kbd>Ctrl</kbd> <kbd>K</kbd> to search.</p><blockquote class=\"quote\">Count twice, receive once.</blockquote></div>\n</div>",
+        "html": "<pk-stack>\n<pk-grid min=\"14rem\">\n<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values=\"[12,15,14,17,18]\"></pk-stat>\n<pk-stat label=\"Open orders\" value=\"37\" delta=\"-3\" versus=\"last week\"></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert tone=\"positive\" versus=\"last month\"></pk-stat>\n<pk-stat label=\"Negative on hand\" value=\"3\" tone=\"critical\" href=\"#products\"></pk-stat>\n</pk-grid>\n<pk-grid columns=\"2\" min=\"20rem\">\n<pk-card heading=\"Sales by month\"><pk-chart kind=\"bar\" caption=\"Sales, thousands of dollars\"><table><thead><tr><th>Month</th><th>Sales</th></tr></thead><tbody><tr><th scope=\"row\">Jun</th><td>12</td></tr><tr><th scope=\"row\">Jul</th><td>15</td></tr><tr><th scope=\"row\">Aug</th><td>17</td></tr><tr><th scope=\"row\">Sep</th><td>18</td></tr></tbody></table></pk-chart></pk-card>\n<pk-card heading=\"Orders by channel\"><pk-chart kind=\"donut\" caption=\"Orders by channel\"><table><thead><tr><th>Channel</th><th>Orders</th></tr></thead><tbody><tr><th scope=\"row\">Web</th><td>52</td></tr><tr><th scope=\"row\">Market</th><td>31</td></tr><tr><th scope=\"row\">Live</th><td>17</td></tr></tbody></table></pk-chart></pk-card>\n</pk-grid>\n<pk-card heading=\"Fulfilment\"><pk-stack gap=\"sm\"><pk-chart kind=\"stack\" caption=\"Orders by stage\"><table><thead><tr><th>Stage</th><th>Orders</th></tr></thead><tbody><tr><th scope=\"row\">Shipped</th><td>50</td></tr><tr><th scope=\"row\">Packed</th><td>30</td></tr><tr><th scope=\"row\">Waiting</th><td>20</td></tr></tbody></table></pk-chart><pk-progress label=\"Receiving PO 1042\" value=\"18\" max=\"24\" show-value variant=\"ok\"></pk-progress></pk-stack></pk-card>\n<pk-table label=\"Products\" caption=\"Stock by product\" striped hover selectable sticky-header cards filterable max-height=\"24rem\" columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"title\",\"label\":\"Title\",\"sortable\":true},{\"key\":\"publisher\",\"label\":\"Publisher\",\"sortable\":true,\"hidePhone\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true},{\"key\":\"onHand\",\"label\":\"On hand\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"sku\":\"AC-001\",\"title\":\"Widget 1\",\"publisher\":\"Red\",\"price\":\"$4.99\",\"onHand\":12},{\"id\":2,\"sku\":\"AC-002\",\"title\":\"Widget 2\",\"publisher\":\"Red\",\"price\":\"$3.99\",\"onHand\":4},{\"id\":3,\"sku\":\"AC-010\",\"title\":\"Widget 10\",\"publisher\":\"Green\",\"price\":\"$4.99\",\"onHand\":21},{\"id\":4,\"sku\":\"AC-005\",\"title\":\"Saga #5\",\"publisher\":\"Blue\",\"price\":\"$16.99\",\"onHand\":7}]'>\n<pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n<pk-empty-state slot=\"empty\" heading=\"No products match\" description=\"Clear the filters to see everything.\"></pk-empty-state>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"12\" total=\"290\" page-size=\"25\"></pk-pagination>\n</pk-table>\n<pk-list-group variant=\"action\" label=\"Shortcuts\"><a href=\"#products\">Receive PO 1042 <pk-badge count=\"3\" variant=\"warn\"></pk-badge></a><a href=\"#products\">Print labels <pk-badge count=\"120\"></pk-badge></a><a href=\"#products\" aria-current=\"page\">Low stock report</a></pk-list-group>\n<pk-grid columns=\"2\" min=\"20rem\">\n<pk-card heading=\"Order 1042\"><pk-timeline label=\"Order history\"><pk-timeline-item heading=\"Delivered\" time=\"2026-09-18\" status=\"done\">Left at the front desk.</pk-timeline-item><pk-timeline-item heading=\"Shipped\" time=\"2026-09-16\" status=\"done\">Tracking 9400 1000 0000.</pk-timeline-item><pk-timeline-item heading=\"Packed\" time=\"2026-09-15\" status=\"active\"></pk-timeline-item><pk-timeline-item heading=\"Payment failed once\" time=\"2026-09-14\" status=\"danger\">Retried and cleared.</pk-timeline-item></pk-timeline></pk-card>\n<pk-card heading=\"Team\"><pk-stack gap=\"sm\"><pk-avatar-group max=\"3\" label=\"Assigned to Ada, Sam, Ana and 2 others\"><pk-avatar name=\"Ada Lovelace\" status=\"online\"></pk-avatar><pk-avatar name=\"Sam Lee\" status=\"away\"></pk-avatar><pk-avatar name=\"Ana Ruiz\"></pk-avatar><pk-avatar name=\"Jo Park\"></pk-avatar><pk-avatar name=\"Ty Ng\"></pk-avatar></pk-avatar-group><pk-cluster gap=\"sm\"><pk-tag removable>Green</pk-tag><pk-tag removable>Variant</pk-tag><pk-tag>Signed</pk-tag></pk-cluster><pk-cluster gap=\"md\"><pk-badge dot variant=\"ok\">Online</pk-badge><pk-badge dot variant=\"warn\">Syncing</pk-badge><pk-badge dot variant=\"danger\">Offline</pk-badge></pk-cluster></pk-stack></pk-card>\n</pk-grid>\n<pk-grid columns=\"2\" min=\"20rem\">\n<pk-card heading=\"Product\"><pk-field-list><dt>SKU</dt><dd><code>AC-001</code></dd><dt>Status</dt><dd><pk-badge variant=\"ok\">Active</pk-badge></dd><dt>Vendor</dt><dd>Acme Supply</dd><dt>Cost</dt><dd>$2.10</dd></pk-field-list><pk-divider>Notes</pk-divider><pk-hint label=\"What is landed cost?\">Freight and duties added to the item cost; it is a margin view and never changes the recorded cost.</pk-hint></pk-card>\n<pk-card heading=\"Widget 1\" orientation=\"horizontal\"><pk-media slot=\"media\" ratio=\"4/3\" caption=\"Variant cover\"><svg viewBox=\"0 0 4 3\" role=\"img\" aria-label=\"Placeholder cover\"><rect width=\"4\" height=\"3\" fill=\"currentColor\" opacity=\"0.15\"></rect></svg></pk-media><p>First printing, near mint.</p></pk-card>\n</pk-grid>\n<pk-grid columns=\"2\" min=\"20rem\">\n<pk-card heading=\"Receive date\"><pk-calendar value=\"2026-09-19\" marks='[\"2026-09-05\",\"2026-09-24\"]'></pk-calendar></pk-card>\n<pk-card heading=\"Categories\"><pk-tree label=\"Categories\"><pk-tree-item label=\"Books\" expanded selected><pk-tree-item label=\"Green\"></pk-tree-item><pk-tree-item label=\"DC\"></pk-tree-item></pk-tree-item><pk-tree-item label=\"Cards\"><pk-tree-item label=\"Puzzles\"></pk-tree-item></pk-tree-item></pk-tree></pk-card>\n</pk-grid>\n<pk-accordion exclusive><pk-accordion-item heading=\"Shipping\" open>Ships in 2 business days.</pk-accordion-item><pk-accordion-item heading=\"Returns\">30 days, unopened.</pk-accordion-item></pk-accordion>\n<pk-code-block label=\"import.json\" line-numbers max-height=\"12rem\">{ \"sku\": \"AC-001\", \"qty\": 24, \"unitCost\": 2.10 }</pk-code-block>\n<pk-cluster gap=\"md\"><pk-skeleton variant=\"circle\"></pk-skeleton><pk-spinner label=\"Saving\"></pk-spinner><pk-spinner variant=\"dots\" label=\"Working\"></pk-spinner></pk-cluster>\n<div class=\"prose\"><p class=\"eyebrow\">Note</p><p class=\"lead\">Press <kbd>Ctrl</kbd> <kbd>K</kbd> to search.</p><blockquote class=\"quote\">Count twice, receive once.</blockquote></div>\n</pk-stack>",
         "file": "samples/patterns/data-display/data-display.html"
     },
     {
@@ -2617,94 +2635,101 @@ export const LAYOUTS = [
         "id": "list",
         "title": "List page",
         "summary": "A search page: crumbs and actions, a toolbar and a grid whose rows navigate to a record page.",
-        "built": "PageHeader, Toolbar, Button, DataGrid, Chip.",
+        "built": "Page header, Breadcrumb, Toolbar, Button, Table, Badge.",
         "mobile": "Toolbar actions take their own row; the grid turns rows into cards with the first column as identity.",
         "used": [
+            "badge",
+            "breadcrumb",
             "button",
-            "chip",
             "page-header",
-            "table-content",
-            "toolbar",
-            "workspace"
+            "table",
+            "toolbar"
         ],
         "order": 1,
-        "html": "<header class=\"page-header\"><div class=\"page-header-titlebar\"><div class=\"page-header-actions\"><button class=\"btn-primary\">Add product</button></div></div></header><div class=\"toolbar\"><div class=\"toolbar-lead\"><strong class=\"toolbar-title\">Products</strong></div><div class=\"toolbar-actions\"><button class=\"btn-mini btn-ghost\">Export</button></div></div><table class=\"data\"><thead><tr><th>SKU</th><th>Title</th><th>Status</th></tr></thead><tbody><tr class=\"dg-clickable\"><td><code>AC-1001</code></td><td>Widget one</td><td><span class=\"chip chip-success\">Active</span></td></tr><tr class=\"dg-clickable\"><td><code>AC-1002</code></td><td>Widget two</td><td><span class=\"chip chip-muted\">Draft</span></td></tr></tbody></table>",
+        "html": "<pk-page-header heading=\"Products\" level=\"1\"><pk-breadcrumb slot=\"breadcrumb\"><a href=\"#\">Home</a><span aria-current=\"page\">Products</span></pk-breadcrumb><pk-button slot=\"actions\">Add product</pk-button></pk-page-header>\n<pk-table label=\"Products\" hover clickable cards columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"title\",\"label\":\"Title\"},{\"key\":\"status\",\"label\":\"Status\"}]' rows='[{\"id\":1,\"sku\":\"AC-1001\",\"title\":\"Widget one\",\"status\":\"Active\"},{\"id\":2,\"sku\":\"AC-1002\",\"title\":\"Widget two\",\"status\":\"Draft\"}]'>\n<pk-toolbar slot=\"toolbar\" heading=\"Products\"><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Export</pk-button></pk-toolbar>\n<code slot=\"cell-1-sku\">AC-1001</code><code slot=\"cell-2-sku\">AC-1002</code>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge><pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n</pk-table>",
         "file": "layouts/list/list.html"
     },
     {
         "id": "record",
         "title": "Record page",
         "summary": "One record: chips and actions under the top bar, a tab strip and read-only fields beside editable ones.",
-        "built": "RecordHeader, Chip, Tabs, Card, FieldList, FormField, Notice.",
+        "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert.",
         "mobile": "Header actions wrap; the tab strip scrolls sideways; FieldList stacks label over value.",
         "used": [
+            "alert",
+            "badge",
             "button",
             "card",
-            "chip",
-            "extras",
+            "field",
             "field-list",
-            "flyout",
-            "form-field",
-            "notice",
-            "record-header",
+            "input",
+            "page-header",
+            "stack",
+            "tab",
+            "tab-panel",
             "tabs"
         ],
         "order": 2,
-        "html": "<div class=\"record-header\"><div class=\"record-header-title\"><span class=\"chip chip-success\">Received</span></div><div class=\"record-header-actions\"><button class=\"btn-mini btn-ghost\">Print</button></div></div><div class=\"tabs tabs--scroll\" role=\"tablist\" data-pk-tabs=\"toggle\"><button class=\"tab active\" role=\"tab\" aria-selected=\"true\" tabindex=\"0\">Details</button><button class=\"tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Lines <span class=\"muted\">(3)</span></button><button class=\"tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">History</button></div><section class=\"card\"><div class=\"card-header\"><h2>Vendor</h2></div><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><label class=\"ff\"><span>Notes</span><input type=\"text\" value=\"Ship together\"></label></section><div class=\"notice notice--info\">Receiving this PO creates ledger entries.</div>",
+        "html": "<pk-page-header variant=\"record\"><pk-badge variant=\"ok\">Received</pk-badge><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button></pk-page-header>\n<pk-tabs scroll value=\"details\"><pk-tab value=\"details\">Details</pk-tab><pk-tab value=\"lines\" count=\"3\">Lines</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"details\"><pk-card heading=\"Vendor\"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label=\"Notes\"><pk-input value=\"Ship together\"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"lines\"><pk-card heading=\"Lines\"><p>Three lines on this order.</p></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-card heading=\"History\"><p>No changes yet.</p></pk-card></pk-tab-panel>\n</pk-tabs>\n<pk-alert kind=\"info\">Receiving this PO creates ledger entries.</pk-alert>",
         "file": "layouts/record/record.html"
     },
     {
         "id": "setup",
         "title": "Setup / CRUD page",
         "summary": "A short list of small records with an add form above it.",
-        "built": "PageHeader, Card, FormRow, FormField, CheckField, Button, DataTable.",
+        "built": "Card, Field row, Field, Checkbox, Button, Table.",
         "mobile": "Form rows stack; the table scrolls inside its own wrapper.",
         "used": [
             "button",
             "card",
-            "form-field",
-            "table-content",
-            "utilities",
-            "workspace"
+            "checkbox",
+            "field",
+            "field-row",
+            "input",
+            "stack",
+            "table"
         ],
         "order": 3,
-        "html": "<section class=\"card\"><div class=\"card-header\"><h2>Add category</h2></div><div class=\"form-row\"><label class=\"ff\"><span>Name</span><input type=\"text\" value=\"Books\"></label></div><label class=\"chk\"><input type=\"checkbox\" checked><span>Active</span></label><div class=\"u-mt-3\"><button class=\"btn-primary\">Add</button></div></section><div class=\"u-scroll-x\"><table class=\"data\"><thead><tr><th>Name</th><th class=\"num\">Products</th></tr></thead><tbody><tr><td>Books</td><td class=\"num\">42</td></tr><tr><td>Cards</td><td class=\"num\">17</td></tr></tbody></table></div>",
+        "html": "<pk-card heading=\"Add category\"><pk-stack><pk-field-row><pk-field label=\"Name\"><pk-input value=\"Books\"></pk-input></pk-field></pk-field-row><pk-checkbox checked>Active</pk-checkbox><div><pk-button>Add</pk-button></div></pk-stack></pk-card>\n<pk-table label=\"Categories\" cards columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"products\",\"label\":\"Products\",\"type\":\"number\"}]' rows='[{\"id\":1,\"name\":\"Books\",\"products\":42},{\"id\":2,\"name\":\"Cards\",\"products\":17}]'></pk-table>",
         "file": "layouts/setup/setup.html"
     },
     {
         "id": "tool",
         "title": "Tool page",
         "summary": "A one-shot operation: explain it, take an input, show the outcome.",
-        "built": "PageHeader, Card, FileUploadForm, Notice, Remedy, Loading.",
+        "built": "Card, Dropzone, Button, Spinner, Alert.",
         "mobile": "Everything is a single column already; the upload button keeps its normal size.",
         "used": [
+            "alert",
             "button",
             "card",
+            "cluster",
+            "dropzone",
             "flyout",
-            "form-field",
-            "loading",
-            "remedy"
+            "spinner"
         ],
         "order": 4,
-        "html": "<section class=\"card\"><div class=\"form-row\"><input type=\"file\" aria-label=\"Feed file\"><button class=\"btn-primary\">Import</button></div></section><p class=\"muted loading\" role=\"status\">Reading file…</p><div class=\"remedy\"><div class=\"remedy-body\">Two rows have no SKU.</div><div class=\"remedy-actions\"><button class=\"btn-mini btn-primary\">Review rows</button></div></div>",
+        "html": "<pk-card><pk-cluster align=\"end\"><pk-dropzone label=\"Feed file\" accept=\".csv,text/csv\">Drop a file here or click to choose</pk-dropzone><pk-button>Import</pk-button></pk-cluster></pk-card>\n<pk-cluster><pk-spinner label=\"Reading file\"></pk-spinner><span class=\"muted\" role=\"status\">Reading file…</span></pk-cluster>\n<pk-alert kind=\"warning\">Two rows have no SKU.<pk-button slot=\"action\" size=\"mini\">Review rows</pk-button></pk-alert>",
         "file": "layouts/tool/tool.html"
     },
     {
         "id": "wizard",
         "title": "Wizard",
         "summary": "A guided create flow: numbered steps, one card at a time, Back and Next.",
-        "built": "PageHeader, Tabs (as step strip), Card, FormField, Toolbar, Button.",
+        "built": "Stepper, Card, Field, Toolbar, Button.",
         "mobile": "The step strip scrolls; Back and Next share the last row.",
         "used": [
             "button",
             "card",
-            "extras",
-            "form-field",
-            "tabs",
+            "field",
+            "input",
+            "stack",
+            "step",
+            "stepper",
             "toolbar"
         ],
         "order": 5,
-        "html": "<div class=\"tabs tabs--scroll\" role=\"tablist\" data-pk-tabs=\"toggle\"><button class=\"tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">1 Basics</button><button class=\"tab active\" role=\"tab\" aria-selected=\"true\" tabindex=\"0\">2 Pricing</button><button class=\"tab\" role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">3 Review</button></div><section class=\"card\"><div class=\"card-header\"><h2>Pricing</h2></div><label class=\"ff\"><span>Price <span class=\"ff-required\" aria-hidden=\"true\">*</span></span><input type=\"text\" value=\"19.99\"></label><label class=\"ff\"><span>Cost</span><input type=\"text\" value=\"9.50\"></label></section><div class=\"toolbar\"><div class=\"toolbar-actions\"><button class=\"btn-ghost\">Back</button><button class=\"btn-primary\">Next</button></div></div>",
+        "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step heading=\"Basics\"></pk-step><pk-step heading=\"Pricing\"></pk-step><pk-step heading=\"Review\"></pk-step></pk-stepper>\n<pk-card heading=\"Pricing\"><pk-stack><pk-field label=\"Price\" required><pk-input value=\"19.99\"></pk-input></pk-field><pk-field label=\"Cost\"><pk-input value=\"9.50\"></pk-input></pk-field></pk-stack></pk-card>\n<pk-toolbar><pk-button slot=\"actions\" variant=\"ghost\">Back</pk-button><pk-button slot=\"actions\">Next</pk-button></pk-toolbar>",
         "file": "layouts/wizard/wizard.html"
     }
 ];
@@ -13839,11 +13864,11 @@ export const ELEMENTS = [
         "examples": [
             {
                 "title": "Horizontal stepper (clickable, linear)",
-                "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step title=\"Basics\" description=\"Name and type\"></pk-step><pk-step title=\"Pricing\" description=\"Cost and price\"></pk-step><pk-step title=\"Images\"></pk-step><pk-step title=\"Review\"></pk-step></pk-stepper>"
+                "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step heading=\"Basics\" description=\"Name and type\"></pk-step><pk-step heading=\"Pricing\" description=\"Cost and price\"></pk-step><pk-step heading=\"Images\"></pk-step><pk-step heading=\"Review\"></pk-step></pk-stepper>"
             },
             {
                 "title": "Vertical stepper with an error",
-                "html": "<pk-stepper label=\"Import\" current=\"2\" orientation=\"vertical\" errors=\"0\"><pk-step title=\"Upload\" description=\"File rejected\"></pk-step><pk-step title=\"Map columns\"></pk-step><pk-step title=\"Review\"></pk-step><pk-step title=\"Finish\"></pk-step></pk-stepper>"
+                "html": "<pk-stepper label=\"Import\" current=\"2\" orientation=\"vertical\" errors=\"0\"><pk-step heading=\"Upload\" description=\"File rejected\"></pk-step><pk-step heading=\"Map columns\"></pk-step><pk-step heading=\"Review\"></pk-step><pk-step heading=\"Finish\"></pk-step></pk-stepper>"
             }
         ]
     },

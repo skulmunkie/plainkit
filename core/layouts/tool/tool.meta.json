@@ -2,15 +2,16 @@
   "id": "tool",
   "title": "Tool page",
   "summary": "A one-shot operation: explain it, take an input, show the outcome.",
-  "built": "PageHeader, Card, FileUploadForm, Notice, Remedy, Loading.",
+  "built": "Card, Dropzone, Button, Spinner, Alert.",
   "mobile": "Everything is a single column already; the upload button keeps its normal size.",
   "used": [
+    "alert",
     "button",
     "card",
+    "cluster",
+    "dropzone",
     "flyout",
-    "form-field",
-    "loading",
-    "remedy"
+    "spinner"
   ],
   "order": 4
 }

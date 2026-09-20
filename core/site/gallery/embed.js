@@ -23,6 +23,9 @@ const tell = () => { if (!queued) queued = requestAnimationFrame(flush); };
 mountGallery(host, options).then(() => {
     if (options.chrome === 'none' && parent !== window) { new ResizeObserver(tell).observe(host); tell(); }
 }).catch(err => {
-    host.textContent = `The gallery could not start: ${err.message}`;
-    host.setAttribute('role', 'alert');
+    const alert = document.createElement('pk-alert');
+    alert.setAttribute('kind', 'danger');
+    alert.setAttribute('role', 'alert');
+    alert.textContent = `The gallery could not start: ${err.message}`;
+    host.replaceChildren(alert);
 });

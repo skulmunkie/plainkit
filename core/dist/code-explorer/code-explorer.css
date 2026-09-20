@@ -1,0 +1,133 @@
+/* The code explorer's own styles: loaded by element.js next to the page layer (tokens, base), tokens only. The panes, tabs, tree, inputs,
+   buttons and badges are pk-* elements; what is left here is the host, the code viewer (cv-*, tk-*), the outline (co-*) and the search
+   results (csr-*), none of which an element covers, plus the small ce-* layout classes around the elements. */
+
+/* The <code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
+code-explorer {
+    --ce-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    display: flex;
+    flex-direction: column;
+    height: var(--code-explorer-height, 32rem);
+    min-height: 0;
+    min-inline-size: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+code-explorer [hidden] { display: none !important; }
+code-explorer pk-workspace { --pk-workspace-pad: 0; }
+
+/* Nav pane: two search boxes, their buttons and the file tree. */
+.ce-nav { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
+.ce-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.ce-name { min-inline-size: 0; overflow-wrap: anywhere; }
+.ce-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-inline-size: 0; }
+.ce-folder { font-weight: 600; }
+code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
+.ce-muted { color: var(--color-muted); }
+.ce-error { margin: var(--space-1); color: var(--field-error); }
+
+/* Main pane: the tab strip of open files over the viewer. */
+.ce-main { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; min-inline-size: 0; }
+.ce-main pk-tabs { flex: none; padding-inline: var(--space-2); border-bottom: 1px solid var(--color-border); }
+.ce-main pk-tabs::part(list) { margin-bottom: 0; border-bottom: 0; }
+.ce-pane { display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; padding: var(--space-3); }
+.ce-pane pk-empty-state { margin: auto; }
+
+/* Aside pane: the outline or the usages of a word. */
+.ce-aside { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
+.ce-aside-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.ce-aside-head h2 { margin: 0; font-size: var(--text-read); }
+
+/* Outline. */
+.co { list-style: none; margin: 0; padding: 0; }
+.co-item {
+    display: flex; align-items: baseline; gap: var(--space-2); width: 100%; padding: var(--space-1) var(--space-2); border: 0; background: none;
+    color: inherit; font: inherit; font-size: var(--text-read); text-align: left; cursor: pointer; border-radius: var(--radius-sm);
+}
+.co-item:hover { background: var(--color-surface-alt); }
+.co-item:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.co-kind { flex: none; min-width: 4.5em; font-size: var(--text-meta); text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-accent); }
+.co-name { font-family: var(--ce-mono); overflow-wrap: anywhere; }
+.co-line { margin-left: auto; font-size: var(--text-meta); color: var(--color-muted); }
+.co-d1 { padding-left: var(--space-5); }
+.co-d2 { padding-left: var(--space-8); }
+.co-d3 { padding-left: var(--space-12); }
+
+/* Search results, also used for usages. */
+.csr { min-width: 0; }
+.csr-group { border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-2); overflow: hidden; }
+.csr-title { padding: var(--space-1) var(--space-2); font-family: var(--ce-mono); font-size: var(--text-read); background: var(--color-surface-alt); overflow-wrap: anywhere; }
+.csr-hit {
+    display: flex; gap: var(--space-2); width: 100%; text-align: left; cursor: pointer;
+    background: none; border: 0; border-top: 1px solid var(--color-border);
+    padding: var(--space-1) var(--space-2); color: inherit; font: inherit;
+}
+.csr-hit:hover { background: var(--color-surface-alt); }
+.csr-hit:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.csr-no { flex: none; min-width: 3em; text-align: right; color: var(--color-muted); font-family: var(--ce-mono); font-size: var(--text-meta); }
+.csr-text { font-family: var(--ce-mono); font-size: var(--text-meta); white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.csr-text mark { background: var(--csr-mark-bg); color: inherit; padding: 0; }
+
+/* Code viewer: a code-editor pane. The palette is local to the viewer (dark by default, like the app; light when data-theme="light")
+   so token colours keep their contrast on the editor background rather than on whatever surface the page uses. */
+.cv {
+    border: 1px solid var(--cv-border); border-radius: var(--radius-md); background: var(--cv-bg); color: var(--cv-text);
+    min-width: 0; overflow: hidden; box-shadow: var(--cv-shadow);
+}
+.cv-title {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding: var(--space-2) var(--space-3);
+    background: var(--cv-bar); border-bottom: 1px solid var(--cv-border); font-size: var(--text-read);
+}
+.cv-name { font-family: var(--ce-mono); font-weight: 600; overflow-wrap: anywhere; flex: 1 1 12rem; }
+.cv-meta { display: inline-flex; gap: var(--space-3); color: var(--cv-muted); font-size: var(--text-read); }
+.cv-lang { padding: 0 var(--space-2); border: 1px solid var(--cv-border); border-radius: var(--radius-pill); }
+.cv-count { white-space: nowrap; }
+.cv-notice { padding: var(--space-1) var(--space-3); font-size: var(--text-read); color: var(--cv-muted); background: var(--cv-bar); border-bottom: 1px solid var(--cv-border); }
+
+.cv-scroll { position: relative; max-height: 70vh; overflow: auto; font-family: var(--ce-mono); font-size: var(--text-read); line-height: 1.5; tab-size: 4; }
+.cv-scroll:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+
+.cv-row { display: flex; min-width: max-content; border-left: 3px solid transparent; }
+.cv-row:hover { background: var(--cv-hover); }
+.cv-row--focus { background: var(--cv-focus); border-left-color: var(--cv-focus-edge); }
+
+.cv-no {
+    position: sticky; left: 0; flex: none; min-width: 3.5em; padding: 0 0.7em; text-align: right;
+    color: var(--cv-muted); background: var(--cv-gutter); border-right: 1px solid var(--cv-border); user-select: none;
+}
+.cv-row--focus .cv-no { color: var(--cv-text); font-weight: 600; }
+
+.cv-code { white-space: pre; padding: 0 1em; cursor: text; }
+
+.cv-match { background: var(--cv-match); border-radius: var(--radius-xs); }
+.cv-word { background: var(--cv-word); border-radius: var(--radius-xs); box-shadow: 0 0 0 1px var(--cv-word); }
+
+.tk-keyword { color: var(--cv-keyword); }
+.tk-string { color: var(--cv-string); }
+.tk-comment { color: var(--cv-comment); font-style: italic; }
+.tk-number { color: var(--cv-number); }
+.tk-type { color: var(--cv-type); }
+.tk-tag { color: var(--cv-tag); }
+.tk-attribute { color: var(--cv-attr); }
+.tk-directive { color: var(--cv-directive); }
+.tk-key { color: var(--cv-key); }
+
+.cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.cv--fill .cv-scroll { flex: 1; min-height: 0; max-height: none; }
+
+@media (max-width: 640px) {
+    .cv-scroll { font-size: var(--text-meta); max-height: 60vh; }
+    .cv--fill .cv-scroll { max-height: none; }
+    .cv-no { min-width: 2.8em; padding: 0 0.4em; }
+}
+
+/* Parts of the outline and the trail that the explorer itself does not draw but the class-based samples and other pages still use. */
+.co-active { background: var(--color-surface-alt); box-shadow: inset 3px 0 0 var(--color-accent); }
+.co-detail { font-size: var(--text-meta); }
+
+.cnb { display: flex; align-items: center; gap: var(--space-1); min-width: 0; margin-bottom: var(--space-1); }
+.cnb-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); list-style: none; margin: 0 0 0 var(--space-1); padding: 0; min-width: 0; font-size: var(--text-read); }
+.cnb-trail li { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.cnb-folder { border: 0; background: none; padding: 0; font: inherit; color: var(--color-link, var(--color-accent)); cursor: pointer; }
+.cnb-folder:hover { text-decoration: underline; }
+.cnb-file { font-weight: 600; overflow-wrap: anywhere; }

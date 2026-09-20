@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { ensureStyles, styleUrls, loadJson } from '../js/mount-support.js';
 import { collectSnapshot, symbolsOf } from '../tools/snapshot.mjs';
-import { SnapshotProvider } from '../js/code-explorer/providers.js';
+import { SnapshotProvider } from '../modules/code-explorer/providers.js';
 import { mountCodeExplorer } from '../modules/code-explorer/code-explorer.js';
 
 // A document just big enough for the mount code: links load the moment they are appended.

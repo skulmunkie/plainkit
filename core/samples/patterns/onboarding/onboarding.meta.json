@@ -2,15 +2,17 @@
   "id": "onboarding",
   "title": "Onboarding checklist",
   "summary": "A short checklist with a progress bar: done, current and upcoming steps, and one clear next action.",
-  "built": "Stepper, Progress, List group, Button.",
+  "built": "Card, Progress, Stepper, List group, Button.",
   "mobile": "The stepper wraps; the next action is full width.",
   "used": [
     "button",
     "card",
-    "extras",
     "flyout",
-    "spacing",
-    "utilities"
+    "list-group",
+    "progress",
+    "stack",
+    "step",
+    "stepper"
   ],
   "order": 7
 }

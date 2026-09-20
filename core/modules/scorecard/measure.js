@@ -17,14 +17,14 @@ export function watchVitals(win) {
     return v;
 }
 
-// Render and lay out a table of n product rows off-screen, in ms.
+// Render and lay out a pk-table of n product rows off-screen, in ms. The status cell is plain text: the test times the table, not n badge elements.
 export function timeRows(doc, n) {
     const host = doc.createElement('div');
     host.style.cssText = 'position:absolute;left:-10000px;top:0;width:900px';
     doc.body.append(host);
-    const rows = Array.from({ length: n }, (_, i) => `<tr><td><code>SKU-${i}</code></td><td>Title of product ${i}</td><td><span class="chip chip-success">Active</span></td><td class="num">$${(i % 90) + 9}.99</td></tr>`).join('');
+    const rows = Array.from({ length: n }, (_, i) => `<tr><td><code>SKU-${i}</code></td><td>Title of product ${i}</td><td>Active</td><td class="num">$${(i % 90) + 9}.99</td></tr>`).join('');
     const t0 = performance.now();
-    host.innerHTML = `<table class="data"><thead><tr><th>SKU</th><th>Title</th><th>Status</th><th class="num">Price</th></tr></thead><tbody>${rows}</tbody></table>`;
+    host.innerHTML = `<pk-table density="compact"><table><thead><tr><th>SKU</th><th>Title</th><th>Status</th><th class="num">Price</th></tr></thead><tbody>${rows}</tbody></table></pk-table>`;
     host.offsetHeight; // force layout
     doc.defaultView.getComputedStyle(host.querySelector('tbody tr:last-child td')).color;
     const ms = performance.now() - t0;

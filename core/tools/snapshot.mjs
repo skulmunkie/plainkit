@@ -1,6 +1,6 @@
 // Emits a static snapshot of a folder for the code explorer: node core/tools/snapshot.mjs [folder] [output.json]
 // With no arguments it snapshots the SDK's own files into site/files/snapshot.json (the SDK's Files page). The format is documented in
-// js/code-explorer/providers.js: { version, generated, files: [ { path, language, content, symbols } ] }.
+// modules/code-explorer/providers.js: { version, generated, files: [ { path, language, content, symbols } ] }.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

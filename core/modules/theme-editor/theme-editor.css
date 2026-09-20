@@ -8,8 +8,6 @@
 
 .te-toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-3); align-items: end; }
 
-.te-summary { justify-content: space-between; }
-
 .te-list { display: flex; flex-direction: column; }
 
 .te-row { display: grid; grid-template-columns: minmax(9rem, 16rem) minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }

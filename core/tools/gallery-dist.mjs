@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Files copied as they are, plus the rewritten ones. standalone.js and index.html are the SDK site's own host page and stay out.
-const COPY = ['gallery.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js'];
+const COPY = ['gallery.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js'];
 
 // The dist layout puts js/, plainkit.css and icons.svg one level above the gallery folder, not two: drop one "../" from a specifier that
 // climbs out of the folder. depth is how many folders deep the file sits inside the gallery folder.
@@ -27,6 +27,9 @@ export const HAS_SITE = false;
 
 // Where the full-page templates live, relative to this folder.
 export const TEMPLATES_DIR = 'templates/';
+
+// The page that hosts a pattern or layout fragment as a whole page.
+export const PREVIEW = 'preview.html';
 `;
 
 export function galleryDist(read, root, dataText) {
@@ -35,15 +38,20 @@ export function galleryDist(read, root, dataText) {
     for (const f of COPY) files.set(f, relocate(read(path.join(dir, f))));
     files.set('gallery.data.js', dataText);
     files.set('paths.js', paths);
-    files.set('boots/code-explorer.js', relocate(read(path.join(dir, 'boots', 'code-explorer.js')), 1));
-    files.set('embed.html', read(path.join(dir, 'embed.html')).replace('href="../../plainkit.css">', 'href="../plainkit.css">\n<link rel="stylesheet" href="../plainkit-compat.css">').replace('href="../site.css"', 'href="site.css"'));
+    files.set('boots/code-explorer.js', relocate(read(path.join(dir, 'boots', 'code-explorer.js')), 1).replaceAll('/modules/code-explorer/', '/code-explorer/'));
+    // The gallery's own chrome and pages are pk-* elements, so the embed page needs only the page layer; the class-based components are
+    // for the samples, and their frames load the compat stylesheet themselves (PAGE_CSS in paths.js).
+    files.set('embed.html', read(path.join(dir, 'embed.html')).replace('href="../../plainkit.css">', 'href="../plainkit.css">').replace('href="../site.css"', 'href="site.css"'));
+    // The preview host (patterns and layouts as a whole page) loads the same stylesheets as the embed page.
+    files.set('preview.html', read(path.join(dir, 'preview.html')).replace('href="../../plainkit.css">', 'href="../plainkit.css">\n<link rel="stylesheet" href="../plainkit-compat.css">'));
     // The full-page templates sit at the same depth under dist/gallery/templates as under samples/templates, so their relative paths hold;
     // they only need the compat stylesheet added and the toast module's dist name.
     const tdir = path.join(root, 'samples', 'templates');
     for (const f of fs.readdirSync(tdir, { recursive: true }).map(x => x.replaceAll('\\', '/')).filter(x => /\.(html|js)$/.test(x)).sort()) {
         files.set(`templates/${f}`, read(path.join(tdir, f))
             .replace('href="../../../plainkit.css">', 'href="../../../plainkit.css">\n<link rel="stylesheet" href="../../../plainkit-compat.css">')
-            .replace('../../../elements/toast-stack/toast-stack.element.js', '../../../elements/toast-stack.js'));
+            .replace('../../../elements/toast-stack/toast-stack.element.js', '../../../elements/toast-stack.js')
+            .replace('../../site/gallery/preview.html', '../preview.html'));
     }
     files.set('site.css', read(path.join(root, 'site', 'site.css')));
     files.set('tokens.css', read(path.join(root, 'tokens', 'tokens.css')));

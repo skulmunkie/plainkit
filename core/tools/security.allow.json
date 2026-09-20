@@ -5,9 +5,13 @@
       "count": 6,
       "source": "Markup assembled from gallery.data.js (generated from the repo's component folders) with every dynamic value passed through esc()."
     },
-    "js/code-explorer/element.js": {
-      "count": 10,
-      "source": "Provider data (file paths, code lines, search hits) is escaped with esc() before interpolation; tokens are wrapped in fixed spans."
+    "site/gallery/preview.js": {
+      "count": 1,
+      "source": "One sink: the pattern or layout fragment picked by id from gallery.data.js (generated from the repo's own sample files); nothing from the query string is interpolated."
+    },
+    "modules/code-explorer/element.js": {
+      "count": 1,
+      "source": "One helper (fill) writes every piece of the explorer's markup: provider data (file paths, code lines, search hits) is escaped with esc() before interpolation and tokens are wrapped in fixed spans."
     },
     "modules/scorecard/scorecard.js": {
       "count": 1,
@@ -25,17 +29,9 @@
       "count": 1,
       "source": "The element class's static template: markup authored in elements/<name>/<name>.html and inlined by the build, parsed once into a template element."
     },
-    "site/shell.js": {
-      "count": 1,
-      "source": "Static navigation markup from the PAGES constant and fixed strings."
-    },
     "samples/templates/chrome.js": {
       "count": 4,
       "source": "Static example-page chrome from constants; page title and crumbs come from the page's own script."
-    },
-    "site/reference/page.js": {
-      "count": 1,
-      "source": "Fixed sample markup constants in the same file, rendered twice (dark and light)."
     }
   },
   "dynamicScript": [],
