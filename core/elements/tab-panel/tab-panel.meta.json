@@ -31,7 +31,7 @@
   "methods": [],
   "a11y": "Exposes role=tabpanel; pk-tabs sets aria-labelledby to its tab.",
   "blazor": {
-    "component": "TabPanel",
+    "component": "PkTabPanel",
     "params": [
       {
         "name": "Value",

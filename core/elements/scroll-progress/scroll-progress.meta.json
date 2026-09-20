@@ -31,7 +31,7 @@
   "a11y": "Decorative (aria-hidden); the scroll position is already available to assistive tech.",
   "mobile": "3px bar; ignores the safe-area inset because it sits at the top edge of the content.",
   "blazor": {
-    "component": "ScrollProgress",
+    "component": "PkScrollProgress",
     "params": [
       {
         "name": "For",

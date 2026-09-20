@@ -97,7 +97,7 @@
   "methods": [],
   "a11y": "Plain text with a heading whose level you choose. Actions are real buttons and links. Set announce when it replaces content after a search or filter so the change is announced politely.",
   "blazor": {
-    "component": "EmptyState",
+    "component": "PkEmptyState",
     "existing": true,
     "params": [
       {

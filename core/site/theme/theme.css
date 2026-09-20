@@ -1,27 +1,7 @@
-/* Theme editor chrome. Tokens only. */
+/* Theme editor page. The editor's own chrome is modules/theme-editor/theme-editor.css. Tokens only. */
 
-.te-pane { padding: var(--space-4); }
-
-.te-row td { vertical-align: middle; }
-
-.te-inputs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-
-.te-inputs input[type="text"] { min-width: 9rem; flex: 1 1 9rem; }
-
-.te-inputs input[type="number"] { width: 6rem; }
-
-.te-inputs input[type="color"] { width: var(--touch-target); height: 2rem; padding: 0; border: 1px solid var(--color-input-border); background: transparent; }
-
-.te-changed td:first-child { box-shadow: inset 3px 0 0 var(--color-accent); }
-
-.te-fieldset { border: 0; padding: 0; margin: 0; }
-
-.te-preview { width: 100%; }
-
-.te-export { width: 100%; min-height: 12rem; font-family: ui-monospace, Consolas, monospace; font-size: var(--text-sm); }
-
-.te-pairs td { overflow-wrap: anywhere; }
+#te-host { padding: var(--space-4); }
 
 @media (max-width: 640px) {
-    .te-pane { padding: var(--space-3); }
+    #te-host { padding: var(--space-3); }
 }

@@ -62,7 +62,7 @@
   "methods": [],
   "a11y": "role=separator (with aria-orientation) unless decorative is set.",
   "blazor": {
-    "component": "Divider",
+    "component": "PkDivider",
     "params": [
       {
         "name": "Vertical",

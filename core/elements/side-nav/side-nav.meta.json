@@ -127,7 +127,7 @@
   "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
   "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",
   "blazor": {
-    "component": "NavMenu",
+    "component": "PkSideNav",
     "params": [
       {
         "name": "Label",

@@ -223,6 +223,7 @@ export const dataDisplayCases = [
         const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
         const el = await t.mount('<pk-gallery kind="controls" group="Forms & inputs" theme="light" width="phone" filter="tag"></pk-gallery>');
         const frame = el.part('frame');
+        frame.loading = 'eager'; // The stage sits off-screen, where a lazy frame may never be asked to load; the element keeps loading=lazy for real pages, the test forces it.
         t.ok(/[?&]chrome=none\b/.test(frame.getAttribute('src')) && /group=forms-inputs/.test(frame.getAttribute('src')), 'the attributes are in the frame address');
         const doc = await until(() => frame.contentDocument?.querySelectorAll('#gx-view h1').length && frame.contentDocument, 'the gallery view');
         t.eq([...doc.querySelectorAll('#gx-view h1')].map(h => h.textContent).join(), 'TagInput', 'the filter narrows the group to one control');
@@ -239,6 +240,7 @@ export const dataDisplayCases = [
     ['gallery: chrome full keeps the contents nav, cut down to the requested control', async t => {
         const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
         const el = await t.mount('<pk-gallery chrome="full" control="button" height="420"></pk-gallery>');
+        el.part('frame').loading = 'eager'; // The stage sits off-screen, where a lazy frame may never be asked to load; the element keeps loading=lazy for real pages, the test forces it.
         const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav .snav-link') && el.part('frame').contentDocument, 'the nav');
         t.eq([...doc.querySelectorAll('#gx-nav .snav-sub a')].map(a => a.textContent).join(), 'Button');
         t.ok(doc.querySelector('.workspace-bar'), 'the toolbar is there');

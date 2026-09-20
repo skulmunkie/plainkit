@@ -2743,7 +2743,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Each item is a native details and summary, so Enter and Space toggle it and find-in-page opens matches. The accordion only coordinates the items.",
         "blazor": {
-            "component": "Accordion",
+            "component": "PkAccordion",
             "params": [
                 {
                     "name": "Exclusive",
@@ -2846,7 +2846,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Native details and summary semantics with a 44px header; the chevron is decorative. The animation is skipped under prefers-reduced-motion.",
         "blazor": {
-            "component": "AccordionItem",
+            "component": "PkAccordionItem",
             "params": [
                 {
                     "name": "Heading",
@@ -3012,7 +3012,7 @@ export const ELEMENTS = [
         "a11y": "role=alert for warning and danger, role=status for info and success, applied to the host; the dismiss button is labelled; colour is never the only signal (icon and heading).",
         "mobile": "Actions wrap onto their own line; the dismiss button is 44px.",
         "blazor": {
-            "component": "Notice",
+            "component": "PkAlert",
             "params": [
                 {
                     "name": "Kind",
@@ -3165,7 +3165,7 @@ export const ELEMENTS = [
         "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
         "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
         "blazor": {
-            "component": "AppShell",
+            "component": "PkAppShell",
             "params": [
                 {
                     "name": "SidebarContent",
@@ -3332,7 +3332,7 @@ export const ELEMENTS = [
         ],
         "a11y": "role=img with the name (and status) as its label; the image itself has an empty alt because the host already names it.",
         "blazor": {
-            "component": "Avatar",
+            "component": "PkAvatar",
             "params": [
                 {
                     "name": "Name",
@@ -3422,7 +3422,7 @@ export const ELEMENTS = [
         ],
         "a11y": "role=group with a label; the +N tile is text, so the count of hidden people is available without seeing them.",
         "blazor": {
-            "component": "AvatarGroup",
+            "component": "PkAvatarGroup",
             "params": [
                 {
                     "name": "Max",
@@ -3505,7 +3505,7 @@ export const ELEMENTS = [
         "a11y": "A real button with a text label; after scrolling, focus moves to the top of the scroller so keyboard users are not left at the bottom.",
         "mobile": "44px tall; clears the device safe area.",
         "blazor": {
-            "component": "BackToTop",
+            "component": "PkBackToTop",
             "params": [
                 {
                     "name": "For",
@@ -3634,7 +3634,7 @@ export const ELEMENTS = [
         ],
         "a11y": "The text is the accessible name; put a noun in the slot (\"4 unread\") when the count alone is ambiguous. Dot mode never relies on colour alone: the label states the status.",
         "blazor": {
-            "component": "Badge",
+            "component": "PkBadge",
             "params": [
                 {
                     "name": "Variant",
@@ -3736,7 +3736,7 @@ export const ELEMENTS = [
         "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded.",
         "mobile": "More than three crumbs fold the middle ones; links and the fold button are 44px tall.",
         "blazor": {
-            "component": "Breadcrumb",
+            "component": "PkBreadcrumb",
             "params": [
                 {
                     "name": "Label",
@@ -3967,7 +3967,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A native button lives in the shadow root, so it is focusable, activates on Enter and Space and exposes the button role. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus. Focus ring and the 44px phone target are built in.",
         "blazor": {
-            "component": "Button",
+            "component": "PkButton",
             "params": [
                 {
                     "name": "Variant",
@@ -4126,7 +4126,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
         "blazor": {
-            "component": "ButtonGroup",
+            "component": "PkButtonGroup",
             "params": [
                 {
                     "name": "Orientation",
@@ -4304,7 +4304,7 @@ export const ELEMENTS = [
         ],
         "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels.",
         "blazor": {
-            "component": "Calendar",
+            "component": "PkCalendar",
             "params": [
                 {
                     "name": "Value",
@@ -4517,7 +4517,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The title is exposed as a heading whose level you choose with level, so the card fits the page outline wherever it sits. With href the card holds one link named by the heading, so there is a single tab stop and no nested interactive content.",
         "blazor": {
-            "component": "Card",
+            "component": "PkCard",
             "params": [
                 {
                     "name": "Heading",
@@ -4575,7 +4575,7 @@ export const ELEMENTS = [
                 }
             ],
             "existing": true,
-            "notes": "Keeps the existing Card parameters (Title maps to heading)."
+            "notes": "Keeps the existing PkCard parameters (Title maps to heading)."
         },
         "examples": [
             {
@@ -4699,7 +4699,7 @@ export const ELEMENTS = [
         ],
         "a11y": "The svg is role=img with a generated text alternative listing the values; the source table stays in a details for exact numbers. Series colours are the chart tokens and every multi-series chart has a legend, so colour is not the only key.",
         "blazor": {
-            "component": "Chart",
+            "component": "PkChart",
             "params": [
                 {
                     "name": "Kind",
@@ -4921,7 +4921,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A native checkbox inside its label, so it is named by its text and toggled by Space; indeterminate is announced as mixed; invalid sets aria-invalid and a red border. Rows are 44px tall on a phone.",
         "blazor": {
-            "component": "CheckField",
+            "component": "PkCheckbox",
             "params": [
                 {
                     "name": "Checked",
@@ -4991,6 +4991,140 @@ export const ELEMENTS = [
                 "html": "<pk-checkbox master=\"rows\">Select all</pk-checkbox>\n<pk-checkbox group=\"rows\" checked>Widget 1</pk-checkbox>\n<pk-checkbox group=\"rows\">Widget 2</pk-checkbox>"
             }
         ]
+    },
+    {
+        "tag": "pk-cluster",
+        "title": "Cluster",
+        "group": "Layout",
+        "summary": "A wrapping row (or column) of controls with a fixed gap: the layout primitive for button rows, chip lists and toolbars.",
+        "props": [
+            {
+                "name": "direction",
+                "type": "enum",
+                "default": "horizontal",
+                "values": [
+                    "horizontal",
+                    "vertical"
+                ],
+                "reflect": true,
+                "description": "Row (wraps at the edge) or column."
+            },
+            {
+                "name": "gap",
+                "type": "enum",
+                "default": "sm",
+                "values": [
+                    "none",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl"
+                ],
+                "reflect": true,
+                "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default sm (the control gap)."
+            },
+            {
+                "name": "align",
+                "type": "enum",
+                "default": "center",
+                "values": [
+                    "start",
+                    "center",
+                    "end",
+                    "stretch",
+                    "baseline"
+                ],
+                "reflect": true,
+                "description": "Cross-axis alignment of the items."
+            },
+            {
+                "name": "justify",
+                "type": "enum",
+                "default": "start",
+                "values": [
+                    "start",
+                    "center",
+                    "end",
+                    "between"
+                ],
+                "reflect": true,
+                "description": "Main-axis distribution of the items."
+            },
+            {
+                "name": "nowrap",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Keep a horizontal cluster on one line instead of wrapping (wrapping is the default)."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "The items to lay out."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-cluster-gap",
+                "description": "Overrides the gap prop with any length.",
+                "default": "the gap token"
+            }
+        ],
+        "a11y": "A plain layout box with no role and no focus behaviour; keep the DOM order the reading order.",
+        "blazor": {
+            "component": "PkCluster",
+            "params": [
+                {
+                    "name": "Direction",
+                    "prop": "direction",
+                    "type": "string"
+                },
+                {
+                    "name": "Gap",
+                    "prop": "gap",
+                    "type": "string"
+                },
+                {
+                    "name": "Align",
+                    "prop": "align",
+                    "type": "string"
+                },
+                {
+                    "name": "Justify",
+                    "prop": "justify",
+                    "type": "string"
+                },
+                {
+                    "name": "NoWrap",
+                    "prop": "nowrap",
+                    "type": "bool"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Wrapping row",
+                "html": "<pk-cluster gap=\"sm\"><pk-button>One</pk-button><pk-button variant=\"ghost\">Two</pk-button><pk-badge>Three</pk-badge></pk-cluster>"
+            },
+            {
+                "title": "Spread to the ends",
+                "html": "<pk-cluster justify=\"between\"><span>Left</span><pk-button>Right</pk-button></pk-cluster>"
+            },
+            {
+                "title": "Vertical",
+                "html": "<pk-cluster direction=\"vertical\" gap=\"xs\" align=\"start\"><pk-badge>First</pk-badge><pk-badge>Second</pk-badge></pk-cluster>"
+            }
+        ],
+        "events": [],
+        "parts": [],
+        "methods": []
     },
     {
         "tag": "pk-code-block",
@@ -5113,7 +5247,7 @@ export const ELEMENTS = [
         ],
         "a11y": "The body is a labelled, focusable region so a keyboard can scroll it; the copy result is announced in a polite status region; line numbers are CSS-generated and not selectable. Lines are set as text, never parsed as HTML.",
         "blazor": {
-            "component": "CodeBlock",
+            "component": "PkCodeBlock",
             "params": [
                 {
                     "name": "Label",
@@ -5278,7 +5412,7 @@ export const ELEMENTS = [
         ],
         "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
         "blazor": {
-            "component": "ColourInput",
+            "component": "PkColourInput",
             "params": [
                 {
                     "name": "Value",
@@ -5523,7 +5657,7 @@ export const ELEMENTS = [
         ],
         "a11y": "ARIA 1.2 combobox: role=combobox, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input or button); Arrow keys open and move, Home and End jump (select mode), Enter picks, Escape closes, Tab closes, letters jump in select mode. The chosen option carries aria-selected and a check mark. Options are 44px tall on a phone; the list opens upward when there is no room below.",
         "blazor": {
-            "component": "SearchableCombo",
+            "component": "PkCombobox",
             "params": [
                 {
                     "name": "Value",
@@ -5710,7 +5844,7 @@ export const ELEMENTS = [
         "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled.",
         "mobile": "Full width at the top of the screen; rows are 44px; the list is the only scroller.",
         "blazor": {
-            "component": "CommandPalette",
+            "component": "PkCommandPalette",
             "params": [
                 {
                     "name": "Open",
@@ -5824,7 +5958,7 @@ export const ELEMENTS = [
         "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
         "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
         "blazor": {
-            "component": "ContextMenu",
+            "component": "PkContextMenu",
             "params": [
                 {
                     "name": "Open",
@@ -6028,7 +6162,7 @@ export const ELEMENTS = [
         "a11y": "Native <dialog>: focus is trapped and returned by the browser, the page behind is inert, Escape closes; labelled by its heading. A destructive confirm focuses Cancel.",
         "mobile": "Full screen below 640px with the header and footer pinned and only the body scrolling.",
         "blazor": {
-            "component": "Modal",
+            "component": "PkDialog",
             "params": [
                 {
                     "name": "IsOpen",
@@ -6181,7 +6315,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "role=separator (with aria-orientation) unless decorative is set.",
         "blazor": {
-            "component": "Divider",
+            "component": "PkDivider",
             "params": [
                 {
                     "name": "Vertical",
@@ -6368,7 +6502,7 @@ export const ELEMENTS = [
         "a11y": "A native modal dialog with an accessible name; focus returns to the opener on close; Escape and the backdrop close it (set persistent to keep the backdrop inert).",
         "mobile": "Left and right drawers are at most 90vw wide; the bottom sheet takes at most 85% of the height; swipe toward the edge it came from to close.",
         "blazor": {
-            "component": "FlyoutPanel",
+            "component": "PkDrawer",
             "params": [
                 {
                     "name": "IsOpen",
@@ -6553,7 +6687,7 @@ export const ELEMENTS = [
         "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
         "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
         "blazor": {
-            "component": "DropdownMenu",
+            "component": "PkDropdown",
             "params": [
                 {
                     "name": "Open",
@@ -6793,7 +6927,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A real focusable file input covers the zone, so the keyboard opens the picker and the zone shows the focus ring; the list is a polite live region; rejections are text (with the reason), not just red; each Remove button names its file. The whole zone is the tap target on a phone.",
         "blazor": {
-            "component": "FileUploadForm",
+            "component": "PkDropzone",
             "params": [
                 {
                     "name": "Accept",
@@ -6948,7 +7082,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Plain text with a heading whose level you choose. Actions are real buttons and links. Set announce when it replaces content after a search or filter so the change is announced politely.",
         "blazor": {
-            "component": "EmptyState",
+            "component": "PkEmptyState",
             "existing": true,
             "params": [
                 {
@@ -7083,6 +7217,10 @@ export const ELEMENTS = [
                 "description": "A rich label (overrides the label prop)."
             },
             {
+                "name": "label-action",
+                "description": "A small action beside the label, such as a reset to source button (a pk-button size mini, variant ghost). Clicking it does not focus the control."
+            },
+            {
                 "name": "help",
                 "description": "Rich help text (overrides the help prop)."
             }
@@ -7137,7 +7275,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The label click focuses the control. Ids cannot cross shadow roots, so the field sets label, description (help plus error), invalid, warning and required on an pk-* control, or aria-label and aria-description on a native one. Messages are polite live regions that are empty until used; the star is aria-hidden because required is set on the control.",
         "blazor": {
-            "component": "FormField",
+            "component": "PkField",
             "params": [
                 {
                     "name": "Label",
@@ -7180,6 +7318,11 @@ export const ELEMENTS = [
                     "type": "RenderFragment"
                 },
                 {
+                    "name": "LabelAction",
+                    "slot": "label-action",
+                    "type": "RenderFragment"
+                },
+                {
                     "name": "HintContent",
                     "slot": "help",
                     "type": "RenderFragment"
@@ -7199,6 +7342,10 @@ export const ELEMENTS = [
             {
                 "title": "Error and inline label",
                 "html": "<pk-field label=\"SKU\" error=\"SKU cannot contain spaces.\"><pk-input value=\"bad sku\"></pk-input></pk-field>\n<pk-field label=\"Weight\" layout=\"row\"><pk-input value=\"6.4\"></pk-input></pk-field>"
+            },
+            {
+                "title": "Action beside the label",
+                "html": "<pk-field label=\"Release date\" help=\"Copied from the source record.\"><pk-button slot=\"label-action\" variant=\"ghost\" size=\"mini\">↺ Source</pk-button><pk-input value=\"2026-10-14\"></pk-input></pk-field>"
             }
         ]
     },
@@ -7293,7 +7440,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "A real description list: slotted dt and dd are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
         "blazor": {
-            "component": "FieldList",
+            "component": "PkFieldList",
             "existing": true,
             "params": [
                 {
@@ -7379,7 +7526,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Plain layout with no role of its own.",
         "blazor": {
-            "component": "FieldRow",
+            "component": "PkFieldRow",
             "params": [
                 {
                     "name": "Align",
@@ -7488,7 +7635,7 @@ export const ELEMENTS = [
         ],
         "a11y": "Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
         "blazor": {
-            "component": "ValidationForm",
+            "component": "PkForm",
             "params": [
                 {
                     "name": "Validate",
@@ -7586,7 +7733,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Plain layout; the status text is not a live region (use a Notice for announcements). On a phone the buttons of a sticky bar share the width.",
         "blazor": {
-            "component": "FormActions",
+            "component": "PkFormActions",
             "params": [
                 {
                     "name": "Sticky",
@@ -7685,7 +7832,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The heading is a real h2 so the section is navigable by heading; the fields keep their own labels.",
         "blazor": {
-            "component": "FormSection",
+            "component": "PkFormSection",
             "params": [
                 {
                     "name": "Title",
@@ -7812,7 +7959,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
         "blazor": {
-            "component": "Gallery",
+            "component": "PkGallery",
             "params": [
                 {
                     "name": "Kind",
@@ -7867,6 +8014,100 @@ export const ELEMENTS = [
                 "html": "<pk-gallery chrome=\"full\" height=\"560\"></pk-gallery>"
             }
         ]
+    },
+    {
+        "tag": "pk-grid",
+        "title": "Grid",
+        "group": "Layout",
+        "summary": "Equal-width responsive columns: as many columns of at least min as fit, one column on a phone.",
+        "props": [
+            {
+                "name": "min",
+                "type": "string",
+                "default": "16rem",
+                "reflect": true,
+                "description": "Minimum column width as a CSS length (for example 12rem or 200px). Columns are equal width and never narrower than this, so the grid drops to one column when the container is narrower than two."
+            },
+            {
+                "name": "columns",
+                "type": "number",
+                "default": 0,
+                "reflect": true,
+                "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min."
+            },
+            {
+                "name": "gap",
+                "type": "enum",
+                "default": "md",
+                "values": [
+                    "none",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl"
+                ],
+                "reflect": true,
+                "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap)."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "The items to lay out."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-grid-min",
+                "description": "The column minimum; set by the min prop.",
+                "default": "16rem"
+            },
+            {
+                "name": "--pk-grid-columns",
+                "description": "The column cap; set by the columns prop.",
+                "default": "unset (no cap)"
+            }
+        ],
+        "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
+        "blazor": {
+            "component": "PkGrid",
+            "params": [
+                {
+                    "name": "Min",
+                    "prop": "min",
+                    "type": "string"
+                },
+                {
+                    "name": "Columns",
+                    "prop": "columns",
+                    "type": "int"
+                },
+                {
+                    "name": "Gap",
+                    "prop": "gap",
+                    "type": "string"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Auto columns",
+                "html": "<pk-grid min=\"10rem\"><pk-card heading=\"One\">A</pk-card><pk-card heading=\"Two\">B</pk-card><pk-card heading=\"Three\">C</pk-card><pk-card heading=\"Four\">D</pk-card></pk-grid>"
+            },
+            {
+                "title": "At most three columns",
+                "html": "<pk-grid columns=\"3\" min=\"8rem\" gap=\"lg\"><pk-card heading=\"A\">1</pk-card><pk-card heading=\"B\">2</pk-card><pk-card heading=\"C\">3</pk-card><pk-card heading=\"D\">4</pk-card></pk-grid>"
+            }
+        ],
+        "events": [],
+        "parts": [],
+        "methods": []
     },
     {
         "tag": "pk-hint",
@@ -7940,7 +8181,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "A real button with aria-expanded and aria-controls; the panel is a note region. It works by touch and keyboard, unlike a hover tooltip, and the panel never clips.",
         "blazor": {
-            "component": "Hint",
+            "component": "PkHint",
             "params": [
                 {
                     "name": "Label",
@@ -7973,6 +8214,342 @@ export const ELEMENTS = [
             {
                 "title": "Landed cost",
                 "html": "<pk-hint label=\"What is landed cost?\">Freight and duties added to the item cost.</pk-hint>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-icon",
+        "title": "Icon",
+        "group": "Media",
+        "summary": "A symbol from the SDK sprite, drawn in the surrounding text colour and size. The sprite is found next to the element module, so it works wherever dist is copied.",
+        "props": [
+            {
+                "name": "name",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The symbol id in the sprite (search, settings, orders, ...)."
+            },
+            {
+                "name": "size",
+                "type": "enum",
+                "default": "md",
+                "values": [
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl"
+                ],
+                "reflect": true,
+                "description": "md is 1.25em and follows the text; sm, lg and xl are fixed steps of the space scale."
+            },
+            {
+                "name": "label",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The accessible name. Without it the icon is decorative and hidden from assistive technology."
+            }
+        ],
+        "slots": [],
+        "events": [],
+        "parts": [
+            {
+                "name": "svg",
+                "description": "The svg element."
+            },
+            {
+                "name": "use",
+                "description": "The use element that points into the sprite."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-icon-size",
+                "description": "Width and height, overriding size.",
+                "default": "the size step"
+            }
+        ],
+        "methods": [],
+        "a11y": "With a label the host is role img with that name; without one it is aria-hidden, so put the meaning in the surrounding text (a button label) and leave the icon decorative. The stroke follows currentColor, so it meets the contrast of its text. Give an icon-only button a 44px target.",
+        "blazor": {
+            "component": "PkIcon",
+            "params": [
+                {
+                    "name": "Name",
+                    "prop": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "Size",
+                    "prop": "size",
+                    "type": "string"
+                },
+                {
+                    "name": "Label",
+                    "prop": "label",
+                    "type": "string"
+                }
+            ],
+            "notes": "Replaces Icon. Class-based icons used a relative sprite path; pk-icon resolves the sprite from its own module URL."
+        },
+        "examples": [
+            {
+                "title": "Follows text colour and size",
+                "html": "<p><pk-icon name=\"search\"></pk-icon> Search &nbsp; <pk-icon name=\"settings\" label=\"Settings\"></pk-icon> &nbsp; <pk-icon name=\"orders\" size=\"xl\"></pk-icon></p>"
+            },
+            {
+                "title": "Size steps",
+                "html": "<pk-icon name=\"search\" size=\"sm\"></pk-icon> <pk-icon name=\"search\"></pk-icon> <pk-icon name=\"search\" size=\"lg\"></pk-icon> <pk-icon name=\"search\" size=\"xl\"></pk-icon>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-image-gallery",
+        "title": "Image gallery",
+        "summary": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image and an add tile that picks files.",
+        "group": "Data display",
+        "props": [
+            {
+                "name": "images",
+                "type": "json",
+                "default": [],
+                "reflect": false,
+                "description": "The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown."
+            },
+            {
+                "name": "primary",
+                "type": "number",
+                "default": -1,
+                "reflect": true,
+                "description": "The index of the primary image; -1 uses the first image flagged primary in images, or none."
+            },
+            {
+                "name": "columns",
+                "type": "number",
+                "default": 0,
+                "reflect": true,
+                "description": "A fixed number of equal columns (1 to 12). 0 fits as many as min allows."
+            },
+            {
+                "name": "min",
+                "type": "string",
+                "default": "6.25rem",
+                "reflect": true,
+                "description": "The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0."
+            },
+            {
+                "name": "editable",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Show make-primary and remove buttons under each image and the add tile."
+            },
+            {
+                "name": "addLabel",
+                "type": "string",
+                "default": "Add image",
+                "reflect": false,
+                "description": "Text on the add tile."
+            },
+            {
+                "name": "accept",
+                "type": "string",
+                "default": "image/*",
+                "reflect": false,
+                "description": "The file types the add tile's picker offers."
+            }
+        ],
+        "slots": [],
+        "events": [
+            {
+                "name": "pk-primary-change",
+                "detail": {
+                    "index": "number",
+                    "src": "string",
+                    "previous": "number"
+                },
+                "description": "Make primary was pressed. Cancelable: preventDefault keeps the current primary (a controlled gallery updates images and primary itself)."
+            },
+            {
+                "name": "pk-remove",
+                "detail": {
+                    "index": "number",
+                    "src": "string"
+                },
+                "description": "Remove was pressed. Cancelable: preventDefault keeps the image. Otherwise it is taken out of images, and if it was the primary the first image becomes the primary."
+            },
+            {
+                "name": "pk-add",
+                "detail": {
+                    "files": "File[]",
+                    "names": "string[]"
+                },
+                "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images."
+            }
+        ],
+        "parts": [
+            {
+                "name": "grid",
+                "description": "The thumbnail list."
+            },
+            {
+                "name": "tile",
+                "description": "One thumbnail with its badges and buttons."
+            },
+            {
+                "name": "media",
+                "description": "The thumbnail's pk-media."
+            },
+            {
+                "name": "badge",
+                "description": "The Primary badge."
+            },
+            {
+                "name": "status",
+                "description": "The status badge (Staged and the like)."
+            },
+            {
+                "name": "actions",
+                "description": "The row of buttons under an image."
+            },
+            {
+                "name": "action",
+                "description": "A make-primary or remove pk-button."
+            },
+            {
+                "name": "add-tile",
+                "description": "The list item holding the add tile."
+            },
+            {
+                "name": "add",
+                "description": "The add tile (a label around the file input)."
+            },
+            {
+                "name": "add-icon",
+                "description": "The plus on the add tile."
+            },
+            {
+                "name": "add-text",
+                "description": "The text on the add tile."
+            },
+            {
+                "name": "file",
+                "description": "The file input."
+            },
+            {
+                "name": "viewer",
+                "description": "The pk-lightbox."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-image-gallery-radius",
+                "description": "Corner radius of the thumbnails and the add tile.",
+                "default": "var(--radius-lg)"
+            }
+        ],
+        "methods": [
+            {
+                "name": "view(index)",
+                "description": "Opens the lightbox at an image."
+            },
+            {
+                "name": "makePrimary(index)",
+                "description": "Marks an image primary, as the button does (raises pk-primary-change first)."
+            },
+            {
+                "name": "removeImage(index)",
+                "description": "Removes an image, as the button does (raises pk-remove first)."
+            }
+        ],
+        "a11y": "The grid is a list. Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
+        "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons and the add tile are 44px high, and there is no hover step.",
+        "blazor": {
+            "component": "PkImageGallery",
+            "params": [
+                {
+                    "name": "Images",
+                    "type": "IReadOnlyList<GalleryImage>",
+                    "map": "prop",
+                    "prop": "images"
+                },
+                {
+                    "name": "Primary",
+                    "type": "int",
+                    "default": -1,
+                    "map": "prop",
+                    "prop": "primary",
+                    "bind": {
+                        "event": "pk-primary-change",
+                        "value": "detail.index"
+                    }
+                },
+                {
+                    "name": "Columns",
+                    "type": "int",
+                    "default": 0,
+                    "map": "prop",
+                    "prop": "columns"
+                },
+                {
+                    "name": "Min",
+                    "type": "string",
+                    "default": "6.25rem",
+                    "map": "prop",
+                    "prop": "min"
+                },
+                {
+                    "name": "Editable",
+                    "type": "bool",
+                    "default": false,
+                    "map": "prop",
+                    "prop": "editable"
+                },
+                {
+                    "name": "AddLabel",
+                    "type": "string",
+                    "default": "Add image",
+                    "map": "prop",
+                    "prop": "addLabel"
+                },
+                {
+                    "name": "Accept",
+                    "type": "string",
+                    "default": "image/*",
+                    "map": "prop",
+                    "prop": "accept"
+                },
+                {
+                    "name": "OnPrimaryChange",
+                    "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>",
+                    "map": "event",
+                    "event": "pk-primary-change",
+                    "cancelable": true
+                },
+                {
+                    "name": "OnRemove",
+                    "type": "EventCallback<ImageGalleryRemoveEventArgs>",
+                    "map": "event",
+                    "event": "pk-remove",
+                    "cancelable": true
+                },
+                {
+                    "name": "OnAdd",
+                    "type": "EventCallback<ImageGalleryAddEventArgs>",
+                    "map": "event",
+                    "event": "pk-add"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Thumbnails with a primary image and an add tile",
+                "html": "<pk-image-gallery editable images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\",\"primary\":true},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\",\"status\":\"Staged\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
+            },
+            {
+                "title": "Read-only, two fixed columns",
+                "html": "<pk-image-gallery columns=\"2\" primary=\"1\" images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
             }
         ]
     },
@@ -8326,7 +8903,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone.",
         "blazor": {
-            "component": "TextInput",
+            "component": "PkInput",
             "params": [
                 {
                     "name": "Value",
@@ -8587,7 +9164,7 @@ export const ELEMENTS = [
         "a11y": "Native dialog with a label; the image has alt text from the item; the counter is a polite status; arrow keys and swipe navigate, Escape closes.",
         "mobile": "Previous and next sit at the bottom corners as 44px buttons; swipe left or right to change images.",
         "blazor": {
-            "component": "Lightbox",
+            "component": "PkLightbox",
             "params": [
                 {
                     "name": "Index",
@@ -8688,7 +9265,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The host is role=list and each row gets role=listitem unless it already has a role. Rows are native links, buttons or labels, so keyboard and names come from them. The current row uses aria-current. Actionable rows are at least 44px tall.",
         "blazor": {
-            "component": "ListGroup",
+            "component": "PkListGroup",
             "params": [
                 {
                     "name": "Variant",
@@ -8781,7 +9358,7 @@ export const ELEMENTS = [
         "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
         "mobile": "The label wraps; the spinner is 28px.",
         "blazor": {
-            "component": "LoadingOverlay",
+            "component": "PkLoadingOverlay",
             "params": [
                 {
                     "name": "Busy",
@@ -8816,6 +9393,131 @@ export const ELEMENTS = [
             {
                 "title": "Busy region",
                 "html": "<pk-loading-overlay busy label=\"Loading orders…\"><div class=\"card\"><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></div></pk-loading-overlay>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-local-time",
+        "title": "Local time",
+        "group": "Data display",
+        "summary": "A UTC instant written in the reader's own locale and time zone, as a date, a time, both, or relative to now (3 hours ago). Keeps a real time element inside, so the machine value stays readable.",
+        "props": [
+            {
+                "name": "datetime",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The instant: an ISO 8601 string (2026-09-19T14:30:00Z). A date-only value is a calendar day and is never shifted by the time zone."
+            },
+            {
+                "name": "format",
+                "type": "enum",
+                "default": "datetime",
+                "values": [
+                    "datetime",
+                    "date",
+                    "time",
+                    "relative"
+                ],
+                "reflect": true,
+                "description": "What to show. relative reads 3 hours ago and refreshes every 30 seconds while connected; its title holds the full date."
+            },
+            {
+                "name": "length",
+                "type": "enum",
+                "default": "medium",
+                "values": [
+                    "short",
+                    "medium",
+                    "long"
+                ],
+                "reflect": true,
+                "description": "How much of the date to spell out (9/19/26, Sep 19, 2026, September 19, 2026)."
+            },
+            {
+                "name": "locale",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "A BCP 47 tag such as de-DE; empty uses the reader's browser locale."
+            },
+            {
+                "name": "timeZone",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "An IANA zone such as Europe/Berlin; empty uses the reader's own zone."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "Fallback text, shown only while the datetime is empty or not a date."
+            }
+        ],
+        "events": [],
+        "parts": [
+            {
+                "name": "time",
+                "description": "The inner time element (its datetime attribute is the machine value)."
+            },
+            {
+                "name": "text",
+                "description": "The formatted text."
+            }
+        ],
+        "cssProperties": [],
+        "methods": [
+            {
+                "name": "formatLocal(value, options)",
+                "description": "The pure formatter the element uses: format, length, locale, timeZone and now."
+            }
+        ],
+        "a11y": "The text is inside a real time element carrying the datetime, so assistive technology and search see the exact instant. Relative text is not live-announced; the title holds the full date for pointer users. Prefer date or datetime where the exact moment matters.",
+        "blazor": {
+            "component": "PkLocalTime",
+            "params": [
+                {
+                    "name": "Value",
+                    "prop": "datetime",
+                    "type": "string"
+                },
+                {
+                    "name": "Format",
+                    "prop": "format",
+                    "type": "string"
+                },
+                {
+                    "name": "Length",
+                    "prop": "length",
+                    "type": "string"
+                },
+                {
+                    "name": "Locale",
+                    "prop": "locale",
+                    "type": "string"
+                },
+                {
+                    "name": "TimeZone",
+                    "prop": "timeZone",
+                    "type": "string"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment"
+                }
+            ],
+            "notes": "Replaces LocalDateTime; pass the UTC value as an ISO 8601 string (DateTime.ToString(\"o\")). Format DateOnly maps to format=\"date\"."
+        },
+        "examples": [
+            {
+                "title": "Date, time and both",
+                "html": "<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\"></pk-local-time></p>\n<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\" format=\"date\" length=\"long\"></pk-local-time> at <pk-local-time datetime=\"2026-09-19T14:30:00Z\" format=\"time\"></pk-local-time></p>"
+            },
+            {
+                "title": "Relative and another locale",
+                "html": "<p>Updated <pk-local-time datetime=\"2026-01-01T00:00:00Z\" format=\"relative\"></pk-local-time></p>\n<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\" locale=\"de-DE\" time-zone=\"Europe/Berlin\"></pk-local-time></p>"
             }
         ]
     },
@@ -8911,7 +9613,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "A real figure with a figcaption; slotted images keep their author-written alt text. Lightbox mode makes the box a focusable button (Enter and Space) named \"Enlarge\". The ratio reserves space so a late image never shifts the layout.",
         "blazor": {
-            "component": "Media",
+            "component": "PkMedia",
             "params": [
                 {
                     "name": "Ratio",
@@ -9077,7 +9779,7 @@ export const ELEMENTS = [
         "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props.",
         "mobile": "44px tall on a phone; the submenu chevron points down and the submenu opens inline.",
         "blazor": {
-            "component": "MenuItem",
+            "component": "PkMenuItem",
             "params": [
                 {
                     "name": "Type",
@@ -9285,7 +9987,7 @@ export const ELEMENTS = [
         "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
         "mobile": "44px tall.",
         "blazor": {
-            "component": "NavItem",
+            "component": "PkNavItem",
             "params": [
                 {
                     "name": "Href",
@@ -9454,7 +10156,7 @@ export const ELEMENTS = [
         "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
         "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
         "blazor": {
-            "component": "Navbar",
+            "component": "PkNavbar",
             "params": [
                 {
                     "name": "Label",
@@ -9670,7 +10372,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A role=group named by label; every cell is named \"Digit n of N\"; the first has one-time-code autocomplete so the OS can fill an SMS code; arrow keys, Home and End move between cells; numeric cells open the numeric keypad. Cells are 44px wide on a phone.",
         "blazor": {
-            "component": "OtpInput",
+            "component": "PkOtpInput",
             "params": [
                 {
                     "name": "Value",
@@ -9728,6 +10430,157 @@ export const ELEMENTS = [
         ]
     },
     {
+        "tag": "pk-page-header",
+        "title": "Page header",
+        "group": "Layout & structure",
+        "summary": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Stacks by its own width, with the actions full width and touch-sized on a phone.",
+        "props": [
+            {
+                "name": "heading",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The title. Without it (and without default or actions content) the title bar is not shown."
+            },
+            {
+                "name": "level",
+                "type": "number",
+                "default": 2,
+                "reflect": false,
+                "description": "The heading level the title exposes to assistive technology (aria-level)."
+            },
+            {
+                "name": "variant",
+                "type": "enum",
+                "default": "page",
+                "values": [
+                    "page",
+                    "section",
+                    "record"
+                ],
+                "reflect": true,
+                "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right)."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "Beside the title: status chips, badges or your own heading element."
+            },
+            {
+                "name": "breadcrumb",
+                "description": "A pk-breadcrumb (or any trail) above the title; hidden when empty."
+            },
+            {
+                "name": "actions",
+                "description": "Buttons at the right of the title bar; full width and touch-sized on a narrow container."
+            },
+            {
+                "name": "meta",
+                "description": "A note or metadata line under the title bar; hidden when empty."
+            }
+        ],
+        "events": [],
+        "parts": [
+            {
+                "name": "header",
+                "description": "The header element."
+            },
+            {
+                "name": "crumbs",
+                "description": "The breadcrumb row."
+            },
+            {
+                "name": "titlebar",
+                "description": "The row holding the title and the actions."
+            },
+            {
+                "name": "lead",
+                "description": "The title and the default slot."
+            },
+            {
+                "name": "title",
+                "description": "The title."
+            },
+            {
+                "name": "actions",
+                "description": "The actions wrapper."
+            },
+            {
+                "name": "meta",
+                "description": "The note line."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-page-header-padding",
+                "description": "Padding of the header.",
+                "default": "var(--space-1) 0"
+            },
+            {
+                "name": "--pk-page-header-title-size",
+                "description": "Title font size.",
+                "default": "var(--text-lg)"
+            }
+        ],
+        "methods": [],
+        "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark.",
+        "blazor": {
+            "component": "PkPageHeader",
+            "params": [
+                {
+                    "name": "Heading",
+                    "prop": "heading",
+                    "type": "string"
+                },
+                {
+                    "name": "Level",
+                    "prop": "level",
+                    "type": "int"
+                },
+                {
+                    "name": "Variant",
+                    "prop": "variant",
+                    "type": "string"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment?"
+                },
+                {
+                    "name": "BreadcrumbContent",
+                    "slot": "breadcrumb",
+                    "type": "RenderFragment?"
+                },
+                {
+                    "name": "ActionsContent",
+                    "slot": "actions",
+                    "type": "RenderFragment?"
+                },
+                {
+                    "name": "MetaContent",
+                    "slot": "meta",
+                    "type": "RenderFragment?"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Page: crumbs, title and actions",
+                "html": "<pk-page-header heading=\"PO 1042\" level=\"1\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
+            },
+            {
+                "title": "Section: title, action and note",
+                "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
+            },
+            {
+                "title": "Record: status chips and actions",
+                "html": "<pk-page-header variant=\"record\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Receive</pk-button>\n</pk-page-header>"
+            }
+        ]
+    },
+    {
         "tag": "pk-pager",
         "title": "Pager",
         "summary": "Page-level previous and next links between sibling pages, with an optional centre note (\"Step 2 of 5\"); table pagination is a separate control.",
@@ -9779,7 +10632,7 @@ export const ELEMENTS = [
         "a11y": "A nav landmark; links carry rel=\"prev\" and rel=\"next\" when the author sets them, and say where they go.",
         "mobile": "Stacks: the note on top, previous and next as full-width 44px buttons.",
         "blazor": {
-            "component": "Pager",
+            "component": "PkPager",
             "params": [
                 {
                     "name": "Label",
@@ -10004,7 +10857,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A nav landmark with a label; the current page has aria-current=page and every number button has a name (\"Page 3\"); previous and next are disabled at the ends; the ellipsis is decorative. Buttons are 44px on a phone.",
         "blazor": {
-            "component": "Pagination",
+            "component": "PkPagination",
             "params": [
                 {
                     "name": "Page",
@@ -10077,7 +10930,7 @@ export const ELEMENTS = [
                     "type": "bool"
                 }
             ],
-            "notes": "Two-way binding: @bind-Page and @bind-PageSize. DataGrid uses this element for its footer; DataGridRequest.Page is zero-based, the element's page is one-based."
+            "notes": "Two-way binding: @bind-Page and @bind-PageSize. PkTable uses this element for its footer. The element's page is one-based: a data source that counts pages from zero must add or subtract one."
         },
         "examples": [
             {
@@ -10255,7 +11108,7 @@ export const ELEMENTS = [
         "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
         "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
         "blazor": {
-            "component": "Popover",
+            "component": "PkPopover",
             "params": [
                 {
                     "name": "Open",
@@ -10505,7 +11358,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Built on the native progress element, so its role, value and range are exposed without extra ARIA; the label names it (aria-labelledby). Always give it a label. Indeterminate when no value applies.",
         "blazor": {
-            "component": "Progress",
+            "component": "PkProgress",
             "params": [
                 {
                     "name": "Value",
@@ -10716,7 +11569,7 @@ export const ELEMENTS = [
         ],
         "a11y": "role=radiogroup named by label; each option is a native radio in one tab stop with arrow-key movement; the segmented variant hides the radio visually but keeps it focusable and shows the focus ring on the segment. Options are 44px tall on a phone.",
         "blazor": {
-            "component": "RadioGroup",
+            "component": "PkRadioGroup",
             "params": [
                 {
                     "name": "Value",
@@ -10950,7 +11803,7 @@ export const ELEMENTS = [
         ],
         "a11y": "Native range inputs: arrow keys, Home, End and Page keys; each thumb of a dual slider is named \"<label> minimum\" and \"<label> maximum\". The 44px phone hit area comes from the taller wrapper. A form receives one entry (single) or two entries under the same name (dual).",
         "blazor": {
-            "component": "RangeSlider",
+            "component": "PkRange",
             "params": [
                 {
                     "name": "Value",
@@ -11114,7 +11967,7 @@ export const ELEMENTS = [
         ],
         "a11y": "An input rating is a radio group: each star is named \"3 stars\", arrow keys change the value and focus is visible. The read-only form is role=img with \"4 out of 5 stars\". Stars are 44px on a phone.",
         "blazor": {
-            "component": "Rating",
+            "component": "PkRating",
             "params": [
                 {
                     "name": "Value",
@@ -11189,7 +12042,7 @@ export const ELEMENTS = [
         "a11y": "Decorative (aria-hidden); the scroll position is already available to assistive tech.",
         "mobile": "3px bar; ignores the safe-area inset because it sits at the top edge of the content.",
         "blazor": {
-            "component": "ScrollProgress",
+            "component": "PkScrollProgress",
             "params": [
                 {
                     "name": "For",
@@ -11351,7 +12204,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A native select in the shadow root: keyboard, type-to-select and the platform picker are the browser's own. Named by label, described by description.",
         "blazor": {
-            "component": "SelectField",
+            "component": "PkSelect",
             "params": [
                 {
                     "name": "Value",
@@ -11501,7 +12354,7 @@ export const ELEMENTS = [
         "a11y": "The trigger is a combobox with aria-haspopup=listbox and aria-expanded; the list is role=listbox with option children and aria-activedescendant; arrows, Home, End, typeahead, Enter, Escape.",
         "mobile": "The list is at least 44px per row and opens under the trigger, flipping above when there is no room.",
         "blazor": {
-            "component": "SelectMenu",
+            "component": "PkSelectMenu",
             "params": [
                 {
                     "name": "Value",
@@ -11701,7 +12554,7 @@ export const ELEMENTS = [
         "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
         "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",
         "blazor": {
-            "component": "NavMenu",
+            "component": "PkSideNav",
             "params": [
                 {
                     "name": "Label",
@@ -11842,7 +12695,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Decorative. Wrap a loading region in aria-busy=\"true\" and let one skeleton carry the label so a single status is announced. The pulse stops under prefers-reduced-motion.",
         "blazor": {
-            "component": "Skeleton",
+            "component": "PkSkeleton",
             "params": [
                 {
                     "name": "Variant",
@@ -11910,7 +12763,7 @@ export const ELEMENTS = [
         "a11y": "Target must be a fragment on the same page; the element makes the target focusable so focus really moves.",
         "mobile": "Shown with a 44px target when focused by a keyboard or switch device.",
         "blazor": {
-            "component": "SkipLink",
+            "component": "PkSkipLink",
             "params": [
                 {
                     "name": "Href",
@@ -12019,7 +12872,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The host is role=status with a text label read by screen readers. Motion stops under prefers-reduced-motion.",
         "blazor": {
-            "component": "Spinner",
+            "component": "PkSpinner",
             "params": [
                 {
                     "name": "Variant",
@@ -12195,7 +13048,7 @@ export const ELEMENTS = [
         ],
         "a11y": "The caret is a labelled menu button (aria-haspopup=\"menu\", aria-expanded); the items get role=menuitem; ArrowDown/ArrowUp on the caret open the menu on the first/last item, arrows, Home and End move, Escape closes and returns focus to the caret, Tab closes, and a click outside closes. The menu opens upward when there is no room below.",
         "blazor": {
-            "component": "SplitButton",
+            "component": "PkSplitButton",
             "params": [
                 {
                     "name": "Variant",
@@ -12250,6 +13103,106 @@ export const ELEMENTS = [
                 "html": "<pk-split-button><span>Save</span><button slot=\"menu\" value=\"close\">Save and close</button><button slot=\"menu\" value=\"new\">Save and new</button></pk-split-button>\n<pk-split-button variant=\"ghost\" menu-align=\"end\"><span>Export</span><button slot=\"menu\" value=\"csv\">CSV</button><button slot=\"menu\" value=\"pdf\">PDF</button></pk-split-button>"
             }
         ]
+    },
+    {
+        "tag": "pk-stack",
+        "title": "Stack",
+        "group": "Layout",
+        "summary": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.",
+        "props": [
+            {
+                "name": "gap",
+                "type": "enum",
+                "default": "md",
+                "values": [
+                    "none",
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl"
+                ],
+                "reflect": true,
+                "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space)."
+            },
+            {
+                "name": "align",
+                "type": "enum",
+                "default": "stretch",
+                "values": [
+                    "stretch",
+                    "start",
+                    "center",
+                    "end"
+                ],
+                "reflect": true,
+                "description": "Cross-axis alignment: stretch fills the width, the others size each child to its content."
+            },
+            {
+                "name": "dividers",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Draw a rule between children."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "The items to lay out."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-stack-gap",
+                "description": "Overrides the gap prop with any length.",
+                "default": "the gap token"
+            },
+            {
+                "name": "--pk-stack-divider",
+                "description": "Colour of the dividers.",
+                "default": "var(--color-border)"
+            }
+        ],
+        "a11y": "A plain layout box with no role; the rules from dividers are decorative borders, not separators, so add pk-divider where a separator should be announced.",
+        "blazor": {
+            "component": "PkStack",
+            "params": [
+                {
+                    "name": "Gap",
+                    "prop": "gap",
+                    "type": "string"
+                },
+                {
+                    "name": "Align",
+                    "prop": "align",
+                    "type": "string"
+                },
+                {
+                    "name": "Dividers",
+                    "prop": "dividers",
+                    "type": "bool"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Even rhythm",
+                "html": "<pk-stack gap=\"md\"><p>First paragraph.</p><p>Second paragraph.</p><p>Third paragraph.</p></pk-stack>"
+            },
+            {
+                "title": "With dividers",
+                "html": "<pk-stack gap=\"sm\" dividers><div>Profile</div><div>Billing</div><div>Notifications</div></pk-stack>"
+            }
+        ],
+        "events": [],
+        "parts": [],
+        "methods": []
     },
     {
         "tag": "pk-stat",
@@ -12431,7 +13384,7 @@ export const ELEMENTS = [
         ],
         "a11y": "The change is text (an arrow glyph and a sign) and has a spoken form (\"up 12.5 percent versus last month\"), so colour is never the only signal. A tile with href holds one link named by the label and value, so there is a single tab stop. An interactive tile is a role=button overlay reachable by keyboard.",
         "blazor": {
-            "component": "StatCard",
+            "component": "PkStat",
             "existing": true,
             "params": [
                 {
@@ -12634,7 +13587,7 @@ export const ELEMENTS = [
         "a11y": "The stepper gives it role listitem and the descriptive label; state is also in aria-current and aria-disabled.",
         "mobile": "Only the active step keeps its text in a horizontal stepper.",
         "blazor": {
-            "component": "Step",
+            "component": "PkStep",
             "params": [
                 {
                     "name": "Heading",
@@ -12816,7 +13769,7 @@ export const ELEMENTS = [
         "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
         "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
         "blazor": {
-            "component": "Stepper",
+            "component": "PkStepper",
             "params": [
                 {
                     "name": "Current",
@@ -13016,7 +13969,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "An inner button with role=switch and aria-checked, named by the label slot. Space and Enter toggle it. In a form it contributes name=value while checked, resets to its initial state with the form, and is disabled by a disabled fieldset. Use it only for settings that take effect at once; a value that needs Save is a checkbox.",
         "blazor": {
-            "component": "Switch",
+            "component": "PkSwitch",
             "params": [
                 {
                     "name": "Checked",
@@ -13176,7 +14129,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is outside the tab order (tabindex -1) and labelled; keyboard users close a tab from the page's own command.",
         "blazor": {
-            "component": "Tab",
+            "component": "PkTab",
             "params": [
                 {
                     "name": "Value",
@@ -13248,7 +14201,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "Exposes role=tabpanel; pk-tabs sets aria-labelledby to its tab.",
         "blazor": {
-            "component": "TabPanel",
+            "component": "PkTabPanel",
             "params": [
                 {
                     "name": "Value",
@@ -13563,7 +14516,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
         "blazor": {
-            "component": "DataGrid",
+            "component": "PkTable",
             "existing": true,
             "params": [
                 {
@@ -13642,7 +14595,7 @@ export const ELEMENTS = [
                     "type": "EventCallback<FilterEventArgs>"
                 }
             ],
-            "notes": "The Blazor DataGrid keeps owning the data source. It calls DataSource(DataGridRequest), then sets rows (DataGridPage.Items), and turns pk-sort, pk-filter and pk-pagination's pk-page and pk-page-size into the next DataGridRequest (SortColumn, Descending, ColumnFilters, Page, PageSize). It renders the element with manual set. RowTemplate cells become slots named cell-<rowId>-<key> (RenderFragment<TItem> per cell); DataGridColumn(Key, Header, Sortable, NumericAlign) maps to { key, label, sortable, align: end }. The simple slot-based DataTable component maps to the same element without manual. Hidden columns are simply left out of columns. The Blazor EmptyText fills the empty slot."
+            "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. The Blazor EmptyText fills the empty slot."
         },
         "examples": [
             {
@@ -13747,7 +14700,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
         "blazor": {
-            "component": "Tabs",
+            "component": "PkTabs",
             "params": [
                 {
                     "name": "Value",
@@ -13859,7 +14812,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The remove control is a real button named \"Remove <label>\"; it is 44px on a phone.",
         "blazor": {
-            "component": "Tag",
+            "component": "PkTag",
             "params": [
                 {
                     "name": "Removable",
@@ -14058,7 +15011,7 @@ export const ELEMENTS = [
         ],
         "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag.",
         "blazor": {
-            "component": "TagInput",
+            "component": "PkTagInput",
             "params": [
                 {
                     "name": "Value",
@@ -14301,7 +15254,7 @@ export const ELEMENTS = [
         ],
         "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
         "blazor": {
-            "component": "TextArea",
+            "component": "PkTextarea",
             "params": [
                 {
                     "name": "Value",
@@ -14404,7 +15357,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "The host is role=list; each pk-timeline-item is a listitem with a real time element. State is also given in words in the heading when it matters, never by the marker colour alone.",
         "blazor": {
-            "component": "Timeline",
+            "component": "PkTimeline",
             "params": [
                 {
                     "name": "Label",
@@ -14504,7 +15457,7 @@ export const ELEMENTS = [
         "methods": [],
         "a11y": "role=listitem through ElementInternals; the time uses a real time element with a datetime attribute.",
         "blazor": {
-            "component": "TimelineItem",
+            "component": "PkTimelineItem",
             "params": [
                 {
                     "name": "Heading",
@@ -14654,7 +15607,7 @@ export const ELEMENTS = [
         "a11y": "role=status for info and success, role=alert for warning and danger; the timer pauses on hover and focus; a toast with an action lasts 8s by default.",
         "mobile": "Full width minus the gutter; the dismiss and action buttons are 44px; respects the device safe area.",
         "blazor": {
-            "component": "Toast",
+            "component": "PkToast",
             "params": [
                 {
                     "name": "Kind",
@@ -14772,7 +15725,7 @@ export const ELEMENTS = [
         "a11y": "A labelled region; each toast announces itself with its own role.",
         "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
         "blazor": {
-            "component": "Toaststack",
+            "component": "PkToastStack",
             "params": [
                 {
                     "name": "Position",
@@ -14894,7 +15847,7 @@ export const ELEMENTS = [
         "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
         "mobile": "Not sticky below 1024px; links are 44px tall.",
         "blazor": {
-            "component": "OnThisPage",
+            "component": "PkToc",
             "params": [
                 {
                     "name": "For",
@@ -14950,6 +15903,105 @@ export const ELEMENTS = [
             {
                 "title": "On this page",
                 "html": "<div class=\"split\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></div>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-toolbar",
+        "title": "Toolbar",
+        "group": "Layout & structure",
+        "summary": "A row with a lead (title and note) on the left and actions on the right. It wraps by its own width and stacks on a phone, with touch-sized actions.",
+        "props": [
+            {
+                "name": "heading",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The lead title, in strong text."
+            },
+            {
+                "name": "note",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "A muted note beside the title, such as a count."
+            }
+        ],
+        "slots": [
+            {
+                "name": "",
+                "description": "More lead content after the title and note (filters, chips)."
+            },
+            {
+                "name": "actions",
+                "description": "Buttons at the right; hidden when empty, full width and touch-sized on a narrow container."
+            }
+        ],
+        "events": [],
+        "parts": [
+            {
+                "name": "toolbar",
+                "description": "The row."
+            },
+            {
+                "name": "lead",
+                "description": "The title, note and default slot."
+            },
+            {
+                "name": "title",
+                "description": "The title."
+            },
+            {
+                "name": "note",
+                "description": "The note."
+            },
+            {
+                "name": "actions",
+                "description": "The actions wrapper."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-toolbar-margin",
+                "description": "Outer margin of the row.",
+                "default": "var(--space-1) 0 var(--space-3) 0"
+            }
+        ],
+        "methods": [],
+        "a11y": "A plain group of controls, not an ARIA toolbar (which would need arrow-key roving): every action is a normal tab stop in reading order. The title is text, not a heading; use pk-page-header when the outline needs one.",
+        "blazor": {
+            "component": "PkToolbar",
+            "params": [
+                {
+                    "name": "Heading",
+                    "prop": "heading",
+                    "type": "string"
+                },
+                {
+                    "name": "Note",
+                    "prop": "note",
+                    "type": "string"
+                },
+                {
+                    "name": "ChildContent",
+                    "slot": "",
+                    "type": "RenderFragment?"
+                },
+                {
+                    "name": "ActionsContent",
+                    "slot": "actions",
+                    "type": "RenderFragment?"
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Title, note and actions",
+                "html": "<pk-toolbar heading=\"Lines\" note=\"12 lines on this order\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Export</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Add line</pk-button>\n</pk-toolbar>"
+            },
+            {
+                "title": "Title only",
+                "html": "<pk-toolbar heading=\"Recent activity\"></pk-toolbar>"
             }
         ]
     },
@@ -15095,7 +16147,7 @@ export const ELEMENTS = [
         "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
         "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
         "blazor": {
-            "component": "InfoTip",
+            "component": "PkTooltip",
             "params": [
                 {
                     "name": "Text",
@@ -15255,7 +16307,7 @@ export const ELEMENTS = [
         ],
         "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
         "blazor": {
-            "component": "Tree",
+            "component": "PkTree",
             "params": [
                 {
                     "name": "Label",
@@ -15421,7 +16473,7 @@ export const ELEMENTS = [
         ],
         "a11y": "Roles, levels, set sizes and states are set through ElementInternals by the tree. The host is the roving tab stop and shows a focus ring on the row, which is 44px tall on a phone.",
         "blazor": {
-            "component": "TreeItem",
+            "component": "PkTreeItem",
             "params": [
                 {
                     "name": "Label",
@@ -15484,6 +16536,222 @@ export const ELEMENTS = [
             {
                 "title": "Leaf and branch",
                 "html": "<pk-tree-item label=\"Puzzles\" selected></pk-tree-item>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-workspace",
+        "title": "Workspace",
+        "summary": "A tool page in panes: a nav pane, a main pane and an optional docked aside, each scrolling on its own. On a phone one pane shows at a time and a tab strip (Contents, Content, Details) switches it.",
+        "group": "Layout & structure",
+        "props": [
+            {
+                "name": "fill",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve."
+            },
+            {
+                "name": "activePane",
+                "type": "enum",
+                "default": "main",
+                "values": [
+                    "nav",
+                    "main",
+                    "aside"
+                ],
+                "reflect": true,
+                "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane."
+            },
+            {
+                "name": "asideOpen",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Show the aside: a docked column on a wide screen, a panel over the main pane on a tablet and its own pane on a phone."
+            },
+            {
+                "name": "navLabel",
+                "type": "string",
+                "default": "Contents",
+                "reflect": true,
+                "description": "The nav pane's accessible name and its tab on a phone."
+            },
+            {
+                "name": "mainLabel",
+                "type": "string",
+                "default": "Content",
+                "reflect": true,
+                "description": "The main pane's accessible name and its tab on a phone."
+            },
+            {
+                "name": "asideLabel",
+                "type": "string",
+                "default": "Details",
+                "reflect": true,
+                "description": "The aside's accessible name and its tab on a phone."
+            }
+        ],
+        "slots": [
+            {
+                "name": "nav",
+                "description": "The nav pane: a file tree, a list of sections, filters. Leave it out for a two-pane workspace."
+            },
+            {
+                "name": "",
+                "description": "The main pane."
+            },
+            {
+                "name": "aside",
+                "description": "The docked aside (an inspector or a details panel). It shows when asideOpen is set."
+            }
+        ],
+        "events": [
+            {
+                "name": "pk-pane-change",
+                "detail": {
+                    "pane": "string",
+                    "previous": "string"
+                },
+                "description": "A tab in the phone strip was chosen. Cancelable: preventDefault keeps the previous pane."
+            }
+        ],
+        "parts": [
+            {
+                "name": "root",
+                "description": "The frame that lays the panes out."
+            },
+            {
+                "name": "strip",
+                "description": "The phone tab strip."
+            },
+            {
+                "name": "tab",
+                "description": "One tab in the strip."
+            },
+            {
+                "name": "nav",
+                "description": "The nav pane."
+            },
+            {
+                "name": "main",
+                "description": "The main pane."
+            },
+            {
+                "name": "aside",
+                "description": "The aside pane."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-workspace-height",
+                "description": "Height when fill is not set.",
+                "default": "calc(100dvh - 20rem)"
+            },
+            {
+                "name": "--pk-workspace-nav-w",
+                "description": "Width of the nav column on a wide screen.",
+                "default": "17.5rem"
+            },
+            {
+                "name": "--pk-workspace-aside-w",
+                "description": "Width of the aside.",
+                "default": "var(--inspector-w)"
+            },
+            {
+                "name": "--pk-workspace-pad",
+                "description": "Padding inside each pane.",
+                "default": "var(--pad-panel)"
+            }
+        ],
+        "methods": [],
+        "a11y": "Each pane is a labelled region (the aside a complementary landmark) and scrolls on its own, so it is reachable by keyboard. On a phone the strip is a tablist with a roving tabindex: Left and Right (or Up and Down), Home and End move between tabs and select them; each pane becomes a tabpanel labelled by its tab. Tabs are 44px high. Hidden panes are display:none, so they are out of the tab order and the accessibility tree.",
+        "mobile": "Below 640px one pane shows at a time; the strip appears above it and slides sideways if it must. On a tablet the aside floats over the edge of the main pane instead of taking a column.",
+        "blazor": {
+            "component": "PkWorkspace",
+            "params": [
+                {
+                    "name": "Fill",
+                    "type": "bool",
+                    "default": false,
+                    "map": "prop",
+                    "prop": "fill"
+                },
+                {
+                    "name": "ActivePane",
+                    "type": "string",
+                    "default": "main",
+                    "map": "prop",
+                    "prop": "activePane",
+                    "bind": {
+                        "event": "pk-pane-change",
+                        "value": "detail.pane"
+                    }
+                },
+                {
+                    "name": "AsideOpen",
+                    "type": "bool",
+                    "default": false,
+                    "map": "prop",
+                    "prop": "asideOpen"
+                },
+                {
+                    "name": "NavLabel",
+                    "type": "string",
+                    "default": "Contents",
+                    "map": "prop",
+                    "prop": "navLabel"
+                },
+                {
+                    "name": "MainLabel",
+                    "type": "string",
+                    "default": "Content",
+                    "map": "prop",
+                    "prop": "mainLabel"
+                },
+                {
+                    "name": "AsideLabel",
+                    "type": "string",
+                    "default": "Details",
+                    "map": "prop",
+                    "prop": "asideLabel"
+                },
+                {
+                    "name": "NavContent",
+                    "type": "RenderFragment?",
+                    "map": "slot",
+                    "slot": "nav"
+                },
+                {
+                    "name": "ChildContent",
+                    "type": "RenderFragment",
+                    "map": "slot",
+                    "slot": ""
+                },
+                {
+                    "name": "AsideContent",
+                    "type": "RenderFragment?",
+                    "map": "slot",
+                    "slot": "aside"
+                },
+                {
+                    "name": "OnPaneChange",
+                    "type": "EventCallback<WorkspacePaneChangeEventArgs>",
+                    "map": "event",
+                    "event": "pk-pane-change",
+                    "cancelable": true
+                }
+            ]
+        },
+        "examples": [
+            {
+                "title": "Nav and main",
+                "html": "<pk-workspace nav-label=\"Sections\">\n  <div slot=\"nav\" class=\"stack\"><a href=\"#overview\">Overview</a><a href=\"#channels\">Channels</a><a href=\"#integrations\">Integrations</a></div>\n  <div class=\"stack\"><h2>Overview</h2><p>The main pane scrolls on its own. Below 640px only the nav or this pane shows, switched by the strip above.</p></div>\n</pk-workspace>"
+            },
+            {
+                "title": "With a docked aside",
+                "html": "<pk-workspace aside-open nav-label=\"Files\" aside-label=\"Outline\">\n  <div slot=\"nav\" class=\"stack\"><a href=\"#app\">app.js</a><a href=\"#readme\">README.md</a></div>\n  <div class=\"stack\"><h2>app.js</h2><p>The aside is a docked column on a wide screen, floats over the main pane on a tablet and is its own pane on a phone.</p></div>\n  <div slot=\"aside\" class=\"stack\"><h3>Outline</h3><p>run()</p></div>\n</pk-workspace>"
             }
         ]
     }

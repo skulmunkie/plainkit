@@ -4,15 +4,15 @@
 // Framework-free; ES module driven by gallery.data.js.
 
 import { readSetting, writeSetting } from './settings.js';
-import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, HAS_SITE, componentSheets } from './paths.js';
-import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, initialHash } from '../js/gallery-options.js';
+import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, HAS_SITE } from './paths.js';
+import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../js/gallery-options.js';
 import { CONTROLS, KINDS, BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS, PARAMS } from './gallery.data.js';
-import { makeFrame, applyToFrame, offscreenFrame, PHONE_WIDTH } from './frame.js';
+import { makeFrame, applyToFrame, PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind, currentTheme, setTheme } from '../js/theme.js';
 import { contrast, grade } from '../js/colour.js';
 import { applyDynamic } from '../js/dynamic.js';
+import { initPlainkit } from '../js/plainkit.js';
 import { renderElement } from './elements-view.js';
-import { collect, evaluate, focusProblems, literalColours } from '../js/quality.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -22,6 +22,7 @@ const PAGE_SIZE = 40;
 const state = { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() };
 let opts = {};
 let bare = false;
+let baseTitle = 'Plainkit Gallery'; // the host page's own title, so a mounted gallery adds the section to it instead of replacing it
 const frames = new Set();
 let css = null;
 let lazy = null;
@@ -46,19 +47,31 @@ const LAYOUT_ITEMS = () => [['shell', 'App shell'], ['responsive', 'Responsive r
 const TEMPLATE_PAGES = TEMPLATES.map(t => [t.id, t.title, t.file.replace('samples/templates/', ''), t.summary, t.slots]);
 
 const tree = () => restrictTree(allSections(), opts);
+// What the overview pages may list: the mount's kind / group / control scope, then its filter. Unscoped and unfiltered, that is everything.
+const scope = id => filterTree(tree(), opts.filter).find(s => s.id === id);
+const scopeGroup = (sec, grp) => scope(sec)?.groups?.find(g => g.id === grp);
+const keeps = (sec, grp, id) => Boolean(scopeGroup(sec, grp)?.items.some(i => i.id === id));
+
+// 77 elements in one flat list is a wall on a phone: the nav folds them by the group their meta declares (the section title still opens the overview).
+function elementGroups() {
+    const by = new Map();
+    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}` }); }
+    // A group that shares its name with a controls group ("Layout & structure") is labelled as the elements one, so the two nav branches read differently.
+    const taken = new Set(controlKinds());
+    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title: taken.has(title) ? `${title} (elements)` : title, hash: '#/elements', items }));
+}
 
 function allSections() {
     return [
         { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `#/foundations/${id}` })) },
         { id: 'controls', title: 'Controls', groups: controlKinds().map(k => ({ id: slug(k), title: k, hash: `#/controls/${slug(k)}`, items: CONTROLS.filter(c => c.kind === k).map(c => ({ id: c.id, title: c.name, hash: `#/controls/${slug(k)}/${c.id}` })) })) },
-        { id: 'elements', title: 'Elements', items: [{ id: 'overview', title: 'Overview', hash: '#/elements' }, ...ELEMENTS.map(m => ({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}` }))] },
+        { id: 'elements', title: 'Elements', groups: elementGroups() },
         { id: 'samples', title: 'Samples', groups: [
             { id: 'templates', title: 'Templates', hash: '#/samples/templates', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/templates' }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `#/samples/templates/${id}` }))] },
             { id: 'patterns', title: 'Patterns', hash: '#/samples/patterns', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/patterns' }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `#/samples/patterns/${p.id}` }))] },
             { id: 'layouts', title: 'Layouts', hash: '#/samples/layouts', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/layouts' }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `#/samples/layouts/${id}` }))] },
             { id: 'blocks', title: 'Building blocks', hash: '#/samples/blocks', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/blocks' }, ...templates().map(c => ({ id: c.id, title: c.name, hash: `#/samples/blocks/${c.id}` }))] },
         ] },
-        { id: 'quality', title: 'Quality', items: [{ id: 'run', title: 'Run checks', hash: '#/quality/run' }] },
     ];
 }
 
@@ -89,7 +102,7 @@ function renderNav() {
             return `<ul class="snav-group">${head}${sec.groups.map(g => {
                 const items = g.items.filter(i => !f || i.title.toLowerCase().includes(f) || g.title.toLowerCase().includes(f));
                 if (!items.length) return '';
-                const open = f || state.open.has(g.id) || (r.section === sec.id && r.a === g.id);
+                const open = f || state.open.has(g.id) || (r.section === sec.id && r.a === g.id) || g.items.some(i => i.hash === location.hash);
                 return `<li class="snav-branch"><button type="button" class="snav-link snav-toggle" aria-expanded="${!!open}" data-branch="${g.id}"><span class="snav-label">${esc(g.title)}</span><span class="snav-badge">${g.items.length}</span></button><ul class="snav-sub"${open ? '' : ' hidden'}>${items.map(i => link(i)).join('')}</ul></li>`;
             }).join('')}</ul>`;
         }).join('')}</nav>`;
@@ -237,35 +250,36 @@ function viewControl(c) {
     return el;
 }
 
-const controlCard = (c, kindSlug) => cardLink(`#/controls/${kindSlug}/${c.id}`, c.name, c.purpose.split('. ')[0] + '.', `<span class="gx-states">${(c.states ?? []).slice(0, 4).map(s => `<span class="chip">${esc(s)}</span>`).join(' ')}</span>`);
+const controlCard = (c, kindSlug) => cardLink(`#/controls/${kindSlug}/${c.id}`, c.name, c.purpose.split('. ')[0].replace(/.$/, '') + '.', `<span class="gx-states">${(c.states ?? []).slice(0, 4).map(s => `<span class="chip">${esc(s)}</span>`).join(' ')}</span>`);
 
 // ---- views ---------------------------------------------------------------------------------------------------------------
 const crumbs = (...parts) => `<nav class="page-crumbs" aria-label="Breadcrumb">${parts.map(([label, href], i) => (href ? `<a href="${href}">${esc(label)}</a><span class="page-crumbs-sep" aria-hidden="true">&rsaquo;</span>` : `<span class="page-crumbs-current">${esc(label)}</span>`)).join('')}</nav>`;
 
 function overviewHtml() {
+    const narrowed = isScoped(opts) || Boolean(opts.filter);
     const cards = [
         ['#/foundations', 'Foundations', 'Colours, type, spacing, radii, breakpoints, utilities, icons and every token.'],
         ['#/controls', 'Controls', `${CONTROLS.filter(c => c.kind !== 'Page templates').length} controls with live samples, states and the markup contract.`],
         ['#/elements', 'Elements', `${ELEMENTS.length} custom elements generated from their API data, each with a live playground.`],
         ['#/samples', 'Samples', `${TEMPLATE_PAGES.length} page templates, ${PATTERNS.length} patterns and ${LAYOUTS.length + 2} layouts, all built only from the SDK.`],
-        ...(HAS_SITE ? [
+        ...(HAS_SITE && !narrowed ? [
             ['../theme/index.html', 'Theme editor', 'Edit every token live and export the override block.'],
             ['../scorecard/index.html', 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
             ['../files/index.html', 'Files', 'Browse the SDK source in the code explorer.'],
         ] : []),
     ];
     return heading('Plainkit', 'Plain HTML, CSS and JS: no framework, no build step to use it, no runtime dependencies.')
-        + `<div class="grid">${cards.map(([h, t, d]) => cardLink(h, t, d)).join('')}</div>`
+        + `<div class="grid">${cards.filter(([h]) => !h.startsWith('#/') || !narrowed || scope(h.slice(2))).map(([h, t, d]) => cardLink(h, t, d)).join('')}</div>`
         + section('Quick start', `<pre class="gx-code"><code>&lt;link rel="stylesheet" href="plainkit/dist/plainkit.min.css"&gt;\n&lt;script type="module"&gt;import { initPlainkit } from './plainkit/dist/js/plainkit.js'; initPlainkit();&lt;/script&gt;</code></pre><p class="muted">Set <code>data-theme</code> to dark or light and <code>data-density="compact"</code> on any element.</p>`);
 }
 
 function samplesView(out, put, a, b) {
     const back = (label, href) => `<a class="btn-mini btn-primary" href="${href}">${esc(label)}</a>`;
     const groups = { templates: 'Templates', patterns: 'Patterns', layouts: 'Layouts', blocks: 'Building blocks' };
-    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours), layouts and building blocks.') + `<div class="grid">${Object.entries(groups).map(([id, t]) => cardLink(`#/samples/${id}`, t, { templates: `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`, patterns: `${PATTERNS.length} realistic composed examples.`, layouts: 'Page anatomies at desktop and phone width.', blocks: 'The reusable templates and the top bar.' }[id])).join('')}</div>`);
+    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours), layouts and building blocks.') + `<div class="grid">${Object.entries(groups).filter(([id]) => scopeGroup('samples', id)).map(([id, t]) => cardLink(`#/samples/${id}`, t, { templates: `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`, patterns: `${PATTERNS.length} realistic composed examples.`, layouts: 'Page anatomies at desktop and phone width.', blocks: 'The reusable templates and the top bar.' }[id])).join('')}</div>`);
     const groupCrumb = (id, name) => crumbs(['Samples', '#/samples'], [groups[id], `#/samples/${id}`], [name]);
     if (a === 'templates') {
-        if (!b) return put(crumbs(['Samples', '#/samples'], ['Templates']) + heading('Templates', 'Full-page templates, each a runnable example with a slot contract: preview one in the side-nav or top-nav variant, light or dark.') + `<div class="grid">${TEMPLATE_PAGES.map(([id, tt, , d]) => cardLink(`#/samples/templates/${id}`, tt, d)).join('')}</div>`);
+        if (!b) return put(crumbs(['Samples', '#/samples'], ['Templates']) + heading('Templates', 'Full-page templates, each a runnable example with a slot contract: preview one in the side-nav or top-nav variant, light or dark.') + `<div class="grid">${TEMPLATE_PAGES.filter(([id]) => keeps('samples', 'templates', id)).map(([id, tt, , d]) => cardLink(`#/samples/templates/${id}`, tt, d)).join('')}</div>`);
         const tp = TEMPLATE_PAGES.find(x => x[0] === b);
         if (!tp) return put(heading('Not found') + `<p>${back('Back to templates', '#/samples/templates')}</p>`);
         const q = new URLSearchParams(location.hash.split('?')[1] ?? ''); const nav = q.get('nav') === 'top' ? 'top' : 'side'; const th = q.get('theme') ?? state.theme;
@@ -274,7 +288,7 @@ function samplesView(out, put, a, b) {
         return out;
     }
     if (a === 'patterns') {
-        if (!b) return put(crumbs(['Samples', '#/samples'], ['Patterns']) + heading('Patterns', 'Composed examples: several controls working together to do one job.') + `<div class="grid">${PATTERNS.map(p => cardLink(`#/samples/patterns/${p.id}`, p.title, p.summary)).join('')}</div>`);
+        if (!b) return put(crumbs(['Samples', '#/samples'], ['Patterns']) + heading('Patterns', 'Composed examples: several controls working together to do one job.') + `<div class="grid">${PATTERNS.filter(p => keeps('samples', 'patterns', p.id)).map(p => cardLink(`#/samples/patterns/${p.id}`, p.title, p.summary)).join('')}</div>`);
         const p = PATTERNS.find(x => x.id === b);
         if (!p) return put(heading('Not found') + `<p>${back('Back to patterns', '#/samples/patterns')}</p>`);
         put(`${groupCrumb('patterns', p.title)}${heading(p.title, p.summary)}<section class="card gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(p.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</p><p class="muted"><strong>Controls used:</strong> ${p.used.map(u => { const c = CONTROLS.find(x => x.id === u); return c ? `<a href="#/controls/${slug(c.kind)}/${c.id}">${esc(c.name)}</a>` : esc(u); }).join(', ')}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div><p>${back('Back to patterns', '#/samples/patterns')}</p></section>`);
@@ -283,7 +297,7 @@ function samplesView(out, put, a, b) {
         return out;
     }
     if (a === 'layouts') {
-        if (!b) return put(crumbs(['Samples', '#/samples'], ['Layouts']) + heading('Layouts', 'How the controls compose into pages.') + `<div class="grid">${LAYOUT_ITEMS().map(([id, t]) => cardLink(`#/samples/layouts/${id}`, t, '')).join('')}</div>`);
+        if (!b) return put(crumbs(['Samples', '#/samples'], ['Layouts']) + heading('Layouts', 'How the controls compose into pages.') + `<div class="grid">${LAYOUT_ITEMS().filter(([id]) => keeps('samples', 'layouts', id)).map(([id, t]) => cardLink(`#/samples/layouts/${id}`, t, '')).join('')}</div>`);
         if (b === 'responsive') return put(groupCrumb('layouts', 'Responsive rules') + heading('Responsive rules') + section('Width steps', `<table class="data gx-table"><thead><tr><th>Width</th><th>What changes</th></tr></thead><tbody>${RESPONSIVE_RULES.map(r => `<tr><td>${r.width}</td><td>${esc(r.change)}</td></tr>`).join('')}</tbody></table><p class="muted">Design mobile-first: write the phone layout, then add the multi-column layout above it.</p>`));
         if (b === 'shell') { put(groupCrumb('layouts', 'App shell') + heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.') + '<section class="card gx-entry"><div class="gx-samples"></div></section>'); $('.gx-samples', out).append(slot(CONTROLS.find(c => c.id === 'app-shell').samples[0], 'app-shell')); return out; }
         const l = LAYOUTS.find(x => x.id === b);
@@ -294,7 +308,7 @@ function samplesView(out, put, a, b) {
         return out;
     }
     if (a === 'blocks') {
-        if (!b) return put(crumbs(['Samples', '#/samples'], ['Building blocks']) + heading('Building blocks', 'The reusable page templates and the top bar.') + `<div class="grid">${templates().map(c => cardLink(`#/samples/blocks/${c.id}`, c.name, c.purpose.split('. ')[0] + '.')).join('')}</div>`);
+        if (!b) return put(crumbs(['Samples', '#/samples'], ['Building blocks']) + heading('Building blocks', 'The reusable page templates and the top bar.') + `<div class="grid">${templates().filter(c => keeps('samples', 'blocks', c.id)).map(c => cardLink(`#/samples/blocks/${c.id}`, c.name, c.purpose.split('. ')[0].replace(/.$/, '') + '.')).join('')}</div>`);
         const c = templates().find(x => x.id === b);
         if (!c) return put(heading('Not found') + `<p>${back('Back to building blocks', '#/samples/blocks')}</p>`);
         out.append(viewControl(c)); out.insertAdjacentHTML('afterbegin', groupCrumb('blocks', c.name)); return out;
@@ -314,15 +328,17 @@ function view() {
         for (const l of shown) out.append(viewControl(CONTROLS.find(c => c.id === l.id)));
         return out;
     }
+    // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
+    if (!a && ['foundations', 'controls', 'elements', 'samples'].includes(sec) && !scope(sec)) return put('<p class="muted">Nothing in the gallery matches.</p>');
     if (sec === 'foundations') {
-        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + `<div class="grid">${FOUNDATIONS.map(([id, t, d]) => cardLink(`#/foundations/${id}`, t, d)).join('')}</div>`);
+        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + `<div class="grid">${FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`#/foundations/${id}`, t, d)).join('')}</div>`);
         return put(viewFoundation(a));
     }
     if (sec === 'controls') {
-        if (!a) return put(heading('Controls', `${CONTROLS.filter(c => c.kind !== 'Page templates').length} controls in ${controlKinds().length} groups. Pick a group.`) + `<div class="grid">${controlKinds().map(k => cardLink(`#/controls/${slug(k)}`, k, CONTROLS.filter(c => c.kind === k).map(c => c.name).join(', '))).join('')}</div>`);
+        if (!a) { const gs = scope('controls').groups; return put(heading('Controls', `${gs.reduce((n, g) => n + g.items.length, 0)} controls in ${gs.length} groups. Pick a group.`) + `<div class="grid">${gs.map(g => cardLink(g.hash, g.title, g.items.map(i => i.title).join(', '))).join('')}</div>`); }
         const kind = controlKinds().find(k => slug(k) === a);
         if (!kind) return put(heading('Not found', 'No such group.'));
-        if (!b) return put(heading(kind, `${CONTROLS.filter(c => c.kind === kind).length} controls.`) + `<div class="grid">${CONTROLS.filter(c => c.kind === kind).map(c => controlCard(c, a)).join('')}</div>`);
+        if (!b) { const items = scopeGroup('controls', a)?.items ?? []; return put(heading(kind, `${items.length} controls.`) + `<div class="grid">${items.map(i => controlCard(CONTROLS.find(c => c.id === i.id), a)).join('')}</div>`); }
         const c = CONTROLS.find(x => x.id === b);
         if (!c) return put(heading('Not found', 'No such control.'));
         out.append(viewControl(c)); return out;
@@ -331,33 +347,10 @@ function view() {
     if (sec === 'elements') {
         const meta = ELEMENTS.find(m => m.tag === a);
         if (meta) { out.append(renderElement(meta)); return out; }
-        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + `<div class="grid">${ELEMENTS.map(m => cardLink(`#/elements/${m.tag}`, `<${m.tag}>`, m.summary)).join('')}</div>`);
+        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <span class="muted">${g.items.length}</span></h2><div class="grid">${g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join('')}</div></section>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
-    if (sec === 'quality') return put(heading('Quality checks', 'Renders every sample and reports unnamed inputs, touch targets under 44px on a phone, nested scroll containers, literal colours, spacing problems and missing focus rings. Set the width to Phone first to include touch targets.') + '<section class="card gx-entry"><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button type="button" class="btn-primary" id="gx-run">Run quality checks</button><a href="../scorecard/index.html">Full scorecard</a></div><div id="gx-quality" class="u-mt-3"></div></section>');
     return put(heading('Not found'));
-}
-
-// ---- quality -------------------------------------------------------------------------------------------------------------
-async function runQuality(host) {
-    host.innerHTML = '<p class="muted loading" role="status">Rendering every sample and running the checks…</p>';
-    const findings = []; let checked = 0;
-    const width = state.width === 'phone' ? PHONE_WIDTH : 1280;
-    const jobs = CONTROLS.flatMap(c => c.samples.map(s => ({ c, s })));
-    for (let i = 0; i < jobs.length; i += 6) {
-        await Promise.all(jobs.slice(i, i + 6).map(async ({ c, s }) => {
-            const f = await offscreenFrame(s.html, { theme: state.theme, width, scale: state.scale, script: s.script });
-            try {
-                const doc = f.contentDocument; checked++;
-                for (const x of [...evaluate(collect(doc.body), { phone: width <= 640 }), ...focusProblems(doc.body)]) findings.push({ ...x, control: c.id, context: `${state.theme}, ${width}px` });
-            } finally { f.remove(); }
-        }));
-    }
-    for (const { file, path } of await componentSheets(text)) for (const l of literalColours(await text(path))) findings.push({ check: 'literal-colour', severity: 'warn', control: file, selector: `${file}:${l.line}`, message: l.text, context: 'stylesheet' });
-    const errors = findings.filter(f => f.severity === 'error').length;
-    const kindOf = id => { const c = CONTROLS.find(x => x.id === id); return c ? (c.kind === 'Page templates' ? `#/samples/blocks/${id}` : `#/controls/${slug(c.kind)}/${id}`) : '#/quality/run'; };
-    host.innerHTML = `<div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><span class="chip ${errors ? 'chip-danger' : 'chip-success'}">${errors} errors</span><span class="chip chip-warn">${findings.length - errors} warnings</span><span class="chip">${checked} samples checked</span><span class="muted">${state.theme} theme, ${width}px${width <= 640 ? ' (touch targets checked)' : ' (switch to Phone to check touch targets)'}</span></div>`
-        + (findings.length ? `<table class="data gx-table"><thead><tr><th>Control</th><th>Check</th><th>Where</th><th>Detail</th></tr></thead><tbody>${findings.map(f => `<tr><td><a href="${kindOf(f.control)}">${esc(f.control)}</a></td><td><span class="chip ${f.severity === 'error' ? 'chip-danger' : 'chip-warn'}">${esc(f.check)}</span></td><td><code>${esc(f.selector)}</code></td><td>${esc(f.message)}</td></tr>`).join('')}</tbody></table>` : '<p>No findings.</p>');
 }
 
 // ---- assembly ------------------------------------------------------------------------------------------------------------
@@ -368,7 +361,7 @@ function render() {
     renderNav();
     renderInspector();
     if (!bare) {
-        document.title = `${route().section} - Plainkit Gallery`;
+        document.title = `${route().section} - ${baseTitle}`;
         $('#gx-shell').classList.remove('workspace--nav');
         $('[data-gx-contents]').setAttribute('aria-expanded', 'false');
     }
@@ -425,9 +418,8 @@ const CHROME_HTML = `
                 <button type="button" class="btn-ghost gx-contents" data-gx-contents aria-expanded="false">Contents</button>
                 <div class="gx-group gx-desktop-only" role="group" aria-label="Viewport"><span class="gx-group-label">Viewport</span><div class="btn-group"><button type="button" class="btn-ghost" data-set-width="desktop" aria-pressed="true">Desktop</button><button type="button" class="btn-ghost" data-set-width="phone" aria-pressed="false">Phone 375</button></div></div>
                 <div class="gx-group gx-desktop-only"><label class="gx-group-label" for="gx-scale">Text size</label><select id="gx-scale" class="gx-scale"><option value="0.9">90%</option><option value="1">100%</option><option value="1.15">115%</option><option value="1.3">130%</option></select></div>
-                <a class="btn-ghost gx-end gx-desktop-only" href="#/quality/run">Quality checks</a>
-                <div class="dropdown dropdown--end gx-phone-only gx-end" data-pk-dropdown><button type="button" class="btn-ghost" aria-expanded="false" aria-haspopup="true">Display</button><div class="dropdown-menu" hidden><label class="ff gx-menu-field"><span>Text size</span><select class="gx-scale" aria-label="Text size"><option value="0.9">90%</option><option value="1">100%</option><option value="1.15">115%</option><option value="1.3">130%</option></select></label><a class="dropdown-item" href="#/quality/run">Quality checks</a></div></div>
-                <button type="button" class="btn-ghost" id="gx-inspect" aria-pressed="false" aria-controls="gx-inspector" hidden>Details</button>
+                <div class="dropdown dropdown--end gx-phone-only gx-end" data-pk-dropdown><button type="button" class="btn-ghost" aria-expanded="false" aria-haspopup="true">Display</button><div class="dropdown-menu" hidden><label class="ff gx-menu-field"><span>Text size</span><select class="gx-scale" aria-label="Text size"><option value="0.9">90%</option><option value="1">100%</option><option value="1.15">115%</option><option value="1.3">130%</option></select></label></div></div>
+                <button type="button" class="btn-ghost gx-inspect" id="gx-inspect" aria-pressed="false" aria-controls="gx-inspector" hidden>Details</button>
             </div>
             <div class="gx-body">
             <div class="workspace-pane gx-view" id="gx-view"></div>
@@ -446,6 +438,7 @@ const BARE_HTML = '<div class="gx-flow" id="gx-shell"><div class="gx-view" id="g
 // width, filter, chrome ('full' keeps the nav, toolbar and inspector; 'none' shows only the content). Resolves once the first view is drawn.
 export async function mountGallery(container, options = {}) {
     opts = normalizeOptions(options);
+    baseTitle = document.title || baseTitle;
     bare = opts.chrome === 'none';
     state.theme = opts.theme ?? currentTheme(document.documentElement);
     state.width = opts.width ?? (readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
@@ -455,21 +448,29 @@ export async function mountGallery(container, options = {}) {
     if (opts.theme) setTheme(document.documentElement, opts.theme);
     document.documentElement.dataset.width = state.width;
     container.innerHTML = bare ? BARE_HTML : CHROME_HTML;
+    if (!bare) container.classList.add('gx-mount');
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
     paintToolbar();
     render();
+    // The chrome's menus and the element pages need the SDK behaviours and element modules; a host that only mounts the gallery has not called initPlainkit, so the gallery does (idempotent per root).
+    initPlainkit(document);
 
     if (!bare) initResize();
     window.addEventListener('hashchange', render);
+    // Escape closes the phone Contents list and hands focus back to its button, so the keyboard is never stranded inside it.
+    $('#gx-shell').addEventListener('keydown', e => {
+        const shell = $('#gx-shell'); const btn = $('[data-gx-contents]');
+        if (e.key !== 'Escape' || !btn || !shell.classList.contains('workspace--nav') || !e.target.closest('#gx-nav')) return;
+        shell.classList.remove('workspace--nav'); btn.setAttribute('aria-expanded', 'false'); btn.focus();
+    });
     $('#gx-shell').addEventListener('click', e => {
-        if (e.target.closest('[data-gx-contents]')) { const on = $('#gx-shell').classList.toggle('workspace--nav'); e.target.closest('[data-gx-contents]').setAttribute('aria-expanded', String(on)); }
+        if (e.target.closest('[data-gx-contents]')) { const on = $('#gx-shell').classList.toggle('workspace--nav'); e.target.closest('[data-gx-contents]').setAttribute('aria-expanded', String(on)); if (on) ($('#gx-search') ?? $('#gx-nav')?.querySelector('a, button'))?.focus(); }
         if (e.target.closest('#gx-inspect')) setInspector($('#gx-inspector').hidden);
         if (e.target.closest('[data-gx-inspect-close]')) setInspector(false);
         const t = e.target.closest('[data-set-theme]');
         if (t) { setTheme(document.documentElement, t.dataset.setTheme); writeSetting('pk-site-theme', t.dataset.setTheme); state.theme = t.dataset.setTheme; refreshFrames({ theme: state.theme }); paintToolbar(); }
         const w = e.target.closest('[data-set-width]');
         if (w) { state.width = w.dataset.setWidth; document.documentElement.dataset.width = state.width; writeSetting('pk-gallery-width', state.width); refreshFrames({ width: state.width }); paintToolbar(); }
-        if (e.target.closest('#gx-run')) runQuality($('#gx-quality'));
         const br = e.target.closest('[data-branch]');
         if (br) { const id = br.dataset.branch; state.open.has(id) ? state.open.delete(id) : state.open.add(id); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); const open = state.open.has(id); br.setAttribute('aria-expanded', String(open)); br.nextElementSibling.hidden = !open; }
         const c = e.target.closest('[data-copy]');

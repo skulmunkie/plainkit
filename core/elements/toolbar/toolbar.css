@@ -1,0 +1,11 @@
+/* pk-toolbar: a lead (title, note, anything else) with an actions area at the right. Wraps by its own width and stacks on a phone. */
+:host { display: block; inline-size: 100%; container-type: inline-size; min-inline-size: 0; }
+[part="toolbar"] { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin: var(--pk-toolbar-margin, var(--space-1) 0 var(--space-3) 0); }
+[part="lead"] { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); min-inline-size: 0; }
+[part="title"] { color: var(--color-text); }
+[part="note"] { color: var(--color-muted); font-size: var(--text-md); }
+[part="actions"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-inline-start: auto; }
+@container (max-width: 46rem) {
+    [part="lead"], [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
+    ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
+}

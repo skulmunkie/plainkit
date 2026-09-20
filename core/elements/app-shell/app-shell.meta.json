@@ -62,7 +62,7 @@
   "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
   "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
   "blazor": {
-    "component": "AppShell",
+    "component": "PkAppShell",
     "params": [
       {
         "name": "SidebarContent",

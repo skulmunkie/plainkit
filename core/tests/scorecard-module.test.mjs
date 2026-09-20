@@ -60,3 +60,9 @@ test('mountScorecard refuses to start without a target to score', async () => {
     await assert.rejects(mountScorecard({}, { targets: [] }), /needs targets/);
     await assert.rejects(mountScorecard({}, {}), /needs targets/);
 });
+
+test('sections are validated; the run sections need targets and the others do not', async () => {
+    await assert.rejects(mountScorecard({}, { targets: ['/a'], sections: ['ranked', 'nope'] }), /unknown section "nope"/);
+    await assert.rejects(mountScorecard({}, { sections: ['performance'] }), /needs targets/);
+    await assert.rejects(mountScorecard({}, { sections: ['security'] }), error => !/needs targets/.test(error.message), 'a data-only section asks for no targets');
+});

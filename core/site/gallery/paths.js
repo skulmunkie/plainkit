@@ -11,12 +11,6 @@ export const UTILITIES_CSS = '../../components/utilities/utilities.css';
 export const SPACING_CSS = '../../components/spacing/spacing.css';
 export const ICONS = '../../icons.svg';
 
-// The component stylesheets the quality check scans for literal colours: [{ file, path }].
-export async function componentSheets(text) {
-    const files = [...(await text('../../plainkit.css')).matchAll(/url\("([^"]+)"\)/g)].map(m => m[1]).filter(f => f !== 'tokens/tokens.css');
-    return files.map(file => ({ file, path: `../../${file}` }));
-}
-
 // Whether the SDK site pages (theme editor, scorecard, files) exist next to the gallery.
 export const HAS_SITE = true;
 

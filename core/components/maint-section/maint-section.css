@@ -11,7 +11,7 @@
        even at z-index:9000. Top-corner rounding is handled by the header. */
 }
 
-/* THE WHOLE ROW IS THE TAP TARGET, not the arrow (T-115).
+/* THE WHOLE ROW IS THE TAP TARGET, not the arrow .
    ──────────────────────────────────────────────────────────────────────
    The arrow is a ~10px glyph, and on a phone nobody aims at a 10px glyph:
    they press the words. <summary> already accepts the press anywhere along

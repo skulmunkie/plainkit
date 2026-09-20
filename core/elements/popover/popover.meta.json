@@ -163,7 +163,7 @@
   "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
   "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
   "blazor": {
-    "component": "Popover",
+    "component": "PkPopover",
     "params": [
       {
         "name": "Open",

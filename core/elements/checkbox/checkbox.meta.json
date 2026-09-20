@@ -174,7 +174,7 @@
   ],
   "a11y": "A native checkbox inside its label, so it is named by its text and toggled by Space; indeterminate is announced as mixed; invalid sets aria-invalid and a red border. Rows are 44px tall on a phone.",
   "blazor": {
-    "component": "CheckField",
+    "component": "PkCheckbox",
     "params": [
       {
         "name": "Checked",

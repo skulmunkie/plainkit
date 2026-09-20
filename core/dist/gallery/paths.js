@@ -10,11 +10,6 @@ export const UTILITIES_CSS = '../components/utilities/utilities.css';
 export const SPACING_CSS = '../components/spacing/spacing.css';
 export const ICONS = '../icons.svg';
 
-// The stylesheet the quality check scans for literal colours: [{ file, path }].
-export async function componentSheets() {
-    return [{ file: 'plainkit-compat.css', path: '../plainkit-compat.css' }];
-}
-
 // The SDK site pages (theme editor, scorecard, files) are not part of dist.
 export const HAS_SITE = false;
 

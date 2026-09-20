@@ -123,7 +123,7 @@
   "a11y": "role=alert for warning and danger, role=status for info and success, applied to the host; the dismiss button is labelled; colour is never the only signal (icon and heading).",
   "mobile": "Actions wrap onto their own line; the dismiss button is 44px.",
   "blazor": {
-    "component": "Notice",
+    "component": "PkAlert",
     "params": [
       {
         "name": "Kind",

@@ -294,7 +294,7 @@
   ],
   "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
   "blazor": {
-    "component": "DataGrid",
+    "component": "PkTable",
     "existing": true,
     "params": [
       {
@@ -373,7 +373,7 @@
         "type": "EventCallback<FilterEventArgs>"
       }
     ],
-    "notes": "The Blazor DataGrid keeps owning the data source. It calls DataSource(DataGridRequest), then sets rows (DataGridPage.Items), and turns pk-sort, pk-filter and pk-pagination's pk-page and pk-page-size into the next DataGridRequest (SortColumn, Descending, ColumnFilters, Page, PageSize). It renders the element with manual set. RowTemplate cells become slots named cell-<rowId>-<key> (RenderFragment<TItem> per cell); DataGridColumn(Key, Header, Sortable, NumericAlign) maps to { key, label, sortable, align: end }. The simple slot-based DataTable component maps to the same element without manual. Hidden columns are simply left out of columns. The Blazor EmptyText fills the empty slot."
+    "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. The Blazor EmptyText fills the empty slot."
   },
   "examples": [
     {

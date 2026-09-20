@@ -113,7 +113,7 @@
   "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props.",
   "mobile": "44px tall on a phone; the submenu chevron points down and the submenu opens inline.",
   "blazor": {
-    "component": "MenuItem",
+    "component": "PkMenuItem",
     "params": [
       {
         "name": "Type",

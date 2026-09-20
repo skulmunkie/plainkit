@@ -13,6 +13,32 @@
 
 .gx-notice-file { margin: var(--space-4); }
 
+/* Top bar: brand, search, settings (profile) menu and hamburger on ONE row at tablet and phone widths; the page links fold into a
+   panel that overlays the content instead of pushing it down. The theme switch sits in the settings menu. */
+.site > .tnav { position: relative; z-index: var(--z-sticky); }
+
+.site .tnav .dropdown-menu { position: absolute; box-shadow: var(--shadow-card); }
+
+.site .tnav-profile-toggle { min-width: var(--touch-target); min-height: var(--touch-target); padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+
+.site .tnav .dropdown-item { min-height: var(--touch-target); white-space: nowrap; }
+
+@media (max-width: 1024px) {
+    .site > .tnav { flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-3); }
+
+    .site .tnav-actions { margin-inline-start: auto; gap: var(--space-1); }
+
+    .site .tnav .mobile-nav-toggle { margin-inline-start: 0; }
+
+    .site .tnav-links { position: absolute; top: 100%; left: 0; right: 0; z-index: var(--z-sticky); padding: var(--space-2) var(--space-3); background: var(--color-panel); border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-card); max-height: calc(100dvh - var(--app-header-h)); overflow-y: auto; }
+
+    .site .tnav--open .tnav-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); }
+
+    .site .tnav-link { min-height: var(--touch-target); }
+
+    .site .tnav .app-search-input { width: 14rem; }
+}
+
 @media (max-width: 640px) {
     .site-scroll { padding: var(--space-3); }
 }

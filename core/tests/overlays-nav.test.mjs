@@ -51,12 +51,19 @@ test('every element has a Blazor mapping: each param is a prop, a slot, an event
     }
 });
 
-test('the app\'s existing components keep their Blazor names and parameters', () => {
+// A component is named Pk plus its tag in PascalCase: pk-alert is PkAlert, pk-toast-stack is PkToastStack. One rule, so wrappers can be generated.
+const pkName = tag => 'Pk' + tag.replace(/^pk-/, '').split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('');
+
+test('every element\'s Blazor component is named Pk plus its tag in PascalCase', () => {
+    for (const f of GROUP) assert.equal(meta(f).blazor.component, pkName(meta(f).tag), f);
+});
+
+test('the app\'s existing components keep their Blazor parameters', () => {
     const named = { dialog: ['Modal', ['IsOpen', 'Title', 'HeaderContent', 'ChildContent', 'FooterContent', 'OnClose', 'MaxWidthPx']], drawer: ['FlyoutPanel', ['IsOpen', 'Title', 'ChildContent', 'FooterContent', 'ActionsContent', 'OnClose', 'Wide', 'Persistent']],
         alert: ['Notice', ['Kind', 'Title', 'Message', 'Dismissible', 'OnDismiss']], tooltip: ['InfoTip', ['Text', 'Placement', 'HoverDelay', 'TooltipContent']], 'app-shell': ['AppShell', ['SidebarContent', 'HeaderContent', 'BodyContent', 'FooterContent']], 'side-nav': ['NavMenu', ['Collapsed', 'Filterable', 'Persist']] };
     for (const [f, [component, params]] of Object.entries(named)) {
         const m = meta(f);
-        assert.equal(m.blazor.component, component);
+        assert.equal(m.blazor.component, pkName(m.tag), `${f} (was ${component})`);
         for (const p of params) assert.ok(m.blazor.params.some(x => x.name === p), `${f} keeps ${p}`);
     }
 });

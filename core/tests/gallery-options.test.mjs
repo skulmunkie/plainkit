@@ -1,8 +1,8 @@
 // The gallery's embedding options: parsing, the query round trip, and cutting the content tree down to what an embedder asked for.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeOptions, parseQuery, toQuery, isScoped, restrictTree, leaves, filterLeaves, initialHash } from '../js/gallery-options.js';
-import { CONTROLS, KINDS } from '../site/gallery/gallery.data.js';
+import { normalizeOptions, parseQuery, toQuery, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../js/gallery-options.js';
+import { CONTROLS, KINDS, ELEMENTS } from '../site/gallery/gallery.data.js';
 
 const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 const tree = () => [
@@ -84,4 +84,28 @@ test('the real control groups can be addressed by name or by slug', () => {
     assert.equal(byName[0].groups[0].id, 'forms-inputs');
     assert.deepEqual(ids(byName), ids(restrictTree(real, { group: 'forms-inputs' })));
     assert.ok(ids(byName).length >= 3);
+});
+
+test('filterTree applies the filter to the tree the same way filterLeaves does, so an overview lists only what matches', () => {
+    const t = tree();
+    for (const f of ['', '  ', undefined]) assert.equal(filterTree(t, f), t, 'no filter returns the tree itself');
+    assert.deepEqual(filterTree(t, 'sel').map(s => s.id), ['controls']);
+    assert.deepEqual(ids(filterTree(t, 'SEL')), ['select']);
+    assert.deepEqual(ids(filterTree(t, 'forms')), ['input', 'select'], 'a group title that matches keeps its items');
+    assert.deepEqual(filterTree(t, 'zzz'), []);
+    for (const f of ['a', 'e', 'form', 'lay']) assert.deepEqual(ids(filterTree(t, f)), filterLeaves(leaves(t), f).map(l => l.id), 'same leaves as filterLeaves for ' + f);
+});
+
+test('the Elements overview honours the filter: the elements tree cut by filterTree keeps only matching tags, and composes with kind scope', () => {
+    const by = new Map();
+    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: '#/elements/' + m.tag }); }
+    const full = [{ id: 'elements', title: 'Elements', groups: [...by].map(([title, items]) => ({ id: 'el-' + slug(title), title, hash: '#/elements', items })) }, ...tree().slice(0, 2)];
+    const scoped = restrictTree(full, { kind: 'elements' });
+    assert.deepEqual(scoped.map(s => s.id), ['elements']);
+    const all = ids(filterTree(scoped, ''));
+    assert.equal(all.length, ELEMENTS.length);
+    const some = ids(filterTree(scoped, 'tabs'));
+    assert.ok(some.includes('pk-tabs') && some.length < all.length, 'the filter narrows the list');
+    assert.ok(ids(filterTree(scoped, 'tabs')).every(id => { const m = ELEMENTS.find(e => e.tag === id); return m.title.toLowerCase().includes('tabs') || (m.group || 'Other').toLowerCase().includes('tabs'); }));
+    assert.deepEqual(filterTree(scoped, 'no-such-element-xyz'), []);
 });

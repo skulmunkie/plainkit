@@ -187,7 +187,7 @@
   ],
   "a11y": "A nav landmark with a label; the current page has aria-current=page and every number button has a name (\"Page 3\"); previous and next are disabled at the ends; the ellipsis is decorative. Buttons are 44px on a phone.",
   "blazor": {
-    "component": "Pagination",
+    "component": "PkPagination",
     "params": [
       {
         "name": "Page",
@@ -260,7 +260,7 @@
         "type": "bool"
       }
     ],
-    "notes": "Two-way binding: @bind-Page and @bind-PageSize. DataGrid uses this element for its footer; DataGridRequest.Page is zero-based, the element's page is one-based."
+    "notes": "Two-way binding: @bind-Page and @bind-PageSize. PkTable uses this element for its footer. The element's page is one-based: a data source that counts pages from zero must add or subtract one."
   },
   "examples": [
     {

@@ -15,9 +15,9 @@ const elementNames = elementFolders(root);
 const componentNames = new Set([...loadComponents().map(c => c.name), ...elementNames]);
 
 test('the top level holds only the documented layers and entry files', () => {
-    const allowed = new Set(['tokens', 'base', 'elements', 'components', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'README.md', 'LICENSE', 'package.json', 'HANDOFF.md', 'index.html', 'icons.svg', 'plainkit.css']);
+    const allowed = new Set(['tokens', 'base', 'elements', 'components', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'README.md', 'LICENSE', 'package.json', 'HANDOFF.md', 'STANDARDS.md', 'index.html', 'icons.svg', 'plainkit.css']);
     const extra = fs.readdirSync(root).filter(n => !allowed.has(n));
-    assert.deepEqual(extra, [], 'a new top-level entry needs a place in the layer list (README and Standards/Plainkit.md)');
+    assert.deepEqual(extra, [], 'a new top-level entry needs a place in the layer list (README and STANDARDS.md)');
 });
 
 test('every sample is a folder with html and meta, and its meta names the components its markup uses', () => {

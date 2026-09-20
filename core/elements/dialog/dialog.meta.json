@@ -159,7 +159,7 @@
   "a11y": "Native <dialog>: focus is trapped and returned by the browser, the page behind is inert, Escape closes; labelled by its heading. A destructive confirm focuses Cancel.",
   "mobile": "Full screen below 640px with the header and footer pinned and only the body scrolling.",
   "blazor": {
-    "component": "Modal",
+    "component": "PkDialog",
     "params": [
       {
         "name": "IsOpen",

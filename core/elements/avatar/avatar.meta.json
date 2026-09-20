@@ -107,7 +107,7 @@
   ],
   "a11y": "role=img with the name (and status) as its label; the image itself has an empty alt because the host already names it.",
   "blazor": {
-    "component": "Avatar",
+    "component": "PkAvatar",
     "params": [
       {
         "name": "Name",

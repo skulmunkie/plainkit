@@ -92,7 +92,7 @@
   "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
   "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
   "blazor": {
-    "component": "DropdownMenu",
+    "component": "PkDropdown",
     "params": [
       {
         "name": "Open",

@@ -1,0 +1,71 @@
+{
+  "tag": "pk-image-gallery",
+  "title": "Image gallery",
+  "summary": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image and an add tile that picks files.",
+  "group": "Data display",
+  "props": [
+    { "name": "images", "type": "json", "default": [], "reflect": false, "description": "The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown." },
+    { "name": "primary", "type": "number", "default": -1, "reflect": true, "description": "The index of the primary image; -1 uses the first image flagged primary in images, or none." },
+    { "name": "columns", "type": "number", "default": 0, "reflect": true, "description": "A fixed number of equal columns (1 to 12). 0 fits as many as min allows." },
+    { "name": "min", "type": "string", "default": "6.25rem", "reflect": true, "description": "The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0." },
+    { "name": "editable", "type": "boolean", "default": false, "reflect": true, "description": "Show make-primary and remove buttons under each image and the add tile." },
+    { "name": "addLabel", "type": "string", "default": "Add image", "reflect": false, "description": "Text on the add tile." },
+    { "name": "accept", "type": "string", "default": "image/*", "reflect": false, "description": "The file types the add tile's picker offers." }
+  ],
+  "slots": [],
+  "events": [
+    { "name": "pk-primary-change", "detail": { "index": "number", "src": "string", "previous": "number" }, "description": "Make primary was pressed. Cancelable: preventDefault keeps the current primary (a controlled gallery updates images and primary itself)." },
+    { "name": "pk-remove", "detail": { "index": "number", "src": "string" }, "description": "Remove was pressed. Cancelable: preventDefault keeps the image. Otherwise it is taken out of images, and if it was the primary the first image becomes the primary." },
+    { "name": "pk-add", "detail": { "files": "File[]", "names": "string[]" }, "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images." }
+  ],
+  "parts": [
+    { "name": "grid", "description": "The thumbnail list." },
+    { "name": "tile", "description": "One thumbnail with its badges and buttons." },
+    { "name": "media", "description": "The thumbnail's pk-media." },
+    { "name": "badge", "description": "The Primary badge." },
+    { "name": "status", "description": "The status badge (Staged and the like)." },
+    { "name": "actions", "description": "The row of buttons under an image." },
+    { "name": "action", "description": "A make-primary or remove pk-button." },
+    { "name": "add-tile", "description": "The list item holding the add tile." },
+    { "name": "add", "description": "The add tile (a label around the file input)." },
+    { "name": "add-icon", "description": "The plus on the add tile." },
+    { "name": "add-text", "description": "The text on the add tile." },
+    { "name": "file", "description": "The file input." },
+    { "name": "viewer", "description": "The pk-lightbox." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-image-gallery-radius", "description": "Corner radius of the thumbnails and the add tile.", "default": "var(--radius-lg)" }
+  ],
+  "methods": [
+    { "name": "view(index)", "description": "Opens the lightbox at an image." },
+    { "name": "makePrimary(index)", "description": "Marks an image primary, as the button does (raises pk-primary-change first)." },
+    { "name": "removeImage(index)", "description": "Removes an image, as the button does (raises pk-remove first)." }
+  ],
+  "a11y": "The grid is a list. Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
+  "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons and the add tile are 44px high, and there is no hover step.",
+  "blazor": {
+    "component": "PkImageGallery",
+    "params": [
+      { "name": "Images", "type": "IReadOnlyList<GalleryImage>", "map": "prop", "prop": "images" },
+      { "name": "Primary", "type": "int", "default": -1, "map": "prop", "prop": "primary", "bind": { "event": "pk-primary-change", "value": "detail.index" } },
+      { "name": "Columns", "type": "int", "default": 0, "map": "prop", "prop": "columns" },
+      { "name": "Min", "type": "string", "default": "6.25rem", "map": "prop", "prop": "min" },
+      { "name": "Editable", "type": "bool", "default": false, "map": "prop", "prop": "editable" },
+      { "name": "AddLabel", "type": "string", "default": "Add image", "map": "prop", "prop": "addLabel" },
+      { "name": "Accept", "type": "string", "default": "image/*", "map": "prop", "prop": "accept" },
+      { "name": "OnPrimaryChange", "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>", "map": "event", "event": "pk-primary-change", "cancelable": true },
+      { "name": "OnRemove", "type": "EventCallback<ImageGalleryRemoveEventArgs>", "map": "event", "event": "pk-remove", "cancelable": true },
+      { "name": "OnAdd", "type": "EventCallback<ImageGalleryAddEventArgs>", "map": "event", "event": "pk-add" }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Thumbnails with a primary image and an add tile",
+      "html": "<pk-image-gallery editable images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\",\"primary\":true},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\",\"status\":\"Staged\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
+    },
+    {
+      "title": "Read-only, two fixed columns",
+      "html": "<pk-image-gallery columns=\"2\" primary=\"1\" images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+/* pk-page-header: crumbs, a title bar (title + chips left, actions right) and a note line. variant: page (default), section, record. Stacks by its own width. */
+:host { display: block; inline-size: 100%; container-type: inline-size; min-inline-size: 0; }
+[part="header"] { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--pk-page-header-padding, var(--space-1) 0); }
+[part="crumbs"] { font-size: var(--text-meta); color: var(--page-crumbs-fg); }
+[part="titlebar"] { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2) var(--space-4); min-inline-size: 0; }
+[part="lead"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); min-inline-size: 0; }
+[part="title"] { margin: 0; font-size: var(--pk-page-header-title-size, var(--text-lg)); font-weight: 600; color: var(--color-text); min-inline-size: 0; overflow-wrap: anywhere; }
+[part="actions"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-inline-start: auto; }
+[part="meta"] { margin: 0; font-size: var(--text-read); color: var(--color-muted); }
+::slotted(h1), ::slotted(h2), ::slotted(h3) { margin: 0; }
+:host([variant="section"]) [part="header"] { padding: 0; gap: var(--space-2); }
+:host([variant="section"]) [part="titlebar"] { gap: var(--space-2); }
+:host([variant="record"]) [part="header"] { gap: 0; }
+:host([variant="record"]) [part="titlebar"] { gap: var(--space-2) var(--space-3); }
+:host([variant="record"]) [part="meta"] { font-size: var(--text-meta); }
+@container (max-width: 46rem) {
+    [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
+    ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
+}

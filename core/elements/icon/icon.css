@@ -1,0 +1,5 @@
+:host { --_size: var(--pk-icon-size, 1.25em); display: inline-block; inline-size: var(--_size); block-size: var(--_size); flex: none; color: inherit; line-height: 0; vertical-align: -0.2em; }
+:host([size="sm"]) { --_size: var(--pk-icon-size, var(--space-4)); }
+:host([size="lg"]) { --_size: var(--pk-icon-size, var(--space-6)); }
+:host([size="xl"]) { --_size: var(--pk-icon-size, var(--space-8)); }
+svg { display: block; inline-size: 100%; block-size: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

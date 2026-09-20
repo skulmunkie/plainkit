@@ -73,7 +73,7 @@
   ],
   "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
   "blazor": {
-    "component": "Tree",
+    "component": "PkTree",
     "params": [
       {
         "name": "Label",

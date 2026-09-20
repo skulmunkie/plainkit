@@ -1,0 +1,99 @@
+{
+  "tag": "pk-toolbar",
+  "title": "Toolbar",
+  "group": "Layout & structure",
+  "summary": "A row with a lead (title and note) on the left and actions on the right. It wraps by its own width and stacks on a phone, with touch-sized actions.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The lead title, in strong text."
+    },
+    {
+      "name": "note",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A muted note beside the title, such as a count."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "More lead content after the title and note (filters, chips)."
+    },
+    {
+      "name": "actions",
+      "description": "Buttons at the right; hidden when empty, full width and touch-sized on a narrow container."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "toolbar",
+      "description": "The row."
+    },
+    {
+      "name": "lead",
+      "description": "The title, note and default slot."
+    },
+    {
+      "name": "title",
+      "description": "The title."
+    },
+    {
+      "name": "note",
+      "description": "The note."
+    },
+    {
+      "name": "actions",
+      "description": "The actions wrapper."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-toolbar-margin",
+      "description": "Outer margin of the row.",
+      "default": "var(--space-1) 0 var(--space-3) 0"
+    }
+  ],
+  "methods": [],
+  "a11y": "A plain group of controls, not an ARIA toolbar (which would need arrow-key roving): every action is a normal tab stop in reading order. The title is text, not a heading; use pk-page-header when the outline needs one.",
+  "blazor": {
+    "component": "PkToolbar",
+    "params": [
+      {
+        "name": "Heading",
+        "prop": "heading",
+        "type": "string"
+      },
+      {
+        "name": "Note",
+        "prop": "note",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "ActionsContent",
+        "slot": "actions",
+        "type": "RenderFragment?"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Title, note and actions",
+      "html": "<pk-toolbar heading=\"Lines\" note=\"12 lines on this order\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Export</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Add line</pk-button>\n</pk-toolbar>"
+    },
+    {
+      "title": "Title only",
+      "html": "<pk-toolbar heading=\"Recent activity\"></pk-toolbar>"
+    }
+  ]
+}

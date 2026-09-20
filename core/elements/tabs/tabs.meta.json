@@ -25,7 +25,7 @@
   "methods": [],
   "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
   "blazor": {
-    "component": "Tabs",
+    "component": "PkTabs",
     "params": [
       { "name": "Value", "prop": "value" },
       { "name": "Activation", "prop": "activation" },

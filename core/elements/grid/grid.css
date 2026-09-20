@@ -1,0 +1,17 @@
+:host {
+    --_g: var(--space-4);
+    --_share: calc((100% - (var(--pk-grid-columns) - 1) * var(--_g)) / var(--pk-grid-columns));
+    display: grid;
+    inline-size: 100%; /* a grid has no intrinsic width of its own: fill the container, also inside a shrink-to-fit or flex-row parent */
+    min-inline-size: 0;
+    box-sizing: border-box;
+    grid-template-columns: repeat(auto-fit, minmax(max(min(var(--pk-grid-min, 16rem), 100%), var(--_share, 0px)), 1fr));
+    gap: var(--_g);
+}
+:host([hidden]) { display: none; }
+:host([gap="none"]) { --_g: 0px; }
+:host([gap="xs"]) { --_g: var(--space-1); }
+:host([gap="sm"]) { --_g: var(--space-2); }
+:host([gap="lg"]) { --_g: var(--space-6); }
+:host([gap="xl"]) { --_g: var(--space-8); }
+::slotted(*) { min-inline-size: 0; }

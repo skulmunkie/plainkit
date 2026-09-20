@@ -28,6 +28,11 @@ export function removed(baseline, current) {
     return out;
 }
 
+// --current writes site/scorecard/api.current.json: the surface as it is now, for the scorecard's API section to diff against the baseline.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv.includes('--current')) {
+    fs.writeFileSync(path.join(root, 'site', 'scorecard', 'api.current.json'), JSON.stringify(surface(), null, 1) + '\n');
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv.includes('--write')) {
     const s = surface();
     fs.writeFileSync(path.join(root, 'site', 'scorecard', 'api.baseline.json'), JSON.stringify(s, null, 1) + '\n');

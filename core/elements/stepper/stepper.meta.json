@@ -91,7 +91,7 @@
   "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
   "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
   "blazor": {
-    "component": "Stepper",
+    "component": "PkStepper",
     "params": [
       {
         "name": "Current",

@@ -140,7 +140,7 @@
   "methods": [],
   "a11y": "The title is exposed as a heading whose level you choose with level, so the card fits the page outline wherever it sits. With href the card holds one link named by the heading, so there is a single tab stop and no nested interactive content.",
   "blazor": {
-    "component": "Card",
+    "component": "PkCard",
     "params": [
       {
         "name": "Heading",
@@ -198,7 +198,7 @@
       }
     ],
     "existing": true,
-    "notes": "Keeps the existing Card parameters (Title maps to heading)."
+    "notes": "Keeps the existing PkCard parameters (Title maps to heading)."
   },
   "examples": [
     {

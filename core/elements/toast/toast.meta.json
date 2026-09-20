@@ -107,7 +107,7 @@
   "a11y": "role=status for info and success, role=alert for warning and danger; the timer pauses on hover and focus; a toast with an action lasts 8s by default.",
   "mobile": "Full width minus the gutter; the dismiss and action buttons are 44px; respects the device safe area.",
   "blazor": {
-    "component": "Toast",
+    "component": "PkToast",
     "params": [
       {
         "name": "Kind",

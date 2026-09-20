@@ -90,7 +90,7 @@
   "methods": [],
   "a11y": "A real figure with a figcaption; slotted images keep their author-written alt text. Lightbox mode makes the box a focusable button (Enter and Space) named \"Enlarge\". The ratio reserves space so a late image never shifts the layout.",
   "blazor": {
-    "component": "Media",
+    "component": "PkMedia",
     "params": [
       {
         "name": "Ratio",

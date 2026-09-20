@@ -56,7 +56,7 @@
   "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
   "mobile": "The label wraps; the spinner is 28px.",
   "blazor": {
-    "component": "LoadingOverlay",
+    "component": "PkLoadingOverlay",
     "params": [
       {
         "name": "Busy",

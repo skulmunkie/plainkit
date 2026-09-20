@@ -161,7 +161,7 @@
   ],
   "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag.",
   "blazor": {
-    "component": "TagInput",
+    "component": "PkTagInput",
     "params": [
       {
         "name": "Value",

@@ -1,0 +1,11 @@
+:host { --_g: var(--space-4); display: flex; flex-direction: column; align-items: stretch; gap: var(--pk-stack-gap, var(--_g)); }
+:host([hidden]) { display: none; }
+:host([gap="none"]) { --_g: 0px; }
+:host([gap="xs"]) { --_g: var(--space-1); }
+:host([gap="sm"]) { --_g: var(--space-2); }
+:host([gap="lg"]) { --_g: var(--space-6); }
+:host([gap="xl"]) { --_g: var(--space-8); }
+:host([align="start"]) { align-items: flex-start; }
+:host([align="center"]) { align-items: center; }
+:host([align="end"]) { align-items: flex-end; }
+:host([dividers]) ::slotted(:not(:first-child)) { border-block-start: 1px solid var(--pk-stack-divider, var(--color-border)); padding-block-start: var(--pk-stack-gap, var(--_g)); }

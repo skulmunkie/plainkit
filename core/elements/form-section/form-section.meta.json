@@ -66,7 +66,7 @@
   "methods": [],
   "a11y": "The heading is a real h2 so the section is navigable by heading; the fields keep their own labels.",
   "blazor": {
-    "component": "FormSection",
+    "component": "PkFormSection",
     "params": [
       {
         "name": "Title",

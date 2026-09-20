@@ -19,6 +19,7 @@ declare module 'vue' {
         'pk-card': DefineComponent<Partial<Pick<E.PkCardElement, "heading" | "level" | "tone" | "orientation" | "flush" | "href" | "fill">>>;
         'pk-chart': DefineComponent<Partial<Pick<E.PkChartElement, "kind" | "caption" | "height" | "data" | "dataLabel">>>;
         'pk-checkbox': DefineComponent<Partial<Pick<E.PkCheckboxElement, "name" | "value" | "checked" | "indeterminate" | "label" | "description" | "disabled" | "required" | "invalid" | "group" | "master" | "size">>>;
+        'pk-cluster': DefineComponent<Partial<Pick<E.PkClusterElement, "direction" | "gap" | "align" | "justify" | "nowrap">>>;
         'pk-code-block': DefineComponent<Partial<Pick<E.PkCodeBlockElement, "label" | "lineNumbers" | "wrap" | "noCopy" | "maxHeight">>>;
         'pk-colour-input': DefineComponent<Partial<Pick<E.PkColourInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid">>>;
         'pk-combobox': DefineComponent<Partial<Pick<E.PkComboboxElement, "mode" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "free" | "filtering" | "open">>>;
@@ -37,16 +38,21 @@ declare module 'vue' {
         'pk-form-actions': DefineComponent<Partial<Pick<E.PkFormActionsElement, "sticky" | "align">>>;
         'pk-form-section': DefineComponent<Partial<Pick<E.PkFormSectionElement, "heading" | "description">>>;
         'pk-gallery': DefineComponent<Partial<Pick<E.PkGalleryElement, "kind" | "group" | "control" | "theme" | "width" | "filter" | "chrome" | "height" | "src">>>;
+        'pk-grid': DefineComponent<Partial<Pick<E.PkGridElement, "min" | "columns" | "gap">>>;
         'pk-hint': DefineComponent<Partial<Pick<E.PkHintElement, "label" | "open" | "tone">>>;
+        'pk-icon': DefineComponent<Partial<Pick<E.PkIconElement, "name" | "size" | "label">>>;
+        'pk-image-gallery': DefineComponent<Partial<Pick<E.PkImageGalleryElement, "images" | "primary" | "columns" | "min" | "editable" | "addLabel" | "accept">>>;
         'pk-input': DefineComponent<Partial<Pick<E.PkInputElement, "type" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "min" | "max" | "step" | "minlength" | "maxlength" | "pattern" | "autocomplete" | "inputmode" | "size" | "clearable" | "reveal" | "stepper" | "format" | "decimals" | "currency" | "locale" | "floating" | "autohide" | "debounce">>>;
         'pk-lightbox': DefineComponent<Partial<Pick<E.PkLightboxElement, "index" | "label" | "open">>>;
         'pk-list-group': DefineComponent<Partial<Pick<E.PkListGroupElement, "variant" | "checklist" | "label">>>;
         'pk-loading-overlay': DefineComponent<Partial<Pick<E.PkLoadingOverlayElement, "busy" | "label" | "fullscreen">>>;
+        'pk-local-time': DefineComponent<Partial<Pick<E.PkLocalTimeElement, "datetime" | "format" | "length" | "locale" | "timeZone">>>;
         'pk-media': DefineComponent<Partial<Pick<E.PkMediaElement, "ratio" | "fit" | "caption" | "lightbox" | "square">>>;
         'pk-menu-item': DefineComponent<Partial<Pick<E.PkMenuItemElement, "type" | "checked" | "disabled" | "danger" | "value" | "href" | "open">>>;
         'pk-nav-item': DefineComponent<Partial<Pick<E.PkNavItemElement, "href" | "current" | "disabled" | "expanded" | "rail" | "flyout">>>;
         'pk-navbar': DefineComponent<Partial<Pick<E.PkNavbarElement, "label" | "open" | "sticky">>>;
         'pk-otp-input': DefineComponent<Partial<Pick<E.PkOtpInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid" | "length" | "type" | "separatorAt">>>;
+        'pk-page-header': DefineComponent<Partial<Pick<E.PkPageHeaderElement, "heading" | "level" | "variant">>>;
         'pk-pager': DefineComponent<Partial<Pick<E.PkPagerElement, "label">>>;
         'pk-pagination': DefineComponent<Partial<Pick<E.PkPaginationElement, "page" | "pages" | "total" | "pageSize" | "sizes" | "siblings" | "boundary" | "mode" | "label" | "loading" | "edges">>>;
         'pk-popover': DefineComponent<Partial<Pick<E.PkPopoverElement, "open" | "placement" | "trigger" | "heading" | "label" | "variant" | "message" | "confirmLabel" | "cancelLabel" | "danger">>>;
@@ -62,6 +68,7 @@ declare module 'vue' {
         'pk-skip-link': DefineComponent<Partial<Pick<E.PkSkipLinkElement, "href">>>;
         'pk-spinner': DefineComponent<Partial<Pick<E.PkSpinnerElement, "variant" | "size" | "label" | "overlay">>>;
         'pk-split-button': DefineComponent<Partial<Pick<E.PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">>>;
+        'pk-stack': DefineComponent<Partial<Pick<E.PkStackElement, "gap" | "align" | "dividers">>>;
         'pk-stat': DefineComponent<Partial<Pick<E.PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">>>;
         'pk-step': DefineComponent<Partial<Pick<E.PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">>>;
         'pk-stepper': DefineComponent<Partial<Pick<E.PkStepperElement, "current" | "orientation" | "clickable" | "free" | "errors" | "label">>>;
@@ -78,9 +85,11 @@ declare module 'vue' {
         'pk-toast': DefineComponent<Partial<Pick<E.PkToastElement, "kind" | "heading" | "message" | "duration" | "noClose">>>;
         'pk-toast-stack': DefineComponent<Partial<Pick<E.PkToastStackElement, "position" | "max">>>;
         'pk-toc': DefineComponent<Partial<Pick<E.PkTocElement, "for" | "levels" | "offset" | "scroller" | "heading" | "label">>>;
+        'pk-toolbar': DefineComponent<Partial<Pick<E.PkToolbarElement, "heading" | "note">>>;
         'pk-tooltip': DefineComponent<Partial<Pick<E.PkTooltipElement, "text" | "placement" | "delay" | "shown" | "interactive" | "help" | "enrich" | "heading" | "label">>>;
         'pk-tree': DefineComponent<Partial<Pick<E.PkTreeElement, "label" | "selection" | "value">>>;
         'pk-tree-item': DefineComponent<Partial<Pick<E.PkTreeItemElement, "label" | "value" | "expanded" | "selected" | "disabled" | "expandable">>>;
+        'pk-workspace': DefineComponent<Partial<Pick<E.PkWorkspaceElement, "fill" | "activePane" | "asideOpen" | "navLabel" | "mainLabel" | "asideLabel">>>;
     }
 }
 

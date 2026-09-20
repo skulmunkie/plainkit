@@ -1,0 +1,151 @@
+{
+  "tag": "pk-page-header",
+  "title": "Page header",
+  "group": "Layout & structure",
+  "summary": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Stacks by its own width, with the actions full width and touch-sized on a phone.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The title. Without it (and without default or actions content) the title bar is not shown."
+    },
+    {
+      "name": "level",
+      "type": "number",
+      "default": 2,
+      "reflect": false,
+      "description": "The heading level the title exposes to assistive technology (aria-level)."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "page",
+      "values": [
+        "page",
+        "section",
+        "record"
+      ],
+      "reflect": true,
+      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Beside the title: status chips, badges or your own heading element."
+    },
+    {
+      "name": "breadcrumb",
+      "description": "A pk-breadcrumb (or any trail) above the title; hidden when empty."
+    },
+    {
+      "name": "actions",
+      "description": "Buttons at the right of the title bar; full width and touch-sized on a narrow container."
+    },
+    {
+      "name": "meta",
+      "description": "A note or metadata line under the title bar; hidden when empty."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "header",
+      "description": "The header element."
+    },
+    {
+      "name": "crumbs",
+      "description": "The breadcrumb row."
+    },
+    {
+      "name": "titlebar",
+      "description": "The row holding the title and the actions."
+    },
+    {
+      "name": "lead",
+      "description": "The title and the default slot."
+    },
+    {
+      "name": "title",
+      "description": "The title."
+    },
+    {
+      "name": "actions",
+      "description": "The actions wrapper."
+    },
+    {
+      "name": "meta",
+      "description": "The note line."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-page-header-padding",
+      "description": "Padding of the header.",
+      "default": "var(--space-1) 0"
+    },
+    {
+      "name": "--pk-page-header-title-size",
+      "description": "Title font size.",
+      "default": "var(--text-lg)"
+    }
+  ],
+  "methods": [],
+  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark.",
+  "blazor": {
+    "component": "PkPageHeader",
+    "params": [
+      {
+        "name": "Heading",
+        "prop": "heading",
+        "type": "string"
+      },
+      {
+        "name": "Level",
+        "prop": "level",
+        "type": "int"
+      },
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "BreadcrumbContent",
+        "slot": "breadcrumb",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "ActionsContent",
+        "slot": "actions",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "MetaContent",
+        "slot": "meta",
+        "type": "RenderFragment?"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Page: crumbs, title and actions",
+      "html": "<pk-page-header heading=\"PO 1042\" level=\"1\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
+    },
+    {
+      "title": "Section: title, action and note",
+      "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
+    },
+    {
+      "title": "Record: status chips and actions",
+      "html": "<pk-page-header variant=\"record\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Receive</pk-button>\n</pk-page-header>"
+    }
+  ]
+}

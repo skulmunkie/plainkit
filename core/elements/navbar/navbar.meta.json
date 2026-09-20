@@ -80,7 +80,7 @@
   "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
   "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
   "blazor": {
-    "component": "Navbar",
+    "component": "PkNavbar",
     "params": [
       {
         "name": "Label",

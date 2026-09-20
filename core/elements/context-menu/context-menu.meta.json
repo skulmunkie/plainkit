@@ -60,7 +60,7 @@
   "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
   "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
   "blazor": {
-    "component": "ContextMenu",
+    "component": "PkContextMenu",
     "params": [
       {
         "name": "Open",

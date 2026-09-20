@@ -105,7 +105,7 @@
   "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
   "mobile": "44px tall.",
   "blazor": {
-    "component": "NavItem",
+    "component": "PkNavItem",
     "params": [
       {
         "name": "Href",

@@ -104,7 +104,7 @@
   "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled.",
   "mobile": "Full width at the top of the screen; rows are 44px; the list is the only scroller.",
   "blazor": {
-    "component": "CommandPalette",
+    "component": "PkCommandPalette",
     "params": [
       {
         "name": "Open",

@@ -81,7 +81,7 @@
   "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
   "mobile": "Not sticky below 1024px; links are 44px tall.",
   "blazor": {
-    "component": "OnThisPage",
+    "component": "PkToc",
     "params": [
       {
         "name": "For",

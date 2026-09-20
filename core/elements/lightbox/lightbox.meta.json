@@ -100,7 +100,7 @@
   "a11y": "Native dialog with a label; the image has alt text from the item; the counter is a polite status; arrow keys and swipe navigate, Escape closes.",
   "mobile": "Previous and next sit at the bottom corners as 44px buttons; swipe left or right to change images.",
   "blazor": {
-    "component": "Lightbox",
+    "component": "PkLightbox",
     "params": [
       {
         "name": "Index",

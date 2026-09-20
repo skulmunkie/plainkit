@@ -116,7 +116,7 @@
   ],
   "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
   "blazor": {
-    "component": "ColourInput",
+    "component": "PkColourInput",
     "params": [
       {
         "name": "Value",

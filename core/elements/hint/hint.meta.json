@@ -70,7 +70,7 @@
   "methods": [],
   "a11y": "A real button with aria-expanded and aria-controls; the panel is a note region. It works by touch and keyboard, unlike a hover tooltip, and the panel never clips.",
   "blazor": {
-    "component": "Hint",
+    "component": "PkHint",
     "params": [
       {
         "name": "Label",

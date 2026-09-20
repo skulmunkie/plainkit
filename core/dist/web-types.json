@@ -1002,6 +1002,84 @@
           ]
         },
         {
+          "name": "pk-cluster",
+          "description": "A wrapping row (or column) of controls with a fixed gap: the layout primitive for button rows, chip lists and toolbars.",
+          "attributes": [
+            {
+              "name": "direction",
+              "description": "Row (wraps at the edge) or column.",
+              "value": {
+                "type": "string",
+                "default": "\"horizontal\""
+              },
+              "values": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            {
+              "name": "gap",
+              "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default sm (the control gap).",
+              "value": {
+                "type": "string",
+                "default": "\"sm\""
+              },
+              "values": [
+                "none",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            },
+            {
+              "name": "align",
+              "description": "Cross-axis alignment of the items.",
+              "value": {
+                "type": "string",
+                "default": "\"center\""
+              },
+              "values": [
+                "start",
+                "center",
+                "end",
+                "stretch",
+                "baseline"
+              ]
+            },
+            {
+              "name": "justify",
+              "description": "Main-axis distribution of the items.",
+              "value": {
+                "type": "string",
+                "default": "\"start\""
+              },
+              "values": [
+                "start",
+                "center",
+                "end",
+                "between"
+              ]
+            },
+            {
+              "name": "nowrap",
+              "description": "Keep a horizontal cluster on one line instead of wrapping (wrapping is the default).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The items to lay out."
+            }
+          ],
+          "events": []
+        },
+        {
           "name": "pk-code-block",
           "description": "A block of code with an optional label bar, line numbers, a wrap toggle and a copy button. The code is the element's text content.",
           "attributes": [
@@ -1933,6 +2011,10 @@
               "description": "A rich label (overrides the label prop)."
             },
             {
+              "name": "label-action",
+              "description": "A small action beside the label, such as a reset to source button (a pk-button size mini, variant ghost). Clicking it does not focus the control."
+            },
+            {
               "name": "help",
               "description": "Rich help text (overrides the help prop)."
             }
@@ -2250,6 +2332,51 @@
           "events": []
         },
         {
+          "name": "pk-grid",
+          "description": "Equal-width responsive columns: as many columns of at least min as fit, one column on a phone.",
+          "attributes": [
+            {
+              "name": "min",
+              "description": "Minimum column width as a CSS length (for example 12rem or 200px). Columns are equal width and never narrower than this, so the grid drops to one column when the container is narrower than two.",
+              "value": {
+                "type": "string",
+                "default": "\"16rem\""
+              }
+            },
+            {
+              "name": "columns",
+              "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "gap",
+              "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap).",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "none",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The items to lay out."
+            }
+          ],
+          "events": []
+        },
+        {
           "name": "pk-hint",
           "description": "An inline explanation that opens in the flow of the page: no tooltip, no hover-only content.",
           "attributes": [
@@ -2292,6 +2419,121 @@
             {
               "name": "pk-toggle",
               "description": "The hint opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-icon",
+          "description": "A symbol from the SDK sprite, drawn in the surrounding text colour and size. The sprite is found next to the element module, so it works wherever dist is copied.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The symbol id in the sprite (search, settings, orders, ...).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "size",
+              "description": "md is 1.25em and follows the text; sm, lg and xl are fixed steps of the space scale.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            },
+            {
+              "name": "label",
+              "description": "The accessible name. Without it the icon is decorative and hidden from assistive technology.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-image-gallery",
+          "description": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image and an add tile that picks files.",
+          "attributes": [
+            {
+              "name": "images",
+              "description": "The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "primary",
+              "description": "The index of the primary image; -1 uses the first image flagged primary in images, or none.",
+              "value": {
+                "type": "number",
+                "default": "-1"
+              }
+            },
+            {
+              "name": "columns",
+              "description": "A fixed number of equal columns (1 to 12). 0 fits as many as min allows.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "min",
+              "description": "The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0.",
+              "value": {
+                "type": "string",
+                "default": "\"6.25rem\""
+              }
+            },
+            {
+              "name": "editable",
+              "description": "Show make-primary and remove buttons under each image and the add tile.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "add-label",
+              "description": "Text on the add tile.",
+              "value": {
+                "type": "string",
+                "default": "\"Add image\""
+              }
+            },
+            {
+              "name": "accept",
+              "description": "The file types the add tile's picker offers.",
+              "value": {
+                "type": "string",
+                "default": "\"image/*\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-primary-change",
+              "description": "Make primary was pressed. Cancelable: preventDefault keeps the current primary (a controlled gallery updates images and primary itself)."
+            },
+            {
+              "name": "pk-remove",
+              "description": "Remove was pressed. Cancelable: preventDefault keeps the image. Otherwise it is taken out of images, and if it was the primary the first image becomes the primary."
+            },
+            {
+              "name": "pk-add",
+              "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images."
             }
           ]
         },
@@ -2726,6 +2968,70 @@
           "events": []
         },
         {
+          "name": "pk-local-time",
+          "description": "A UTC instant written in the reader's own locale and time zone, as a date, a time, both, or relative to now (3 hours ago). Keeps a real time element inside, so the machine value stays readable.",
+          "attributes": [
+            {
+              "name": "datetime",
+              "description": "The instant: an ISO 8601 string (2026-09-19T14:30:00Z). A date-only value is a calendar day and is never shifted by the time zone.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "format",
+              "description": "What to show. relative reads 3 hours ago and refreshes every 30 seconds while connected; its title holds the full date.",
+              "value": {
+                "type": "string",
+                "default": "\"datetime\""
+              },
+              "values": [
+                "datetime",
+                "date",
+                "time",
+                "relative"
+              ]
+            },
+            {
+              "name": "length",
+              "description": "How much of the date to spell out (9/19/26, Sep 19, 2026, September 19, 2026).",
+              "value": {
+                "type": "string",
+                "default": "\"medium\""
+              },
+              "values": [
+                "short",
+                "medium",
+                "long"
+              ]
+            },
+            {
+              "name": "locale",
+              "description": "A BCP 47 tag such as de-DE; empty uses the reader's browser locale.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "time-zone",
+              "description": "An IANA zone such as Europe/Berlin; empty uses the reader's own zone.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Fallback text, shown only while the datetime is empty or not a date."
+            }
+          ],
+          "events": []
+        },
+        {
           "name": "pk-media",
           "description": "An image or video in a fixed aspect-ratio box with an optional figure caption and lightbox-ready behaviour.",
           "attributes": [
@@ -3121,6 +3427,60 @@
               "description": "Every cell is filled."
             }
           ]
+        },
+        {
+          "name": "pk-page-header",
+          "description": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Stacks by its own width, with the actions full width and touch-sized on a phone.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The title. Without it (and without default or actions content) the title bar is not shown.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "level",
+              "description": "The heading level the title exposes to assistive technology (aria-level).",
+              "value": {
+                "type": "number",
+                "default": "2"
+              }
+            },
+            {
+              "name": "variant",
+              "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right).",
+              "value": {
+                "type": "string",
+                "default": "\"page\""
+              },
+              "values": [
+                "page",
+                "section",
+                "record"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Beside the title: status chips, badges or your own heading element."
+            },
+            {
+              "name": "breadcrumb",
+              "description": "A pk-breadcrumb (or any trail) above the title; hidden when empty."
+            },
+            {
+              "name": "actions",
+              "description": "Buttons at the right of the title bar; full width and touch-sized on a narrow container."
+            },
+            {
+              "name": "meta",
+              "description": "A note or metadata line under the title bar; hidden when empty."
+            }
+          ],
+          "events": []
         },
         {
           "name": "pk-pager",
@@ -4244,6 +4604,57 @@
               "description": "The menu opened or closed."
             }
           ]
+        },
+        {
+          "name": "pk-stack",
+          "description": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.",
+          "attributes": [
+            {
+              "name": "gap",
+              "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space).",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "none",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            },
+            {
+              "name": "align",
+              "description": "Cross-axis alignment: stretch fills the width, the others size each child to its content.",
+              "value": {
+                "type": "string",
+                "default": "\"stretch\""
+              },
+              "values": [
+                "stretch",
+                "start",
+                "center",
+                "end"
+              ]
+            },
+            {
+              "name": "dividers",
+              "description": "Draw a rule between children.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The items to lay out."
+            }
+          ],
+          "events": []
         },
         {
           "name": "pk-stat",
@@ -5568,6 +5979,39 @@
           ]
         },
         {
+          "name": "pk-toolbar",
+          "description": "A row with a lead (title and note) on the left and actions on the right. It wraps by its own width and stacks on a phone, with touch-sized actions.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The lead title, in strong text.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "note",
+              "description": "A muted note beside the title, such as a count.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "More lead content after the title and note (filters, chips)."
+            },
+            {
+              "name": "actions",
+              "description": "Buttons at the right; hidden when empty, full width and touch-sized on a narrow container."
+            }
+          ],
+          "events": []
+        },
+        {
           "name": "pk-tooltip",
           "description": "A short label for the control it wraps, shown on hover, on keyboard focus and on a touch long press. Placed beside the target and flipped when it would leave the screen.",
           "attributes": [
@@ -5794,6 +6238,85 @@
             {
               "name": "pk-toggle",
               "description": "The branch opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-workspace",
+          "description": "A tool page in panes: a nav pane, a main pane and an optional docked aside, each scrolling on its own. On a phone one pane shows at a time and a tab strip (Contents, Content, Details) switches it.",
+          "attributes": [
+            {
+              "name": "fill",
+              "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "active-pane",
+              "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane.",
+              "value": {
+                "type": "string",
+                "default": "\"main\""
+              },
+              "values": [
+                "nav",
+                "main",
+                "aside"
+              ]
+            },
+            {
+              "name": "aside-open",
+              "description": "Show the aside: a docked column on a wide screen, a panel over the main pane on a tablet and its own pane on a phone.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "nav-label",
+              "description": "The nav pane's accessible name and its tab on a phone.",
+              "value": {
+                "type": "string",
+                "default": "\"Contents\""
+              }
+            },
+            {
+              "name": "main-label",
+              "description": "The main pane's accessible name and its tab on a phone.",
+              "value": {
+                "type": "string",
+                "default": "\"Content\""
+              }
+            },
+            {
+              "name": "aside-label",
+              "description": "The aside's accessible name and its tab on a phone.",
+              "value": {
+                "type": "string",
+                "default": "\"Details\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "nav",
+              "description": "The nav pane: a file tree, a list of sections, filters. Leave it out for a two-pane workspace."
+            },
+            {
+              "name": "default",
+              "description": "The main pane."
+            },
+            {
+              "name": "aside",
+              "description": "The docked aside (an inspector or a details panel). It shows when asideOpen is set."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-pane-change",
+              "description": "A tab in the phone strip was chosen. Cancelable: preventDefault keeps the previous pane."
             }
           ]
         }

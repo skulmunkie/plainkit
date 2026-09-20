@@ -234,6 +234,19 @@ export interface PkCheckboxElement extends HTMLElement {
     focus()(...args: unknown[]): unknown;
 }
 
+export interface PkClusterElement extends HTMLElement {
+    /** Row (wraps at the edge) or column. */
+    direction: "horizontal" | "vertical";
+    /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default sm (the control gap). */
+    gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+    /** Cross-axis alignment of the items. */
+    align: "start" | "center" | "end" | "stretch" | "baseline";
+    /** Main-axis distribution of the items. */
+    justify: "start" | "center" | "end" | "between";
+    /** Keep a horizontal cluster on one line instead of wrapping (wrapping is the default). */
+    nowrap: boolean;
+}
+
 export interface PkCodeBlockElement extends HTMLElement {
     /** File or language shown in the bar; also the region's name. */
     label: string;
@@ -532,6 +545,15 @@ export interface PkGalleryElement extends HTMLElement {
     src: string;
 }
 
+export interface PkGridElement extends HTMLElement {
+    /** Minimum column width as a CSS length (for example 12rem or 200px). Columns are equal width and never narrower than this, so the grid drops to one column when the container is narrower than two. */
+    min: string;
+    /** The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min. */
+    columns: number;
+    /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap). */
+    gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+}
+
 export interface PkHintElement extends HTMLElement {
     /** The toggle text. */
     label: string;
@@ -539,6 +561,38 @@ export interface PkHintElement extends HTMLElement {
     open: boolean;
     /** Accent colour. */
     tone: "info" | "warn";
+}
+
+export interface PkIconElement extends HTMLElement {
+    /** The symbol id in the sprite (search, settings, orders, ...). */
+    name: string;
+    /** md is 1.25em and follows the text; sm, lg and xl are fixed steps of the space scale. */
+    size: "sm" | "md" | "lg" | "xl";
+    /** The accessible name. Without it the icon is decorative and hidden from assistive technology. */
+    label: string;
+}
+
+export interface PkImageGalleryElement extends HTMLElement {
+    /** The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown. */
+    images: json;
+    /** The index of the primary image; -1 uses the first image flagged primary in images, or none. */
+    primary: number;
+    /** A fixed number of equal columns (1 to 12). 0 fits as many as min allows. */
+    columns: number;
+    /** The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0. */
+    min: string;
+    /** Show make-primary and remove buttons under each image and the add tile. */
+    editable: boolean;
+    /** Text on the add tile. */
+    addLabel: string;
+    /** The file types the add tile's picker offers. */
+    accept: string;
+    /** Opens the lightbox at an image. */
+    view(index)(...args: unknown[]): unknown;
+    /** Marks an image primary, as the button does (raises pk-primary-change first). */
+    makePrimary(index)(...args: unknown[]): unknown;
+    /** Removes an image, as the button does (raises pk-remove first). */
+    removeImage(index)(...args: unknown[]): unknown;
 }
 
 export interface PkInputElement extends HTMLElement {
@@ -641,6 +695,21 @@ export interface PkLoadingOverlayElement extends HTMLElement {
     fullscreen: boolean;
 }
 
+export interface PkLocalTimeElement extends HTMLElement {
+    /** The instant: an ISO 8601 string (2026-09-19T14:30:00Z). A date-only value is a calendar day and is never shifted by the time zone. */
+    datetime: string;
+    /** What to show. relative reads 3 hours ago and refreshes every 30 seconds while connected; its title holds the full date. */
+    format: "datetime" | "date" | "time" | "relative";
+    /** How much of the date to spell out (9/19/26, Sep 19, 2026, September 19, 2026). */
+    length: "short" | "medium" | "long";
+    /** A BCP 47 tag such as de-DE; empty uses the reader's browser locale. */
+    locale: string;
+    /** An IANA zone such as Europe/Berlin; empty uses the reader's own zone. */
+    timeZone: string;
+    /** The pure formatter the element uses: format, length, locale, timeZone and now. */
+    formatLocal(value, options)(...args: unknown[]): unknown;
+}
+
 export interface PkMediaElement extends HTMLElement {
     /** Aspect ratio as width/height: 16/9, 4/3, 1/1, 3/4. */
     ratio: string;
@@ -720,6 +789,15 @@ export interface PkOtpInputElement extends HTMLElement {
     focus()(...args: unknown[]): unknown;
     /** Empties the code. */
     clear()(...args: unknown[]): unknown;
+}
+
+export interface PkPageHeaderElement extends HTMLElement {
+    /** The title. Without it (and without default or actions content) the title bar is not shown. */
+    heading: string;
+    /** The heading level the title exposes to assistive technology (aria-level). */
+    level: number;
+    /** page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right). */
+    variant: "page" | "section" | "record";
 }
 
 export interface PkPagerElement extends HTMLElement {
@@ -989,6 +1067,15 @@ export interface PkSplitButtonElement extends HTMLElement {
     show()(...args: unknown[]): unknown;
     /** Closes the menu. */
     hide()(...args: unknown[]): unknown;
+}
+
+export interface PkStackElement extends HTMLElement {
+    /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space). */
+    gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+    /** Cross-axis alignment: stretch fills the width, the others size each child to its content. */
+    align: "stretch" | "start" | "center" | "end";
+    /** Draw a rule between children. */
+    dividers: boolean;
 }
 
 export interface PkStatElement extends HTMLElement {
@@ -1295,6 +1382,13 @@ export interface PkTocElement extends HTMLElement {
     refresh()(...args: unknown[]): unknown;
 }
 
+export interface PkToolbarElement extends HTMLElement {
+    /** The lead title, in strong text. */
+    heading: string;
+    /** A muted note beside the title, such as a count. */
+    note: string;
+}
+
 export interface PkTooltipElement extends HTMLElement {
     /** The label. */
     text: string;
@@ -1354,6 +1448,21 @@ export interface PkTreeItemElement extends HTMLElement {
     select()(...args: unknown[]): unknown;
 }
 
+export interface PkWorkspaceElement extends HTMLElement {
+    /** Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve. */
+    fill: boolean;
+    /** The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane. */
+    activePane: "nav" | "main" | "aside";
+    /** Show the aside: a docked column on a wide screen, a panel over the main pane on a tablet and its own pane on a phone. */
+    asideOpen: boolean;
+    /** The nav pane's accessible name and its tab on a phone. */
+    navLabel: string;
+    /** The main pane's accessible name and its tab on a phone. */
+    mainLabel: string;
+    /** The aside's accessible name and its tab on a phone. */
+    asideLabel: string;
+}
+
 declare global {
     interface HTMLElementTagNameMap {
         'pk-accordion': PkAccordionElement;
@@ -1371,6 +1480,7 @@ declare global {
         'pk-card': PkCardElement;
         'pk-chart': PkChartElement;
         'pk-checkbox': PkCheckboxElement;
+        'pk-cluster': PkClusterElement;
         'pk-code-block': PkCodeBlockElement;
         'pk-colour-input': PkColourInputElement;
         'pk-combobox': PkComboboxElement;
@@ -1389,16 +1499,21 @@ declare global {
         'pk-form-actions': PkFormActionsElement;
         'pk-form-section': PkFormSectionElement;
         'pk-gallery': PkGalleryElement;
+        'pk-grid': PkGridElement;
         'pk-hint': PkHintElement;
+        'pk-icon': PkIconElement;
+        'pk-image-gallery': PkImageGalleryElement;
         'pk-input': PkInputElement;
         'pk-lightbox': PkLightboxElement;
         'pk-list-group': PkListGroupElement;
         'pk-loading-overlay': PkLoadingOverlayElement;
+        'pk-local-time': PkLocalTimeElement;
         'pk-media': PkMediaElement;
         'pk-menu-item': PkMenuItemElement;
         'pk-nav-item': PkNavItemElement;
         'pk-navbar': PkNavbarElement;
         'pk-otp-input': PkOtpInputElement;
+        'pk-page-header': PkPageHeaderElement;
         'pk-pager': PkPagerElement;
         'pk-pagination': PkPaginationElement;
         'pk-popover': PkPopoverElement;
@@ -1414,6 +1529,7 @@ declare global {
         'pk-skip-link': PkSkipLinkElement;
         'pk-spinner': PkSpinnerElement;
         'pk-split-button': PkSplitButtonElement;
+        'pk-stack': PkStackElement;
         'pk-stat': PkStatElement;
         'pk-step': PkStepElement;
         'pk-stepper': PkStepperElement;
@@ -1430,9 +1546,11 @@ declare global {
         'pk-toast': PkToastElement;
         'pk-toast-stack': PkToastStackElement;
         'pk-toc': PkTocElement;
+        'pk-toolbar': PkToolbarElement;
         'pk-tooltip': PkTooltipElement;
         'pk-tree': PkTreeElement;
         'pk-tree-item': PkTreeItemElement;
+        'pk-workspace': PkWorkspaceElement;
     }
     interface HTMLElementEventMap {
         'pk-toggle': CustomEvent<unknown>;
@@ -1451,6 +1569,9 @@ declare global {
         'pk-files': CustomEvent<{ count: number: unknown; rejectedCount: number: unknown; files: File[]: unknown; rejected:  file: File: unknown; reason: string []: unknown }>;
         'pk-invalid': CustomEvent<{ count: number: unknown; controls: Element[]: unknown; messages: string[]: unknown }>;
         'pk-valid': CustomEvent<unknown>;
+        'pk-primary-change': CustomEvent<unknown>;
+        'pk-remove': CustomEvent<unknown>;
+        'pk-add': CustomEvent<unknown>;
         'pk-value-change': CustomEvent<{ value: string: unknown }>;
         'pk-search': CustomEvent<{ value: string: unknown }>;
         'pk-otp-change': CustomEvent<{ value: string: unknown }>;
@@ -1470,11 +1591,11 @@ declare global {
         'pk-filter': CustomEvent<unknown>;
         'pk-row-click': CustomEvent<unknown>;
         'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown }>;
-        'pk-remove': CustomEvent<unknown>;
         'pk-tags-change': CustomEvent<{ value: string: unknown; tags: string[]: unknown }>;
         'pk-section-change': CustomEvent<unknown>;
         'pk-show': CustomEvent<unknown>;
         'pk-hide': CustomEvent<unknown>;
+        'pk-pane-change': CustomEvent<unknown>;
     }
     namespace JSX {
         interface IntrinsicElements {
@@ -1493,6 +1614,7 @@ declare global {
             'pk-card': PkJsx<PkCardElement, "heading" | "level" | "tone" | "orientation" | "flush" | "href" | "fill">;
             'pk-chart': PkJsx<PkChartElement, "kind" | "caption" | "height" | "data" | "dataLabel">;
             'pk-checkbox': PkJsx<PkCheckboxElement, "name" | "value" | "checked" | "indeterminate" | "label" | "description" | "disabled" | "required" | "invalid" | "group" | "master" | "size">;
+            'pk-cluster': PkJsx<PkClusterElement, "direction" | "gap" | "align" | "justify" | "nowrap">;
             'pk-code-block': PkJsx<PkCodeBlockElement, "label" | "lineNumbers" | "wrap" | "noCopy" | "maxHeight">;
             'pk-colour-input': PkJsx<PkColourInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid">;
             'pk-combobox': PkJsx<PkComboboxElement, "mode" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "free" | "filtering" | "open">;
@@ -1511,16 +1633,21 @@ declare global {
             'pk-form-actions': PkJsx<PkFormActionsElement, "sticky" | "align">;
             'pk-form-section': PkJsx<PkFormSectionElement, "heading" | "description">;
             'pk-gallery': PkJsx<PkGalleryElement, "kind" | "group" | "control" | "theme" | "width" | "filter" | "chrome" | "height" | "src">;
+            'pk-grid': PkJsx<PkGridElement, "min" | "columns" | "gap">;
             'pk-hint': PkJsx<PkHintElement, "label" | "open" | "tone">;
+            'pk-icon': PkJsx<PkIconElement, "name" | "size" | "label">;
+            'pk-image-gallery': PkJsx<PkImageGalleryElement, "images" | "primary" | "columns" | "min" | "editable" | "addLabel" | "accept">;
             'pk-input': PkJsx<PkInputElement, "type" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "min" | "max" | "step" | "minlength" | "maxlength" | "pattern" | "autocomplete" | "inputmode" | "size" | "clearable" | "reveal" | "stepper" | "format" | "decimals" | "currency" | "locale" | "floating" | "autohide" | "debounce">;
             'pk-lightbox': PkJsx<PkLightboxElement, "index" | "label" | "open">;
             'pk-list-group': PkJsx<PkListGroupElement, "variant" | "checklist" | "label">;
             'pk-loading-overlay': PkJsx<PkLoadingOverlayElement, "busy" | "label" | "fullscreen">;
+            'pk-local-time': PkJsx<PkLocalTimeElement, "datetime" | "format" | "length" | "locale" | "timeZone">;
             'pk-media': PkJsx<PkMediaElement, "ratio" | "fit" | "caption" | "lightbox" | "square">;
             'pk-menu-item': PkJsx<PkMenuItemElement, "type" | "checked" | "disabled" | "danger" | "value" | "href" | "open">;
             'pk-nav-item': PkJsx<PkNavItemElement, "href" | "current" | "disabled" | "expanded" | "rail" | "flyout">;
             'pk-navbar': PkJsx<PkNavbarElement, "label" | "open" | "sticky">;
             'pk-otp-input': PkJsx<PkOtpInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid" | "length" | "type" | "separatorAt">;
+            'pk-page-header': PkJsx<PkPageHeaderElement, "heading" | "level" | "variant">;
             'pk-pager': PkJsx<PkPagerElement, "label">;
             'pk-pagination': PkJsx<PkPaginationElement, "page" | "pages" | "total" | "pageSize" | "sizes" | "siblings" | "boundary" | "mode" | "label" | "loading" | "edges">;
             'pk-popover': PkJsx<PkPopoverElement, "open" | "placement" | "trigger" | "heading" | "label" | "variant" | "message" | "confirmLabel" | "cancelLabel" | "danger">;
@@ -1536,6 +1663,7 @@ declare global {
             'pk-skip-link': PkJsx<PkSkipLinkElement, "href">;
             'pk-spinner': PkJsx<PkSpinnerElement, "variant" | "size" | "label" | "overlay">;
             'pk-split-button': PkJsx<PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">;
+            'pk-stack': PkJsx<PkStackElement, "gap" | "align" | "dividers">;
             'pk-stat': PkJsx<PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">;
             'pk-step': PkJsx<PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">;
             'pk-stepper': PkJsx<PkStepperElement, "current" | "orientation" | "clickable" | "free" | "errors" | "label">;
@@ -1552,9 +1680,11 @@ declare global {
             'pk-toast': PkJsx<PkToastElement, "kind" | "heading" | "message" | "duration" | "noClose">;
             'pk-toast-stack': PkJsx<PkToastStackElement, "position" | "max">;
             'pk-toc': PkJsx<PkTocElement, "for" | "levels" | "offset" | "scroller" | "heading" | "label">;
+            'pk-toolbar': PkJsx<PkToolbarElement, "heading" | "note">;
             'pk-tooltip': PkJsx<PkTooltipElement, "text" | "placement" | "delay" | "shown" | "interactive" | "help" | "enrich" | "heading" | "label">;
             'pk-tree': PkJsx<PkTreeElement, "label" | "selection" | "value">;
             'pk-tree-item': PkJsx<PkTreeItemElement, "label" | "value" | "expanded" | "selected" | "disabled" | "expandable">;
+            'pk-workspace': PkJsx<PkWorkspaceElement, "fill" | "activePane" | "asideOpen" | "navLabel" | "mainLabel" | "asideLabel">;
         }
     }
 }

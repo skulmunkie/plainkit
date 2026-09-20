@@ -145,7 +145,7 @@
   ],
   "a11y": "role=radiogroup named by label; each option is a native radio in one tab stop with arrow-key movement; the segmented variant hides the radio visually but keeps it focusable and shows the focus ring on the segment. Options are 44px tall on a phone.",
   "blazor": {
-    "component": "RadioGroup",
+    "component": "PkRadioGroup",
     "params": [
       {
         "name": "Value",

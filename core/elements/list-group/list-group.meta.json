@@ -43,7 +43,7 @@
   "methods": [],
   "a11y": "The host is role=list and each row gets role=listitem unless it already has a role. Rows are native links, buttons or labels, so keyboard and names come from them. The current row uses aria-current. Actionable rows are at least 44px tall.",
   "blazor": {
-    "component": "ListGroup",
+    "component": "PkListGroup",
     "params": [
       {
         "name": "Variant",

@@ -45,7 +45,7 @@
   "a11y": "A labelled region; each toast announces itself with its own role.",
   "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
   "blazor": {
-    "component": "Toaststack",
+    "component": "PkToastStack",
     "params": [
       {
         "name": "Position",

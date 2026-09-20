@@ -7,9 +7,12 @@
 
 .sc-score-big .stat-card-value { font-size: 2.25rem; }
 
-.sc-bar { display: block; height: 0.5rem; margin-top: var(--space-1); background: var(--color-surface-alt); border-radius: var(--radius-pill); overflow: hidden; }
+/* The framework sections are pk-cards; a table or tab strip inside one sits flush with the body and the sparkline tiles keep a tidy grid. */
+.sc-module pk-tabs { display: block; }
 
-.sc-bar > span { display: block; height: 100%; background: var(--color-accent); }
+.sc-module pk-table + *, .sc-module .cluster + * { margin-top: var(--space-3); }
+
+.sc-tile-big { grid-column: 1 / -1; }
 
 .sc-good { color: var(--stat-card-positive-fg); }
 
@@ -32,4 +35,3 @@
 .sc-frames iframe { border: 0; }
 
 .sc-progress { margin: var(--space-3) 0; }
-.sc-import-label { cursor: pointer; }

@@ -240,3 +240,7 @@ import { formCases } from './cases-forms.js';
 cases.push(...formCases);
 import { toolCases } from './cases-tools.js';
 cases.push(...toolCases);
+import { headerCases } from './cases-headers.js'; cases.push(...headerCases);
+import { layoutCases } from './cases-layout.js'; cases.push(...layoutCases);
+import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCases);
+import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);

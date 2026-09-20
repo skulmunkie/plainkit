@@ -119,7 +119,7 @@
   "methods": [],
   "a11y": "Built on the native progress element, so its role, value and range are exposed without extra ARIA; the label names it (aria-labelledby). Always give it a label. Indeterminate when no value applies.",
   "blazor": {
-    "component": "Progress",
+    "component": "PkProgress",
     "params": [
       {
         "name": "Value",

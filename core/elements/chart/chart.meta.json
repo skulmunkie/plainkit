@@ -105,7 +105,7 @@
   ],
   "a11y": "The svg is role=img with a generated text alternative listing the values; the source table stays in a details for exact numbers. Series colours are the chart tokens and every multi-series chart has a legend, so colour is not the only key.",
   "blazor": {
-    "component": "Chart",
+    "component": "PkChart",
     "params": [
       {
         "name": "Kind",
