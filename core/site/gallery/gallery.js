@@ -612,7 +612,7 @@ export async function mountGallery(container, options = {}) {
     view.addEventListener('input', e => {
         const form = e.target.closest('.gx-find'); if (!form) return;
         clearTimeout(form._t);
-        form._t = setTimeout(() => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; setTimeout(() => { $('.gx-find pk-input[type=search]', view)?.focus(); }, 30); }, 250);
+        form._t = setTimeout(() => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; setTimeout(() => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     view.addEventListener('change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
 }

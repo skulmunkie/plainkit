@@ -902,8 +902,8 @@
     },
     {
       "path": "gallery/gallery.css",
-      "bytes": 10582,
-      "integrity": "sha384-Ixy/haor4YCwoVxn8xSbHfgjtQWjOeE1svovBp5FbxHfVUxf72z2Uxqeo3R0g/tU"
+      "bytes": 10567,
+      "integrity": "sha384-coWhhRUF4RcLendZ7v1wSkLgttI4KZH5hMQoYHXurvoijKl2gqLSVN2bS+T8FB3b"
     },
     {
       "path": "gallery/gallery.data.js",
@@ -912,8 +912,8 @@
     },
     {
       "path": "gallery/gallery.js",
-      "bytes": 52953,
-      "integrity": "sha384-PuhMrTb9EkrWyQfNTcBmauEajcG79HoBPb89srgbVO+Mc373rbNi7XVOFo8rNPob"
+      "bytes": 53080,
+      "integrity": "sha384-qhiUdbzt9u6jmXDuhAPZ4WK6yaFptSNWuKO9QvoQMHtv8NrWETRb9SPt42xf94YO"
     },
     {
       "path": "gallery/gallery.static.js",
