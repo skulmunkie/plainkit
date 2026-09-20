@@ -1,15 +1,13 @@
 // The dev tools' Quality, Inspector and Theme panels, in the shape mountDevTools takes: { id, title, mount(element, context) }.
 // Quality runs the SDK's own page checks (js/quality.js) on the live page and shows a score and every finding. Inspector lists the pk-*
 // elements on the page with the attributes that configure them and highlights one when its row is chosen. Quality and Inspector are built only from
-// SDK components (pk-stat, pk-table, pk-button); Theme mounts the theme editor module against the live document, so a token edit restyles
+// SDK components (pk-stat, pk-table, pk-button, pk-cluster); Theme mounts the theme editor module against the live document, so a token edit restyles
 // the page at once (its overrides persist under the same key as the SDK theme editor page). context.whileHidden(fn) runs fn with the dev tools out of the way, so they are not measured.
 
 import { describeForInspector } from '../js/inspect-logic.js';
 import { loadElements } from '../js/loader.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
-
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start';
 
 function h(doc, tag, props = {}, ...children) {
     const el = doc.createElement(tag);
@@ -38,7 +36,7 @@ export const inspectorPanel = {
             label: 'pk-* elements on this page', density: 'compact', stickyHeader: true, clickable: true, maxHeight: '18rem',
             columns: JSON.stringify([{ key: 'tag', label: 'Element' }, { key: 'domId', label: 'Id' }, { key: 'props', label: 'Set with' }, { key: 'size', label: 'Size', align: 'end' }]),
         });
-        el.append(h(doc, 'div', { class: CLUSTER }, refresh, status), h(doc, 'div', { class: 'u-mt-3' }, table));
+        el.append(h(doc, 'pk-cluster', {}, refresh, status), h(doc, 'div', { class: 'u-mt-3' }, table));
         loadElements(el).catch(() => {});
 
         let found = [];

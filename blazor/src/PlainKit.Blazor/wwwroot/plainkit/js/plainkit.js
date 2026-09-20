@@ -10,6 +10,8 @@ import { initWorkspaces } from '../components/workspace/workspace.js';
 import { initNav } from '../components/nav/nav.js';
 import { initLocalTimes } from '../components/local-date-time/local-date-time.js';
 import { syncProgress } from './dynamic.js';
+import { initInvokers } from './invokers.js';
+import { createLogger } from './log.js';
 import { loadElements, observeElements } from './loader.js';
 
 export * from '../components/modal/modal.js';
@@ -19,9 +21,13 @@ export * from '../components/workspace/workspace.js';
 export * from '../components/nav/nav.js';
 export * from '../components/local-date-time/local-date-time.js';
 export * from './dynamic.js';
+export * from './invokers.js';
+export * from './log.js';
 export * from './loader.js';
 export * from './theme.js';
 export * from './colour.js';
+
+const log = createLogger('plainkit');
 
 export function initPlainkit(root = document, options = {}) {
     initOverlays(root);
@@ -31,6 +37,7 @@ export function initPlainkit(root = document, options = {}) {
     initNav(root);
     initLocalTimes(root);
     syncProgress(root);
-    loadElements(root).catch(() => {});
+    initInvokers(root);
+    loadElements(root).catch(error => log.error('the element loader failed', error));
     if (root === document) observeElements(document);
 }

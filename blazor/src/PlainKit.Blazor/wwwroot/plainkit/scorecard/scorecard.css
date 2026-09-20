@@ -5,12 +5,10 @@
 
 .sc-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
 
-.sc-score-big .stat-card-value { font-size: 2.25rem; }
-
 /* The framework sections are pk-cards; a table or tab strip inside one sits flush with the body and the sparkline tiles keep a tidy grid. */
 .sc-module pk-tabs { display: block; }
 
-.sc-module pk-table + *, .sc-module .cluster + * { margin-top: var(--space-3); }
+.sc-module pk-table + *, .sc-module pk-cluster + * { margin-top: var(--space-3); }
 
 .sc-tile-big { grid-column: 1 / -1; }
 

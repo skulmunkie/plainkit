@@ -1,9 +1,8 @@
 // The scorecard's framework sections, drawn from the pure rows of js/framework-checks.js with SDK components only (pk-card, pk-stat,
-// pk-table, pk-tabs, pk-badge, pk-button, pk-empty-state). No markup strings: every node is built with the DOM, every text is set as text.
+// pk-table, pk-tabs, pk-badge, pk-button, pk-cluster, pk-empty-state). No markup strings: every node is built with the DOM, every text is set as text.
 
 import { band, metricRows, budgetRows, budgetSummary, apiDiff, securitySummary, sweepSummary, historyCategories, historyRows, severityVariant, kb, signed } from '../js/framework-checks.js';
 
-const CLUSTER = 'cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start';
 const STAT_TONE = { ok: 'positive', warn: 'warning', danger: 'critical', '': 'neutral' };
 
 export function h(doc, tag, props = {}, ...children) {
@@ -17,7 +16,7 @@ export const card = (doc, heading, ...children) => h(doc, 'pk-card', { heading, 
 export const note = (doc, text) => h(doc, 'p', { class: 'muted' }, text);
 export const badge = (doc, variant, text) => h(doc, 'pk-badge', { variant }, text);
 export const emptyState = (doc, heading, description) => h(doc, 'pk-empty-state', { heading, description, tone: 'compact' });
-const row = (doc, ...children) => h(doc, 'div', { class: CLUSTER }, ...children);
+const row = (doc, ...children) => h(doc, 'pk-cluster', {}, ...children);
 
 // A data-driven pk-table. columns: [{ key, label, align?, sortable? }]; rows need an id; cells: { key: row => Node } fills a cell with a
 // component (a badge, a link) through the table's cell slots.
@@ -40,14 +39,15 @@ export const missing = (doc, host, what, hint) => host.replaceChildren(emptyStat
 // ---- scored categories (after a run) --------------------------------------------------------------------------------------
 
 // Overall plus one tile per category, each with its score, its change since the last run and (with two runs or more) a sparkline.
+export function scoreTile(doc, label, score, delta, series = []) {
+    const values = series.filter(v => typeof v === 'number');
+    return h(doc, 'pk-stat', { label, value: score === null || score === undefined ? 'n/a' : String(score), tone: STAT_TONE[band(score)], tile: true, subtext: delta === null || delta === undefined ? '' : `${signed(delta)} since the last run`, values: values.length > 1 ? JSON.stringify(values) : false });
+}
+
 export function scoreTiles(doc, scores, { deltas = { overall: null, categories: {} }, history = [] } = {}) {
-    const tile = (label, score, delta, series) => {
-        const values = series.filter(v => typeof v === 'number');
-        return h(doc, 'pk-stat', { label, value: score === null || score === undefined ? 'n/a' : String(score), tone: STAT_TONE[band(score)], tile: true, subtext: delta === null || delta === undefined ? '' : `${signed(delta)} since the last run`, values: values.length > 1 ? JSON.stringify(values) : false });
-    };
-    const overall = tile('Overall', scores.overall, deltas.overall, history.map(r => r.overall));
+    const overall = scoreTile(doc, 'Overall', scores.overall, deltas.overall, history.map(r => r.overall));
     overall.classList.add('sc-tile-big');
-    return h(doc, 'div', { class: 'sc-scores' }, overall, ...Object.entries(scores.categories).map(([k, c]) => tile(c.label, c.score, deltas.categories?.[k], history.map(r => r.categories?.[k]))));
+    return h(doc, 'div', { class: 'sc-scores' }, overall, ...Object.entries(scores.categories).map(([k, c]) => scoreTile(doc, c.label, c.score, deltas.categories?.[k], history.map(r => r.categories?.[k]))));
 }
 
 // One tab per scored category (its metrics against good and poor), plus one for the stylesheets.

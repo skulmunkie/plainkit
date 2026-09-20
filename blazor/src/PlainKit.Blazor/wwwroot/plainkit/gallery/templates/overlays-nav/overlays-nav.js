@@ -2,24 +2,26 @@
 // (show/hide, the palette's items property) and to the toast helper. Nothing here is needed by the components themselves.
 // The element loader (js/element.js) registers the pk-* tags on demand when the page uses them.
 
-import { initPlainkit } from '../../../js/plainkit.js';
+import { loadElements, observeElements } from '../../../js/loader.js';
+import { initInvokers } from '../../../js/invokers.js';
 import Toast from '../../../elements/toast-stack.js';
 
-initPlainkit();
+loadElements(document).catch(() => {});
+observeElements(document);
 globalThis.PkToast = Toast;
+initInvokers(document);
 
 const $ = selector => document.querySelector(selector);
 
 document.addEventListener('click', event => {
-    const opener = event.target.closest('[data-open]');
-    if (opener) { $(opener.getAttribute('data-open'))?.show?.(); return; }
-    if (event.target.closest('[data-close]')) { event.target.closest('pk-drawer, pk-dialog')?.hide?.(); return; }
     const toaster = event.target.closest('[data-toast]');
     if (toaster) globalThis.PkToast?.show('Draft saved.', { kind: toaster.getAttribute('data-toast'), heading: 'Saved', action: { label: 'Undo' } });
 });
 
 const palette = $('#palette');
 if (palette) {
+    // `items` is a property: set it once the element is defined, or the upgrade would leave it shadowed.
+    await customElements.whenDefined('pk-command-palette');
     palette.items = [
         { id: 'dash', label: 'Go to Dashboard', group: 'Navigate', href: '#' },
         { id: 'orders', label: 'Go to Orders', group: 'Navigate', href: '#', keywords: 'sales' },
