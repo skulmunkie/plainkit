@@ -1,0 +1,55 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's live performance monitor: Core Web Vitals, frame rate, long tasks, DOM size, JS heap and what the page loaded. *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>Milliseconds between updates.</summary>
+    [Parameter] public int Interval { get; set; } = 1000;
+
+    /// <summary>Samples kept for the sparklines.</summary>
+    [Parameter] public int History { get; set; } = 60;
+
+    /// <summary>Start watching as soon as it is mounted.</summary>
+    [Parameter] public bool AutoStart { get; set; } = true;
+
+    /// <summary>The theme of the monitor itself.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill".</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = $"{Interval}|{History}|{AutoStart}|{Theme}|{Height}";
+        if (key == _mounted) return;
+        _mounted = key;
+        await _bridge.InvokeVoidAsync("mountPerformance", _host, new { interval = Interval, history = History, autostart = AutoStart, theme = Theme.Attr(), height = Height });
+    }
+
+    /// <summary>Stops updating (the numbers stay on screen).</summary>
+    public async Task PauseAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("pause", _host);
+    }
+
+    /// <summary>Starts updating again.</summary>
+    public async Task ResumeAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("resume", _host);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

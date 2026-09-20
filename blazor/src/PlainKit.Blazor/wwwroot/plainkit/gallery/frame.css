@@ -1,0 +1,9 @@
+/* Demo-only chrome for gallery samples (schematics); not part of the SDK. Every colour and size is a token. */
+body { height: auto; padding: var(--space-3); }
+
+.lay-shell { display: grid; grid-template-columns: 7rem 1fr; min-height: 10rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+.lay-shell-side { padding: var(--space-3); background: var(--color-panel); border-right: 1px solid var(--color-border); }
+.lay-shell-main { display: grid; grid-template-rows: auto 1fr auto; }
+.lay-shell-top, .lay-shell-foot { padding: var(--space-2) var(--space-3); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+.lay-shell-foot { border-bottom: 0; border-top: 1px solid var(--color-border); }
+.lay-shell-body { padding: var(--space-3); }

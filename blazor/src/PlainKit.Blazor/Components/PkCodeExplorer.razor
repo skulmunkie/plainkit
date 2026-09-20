@@ -1,0 +1,73 @@
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's code explorer: file tree, tabs, viewer, search and outline over a snapshot of a folder (see PkSnapshot). *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>The URL of a snapshot JSON file.</summary>
+    [Parameter] public string? SnapshotUrl { get; set; }
+
+    /// <summary>A snapshot built in memory (<see cref="PkSnapshot.FromDirectory"/>). Wins over <see cref="SnapshotUrl"/>.</summary>
+    [Parameter] public PkSnapshot? Snapshot { get; set; }
+
+    /// <summary>The file to open first.</summary>
+    [Parameter] public string? File { get; set; }
+
+    /// <summary>The line to focus in <see cref="File"/>.</summary>
+    [Parameter] public int Line { get; set; }
+
+    /// <summary>A query to run: text or /regex/.</summary>
+    [Parameter] public string? Search { get; set; }
+
+    /// <summary>The theme of the explorer.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill". Defaults to 32rem.</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Snapshot is null && SnapshotUrl is null) return;
+        _bridge ??= await Runtime.BridgeAsync();
+        // Mount again only when what is shown changes: a re-render with the same parameters leaves the explorer (and its open tabs) alone.
+        var key = JsonSerializer.Serialize(new { SnapshotUrl, Snapshot?.Generated, Files = Snapshot?.Files.Count, File, Line, Search, Theme, Height });
+        if (key == _mounted) return;
+        _mounted = key;
+        object snapshot = Snapshot is not null ? Snapshot : SnapshotUrl!;
+        await _bridge.InvokeVoidAsync("mountCodeExplorer", _host, new
+        {
+            snapshot,
+            file = File,
+            line = Line > 0 ? Line : (int?)null,
+            search = Search,
+            theme = Theme.Attr(),
+            height = Height,
+        });
+    }
+
+    /// <summary>Opens a file (and focuses a line) in the mounted explorer.</summary>
+    public async Task OpenFileAsync(string path, int? line = null)
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("openFile", _host, path, line);
+    }
+
+    /// <summary>Runs a search in the mounted explorer.</summary>
+    public async Task SearchAsync(string query)
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("search", _host, query);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

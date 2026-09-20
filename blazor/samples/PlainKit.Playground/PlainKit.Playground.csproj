@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Hosts the PlainKit.Blazor tools (gallery, code explorer, scorecard) so they can be used on this repository itself. Not packed. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PlainKit.Blazor\PlainKit.Blazor.csproj" />
+  </ItemGroup>
+
+</Project>

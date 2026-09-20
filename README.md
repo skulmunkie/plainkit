@@ -7,15 +7,34 @@ It ships in two forms from one repository:
 
 | Package | What it is | Where |
 |---|---|---|
-| `plainkit` | The vanilla toolkit: `dist/` (CSS, modules, elements, gallery, tools) | npm, or any CDN that serves npm |
-| `Plainkit.Blazor` | The Blazor port: typed components over the same elements, with `dist/` as static web assets | NuGet (moves here after the toolkit) |
+| `plainkit` (`core/dist`) | The vanilla toolkit: CSS, modules, elements, gallery, tools | GitHub Pages, GitHub releases, jsDelivr by tag (npm is optional) |
+| `PlainKit.Blazor` | Blazor components over the same elements, the dev tools page, and `dist/` as static web assets | NuGet |
+
+## Use it
+
+No install, no build step: link the files.
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@v0.1.0/core/dist/plainkit.min.css">
+<script type="module" src="https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@v0.1.0/core/dist/plainkit.js"></script>
+<pk-alert kind="info" heading="It works">No framework, no build.</pk-alert>
+```
+
+| Way | Version |
+|---|---|
+| The Pages site, `https://skulmunkie.github.io/plainkit/` (gallery and tools; `dist/` sits under it) | latest `main` |
+| jsDelivr from a git tag, as above (change `v0.1.0` to any release) | pinned |
+| `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; copy it anywhere | pinned |
+| `dotnet add package PlainKit.Blazor` | pinned |
+
+The SDK itself makes no third-party requests at run time; a CDN is only one way to deliver its files. `dist/manifest.json` lists every file with a SRI hash. How releases are made is in [PUBLISHING.md](PUBLISHING.md).
 
 ## Layout
 
 ```
 core/      the vanilla toolkit: source, tests, tools, gallery; its only output is core/dist
-blazor/    Plainkit.Blazor (Razor class library), generated wrappers and their bUnit tests (added later)
-scripts/   the bridge between the two (publish core/dist into blazor, regenerate wrappers) (added later)
+blazor/    PlainKit.Blazor (src/, a Razor class library), its bUnit tests (tests/) and a host app (samples/)
+scripts/   the bridge between the two: publish-dist.mjs copies core/dist into the package (--check in CI)
 ```
 
 Try it: `node core/tools/serve.mjs` serves the gallery, theme editor and scorecard on http://localhost:5310/ (Node only).

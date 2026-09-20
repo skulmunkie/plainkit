@@ -1,0 +1,62 @@
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's scorecard: renders each target at every theme and width, runs the quality checks and ranks them worst first. *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>What to score: same-origin pages, or markup rendered with the toolkit's stylesheets.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PkScoreTarget> Targets { get; set; } = [];
+
+    /// <summary>Keep only findings whose check or category is listed (for example "accessibility", "touch-target"). Empty keeps all.</summary>
+    [Parameter] public IReadOnlyList<string>? Checks { get; set; }
+
+    /// <summary>A localStorage key: keeps the runs and shows the change since the last one.</summary>
+    [Parameter] public string? HistoryKey { get; set; }
+
+    /// <summary>Run as soon as it is mounted.</summary>
+    [Parameter] public bool AutoRun { get; set; }
+
+    /// <summary>The theme of the scorecard itself.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill".</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Targets.Count == 0) return;
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = JsonSerializer.Serialize(new { Targets, Checks, HistoryKey, AutoRun, Theme, Height });
+        if (key == _mounted) return;
+        _mounted = key;
+        await _bridge.InvokeVoidAsync("mountScorecard", _host, new
+        {
+            targets = Targets,
+            checks = Checks,
+            historyKey = HistoryKey,
+            autorun = AutoRun,
+            theme = Theme.Attr(),
+            height = Height,
+        });
+    }
+
+    /// <summary>Scores every target again.</summary>
+    public async Task RunAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("run", _host);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

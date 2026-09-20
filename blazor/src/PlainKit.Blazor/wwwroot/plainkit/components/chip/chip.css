@@ -1,0 +1,55 @@
+/* -------- Line-status chips -------- */
+
+.chip {
+    /* inline-flex (not inline-block) so chips with an icon + text
+       layout horizontally and align center, regardless of the
+       container's font-size. */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0.12rem 0.55rem;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-meta);
+    line-height: 1.25;
+    background: var(--chip-bg);
+    color: var(--chip-fg);
+    font-weight: 500;
+    /* Pills are atomic — they should never break across two lines.
+       In narrow columns the cell can scroll horizontally instead. */
+    white-space: nowrap;
+    /* Don't let flex parents shrink the chip below its content width. */
+    flex-shrink: 0;
+    /* Vertically align with surrounding text baselines when used
+       inline rather than inside a flex row. */
+    vertical-align: middle;
+}
+
+.chip strong { font-weight: 700; }
+
+/* A chip that IS the fix, not just the label for it — a <button class="chip
+   chip-btn"> keeps the pill and gains the click. Resets only what the button
+   element brings with it, so every .chip-* colour still applies. */
+
+.chip-btn {
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.chip-btn:hover:not(:disabled) { filter: brightness(1.25); }
+
+.chip-btn:focus-visible { outline: var(--focus-ring); }
+
+/* Tones. A status vocabulary maps its own names onto these (see the README). */
+
+.chip-muted { background: var(--chip-bg); color: var(--chip-fg); }
+
+.chip-info { background: var(--chip-info-bg); color: var(--chip-info-fg); }
+
+.chip-success { background: var(--chip-success-bg); color: var(--chip-success-fg); }
+
+.chip-warn { background: var(--chip-warn-bg); color: var(--chip-warn-fg); }
+
+.chip-danger { background: var(--chip-danger-bg); color: var(--chip-danger-fg); }
+
+.chip-accent { background: var(--chip-accent-bg); color: var(--chip-accent-fg); }

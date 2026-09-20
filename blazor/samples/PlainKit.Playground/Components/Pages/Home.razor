@@ -1,0 +1,7 @@
+@page "/"
+@inject NavigationManager Nav
+
+@code {
+    // The playground only hosts the server: everything worth seeing is the dev tools page that ships in PlainKit.Blazor.
+    protected override void OnInitialized() => Nav.NavigateTo("/_plainkit", replace: true);
+}

@@ -1,0 +1,36 @@
+/* -------- Remedy (Remedy) --------
+   A message and the control that fixes it, on one line. The action is pushed
+   to the end rather than sitting after the full stop, because a button that
+   flows with the prose reads as part of the sentence and gets skimmed past.
+   On a phone the two stack, message first — the fix is never the thing that
+   scrolls off the top. */
+
+.remedy {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.55rem 0.7rem;
+    margin: 0.5rem 0;
+    border-left: 3px solid var(--remedy-border);
+    border-radius: 0 4px 4px 0;
+    background: var(--color-surface-alt);
+    font-size: var(--text-read);
+    line-height: 1.45;
+}
+
+.remedy-body {
+    flex: 1 1 16rem;
+    min-width: 0;
+}
+
+.remedy-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.remedy--error { border-left-color: var(--remedy-error-border); }
+
+.remedy--info { border-left-color: var(--color-accent); }

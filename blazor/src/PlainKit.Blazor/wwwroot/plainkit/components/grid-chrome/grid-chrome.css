@@ -1,0 +1,49 @@
+/* The DataGrid Blazor component's own chrome: toolbar, search, filters slot, page size, refresh, pager and the DataGridFilter popup. Compat layer
+   until the wrappers use a grid element; the table itself is styled by components/table-content. */
+.dg { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.dg-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0.4rem var(--space-2); }
+
+.dg-toolbar-right { display: flex; align-items: center; gap: var(--space-3); color: var(--color-muted); font-size: var(--text-read); }
+
+.dg-refresh { padding: 0.15rem 0.4rem; font-size: 1rem; line-height: 1; opacity: 0.6; transition: opacity 0.15s; &:hover:not(:disabled) { opacity: 1; } &:disabled { cursor: default; animation: dg-spin 0.8s linear infinite; } }
+
+.dg-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); color: var(--color-muted); font-size: var(--text-read); & label { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; } }
+
+:is(.dg-filters :is(select, input[type="text"], input[type="search"]), .dg-search, .dg-page-size select) { padding: 0.3rem var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); font-size: var(--text-read); }
+
+.dg-search { flex: 1 1 280px; min-inline-size: 280px; max-inline-size: 480px; padding: 0.4rem 0.6rem; }
+
+.dg-page-size select { margin-inline-start: var(--space-1); }
+
+.dg-pager { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); color: var(--color-muted); font-size: var(--text-read); }
+
+@keyframes dg-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+    .dg-toolbar { flex-wrap: wrap; }
+    .dg-search { flex-basis: 100%; min-inline-size: 0; }
+    .dg-pager { flex-wrap: wrap; justify-content: center; gap: var(--space-1); padding: 0.45rem var(--space-2); }
+    .dg:has(table.dg-cards) > .dg-pager { position: sticky; inset-block-end: 0; z-index: 4; border-block-start: 1px solid var(--color-border); background: var(--color-panel); }
+}
+
+/* DataGridFilter: a dropdown of checkable options */
+.dg-filter { position: relative; display: inline-block; &.open .dg-filter-toggle, & .dg-filter-toggle:hover { border-color: var(--color-text); } }
+
+.dg-filter-toggle { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.55rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); font-size: var(--text-read); cursor: pointer; }
+
+.dg-filter-count { padding: 0 0.45rem; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--btn-primary-fg); font-size: var(--text-meta); font-weight: 600; }
+
+.dg-filter-caret { font-size: 0.7em; opacity: 0.6; }
+
+.dg-filter-popup { position: absolute; inset: calc(100% + 4px) auto auto 0; z-index: 100; display: flex; flex-direction: column; min-inline-size: 240px; max-inline-size: 360px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-panel); box-shadow: var(--dg-filter-popup-shadow); }
+
+.dg-filter-search { padding: var(--space-2) 0.6rem; border: 0; border-block-end: 1px solid var(--color-border); border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: var(--color-bg); color: var(--color-text); font-size: var(--text-read); }
+
+:is(.dg-filter-loading, .dg-filter-empty) { padding: var(--space-3); font-size: var(--text-read); text-align: center; }
+
+.dg-filter-options { max-block-size: 240px; overflow-y: auto; padding: var(--space-1) 0; }
+
+.dg-filter-option { display: flex; align-items: center; gap: 0.45rem; padding: 0.3rem 0.6rem; font-size: var(--text-read); cursor: pointer; &:hover { background: var(--color-bg); } }
+
+.dg-filter-footer { display: flex; justify-content: space-between; gap: var(--space-2); padding: 0.4rem var(--space-2); border-block-start: 1px solid var(--color-border); }

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <RootNamespace>PlainKit.Blazor</RootNamespace>
+    <PackageId>PlainKit.Blazor</PackageId>
+    <Description>Blazor components over Plainkit, the dependency-free HTML/CSS/JS toolkit. Ships the toolkit and its gallery, code explorer and scorecard as static web assets.</Description>
+    <PackageTags>blazor;razor-components;design-system;web-components;plainkit</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PlainKit.Blazor.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- wwwroot/plainkit is a byte-for-byte copy of core/dist (node scripts/publish-dist.mjs; CI verifies it is current). It is served under
+       _content/PlainKit.Blazor/plainkit/. Files outside wwwroot cannot be served by the static web assets runtime, hence the copy. -->
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
