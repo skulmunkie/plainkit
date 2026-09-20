@@ -1,0 +1,90 @@
+/* pk-drawer: a native modal <dialog> pinned to an edge. The dialog gives the backdrop, focus trap, inertness and Escape. */
+:host { display: contents; }
+
+[part="panel"] {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    max-width: none;
+    max-height: none;
+    background: var(--color-flyout);
+    color: var(--color-text);
+    box-shadow: var(--shadow-flyout);
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+[part="panel"][open] { display: flex; animation: drawer-in-x 0.2s ease-out; }
+
+[part="panel"]::backdrop { background: var(--flyout-backdrop-bg); }
+
+:host(:not([side])) [part="panel"], :host([side="right"]) [part="panel"] {
+    inset: 0 0 0 auto;
+    width: var(--pk-drawer-w, min(24rem, 90vw));
+    height: 100dvh;
+    border-left: 1px solid var(--color-border);
+}
+
+:host([side="left"]) [part="panel"] {
+    inset: 0 auto 0 0;
+    width: var(--pk-drawer-w, min(24rem, 90vw));
+    height: 100dvh;
+    border-right: 1px solid var(--color-border);
+    animation-name: drawer-in-left;
+}
+
+:host([side="bottom"]) [part="panel"] {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    max-height: var(--pk-drawer-h, 85dvh);
+    border-top: 1px solid var(--color-border);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation-name: drawer-in-y;
+}
+
+[part="handle"] { display: none; flex: none; width: 2.5rem; height: 4px; margin: var(--space-2) auto 0; border-radius: var(--radius-pill); background: var(--color-border); }
+
+:host([side="bottom"]) [part="handle"] { display: block; }
+
+[part="header"] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex: none; padding: var(--pad-drawer); border-bottom: 1px solid var(--color-border); }
+
+[part="title"] { margin: 0; font-size: var(--text-lg); }
+
+[part="close"] { flex: none; width: var(--touch-target); height: var(--touch-target); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
+
+[part="close"]::before { content: "\00d7"; font-size: 1.5rem; line-height: 1; }
+
+[part="close"]:hover { background: var(--color-surface-alt); color: var(--color-text); }
+
+[part="close"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+
+[part="body"] { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--pad-drawer); }
+
+[part="footer"] { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--gap-control); flex: none; padding: var(--pad-drawer); border-top: 1px solid var(--color-border); }
+
+[part="footer"]:not(:has(::slotted(*))) { display: none; }
+
+@keyframes drawer-in-x { from { transform: translateX(100%); } }
+@keyframes drawer-in-left { from { transform: translateX(-100%); } }
+@keyframes drawer-in-y { from { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) { [part="panel"], [part="panel"][open] { animation: none; transition: none; } }
+
+[part="actions"] { display: flex; flex-wrap: wrap; gap: var(--gap-control); flex: none; padding: var(--space-2) var(--space-5); border-bottom: 1px solid var(--color-border); }
+
+[part="actions"]:not(:has(::slotted(*))) { display: none; }
+
+:host([wide]) { --pk-drawer-w: min(75rem, 70vw); }
+
+/* Docked: covers the section it sits in (a positioned ancestor), not the viewport; no backdrop, no shadow, no slide. */
+:host([docked]) [part="panel"] { position: absolute; inset: 0 0 0 auto; width: var(--pk-drawer-w, var(--inspector-w)); height: auto; max-height: none; box-shadow: none; animation: none; z-index: var(--z-sticky); }
+
+:host([docked]) [part="body"], :host([docked]) [part="header"] { padding: var(--space-2); }
+
+@media (max-width: 640px) {
+    :host([docked]) [part="panel"] { inset: auto 0 0 0; width: 100%; max-height: 60%; border-left: 0; border-top: 1px solid var(--color-border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+}

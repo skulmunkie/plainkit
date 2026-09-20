@@ -1,0 +1,250 @@
+{
+  "tag": "pk-dialog",
+  "title": "Dialog",
+  "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether it is shown"
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The heading setting"
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "fullscreen"
+      ],
+      "reflect": true,
+      "description": "The size setting"
+    },
+    {
+      "name": "scrollable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The body scrolls inside a bounded dialog."
+    },
+    {
+      "name": "hideClose",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Hide the header close button (the dialog offers its own Cancel in the footer)."
+    },
+    {
+      "name": "maxWidth",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Card width in pixels before the viewport clamp; 0 keeps the size preset."
+    },
+    {
+      "name": "tint",
+      "type": "enum",
+      "default": "none",
+      "values": [
+        "none",
+        "product",
+        "archived"
+      ],
+      "reflect": true,
+      "description": "A tinted card: product (green wash) or archived (red wash)."
+    },
+    {
+      "name": "controlled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The host owns open: close requests (Escape, close button, backdrop, swipe) only raise pk-close and never close the element; the host closes it by clearing open. Used by Blazor wrappers."
+    }
+  ],
+  "slots": [
+    {
+      "name": "header",
+      "description": "Custom header."
+    },
+    {
+      "name": "",
+      "description": "Body."
+    },
+    {
+      "name": "footer",
+      "description": "Actions."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "pk-open"
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "escape, close button or method."
+    }
+  ],
+  "parts": [
+    {
+      "name": "dialog",
+      "description": "The native dialog"
+    },
+    {
+      "name": "header",
+      "description": "Header row"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "close",
+      "description": "Close or dismiss button"
+    },
+    {
+      "name": "body",
+      "description": "Main content"
+    },
+    {
+      "name": "footer",
+      "description": "Footer row"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-dialog-w",
+      "description": "Dialog width",
+      "default": "min(35rem, viewport)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    },
+    {
+      "name": "PkDialog.confirm(options) -> Promise<boolean>",
+      "description": "See the description"
+    },
+    {
+      "name": "PkDialog.alert(options) -> Promise<void>",
+      "description": "See the description"
+    },
+    {
+      "name": "PkDialog.prompt(options) -> Promise<string|null>",
+      "description": "See the description"
+    }
+  ],
+  "a11y": "Native <dialog>: focus is trapped and returned by the browser, the page behind is inert, Escape closes; labelled by its heading. A destructive confirm focuses Cancel.",
+  "mobile": "Full screen below 640px with the header and footer pinned and only the body scrolling.",
+  "blazor": {
+    "component": "Modal",
+    "params": [
+      {
+        "name": "IsOpen",
+        "type": "bool",
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "Title",
+        "type": "string?",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "HeaderContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "header"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "FooterContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "footer"
+      },
+      {
+        "name": "OnClose",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-close",
+        "cancelable": true
+      },
+      {
+        "name": "ShowCloseButton",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "The element always shows its close button (house rule: every modal has its own Cancel or Close)."
+      },
+      {
+        "name": "CloseButtonLabel",
+        "type": "string",
+        "map": "wrapper",
+        "note": "Text of the close button; the element draws a cross with an accessible name."
+      },
+      {
+        "name": "FooterAlignEnd",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "The footer is always end-aligned."
+      },
+      {
+        "name": "MaxWidthPx",
+        "type": "int",
+        "map": "cssProperty",
+        "cssProperty": "--pk-dialog-w",
+        "format": "{0}px"
+      },
+      {
+        "name": "OverFlyout",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "Not needed: a native dialog is in the top layer above any flyout."
+      },
+      {
+        "name": "Theme",
+        "type": "ModalTheme",
+        "map": "wrapper",
+        "note": "Product/archived tints stay on the compat class version until the wrapper switches over."
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Dialog with a footer",
+      "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><button type=\"button\" slot=\"footer\" class=\"btn-ghost\">Cancel</button><button type=\"button\" slot=\"footer\" class=\"btn-warn\">Discard</button></pk-dialog>"
+    }
+  ]
+}

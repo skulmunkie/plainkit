@@ -1,0 +1,60 @@
+/* flex-wrap is load-bearing on a phone. A tab strip is not always a few short words: a strip with four tabs and three link
+   buttons measured 633px inside a 375px page with nowrap, which does not clip, it takes the WHOLE page into horizontal scroll.
+   Wrapping costs a second line only when there is no room. */
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-4);
+}
+
+.tab {
+    padding: var(--space-2) var(--space-4);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    color: var(--color-muted);
+    font-size: var(--text-read);
+}
+
+.tab:hover {
+    color: inherit;
+}
+
+.tab.active {
+    color: inherit;
+    border-bottom-color: var(--color-accent);
+}
+
+.tab-close {
+    margin-left: -0.5rem;
+    padding: 0 0.35rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+}
+
+.tab-close:hover {
+    color: inherit;
+}
+
+/* Tabs that slide instead of wrapping: one row, swipeable, scrollbar hidden. */
+.tabs--scroll { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; }
+.tabs--scroll::-webkit-scrollbar { display: none; }
+.tabs--scroll > * { flex: none; scroll-snap-align: start; white-space: nowrap; }
+
+/* A tab that exists only at phone width. */
+.tab--phone-only { display: none; }
+
+@media (max-width: 640px) {
+    .tab--phone-only { display: inline-block; }
+    .tab--desktop-only { display: none; }
+}
+
+/* A tab that is a link (a page-level nav strip): same look, no underline. */
+a.tab { display: inline-block; text-decoration: none; }

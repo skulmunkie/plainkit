@@ -1,0 +1,275 @@
+{
+  "tag": "pk-pagination",
+  "title": "Pagination",
+  "group": "Navigation",
+  "summary": "Page navigation: numbered with ellipses, a range summary, a page-size select, a simple previous and next form, or load more. On a phone the numbers collapse to previous, Page N of M and next.",
+  "props": [
+    {
+      "name": "page",
+      "type": "number",
+      "default": 1,
+      "reflect": true,
+      "description": "Current page, 1-based."
+    },
+    {
+      "name": "pages",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Page count; 0 derives it from total and pageSize."
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Item count; enables the range summary."
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": 25,
+      "reflect": true,
+      "description": "Items per page."
+    },
+    {
+      "name": "sizes",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Options for the page-size select, for example [10, 25, 50, 100]; empty hides the select."
+    },
+    {
+      "name": "siblings",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "Pages either side of the current one."
+    },
+    {
+      "name": "boundary",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "Pages always shown at each end."
+    },
+    {
+      "name": "mode",
+      "type": "enum",
+      "default": "numbered",
+      "values": [
+        "numbered",
+        "simple",
+        "load-more"
+      ],
+      "reflect": true,
+      "description": "Layout."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Pagination",
+      "reflect": false,
+      "description": "Accessible name of the nav."
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Load-more busy state."
+    },
+    {
+      "name": "edges",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show First and Last buttons beside Previous and Next."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-page",
+      "detail": {
+        "page": "number"
+      },
+      "description": "A page was chosen. Cancel to keep the current page (a server-driven grid sets page itself).",
+      "cancelable": true,
+      "detailProps": {
+        "page": "number"
+      }
+    },
+    {
+      "name": "pk-page-size",
+      "detail": {
+        "pageSize": "number"
+      },
+      "description": "The page-size select changed. Cancel to keep the size.",
+      "cancelable": true,
+      "detailProps": {
+        "pageSize": "number"
+      }
+    },
+    {
+      "name": "pk-load-more",
+      "detail": null,
+      "description": "Load more was pressed.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "nav",
+      "description": "The nav."
+    },
+    {
+      "name": "summary",
+      "description": "The range text, such as 21-30 of 95."
+    },
+    {
+      "name": "size",
+      "description": "The page-size label."
+    },
+    {
+      "name": "size-select",
+      "description": "The page-size select."
+    },
+    {
+      "name": "pages",
+      "description": "The button row."
+    },
+    {
+      "name": "prev",
+      "description": "Previous button."
+    },
+    {
+      "name": "numbers",
+      "description": "Numbered buttons and ellipses."
+    },
+    {
+      "name": "status",
+      "description": "Page N of M text."
+    },
+    {
+      "name": "next",
+      "description": "Next button."
+    },
+    {
+      "name": "more",
+      "description": "Load more button."
+    },
+    {
+      "name": "first",
+      "description": "First page button (edges)."
+    },
+    {
+      "name": "last",
+      "description": "Last page button (edges)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-pagination-size",
+      "description": "Button size; the touch target on a phone.",
+      "default": "var(--space-8)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "pageWindow(current, total, options)",
+      "description": "The numbers and gaps to show."
+    },
+    {
+      "name": "pageRange(page, size, total)",
+      "description": "First and last item on a page."
+    }
+  ],
+  "a11y": "A nav landmark with a label; the current page has aria-current=page and every number button has a name (\"Page 3\"); previous and next are disabled at the ends; the ellipsis is decorative. Buttons are 44px on a phone.",
+  "blazor": {
+    "component": "Pagination",
+    "params": [
+      {
+        "name": "Page",
+        "prop": "page",
+        "type": "int"
+      },
+      {
+        "name": "Pages",
+        "prop": "pages",
+        "type": "int"
+      },
+      {
+        "name": "Total",
+        "prop": "total",
+        "type": "int"
+      },
+      {
+        "name": "PageSize",
+        "prop": "pageSize",
+        "type": "int"
+      },
+      {
+        "name": "PageSizeOptions",
+        "prop": "sizes",
+        "type": "int[]"
+      },
+      {
+        "name": "Siblings",
+        "prop": "siblings",
+        "type": "int"
+      },
+      {
+        "name": "Boundary",
+        "prop": "boundary",
+        "type": "int"
+      },
+      {
+        "name": "Mode",
+        "prop": "mode",
+        "type": "PaginationMode"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Loading",
+        "prop": "loading",
+        "type": "bool"
+      },
+      {
+        "name": "PageChanged",
+        "event": "pk-page",
+        "type": "EventCallback<int>"
+      },
+      {
+        "name": "PageSizeChanged",
+        "event": "pk-page-size",
+        "type": "EventCallback<int>"
+      },
+      {
+        "name": "OnLoadMore",
+        "event": "pk-load-more",
+        "type": "EventCallback"
+      },
+      {
+        "name": "Edges",
+        "prop": "edges",
+        "type": "bool"
+      }
+    ],
+    "notes": "Two-way binding: @bind-Page and @bind-PageSize. DataGrid uses this element for its footer; DataGridRequest.Page is zero-based, the element's page is one-based."
+  },
+  "examples": [
+    {
+      "title": "Numbered with summary and page size",
+      "html": "<pk-pagination page=\"3\" total=\"290\" page-size=\"25\" sizes='[10,25,50,100]'></pk-pagination>"
+    },
+    {
+      "title": "Simple and load more",
+      "html": "<pk-pagination mode=\"simple\" page=\"2\" pages=\"9\"></pk-pagination>\n<pk-pagination mode=\"load-more\"></pk-pagination>"
+    }
+  ]
+}

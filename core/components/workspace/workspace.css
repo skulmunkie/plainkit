@@ -1,0 +1,256 @@
+/* ── Fill-parent + sticky-header layout ─────────────────────────────
+   Opt-in via <section class="card fill">…<DataGrid/>…</section>. The
+   card claims the remaining vertical space in the page-body, the
+   DataGrid inside it becomes a flex column whose body is the scroll
+   region (both axes), and the column-header + filter rows stay
+   sticky to the top of the body so the operator can always see them
+   while scrolling rows. Matches the Data Explorer table-pane shape.
+
+   Uses CSS :has() to escalate the page-body into a height-constrained
+   flex container ONLY when a fill-mode card is present — pages that
+   don't opt in keep the legacy "page scrolls" behavior. */
+
+.page-body:has(:is(.card.fill, pk-card[fill])) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Keep padding so the page title / lead text above the card
+       still breathe; the card itself fills the remainder. */
+}
+
+:is(.card.fill, pk-card[fill]) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* Override the card's default padding — the DataGrid manages its
+       own internal spacing, and a padded card around a scroll region
+       wastes vertical space. */
+    padding: 0;
+}
+
+:is(.card.fill, pk-card[fill]) > .dg {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    /* Drop the inter-region gap; toolbar / body / pager are full-bleed
+       inside the card now. */
+    gap: 0;
+}
+
+/* Toolbar + pager are fixed height; only the body grows. */
+
+:is(.card.fill, pk-card[fill]) > .dg > .dg-body > .dg-toolbar {
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--color-border);
+}
+
+:is(.card.fill, pk-card[fill]) > .dg > .dg-pager {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--color-border);
+    padding: 0.4rem 0.5rem;
+}
+
+:is(.card.fill, pk-card[fill]) > .dg > .dg-body {
+    flex: 1;
+    min-height: 0;              /* the pk-table frame inside scrolls, both axes */
+}
+
+/* Sticky header inside the scrolling body. Both the column-name row
+   and the filter sub-row stick — the column-name row pins to top:0,
+   the filter row pins just below it (~28px header height). z-index
+   ordering keeps the header above the filter row above the body
+   cells. */
+
+:is(.card.fill, pk-card[fill]) > .dg > .dg-body .data thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--color-panel);
+}
+
+:is(.card.fill, pk-card[fill]) > .dg > .dg-body .data .dg-filterrow th {
+    position: sticky;
+    top: 28px;
+    z-index: 2;
+    background: var(--color-panel);
+}
+
+/* -------- Data Explorer (treeview + dynamic grid + CRUD) --------
+   Two-pane layout: tables list on the left, grid on the right.
+   Read-only by default; flipping the Enable edit toggle reveals
+   inline Edit / Insert / Delete affordances. Destructive ops
+   surface a centered confirm dialog. */
+
+.workspace {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1rem;
+    /* Bound the shell to the viewport so the table tree AND the results
+       grid each scroll INTERNALLY instead of growing the page. Without a
+       definite height here the grid body's `overflow:auto` never engages,
+       so the whole page scrolled and carried the table selectors + grid
+       toolbar/headers out of view. The reserve covers the app header +
+       page title/lead + the card's tabs above the shell.
+
+       dvh, not vh: see .page. 100vh is the LARGE viewport on a mobile
+       browser, so a vh-derived height puts the bottom of this internal
+       scroller underneath the browser's own toolbar. vh stays first as the
+       fallback for anything that doesn't know dvh. */
+    height: calc(100vh - 320px);
+    height: calc(100dvh - 320px);
+    min-height: 420px;
+}
+
+.workspace-nav {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-panel);
+    overflow-y: auto;
+    /* Fill the (now definite-height) shell and scroll internally.
+       min-height:0 lets this grid item shrink below its content so the
+       overflow actually kicks in. */
+    min-height: 0;
+}
+
+.workspace-main {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-panel);
+    /* Padding stays 0 so the embedded DataGrid can be full-bleed
+       inside the pane (its own toolbar / pager have padding). */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* DataGrid embedded inside the pane fills the available space and
+   becomes the scroll region — same behavior as `:is(.card.fill, pk-card[fill]) > .dg` but
+   targeted at the Data Explorer's two-column shell. */
+
+.workspace-main > .dg {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    gap: 0;
+}
+
+.workspace-main > .dg > .dg-body > .dg-toolbar {
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.workspace-main > .dg > .dg-pager {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--color-border);
+    padding: 0.4rem 0.5rem;
+}
+
+.workspace-main > .dg > .dg-body {
+    flex: 1;
+    min-height: 0;
+}
+
+.workspace-main > .dg > .dg-body .data thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--color-panel);
+}
+
+.workspace-main > .dg > .dg-body .data .dg-filterrow th {
+    position: sticky;
+    top: 28px;
+    z-index: 2;
+    background: var(--color-panel);
+}
+
+@media (max-width: 1280px) {
+    .workspace {
+        grid-template-columns: 220px minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .workspace {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        height: calc(100vh - 220px);
+        height: calc(100dvh - 220px);
+    }
+    .workspace-nav {
+        max-height: 11rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .workspace-main > .dg > .dg-body:has(table.data:not(.dg-cards)),
+    :is(.card.fill, pk-card[fill]) > .dg > .dg-body:has(table.data:not(.dg-cards)) {
+        --pk-table-max-height: none;
+    }
+}
+
+/* A two-pane tool (Data Explorer, Code explorer) that owns the whole page: the shell fills the fill-mode card. */
+
+.workspace--fill { flex: 1; block-size: auto; min-block-size: 0; gap: 0; }
+
+.workspace--fill > * { border: 0; border-radius: 0; }
+
+.workspace--fill > .workspace-nav { border-right: 1px solid var(--color-border); }
+
+.workspace-main > .workspace-pane { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+
+.workspace-main { position: relative; }
+
+@media (max-width: 640px) {
+    .workspace--fill { grid-template-rows: minmax(0, 1fr); }
+    .workspace--fill > .workspace-nav { display: none; max-block-size: none; }
+    .workspace--fill.workspace--nav > .workspace-nav { display: block; }
+    .workspace--fill.workspace--nav { grid-template-rows: auto minmax(0, 1fr); }
+    .workspace--fill.workspace--nav > .workspace-main { order: -1; }
+    .workspace--fill.workspace--nav > .workspace-main > :not(.tabs):not(.workspace-bar) { display: none; }
+}
+
+/* A workspace that owns the page (code explorer): no page gutter, no card frame, no gap under the tab strip. */
+
+.page-body:has(:is(.card.fill, pk-card[fill]) > .workspace) { padding: 0; }
+
+:is(.card.fill, pk-card[fill]):has(> .workspace) { border: 0; border-radius: 0; margin: 0; }
+
+.workspace--fill .workspace-main > .tabs { margin-bottom: 0; }
+
+/* A bar of controls above the pane, always visible (including when the phone shows the nav). */
+.workspace-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+
+.workspace-nav .snav-scroll { flex: none; overflow: visible; padding: 0; }
+
+.workspace-nav .snav-brand { position: static; height: auto; min-height: 2.5rem; border-bottom: 0; padding-inline: 0; }
+
+.workspace-pane--inspecting { padding-inline-end: var(--inspector-w); }
+
+@media (max-width: 1024px) {
+    .workspace-pane--inspecting { padding-inline-end: 0; }
+}
+
+@media (max-width: 640px) {
+    .workspace-main > .flyout-panel--docked {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 60%;
+        border-left: 0;
+        border-top: 1px solid var(--color-border);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+}
+
+/* A header that rendered nothing (a top-level page has no crumbs) leaves no padded band behind. */
+.workspace-head:not(:has(*)) { display: none; }
+
+/* A docked inspector slides in from the edge; the pane clips it so its animation never widens the page. */
+.workspace-main { overflow: hidden; }

@@ -1,0 +1,94 @@
+{
+  "tag": "pk-form-section",
+  "title": "Form section",
+  "group": "Form layout",
+  "summary": "A titled section of a form: heading and description beside a responsive grid of fields (stacked below 1024px).",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The section heading (or use the heading slot)."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A sentence under the heading."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The fields. Give a child class form-span to make it span the full width."
+    },
+    {
+      "name": "heading",
+      "description": "A rich heading."
+    },
+    {
+      "name": "description",
+      "description": "A rich description."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "section",
+      "description": "The two-column grid."
+    },
+    {
+      "name": "head",
+      "description": "The heading block."
+    },
+    {
+      "name": "title",
+      "description": "The heading (h2)."
+    },
+    {
+      "name": "description",
+      "description": "The description."
+    },
+    {
+      "name": "body",
+      "description": "The grid of fields."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-form-section-column",
+      "description": "Minimum column width of the field grid.",
+      "default": "14rem"
+    }
+  ],
+  "methods": [],
+  "a11y": "The heading is a real h2 so the section is navigable by heading; the fields keep their own labels.",
+  "blazor": {
+    "component": "FormSection",
+    "params": [
+      {
+        "name": "Title",
+        "prop": "heading",
+        "type": "string"
+      },
+      {
+        "name": "Description",
+        "prop": "description",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Two sections",
+      "html": "<pk-form-section heading=\"Profile\" description=\"Shown on invoices.\"><pk-field label=\"Business name\"><pk-input></pk-input></pk-field><pk-field label=\"Website\"><pk-input type=\"url\"></pk-input></pk-field></pk-form-section>"
+    }
+  ]
+}

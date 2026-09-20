@@ -1,0 +1,21 @@
+{
+  "id": "filter-table",
+  "title": "Filter bar, table and bulk actions",
+  "summary": "Filter chips and a search over a sortable table with row selection; choosing rows reveals a bulk-action bar.",
+  "built": "FormField, Chip, DataTable, CheckField, Button group, Pagination, Toolbar.",
+  "mobile": "Filters wrap; the table scrolls inside its wrapper; the bulk bar stays under the header.",
+  "used": [
+    "button",
+    "chip",
+    "cluster",
+    "extras",
+    "flyout",
+    "form-field",
+    "spacing",
+    "table-content",
+    "toolbar",
+    "utilities",
+    "workspace"
+  ],
+  "order": 1
+}

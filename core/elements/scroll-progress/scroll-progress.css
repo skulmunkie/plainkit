@@ -1,0 +1,8 @@
+/* pk-scroll-progress: fixed to the top of the screen; the bar scales from the start edge. */
+:host { --pk-progress: 0; position: fixed; inset: 0 0 auto 0; z-index: var(--z-sticky); height: 3px; pointer-events: none; }
+
+[part="bar"] { height: 100%; background: var(--color-accent); transform: scaleX(var(--pk-progress)); transform-origin: left; }
+
+:host(:dir(rtl)) [part="bar"] { transform-origin: right; }
+
+@media (prefers-reduced-motion: no-preference) { [part="bar"] { transition: transform 0.1s linear; } }

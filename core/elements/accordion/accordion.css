@@ -1,0 +1,4 @@
+:host { display: flex; flex-direction: column; gap: var(--space-2); }
+:host([flush]) { gap: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+:host([flush]) ::slotted(pk-accordion-item) { border-width: 0 0 1px; border-radius: 0; }
+:host([flush]) ::slotted(pk-accordion-item:last-child) { border-block-end-width: 0; }

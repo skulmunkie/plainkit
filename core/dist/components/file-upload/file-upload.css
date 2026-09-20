@@ -1,0 +1,9 @@
+/* -------- Upload acknowledgement --------
+   One line under the button saying the selection was accepted. The per-file
+   tick-or-cross list that used to live here went with the per-file loop: an
+   import is a job now, and what the run did is reported by .job-panel. */
+
+.upload-accepted {
+    margin-top: 0.6rem;
+    font-size: var(--text-read);
+}

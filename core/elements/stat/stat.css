@@ -1,0 +1,21 @@
+:host { display: block; }
+[part="tile"] { position: relative; display: flex; flex-direction: column; gap: var(--space-1); block-size: 100%; padding: var(--space-4) var(--space-5); background: var(--color-flyout); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text); }
+:host([href]:hover) [part="tile"] { border-color: var(--color-accent); }
+[part="label"] { color: var(--color-muted); font-size: var(--text-meta); letter-spacing: 0.05em; text-transform: uppercase; }
+[part="row"] { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
+[part="value"] { font-size: var(--pk-stat-value-size, 1.5rem); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+:host([tone="positive"]) [part="value"] { color: var(--delta-up); }
+:host([tone="warning"]) [part="value"] { color: var(--chart-2); }
+:host([tone="critical"]) [part="value"] { color: var(--delta-down); }
+[part="delta"] { font-size: var(--text-meta); font-weight: 600; color: var(--color-muted); }
+[part="delta"][data-trend="good"] { color: var(--delta-up); }
+[part="delta"][data-trend="bad"] { color: var(--delta-down); }
+[part="subtext"] { color: var(--color-muted); font-size: var(--text-read); }
+[part="spark"] { display: block; margin-block-start: var(--space-2); }
+[part="spark"] svg { display: block; inline-size: 100%; block-size: var(--space-8); overflow: visible; }
+[part="spark"] polyline { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+:host([tile]) [part="tile"] { gap: var(--space-1); padding: 0.9rem var(--space-4); background: var(--color-panel); border-radius: var(--radius-md); }
+:host([tile]) [part="value"] { font-size: var(--pk-stat-value-size, 1.85rem); font-weight: 600; }
+[part="link"] { position: absolute; inset: 0; border-radius: inherit; }
+[part="link"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

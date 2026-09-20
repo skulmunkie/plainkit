@@ -1,0 +1,16 @@
+{
+  "id": "wizard",
+  "title": "Wizard",
+  "summary": "A guided create flow: numbered steps, one card at a time, Back and Next.",
+  "built": "PageHeader, Tabs (as step strip), Card, FormField, Toolbar, Button.",
+  "mobile": "The step strip scrolls; Back and Next share the last row.",
+  "used": [
+    "button",
+    "card",
+    "extras",
+    "form-field",
+    "tabs",
+    "toolbar"
+  ],
+  "order": 5
+}

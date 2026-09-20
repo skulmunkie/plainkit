@@ -1,0 +1,180 @@
+{
+  "tag": "pk-toast",
+  "title": "Toast",
+  "summary": "One transient message: kind, optional title, message, an action slot and a dismiss button; pauses its timer on hover and focus.",
+  "group": "Feedback & status",
+  "props": [
+    {
+      "name": "kind",
+      "type": "enum",
+      "default": "info",
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "reflect": true,
+      "description": "The kind setting"
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The heading setting"
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Used when nothing is slotted."
+    },
+    {
+      "name": "duration",
+      "type": "number",
+      "default": -1,
+      "reflect": true,
+      "description": "Milliseconds before it dismisses itself; 0 keeps it until dismissed; -1 is automatic (5s, 8s with an action)."
+    },
+    {
+      "name": "noClose",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Hide the dismiss button."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Message."
+    },
+    {
+      "name": "action",
+      "description": "One or two buttons."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-dismiss",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "timeout, close, action or method."
+    }
+  ],
+  "parts": [
+    {
+      "name": "icon",
+      "description": "Kind icon"
+    },
+    {
+      "name": "content",
+      "description": "Title and message"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "message",
+      "description": "Message text"
+    },
+    {
+      "name": "actions",
+      "description": "Action buttons"
+    },
+    {
+      "name": "close",
+      "description": "Close or dismiss button"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-toast-c",
+      "description": "Kind colour",
+      "default": "--color-accent"
+    }
+  ],
+  "methods": [
+    {
+      "name": "dismiss()",
+      "description": "Dismisses it"
+    }
+  ],
+  "a11y": "role=status for info and success, role=alert for warning and danger; the timer pauses on hover and focus; a toast with an action lasts 8s by default.",
+  "mobile": "Full width minus the gutter; the dismiss and action buttons are 44px; respects the device safe area.",
+  "blazor": {
+    "component": "Toast",
+    "params": [
+      {
+        "name": "Kind",
+        "type": "ToastKind",
+        "default": "info",
+        "map": "prop",
+        "prop": "kind",
+        "enum": {
+          "Info": "info",
+          "Success": "success",
+          "Warning": "warning",
+          "Danger": "danger"
+        }
+      },
+      {
+        "name": "Heading",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "Message",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "message"
+      },
+      {
+        "name": "Duration",
+        "type": "int",
+        "default": -1,
+        "map": "prop",
+        "prop": "duration"
+      },
+      {
+        "name": "NoClose",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "noClose"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "ActionContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "action"
+      },
+      {
+        "name": "OnDismiss",
+        "type": "EventCallback<ToastDismissEventArgs>",
+        "map": "event",
+        "event": "pk-dismiss",
+        "cancelable": true
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Kinds",
+      "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Undo</button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
+    }
+  ]
+}

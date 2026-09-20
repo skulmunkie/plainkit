@@ -1,0 +1,10 @@
+{
+  "note": "Static scores only go up: the test fails when one drops. Refresh with node site/scorecard/static-audit.mjs --write after an improvement.",
+  "overall": 87,
+  "categories": {
+    "performance": 91,
+    "scale": null,
+    "look": 84,
+    "accessibility": null
+  }
+}

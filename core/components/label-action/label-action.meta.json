@@ -1,0 +1,35 @@
+{
+  "folder": "label-action",
+  "controls": [
+    {
+      "id": "label-action",
+      "name": "LabelAction",
+      "kind": "Actions",
+      "purpose": "The small action beside a field label, such as reset to the source value.",
+      "replaces": "button.pd-reset",
+      "mobile": "Sits on the label row and wraps below the label when the row is narrow.",
+      "states": [
+        "default",
+        "active"
+      ],
+      "classes": [
+        "btn-mini",
+        "btn-ghost",
+        "btn-primary",
+        "pd-reset"
+      ],
+      "css": [
+        "components/label-action/label-action.css",
+        "components/button/button.css"
+      ],
+      "js": [],
+      "snippet": "<span>Label <button type=\"button\" class=\"btn-mini btn-ghost pd-reset\">↺ Source</button></span>",
+      "blazor": {
+        "component": "LabelAction",
+        "snippet": "<LabelAction OnClick=\"Reset\">↺ Source</LabelAction>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

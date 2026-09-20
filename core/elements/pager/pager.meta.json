@@ -1,0 +1,88 @@
+{
+  "tag": "pk-pager",
+  "title": "Pager",
+  "summary": "Page-level previous and next links between sibling pages, with an optional centre note (\"Step 2 of 5\"); table pagination is a separate control.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Page navigation",
+      "reflect": true,
+      "description": "Accessible name"
+    }
+  ],
+  "slots": [
+    {
+      "name": "prev",
+      "description": "The previous-page link."
+    },
+    {
+      "name": "next",
+      "description": "The next-page link."
+    },
+    {
+      "name": "",
+      "description": "Centre note."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "nav",
+      "description": "The nav landmark"
+    },
+    {
+      "name": "prev",
+      "description": "Previous control"
+    },
+    {
+      "name": "note",
+      "description": "note"
+    },
+    {
+      "name": "next",
+      "description": "Next control"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "A nav landmark; links carry rel=\"prev\" and rel=\"next\" when the author sets them, and say where they go.",
+  "mobile": "Stacks: the note on top, previous and next as full-width 44px buttons.",
+  "blazor": {
+    "component": "Pager",
+    "params": [
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "Page navigation",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "PrevContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "prev"
+      },
+      {
+        "name": "NextContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "next"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Previous and next page",
+      "html": "<pk-pager label=\"Page navigation\"><a slot=\"prev\" href=\"#\">Previous: Setup</a><span>2 of 5</span><a slot=\"next\" href=\"#\">Next: Usage</a></pk-pager>"
+    }
+  ]
+}

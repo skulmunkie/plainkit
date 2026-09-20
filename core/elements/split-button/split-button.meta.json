@@ -1,0 +1,196 @@
+{
+  "tag": "pk-split-button",
+  "title": "Split button",
+  "group": "Actions",
+  "summary": "A main action beside a caret that opens a menu of related actions, so the common case is one click and the variants stay reachable.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "primary",
+      "values": [
+        "primary",
+        "ghost"
+      ],
+      "reflect": true,
+      "description": "Colour of both halves."
+    },
+    {
+      "name": "type",
+      "type": "enum",
+      "default": "button",
+      "values": [
+        "button",
+        "submit",
+        "reset"
+      ],
+      "reflect": true,
+      "description": "What the main action does inside a form."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "toggleLabel",
+      "type": "string",
+      "default": "More options",
+      "reflect": false,
+      "description": "Accessible name of the caret button."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the menu is open."
+    },
+    {
+      "name": "menuAlign",
+      "type": "enum",
+      "default": "start",
+      "values": [
+        "start",
+        "end"
+      ],
+      "reflect": true,
+      "description": "Which edge the menu lines up with."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The main action label."
+    },
+    {
+      "name": "menu",
+      "description": "The menu items: buttons (with a value or data-value)."
+    }
+  ],
+  "events": [
+    {
+      "name": "click",
+      "detail": "native MouseEvent",
+      "description": "The main action was clicked."
+    },
+    {
+      "name": "pk-split-select",
+      "detail": "{ value: string, label: string }",
+      "detailProps": {
+        "value": "string",
+        "label": "string"
+      },
+      "description": "A menu item was chosen."
+    },
+    {
+      "name": "pk-menu-toggle",
+      "detail": "{ open: boolean }",
+      "detailProps": {
+        "open": "bool"
+      },
+      "description": "The menu opened or closed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "split",
+      "description": "The two buttons side by side."
+    },
+    {
+      "name": "main",
+      "description": "The main action button."
+    },
+    {
+      "name": "toggle",
+      "description": "The caret button."
+    },
+    {
+      "name": "menu",
+      "description": "The menu panel."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-split-bg",
+      "description": "Background of both halves.",
+      "default": "the variant colour"
+    },
+    {
+      "name": "--pk-split-fg",
+      "description": "Text colour of both halves.",
+      "default": "the variant text colour"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens the menu."
+    },
+    {
+      "name": "hide()",
+      "description": "Closes the menu."
+    }
+  ],
+  "a11y": "The caret is a labelled menu button (aria-haspopup=\"menu\", aria-expanded); the items get role=menuitem; ArrowDown/ArrowUp on the caret open the menu on the first/last item, arrows, Home and End move, Escape closes and returns focus to the caret, Tab closes, and a click outside closes. The menu opens upward when there is no room below.",
+  "blazor": {
+    "component": "SplitButton",
+    "params": [
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "ToggleLabel",
+        "prop": "toggleLabel",
+        "type": "string"
+      },
+      {
+        "name": "Open",
+        "prop": "open",
+        "type": "bool"
+      },
+      {
+        "name": "MenuAlign",
+        "prop": "menuAlign",
+        "type": "string"
+      },
+      {
+        "name": "OnClick",
+        "event": "click",
+        "type": "MouseEventArgs"
+      },
+      {
+        "name": "OnSelect",
+        "event": "pk-split-select",
+        "type": "{ value: string, label: string }"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "MenuContent",
+        "slot": "menu",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Primary and ghost",
+      "html": "<pk-split-button><span>Save</span><button slot=\"menu\" value=\"close\">Save and close</button><button slot=\"menu\" value=\"new\">Save and new</button></pk-split-button>\n<pk-split-button variant=\"ghost\" menu-align=\"end\"><span>Export</span><button slot=\"menu\" value=\"csv\">CSV</button><button slot=\"menu\" value=\"pdf\">PDF</button></pk-split-button>"
+    }
+  ]
+}

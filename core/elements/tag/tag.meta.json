@@ -1,0 +1,105 @@
+{
+  "tag": "pk-tag",
+  "title": "Tag",
+  "group": "Data display",
+  "summary": "A neutral label that can carry a remove button.",
+  "props": [
+    {
+      "name": "removable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show the remove button."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Sent in the remove event; defaults to the text."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Dim the tag and disable the button."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The label."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-remove",
+      "detail": {
+        "value": "string"
+      },
+      "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "label",
+      "description": "The label."
+    },
+    {
+      "name": "remove",
+      "description": "The remove button."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-tag-bg",
+      "description": "Fill.",
+      "default": "var(--color-surface-alt)"
+    },
+    {
+      "name": "--pk-tag-border",
+      "description": "Border colour.",
+      "default": "var(--color-border)"
+    }
+  ],
+  "methods": [],
+  "a11y": "The remove control is a real button named \"Remove <label>\"; it is 44px on a phone.",
+  "blazor": {
+    "component": "Tag",
+    "params": [
+      {
+        "name": "Removable",
+        "prop": "removable",
+        "type": "bool"
+      },
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "OnRemove",
+        "event": "pk-remove",
+        "type": "EventCallback<RemoveEventArgs>"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Removable",
+      "html": "<pk-tag removable>Green</pk-tag>\n<pk-tag removable>Variant</pk-tag>\n<pk-tag>Signed</pk-tag>"
+    }
+  ]
+}

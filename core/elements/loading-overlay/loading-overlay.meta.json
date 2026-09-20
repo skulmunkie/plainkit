@@ -1,0 +1,96 @@
+{
+  "tag": "pk-loading-overlay",
+  "title": "Loading overlay",
+  "summary": "Covers a region (or the whole viewport with fullscreen) with a spinner and a label while busy, and makes what it covers inert so it cannot be clicked or tabbed into.",
+  "group": "Feedback & status",
+  "props": [
+    {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The busy setting"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Announced and shown."
+    },
+    {
+      "name": "fullscreen",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Cover the viewport."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The content being covered."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "content",
+      "description": "Title and message"
+    },
+    {
+      "name": "overlay",
+      "description": "The covering layer"
+    },
+    {
+      "name": "spinner",
+      "description": "The spinner"
+    },
+    {
+      "name": "label",
+      "description": "Label text"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
+  "mobile": "The label wraps; the spinner is 28px.",
+  "blazor": {
+    "component": "LoadingOverlay",
+    "params": [
+      {
+        "name": "Busy",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "busy"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Fullscreen",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "fullscreen"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Busy region",
+      "html": "<pk-loading-overlay busy label=\"Loading orders…\"><div class=\"card\"><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></div></pk-loading-overlay>"
+    }
+  ]
+}

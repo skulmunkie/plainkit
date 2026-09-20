@@ -1,0 +1,27 @@
+:host { display: block; }
+figure { display: grid; gap: var(--space-2); margin: 0; }
+figcaption { font-weight: 600; }
+[part="plot"] svg { display: block; inline-size: 100%; block-size: auto; overflow: visible; }
+.ch-1 { --c: var(--chart-1); fill: var(--c); }
+.ch-2 { --c: var(--chart-2); fill: var(--c); }
+.ch-3 { --c: var(--chart-3); fill: var(--c); }
+.ch-4 { --c: var(--chart-4); fill: var(--c); }
+.ch-5 { --c: var(--chart-5); fill: var(--c); }
+.ch-6 { --c: var(--chart-6); fill: var(--c); }
+.chart-grid { stroke: var(--color-border); stroke-width: 1; }
+.chart-tick { fill: var(--color-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
+.chart-line { fill: none; stroke: var(--c, var(--chart-1)); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.chart-dot { fill: var(--color-panel); stroke: var(--c, var(--chart-1)); stroke-width: 2; }
+.chart-donut-track { fill: none; stroke: var(--chart-track); stroke-width: 6; }
+.chart-donut-seg { fill: none; stroke: var(--c); stroke-width: 6; }
+:host([kind="donut"]) [part="plot"] { inline-size: min(100%, 12rem); }
+:host([kind="stack"]) [part="plot"] svg { block-size: var(--space-2); border-radius: var(--radius-pill); background: var(--chart-track); }
+:host([kind="spark"]) { display: inline-block; inline-size: 8rem; vertical-align: middle; }
+:host([kind="spark"]) [part="plot"] svg { block-size: var(--space-6); }
+:host([kind="spark"]) [part="data"] { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+[part="legend"] { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--color-muted); font-size: var(--text-meta); }
+[part="legend"] li { display: inline-flex; align-items: center; gap: var(--space-2); }
+[part="legend"] li::before { content: ""; inline-size: var(--space-2); block-size: var(--space-2); border-radius: var(--radius-xs); background: var(--c, var(--color-muted)); }
+[part="data-toggle"] { color: var(--color-link); cursor: pointer; font-size: var(--text-meta); }
+@media (max-width: 640px) { [part="data-toggle"] { display: flex; align-items: center; min-block-size: var(--touch-target); } }
+[part="data-toggle"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

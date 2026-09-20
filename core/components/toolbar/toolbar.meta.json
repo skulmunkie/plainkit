@@ -1,0 +1,36 @@
+{
+  "folder": "toolbar",
+  "controls": [
+    {
+      "id": "toolbar",
+      "name": "Toolbar",
+      "kind": "Actions",
+      "purpose": "A title, a lead note and a right-aligned action group above a list or card.",
+      "replaces": "flex rows of a heading and buttons",
+      "mobile": "Below 640px the lead and the actions each take the full row.",
+      "states": [
+        "title",
+        "note",
+        "actions"
+      ],
+      "classes": [
+        "toolbar",
+        "toolbar-lead",
+        "toolbar-title",
+        "toolbar-note",
+        "toolbar-actions"
+      ],
+      "css": [
+        "components/toolbar/toolbar.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"toolbar\"><div class=\"toolbar-lead\"><strong class=\"toolbar-title\">Title</strong></div><div class=\"toolbar-actions\">…</div></div>",
+      "blazor": {
+        "component": "Toolbar",
+        "snippet": "<Toolbar Title=\"Lines\"><Button>Add</Button></Toolbar>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

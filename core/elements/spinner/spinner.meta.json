@@ -1,0 +1,121 @@
+{
+  "tag": "pk-spinner",
+  "title": "Spinner",
+  "group": "Feedback",
+  "summary": "A busy indicator: a ring, three dots or an indeterminate bar, in three sizes, with an overlay mode for a loading panel.",
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "ring",
+      "values": [
+        "ring",
+        "dots",
+        "bar"
+      ],
+      "reflect": true,
+      "description": "Shape."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "sm",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Size."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Loading",
+      "reflect": false,
+      "description": "Accessible status text."
+    },
+    {
+      "name": "overlay",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Dim and cover a position: relative parent."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "ring",
+      "description": "The ring."
+    },
+    {
+      "name": "dots",
+      "description": "The three dots."
+    },
+    {
+      "name": "bar",
+      "description": "The indeterminate bar."
+    },
+    {
+      "name": "label",
+      "description": "The visually hidden status text."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-spinner-size",
+      "description": "Diameter.",
+      "default": "var(--space-5)"
+    },
+    {
+      "name": "--pk-spinner-color",
+      "description": "The moving part.",
+      "default": "var(--color-accent)"
+    },
+    {
+      "name": "--pk-spinner-width",
+      "description": "Ring thickness.",
+      "default": "2px"
+    }
+  ],
+  "methods": [],
+  "a11y": "The host is role=status with a text label read by screen readers. Motion stops under prefers-reduced-motion.",
+  "blazor": {
+    "component": "Spinner",
+    "params": [
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Overlay",
+        "prop": "overlay",
+        "type": "bool"
+      }
+    ],
+    "notes": "New component; the text-only Loading component is unchanged."
+  },
+  "examples": [
+    {
+      "title": "Sizes",
+      "html": "<pk-spinner size=\"sm\"></pk-spinner>\n<pk-spinner></pk-spinner>\n<pk-spinner size=\"lg\"></pk-spinner>"
+    },
+    {
+      "title": "Dots and bar",
+      "html": "<pk-spinner variant=\"dots\" label=\"Working\"></pk-spinner>\n<pk-spinner variant=\"bar\" label=\"Uploading\"></pk-spinner>"
+    }
+  ]
+}

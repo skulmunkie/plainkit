@@ -1,0 +1,59 @@
+{
+  "generated": "see baseline",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 6
+  },
+  "findings": [
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "base/a11y.css",
+      "line": 1,
+      "message": "1 !important",
+      "count": 1
+    },
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "base/base.css",
+      "line": 1,
+      "message": "1 !important",
+      "count": 1
+    },
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "components/data-grid/data-grid.css",
+      "line": 1,
+      "message": "2 !important",
+      "count": 2
+    },
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "components/extras/extras.css",
+      "line": 1,
+      "message": "2 !important",
+      "count": 2
+    },
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "components/flyout/flyout.css",
+      "line": 1,
+      "message": "1 !important",
+      "count": 1
+    },
+    {
+      "severity": "low",
+      "rule": "css-important",
+      "file": "components/utilities/utilities.css",
+      "line": 1,
+      "message": "120 !important",
+      "count": 120
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "master-detail",
+  "title": "Master and detail",
+  "summary": "A selectable list beside a detail with tabs.",
+  "slots": "master list, detail, tabs",
+  "used": [
+    "card",
+    "extras",
+    "field-list",
+    "shell",
+    "tabs"
+  ],
+  "order": 7
+}

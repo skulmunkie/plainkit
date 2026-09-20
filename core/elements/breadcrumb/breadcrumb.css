@@ -1,0 +1,36 @@
+/* pk-breadcrumb: a trail of links with a chevron between them. The element marks folded crumbs with [data-folded]; the fold button shows only then. */
+:host { display: block; font-size: var(--text-read); }
+
+[part="list"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: 0; padding: 0; list-style: none; }
+
+[part="item"], [part="fold"] { margin: 0; }
+
+[part="item"] { display: contents; }
+
+::slotted(a), ::slotted(span) { display: inline-flex; align-items: center; min-height: 2rem; color: var(--color-link); text-decoration: none; }
+
+::slotted(a:hover) { text-decoration: underline; }
+
+::slotted(a:not(:last-child))::after, ::slotted(span:not(:last-child))::after { content: "\203A"; margin-inline-start: var(--space-2); color: var(--color-muted); }
+
+::slotted([aria-current="page"]) { color: var(--color-text); font-weight: 600; }
+
+::slotted([data-folded]) { display: none; }
+
+::slotted(*) { order: 2; }
+
+::slotted(:first-child) { order: 0; }
+
+[part="fold"] { display: none; order: 1; }
+
+:host([data-has-fold]) [part="fold"] { display: list-item; }
+
+[part="more"] { min-width: 2rem; min-height: 2rem; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
+
+[part="more"]::before { content: "\2026"; }
+
+[part="more"]:hover { background: var(--color-surface-alt); }
+
+[part="more"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+@media (max-width: 640px) { ::slotted(a), [part="more"] { min-height: var(--touch-target); } [part="more"] { min-width: var(--touch-target); } }

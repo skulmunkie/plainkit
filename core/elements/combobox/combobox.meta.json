@@ -1,0 +1,284 @@
+{
+  "tag": "pk-combobox",
+  "title": "Combobox",
+  "group": "Form controls",
+  "summary": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "mode",
+      "type": "enum",
+      "default": "autocomplete",
+      "values": [
+        "autocomplete",
+        "select"
+      ],
+      "reflect": true,
+      "description": "autocomplete filters as you type; select is a button that opens the list (type a letter to jump). Prefer the native pk-select on a phone."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The current value; what the form submits."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "free",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Autocomplete: keep typed text that is not an option, and use it as the value."
+    },
+    {
+      "name": "filtering",
+      "type": "enum",
+      "default": "client",
+      "values": [
+        "client",
+        "off"
+      ],
+      "reflect": true,
+      "description": "client also filters the options here; off leaves filtering to the host, which listens for pk-combo-query and replaces the options."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the list is open."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "option elements (value, disabled and text)."
+    },
+    {
+      "name": "empty",
+      "description": "The message shown when nothing matches."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-combo-select",
+      "detail": "{ value: string, label: string }",
+      "detailProps": {
+        "value": "string",
+        "label": "string"
+      },
+      "description": "An option was chosen."
+    },
+    {
+      "name": "pk-combo-query",
+      "detail": "{ query: string }",
+      "detailProps": {
+        "query": "string"
+      },
+      "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "box",
+      "description": "The bordered field."
+    },
+    {
+      "name": "control",
+      "description": "The input (autocomplete mode)."
+    },
+    {
+      "name": "trigger",
+      "description": "The button (select mode)."
+    },
+    {
+      "name": "chevron",
+      "description": "The arrow (select mode)."
+    },
+    {
+      "name": "popup",
+      "description": "The list panel."
+    },
+    {
+      "name": "empty",
+      "description": "The no-match message."
+    },
+    {
+      "name": "option",
+      "description": "One option (dynamic)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens the list."
+    },
+    {
+      "name": "hide()",
+      "description": "Closes the list."
+    },
+    {
+      "name": "focus()",
+      "description": "Focuses the control."
+    }
+  ],
+  "a11y": "ARIA 1.2 combobox: role=combobox, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input or button); Arrow keys open and move, Home and End jump (select mode), Enter picks, Escape closes, Tab closes, letters jump in select mode. The chosen option carries aria-selected and a check mark. Options are 44px tall on a phone; the list opens upward when there is no room below.",
+  "blazor": {
+    "component": "SearchableCombo",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Placeholder",
+        "prop": "placeholder",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Mode",
+        "prop": "mode",
+        "type": "string"
+      },
+      {
+        "name": "Free",
+        "prop": "free",
+        "type": "bool"
+      },
+      {
+        "name": "Filtering",
+        "prop": "filtering",
+        "type": "string"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "OnSearchInput",
+        "event": "pk-combo-query",
+        "type": "{ query: string }"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "EmptyContent",
+        "slot": "empty",
+        "type": "RenderFragment"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-combo-select",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Autocomplete",
+      "html": "<pk-combobox label=\"Variant\" placeholder=\"Type to search\"><option value=\"AC-1001\">AC-1001 - Widget 1</option><option value=\"AC-1002\">AC-1002 - Widget 2</option><option value=\"AC-1003\">AC-1003 - Widget 3</option></pk-combobox>"
+    },
+    {
+      "title": "Custom select",
+      "html": "<pk-combobox mode=\"select\" label=\"Channel\" placeholder=\"Choose a channel\" value=\"market\"><option value=\"web\">Web</option><option value=\"market\">Market</option><option value=\"live\">Live</option><option value=\"other\" disabled>Poshmark (unavailable)</option></pk-combobox>"
+    }
+  ]
+}

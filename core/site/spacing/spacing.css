@@ -1,0 +1,4 @@
+.sp-bar { display: block; height: 0.75rem; background: var(--color-accent); border-radius: var(--radius-xs); }
+.sp-row { display: flex; align-items: center; gap: var(--space-3); margin-block-end: var(--space-1); }
+.sp-row code { min-width: 7rem; }
+.sp-demo { padding: var(--pad-card); background: var(--color-surface-alt); border-radius: var(--radius-md); }

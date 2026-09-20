@@ -1,0 +1,120 @@
+{
+  "tag": "pk-timeline-item",
+  "title": "Timeline item",
+  "group": "Data display",
+  "summary": "One event on a timeline: a marker, a heading, a time and a body.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Title of the event."
+    },
+    {
+      "name": "time",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An ISO date or any text; shown in a time element."
+    },
+    {
+      "name": "status",
+      "type": "enum",
+      "default": "pending",
+      "values": [
+        "pending",
+        "done",
+        "active",
+        "danger"
+      ],
+      "reflect": true,
+      "description": "Marker colour and fill."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The body."
+    },
+    {
+      "name": "heading",
+      "description": "A rich heading; overrides heading."
+    },
+    {
+      "name": "time",
+      "description": "A rich time; overrides time."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "marker",
+      "description": "The dot."
+    },
+    {
+      "name": "content",
+      "description": "Heading, time and body."
+    },
+    {
+      "name": "head",
+      "description": "The heading row."
+    },
+    {
+      "name": "heading",
+      "description": "The heading."
+    },
+    {
+      "name": "time",
+      "description": "The time."
+    },
+    {
+      "name": "body",
+      "description": "The body."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "role=listitem through ElementInternals; the time uses a real time element with a datetime attribute.",
+  "blazor": {
+    "component": "TimelineItem",
+    "params": [
+      {
+        "name": "Heading",
+        "prop": "heading",
+        "type": "string"
+      },
+      {
+        "name": "Time",
+        "prop": "time",
+        "type": "string"
+      },
+      {
+        "name": "Status",
+        "prop": "status",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "HeadingContent",
+        "slot": "heading",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "TimeContent",
+        "slot": "time",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Statuses",
+      "html": "<pk-timeline-item heading=\"Delivered\" time=\"2026-09-18\" status=\"done\"></pk-timeline-item>\n<pk-timeline-item heading=\"Payment failed\" status=\"danger\">Retried and cleared.</pk-timeline-item>"
+    }
+  ]
+}

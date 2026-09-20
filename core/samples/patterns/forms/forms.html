@@ -1,0 +1,42 @@
+<pk-form summary>
+<form>
+<pk-form-section heading="Details" description="Shown on the storefront, invoices and packing slips.">
+<pk-field label="Product title" required help="Keep it under 80 characters." max="80"><pk-input name="title" value="Widget 1 Cover A" required data-msg-required="Enter a title."></pk-input></pk-field>
+<pk-field label="SKU" required><pk-input name="sku" value="AC-1001" required></pk-input></pk-field>
+<pk-field label="Status"><pk-select name="status" value="Active"><option>Active</option><option>Draft</option><option>Archived</option></pk-select></pk-field>
+<pk-field label="Release date"><pk-input type="date" name="release" value="2026-09-19"></pk-input></pk-field>
+<pk-field class="form-span" label="Description" help="Plain text; the storefront theme adds the formatting."><pk-textarea name="description" autogrow max-height="240" rows="3"></pk-textarea></pk-field>
+</pk-form-section>
+
+<pk-form-section heading="Pricing and stock" description="Cost feeds FIFO; price is what customers pay.">
+<pk-field label="Price"><pk-input name="price" format="money" min="0" value="19.99"></pk-input></pk-field>
+<pk-field label="Unit cost" help="From the purchase order line."><pk-input name="cost" format="money" min="0" value="9.5"></pk-input></pk-field>
+<pk-field label="Quantity on hand"><pk-input name="onhand" type="number" stepper min="0" max="999" value="12"></pk-input></pk-field>
+<pk-field label="Weight (oz)"><pk-input name="weight" type="number" stepper min="0" step="0.5" value="6.4"></pk-input></pk-field>
+<pk-field class="form-span" label="Price range shown in filters"><pk-range name="range" dual output value-low="20" value-high="80"></pk-range></pk-field>
+</pk-form-section>
+
+<pk-form-section heading="Channels" description="Where this product is sold.">
+<pk-field class="form-span" label="Primary channel"><pk-radio-group variant="segmented" name="channel" value="web"><option value="web">Web</option><option value="market">Market</option><option value="live">Live</option></pk-radio-group></pk-field>
+<pk-field label="Vendor"><pk-combobox name="vendor" placeholder="Type to search"><option value="acme">Acme Supply</option><option value="diamond">Diamond</option><option value="local">Local shop</option></pk-combobox></pk-field>
+<pk-field label="Shipping profile"><pk-combobox mode="select" name="shipping" value="ground" placeholder="Choose a profile"><option value="ground">Ground (3-5 days)</option><option value="priority">Priority</option><option value="pickup">Local pickup</option></pk-combobox></pk-field>
+<div class="form-span"><pk-switch name="storefront" checked label-position="between">Active on the storefront</pk-switch><pk-switch name="preorder" label-position="between">Pre-order until the release date</pk-switch><pk-checkbox name="tax" checked>Charge sales tax</pk-checkbox></div>
+</pk-form-section>
+
+<pk-form-section heading="Condition, media and labels" description="Grading, images and search tags.">
+<pk-field label="Condition"><pk-radio-group name="condition" value="nm"><option value="nm">Near mint</option><option value="vf">Very fine</option><option value="g">Good</option></pk-radio-group></pk-field>
+<pk-field label="Customer rating shown on the page"><pk-rating name="rating" value="4"></pk-rating></pk-field>
+<pk-field class="form-span" label="Tags" help="Enter or comma adds a tag."><pk-tag-input name="tags" max="8" value="dc,variant"></pk-tag-input></pk-field>
+<pk-field class="form-span" label="Images" help="JPG or PNG, up to 5 MB each."><pk-dropzone name="images" accept="image/*" multiple max-size="5MB" max-files="4">Drop images here or click to choose<span slot="hint">JPG or PNG, up to 5 MB each, 4 files at most</span></pk-dropzone></pk-field>
+<pk-field label="Label colour"><pk-colour-input name="colour" value="#4a90e2"></pk-colour-input></pk-field>
+</pk-form-section>
+
+<pk-form-section heading="Access" description="Sign-in details for the linked supplier portal.">
+<pk-field label="Portal password"><pk-input type="password" name="portal" reveal autohide="15" autocomplete="current-password"></pk-input></pk-field>
+<pk-field label="Verification code" help="From the authenticator app."><pk-otp-input name="code" length="6" separator-at="3"></pk-otp-input></pk-field>
+<pk-field class="form-span" label="Search the catalogue"><pk-input type="search" name="q" clearable debounce="250" placeholder="Search products"></pk-input></pk-field>
+</pk-form-section>
+
+<pk-form-actions sticky align="end"><span slot="status">Unsaved changes</span><pk-button variant="ghost" type="reset">Cancel</pk-button><pk-split-button type="submit"><span>Save</span><button slot="menu" type="submit" value="close">Save and close</button><button slot="menu" type="submit" value="new">Save and new</button></pk-split-button></pk-form-actions>
+</form>
+</pk-form>

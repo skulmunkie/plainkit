@@ -1,0 +1,40 @@
+{
+  "folder": "image-gallery",
+  "controls": [
+    {
+      "id": "image-gallery",
+      "name": "ImageGallery",
+      "kind": "Media",
+      "purpose": "A product's images with add, set-primary and delete; channel-agnostic.",
+      "replaces": "per-channel image lists",
+      "mobile": "Thumbnails wrap; the per-image actions are small buttons.",
+      "states": [
+        "primary",
+        "staged",
+        "add tile"
+      ],
+      "classes": [
+        "gal-gallery",
+        "gal-item",
+        "gal-item--primary",
+        "gal-badge",
+        "gal-actions",
+        "gal-add",
+        "gal-add-icon",
+        "gal-add-hint",
+        "gal-add-file"
+      ],
+      "css": [
+        "components/image-gallery/image-gallery.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"gal-gallery\"><div class=\"gal-item\"><img src=\"…\" alt=\"\"></div><div class=\"gal-item gal-add\">＋</div></div>",
+      "blazor": {
+        "component": "ImageGallery",
+        "snippet": "<ImageGallery Images=\"_images\" OnAdd=\"Add\" OnSetPrimary=\"Primary\" OnDelete=\"Delete\" OnMove=\"Move\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

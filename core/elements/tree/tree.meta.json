@@ -1,0 +1,117 @@
+{
+  "tag": "pk-tree",
+  "title": "Tree",
+  "group": "Navigation",
+  "summary": "An expandable hierarchy of tree items with roving focus, single selection and type-ahead, following the WAI-ARIA tree pattern.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name."
+    },
+    {
+      "name": "selection",
+      "type": "enum",
+      "default": "single",
+      "values": [
+        "single",
+        "none"
+      ],
+      "reflect": true,
+      "description": "Selection mode."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The value (or label) of the selected item."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Root pk-tree-item children."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "id": "string"
+      },
+      "description": "An item was chosen (bubbles from the item).",
+      "cancelable": false
+    },
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "id": "string",
+        "expanded": "bool"
+      },
+      "description": "A branch opened or closed (bubbles from the item).",
+      "cancelable": false
+    }
+  ],
+  "parts": [],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "flattenTree(nodes)",
+      "description": "Visible nodes with level and parent."
+    },
+    {
+      "name": "treeKey(items, index, key)",
+      "description": "What a key does."
+    },
+    {
+      "name": "typeahead(items, index, text)",
+      "description": "Next matching label."
+    }
+  ],
+  "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
+  "blazor": {
+    "component": "Tree",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Selection",
+        "prop": "selection",
+        "type": "string"
+      },
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "ValueChanged",
+        "event": "pk-select",
+        "type": "EventCallback<string>"
+      },
+      {
+        "name": "OnToggle",
+        "event": "pk-toggle",
+        "type": "EventCallback<ToggleEventArgs>"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "notes": "Bind with @bind-Value."
+  },
+  "examples": [
+    {
+      "title": "Categories",
+      "html": "<pk-tree label=\"Categories\">\n  <pk-tree-item label=\"Books\" expanded>\n    <pk-tree-item label=\"Green\"></pk-tree-item>\n    <pk-tree-item label=\"DC\"></pk-tree-item>\n  </pk-tree-item>\n  <pk-tree-item label=\"Cards\"></pk-tree-item>\n</pk-tree>"
+    }
+  ]
+}

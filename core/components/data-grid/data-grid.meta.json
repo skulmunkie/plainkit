@@ -1,0 +1,95 @@
+{
+  "folder": "data-grid",
+  "controls": [
+    {
+      "id": "data-grid",
+      "name": "DataGrid",
+      "kind": "Data display",
+      "purpose": "A searchable, sortable, pageable list whose rows navigate to a record page. The vanilla markup is the look; sorting, paging and search are the host's (Blazor's DataSource).",
+      "replaces": "hand-rolled paged tables",
+      "mobile": "Below 640px each row becomes a card (dg-cards); mark secondary columns hidden-on-phone and keep the first column as identity.",
+      "states": [
+        "toolbar",
+        "rows",
+        "pager",
+        "card rows on phone"
+      ],
+      "classes": [
+        "dg",
+        "dg-toolbar",
+        "dg-body",
+        "dg-pager",
+        "data",
+        "dg-clickable",
+        "dg-cards"
+      ],
+      "css": [
+        "components/table-content/table-content.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"dg\"><div class=\"dg-toolbar\">…</div><div class=\"dg-body\"><table class=\"data\">…</table></div><div class=\"dg-pager\">…</div></div>",
+      "blazor": {
+        "component": "DataGrid",
+        "snippet": "<DataGrid TItem=\"Row\" DataSource=\"Load\" Columns=\"_columns\" OnRowClick=\"Open\">…</DataGrid>"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "list-page",
+      "name": "ListPage",
+      "kind": "Page templates",
+      "purpose": "The list-page template: crumbs and actions, error notice and a grid in a card.",
+      "replaces": "the header + grid + error boilerplate on each list page",
+      "mobile": "Mobile-first: the grid becomes cards below 640px and header actions go full width.",
+      "states": [
+        "grid",
+        "empty",
+        "error"
+      ],
+      "classes": [
+        "page-header",
+        "card",
+        "dg",
+        "data"
+      ],
+      "css": [
+        "components/table-content/table-content.css"
+      ],
+      "js": [],
+      "snippet": "<header class=\"page-header\">…</header><section class=\"card\"><div class=\"dg\">…</div></section>",
+      "blazor": {
+        "component": "ListPage",
+        "snippet": "<ListPage TItem=\"Row\" DataSource=\"Load\" Columns=\"_columns\" RowHref=\"Href\">…</ListPage>"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "data-grid-filter",
+      "name": "DataGridFilter",
+      "kind": "Data display",
+      "purpose": "The per-column filter popup in a DataGrid header; internal to DataGrid, styled by data-grid.css.",
+      "replaces": null,
+      "mobile": "Opens from the header on a phone card view via the toolbar.",
+      "states": [
+        "closed",
+        "open"
+      ],
+      "classes": [
+        "dg-filterrow"
+      ],
+      "css": [
+        "components/table-content/table-content.css"
+      ],
+      "js": [],
+      "snippet": "<tr class=\"dg-filterrow\"><th><input type=\"text\" aria-label=\"Filter\"></th></tr>",
+      "blazor": {
+        "component": "DataGridFilter",
+        "snippet": "(rendered by DataGrid)"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "tag": "pk-tooltip",
+  "title": "Tooltip",
+  "summary": "A short label for the control it wraps, shown on hover, on keyboard focus and on a touch long press. Placed beside the target and flipped when it would leave the screen.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The label."
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "default": "top",
+      "reflect": true,
+      "description": "Preferred side; flips when it does not fit."
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "default": 400,
+      "reflect": true,
+      "description": "Mouse hover delay; focus is immediate."
+    },
+    {
+      "name": "shown",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Read-only state for CSS (:host([shown]))."
+    },
+    {
+      "name": "interactive",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A hint card: the panel stays open while the pointer is over it, a tap on touch toggles it, and it can hold links and rich content."
+    },
+    {
+      "name": "help",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draws its own info button as the target (the default slot then holds text that follows it)."
+    },
+    {
+      "name": "enrich",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Underlines the wrapped value with a dotted line to show it has context."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A bold heading inside the panel."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Help",
+      "reflect": true,
+      "description": "Accessible name of the built-in info button."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The element the tip describes."
+    },
+    {
+      "name": "content",
+      "description": "Rich tip content in place of text."
+    },
+    {
+      "name": "links",
+      "description": "Links shown under the panel text (a doc link, a more link)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-show",
+      "detail": null,
+      "description": "The tip appeared."
+    },
+    {
+      "name": "pk-hide",
+      "detail": null,
+      "description": "The tip went away."
+    }
+  ],
+  "parts": [
+    {
+      "name": "tip",
+      "description": "The tooltip label"
+    },
+    {
+      "name": "help",
+      "description": "The built-in info button"
+    },
+    {
+      "name": "target",
+      "description": "Wraps the slotted target"
+    },
+    {
+      "name": "heading",
+      "description": "The panel heading"
+    },
+    {
+      "name": "links",
+      "description": "The links row"
+    },
+    {
+      "name": "body",
+      "description": "The panel text"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-tooltip-max-w",
+      "description": "Maximum width",
+      "default": "min(20rem, viewport)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    }
+  ],
+  "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
+  "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
+  "blazor": {
+    "component": "InfoTip",
+    "params": [
+      {
+        "name": "Text",
+        "type": "string?",
+        "map": "prop",
+        "prop": "text"
+      },
+      {
+        "name": "TooltipContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "content"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "Placement",
+        "type": "InfoTipPlacement",
+        "enum": {
+          "Top": "top",
+          "Bottom": "bottom",
+          "Left": "left",
+          "Right": "right"
+        },
+        "default": "Top",
+        "map": "prop",
+        "prop": "placement"
+      },
+      {
+        "name": "HoverDelay",
+        "type": "int",
+        "default": 200,
+        "map": "prop",
+        "prop": "delay"
+      },
+      {
+        "name": "Kind",
+        "type": "InfoTipKind",
+        "map": "wrapper",
+        "note": "Help renders an info button as the target; Enrich wraps ChildContent with a dotted underline."
+      },
+      {
+        "name": "Title",
+        "type": "string?",
+        "map": "wrapper",
+        "note": "Bold heading inside the rich content slot."
+      },
+      {
+        "name": "DocLink",
+        "type": "string?",
+        "map": "wrapper",
+        "note": "Link inside the rich content slot."
+      },
+      {
+        "name": "ExternalLink",
+        "type": "string?",
+        "map": "wrapper",
+        "note": "As DocLink."
+      },
+      {
+        "name": "LoadAsync",
+        "type": "Func<CancellationToken, Task<RenderFragment?>>?",
+        "map": "wrapper",
+        "note": "Loads the rich slot content on the first pk-show."
+      },
+      {
+        "name": "OnClick",
+        "type": "EventCallback",
+        "map": "wrapper",
+        "note": "Click on the target."
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Tooltip on hover, focus and long press",
+      "html": "<div class=\"cluster cluster--horizontal\"><pk-tooltip text=\"Saves the draft without publishing\"><button type=\"button\" class=\"btn-ghost\">Save draft</button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><button type=\"button\" class=\"btn-ghost\">Right</button></pk-tooltip></div>"
+    }
+  ]
+}

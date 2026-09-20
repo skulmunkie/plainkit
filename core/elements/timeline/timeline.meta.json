@@ -1,0 +1,47 @@
+{
+  "tag": "pk-timeline",
+  "title": "Timeline",
+  "group": "Data display",
+  "summary": "A vertical activity feed of timeline items joined by a line.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of the list."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-timeline-item children, in the order to show them."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The host is role=list; each pk-timeline-item is a listitem with a real time element. State is also given in words in the heading when it matters, never by the marker colour alone.",
+  "blazor": {
+    "component": "Timeline",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Order history",
+      "html": "<pk-timeline label=\"Order history\">\n  <pk-timeline-item heading=\"Shipped\" time=\"2026-09-16\" status=\"done\">Tracking 9400.</pk-timeline-item>\n  <pk-timeline-item heading=\"Packed\" time=\"2026-09-15\" status=\"active\"></pk-timeline-item>\n</pk-timeline>"
+    }
+  ]
+}

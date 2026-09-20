@@ -1,0 +1,5803 @@
+{
+  "$schema": "https://json.schemastore.org/web-types",
+  "name": "plainkit",
+  "version": "1.0.0",
+  "js-types-syntax": "typescript",
+  "description-markup": "markdown",
+  "contributions": {
+    "html": {
+      "elements": [
+        {
+          "name": "pk-accordion",
+          "description": "A stack of collapsible sections; exclusive mode keeps one open.",
+          "attributes": [
+            {
+              "name": "exclusive",
+              "description": "Opening one item closes the others.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "flush",
+              "description": "No gaps: one shared frame.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-accordion-item children."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-accordion-item",
+          "description": "One collapsible section on a native details element, with an animated panel where the browser supports it.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "Header text.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Expanded.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The panel."
+            },
+            {
+              "name": "heading",
+              "description": "A rich heading; overrides heading."
+            },
+            {
+              "name": "icon",
+              "description": "An icon before the heading."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-toggle",
+              "description": "The section opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-alert",
+          "description": "A persistent message in a kind (info, success, warning, danger): optional heading, actions, a dismiss button, a full-bleed banner variant for the top of a page, and a plain form (coloured text only, optionally inline and compact).",
+          "attributes": [
+            {
+              "name": "kind",
+              "description": "The kind setting",
+              "value": {
+                "type": "string",
+                "default": "\"info\""
+              },
+              "values": [
+                "info",
+                "success",
+                "warning",
+                "danger"
+              ]
+            },
+            {
+              "name": "heading",
+              "description": "The heading setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "dismissible",
+              "description": "The dismissible setting",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "banner",
+              "description": "Page-level strip.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "plain",
+              "description": "Coloured text with no box, icon or panel: the quiet form for a message beside a field or under a button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "inline",
+              "description": "Flows in a line of text (like a span) instead of a block; use with plain.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "compact",
+              "description": "Smaller text and no margin, for an actions strip.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Message."
+            },
+            {
+              "name": "action",
+              "description": "Buttons or links."
+            },
+            {
+              "name": "icon",
+              "description": "Custom icon."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-dismiss",
+              "description": "Dismissed; cancelable."
+            }
+          ]
+        },
+        {
+          "name": "pk-app-shell",
+          "description": "The page frame: nav column, header, one scrolling body and footer. Header and footer stay put; safe-area insets are added on notched phones; a slotted control marked data-nav-toggle opens the side nav drawer.",
+          "attributes": [
+            {
+              "name": "nav-open",
+              "description": "Drawer state, mirrors the side nav.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "nav",
+              "description": "A pk-side-nav."
+            },
+            {
+              "name": "header",
+              "description": "Top bar content."
+            },
+            {
+              "name": "default",
+              "description": "The scrolling body."
+            },
+            {
+              "name": "footer",
+              "description": "Footer content."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-nav-toggle",
+              "description": "A data-nav-toggle control was pressed."
+            }
+          ]
+        },
+        {
+          "name": "pk-avatar",
+          "description": "A person or entity as an image or initials, with sizes, shapes, a stable colour per name and an online, away or busy status dot.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The accessible name and the source of the initials.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "src",
+              "description": "An image URL; initials show until it loads or if it fails.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "size",
+              "description": "Size.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "sm",
+                "lg"
+              ]
+            },
+            {
+              "name": "shape",
+              "description": "Shape.",
+              "value": {
+                "type": "string",
+                "default": "\"circle\""
+              },
+              "values": [
+                "circle",
+                "square"
+              ]
+            },
+            {
+              "name": "status",
+              "description": "Status dot.",
+              "value": {
+                "type": "string",
+                "default": "\"none\""
+              },
+              "values": [
+                "none",
+                "online",
+                "away",
+                "busy"
+              ]
+            },
+            {
+              "name": "colour",
+              "description": "A colour slot 1 to 5, or muted; by default a stable slot chosen from the name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-avatar-group",
+          "description": "Overlapping avatars with a +N tile for the overflow.",
+          "attributes": [
+            {
+              "name": "max",
+              "description": "Avatars shown before the +N tile.",
+              "value": {
+                "type": "number",
+                "default": "4"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the group.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-avatar children."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-back-to-top",
+          "description": "A floating button that appears once the reader is well down the page and scrolls the page (or a named scroller) back to the top, smoothly unless reduced motion is on.",
+          "attributes": [
+            {
+              "name": "for",
+              "description": "Scroll container (default: the window).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "threshold",
+              "description": "The threshold setting",
+              "value": {
+                "type": "number",
+                "default": "400"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"Back to top\""
+              }
+            },
+            {
+              "name": "visible",
+              "description": "Set by the element.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Label."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-badge",
+          "description": "A count or short label in a pill, or a status dot with a label; counts cap at a maximum (99+).",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Colour.",
+              "value": {
+                "type": "string",
+                "default": "\"accent\""
+              },
+              "values": [
+                "accent",
+                "muted",
+                "ok",
+                "warn",
+                "danger",
+                "outline"
+              ]
+            },
+            {
+              "name": "count",
+              "description": "Value to show when the slot is empty, capped by max.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Counts above read as max+; 0 disables capping.",
+              "value": {
+                "type": "number",
+                "default": "99"
+              }
+            },
+            {
+              "name": "dot",
+              "description": "A status dot with the text as its label instead of a pill.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Text; overrides the count."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-breadcrumb",
+          "description": "The path to the current page as a trail of links with chevrons; the middle collapses behind a \"...\" button when the trail is long, sooner on a phone.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Landmark name.",
+              "value": {
+                "type": "string",
+                "default": "\"Breadcrumb\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Crumbs shown before the middle folds (3 on a phone).",
+              "value": {
+                "type": "number",
+                "default": "4"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "a elements; the last one is the current page."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-expand",
+              "description": "The fold button revealed the hidden crumbs."
+            }
+          ]
+        },
+        {
+          "name": "pk-button",
+          "description": "A button in five variants and three sizes, with busy, icon-only and toggle forms. type=\"submit\" and \"reset\" act on the surrounding form, as a native button does.",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Visual weight.",
+              "value": {
+                "type": "string",
+                "default": "\"primary\""
+              },
+              "values": [
+                "primary",
+                "ghost",
+                "warn",
+                "secondary",
+                "plain"
+              ]
+            },
+            {
+              "name": "size",
+              "description": "md is the reading-size control; mini is the compact desktop-density one; lg is the large one.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "mini",
+                "lg"
+              ]
+            },
+            {
+              "name": "type",
+              "description": "What a click does inside a form: nothing, submit it, or reset it.",
+              "value": {
+                "type": "string",
+                "default": "\"button\""
+              },
+              "values": [
+                "button",
+                "submit",
+                "reset"
+              ]
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction and dims the control. Also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "An accessible name when the visible content is only an icon.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "busy",
+              "description": "Shows a spinner and ignores clicks without disabling the button, so focus stays put.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "busy-text",
+              "description": "Replaces the label while busy.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "block",
+              "description": "Fills the width of its container.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "icon",
+              "description": "A square icon-only button (give it a label).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "toggle",
+              "description": "A button that stays pressed: a click flips pressed.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "pressed",
+              "description": "The pressed state of a toggle button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "value",
+              "description": "A value reported by pk-toggle.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The label."
+            },
+            {
+              "name": "start",
+              "description": "An icon before the label."
+            },
+            {
+              "name": "end",
+              "description": "An icon after the label."
+            }
+          ],
+          "events": [
+            {
+              "name": "click",
+              "description": "A click (not fired while disabled or busy)."
+            },
+            {
+              "name": "pk-toggle",
+              "description": "A toggle button was pressed or released."
+            }
+          ]
+        },
+        {
+          "name": "pk-button-group",
+          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+          "attributes": [
+            {
+              "name": "orientation",
+              "description": "Direction of the bar.",
+              "value": {
+                "type": "string",
+                "default": "\"horizontal\""
+              },
+              "values": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            {
+              "name": "fill",
+              "description": "Fills the container width and shares it between the buttons.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the group (aria-label).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "mode",
+              "description": "single: the toggle buttons in the group release each other (one is always pressed); multi and none leave each toggle alone.",
+              "value": {
+                "type": "string",
+                "default": "\"none\""
+              },
+              "values": [
+                "none",
+                "single",
+                "multi"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-button elements."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-calendar",
+          "description": "A small month grid to pick or show a date, with marks, minimum and maximum, and full keyboard control.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "The selected day, an ISO date such as 2026-09-19.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "month",
+              "description": "An ISO date whose month is shown; defaults to the value or today.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "min",
+              "description": "Earliest selectable ISO date.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Latest selectable ISO date.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "week-start",
+              "description": "First weekday: 0 Sunday, 1 Monday.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "locale",
+              "description": "Language of month and weekday names; defaults to the page language.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "marks",
+              "description": "ISO dates that get a dot.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "readonly",
+              "description": "Show only; no selection.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Inert.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "A day was chosen. Cancel to keep the current value."
+            },
+            {
+              "name": "pk-month",
+              "description": "The shown month changed (yyyy-mm)."
+            }
+          ]
+        },
+        {
+          "name": "pk-card",
+          "description": "A titled panel with optional media, header actions and footer. Vertical or horizontal (stacking by its own width), flush for tables, and optionally one link.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The card title. Without it (and without actions) the header is not shown.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "level",
+              "description": "The heading level the title exposes to assistive technology (aria-level).",
+              "value": {
+                "type": "number",
+                "default": "2"
+              }
+            },
+            {
+              "name": "tone",
+              "description": "error draws the border in the error colour.",
+              "value": {
+                "type": "string",
+                "default": "\"default\""
+              },
+              "values": [
+                "default",
+                "error"
+              ]
+            },
+            {
+              "name": "orientation",
+              "description": "Horizontal puts the media beside the content; it stacks when the card is narrower than 30rem (a container query, not the viewport).",
+              "value": {
+                "type": "string",
+                "default": "\"vertical\""
+              },
+              "values": [
+                "vertical",
+                "horizontal"
+              ]
+            },
+            {
+              "name": "flush",
+              "description": "No padding around the content, for a table or an edge-to-edge body.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "href",
+              "description": "Makes the whole card one link (a single tab stop named by the heading).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "fill",
+              "description": "Fills a flex parent (a workspace pane): the card takes the remaining height, has no padding, and its body is the scroll region.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The card body."
+            },
+            {
+              "name": "media",
+              "description": "An image, picture or video at the top (or the start when horizontal)."
+            },
+            {
+              "name": "actions",
+              "description": "Buttons or links at the right of the header."
+            },
+            {
+              "name": "footer",
+              "description": "Content below the body; hidden when empty."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-chart",
+          "description": "Bar, line, donut, stacked-bar and sparkline charts in pure SVG, drawn from a slotted data table (which stays as the accessible fallback) or from a data property.",
+          "attributes": [
+            {
+              "name": "kind",
+              "description": "Chart type.",
+              "value": {
+                "type": "string",
+                "default": "\"bar\""
+              },
+              "values": [
+                "bar",
+                "line",
+                "donut",
+                "stack",
+                "spark"
+              ]
+            },
+            {
+              "name": "caption",
+              "description": "Title (figcaption).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "height",
+              "description": "viewBox height of bar and line charts.",
+              "value": {
+                "type": "number",
+                "default": "140"
+              }
+            },
+            {
+              "name": "data",
+              "description": "Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }.",
+              "value": {
+                "type": "string",
+                "default": "null"
+              }
+            },
+            {
+              "name": "data-label",
+              "description": "Summary text of the data details.",
+              "value": {
+                "type": "string",
+                "default": "\"Show data\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "A table: the first column holds labels, each further column a series. A cell may carry data-value."
+            },
+            {
+              "name": "caption",
+              "description": "A rich caption; overrides caption."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-checkbox",
+          "description": "A checkbox drawn from tokens, with an indeterminate state and select-all groups: a master checkbox mirrors every checkbox of its group.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The value submitted while checked.",
+              "value": {
+                "type": "string",
+                "default": "\"on\""
+              }
+            },
+            {
+              "name": "checked",
+              "description": "Whether the box is checked.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "indeterminate",
+              "description": "The mixed state (some of a group are checked).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "group",
+              "description": "Puts this checkbox in a select-all group of that name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "master",
+              "description": "Makes this the select-all checkbox of the group of that name; it shows checked, unchecked or indeterminate as its members change.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "size",
+              "description": "sm is the compact checkbox of a toolbar: smaller label text.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "sm"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The label."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-change",
+              "description": "The user changed the value (same moment as change; carries it)."
+            }
+          ]
+        },
+        {
+          "name": "pk-code-block",
+          "description": "A block of code with an optional label bar, line numbers, a wrap toggle and a copy button. The code is the element's text content.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "File or language shown in the bar; also the region's name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "line-numbers",
+              "description": "A gutter of line numbers.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "wrap",
+              "description": "Wrap long lines.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "no-copy",
+              "description": "Hide the copy button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "max-height",
+              "description": "Cap the height, any CSS length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-copy",
+              "description": "After a copy attempt."
+            }
+          ]
+        },
+        {
+          "name": "pk-colour-input",
+          "description": "The native colour picker beside an editable hex field that stay in step; the field accepts #abc, abc and #aabbcc and is normalised to #rrggbb.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The colour as #rrggbb.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-colour",
+              "description": "A valid colour was picked or typed (lowercase #rrggbb)."
+            }
+          ]
+        },
+        {
+          "name": "pk-combobox",
+          "description": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children.",
+          "attributes": [
+            {
+              "name": "mode",
+              "description": "autocomplete filters as you type; select is a button that opens the list (type a letter to jump). Prefer the native pk-select on a phone.",
+              "value": {
+                "type": "string",
+                "default": "\"autocomplete\""
+              },
+              "values": [
+                "autocomplete",
+                "select"
+              ]
+            },
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The current value; what the form submits.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Hint shown while empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "free",
+              "description": "Autocomplete: keep typed text that is not an option, and use it as the value.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "filtering",
+              "description": "client also filters the options here; off leaves filtering to the host, which listens for pk-combo-query and replaces the options.",
+              "value": {
+                "type": "string",
+                "default": "\"client\""
+              },
+              "values": [
+                "client",
+                "off"
+              ]
+            },
+            {
+              "name": "open",
+              "description": "Whether the list is open.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "option elements (value, disabled and text)."
+            },
+            {
+              "name": "empty",
+              "description": "The message shown when nothing matches."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-combo-select",
+              "description": "An option was chosen."
+            },
+            {
+              "name": "pk-combo-query",
+              "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+            }
+          ]
+        },
+        {
+          "name": "pk-command-palette",
+          "description": "A keyboard-first launcher: Ctrl/Cmd+K opens a dialog with a search field over grouped commands, fuzzy-matched with highlights, recents when the field is empty, arrows and Enter to run.",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether it is shown",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "The placeholder setting",
+              "value": {
+                "type": "string",
+                "default": "\"Type a command or search…\""
+              }
+            },
+            {
+              "name": "recents-key",
+              "description": "localStorage key; empty disables recents.",
+              "value": {
+                "type": "string",
+                "default": "\"pk-palette-recents\""
+              }
+            },
+            {
+              "name": "no-shortcut",
+              "description": "Do not bind Ctrl/Cmd+K on the document.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the dialog.",
+              "value": {
+                "type": "string",
+                "default": "\"Command palette\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+            }
+          ]
+        },
+        {
+          "name": "pk-context-menu",
+          "description": "A menu opened at the pointer by right click, by Shift+F10 or the Menu key, or by a touch long press, over the region it wraps.",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether the menu is shown.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Leave the browser menu alone.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The region the menu belongs to."
+            },
+            {
+              "name": "menu",
+              "description": "pk-menu-item children."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "An item was chosen."
+            }
+          ]
+        },
+        {
+          "name": "pk-dialog",
+          "description": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether it is shown",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "heading",
+              "description": "The heading setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "size",
+              "description": "The size setting",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "fullscreen"
+              ]
+            },
+            {
+              "name": "scrollable",
+              "description": "The body scrolls inside a bounded dialog.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "hide-close",
+              "description": "Hide the header close button (the dialog offers its own Cancel in the footer).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "max-width",
+              "description": "Card width in pixels before the viewport clamp; 0 keeps the size preset.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "tint",
+              "description": "A tinted card: product (green wash) or archived (red wash).",
+              "value": {
+                "type": "string",
+                "default": "\"none\""
+              },
+              "values": [
+                "none",
+                "product",
+                "archived"
+              ]
+            },
+            {
+              "name": "controlled",
+              "description": "The host owns open: close requests (Escape, close button, backdrop, swipe) only raise pk-close and never close the element; the host closes it by clearing open. Used by Blazor wrappers.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "header",
+              "description": "Custom header."
+            },
+            {
+              "name": "default",
+              "description": "Body."
+            },
+            {
+              "name": "footer",
+              "description": "Actions."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-open",
+              "description": "pk-open"
+            },
+            {
+              "name": "pk-close",
+              "description": "escape, close button or method."
+            }
+          ]
+        },
+        {
+          "name": "pk-divider",
+          "description": "A rule between content, horizontal or vertical, with an optional label.",
+          "attributes": [
+            {
+              "name": "vertical",
+              "description": "A vertical rule; the parent must be a flex row.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label-position",
+              "description": "Where the label sits.",
+              "value": {
+                "type": "string",
+                "default": "\"center\""
+              },
+              "values": [
+                "center",
+                "start"
+              ]
+            },
+            {
+              "name": "decorative",
+              "description": "Remove the separator role.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The label."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-drawer",
+          "description": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether it is shown",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "side",
+              "description": "Edge it slides from.",
+              "value": {
+                "type": "string",
+                "default": "\"right\""
+              },
+              "values": [
+                "left",
+                "right",
+                "bottom"
+              ]
+            },
+            {
+              "name": "heading",
+              "description": "Title; also the accessible name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "persistent",
+              "description": "The backdrop does not close it.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "wide",
+              "description": "A wider panel (up to 70% of the viewport).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "controlled",
+              "description": "The host owns open: close requests (Escape, close button, backdrop, swipe) only raise pk-close and never close the element; the host closes it by clearing open. Used by Blazor wrappers.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "docked",
+              "description": "A non-modal inspector: it sits inside the nearest positioned ancestor instead of the viewport, has no backdrop and no focus trap, and the page behind stays usable. Escape still asks to close.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "header",
+              "description": "Custom header content."
+            },
+            {
+              "name": "default",
+              "description": "Body."
+            },
+            {
+              "name": "footer",
+              "description": "Actions."
+            },
+            {
+              "name": "actions",
+              "description": "Actions strip under the header (Save, Cancel)."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-open",
+              "description": "pk-open"
+            },
+            {
+              "name": "pk-close",
+              "description": "escape, backdrop, close button, swipe or method."
+            }
+          ]
+        },
+        {
+          "name": "pk-dropdown",
+          "description": "A menu opened from a trigger: buttons or links, headers, dividers, checkable items and submenus, with full keyboard support (arrows, Home, End, typeahead, Right/Left for submenus, Escape).",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether the menu is shown.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "placement",
+              "description": "Preferred side.",
+              "value": {
+                "type": "string",
+                "default": "\"bottom-start\""
+              }
+            },
+            {
+              "name": "keep-open",
+              "description": "Stay open after an item is chosen (multi-select filters).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "mega",
+              "description": "A wide panel whose items flow into columns (navbar mega menu).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "trigger",
+              "description": "The button that opens it."
+            },
+            {
+              "name": "default",
+              "description": "pk-menu-item children."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "An item was chosen."
+            },
+            {
+              "name": "pk-open",
+              "description": "Opened."
+            },
+            {
+              "name": "pk-close",
+              "description": "Closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-dropzone",
+          "description": "A drop target over a real file input: drag files in or click, with type, size and count checks, a list of accepted files with Remove, and a reason for each rejection. Files are submitted with the form.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "accept",
+              "description": "Accepted types: extensions, MIME types or type/* (like the accept attribute).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "multiple",
+              "description": "Allows several files.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "max-size",
+              "description": "Largest file: 500KB, 5MB, 1GB or bytes.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max-files",
+              "description": "Most files (multiple); 0 means no limit.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The zone title."
+            },
+            {
+              "name": "hint",
+              "description": "A hint under the title (types and limits)."
+            },
+            {
+              "name": "input",
+              "description": "An existing file input (a Blazor InputFile) that keeps doing the reading: the zone then only draws the target, and dropped files are placed in that input."
+            }
+          ],
+          "events": [
+            {
+              "name": "change",
+              "description": "The file list changed."
+            },
+            {
+              "name": "pk-files",
+              "description": "Files were picked or dropped: those kept and those refused with a reason."
+            }
+          ]
+        },
+        {
+          "name": "pk-empty-state",
+          "description": "What a list shows when it has no rows: an optional icon, a title, a description and the actions that fill it. Densities for a whole page, a panel or a table row.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The title.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "level",
+              "description": "Heading level exposed to assistive technology.",
+              "value": {
+                "type": "number",
+                "default": "3"
+              }
+            },
+            {
+              "name": "description",
+              "description": "The explanation.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "tone",
+              "description": "Density and frame.",
+              "value": {
+                "type": "string",
+                "default": "\"default\""
+              },
+              "values": [
+                "default",
+                "compact",
+                "boxed",
+                "error"
+              ]
+            },
+            {
+              "name": "announce",
+              "description": "Announce the element politely when it appears (role status), for results that replace a search.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "icon",
+              "description": "An illustration or icon."
+            },
+            {
+              "name": "heading",
+              "description": "A rich title; overrides heading."
+            },
+            {
+              "name": "default",
+              "description": "A rich description; overrides description."
+            },
+            {
+              "name": "actions",
+              "description": "Buttons that fill the empty state."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-field",
+          "description": "The label, help, error, warning and counter around a form control, with the wiring between them. It hands its label and messages to the control, because ids do not cross shadow roots.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "The label text (or use the label slot).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "help",
+              "description": "Help text under the control.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "error",
+              "description": "An error message; puts the control into the invalid state.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "warning",
+              "description": "A warning message; puts the control into the warning state.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "required",
+              "description": "Marks the field required (a star, and required on the control).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "max",
+              "description": "Counter maximum: shows length / max and turns warm from 90% and red past the max; 0 hides the counter.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "layout",
+              "description": "stack puts the label above the control; row puts it in a fixed column beside it (stacks on a phone); inline puts label and control on one line at their natural width.",
+              "value": {
+                "type": "string",
+                "default": "\"stack\""
+              },
+              "values": [
+                "stack",
+                "row",
+                "inline"
+              ]
+            },
+            {
+              "name": "size",
+              "description": "sm is the compact field of a toolbar or filter row: smaller label, tighter gap.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "sm"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The control: an pk-* form control or a native input, select or textarea."
+            },
+            {
+              "name": "label",
+              "description": "A rich label (overrides the label prop)."
+            },
+            {
+              "name": "help",
+              "description": "Rich help text (overrides the help prop)."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-field-list",
+          "description": "A titled description list: term and value pairs as slotted dt and dd, beside each other, stacked or run in; with dividers and a dense mode.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "Section title.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "level",
+              "description": "Heading level exposed to assistive technology.",
+              "value": {
+                "type": "number",
+                "default": "3"
+              }
+            },
+            {
+              "name": "layout",
+              "description": "Term beside value, or above it.",
+              "value": {
+                "type": "string",
+                "default": "\"grid\""
+              },
+              "values": [
+                "grid",
+                "stacked"
+              ]
+            },
+            {
+              "name": "dividers",
+              "description": "A rule under each value.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "dense",
+              "description": "Tighter rhythm and smaller text.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "dt and dd pairs; a dd may hold chips, links or code."
+            },
+            {
+              "name": "heading",
+              "description": "A rich heading; overrides heading."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-field-row",
+          "description": "A wrapping row of fields that share the width: each field grows from a 120px minimum, a wide field takes a row of its own.",
+          "attributes": [
+            {
+              "name": "align",
+              "description": "Vertical alignment of the fields in the row.",
+              "value": {
+                "type": "string",
+                "default": "\"stretch\""
+              },
+              "values": [
+                "stretch",
+                "end",
+                "center"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The fields, checkboxes or switches."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-form",
+          "description": "Wraps a form and shows the browser's constraint validation well: messages in each field, a summary with links, focus on the first problem, and live re-checking.",
+          "attributes": [
+            {
+              "name": "validate",
+              "description": "When to check: blur (after leaving a field, and on submit), input (while typing) or submit (only on submit). A field already showing an error re-checks as you type.",
+              "value": {
+                "type": "string",
+                "default": "\"blur\""
+              },
+              "values": [
+                "blur",
+                "input",
+                "submit"
+              ]
+            },
+            {
+              "name": "show-valid",
+              "description": "Also shows the valid state on fields that hold a value.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "summary",
+              "description": "Shows a summary of the problems with links to the fields.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "A form element."
+            },
+            {
+              "name": "summary-title",
+              "description": "The summary heading."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-invalid",
+              "description": "A submit was stopped because these controls are invalid."
+            },
+            {
+              "name": "pk-valid",
+              "description": "A submit passed validation."
+            }
+          ]
+        },
+        {
+          "name": "pk-form-actions",
+          "description": "The bar of buttons under a form, aligned start, end or between, and sticky to the bottom of a long form.",
+          "attributes": [
+            {
+              "name": "sticky",
+              "description": "Sticks to the bottom of the scrolling area with a top edge, clearing the phone home indicator.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "align",
+              "description": "Where the buttons sit.",
+              "value": {
+                "type": "string",
+                "default": "\"start\""
+              },
+              "values": [
+                "start",
+                "end",
+                "between"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The buttons."
+            },
+            {
+              "name": "status",
+              "description": "A status message such as \"Unsaved changes\"."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-form-section",
+          "description": "A titled section of a form: heading and description beside a responsive grid of fields (stacked below 1024px).",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The section heading (or use the heading slot).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "A sentence under the heading.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The fields. Give a child class form-span to make it span the full width."
+            },
+            {
+              "name": "heading",
+              "description": "A rich heading."
+            },
+            {
+              "name": "description",
+              "description": "A rich description."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-gallery",
+          "description": "The SDK gallery inside your page: every control, element, layout and template with live samples, narrowed by attributes to just what you want to show. Loads on demand in its own frame.",
+          "attributes": [
+            {
+              "name": "kind",
+              "description": "What to show: foundations, controls, elements, layouts or templates. Empty shows the controls when a group or control is named, otherwise everything.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "group",
+              "description": "One control group by name (\"Forms & inputs\") or slug (forms-inputs); with kind layouts or templates, that samples group.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "control",
+              "description": "One control, element or sample id, or a comma separated list (\"button,input\"); elements also match by tag (pk-tabs).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "theme",
+              "description": "The theme of the gallery and its samples. auto keeps the gallery's own default (dark).",
+              "value": {
+                "type": "string",
+                "default": "\"auto\""
+              },
+              "values": [
+                "auto",
+                "dark",
+                "light"
+              ]
+            },
+            {
+              "name": "width",
+              "description": "Render the samples at desktop width or in a 375px phone frame.",
+              "value": {
+                "type": "string",
+                "default": "\"desktop\""
+              },
+              "values": [
+                "desktop",
+                "phone"
+              ]
+            },
+            {
+              "name": "filter",
+              "description": "Search text: only controls whose name (or group) contains it are shown.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "chrome",
+              "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector.",
+              "value": {
+                "type": "string",
+                "default": "\"none\""
+              },
+              "values": [
+                "none",
+                "full"
+              ]
+            },
+            {
+              "name": "height",
+              "description": "A fixed height in pixels. 0 fits the content when chrome is none and uses the default height when chrome is full.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "src",
+              "description": "Address of the gallery's embed.html when it is not next to the element module, for example on a CDN prefix.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-hint",
+          "description": "An inline explanation that opens in the flow of the page: no tooltip, no hover-only content.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "The toggle text.",
+              "value": {
+                "type": "string",
+                "default": "\"What's this?\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Expanded.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "tone",
+              "description": "Accent colour.",
+              "value": {
+                "type": "string",
+                "default": "\"info\""
+              },
+              "values": [
+                "info",
+                "warn"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The explanation."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-toggle",
+              "description": "The hint opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-input",
+          "description": "The single-line control: text, email, url, tel, search, password, number and the date and time types, with an optional clear button, password reveal, number stepper, money format, prefix and suffix, and a floating label.",
+          "attributes": [
+            {
+              "name": "type",
+              "description": "The kind of value. Date and time types open the platform picker.",
+              "value": {
+                "type": "string",
+                "default": "\"text\""
+              },
+              "values": [
+                "text",
+                "email",
+                "url",
+                "tel",
+                "search",
+                "password",
+                "number",
+                "date",
+                "time",
+                "datetime-local",
+                "month",
+                "week"
+              ]
+            },
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The current value; what the form submits.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Hint shown while empty (ignored by a floating label).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "readonly",
+              "description": "The value can be read and selected but not edited.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "warning",
+              "description": "Shows the warning state (a value the user may want to check).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "valid",
+              "description": "Shows the valid state.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "min",
+              "description": "Minimum value (number and date types).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Maximum value (number and date types).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "step",
+              "description": "Step for number and date types; also the stepper increment.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "minlength",
+              "description": "Minimum text length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "maxlength",
+              "description": "Maximum text length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "pattern",
+              "description": "A regular expression the whole value must match.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "autocomplete",
+              "description": "The autofill token, for example current-password, new-password or one-time-code.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "inputmode",
+              "description": "The virtual keyboard to request (numeric, decimal, email, ...).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "size",
+              "description": "Control height.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "sm",
+                "md",
+                "lg"
+              ]
+            },
+            {
+              "name": "clearable",
+              "description": "Shows a clear button while there is a value.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "reveal",
+              "description": "Password only: a show and hide button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "stepper",
+              "description": "Number only: minus and plus buttons that respect min, max and step.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "format",
+              "description": "money formats the value as an amount (1,234.50) when the field is left and shows the plain number while editing; value stays the plain number.",
+              "value": {
+                "type": "string",
+                "default": "\"none\""
+              },
+              "values": [
+                "none",
+                "money"
+              ]
+            },
+            {
+              "name": "decimals",
+              "description": "Decimal places for the money format.",
+              "value": {
+                "type": "number",
+                "default": "2"
+              }
+            },
+            {
+              "name": "currency",
+              "description": "ISO currency code whose symbol leads a money field.",
+              "value": {
+                "type": "string",
+                "default": "\"USD\""
+              }
+            },
+            {
+              "name": "locale",
+              "description": "Locale for money formatting.",
+              "value": {
+                "type": "string",
+                "default": "\"en-US\""
+              }
+            },
+            {
+              "name": "floating",
+              "description": "Shows label inside the field until it has focus or a value, then floats it to the top edge.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "autohide",
+              "description": "Password reveal: seconds until the value is masked again; 0 keeps it revealed.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "debounce",
+              "description": "Search only: milliseconds to wait after typing before pk-search fires; 0 fires on every change.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "prefix",
+              "description": "A leading add-on: a currency sign, an icon, a unit."
+            },
+            {
+              "name": "suffix",
+              "description": "A trailing add-on: a unit, a domain, a button."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-value-change",
+              "description": "The user committed a new value (same moment as change; carries the value)."
+            },
+            {
+              "name": "pk-search",
+              "description": "Search type: the debounced search text, or immediately on Enter and clear."
+            }
+          ]
+        },
+        {
+          "name": "pk-lightbox",
+          "description": "A full-screen image viewer on a native dialog: caption, counter, previous and next with arrow keys and swipe, neighbours preloaded, only safe image sources.",
+          "attributes": [
+            {
+              "name": "index",
+              "description": "The index setting",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"Image viewer\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Whether it is shown",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The trigger."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-change",
+              "description": "Another image is shown."
+            },
+            {
+              "name": "pk-close",
+              "description": "pk-close"
+            }
+          ]
+        },
+        {
+          "name": "pk-list-group",
+          "description": "A bordered list of rows: plain, actionable (links and buttons), with badges at the end, or a checklist.",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Row behaviour and frame.",
+              "value": {
+                "type": "string",
+                "default": "\"plain\""
+              },
+              "values": [
+                "plain",
+                "action",
+                "flush"
+              ]
+            },
+            {
+              "name": "checklist",
+              "description": "Rows are labels with a checkbox.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the list.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Rows: div, a, button or label elements."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-loading-overlay",
+          "description": "Covers a region (or the whole viewport with fullscreen) with a spinner and a label while busy, and makes what it covers inert so it cannot be clicked or tabbed into.",
+          "attributes": [
+            {
+              "name": "busy",
+              "description": "The busy setting",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Announced and shown.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "fullscreen",
+              "description": "Cover the viewport.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The content being covered."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-media",
+          "description": "An image or video in a fixed aspect-ratio box with an optional figure caption and lightbox-ready behaviour.",
+          "attributes": [
+            {
+              "name": "ratio",
+              "description": "Aspect ratio as width/height: 16/9, 4/3, 1/1, 3/4.",
+              "value": {
+                "type": "string",
+                "default": "\"16/9\""
+              }
+            },
+            {
+              "name": "fit",
+              "description": "How media fills the box.",
+              "value": {
+                "type": "string",
+                "default": "\"cover\""
+              },
+              "values": [
+                "cover",
+                "contain"
+              ]
+            },
+            {
+              "name": "caption",
+              "description": "Figure caption.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "lightbox",
+              "description": "The box becomes a button that fires pk-open.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "square",
+              "description": "Square corners.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "An img, picture, video or svg."
+            },
+            {
+              "name": "caption",
+              "description": "A rich caption; overrides caption."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-open",
+              "description": "A lightbox request. Cancel if you handle it yourself."
+            }
+          ]
+        },
+        {
+          "name": "pk-menu-item",
+          "description": "One row of a dropdown or context menu: a plain item, a checkbox, a radio, a section header or a divider; optional prefix and suffix (shortcut) and a nested submenu.",
+          "attributes": [
+            {
+              "name": "type",
+              "description": "What the row is.",
+              "value": {
+                "type": "string",
+                "default": "\"item\""
+              },
+              "values": [
+                "item",
+                "checkbox",
+                "radio",
+                "header",
+                "divider"
+              ]
+            },
+            {
+              "name": "checked",
+              "description": "Checkbox and radio state.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Skipped by keyboard, not activatable.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "danger",
+              "description": "Destructive styling.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "value",
+              "description": "Reported in pk-select; defaults to the label.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "href",
+              "description": "Renders as a link.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "A submenu is open.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Label."
+            },
+            {
+              "name": "prefix",
+              "description": "Icon before the label."
+            },
+            {
+              "name": "suffix",
+              "description": "Shortcut or badge after it."
+            },
+            {
+              "name": "submenu",
+              "description": "Nested pk-menu-item children."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "Chosen (bubbles to the dropdown)."
+            }
+          ]
+        },
+        {
+          "name": "pk-nav-item",
+          "description": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state.",
+          "attributes": [
+            {
+              "name": "href",
+              "description": "Makes it a link; omit for a branch.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "current",
+              "description": "The current setting",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Prevents interaction",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "expanded",
+              "description": "Branch open.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "rail",
+              "description": "Set by the nav in icon-rail mode.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "flyout",
+              "description": "In the icon rail, the branch is open as a flyout beside the rail.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Label."
+            },
+            {
+              "name": "icon",
+              "description": "Icon."
+            },
+            {
+              "name": "badge",
+              "description": "Count or tag."
+            },
+            {
+              "name": "children",
+              "description": "Nested pk-nav-item."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-toggle",
+              "description": "A branch folded or unfolded."
+            }
+          ]
+        },
+        {
+          "name": "pk-navbar",
+          "description": "The top navigation: brand, links, dropdown and mega menus, right-aligned actions, sticky option, and a hamburger that folds the links below 1024px.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"Main\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Links unfolded (small screens).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "sticky",
+              "description": "The sticky setting",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "brand",
+              "description": "Brand link."
+            },
+            {
+              "name": "default",
+              "description": "Links and pk-dropdown menus."
+            },
+            {
+              "name": "actions",
+              "description": "Right-aligned controls."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-toggle",
+              "description": "Hamburger toggled."
+            }
+          ]
+        },
+        {
+          "name": "pk-otp-input",
+          "description": "A one-time code or PIN as a row of cells: typing advances, Backspace steps back, a pasted or autofilled code spreads across the cells, and completion is an event.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The code typed so far.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "length",
+              "description": "Number of cells.",
+              "value": {
+                "type": "number",
+                "default": "6"
+              }
+            },
+            {
+              "name": "type",
+              "description": "The alphabet: digits, letters and digits, or anything.",
+              "value": {
+                "type": "string",
+                "default": "\"numeric\""
+              },
+              "values": [
+                "numeric",
+                "alnum",
+                "any"
+              ]
+            },
+            {
+              "name": "separator-at",
+              "description": "Puts a dash after this many cells (0 for none).",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-otp-change",
+              "description": "The code changed."
+            },
+            {
+              "name": "pk-otp-complete",
+              "description": "Every cell is filled."
+            }
+          ]
+        },
+        {
+          "name": "pk-pager",
+          "description": "Page-level previous and next links between sibling pages, with an optional centre note (\"Step 2 of 5\"); table pagination is a separate control.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"Page navigation\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "prev",
+              "description": "The previous-page link."
+            },
+            {
+              "name": "next",
+              "description": "The next-page link."
+            },
+            {
+              "name": "default",
+              "description": "Centre note."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-pagination",
+          "description": "Page navigation: numbered with ellipses, a range summary, a page-size select, a simple previous and next form, or load more. On a phone the numbers collapse to previous, Page N of M and next.",
+          "attributes": [
+            {
+              "name": "page",
+              "description": "Current page, 1-based.",
+              "value": {
+                "type": "number",
+                "default": "1"
+              }
+            },
+            {
+              "name": "pages",
+              "description": "Page count; 0 derives it from total and pageSize.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "total",
+              "description": "Item count; enables the range summary.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "page-size",
+              "description": "Items per page.",
+              "value": {
+                "type": "number",
+                "default": "25"
+              }
+            },
+            {
+              "name": "sizes",
+              "description": "Options for the page-size select, for example [10, 25, 50, 100]; empty hides the select.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "siblings",
+              "description": "Pages either side of the current one.",
+              "value": {
+                "type": "number",
+                "default": "1"
+              }
+            },
+            {
+              "name": "boundary",
+              "description": "Pages always shown at each end.",
+              "value": {
+                "type": "number",
+                "default": "1"
+              }
+            },
+            {
+              "name": "mode",
+              "description": "Layout.",
+              "value": {
+                "type": "string",
+                "default": "\"numbered\""
+              },
+              "values": [
+                "numbered",
+                "simple",
+                "load-more"
+              ]
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the nav.",
+              "value": {
+                "type": "string",
+                "default": "\"Pagination\""
+              }
+            },
+            {
+              "name": "loading",
+              "description": "Load-more busy state.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "edges",
+              "description": "Show First and Last buttons beside Previous and Next.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-page",
+              "description": "A page was chosen. Cancel to keep the current page (a server-driven grid sets page itself)."
+            },
+            {
+              "name": "pk-page-size",
+              "description": "The page-size select changed. Cancel to keep the size."
+            },
+            {
+              "name": "pk-load-more",
+              "description": "Load more was pressed."
+            }
+          ]
+        },
+        {
+          "name": "pk-popover",
+          "description": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+          "attributes": [
+            {
+              "name": "open",
+              "description": "Whether the panel is shown.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "placement",
+              "description": "Preferred side.",
+              "value": {
+                "type": "string",
+                "default": "\"bottom-start\""
+              }
+            },
+            {
+              "name": "trigger",
+              "description": "What opens it.",
+              "value": {
+                "type": "string",
+                "default": "\"click\""
+              },
+              "values": [
+                "click",
+                "hover",
+                "manual"
+              ]
+            },
+            {
+              "name": "heading",
+              "description": "Panel title.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name when there is no heading.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "variant",
+              "description": "confirm adds Cancel and Confirm buttons.",
+              "value": {
+                "type": "string",
+                "default": "\"default\""
+              },
+              "values": [
+                "default",
+                "confirm"
+              ]
+            },
+            {
+              "name": "message",
+              "description": "Body text for the confirm variant.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "confirm-label",
+              "description": "Confirm button text.",
+              "value": {
+                "type": "string",
+                "default": "\"Confirm\""
+              }
+            },
+            {
+              "name": "cancel-label",
+              "description": "Cancel button text.",
+              "value": {
+                "type": "string",
+                "default": "\"Cancel\""
+              }
+            },
+            {
+              "name": "danger",
+              "description": "Styles Confirm as destructive.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "trigger",
+              "description": "The control that opens it."
+            },
+            {
+              "name": "default",
+              "description": "Panel body."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-open",
+              "description": "Panel opened."
+            },
+            {
+              "name": "pk-close",
+              "description": "Panel closed (escape, outside, cancel, confirm, toggle)."
+            },
+            {
+              "name": "pk-confirm",
+              "description": "Confirm pressed (variant confirm)."
+            }
+          ]
+        },
+        {
+          "name": "pk-progress",
+          "description": "A determinate or indeterminate progress bar on the native progress element, with sizes, colours, stripes, a label, a value readout and automatic warning colours.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "Current value.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "max",
+              "description": "Upper bound.",
+              "value": {
+                "type": "number",
+                "default": "100"
+              }
+            },
+            {
+              "name": "variant",
+              "description": "Colour.",
+              "value": {
+                "type": "string",
+                "default": "\"accent\""
+              },
+              "values": [
+                "accent",
+                "ok",
+                "warn",
+                "danger"
+              ]
+            },
+            {
+              "name": "size",
+              "description": "Height.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "sm",
+                "lg"
+              ]
+            },
+            {
+              "name": "striped",
+              "description": "Diagonal stripes.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "indeterminate",
+              "description": "Unknown duration: the bar sweeps.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Text above the bar; also its accessible name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "show-value",
+              "description": "Append the percentage next to the label.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "level-thresholds",
+              "description": "Two percentages, for example \"70,90\": the bar turns warn then danger.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-radio-group",
+          "description": "One choice from a few options, as radios or as a segmented bar. The options are its own option children; the radios are native inputs, so arrow keys and grouping are the browser's.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The current value; what the form submits.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "variant",
+              "description": "radio draws a list of radios; segmented draws one bar of segments.",
+              "value": {
+                "type": "string",
+                "default": "\"radio\""
+              },
+              "values": [
+                "radio",
+                "segmented"
+              ]
+            },
+            {
+              "name": "direction",
+              "description": "Radio variant: stacked or in a wrapping row.",
+              "value": {
+                "type": "string",
+                "default": "\"vertical\""
+              },
+              "values": [
+                "vertical",
+                "horizontal"
+              ]
+            },
+            {
+              "name": "fill",
+              "description": "Segmented variant: spread the segments across the full width.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "option elements (value, disabled and text)."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-value-change",
+              "description": "The user changed the value (same moment as change; carries it)."
+            }
+          ]
+        },
+        {
+          "name": "pk-range",
+          "description": "A slider, or with dual a minimum and maximum slider, drawn from tokens with a live value output.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "min",
+              "description": "Lowest value.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "max",
+              "description": "Highest value.",
+              "value": {
+                "type": "number",
+                "default": "100"
+              }
+            },
+            {
+              "name": "step",
+              "description": "Increment.",
+              "value": {
+                "type": "number",
+                "default": "1"
+              }
+            },
+            {
+              "name": "value",
+              "description": "Single mode: the value.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "value-low",
+              "description": "Dual mode: the low value.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "value-high",
+              "description": "Dual mode: the high value.",
+              "value": {
+                "type": "number",
+                "default": "100"
+              }
+            },
+            {
+              "name": "dual",
+              "description": "Two thumbs: a low and a high value; the low thumb never passes the high one.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "output",
+              "description": "Shows the current value under the slider.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-range",
+              "description": "The user committed a value (single) or a pair (dual)."
+            }
+          ]
+        },
+        {
+          "name": "pk-rating",
+          "description": "A whole-star rating input (radios underneath), and a compact read-only display form.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The rating, 0 for none.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "max",
+              "description": "Number of stars.",
+              "value": {
+                "type": "number",
+                "default": "5"
+              }
+            },
+            {
+              "name": "readonly",
+              "description": "The display form: not interactive, exposed as an image with a text alternative.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-rating-change",
+              "description": "The user changed the value (same moment as change; carries it)."
+            }
+          ]
+        },
+        {
+          "name": "pk-scroll-progress",
+          "description": "A thin bar at the top of the screen that fills as the page (or a named scroller) is read.",
+          "attributes": [
+            {
+              "name": "for",
+              "description": "Scroll container (default: the window).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-select",
+          "description": "The browser select in the same skin as the text input. Its options are its own option and optgroup children; a phone shows its native picker.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The current value; what the form submits.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "warning",
+              "description": "Shows the warning state (a value the user may want to check).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "valid",
+              "description": "Shows the valid state.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "multiple",
+              "description": "Allows several selections (value is comma-separated; the form submits one entry each).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "option and optgroup elements."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-value-change",
+              "description": "The user committed a new value (same moment as change; carries the value)."
+            }
+          ]
+        },
+        {
+          "name": "pk-select-menu",
+          "description": "A single-choice listbox popup that reads native option children, so it degrades to nothing worse than a list; form-associated, keyboard driven with typeahead.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "Selected option value.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "name",
+              "description": "Form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Shown with no selection.",
+              "value": {
+                "type": "string",
+                "default": "\"Select…\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Whether the list is shown.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Prevents interaction",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "A value is required",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "option elements."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-change",
+              "description": "The selection changed."
+            }
+          ]
+        },
+        {
+          "name": "pk-side-nav",
+          "description": "The app’s side navigation: brand, filter box, nested groups with arrow-key tree navigation, collapse to an icon rail (tooltips on rows, branches open as flyouts), persisted state, and an off-canvas drawer with backdrop at 1024px and below.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"Main\""
+              }
+            },
+            {
+              "name": "collapsed",
+              "description": "Icon rail.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "open",
+              "description": "Drawer open (phones and tablets).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "filterable",
+              "description": "Show the filter box.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "persist",
+              "description": "localStorage key for collapsed and open branches.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "brand",
+              "description": "Brand link."
+            },
+            {
+              "name": "default",
+              "description": "pk-nav-item children."
+            },
+            {
+              "name": "footer",
+              "description": "Pinned bottom items."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-nav-toggle",
+              "description": "Rail toggled."
+            },
+            {
+              "name": "pk-open",
+              "description": "Drawer opened."
+            },
+            {
+              "name": "pk-close",
+              "description": "Drawer closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-skeleton",
+          "description": "A placeholder shape (line, paragraph, circle, block) that holds the layout while content loads.",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Shape.",
+              "value": {
+                "type": "string",
+                "default": "\"line\""
+              },
+              "values": [
+                "line",
+                "text",
+                "circle",
+                "block"
+              ]
+            },
+            {
+              "name": "lines",
+              "description": "Lines in the text variant.",
+              "value": {
+                "type": "number",
+                "default": "3"
+              }
+            },
+            {
+              "name": "size",
+              "description": "Diameter of a circle or height of a block, any CSS length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Text for assistive technology.",
+              "value": {
+                "type": "string",
+                "default": "\"Loading\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-skip-link",
+          "description": "The first focusable element on a page: invisible until it takes focus, then a button that jumps past the navigation to the main content.",
+          "attributes": [
+            {
+              "name": "href",
+              "description": "Same-page target.",
+              "value": {
+                "type": "string",
+                "default": "\"#main\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Label (default \"Skip to content\")."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-spinner",
+          "description": "A busy indicator: a ring, three dots or an indeterminate bar, in three sizes, with an overlay mode for a loading panel.",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Shape.",
+              "value": {
+                "type": "string",
+                "default": "\"ring\""
+              },
+              "values": [
+                "ring",
+                "dots",
+                "bar"
+              ]
+            },
+            {
+              "name": "size",
+              "description": "Size.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "md",
+                "sm",
+                "lg"
+              ]
+            },
+            {
+              "name": "label",
+              "description": "Accessible status text.",
+              "value": {
+                "type": "string",
+                "default": "\"Loading\""
+              }
+            },
+            {
+              "name": "overlay",
+              "description": "Dim and cover a position: relative parent.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": []
+        },
+        {
+          "name": "pk-split-button",
+          "description": "A main action beside a caret that opens a menu of related actions, so the common case is one click and the variants stay reachable.",
+          "attributes": [
+            {
+              "name": "variant",
+              "description": "Colour of both halves.",
+              "value": {
+                "type": "string",
+                "default": "\"primary\""
+              },
+              "values": [
+                "primary",
+                "ghost"
+              ]
+            },
+            {
+              "name": "type",
+              "description": "What the main action does inside a form.",
+              "value": {
+                "type": "string",
+                "default": "\"button\""
+              },
+              "values": [
+                "button",
+                "submit",
+                "reset"
+              ]
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "toggle-label",
+              "description": "Accessible name of the caret button.",
+              "value": {
+                "type": "string",
+                "default": "\"More options\""
+              }
+            },
+            {
+              "name": "open",
+              "description": "Whether the menu is open.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "menu-align",
+              "description": "Which edge the menu lines up with.",
+              "value": {
+                "type": "string",
+                "default": "\"start\""
+              },
+              "values": [
+                "start",
+                "end"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The main action label."
+            },
+            {
+              "name": "menu",
+              "description": "The menu items: buttons (with a value or data-value)."
+            }
+          ],
+          "events": [
+            {
+              "name": "click",
+              "description": "The main action was clicked."
+            },
+            {
+              "name": "pk-split-select",
+              "description": "A menu item was chosen."
+            },
+            {
+              "name": "pk-menu-toggle",
+              "description": "The menu opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-stat",
+          "description": "A headline number with a label, an optional change indicator (arrow, sign and a spoken form), a sparkline and a tone. With an href the whole tile is one link. The tile prop gives the compact dashboard look; interactive makes a tile with no href a button.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "What the number is.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The headline number, already formatted.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "subtext",
+              "description": "A line under the value.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "tone",
+              "description": "Value colour.",
+              "value": {
+                "type": "string",
+                "default": "\"neutral\""
+              },
+              "values": [
+                "neutral",
+                "positive",
+                "warning",
+                "critical"
+              ]
+            },
+            {
+              "name": "delta",
+              "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "delta-direction",
+              "description": "Override the direction derived from delta.",
+              "value": {
+                "type": "string",
+                "default": "\"auto\""
+              },
+              "values": [
+                "auto",
+                "up",
+                "down",
+                "flat"
+              ]
+            },
+            {
+              "name": "invert",
+              "description": "Down is good news (costs, returns): swaps the trend colours.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "versus",
+              "description": "What the change compares with, spoken to assistive technology.",
+              "value": {
+                "type": "string",
+                "default": "\"the previous period\""
+              }
+            },
+            {
+              "name": "values",
+              "description": "Points for the sparkline (needs at least two).",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "href",
+              "description": "Makes the tile a link.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "tile",
+              "description": "The compact dashboard tile look: less padding, a 600-weight larger value, a panel background.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "interactive",
+              "description": "Without an href, make the tile a button (Enter and Space) that fires pk-activate.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "icon",
+              "description": "An icon before the value."
+            },
+            {
+              "name": "default",
+              "description": "The subtext; overrides subtext."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-activate",
+              "description": "The tile link was pressed. Cancel to stop navigation (a Blazor OnClick handler navigates itself)."
+            }
+          ]
+        },
+        {
+          "name": "pk-step",
+          "description": "One step of a stepper: a marker (number, tick or !), a title, an optional description and the connector to the next step.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "The title setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "The description setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "state",
+              "description": "Set by the stepper.",
+              "value": {
+                "type": "string",
+                "default": "\"todo\""
+              },
+              "values": [
+                "todo",
+                "active",
+                "done",
+                "error"
+              ]
+            },
+            {
+              "name": "index",
+              "description": "One-based, set by the stepper.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Prevents interaction",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "last",
+              "description": "Set by the stepper: the last step draws no connector.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "clickable",
+              "description": "Set by the stepper: the step can be entered.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "orientation",
+              "description": "Set by the stepper.",
+              "value": {
+                "type": "string",
+                "default": "\"horizontal\""
+              },
+              "values": [
+                "horizontal",
+                "vertical"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Title (overrides the title prop)."
+            },
+            {
+              "name": "description",
+              "description": "Description."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-stepper",
+          "description": "A wizard header: numbered steps with done, current, upcoming and error states, horizontal or vertical, optionally clickable (linear: you can go back, not skip ahead).",
+          "attributes": [
+            {
+              "name": "current",
+              "description": "Zero-based current step.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "orientation",
+              "description": "The orientation setting",
+              "value": {
+                "type": "string",
+                "default": "\"horizontal\""
+              },
+              "values": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            {
+              "name": "clickable",
+              "description": "Steps can be entered by click or key.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "free",
+              "description": "Allow skipping ahead of the furthest step reached (non-linear).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "errors",
+              "description": "Comma-separated step indexes with an error.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name.",
+              "value": {
+                "type": "string",
+                "default": "\"Progress\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-step children."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-step-change",
+              "description": "A step was entered; cancelable."
+            }
+          ]
+        },
+        {
+          "name": "pk-switch",
+          "description": "An on/off toggle that takes part in a form: it submits its value when on and resets with the form.",
+          "attributes": [
+            {
+              "name": "checked",
+              "description": "Whether the switch is on.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The value submitted while checked.",
+              "value": {
+                "type": "string",
+                "default": "\"on\""
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state (a red ring) and sets aria-invalid.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "size",
+              "description": "Track size.",
+              "value": {
+                "type": "string",
+                "default": "\"md\""
+              },
+              "values": [
+                "sm",
+                "md",
+                "lg"
+              ]
+            },
+            {
+              "name": "label-position",
+              "description": "end puts the label after the switch, start before it, between pushes them to opposite edges of the row.",
+              "value": {
+                "type": "string",
+                "default": "\"end\""
+              },
+              "values": [
+                "end",
+                "start",
+                "between"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The label."
+            }
+          ],
+          "events": [
+            {
+              "name": "change",
+              "description": "The user toggled the switch (a native-style event)."
+            },
+            {
+              "name": "pk-change",
+              "description": "The same toggle as a typed custom event; the Blazor wrapper listens to this one."
+            }
+          ]
+        },
+        {
+          "name": "pk-tab",
+          "description": "One tab of an pk-tabs. Place it inside pk-tabs; it selects its panel by value. It can show a count, a close button, and appear only on a phone or only on a desktop.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "The key that pairs this tab with the pk-tab-panel of the same value.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "selected",
+              "description": "Set by the surrounding pk-tabs.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Cannot be selected or focused by arrow keys.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "count",
+              "description": "A badge shown in muted parentheses after the label (a queue count); empty shows none.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "closable",
+              "description": "Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "only",
+              "description": "all shows the tab everywhere; phone only at phone width (640px and below); desktop hides it at phone width.",
+              "value": {
+                "type": "string",
+                "default": "\"all\""
+              },
+              "values": [
+                "all",
+                "phone",
+                "desktop"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The tab label."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-tab-close",
+              "description": "The close button of a closable tab was clicked."
+            }
+          ]
+        },
+        {
+          "name": "pk-tab-panel",
+          "description": "The content of one tab; shown while its tab is selected.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "The key that pairs this panel with the pk-tab of the same value.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "selected",
+              "description": "Set by the surrounding pk-tabs.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The panel content."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-table",
+          "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
+          "attributes": [
+            {
+              "name": "columns",
+              "description": "Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "rows",
+              "description": "Row data, one object per row. A JSON attribute or a property.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "row-key",
+              "description": "The field that identifies a row.",
+              "value": {
+                "type": "string",
+                "default": "\"id\""
+              }
+            },
+            {
+              "name": "striped",
+              "description": "Alternate row tint.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "hover",
+              "description": "Tint the row under the pointer.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "bordered",
+              "description": "Border on every cell.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "density",
+              "description": "Cell padding step.",
+              "value": {
+                "type": "string",
+                "default": "\"default\""
+              },
+              "values": [
+                "default",
+                "compact",
+                "comfortable"
+              ]
+            },
+            {
+              "name": "sticky-header",
+              "description": "Pin the header row (give the table a maxHeight).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "sticky-column",
+              "description": "Pin the first column.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "selectable",
+              "description": "Checkbox column with select-all.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "clickable",
+              "description": "Rows are activatable: they show a pointer and fire pk-row-click.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "filterable",
+              "description": "A filter input under each header.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "manual",
+              "description": "The host sorts, filters and pages; rows are shown exactly as given.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "sort",
+              "description": "Key of the column being sorted.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "sort-dir",
+              "description": "Sort direction.",
+              "value": {
+                "type": "string",
+                "default": "\"ascending\""
+              },
+              "values": [
+                "ascending",
+                "descending"
+              ]
+            },
+            {
+              "name": "filters",
+              "description": "Filter text per column key: { [key]: text }.",
+              "value": {
+                "type": "string",
+                "default": "[object Object]"
+              }
+            },
+            {
+              "name": "selected",
+              "description": "Ids of the selected rows.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "loading",
+              "description": "Show placeholder rows and mark the table busy.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "cards",
+              "description": "Each row becomes a card below 640px.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "caption",
+              "description": "Table caption.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the scrolling region.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max-height",
+              "description": "Bounds the frame; sticky header and column need it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "flow",
+              "description": "Slotted-table mode: no scroll frame, for a table inside a container that already scrolls.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "A raw table (thead, tbody, tfoot, any rows). The page-level layer styles it; the element frames it."
+            },
+            {
+              "name": "toolbar",
+              "description": "Search, filters and buttons above the table."
+            },
+            {
+              "name": "bulk",
+              "description": "Actions shown while rows are selected."
+            },
+            {
+              "name": "caption",
+              "description": "Rich caption."
+            },
+            {
+              "name": "empty",
+              "description": "Empty state; an pk-empty-state fits."
+            },
+            {
+              "name": "footer",
+              "description": "Below the table; an pk-pagination fits."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-sort",
+              "description": "A sortable header was activated. Cancel to keep the current sort."
+            },
+            {
+              "name": "pk-filter",
+              "description": "A filter input changed (debounced 250 ms)."
+            },
+            {
+              "name": "pk-select",
+              "description": "The selection changed."
+            },
+            {
+              "name": "pk-row-click",
+              "description": "A clickable row was activated."
+            }
+          ]
+        },
+        {
+          "name": "pk-tabs",
+          "description": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, slide sideways with edge fades, and hold trailing content after the last tab.",
+          "attributes": [
+            {
+              "name": "value",
+              "description": "The value of the selected tab. Empty selects the first enabled tab.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "activation",
+              "description": "auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space.",
+              "value": {
+                "type": "string",
+                "default": "\"auto\""
+              },
+              "values": [
+                "auto",
+                "manual"
+              ]
+            },
+            {
+              "name": "none-active",
+              "description": "No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "scroll",
+              "description": "One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "tab",
+              "description": "pk-tab children (they assign themselves to this slot)."
+            },
+            {
+              "name": "panel",
+              "description": "pk-tab-panel children (they assign themselves to this slot)."
+            },
+            {
+              "name": "trailing",
+              "description": "Content inside the strip after the last tab: a hint, links or buttons."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-tab-change",
+              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab."
+            }
+          ]
+        },
+        {
+          "name": "pk-tag",
+          "description": "A neutral label that can carry a remove button.",
+          "attributes": [
+            {
+              "name": "removable",
+              "description": "Show the remove button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "value",
+              "description": "Sent in the remove event; defaults to the text.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Dim the tag and disable the button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The label."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-remove",
+              "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself."
+            }
+          ]
+        },
+        {
+          "name": "pk-tag-input",
+          "description": "Free-text tags typed into one control: Enter or a separator adds, paste splits, Backspace in an empty field removes the last, duplicates and a maximum are handled.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The tags, comma-joined.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Hint shown in the empty field.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "separators",
+              "description": "Characters that end a tag (besides Enter).",
+              "value": {
+                "type": "string",
+                "default": "\",\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Most tags allowed; 0 means no limit.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            },
+            {
+              "name": "allow-duplicates",
+              "description": "Allows the same tag twice (case-insensitive by default).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-tags-change",
+              "description": "A tag was added or removed."
+            }
+          ]
+        },
+        {
+          "name": "pk-textarea",
+          "description": "A multi-line control that can grow with its content up to a cap.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The current value; what the form submits.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Hint shown while empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "readonly",
+              "description": "The value can be read but not edited.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the value is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "warning",
+              "description": "Shows the warning state (a value the user may want to check).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "valid",
+              "description": "Shows the valid state.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "rows",
+              "description": "Visible rows of a fixed-height textarea.",
+              "value": {
+                "type": "number",
+                "default": "3"
+              }
+            },
+            {
+              "name": "minlength",
+              "description": "Minimum text length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "maxlength",
+              "description": "Maximum text length.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "autogrow",
+              "description": "Grows with the content instead of scrolling.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "max-height",
+              "description": "Auto-grow cap in pixels; 0 means no cap and the box scrolls beyond it otherwise.",
+              "value": {
+                "type": "number",
+                "default": "0"
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the value (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-value-change",
+              "description": "The user committed a new value (same moment as change; carries the value)."
+            }
+          ]
+        },
+        {
+          "name": "pk-timeline",
+          "description": "A vertical activity feed of timeline items joined by a line.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Accessible name of the list.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-timeline-item children, in the order to show them."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-timeline-item",
+          "description": "One event on a timeline: a marker, a heading, a time and a body.",
+          "attributes": [
+            {
+              "name": "heading",
+              "description": "Title of the event.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "time",
+              "description": "An ISO date or any text; shown in a time element.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "status",
+              "description": "Marker colour and fill.",
+              "value": {
+                "type": "string",
+                "default": "\"pending\""
+              },
+              "values": [
+                "pending",
+                "done",
+                "active",
+                "danger"
+              ]
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The body."
+            },
+            {
+              "name": "heading",
+              "description": "A rich heading; overrides heading."
+            },
+            {
+              "name": "time",
+              "description": "A rich time; overrides time."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-toast",
+          "description": "One transient message: kind, optional title, message, an action slot and a dismiss button; pauses its timer on hover and focus.",
+          "attributes": [
+            {
+              "name": "kind",
+              "description": "The kind setting",
+              "value": {
+                "type": "string",
+                "default": "\"info\""
+              },
+              "values": [
+                "info",
+                "success",
+                "warning",
+                "danger"
+              ]
+            },
+            {
+              "name": "heading",
+              "description": "The heading setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "message",
+              "description": "Used when nothing is slotted.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "duration",
+              "description": "Milliseconds before it dismisses itself; 0 keeps it until dismissed; -1 is automatic (5s, 8s with an action).",
+              "value": {
+                "type": "number",
+                "default": "-1"
+              }
+            },
+            {
+              "name": "no-close",
+              "description": "Hide the dismiss button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Message."
+            },
+            {
+              "name": "action",
+              "description": "One or two buttons."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-dismiss",
+              "description": "timeout, close, action or method."
+            }
+          ]
+        },
+        {
+          "name": "pk-toast-stack",
+          "description": "The live region that holds toasts at one screen position, shows at most three at once and queues the rest; PkToast.show(message, options) creates one per position on demand.",
+          "attributes": [
+            {
+              "name": "position",
+              "description": "The position setting",
+              "value": {
+                "type": "string",
+                "default": "\"bottom-end\""
+              },
+              "values": [
+                "top-start",
+                "top",
+                "top-end",
+                "bottom-start",
+                "bottom",
+                "bottom-end"
+              ]
+            },
+            {
+              "name": "max",
+              "description": "Visible at once; the rest queue.",
+              "value": {
+                "type": "number",
+                "default": "3"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "pk-toast children."
+            }
+          ],
+          "events": []
+        },
+        {
+          "name": "pk-toc",
+          "description": "An anchor list of the headings inside a target element with scroll-spy: the heading in view is marked as you read; works with the window or an inner scroller such as the shell body.",
+          "attributes": [
+            {
+              "name": "for",
+              "description": "The element whose headings are listed.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "levels",
+              "description": "Which headings to list.",
+              "value": {
+                "type": "string",
+                "default": "\"h2,h3\""
+              }
+            },
+            {
+              "name": "offset",
+              "description": "Distance from the top a heading must reach to count as current.",
+              "value": {
+                "type": "number",
+                "default": "80"
+              }
+            },
+            {
+              "name": "scroller",
+              "description": "Scroll container (default: the window).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "heading",
+              "description": "The title setting",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name",
+              "value": {
+                "type": "string",
+                "default": "\"On this page\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "pk-section-change",
+              "description": "The current heading changed."
+            }
+          ]
+        },
+        {
+          "name": "pk-tooltip",
+          "description": "A short label for the control it wraps, shown on hover, on keyboard focus and on a touch long press. Placed beside the target and flipped when it would leave the screen.",
+          "attributes": [
+            {
+              "name": "text",
+              "description": "The label.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "placement",
+              "description": "Preferred side; flips when it does not fit.",
+              "value": {
+                "type": "string",
+                "default": "\"top\""
+              }
+            },
+            {
+              "name": "delay",
+              "description": "Mouse hover delay; focus is immediate.",
+              "value": {
+                "type": "number",
+                "default": "400"
+              }
+            },
+            {
+              "name": "shown",
+              "description": "Read-only state for CSS (:host([shown])).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "interactive",
+              "description": "A hint card: the panel stays open while the pointer is over it, a tap on touch toggles it, and it can hold links and rich content.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "help",
+              "description": "Draws its own info button as the target (the default slot then holds text that follows it).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "enrich",
+              "description": "Underlines the wrapped value with a dotted line to show it has context.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "heading",
+              "description": "A bold heading inside the panel.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "Accessible name of the built-in info button.",
+              "value": {
+                "type": "string",
+                "default": "\"Help\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "The element the tip describes."
+            },
+            {
+              "name": "content",
+              "description": "Rich tip content in place of text."
+            },
+            {
+              "name": "links",
+              "description": "Links shown under the panel text (a doc link, a more link)."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-show",
+              "description": "The tip appeared."
+            },
+            {
+              "name": "pk-hide",
+              "description": "The tip went away."
+            }
+          ]
+        },
+        {
+          "name": "pk-tree",
+          "description": "An expandable hierarchy of tree items with roving focus, single selection and type-ahead, following the WAI-ARIA tree pattern.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "Accessible name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "selection",
+              "description": "Selection mode.",
+              "value": {
+                "type": "string",
+                "default": "\"single\""
+              },
+              "values": [
+                "single",
+                "none"
+              ]
+            },
+            {
+              "name": "value",
+              "description": "The value (or label) of the selected item.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Root pk-tree-item children."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "An item was chosen (bubbles from the item)."
+            },
+            {
+              "name": "pk-toggle",
+              "description": "A branch opened or closed (bubbles from the item)."
+            }
+          ]
+        },
+        {
+          "name": "pk-tree-item",
+          "description": "One node of a tree: a toggle, a label and nested child items.",
+          "attributes": [
+            {
+              "name": "label",
+              "description": "The text.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The value reported in events; defaults to the label.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "expanded",
+              "description": "Children visible.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "selected",
+              "description": "The chosen item.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Not selectable.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "expandable",
+              "description": "Set by the element when it has child items.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "default",
+              "description": "Child pk-tree-item elements."
+            },
+            {
+              "name": "label",
+              "description": "A rich label; overrides label."
+            },
+            {
+              "name": "icon",
+              "description": "An icon before the label."
+            }
+          ],
+          "events": [
+            {
+              "name": "pk-select",
+              "description": "The row was activated."
+            },
+            {
+              "name": "pk-toggle",
+              "description": "The branch opened or closed."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "folder": "page-header",
+  "controls": [
+    {
+      "id": "page-header",
+      "name": "PageHeader",
+      "kind": "Layout & structure",
+      "purpose": "The standard top of every page: breadcrumbs and page-level actions. The title and back button live in the top bar.",
+      "replaces": "a hand-typed crumb row and actions strip",
+      "mobile": "Actions take the full width under the crumbs.",
+      "states": [
+        "crumbs only",
+        "with actions"
+      ],
+      "classes": [
+        "page-header",
+        "page-crumbs",
+        "page-crumbs-sep",
+        "page-crumbs-current",
+        "page-header-titlebar",
+        "page-header-actions"
+      ],
+      "css": [
+        "components/page-header/page-header.css",
+        "components/topbar/topbar.css"
+      ],
+      "js": [],
+      "snippet": "<header class=\"page-header\"><nav class=\"page-crumbs\">…</nav><div class=\"page-header-titlebar\"><div class=\"page-header-actions\">…</div></div></header>",
+      "blazor": {
+        "component": "PageHeader",
+        "snippet": "<PageHeader />"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "section-header",
+      "name": "SectionHeader",
+      "kind": "Layout & structure",
+      "purpose": "A titled section inside a page, with an optional help tip, note and actions.",
+      "replaces": "hand-built <h2> with an InfoTip",
+      "mobile": "Actions wrap under the title.",
+      "states": [
+        "title",
+        "actions",
+        "note"
+      ],
+      "classes": [
+        "card-header",
+        "section-header",
+        "section-header-title",
+        "section-header-actions",
+        "section-header-note"
+      ],
+      "css": [
+        "components/page-header/page-header.css",
+        "components/card/card.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"card-header section-header\"><h2 class=\"section-header-title\">Title</h2><div class=\"section-header-actions\">…</div></div>",
+      "blazor": {
+        "component": "SectionHeader",
+        "snippet": "<SectionHeader Title=\"Lines\" Tip=\"…\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

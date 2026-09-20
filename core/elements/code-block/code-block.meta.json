@@ -1,0 +1,168 @@
+{
+  "tag": "pk-code-block",
+  "title": "Code block",
+  "group": "Code",
+  "summary": "A block of code with an optional label bar, line numbers, a wrap toggle and a copy button. The code is the element's text content.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "File or language shown in the bar; also the region's name."
+    },
+    {
+      "name": "lineNumbers",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A gutter of line numbers."
+    },
+    {
+      "name": "wrap",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Wrap long lines."
+    },
+    {
+      "name": "noCopy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Hide the copy button."
+    },
+    {
+      "name": "maxHeight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Cap the height, any CSS length."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-copy",
+      "detail": {
+        "ok": "bool"
+      },
+      "description": "After a copy attempt.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "bar",
+      "description": "The header bar."
+    },
+    {
+      "name": "label",
+      "description": "The label."
+    },
+    {
+      "name": "wrap",
+      "description": "The wrap toggle."
+    },
+    {
+      "name": "copy",
+      "description": "The copy button."
+    },
+    {
+      "name": "status",
+      "description": "The live region for the copy result."
+    },
+    {
+      "name": "body",
+      "description": "The scrolling region."
+    },
+    {
+      "name": "code",
+      "description": "The pre."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-code-block-bg",
+      "description": "Background.",
+      "default": "var(--cv-bg)"
+    },
+    {
+      "name": "--pk-code-block-fg",
+      "description": "Text colour.",
+      "default": "var(--cv-text)"
+    },
+    {
+      "name": "--pk-code-block-max-height",
+      "description": "Maximum body height.",
+      "default": "none"
+    },
+    {
+      "name": "--pk-code-block-gutter",
+      "description": "Line-number width in characters; set by the element.",
+      "default": "2"
+    }
+  ],
+  "methods": [
+    {
+      "name": "splitLines(text)",
+      "description": "Lines without blank ends."
+    },
+    {
+      "name": "dedent(text)",
+      "description": "Remove the shared indent."
+    },
+    {
+      "name": "copyText(text)",
+      "description": "Async clipboard copy."
+    }
+  ],
+  "a11y": "The body is a labelled, focusable region so a keyboard can scroll it; the copy result is announced in a polite status region; line numbers are CSS-generated and not selectable. Lines are set as text, never parsed as HTML.",
+  "blazor": {
+    "component": "CodeBlock",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "LineNumbers",
+        "prop": "lineNumbers",
+        "type": "bool"
+      },
+      {
+        "name": "Wrap",
+        "prop": "wrap",
+        "type": "bool"
+      },
+      {
+        "name": "NoCopy",
+        "prop": "noCopy",
+        "type": "bool"
+      },
+      {
+        "name": "MaxHeight",
+        "prop": "maxHeight",
+        "type": "string"
+      },
+      {
+        "name": "OnCopy",
+        "event": "pk-copy",
+        "type": "EventCallback<CopyEventArgs>"
+      },
+      {
+        "name": "ChildContent",
+        "text": "",
+        "type": "string"
+      }
+    ],
+    "notes": "The code is passed as ChildContent text (a string), not markup."
+  },
+  "examples": [
+    {
+      "title": "With line numbers",
+      "html": "<pk-code-block label=\"import.json\" line-numbers>{ \"sku\": \"AC-001\", \"qty\": 24 }</pk-code-block>"
+    }
+  ]
+}

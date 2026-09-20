@@ -1,0 +1,49 @@
+{
+  "folder": "workspace",
+  "controls": [
+    {
+      "id": "workspace-page",
+      "name": "WorkspacePage",
+      "kind": "Page templates",
+      "purpose": "The tool/settings template: header, a nav rail, one tab strip over the content pane and a docked inspector.",
+      "replaces": "a hand-built two-pane tool page with its own layout CSS",
+      "mobile": "One panel at a time below 640px: the phone-only nav tab swaps the pane for the rail; the tab strip slides.",
+      "states": [
+        "nav rail",
+        "tab strip",
+        "pane",
+        "docked inspector",
+        "phone nav tab"
+      ],
+      "classes": [
+        "workspace",
+        "workspace--fill",
+        "workspace--nav",
+        "workspace-nav",
+        "workspace-main",
+        "workspace-pane",
+        "tabs--scroll",
+        "tab--phone-only",
+        "flyout-panel--docked"
+      ],
+      "css": [
+        "components/workspace/workspace.css",
+        "components/tabs/tabs.css",
+        "components/flyout/flyout.css",
+        "components/page-header/page-header.css",
+        "components/topbar/topbar.css"
+      ],
+      "js": [
+        "components/workspace/workspace.js",
+        "components/tabs/tabs.js"
+      ],
+      "snippet": "<div class=\"workspace workspace--fill\" data-pk-workspace><aside class=\"workspace-nav\">…</aside><main class=\"workspace-main\"><div class=\"tabs tabs--scroll\" data-pk-tabs=\"toggle\">…</div><div class=\"workspace-pane\">…</div></main></div>",
+      "blazor": {
+        "component": "WorkspacePage",
+        "snippet": "<WorkspacePage Items=\"_tabs\" Active=\"_active\" ActiveChanged=\"Go\"><NavContent>…</NavContent>…</WorkspacePage>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

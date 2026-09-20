@@ -1,0 +1,3 @@
+:host { display: block; }
+:host(:not([selected])) { display: none; }
+:host(:focus-visible) { outline: var(--focus-ring); outline-offset: 2px; }

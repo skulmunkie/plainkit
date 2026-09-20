@@ -1,0 +1,34 @@
+/* pk-dropdown: the trigger stays in flow; the menu is a fixed layer placed by the positioning helper. */
+:host { display: inline-block; }
+
+[part="menu"] {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-pop);
+    box-sizing: border-box;
+    min-width: var(--pk-dropdown-min-w, 12rem);
+    max-width: calc(100vw - 2 * var(--space-4));
+    max-height: min(24rem, calc(100dvh - 2 * var(--space-4)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-1);
+    background: var(--color-panel);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+    animation: menu-in 0.12s ease-out;
+}
+
+:host([open]) [part="menu"] { display: block; }
+
+/* A mega menu: a wide panel whose items flow into columns; a single column when the screen is narrow. */
+:host([mega]) [part="menu"] { width: min(48rem, calc(100vw - 2 * var(--space-4))); max-width: none; }
+
+:host([mega][open]) [part="menu"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-1) var(--space-4); align-content: start; }
+
+@keyframes menu-in { from { opacity: 0; transform: translateY(-2px); } }
+
+@media (prefers-reduced-motion: reduce) { [part="menu"] { animation: none; } }

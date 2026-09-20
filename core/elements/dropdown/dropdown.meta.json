@@ -1,0 +1,168 @@
+{
+  "tag": "pk-dropdown",
+  "title": "Dropdown menu",
+  "summary": "A menu opened from a trigger: buttons or links, headers, dividers, checkable items and submenus, with full keyboard support (arrows, Home, End, typeahead, Right/Left for submenus, Escape).",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the menu is shown."
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "default": "bottom-start",
+      "reflect": true,
+      "description": "Preferred side."
+    },
+    {
+      "name": "keepOpen",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Stay open after an item is chosen (multi-select filters)."
+    },
+    {
+      "name": "mega",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A wide panel whose items flow into columns (navbar mega menu)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger",
+      "description": "The button that opens it."
+    },
+    {
+      "name": "",
+      "description": "pk-menu-item children."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "element",
+        "value": "string",
+        "checked": "boolean"
+      },
+      "description": "An item was chosen."
+    },
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "Opened."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "Closed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "menu",
+      "description": "The menu layer"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-dropdown-min-w",
+      "description": "Minimum menu width",
+      "default": "12rem"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    }
+  ],
+  "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
+  "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
+  "blazor": {
+    "component": "DropdownMenu",
+    "params": [
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "Placement",
+        "type": "string",
+        "default": "bottom-start",
+        "map": "prop",
+        "prop": "placement"
+      },
+      {
+        "name": "KeepOpen",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "keepOpen"
+      },
+      {
+        "name": "Mega",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "mega"
+      },
+      {
+        "name": "TriggerContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "trigger"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnSelect",
+        "type": "EventCallback<DropdownSelectEventArgs>",
+        "map": "event",
+        "event": "pk-select"
+      },
+      {
+        "name": "OnOpen",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-open"
+      },
+      {
+        "name": "OnClose",
+        "type": "EventCallback<DropdownCloseEventArgs>",
+        "map": "event",
+        "event": "pk-close",
+        "cancelable": true
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Menu with a header, checkable items and a submenu",
+      "html": "<pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Actions</button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
+    }
+  ]
+}

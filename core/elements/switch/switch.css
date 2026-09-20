@@ -1,0 +1,16 @@
+:host { display: inline-block; --_w: 2.4rem; --_h: 1.4rem; }
+:host([size="sm"]) { --_w: 1.9rem; --_h: 1.1rem; }
+:host([size="lg"]) { --_w: 2.9rem; --_h: 1.7rem; }
+:host([label-position="between"]) { display: block; }
+button { font: inherit; font-size: var(--text-read); color: var(--color-text); display: inline-flex; align-items: center; gap: var(--space-2); background: transparent; border: 0; padding: var(--space-1) 0; cursor: pointer; touch-action: manipulation; }
+:host([label-position="start"]) button { flex-direction: row-reverse; }
+:host([label-position="between"]) button { flex-direction: row-reverse; justify-content: space-between; width: 100%; }
+[part="track"] { position: relative; width: var(--_w); height: var(--_h); flex: none; background: var(--pk-switch-off, var(--color-border)); border-radius: var(--radius-pill); transition: background 0.15s; }
+[part="thumb"] { position: absolute; top: 0.15rem; left: 0.15rem; width: calc(var(--_h) - 0.3rem); height: calc(var(--_h) - 0.3rem); background: var(--btn-primary-fg); border-radius: var(--radius-pill); transition: transform 0.15s; }
+:host([checked]) [part="track"] { background: var(--pk-switch-on, var(--color-accent)); }
+:host([checked]) [part="thumb"] { transform: translateX(calc(var(--_w) - var(--_h))); }
+:host(:is([invalid], [aria-invalid="true"])) [part="track"] { box-shadow: 0 0 0 2px var(--field-error); }
+button:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 640px) { button { min-height: var(--touch-target); } }
+@media (prefers-reduced-motion: reduce) { [part="track"], [part="thumb"] { transition: none; } }

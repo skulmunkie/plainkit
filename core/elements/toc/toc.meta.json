@@ -1,0 +1,142 @@
+{
+  "tag": "pk-toc",
+  "title": "On this page",
+  "summary": "An anchor list of the headings inside a target element with scroll-spy: the heading in view is marked as you read; works with the window or an inner scroller such as the shell body.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "for",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The element whose headings are listed."
+    },
+    {
+      "name": "levels",
+      "type": "string",
+      "default": "h2,h3",
+      "reflect": true,
+      "description": "Which headings to list."
+    },
+    {
+      "name": "offset",
+      "type": "number",
+      "default": 80,
+      "reflect": true,
+      "description": "Distance from the top a heading must reach to count as current."
+    },
+    {
+      "name": "scroller",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Scroll container (default: the window)."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The title setting"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "On this page",
+      "reflect": true,
+      "description": "Accessible name"
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-section-change",
+      "detail": {
+        "id": "string"
+      },
+      "description": "The current heading changed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "nav",
+      "description": "The nav landmark"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "list",
+      "description": "The list of heading links (built inside it)"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "refresh()",
+      "description": "Re-reads the headings"
+    }
+  ],
+  "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
+  "mobile": "Not sticky below 1024px; links are 44px tall.",
+  "blazor": {
+    "component": "OnThisPage",
+    "params": [
+      {
+        "name": "For",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "for"
+      },
+      {
+        "name": "Levels",
+        "type": "string",
+        "default": "h2,h3",
+        "map": "prop",
+        "prop": "levels"
+      },
+      {
+        "name": "Offset",
+        "type": "int",
+        "default": 80,
+        "map": "prop",
+        "prop": "offset"
+      },
+      {
+        "name": "Scroller",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "scroller"
+      },
+      {
+        "name": "Heading",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "On this page",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "OnSectionChange",
+        "type": "EventCallback<TocSectionChangeEventArgs>",
+        "map": "event",
+        "event": "pk-section-change"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "On this page",
+      "html": "<div class=\"split\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></div>"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "auth",
+  "title": "Auth (sign in)",
+  "summary": "A centred card on a centred shell.",
+  "slots": "centred card, fields, primary action",
+  "used": [
+    "button",
+    "card",
+    "flyout",
+    "form-field",
+    "shell",
+    "spacing"
+  ],
+  "order": 9
+}

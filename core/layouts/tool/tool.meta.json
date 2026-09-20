@@ -1,0 +1,16 @@
+{
+  "id": "tool",
+  "title": "Tool page",
+  "summary": "A one-shot operation: explain it, take an input, show the outcome.",
+  "built": "PageHeader, Card, FileUploadForm, Notice, Remedy, Loading.",
+  "mobile": "Everything is a single column already; the upload button keeps its normal size.",
+  "used": [
+    "button",
+    "card",
+    "flyout",
+    "form-field",
+    "loading",
+    "remedy"
+  ],
+  "order": 4
+}

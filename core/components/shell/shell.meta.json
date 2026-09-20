@@ -1,0 +1,55 @@
+{
+  "folder": "shell",
+  "controls": [
+    {
+      "id": "app-shell-layout",
+      "name": "Shell and layout primitives",
+      "kind": "Layout & structure",
+      "purpose": "The SDK app shell (side nav, main column, body, footer) and the layout primitives: container, stack, grid, split, sticky header, plus flow spacing and the p-, m- and gap- utilities, all mapped to spacing tokens.",
+      "replaces": null,
+      "mobile": "The shell is one column below 1024px; grid and split collapse to one column by themselves.",
+      "states": [
+        "side nav",
+        "top nav",
+        "centred",
+        "fill body"
+      ],
+      "classes": [
+        "shell",
+        "shell--top",
+        "shell--center",
+        "shell--fill",
+        "shell--collapsed",
+        "shell-main",
+        "shell-body",
+        "shell-body--fill",
+        "shell-footer",
+        "shell-backdrop",
+        "container",
+        "container--narrow",
+        "grid",
+        "split",
+        "split--even",
+        "sticky-header",
+        "stack",
+        "stack-sm",
+        "stack-lg",
+        "flow",
+        "p-4",
+        "gap-2"
+      ],
+      "css": [
+        "components/shell/shell.css",
+        "components/spacing/spacing.css",
+        "components/utilities/utilities.css"
+      ],
+      "js": [
+        "components/nav/nav.js"
+      ],
+      "snippet": "<div class=\"shell\"><aside class=\"snav\">…</aside><div class=\"shell-main\"><header class=\"top-row\">…</header><div class=\"shell-body\"><div class=\"container stack\">…</div></div><footer class=\"shell-footer\">…</footer></div></div>",
+      "blazor": null,
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "tag": "pk-menu-item",
+  "title": "Menu item",
+  "summary": "One row of a dropdown or context menu: a plain item, a checkbox, a radio, a section header or a divider; optional prefix and suffix (shortcut) and a nested submenu.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "type",
+      "type": "enum",
+      "default": "item",
+      "values": [
+        "item",
+        "checkbox",
+        "radio",
+        "header",
+        "divider"
+      ],
+      "reflect": true,
+      "description": "What the row is."
+    },
+    {
+      "name": "checked",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Checkbox and radio state."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Skipped by keyboard, not activatable."
+    },
+    {
+      "name": "danger",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Destructive styling."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Reported in pk-select; defaults to the label."
+    },
+    {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Renders as a link."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A submenu is open."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Label."
+    },
+    {
+      "name": "prefix",
+      "description": "Icon before the label."
+    },
+    {
+      "name": "suffix",
+      "description": "Shortcut or badge after it."
+    },
+    {
+      "name": "submenu",
+      "description": "Nested pk-menu-item children."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "element",
+        "value": "string",
+        "checked": "boolean"
+      },
+      "description": "Chosen (bubbles to the dropdown)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "mark",
+      "description": "Check or radio mark"
+    },
+    {
+      "name": "label",
+      "description": "Label text"
+    },
+    {
+      "name": "chevron",
+      "description": "Submenu or branch chevron"
+    },
+    {
+      "name": "submenu",
+      "description": "The submenu layer"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props.",
+  "mobile": "44px tall on a phone; the submenu chevron points down and the submenu opens inline.",
+  "blazor": {
+    "component": "MenuItem",
+    "params": [
+      {
+        "name": "Type",
+        "type": "MenuitemType",
+        "default": "item",
+        "map": "prop",
+        "prop": "type",
+        "enum": {
+          "Item": "item",
+          "Checkbox": "checkbox",
+          "Radio": "radio",
+          "Header": "header",
+          "Divider": "divider"
+        }
+      },
+      {
+        "name": "Checked",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "checked",
+        "bind": {
+          "event": "pk-select",
+          "value": "detail.checked"
+        }
+      },
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "disabled"
+      },
+      {
+        "name": "Danger",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "danger"
+      },
+      {
+        "name": "Value",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "value"
+      },
+      {
+        "name": "Href",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "href"
+      },
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "PrefixContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "prefix"
+      },
+      {
+        "name": "SuffixContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "suffix"
+      },
+      {
+        "name": "SubmenuContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "submenu"
+      },
+      {
+        "name": "OnSelect",
+        "type": "EventCallback<MenuItemSelectEventArgs>",
+        "map": "event",
+        "event": "pk-select"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Item types",
+      "html": "<div class=\"stack\"><pk-menu-item type=\"header\">Header</pk-menu-item><pk-menu-item>Plain item</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Checkbox</pk-menu-item><pk-menu-item type=\"radio\" checked>Radio</pk-menu-item><pk-menu-item disabled>Disabled</pk-menu-item></div>"
+    }
+  ]
+}

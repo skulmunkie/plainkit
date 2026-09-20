@@ -1,0 +1,11 @@
+:host { display: block; min-inline-size: 0; }
+[part="heading"] { margin-block-end: var(--space-2); padding-block-end: var(--space-1); border-block-end: 1px solid var(--color-border); color: var(--color-muted); font-size: var(--text-meta); letter-spacing: 0.06em; text-transform: uppercase; }
+[part="list"] { display: grid; grid-template-columns: var(--pk-field-list-columns, var(--pk-field-list-term, minmax(9rem, 1fr)) 2fr); gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--text-read); }
+slot { display: contents; }
+::slotted(dt) { color: var(--color-muted); font-weight: 500; }
+::slotted(dd) { margin: 0; overflow-wrap: break-word; }
+:host([layout="stacked"]) [part="list"] { grid-template-columns: 1fr; gap: 0; }
+:host([layout="stacked"]) ::slotted(dd) { margin-block-end: var(--space-2); }
+:host([dense]) [part="list"] { gap: 0 var(--space-3); font-size: var(--text-meta); }
+:host([dividers]) ::slotted(dd) { padding-block-end: var(--space-2); border-block-end: 1px solid var(--color-border); }
+@media (max-width: 640px) { [part="list"] { grid-template-columns: var(--pk-field-list-columns, 1fr); gap: var(--pk-field-list-gap, 0); } ::slotted(dd) { margin-block-end: var(--space-2); } }

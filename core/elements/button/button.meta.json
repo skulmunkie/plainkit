@@ -1,0 +1,292 @@
+{
+  "tag": "pk-button",
+  "title": "Button",
+  "group": "Actions",
+  "summary": "A button in five variants and three sizes, with busy, icon-only and toggle forms. type=\"submit\" and \"reset\" act on the surrounding form, as a native button does.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "primary",
+      "values": [
+        "primary",
+        "ghost",
+        "warn",
+        "secondary",
+        "plain"
+      ],
+      "reflect": true,
+      "description": "Visual weight."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "mini",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "md is the reading-size control; mini is the compact desktop-density one; lg is the large one."
+    },
+    {
+      "name": "type",
+      "type": "enum",
+      "default": "button",
+      "values": [
+        "button",
+        "submit",
+        "reset"
+      ],
+      "reflect": true,
+      "description": "What a click does inside a form: nothing, submit it, or reset it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction and dims the control. Also set by a disabled fieldset."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An accessible name when the visible content is only an icon."
+    },
+    {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a spinner and ignores clicks without disabling the button, so focus stays put."
+    },
+    {
+      "name": "busyText",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Replaces the label while busy."
+    },
+    {
+      "name": "block",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fills the width of its container."
+    },
+    {
+      "name": "icon",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A square icon-only button (give it a label)."
+    },
+    {
+      "name": "toggle",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A button that stays pressed: a click flips pressed."
+    },
+    {
+      "name": "pressed",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The pressed state of a toggle button."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A value reported by pk-toggle."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The label."
+    },
+    {
+      "name": "start",
+      "description": "An icon before the label."
+    },
+    {
+      "name": "end",
+      "description": "An icon after the label."
+    }
+  ],
+  "events": [
+    {
+      "name": "click",
+      "detail": "native MouseEvent",
+      "description": "A click (not fired while disabled or busy)."
+    },
+    {
+      "name": "pk-toggle",
+      "detail": "{ pressed: boolean, value: string }",
+      "detailProps": {
+        "pressed": "bool",
+        "value": "string"
+      },
+      "description": "A toggle button was pressed or released."
+    }
+  ],
+  "parts": [
+    {
+      "name": "control",
+      "description": "The inner button element."
+    },
+    {
+      "name": "spinner",
+      "description": "The busy spinner."
+    },
+    {
+      "name": "busy-text",
+      "description": "The text shown while busy."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-button-bg",
+      "description": "Background colour.",
+      "default": "the variant colour"
+    },
+    {
+      "name": "--pk-button-bg-hover",
+      "description": "Background colour on hover.",
+      "default": "the variant hover colour"
+    },
+    {
+      "name": "--pk-button-fg",
+      "description": "Text colour.",
+      "default": "the variant text colour"
+    },
+    {
+      "name": "--pk-button-radius",
+      "description": "Corner radius (a button group sets it to join its buttons).",
+      "default": "var(--radius-sm)"
+    },
+    {
+      "name": "--pk-button-border",
+      "description": "Border colour.",
+      "default": "the variant border colour"
+    },
+    {
+      "name": "--pk-button-padding",
+      "description": "Inner padding.",
+      "default": "var(--space-2) var(--space-4); mini: 0.2rem 0.55rem"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the inner button."
+    }
+  ],
+  "a11y": "A native button lives in the shadow root, so it is focusable, activates on Enter and Space and exposes the button role. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus. Focus ring and the 44px phone target are built in.",
+  "blazor": {
+    "component": "Button",
+    "params": [
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "ButtonVariant"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "ButtonSize"
+      },
+      {
+        "name": "Type",
+        "prop": "type",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Busy",
+        "prop": "busy",
+        "type": "bool"
+      },
+      {
+        "name": "BusyText",
+        "prop": "busyText",
+        "type": "string"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Block",
+        "prop": "block",
+        "type": "bool"
+      },
+      {
+        "name": "Icon",
+        "prop": "icon",
+        "type": "bool"
+      },
+      {
+        "name": "Toggle",
+        "prop": "toggle",
+        "type": "bool"
+      },
+      {
+        "name": "Pressed",
+        "prop": "pressed",
+        "type": "bool"
+      },
+      {
+        "name": "OnClick",
+        "event": "click",
+        "type": "MouseEventArgs"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "StartContent",
+        "slot": "start",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "EndContent",
+        "slot": "end",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Variants",
+      "html": "<pk-button>Save</pk-button>\n<pk-button variant=\"ghost\">Cancel</pk-button>\n<pk-button variant=\"warn\">Delete</pk-button>\n<pk-button variant=\"secondary\">Export</pk-button>\n<pk-button variant=\"plain\">Skip</pk-button>"
+    },
+    {
+      "title": "Sizes, block and disabled",
+      "html": "<pk-button size=\"lg\">Large</pk-button>\n<pk-button size=\"mini\">Edit</pk-button>\n<pk-button disabled>Locked</pk-button>\n<pk-button block variant=\"secondary\">Full width</pk-button>"
+    },
+    {
+      "title": "Busy, icon and toggle",
+      "html": "<pk-button busy busy-text=\"Saving...\">Save</pk-button>\n<pk-button icon variant=\"ghost\" label=\"Add\"><svg slot=\"start\" viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 5v14M5 12h14\"/></svg></pk-button>\n<pk-button toggle variant=\"ghost\" pressed>Bold</pk-button>"
+    },
+    {
+      "title": "Submits a form",
+      "html": "<form>\n  <input name=\"q\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
+    }
+  ]
+}

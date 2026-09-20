@@ -1,0 +1,22 @@
+{
+  "id": "crud",
+  "title": "List and detail (CRUD)",
+  "summary": "A filtered, paged list beside a record, with create, edit and delete-confirm dialogs.",
+  "slots": "filters, list, pagination, detail, create/edit form, delete confirm",
+  "used": [
+    "button",
+    "card",
+    "chip",
+    "cluster",
+    "extras",
+    "field-list",
+    "form-field",
+    "modal",
+    "shell",
+    "spacing",
+    "table-content",
+    "utilities",
+    "workspace"
+  ],
+  "order": 3
+}

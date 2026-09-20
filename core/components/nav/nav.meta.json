@@ -1,0 +1,89 @@
+{
+  "folder": "nav",
+  "controls": [
+    {
+      "id": "side-nav",
+      "name": "Side nav",
+      "kind": "Navigation",
+      "purpose": "The side navigation menu: brand, filter box, group headings, items with an active bar, badges and disabled state, branches that fold with a turning chevron, a footer, collapse to an icon rail, and an off-canvas drawer with a hamburger on phones.",
+      "replaces": null,
+      "mobile": "At 1024px and below it becomes an off-canvas drawer with a backdrop, opened by the hamburger (data-pk-nav-toggle) and closed by the backdrop or Escape.",
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled",
+        "branch open",
+        "branch closed",
+        "collapsed rail"
+      ],
+      "classes": [
+        "snav",
+        "snav-brand",
+        "snav-filter",
+        "snav-scroll",
+        "snav-group",
+        "snav-group-title",
+        "snav-link",
+        "snav-label",
+        "snav-badge",
+        "snav-branch",
+        "snav-toggle",
+        "snav-sub",
+        "snav-foot",
+        "snav--collapsed"
+      ],
+      "css": [
+        "components/nav/nav.css",
+        "components/shell/shell.css"
+      ],
+      "js": [
+        "components/nav/nav.js"
+      ],
+      "snippet": "<aside class=\"snav\"><a class=\"snav-brand\">…</a><nav class=\"snav-scroll\"><ul class=\"snav-group\"><li class=\"snav-group-title\">Group</li><li><a class=\"snav-link\" aria-current=\"page\">…</a></li></ul></nav></aside>",
+      "blazor": null,
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "top-navbar",
+      "name": "Top navbar",
+      "kind": "Navigation",
+      "purpose": "The top navigation: brand, links with an active underline, a dropdown menu, right-aligned utilities (search, user menu) and a hamburger that folds the links on tablets and phones.",
+      "replaces": null,
+      "mobile": "Below 1024px the links fold behind the hamburger; the search collapses to an icon button below 640px.",
+      "states": [
+        "links",
+        "active",
+        "dropdown open",
+        "folded"
+      ],
+      "classes": [
+        "tnav",
+        "tnav-brand",
+        "tnav-links",
+        "tnav-link",
+        "tnav-spacer",
+        "tnav-actions",
+        "tnav--open",
+        "dropdown",
+        "dropdown--end",
+        "dropdown-menu",
+        "dropdown-item",
+        "dropdown-divider",
+        "mobile-nav-toggle"
+      ],
+      "css": [
+        "components/nav/nav.css"
+      ],
+      "js": [
+        "components/nav/nav.js",
+        "components/topbar/topbar.js"
+      ],
+      "snippet": "<header class=\"tnav\"><a class=\"tnav-brand\">Brand</a><ul class=\"tnav-links\"><li><a class=\"tnav-link active\">Link</a></li></ul><span class=\"tnav-spacer\"></span><div class=\"tnav-actions\">…</div><button class=\"mobile-nav-toggle\" data-pk-nav-toggle>…</button></header>",
+      "blazor": null,
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

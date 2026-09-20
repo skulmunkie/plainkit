@@ -1,0 +1,69 @@
+{
+  "folder": "topbar",
+  "controls": [
+    {
+      "id": "top-bar",
+      "name": "TopBar",
+      "kind": "Page templates",
+      "purpose": "The site header: back button and page title on the left at every width, the search centred; on a phone the title takes the row and the search collapses to an icon button that expands to a full-width field.",
+      "replaces": null,
+      "mobile": "Below 640px the search is a 44px icon button; tapping it turns the bar into a field, Escape or the close button puts it back.",
+      "states": [
+        "desktop",
+        "phone",
+        "search expanded"
+      ],
+      "classes": [
+        "top-row",
+        "app-header-title",
+        "topbar-back",
+        "topbar-title",
+        "app-header-search",
+        "app-search",
+        "app-search-input",
+        "app-search-toggle",
+        "app-search-close",
+        "is-field",
+        "mobile-nav-toggle"
+      ],
+      "css": [
+        "components/topbar/topbar.css"
+      ],
+      "js": [
+        "components/topbar/topbar.js"
+      ],
+      "snippet": "<header class=\"top-row\"><div class=\"app-header-title\"><a class=\"topbar-back\">…</a><h1 class=\"topbar-title\">Title</h1></div><div class=\"app-header-search\"><div class=\"app-search\" data-pk-search>…</div></div></header>",
+      "blazor": {
+        "component": "AppShell",
+        "snippet": "<AppShell><SidebarContent>…</SidebarContent><HeaderContent>…</HeaderContent><BodyContent>@Body</BodyContent></AppShell>"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "app-shell",
+      "name": "AppShell",
+      "kind": "Layout & structure",
+      "purpose": "The application frame: a sidebar, a main column with the top bar, the page body and a footer strip. Its structure classes (page, sidebar, content, page-body) belong to the host app; the SDK owns the top bar it contains.",
+      "replaces": null,
+      "mobile": "At 1024px and below the sidebar goes off-canvas behind the hamburger in the top bar.",
+      "states": [
+        "schematic"
+      ],
+      "classes": [
+        "top-row"
+      ],
+      "css": [
+        "components/topbar/topbar.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"page\"><aside class=\"sidebar\">…</aside><main class=\"content\"><header class=\"top-row\">…</header><article class=\"page-body\">…</article></main></div>",
+      "blazor": {
+        "component": "AppShell",
+        "snippet": "<AppShell><SidebarContent>…</SidebarContent><BodyContent>@Body</BodyContent></AppShell>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

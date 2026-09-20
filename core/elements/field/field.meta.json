@@ -1,0 +1,202 @@
+{
+  "tag": "pk-field",
+  "title": "Field",
+  "group": "Form layout",
+  "summary": "The label, help, error, warning and counter around a form control, with the wiring between them. It hands its label and messages to the control, because ids do not cross shadow roots.",
+  "delegatesFocus": true,
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The label text (or use the label slot)."
+    },
+    {
+      "name": "help",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Help text under the control."
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "An error message; puts the control into the invalid state."
+    },
+    {
+      "name": "warning",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A warning message; puts the control into the warning state."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Marks the field required (a star, and required on the control)."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Counter maximum: shows length / max and turns warm from 90% and red past the max; 0 hides the counter."
+    },
+    {
+      "name": "layout",
+      "type": "enum",
+      "default": "stack",
+      "values": [
+        "stack",
+        "row",
+        "inline"
+      ],
+      "reflect": true,
+      "description": "stack puts the label above the control; row puts it in a fixed column beside it (stacks on a phone); inline puts label and control on one line at their natural width."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "sm"
+      ],
+      "reflect": true,
+      "description": "sm is the compact field of a toolbar or filter row: smaller label, tighter gap."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The control: an pk-* form control or a native input, select or textarea."
+    },
+    {
+      "name": "label",
+      "description": "A rich label (overrides the label prop)."
+    },
+    {
+      "name": "help",
+      "description": "Rich help text (overrides the help prop)."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "field",
+      "description": "The grid that lays out label, control and foot."
+    },
+    {
+      "name": "label",
+      "description": "The label wrapper (click focuses the control)."
+    },
+    {
+      "name": "required",
+      "description": "The required star."
+    },
+    {
+      "name": "foot",
+      "description": "The row under the control."
+    },
+    {
+      "name": "help",
+      "description": "The help text."
+    },
+    {
+      "name": "error",
+      "description": "The error message (a polite live region)."
+    },
+    {
+      "name": "warning",
+      "description": "The warning message (a polite live region)."
+    },
+    {
+      "name": "count",
+      "description": "The character counter."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-field-label",
+      "description": "Label colour.",
+      "default": "var(--color-text)"
+    },
+    {
+      "name": "--pk-field-label-width",
+      "description": "Label column width of the row layout.",
+      "default": "9rem"
+    }
+  ],
+  "methods": [],
+  "a11y": "The label click focuses the control. Ids cannot cross shadow roots, so the field sets label, description (help plus error), invalid, warning and required on an pk-* control, or aria-label and aria-description on a native one. Messages are polite live regions that are empty until used; the star is aria-hidden because required is set on the control.",
+  "blazor": {
+    "component": "FormField",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Hint",
+        "prop": "help",
+        "type": "string"
+      },
+      {
+        "name": "Error",
+        "prop": "error",
+        "type": "string"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "MaxLength",
+        "prop": "max",
+        "type": "int"
+      },
+      {
+        "name": "Layout",
+        "prop": "layout",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "LabelExtra",
+        "slot": "label",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "HintContent",
+        "slot": "help",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Help, required and counter",
+      "html": "<pk-field label=\"Product title\" required help=\"Shown on the storefront and invoices.\" max=\"80\"><pk-input value=\"Widget 1 Cover A\"></pk-input></pk-field>"
+    },
+    {
+      "title": "Error and inline label",
+      "html": "<pk-field label=\"SKU\" error=\"SKU cannot contain spaces.\"><pk-input value=\"bad sku\"></pk-input></pk-field>\n<pk-field label=\"Weight\" layout=\"row\"><pk-input value=\"6.4\"></pk-input></pk-field>"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SDK template: Empty, error and loading">
+<title>Empty, error and loading - SDK template</title>
+<link rel="stylesheet" href="../../../plainkit.css">
+</head>
+<body>
+<main id="content">
+<div class="grid"><section class="card"><div class="empty-state"><p class="empty-state-title">Nothing here yet</p><p class="empty-state-description">Say what is missing and what to do.</p><div class="empty-state-actions"><button class="btn-primary">Add one</button></div></div></section>
+<section class="card"><div class="notice notice--boxed"><strong class="notice-title">Something failed.</strong>Explain it and offer a way out.</div><div class="remedy"><div class="remedy-body">Two items are queued.</div><div class="remedy-actions"><button class="btn-mini btn-primary">Retry now</button></div></div></section>
+<section class="card stack-sm" aria-busy="true"><p class="muted loading" role="status">Loading…</p><span class="skeleton"></span><span class="skeleton"></span></section></div>
+</main>
+<script type="module" src="states.js"></script>
+
+</body>
+</html>

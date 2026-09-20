@@ -1,0 +1,139 @@
+{
+  "tag": "pk-rating",
+  "title": "Rating",
+  "group": "Form controls",
+  "summary": "A whole-star rating input (radios underneath), and a compact read-only display form.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "The rating, 0 for none."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 5,
+      "reflect": false,
+      "description": "Number of stars."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The display form: not interactive, exposed as an image with a text alternative."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-rating-change",
+      "detail": "{ value: number }",
+      "detailProps": {
+        "value": "number"
+      },
+      "description": "The user changed the value (same moment as change; carries it)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The stars container."
+    },
+    {
+      "name": "star",
+      "description": "One star (dynamic)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-rating-color",
+      "description": "Colour of a lit star.",
+      "default": "var(--field-warn)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the chosen star."
+    }
+  ],
+  "a11y": "An input rating is a radio group: each star is named \"3 stars\", arrow keys change the value and focus is visible. The read-only form is role=img with \"4 out of 5 stars\". Stars are 44px on a phone.",
+  "blazor": {
+    "component": "Rating",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "int"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "int"
+      },
+      {
+        "name": "ReadOnly",
+        "prop": "readonly",
+        "type": "bool"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-rating-change",
+      "key": "value",
+      "type": "number"
+    }
+  },
+  "examples": [
+    {
+      "title": "Input and display",
+      "html": "<pk-rating label=\"Your rating\" value=\"3\"></pk-rating>\n<pk-rating readonly value=\"4\"></pk-rating>"
+    }
+  ]
+}

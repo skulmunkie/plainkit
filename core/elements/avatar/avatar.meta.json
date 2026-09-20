@@ -1,0 +1,150 @@
+{
+  "tag": "pk-avatar",
+  "title": "Avatar",
+  "group": "Data display",
+  "summary": "A person or entity as an image or initials, with sizes, shapes, a stable colour per name and an online, away or busy status dot.",
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name and the source of the initials."
+    },
+    {
+      "name": "src",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An image URL; initials show until it loads or if it fails."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "sm",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Size."
+    },
+    {
+      "name": "shape",
+      "type": "enum",
+      "default": "circle",
+      "values": [
+        "circle",
+        "square"
+      ],
+      "reflect": true,
+      "description": "Shape."
+    },
+    {
+      "name": "status",
+      "type": "enum",
+      "default": "none",
+      "values": [
+        "none",
+        "online",
+        "away",
+        "busy"
+      ],
+      "reflect": true,
+      "description": "Status dot."
+    },
+    {
+      "name": "colour",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A colour slot 1 to 5, or muted; by default a stable slot chosen from the name."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "image",
+      "description": "The image."
+    },
+    {
+      "name": "initials",
+      "description": "The initials."
+    },
+    {
+      "name": "status",
+      "description": "The status dot."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-avatar-size",
+      "description": "Diameter.",
+      "default": "2.25rem"
+    },
+    {
+      "name": "--pk-avatar-bg",
+      "description": "Fill colour.",
+      "default": "the colour slot"
+    },
+    {
+      "name": "--pk-avatar-fg",
+      "description": "Initials colour.",
+      "default": "var(--chart-on)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "initials(name, max)",
+      "description": "Initials for a name."
+    },
+    {
+      "name": "colourSlot(name, count)",
+      "description": "Stable colour slot."
+    }
+  ],
+  "a11y": "role=img with the name (and status) as its label; the image itself has an empty alt because the host already names it.",
+  "blazor": {
+    "component": "Avatar",
+    "params": [
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Src",
+        "prop": "src",
+        "type": "string"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Shape",
+        "prop": "shape",
+        "type": "string"
+      },
+      {
+        "name": "Status",
+        "prop": "status",
+        "type": "string"
+      },
+      {
+        "name": "Colour",
+        "prop": "colour",
+        "type": "string"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Sizes and status",
+      "html": "<pk-avatar name=\"Ada Lovelace\" size=\"sm\"></pk-avatar>\n<pk-avatar name=\"Sam Lee\" status=\"online\"></pk-avatar>\n<pk-avatar name=\"Ana Ruiz\" size=\"lg\" shape=\"square\"></pk-avatar>"
+    }
+  ]
+}

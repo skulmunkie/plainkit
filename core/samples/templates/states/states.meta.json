@@ -1,0 +1,19 @@
+{
+  "id": "states",
+  "title": "Empty, error and loading",
+  "summary": "What a region shows with no data, on failure and while loading.",
+  "slots": "empty state, error notice with remedy, skeleton",
+  "used": [
+    "button",
+    "card",
+    "empty-state",
+    "extras",
+    "flyout",
+    "loading",
+    "notice",
+    "remedy",
+    "shell",
+    "spacing"
+  ],
+  "order": 8
+}

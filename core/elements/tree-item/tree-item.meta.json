@@ -1,0 +1,190 @@
+{
+  "tag": "pk-tree-item",
+  "title": "Tree item",
+  "group": "Navigation",
+  "summary": "One node of a tree: a toggle, a label and nested child items.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The text."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The value reported in events; defaults to the label."
+    },
+    {
+      "name": "expanded",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Children visible."
+    },
+    {
+      "name": "selected",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The chosen item."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Not selectable."
+    },
+    {
+      "name": "expandable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the element when it has child items."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Child pk-tree-item elements."
+    },
+    {
+      "name": "label",
+      "description": "A rich label; overrides label."
+    },
+    {
+      "name": "icon",
+      "description": "An icon before the label."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "id": "string"
+      },
+      "description": "The row was activated.",
+      "cancelable": false
+    },
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "id": "string",
+        "expanded": "bool"
+      },
+      "description": "The branch opened or closed.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "row",
+      "description": "The clickable row."
+    },
+    {
+      "name": "toggle",
+      "description": "The chevron."
+    },
+    {
+      "name": "label",
+      "description": "The label."
+    },
+    {
+      "name": "children",
+      "description": "The nested group."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-tree-item-indent",
+      "description": "Indent per level.",
+      "default": "var(--space-5)"
+    },
+    {
+      "name": "--pk-tree-item-level",
+      "description": "Nesting depth; set by the element.",
+      "default": "1"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setExpanded(value)",
+      "description": "Open or close the branch and fire pk-toggle."
+    },
+    {
+      "name": "select()",
+      "description": "Fire pk-select."
+    }
+  ],
+  "a11y": "Roles, levels, set sizes and states are set through ElementInternals by the tree. The host is the roving tab stop and shows a focus ring on the row, which is 44px tall on a phone.",
+  "blazor": {
+    "component": "TreeItem",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Expanded",
+        "prop": "expanded",
+        "type": "bool"
+      },
+      {
+        "name": "Selected",
+        "prop": "selected",
+        "type": "bool"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Expandable",
+        "prop": "expandable",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "LabelContent",
+        "slot": "label",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "IconContent",
+        "slot": "icon",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "OnSelect",
+        "event": "pk-select",
+        "type": "EventCallback<SelectEventArgs>"
+      },
+      {
+        "name": "OnToggle",
+        "event": "pk-toggle",
+        "type": "EventCallback<ToggleEventArgs>"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Leaf and branch",
+      "html": "<pk-tree-item label=\"Puzzles\" selected></pk-tree-item>"
+    }
+  ]
+}

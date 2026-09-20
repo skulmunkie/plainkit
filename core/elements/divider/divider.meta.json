@@ -1,0 +1,99 @@
+{
+  "tag": "pk-divider",
+  "title": "Divider",
+  "group": "Layout",
+  "summary": "A rule between content, horizontal or vertical, with an optional label.",
+  "props": [
+    {
+      "name": "vertical",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A vertical rule; the parent must be a flex row."
+    },
+    {
+      "name": "labelPosition",
+      "type": "enum",
+      "default": "center",
+      "values": [
+        "center",
+        "start"
+      ],
+      "reflect": true,
+      "description": "Where the label sits."
+    },
+    {
+      "name": "decorative",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Remove the separator role."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The label."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "line",
+      "description": "A rule."
+    },
+    {
+      "name": "label",
+      "description": "The label."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-divider-color",
+      "description": "Line colour.",
+      "default": "var(--color-border)"
+    },
+    {
+      "name": "--pk-divider-gap",
+      "description": "Space around the label.",
+      "default": "var(--space-3)"
+    }
+  ],
+  "methods": [],
+  "a11y": "role=separator (with aria-orientation) unless decorative is set.",
+  "blazor": {
+    "component": "Divider",
+    "params": [
+      {
+        "name": "Vertical",
+        "prop": "vertical",
+        "type": "bool"
+      },
+      {
+        "name": "LabelPosition",
+        "prop": "labelPosition",
+        "type": "string"
+      },
+      {
+        "name": "Decorative",
+        "prop": "decorative",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Labelled",
+      "html": "<pk-divider>or</pk-divider>"
+    },
+    {
+      "title": "Plain",
+      "html": "<pk-divider></pk-divider>"
+    }
+  ]
+}

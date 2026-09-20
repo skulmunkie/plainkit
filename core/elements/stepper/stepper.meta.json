@@ -1,0 +1,171 @@
+{
+  "tag": "pk-stepper",
+  "title": "Stepper",
+  "summary": "A wizard header: numbered steps with done, current, upcoming and error states, horizontal or vertical, optionally clickable (linear: you can go back, not skip ahead).",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "current",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Zero-based current step."
+    },
+    {
+      "name": "orientation",
+      "type": "enum",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ],
+      "reflect": true,
+      "description": "The orientation setting"
+    },
+    {
+      "name": "clickable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Steps can be entered by click or key."
+    },
+    {
+      "name": "free",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Allow skipping ahead of the furthest step reached (non-linear)."
+    },
+    {
+      "name": "errors",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Comma-separated step indexes with an error."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Progress",
+      "reflect": true,
+      "description": "Accessible name."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-step children."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-step-change",
+      "detail": {
+        "index": "number",
+        "previous": "number"
+      },
+      "description": "A step was entered; cancelable."
+    }
+  ],
+  "parts": [
+    {
+      "name": "list",
+      "description": "The list of items"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "goTo(index)",
+      "description": "See the description"
+    },
+    {
+      "name": "next()",
+      "description": "Next step"
+    },
+    {
+      "name": "previous()",
+      "description": "Previous step"
+    }
+  ],
+  "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
+  "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
+  "blazor": {
+    "component": "Stepper",
+    "params": [
+      {
+        "name": "Current",
+        "type": "int",
+        "default": 0,
+        "map": "prop",
+        "prop": "current",
+        "bind": {
+          "event": "pk-step-change",
+          "value": "detail.index"
+        }
+      },
+      {
+        "name": "Orientation",
+        "type": "StepperOrientation",
+        "default": "horizontal",
+        "map": "prop",
+        "prop": "orientation",
+        "enum": {
+          "Horizontal": "horizontal",
+          "Vertical": "vertical"
+        }
+      },
+      {
+        "name": "Clickable",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "clickable"
+      },
+      {
+        "name": "Free",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "free"
+      },
+      {
+        "name": "Errors",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "errors"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "Progress",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnStepChange",
+        "type": "EventCallback<StepperStepChangeEventArgs>",
+        "map": "event",
+        "event": "pk-step-change",
+        "cancelable": true
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Horizontal stepper (clickable, linear)",
+      "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step title=\"Basics\" description=\"Name and type\"></pk-step><pk-step title=\"Pricing\" description=\"Cost and price\"></pk-step><pk-step title=\"Images\"></pk-step><pk-step title=\"Review\"></pk-step></pk-stepper>"
+    },
+    {
+      "title": "Vertical stepper with an error",
+      "html": "<pk-stepper label=\"Import\" current=\"2\" orientation=\"vertical\" errors=\"0\"><pk-step title=\"Upload\" description=\"File rejected\"></pk-step><pk-step title=\"Map columns\"></pk-step><pk-step title=\"Review\"></pk-step><pk-step title=\"Finish\"></pk-step></pk-stepper>"
+    }
+  ]
+}

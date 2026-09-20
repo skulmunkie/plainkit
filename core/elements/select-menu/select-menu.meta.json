@@ -1,0 +1,169 @@
+{
+  "tag": "pk-select-menu",
+  "title": "Select menu",
+  "summary": "A single-choice listbox popup that reads native option children, so it degrades to nothing worse than a list; form-associated, keyboard driven with typeahead.",
+  "group": "Forms & inputs",
+  "props": [
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Selected option value."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Form field name."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "Select…",
+      "reflect": true,
+      "description": "Shown with no selection."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the list is shown."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Prevents interaction"
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A value is required"
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "option elements."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-change",
+      "detail": {
+        "value": "string",
+        "label": "string",
+        "previous": "string"
+      },
+      "description": "The selection changed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "trigger",
+      "description": "The button that opens the list"
+    },
+    {
+      "name": "value",
+      "description": "The selected value text"
+    },
+    {
+      "name": "caret",
+      "description": "The open/close arrow"
+    },
+    {
+      "name": "list",
+      "description": "The option list (rows are built inside it)"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    }
+  ],
+  "a11y": "The trigger is a combobox with aria-haspopup=listbox and aria-expanded; the list is role=listbox with option children and aria-activedescendant; arrows, Home, End, typeahead, Enter, Escape.",
+  "mobile": "The list is at least 44px per row and opens under the trigger, flipping above when there is no room.",
+  "blazor": {
+    "component": "SelectMenu",
+    "params": [
+      {
+        "name": "Value",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "value",
+        "bind": {
+          "event": "pk-change",
+          "value": "detail.value"
+        }
+      },
+      {
+        "name": "Name",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "name"
+      },
+      {
+        "name": "Placeholder",
+        "type": "string",
+        "default": "Select…",
+        "map": "prop",
+        "prop": "placeholder"
+      },
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open"
+      },
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "disabled"
+      },
+      {
+        "name": "Required",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "required"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnChange",
+        "type": "EventCallback<SelectChangeEventArgs>",
+        "map": "event",
+        "event": "pk-change",
+        "cancelable": true
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Select menu",
+      "html": "<pk-select-menu name=\"status\" value=\"draft\"><option value=\"draft\">Draft</option><option value=\"active\">Active</option><option value=\"archived\">Archived</option></pk-select-menu>"
+    }
+  ],
+  "formAssociated": true
+}

@@ -1,0 +1,29 @@
+{
+  "id": "forms",
+  "title": "Product settings (forms and inputs)",
+  "summary": "A settings form built only from form elements: sectioned fields with help, counters and validation, money and stepper inputs, dual range, choice controls, tag and colour inputs, a drop zone and a sticky action bar.",
+  "built": "Form, Form section, Field, Input, Textarea, Select, Range, Checkbox, Radio group, Switch, Tag input, Colour input, Dropzone, Form actions, Button.",
+  "mobile": "The form is one column; controls keep a 44px height and 16px text so a phone does not zoom on focus.",
+  "used": [
+    "button",
+    "checkbox",
+    "colour-input",
+    "combobox",
+    "dropzone",
+    "field",
+    "form",
+    "form-actions",
+    "form-section",
+    "input",
+    "otp-input",
+    "radio-group",
+    "range",
+    "rating",
+    "select",
+    "split-button",
+    "switch",
+    "tag-input",
+    "textarea"
+  ],
+  "order": 9
+}

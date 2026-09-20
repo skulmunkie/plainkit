@@ -1,0 +1,68 @@
+{
+  "folder": "button",
+  "controls": [
+    {
+      "id": "button",
+      "name": "Button",
+      "kind": "Actions",
+      "purpose": "The only button: variant, size, busy state, disabled and link forms.",
+      "replaces": "button.btn-primary / .btn-ghost / .btn-warn / .btn-mini",
+      "mobile": "Normal size is the touch size; Mini is for dense tables and is below 44px, so keep it off phone-first screens (the a11y layer raises it to 44px on a phone).",
+      "states": [
+        "primary",
+        "ghost",
+        "warn",
+        "secondary",
+        "mini",
+        "disabled",
+        "as link"
+      ],
+      "classes": [
+        "btn-primary",
+        "btn-ghost",
+        "btn-warn",
+        "btn-secondary",
+        "btn-mini"
+      ],
+      "css": [
+        "components/button/button.css"
+      ],
+      "js": [],
+      "snippet": "<button type=\"button\" class=\"btn-primary\">Save</button>",
+      "blazor": {
+        "component": "Button",
+        "snippet": "<Button OnClick=\"Save\" Busy=\"_saving\" BusyText=\"Saving…\">Save</Button>"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "action-pair",
+      "name": "ActionPair",
+      "kind": "Actions",
+      "purpose": "A primary action with its Cancel, in the order and spacing every form uses.",
+      "replaces": "a hand-written Save + Cancel pair",
+      "mobile": "Buttons keep their touch size; Cancel stays enabled while the primary is busy.",
+      "states": [
+        "default",
+        "warn primary"
+      ],
+      "classes": [
+        "btn-primary",
+        "btn-ghost",
+        "btn-warn"
+      ],
+      "css": [
+        "components/button/button.css"
+      ],
+      "js": [],
+      "snippet": "<button type=\"button\" class=\"btn-primary\">Save</button><button type=\"button\" class=\"btn-ghost\">Cancel</button>",
+      "blazor": {
+        "component": "ActionPair",
+        "snippet": "<ActionPair OnPrimary=\"Save\" OnCancel=\"Close\">Save</ActionPair>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

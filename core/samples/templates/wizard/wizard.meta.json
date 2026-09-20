@@ -1,0 +1,14 @@
+{
+  "id": "wizard",
+  "title": "Wizard",
+  "summary": "A stepper, one card per step, Back and Next.",
+  "slots": "stepper, step body, back/next",
+  "used": [
+    "button",
+    "card",
+    "extras",
+    "form-field",
+    "toolbar"
+  ],
+  "order": 6
+}

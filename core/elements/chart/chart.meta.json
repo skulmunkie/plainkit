@@ -1,0 +1,153 @@
+{
+  "tag": "pk-chart",
+  "title": "Chart",
+  "group": "Data display",
+  "summary": "Bar, line, donut, stacked-bar and sparkline charts in pure SVG, drawn from a slotted data table (which stays as the accessible fallback) or from a data property.",
+  "props": [
+    {
+      "name": "kind",
+      "type": "enum",
+      "default": "bar",
+      "values": [
+        "bar",
+        "line",
+        "donut",
+        "stack",
+        "spark"
+      ],
+      "reflect": true,
+      "description": "Chart type."
+    },
+    {
+      "name": "caption",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Title (figcaption)."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "default": 140,
+      "reflect": false,
+      "description": "viewBox height of bar and line charts."
+    },
+    {
+      "name": "data",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }."
+    },
+    {
+      "name": "dataLabel",
+      "type": "string",
+      "default": "Show data",
+      "reflect": false,
+      "description": "Summary text of the data details."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "A table: the first column holds labels, each further column a series. A cell may carry data-value."
+    },
+    {
+      "name": "caption",
+      "description": "A rich caption; overrides caption."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "figure",
+      "description": "The figure."
+    },
+    {
+      "name": "caption",
+      "description": "The caption."
+    },
+    {
+      "name": "plot",
+      "description": "The svg container."
+    },
+    {
+      "name": "legend",
+      "description": "The legend list."
+    },
+    {
+      "name": "data",
+      "description": "The data details."
+    },
+    {
+      "name": "data-toggle",
+      "description": "The data details summary."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "barRects(series)",
+      "description": "Bar geometry."
+    },
+    {
+      "name": "linePoints(series)",
+      "description": "Line points."
+    },
+    {
+      "name": "donutSegments(values)",
+      "description": "Donut dash arrays."
+    },
+    {
+      "name": "sparkPoints(values)",
+      "description": "Sparkline points."
+    }
+  ],
+  "a11y": "The svg is role=img with a generated text alternative listing the values; the source table stays in a details for exact numbers. Series colours are the chart tokens and every multi-series chart has a legend, so colour is not the only key.",
+  "blazor": {
+    "component": "Chart",
+    "params": [
+      {
+        "name": "Kind",
+        "prop": "kind",
+        "type": "string"
+      },
+      {
+        "name": "Caption",
+        "prop": "caption",
+        "type": "string"
+      },
+      {
+        "name": "Height",
+        "prop": "height",
+        "type": "int"
+      },
+      {
+        "name": "Data",
+        "prop": "data",
+        "type": "ChartData"
+      },
+      {
+        "name": "CaptionContent",
+        "slot": "caption",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      }
+    ],
+    "notes": "ChartData is { Labels, Series: [{ Name, Values }] }."
+  },
+  "examples": [
+    {
+      "title": "Bar from a table",
+      "html": "<pk-chart kind=\"bar\" caption=\"Sales\">\n  <table><thead><tr><th>Month</th><th>Sales</th></tr></thead>\n  <tbody><tr><th scope=\"row\">Jan</th><td>4</td></tr><tr><th scope=\"row\">Feb</th><td>6</td></tr></tbody></table>\n</pk-chart>"
+    },
+    {
+      "title": "Donut and stack",
+      "html": "<pk-chart kind=\"donut\" caption=\"Channels\">\n  <table><thead><tr><th>Channel</th><th>Orders</th></tr></thead>\n  <tbody><tr><th scope=\"row\">Web</th><td>52</td></tr><tr><th scope=\"row\">Market</th><td>31</td></tr></tbody></table>\n</pk-chart>"
+    }
+  ]
+}

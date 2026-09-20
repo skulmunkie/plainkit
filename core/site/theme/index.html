@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDK Theme editor</title>
+<link rel="stylesheet" href="../../plainkit.css">
+<link rel="stylesheet" href="../site.css">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<div class="site-body">
+    <div class="notice notice--warning gx-notice-file" id="boot-notice" role="status">
+        Loading the theme editor. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
+    </div>
+    <div class="workspace workspace--fill" id="te-workspace" data-pk-workspace></div>
+</div>
+<script type="module" src="theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+name: Release
+
+# Push a tag such as v0.1.0 to publish the npm package (plainkit) and a GitHub release carrying core/dist as a zip.
+# Repository secret needed: NPM_TOKEN (an npm automation token). The NuGet package (Plainkit.Blazor) is added when the Blazor
+# port moves here (it needs a NUGET_API_KEY secret scoped to that package).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Version from the tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Tests
+        run: |
+          node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+          node core/tools/build.mjs
+          git diff --exit-code -- core/dist
+
+      - name: Publish to npm
+        working-directory: core
+        run: |
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Zip dist for the release
+        run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip .
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: plainkit-dist-${{ env.VERSION }}.zip
+          generate_release_notes: true

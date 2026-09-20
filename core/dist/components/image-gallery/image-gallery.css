@@ -1,0 +1,48 @@
+/* -------- Image gallery: primary + reorderable thumbnails -------- */
+/* gal-* is this component's own prefix, unclaimed elsewhere. */
+
+.gal-gallery { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+.gal-item {
+    position: relative; width: 100px; height: 100px; flex: none;
+    border: 1px solid var(--color-border); border-radius: 8px;
+    overflow: hidden; background: var(--color-surface-alt);
+}
+
+.gal-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.gal-item--primary { border-color: var(--color-accent); border-width: 2px; }
+
+.gal-badge { position: absolute; top: 4px; left: 4px; font-size: var(--text-meta); padding: 0.05rem 0.3rem; }
+
+/* Shown on hover/focus only — a 100px thumbnail has no room for four
+   always-visible buttons without hiding the photo underneath them. */
+.gal-actions {
+    position: absolute; inset: auto 0 0 0; display: flex; justify-content: center;
+    gap: 0.15rem; padding: 0.2rem; background: var(--gal-actions-bg);
+    opacity: 0; transition: opacity 0.1s ease;
+}
+
+.gal-item:hover .gal-actions,
+.gal-item:focus-within .gal-actions { opacity: 1; }
+
+.gal-actions .btn-mini { padding: 0.05rem 0.3rem; font-size: var(--text-meta); }
+
+.gal-add {
+    position: relative; cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; border-style: dashed;
+}
+
+.gal-add:hover { outline: 2px dashed var(--color-accent); outline-offset: -3px; }
+
+.gal-add-icon { font-size: 1.6rem; opacity: 0.6; }
+
+.gal-add-hint {
+    font-size: var(--text-meta); line-height: 1.1; color: var(--color-muted);
+    text-align: center; padding: 0 0.2rem;
+}
+
+.gal-add .gal-add-file {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer;
+}

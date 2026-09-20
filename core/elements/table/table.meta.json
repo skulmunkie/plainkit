@@ -1,0 +1,400 @@
+{
+  "tag": "pk-table",
+  "title": "Table",
+  "group": "Data display",
+  "summary": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
+  "props": [
+    {
+      "name": "columns",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property."
+    },
+    {
+      "name": "rows",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Row data, one object per row. A JSON attribute or a property."
+    },
+    {
+      "name": "rowKey",
+      "type": "string",
+      "default": "id",
+      "reflect": false,
+      "description": "The field that identifies a row."
+    },
+    {
+      "name": "striped",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Alternate row tint."
+    },
+    {
+      "name": "hover",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Tint the row under the pointer."
+    },
+    {
+      "name": "bordered",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Border on every cell."
+    },
+    {
+      "name": "density",
+      "type": "enum",
+      "default": "default",
+      "values": [
+        "default",
+        "compact",
+        "comfortable"
+      ],
+      "reflect": true,
+      "description": "Cell padding step."
+    },
+    {
+      "name": "stickyHeader",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pin the header row (give the table a maxHeight)."
+    },
+    {
+      "name": "stickyColumn",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pin the first column."
+    },
+    {
+      "name": "selectable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Checkbox column with select-all."
+    },
+    {
+      "name": "clickable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows are activatable: they show a pointer and fire pk-row-click."
+    },
+    {
+      "name": "filterable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A filter input under each header."
+    },
+    {
+      "name": "manual",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The host sorts, filters and pages; rows are shown exactly as given."
+    },
+    {
+      "name": "sort",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Key of the column being sorted."
+    },
+    {
+      "name": "sortDir",
+      "type": "enum",
+      "default": "ascending",
+      "values": [
+        "ascending",
+        "descending"
+      ],
+      "reflect": true,
+      "description": "Sort direction."
+    },
+    {
+      "name": "filters",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "Filter text per column key: { [key]: text }."
+    },
+    {
+      "name": "selected",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Ids of the selected rows."
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show placeholder rows and mark the table busy."
+    },
+    {
+      "name": "cards",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Each row becomes a card below 640px."
+    },
+    {
+      "name": "caption",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Table caption."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of the scrolling region."
+    },
+    {
+      "name": "maxHeight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Bounds the frame; sticky header and column need it."
+    },
+    {
+      "name": "flow",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Slotted-table mode: no scroll frame, for a table inside a container that already scrolls."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "A raw table (thead, tbody, tfoot, any rows). The page-level layer styles it; the element frames it."
+    },
+    {
+      "name": "toolbar",
+      "description": "Search, filters and buttons above the table."
+    },
+    {
+      "name": "bulk",
+      "description": "Actions shown while rows are selected."
+    },
+    {
+      "name": "caption",
+      "description": "Rich caption."
+    },
+    {
+      "name": "empty",
+      "description": "Empty state; an pk-empty-state fits."
+    },
+    {
+      "name": "footer",
+      "description": "Below the table; an pk-pagination fits."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-sort",
+      "detail": {
+        "key": "string",
+        "direction": "string"
+      },
+      "description": "A sortable header was activated. Cancel to keep the current sort.",
+      "cancelable": true
+    },
+    {
+      "name": "pk-filter",
+      "detail": {
+        "filters": "IDictionary<string, string>"
+      },
+      "description": "A filter input changed (debounced 250 ms).",
+      "cancelable": true
+    },
+    {
+      "name": "pk-select",
+      "detail": {
+        "selected": "IReadOnlyList<string>"
+      },
+      "description": "The selection changed.",
+      "cancelable": false
+    },
+    {
+      "name": "pk-row-click",
+      "detail": {
+        "id": "string",
+        "row": "object"
+      },
+      "description": "A clickable row was activated.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "toolbar",
+      "description": "The toolbar wrapper."
+    },
+    {
+      "name": "bulk",
+      "description": "The bulk bar."
+    },
+    {
+      "name": "bulk-count",
+      "description": "The selected count."
+    },
+    {
+      "name": "scroll",
+      "description": "The scrolling frame."
+    },
+    {
+      "name": "table",
+      "description": "The table."
+    },
+    {
+      "name": "caption",
+      "description": "The caption."
+    },
+    {
+      "name": "head",
+      "description": "The thead."
+    },
+    {
+      "name": "body",
+      "description": "The tbody."
+    },
+    {
+      "name": "empty",
+      "description": "The empty wrapper."
+    },
+    {
+      "name": "footer",
+      "description": "The footer wrapper."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-table-max-height",
+      "description": "Height of the scrolling frame (set from maxHeight).",
+      "default": "none"
+    }
+  ],
+  "methods": [
+    {
+      "name": "sortBy(key, direction)",
+      "description": "Sort programmatically."
+    }
+  ],
+  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
+  "blazor": {
+    "component": "DataGrid",
+    "existing": true,
+    "params": [
+      {
+        "name": "Columns",
+        "prop": "columns",
+        "type": "IReadOnlyList<DataGridColumn>"
+      },
+      {
+        "name": "Items",
+        "prop": "rows",
+        "type": "IReadOnlyList<TItem>"
+      },
+      {
+        "name": "EnableSelection",
+        "prop": "selectable",
+        "type": "bool"
+      },
+      {
+        "name": "SelectedKeys",
+        "prop": "selected",
+        "type": "HashSet<int>"
+      },
+      {
+        "name": "PhoneLayout",
+        "prop": "cards",
+        "type": "DataGridPhoneLayout"
+      },
+      {
+        "name": "Loading",
+        "prop": "loading",
+        "type": "bool"
+      },
+      {
+        "name": "HeaderActionsTemplate",
+        "slot": "toolbar",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "FilterTemplate",
+        "slot": "toolbar",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "FooterTemplate",
+        "slot": "footer",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "BulkTemplate",
+        "slot": "bulk",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "RowTemplate",
+        "slot": "cell-<rowId>-<key>",
+        "type": "RenderFragment<TItem>"
+      },
+      {
+        "name": "OnRowClick",
+        "event": "pk-row-click",
+        "type": "EventCallback<TItem>"
+      },
+      {
+        "name": "OnSelectionChanged",
+        "event": "pk-select",
+        "type": "EventCallback"
+      },
+      {
+        "name": "OnSort",
+        "event": "pk-sort",
+        "type": "EventCallback<SortEventArgs>"
+      },
+      {
+        "name": "OnFilter",
+        "event": "pk-filter",
+        "type": "EventCallback<FilterEventArgs>"
+      }
+    ],
+    "notes": "The Blazor DataGrid keeps owning the data source. It calls DataSource(DataGridRequest), then sets rows (DataGridPage.Items), and turns pk-sort, pk-filter and pk-pagination's pk-page and pk-page-size into the next DataGridRequest (SortColumn, Descending, ColumnFilters, Page, PageSize). It renders the element with manual set. RowTemplate cells become slots named cell-<rowId>-<key> (RenderFragment<TItem> per cell); DataGridColumn(Key, Header, Sortable, NumericAlign) maps to { key, label, sortable, align: end }. The simple slot-based DataTable component maps to the same element without manual. Hidden columns are simply left out of columns. The Blazor EmptyText fills the empty slot."
+  },
+  "examples": [
+    {
+      "title": "Sortable, selectable table",
+      "html": "<pk-table id=\"t1\" label=\"Products\" caption=\"Stock by product\" striped hover selectable\n  columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true}]'\n  rows='[{\"id\":1,\"sku\":\"AC-001\",\"price\":\"$4.99\"},{\"id\":2,\"sku\":\"AC-002\",\"price\":\"$3.99\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n</pk-table>"
+    },
+    {
+      "title": "Empty and loading",
+      "html": "<pk-table label=\"Empty\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' empty-text=\"No products yet\"></pk-table>\n<pk-table label=\"Loading\" loading columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]'></pk-table>"
+    },
+    {
+      "title": "Expandable rows",
+      "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
+    }
+  ],
+  "contentStyles": [
+    "pk-table table",
+    "pk-table :is(th, td)",
+    "pk-table th",
+    "pk-table :is(th, td).num",
+    "pk-table[sticky-header] thead th"
+  ],
+  "contentStylesNote": "Slotted-table content is light DOM: shadow CSS cannot reach its cells, so the page-level layer (components/table-content) styles it by these selectors."
+}

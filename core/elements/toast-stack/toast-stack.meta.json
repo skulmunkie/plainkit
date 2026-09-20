@@ -1,0 +1,86 @@
+{
+  "tag": "pk-toast-stack",
+  "title": "Toast stack",
+  "summary": "The live region that holds toasts at one screen position, shows at most three at once and queues the rest; PkToast.show(message, options) creates one per position on demand.",
+  "group": "Feedback & status",
+  "props": [
+    {
+      "name": "position",
+      "type": "enum",
+      "default": "bottom-end",
+      "values": [
+        "top-start",
+        "top",
+        "top-end",
+        "bottom-start",
+        "bottom",
+        "bottom-end"
+      ],
+      "reflect": true,
+      "description": "The position setting"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 3,
+      "reflect": true,
+      "description": "Visible at once; the rest queue."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-toast children."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "push(toast)",
+      "description": "See the description"
+    }
+  ],
+  "a11y": "A labelled region; each toast announces itself with its own role.",
+  "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
+  "blazor": {
+    "component": "Toaststack",
+    "params": [
+      {
+        "name": "Position",
+        "type": "ToaststackPosition",
+        "default": "bottom-end",
+        "map": "prop",
+        "prop": "position",
+        "enum": {
+          "TopStart": "top-start",
+          "Top": "top",
+          "TopEnd": "top-end",
+          "BottomStart": "bottom-start",
+          "Bottom": "bottom",
+          "BottomEnd": "bottom-end"
+        }
+      },
+      {
+        "name": "Max",
+        "type": "int",
+        "default": 3,
+        "map": "prop",
+        "prop": "max"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Stack at a position",
+      "html": "<pk-toast-stack position=\"bottom-end\"><pk-toast kind=\"success\">Saved.</pk-toast></pk-toast-stack>"
+    }
+  ]
+}

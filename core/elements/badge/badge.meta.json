@@ -1,0 +1,125 @@
+{
+  "tag": "pk-badge",
+  "title": "Badge",
+  "group": "Data display",
+  "summary": "A count or short label in a pill, or a status dot with a label; counts cap at a maximum (99+).",
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "accent",
+      "values": [
+        "accent",
+        "muted",
+        "ok",
+        "warn",
+        "danger",
+        "outline"
+      ],
+      "reflect": true,
+      "description": "Colour."
+    },
+    {
+      "name": "count",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Value to show when the slot is empty, capped by max."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 99,
+      "reflect": false,
+      "description": "Counts above read as max+; 0 disables capping."
+    },
+    {
+      "name": "dot",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A status dot with the text as its label instead of a pill."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Text; overrides the count."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "dot",
+      "description": "The status dot."
+    },
+    {
+      "name": "text",
+      "description": "The label wrapper."
+    },
+    {
+      "name": "count",
+      "description": "The formatted count shown when the slot is empty."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-badge-bg",
+      "description": "Pill fill.",
+      "default": "the variant colour"
+    },
+    {
+      "name": "--pk-badge-fg",
+      "description": "Pill text.",
+      "default": "the variant text colour"
+    }
+  ],
+  "methods": [
+    {
+      "name": "formatCount(value, max)",
+      "description": "Text such as 99+."
+    }
+  ],
+  "a11y": "The text is the accessible name; put a noun in the slot (\"4 unread\") when the count alone is ambiguous. Dot mode never relies on colour alone: the label states the status.",
+  "blazor": {
+    "component": "Badge",
+    "params": [
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Count",
+        "prop": "count",
+        "type": "string"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "double"
+      },
+      {
+        "name": "Dot",
+        "prop": "dot",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "notes": "New component. Record status keeps using Chip and StatusChip."
+  },
+  "examples": [
+    {
+      "title": "Variants",
+      "html": "<pk-badge count=\"12\"></pk-badge>\n<pk-badge variant=\"ok\">Live</pk-badge>\n<pk-badge variant=\"danger\" count=\"120\"></pk-badge>"
+    },
+    {
+      "title": "Status dots",
+      "html": "<pk-badge dot variant=\"ok\">Online</pk-badge>\n<pk-badge dot variant=\"warn\">Syncing</pk-badge>"
+    }
+  ]
+}

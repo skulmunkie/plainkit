@@ -1,0 +1,14 @@
+:host { display: inline-block; position: relative; }
+:host([fill]) { display: block; }
+.g { display: flex; }
+:host([orientation="vertical"]) .g { flex-direction: column; }
+::slotted(*) { --pk-button-radius: 0; }
+::slotted(:first-child) { --pk-button-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+::slotted(:last-child) { --pk-button-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+::slotted(:first-child:last-child) { --pk-button-radius: var(--radius-sm); }
+::slotted(:not(:first-child)) { margin-inline-start: -1px; }
+::slotted(:hover), ::slotted(:focus-within), ::slotted([pressed]) { position: relative; z-index: 1; }
+:host([orientation="vertical"]) ::slotted(:first-child) { --pk-button-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+:host([orientation="vertical"]) ::slotted(:last-child) { --pk-button-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+:host([orientation="vertical"]) ::slotted(:not(:first-child)) { margin-inline-start: 0; margin-top: -1px; }
+:host([fill]) ::slotted(*) { flex: 1 1 0; }

@@ -1,0 +1,97 @@
+{
+  "tag": "pk-button-group",
+  "title": "Button group",
+  "group": "Actions",
+  "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+  "props": [
+    {
+      "name": "orientation",
+      "type": "enum",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ],
+      "reflect": true,
+      "description": "Direction of the bar."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fills the container width and shares it between the buttons."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of the group (aria-label)."
+    },
+    {
+      "name": "mode",
+      "type": "enum",
+      "default": "none",
+      "values": [
+        "none",
+        "single",
+        "multi"
+      ],
+      "reflect": true,
+      "description": "single: the toggle buttons in the group release each other (one is always pressed); multi and none leave each toggle alone."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-button elements."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The role=group container."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
+  "blazor": {
+    "component": "ButtonGroup",
+    "params": [
+      {
+        "name": "Orientation",
+        "prop": "orientation",
+        "type": "string"
+      },
+      {
+        "name": "Fill",
+        "prop": "fill",
+        "type": "bool"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Mode",
+        "prop": "mode",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Group and single choice",
+      "html": "<pk-button-group label=\"View\"><pk-button variant=\"ghost\">Day</pk-button><pk-button variant=\"ghost\">Week</pk-button><pk-button variant=\"ghost\">Month</pk-button></pk-button-group>\n<pk-button-group label=\"Density\" mode=\"single\"><pk-button toggle pressed variant=\"ghost\">Compact</pk-button><pk-button toggle variant=\"ghost\">Comfortable</pk-button></pk-button-group>"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "tag": "pk-back-to-top",
+  "title": "Back to top",
+  "summary": "A floating button that appears once the reader is well down the page and scrolls the page (or a named scroller) back to the top, smoothly unless reduced motion is on.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "for",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Scroll container (default: the window)."
+    },
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": 400,
+      "reflect": true,
+      "description": "The threshold setting"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Back to top",
+      "reflect": true,
+      "description": "Accessible name"
+    },
+    {
+      "name": "visible",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the element."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Label."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "button",
+      "description": "The button"
+    },
+    {
+      "name": "icon",
+      "description": "Kind icon"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "A real button with a text label; after scrolling, focus moves to the top of the scroller so keyboard users are not left at the bottom.",
+  "mobile": "44px tall; clears the device safe area.",
+  "blazor": {
+    "component": "BackToTop",
+    "params": [
+      {
+        "name": "For",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "for"
+      },
+      {
+        "name": "Threshold",
+        "type": "int",
+        "default": 400,
+        "map": "prop",
+        "prop": "threshold"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "Back to top",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Visible",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "visible"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Back to top",
+      "html": "<pk-back-to-top label=\"Back to top\" visible></pk-back-to-top>"
+    }
+  ]
+}

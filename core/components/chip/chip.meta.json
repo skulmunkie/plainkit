@@ -1,0 +1,72 @@
+{
+  "folder": "chip",
+  "controls": [
+    {
+      "id": "chip",
+      "name": "Chip",
+      "kind": "Feedback & status",
+      "purpose": "A small pill with a colour variant.",
+      "replaces": "span.chip .chip-success / .chip-warn / .chip-muted",
+      "mobile": "Inline; wraps with its row.",
+      "states": [
+        "default",
+        "registered",
+        "warn",
+        "pending",
+        "danger",
+        "clickable"
+      ],
+      "classes": [
+        "chip",
+        "chip-success",
+        "chip-warn",
+        "chip-muted",
+        "chip-danger",
+        "chip-btn",
+        "chip-info",
+        "chip-accent"
+      ],
+      "css": [
+        "components/chip/chip.css"
+      ],
+      "js": [],
+      "snippet": "<span class=\"chip chip-success\">Active</span>",
+      "blazor": {
+        "component": "Chip",
+        "snippet": "<Chip Variant=\"ChipVariant.Registered\">Linked</Chip>"
+      },
+      "accessibility": "",
+      "related": []
+    },
+    {
+      "id": "status-chip",
+      "name": "StatusChip",
+      "kind": "Feedback & status",
+      "purpose": "A chip driven by a status value: the host maps the status to a chip-* class.",
+      "replaces": "per-page status-to-class switches",
+      "mobile": "Inline; wraps with its row.",
+      "states": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "classes": [
+        "chip",
+        "chip-muted",
+        "chip-success",
+        "chip-warn"
+      ],
+      "css": [
+        "components/chip/chip.css"
+      ],
+      "js": [],
+      "snippet": "<span class=\"chip chip-success\">Active</span>",
+      "blazor": {
+        "component": "StatusChip",
+        "snippet": "<StatusChip TStatus=\"ProductStatus\" Value=\"p.Status\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "tag": "pk-lightbox",
+  "title": "Lightbox",
+  "summary": "A full-screen image viewer on a native dialog: caption, counter, previous and next with arrow keys and swipe, neighbours preloaded, only safe image sources.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "index",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "The index setting"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Image viewer",
+      "reflect": true,
+      "description": "Accessible name"
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether it is shown"
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The trigger."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-change",
+      "detail": {
+        "index": "number"
+      },
+      "description": "Another image is shown."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "pk-close"
+    }
+  ],
+  "parts": [
+    {
+      "name": "dialog",
+      "description": "The native dialog"
+    },
+    {
+      "name": "close",
+      "description": "Close or dismiss button"
+    },
+    {
+      "name": "prev",
+      "description": "Previous control"
+    },
+    {
+      "name": "next",
+      "description": "Next control"
+    },
+    {
+      "name": "figure",
+      "description": "Image and caption"
+    },
+    {
+      "name": "image",
+      "description": "The image"
+    },
+    {
+      "name": "caption",
+      "description": "Caption text"
+    },
+    {
+      "name": "counter",
+      "description": "Position counter"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "show(index)",
+      "description": "See the description"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    },
+    {
+      "name": "items (property)",
+      "description": "{ src, alt, caption }[] (property only)."
+    }
+  ],
+  "a11y": "Native dialog with a label; the image has alt text from the item; the counter is a polite status; arrow keys and swipe navigate, Escape closes.",
+  "mobile": "Previous and next sit at the bottom corners as 44px buttons; swipe left or right to change images.",
+  "blazor": {
+    "component": "Lightbox",
+    "params": [
+      {
+        "name": "Index",
+        "type": "int",
+        "default": 0,
+        "map": "prop",
+        "prop": "index"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "Image viewer",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnChange",
+        "type": "EventCallback<LightboxChangeEventArgs>",
+        "map": "event",
+        "event": "pk-change",
+        "cancelable": true
+      },
+      {
+        "name": "OnClose",
+        "type": "EventCallback<LightboxCloseEventArgs>",
+        "map": "event",
+        "event": "pk-close",
+        "cancelable": true
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Lightbox trigger",
+      "html": "<pk-lightbox label=\"Product images\"><button type=\"button\" class=\"btn-ghost\">Open the gallery</button></pk-lightbox>"
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "tag": "pk-step",
+  "title": "Step",
+  "summary": "One step of a stepper: a marker (number, tick or !), a title, an optional description and the connector to the next step.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The title setting"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The description setting"
+    },
+    {
+      "name": "state",
+      "type": "enum",
+      "default": "todo",
+      "values": [
+        "todo",
+        "active",
+        "done",
+        "error"
+      ],
+      "reflect": true,
+      "description": "Set by the stepper."
+    },
+    {
+      "name": "index",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "One-based, set by the stepper."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Prevents interaction"
+    },
+    {
+      "name": "last",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the stepper: the last step draws no connector."
+    },
+    {
+      "name": "clickable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the stepper: the step can be entered."
+    },
+    {
+      "name": "orientation",
+      "type": "enum",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ],
+      "reflect": true,
+      "description": "Set by the stepper."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Title (overrides the title prop)."
+    },
+    {
+      "name": "description",
+      "description": "Description."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "marker",
+      "description": "Numbered marker"
+    },
+    {
+      "name": "text",
+      "description": "Title and description"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "description",
+      "description": "Secondary text"
+    },
+    {
+      "name": "connector",
+      "description": "Line to the next step"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-step-c",
+      "description": "State colour",
+      "default": "--color-border"
+    }
+  ],
+  "methods": [],
+  "a11y": "The stepper gives it role listitem and the descriptive label; state is also in aria-current and aria-disabled.",
+  "mobile": "Only the active step keeps its text in a horizontal stepper.",
+  "blazor": {
+    "component": "Step",
+    "params": [
+      {
+        "name": "Heading",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "Description",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "description"
+      },
+      {
+        "name": "State",
+        "type": "StepState",
+        "default": "todo",
+        "map": "prop",
+        "prop": "state",
+        "enum": {
+          "Todo": "todo",
+          "Active": "active",
+          "Done": "done",
+          "Error": "error"
+        }
+      },
+      {
+        "name": "Index",
+        "type": "int",
+        "default": 0,
+        "map": "prop",
+        "prop": "index"
+      },
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "disabled"
+      },
+      {
+        "name": "Last",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "last"
+      },
+      {
+        "name": "Clickable",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "clickable"
+      },
+      {
+        "name": "Orientation",
+        "type": "StepOrientation",
+        "default": "horizontal",
+        "map": "prop",
+        "prop": "orientation",
+        "enum": {
+          "Horizontal": "horizontal",
+          "Vertical": "vertical"
+        }
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "DescriptionContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "description"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Step states",
+      "html": "<div class=\"stack\"><pk-step heading=\"Done\" index=\"1\" state=\"done\"></pk-step><pk-step heading=\"Current\" index=\"2\" state=\"active\" description=\"You are here\"></pk-step><pk-step heading=\"To do\" index=\"3\" state=\"todo\"></pk-step><pk-step heading=\"Error\" index=\"4\" state=\"error\" description=\"Fix this\"></pk-step></div>"
+    }
+  ]
+}

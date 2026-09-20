@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SDK template: List and detail (CRUD)">
+<title>List and detail (CRUD) - SDK template</title>
+<link rel="stylesheet" href="../../../plainkit.css">
+</head>
+<body>
+<main id="content">
+<section class="card"><form class="form-grid"><label class="ff"><span>Search</span><input type="search" placeholder="Name"></label><label class="ff"><span>Status</span><select><option>Any</option><option>Active</option><option>Draft</option></select></label></form></section>
+<div class="split"><section class="card"><div class="card-header"><h2>Items</h2></div><div class="u-scroll-x"><table class="data data--striped data--hover"><thead><tr><th>Name</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody><tr class="dg-clickable"><td><a href="#">Item one</a></td><td><span class="chip chip-success">Active</span></td><td class="num">$12.00</td></tr><tr class="dg-clickable"><td><a href="#">Item two</a></td><td><span class="chip chip-muted">Draft</span></td><td class="num">$8.50</td></tr><tr class="dg-clickable"><td><a href="#">Item three</a></td><td><span class="chip chip-warn">Review</span></td><td class="num">$20.00</td></tr><tr class="dg-clickable"><td><a href="#">Item four</a></td><td><span class="chip chip-success">Active</span></td><td class="num">$5.25</td></tr></tbody></table></div><ul class="pagination u-mt-3" aria-label="Pages"><li><a class="page-link" href="#">1</a></li><li><a class="page-link" href="#" aria-current="page">2</a></li><li><a class="page-link" href="#">3</a></li></ul></section>
+<section class="card"><div class="card-header"><h2>Item one</h2><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button class="btn-mini btn-ghost" data-pk-open="#edit-modal">Edit</button><button class="btn-mini btn-warn" data-pk-open="#delete-modal">Delete</button></div></div><pk-field-list><dt>Name</dt><dd>Item one</dd><dt>Status</dt><dd>Active</dd><dt>Created</dt><dd>Sep 12</dd><dt>Amount</dt><dd>$12.00</dd></pk-field-list></section></div>
+<div class="modal-overlay" id="create-modal" data-pk-overlay hidden><div class="modal-card"><div class="card-header"><h2>New item</h2></div><div class="modal-body stack-sm"><label class="ff"><span>Name</span><input type="text"></label><label class="ff"><span>Status</span><select><option>Draft</option><option>Active</option></select></label></div><div class="modal-footer modal-footer--end"><button class="btn-mini btn-primary" data-pk-close>Create</button><button class="btn-mini btn-ghost" data-pk-close>Cancel</button></div></div></div>
+<div class="modal-overlay" id="edit-modal" data-pk-overlay hidden><div class="modal-card"><div class="card-header"><h2>Edit item</h2></div><div class="modal-body stack-sm"><label class="ff"><span>Name</span><input type="text" value="Item one"></label></div><div class="modal-footer modal-footer--end"><button class="btn-mini btn-primary" data-pk-close>Save</button><button class="btn-mini btn-ghost" data-pk-close>Cancel</button></div></div></div>
+<div class="modal-overlay" id="delete-modal" data-pk-overlay hidden><div class="modal-card"><div class="card-header"><h2>Delete this item?</h2></div><div class="modal-body"><p>This cannot be undone.</p></div><div class="modal-footer modal-footer--end"><button class="btn-mini btn-warn" data-pk-close>Delete</button><button class="btn-mini btn-ghost" data-pk-close>Cancel</button></div></div></div>
+</main>
+<script type="module" src="crud.js"></script>
+
+</body>
+</html>

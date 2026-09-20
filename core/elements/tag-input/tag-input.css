@@ -1,0 +1,23 @@
+:host { display: block; --_bd: var(--pk-control-border, var(--color-input-border)); }
+:host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
+:host([warning]) { --_bd: var(--field-warn); }
+:host([valid]) { --_bd: var(--field-ok); }
+.box { position: relative; display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--pk-control-bg, var(--color-input)); border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); transition: border-color 0.15s; }
+:host(:is([invalid], [aria-invalid="true"])) .box, :host([warning]) .box, :host([valid]) .box { box-shadow: inset 0 0 0 1px var(--_bd); }
+:host(:not([disabled], [readonly])) .box:hover { border-color: var(--color-muted); }
+.box:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
+:host([disabled]) .box { opacity: 0.55; cursor: not-allowed; }
+:host([readonly]) .box { background: var(--color-surface-alt); }
+:host([size="sm"]) .box { min-height: calc(var(--ctl-h) * 0.8); }
+:host([size="lg"]) .box { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-4); }
+input, textarea, select { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
+::placeholder { color: var(--color-muted); opacity: 1; }
+@media (max-width: 640px) { .box { min-height: var(--touch-target); } input, textarea, select { font-size: 16px; } }
+.box { flex-wrap: wrap; padding-block: var(--space-1); cursor: text; }
+.tags { display: contents; }
+.field { flex: 1 1 6rem; min-width: 6rem; padding: var(--space-1); }
+.pill { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0.1rem 0.2rem 0.1rem var(--space-2); border-radius: var(--radius-pill); background: var(--pk-tag-bg, var(--color-accent)); color: var(--btn-primary-fg); font-size: var(--text-meta); line-height: 1.4; white-space: nowrap; }
+.pl { min-width: 0; }
+.px { display: inline-flex; align-items: center; justify-content: center; width: 1.05rem; height: 1.05rem; padding: 0; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--btn-primary-fg) 25%, transparent); color: var(--btn-primary-fg); font-size: var(--text-read); line-height: 1; cursor: pointer; }
+.px:hover { background: color-mix(in srgb, var(--btn-primary-fg) 45%, transparent); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

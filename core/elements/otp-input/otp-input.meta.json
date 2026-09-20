@@ -1,0 +1,213 @@
+{
+  "tag": "pk-otp-input",
+  "title": "OTP input",
+  "group": "Form controls",
+  "summary": "A one-time code or PIN as a row of cells: typing advances, Backspace steps back, a pasted or autofilled code spreads across the cells, and completion is an event.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The code typed so far."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "length",
+      "type": "number",
+      "default": 6,
+      "reflect": false,
+      "description": "Number of cells."
+    },
+    {
+      "name": "type",
+      "type": "enum",
+      "default": "numeric",
+      "values": [
+        "numeric",
+        "alnum",
+        "any"
+      ],
+      "reflect": true,
+      "description": "The alphabet: digits, letters and digits, or anything."
+    },
+    {
+      "name": "separatorAt",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Puts a dash after this many cells (0 for none)."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-otp-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The code changed."
+    },
+    {
+      "name": "pk-otp-complete",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "Every cell is filled."
+    }
+  ],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The row of cells."
+    },
+    {
+      "name": "cell",
+      "description": "One cell (dynamic)."
+    },
+    {
+      "name": "separator",
+      "description": "The dash (dynamic)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the first empty cell."
+    },
+    {
+      "name": "clear()",
+      "description": "Empties the code."
+    }
+  ],
+  "a11y": "A role=group named by label; every cell is named \"Digit n of N\"; the first has one-time-code autocomplete so the OS can fill an SMS code; arrow keys, Home and End move between cells; numeric cells open the numeric keypad. Cells are 44px wide on a phone.",
+  "blazor": {
+    "component": "OtpInput",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Length",
+        "prop": "length",
+        "type": "int"
+      },
+      {
+        "name": "Type",
+        "prop": "type",
+        "type": "string"
+      },
+      {
+        "name": "SeparatorAt",
+        "prop": "separatorAt",
+        "type": "int"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "OnComplete",
+        "event": "pk-otp-complete",
+        "type": "{ value: string }"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-otp-change",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Six digits with a dash",
+      "html": "<pk-otp-input label=\"Verification code\" length=\"6\" separator-at=\"3\"></pk-otp-input>"
+    }
+  ]
+}

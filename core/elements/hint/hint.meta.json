@@ -1,0 +1,108 @@
+{
+  "tag": "pk-hint",
+  "title": "Hint",
+  "group": "Feedback",
+  "summary": "An inline explanation that opens in the flow of the page: no tooltip, no hover-only content.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "What's this?",
+      "reflect": false,
+      "description": "The toggle text."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Expanded."
+    },
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "info",
+      "values": [
+        "info",
+        "warn"
+      ],
+      "reflect": true,
+      "description": "Accent colour."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The explanation."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "open": "bool"
+      },
+      "description": "The hint opened or closed.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "toggle",
+      "description": "The button."
+    },
+    {
+      "name": "icon",
+      "description": "The i mark."
+    },
+    {
+      "name": "panel",
+      "description": "The explanation."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-hint-color",
+      "description": "Icon and panel edge colour.",
+      "default": "var(--color-accent)"
+    }
+  ],
+  "methods": [],
+  "a11y": "A real button with aria-expanded and aria-controls; the panel is a note region. It works by touch and keyboard, unlike a hover tooltip, and the panel never clips.",
+  "blazor": {
+    "component": "Hint",
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Open",
+        "prop": "open",
+        "type": "bool"
+      },
+      {
+        "name": "Tone",
+        "prop": "tone",
+        "type": "string"
+      },
+      {
+        "name": "OpenChanged",
+        "event": "pk-toggle",
+        "type": "EventCallback<bool>"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Landed cost",
+      "html": "<pk-hint label=\"What is landed cost?\">Freight and duties added to the item cost.</pk-hint>"
+    }
+  ]
+}

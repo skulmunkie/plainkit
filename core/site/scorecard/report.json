@@ -1,0 +1,294 @@
+{
+  "generated": "2026-09-20T01:30:48.599Z",
+  "metrics": {
+    "cssKb": 78.3,
+    "jsKb": 70,
+    "literalColours": 0,
+    "literalSizes": 0.19,
+    "contrastFail": 2
+  },
+  "perFile": [
+    {
+      "name": "tokens/tokens.css",
+      "bytes": 12059,
+      "rules": 18,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "base/base.css",
+      "bytes": 3573,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "components/utilities/utilities.css",
+      "bytes": 6012,
+      "rules": 120,
+      "literalColours": 0,
+      "literalSizes": 82
+    },
+    {
+      "name": "components/spacing/spacing.css",
+      "bytes": 4647,
+      "rules": 108,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "base/a11y.css",
+      "bytes": 1370,
+      "rules": 5,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/alert/alert.css",
+      "bytes": 2518,
+      "rules": 24,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/app-shell/app-shell.css",
+      "bytes": 1847,
+      "rules": 11,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/back-to-top/back-to-top.css",
+      "bytes": 943,
+      "rules": 6,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/breadcrumb/breadcrumb.css",
+      "bytes": 1675,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/button/button.css",
+      "bytes": 1848,
+      "rules": 13,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/card/card.css",
+      "bytes": 702,
+      "rules": 6,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/command-palette/command-palette.css",
+      "bytes": 2723,
+      "rules": 22,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/context-menu/context-menu.css",
+      "bytes": 736,
+      "rules": 3,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/dialog/dialog.css",
+      "bytes": 2741,
+      "rules": 27,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/drawer/drawer.css",
+      "bytes": 3349,
+      "rules": 29,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/dropdown/dropdown.css",
+      "bytes": 1330,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/lightbox/lightbox.css",
+      "bytes": 2771,
+      "rules": 26,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/loading-overlay/loading-overlay.css",
+      "bytes": 1035,
+      "rules": 10,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/menu-item/menu-item.css",
+      "bytes": 2656,
+      "rules": 27,
+      "literalColours": 0,
+      "literalSizes": 2
+    },
+    {
+      "name": "elements/nav-item/nav-item.css",
+      "bytes": 2528,
+      "rules": 25,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/navbar/navbar.css",
+      "bytes": 2269,
+      "rules": 19,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/pager/pager.css",
+      "bytes": 1153,
+      "rules": 12,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/popover/popover.css",
+      "bytes": 2202,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/scroll-progress/scroll-progress.css",
+      "bytes": 514,
+      "rules": 5,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/select/select.css",
+      "bytes": 2218,
+      "rules": 17,
+      "literalColours": 0,
+      "literalSizes": 2
+    },
+    {
+      "name": "elements/side-nav/side-nav.css",
+      "bytes": 2999,
+      "rules": 25,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/skip-link/skip-link.css",
+      "bytes": 777,
+      "rules": 3,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/step/step.css",
+      "bytes": 2845,
+      "rules": 27,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/stepper/stepper.css",
+      "bytes": 302,
+      "rules": 3,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/switch/switch.css",
+      "bytes": 1144,
+      "rules": 12,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tab/tab.css",
+      "bytes": 634,
+      "rules": 7,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tab-panel/tab-panel.css",
+      "bytes": 144,
+      "rules": 3,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tabs/tabs.css",
+      "bytes": 174,
+      "rules": 2,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/toast/toast.css",
+      "bytes": 2464,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/toast-stack/toast-stack.css",
+      "bytes": 1302,
+      "rules": 7,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/toc/toc.css",
+      "bytes": 1222,
+      "rules": 11,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tooltip/tooltip.css",
+      "bytes": 703,
+      "rules": 3,
+      "literalColours": 0,
+      "literalSizes": 0
+    }
+  ],
+  "scores": {
+    "overall": 87,
+    "categories": {
+      "performance": 91,
+      "scale": null,
+      "look": 84,
+      "accessibility": null
+    }
+  },
+  "exceptions": [
+    {
+      "metric": "literalSizes",
+      "reason": "Component CSS still carries many literal rem and px sizes that predate the spacing scale; they are being moved onto tokens as each file is touched. The share only goes down."
+    },
+    {
+      "metric": "contrastFail",
+      "reason": "Text pairs measured against the panel: the muted and accent text on the light theme sit just under 4.5:1. Changing them restyles the whole app, so it needs an owner colour decision."
+    },
+    {
+      "metric": "touch-target",
+      "reason": "Dense controls (mini buttons, tree rows, tab close, crumbs) are below 44px on a phone by design; the a11y layer raises the common ones. Reported per control by the scorecard run."
+    }
+  ]
+}

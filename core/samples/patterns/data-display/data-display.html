@@ -1,0 +1,35 @@
+<div class="stack">
+<div class="grid">
+<pk-stat label="Sales, September" value="$18,420" delta="12.5" versus="last month" values="[12,15,14,17,18]"></pk-stat>
+<pk-stat label="Open orders" value="37" delta="-3" versus="last week"></pk-stat>
+<pk-stat label="Return rate" value="2.1%" delta="-0.4" invert tone="positive" versus="last month"></pk-stat>
+<pk-stat label="Negative on hand" value="3" tone="critical" href="#products"></pk-stat>
+</div>
+<div class="split">
+<pk-card heading="Sales by month"><pk-chart kind="bar" caption="Sales, thousands of dollars"><table><thead><tr><th>Month</th><th>Sales</th></tr></thead><tbody><tr><th scope="row">Jun</th><td>12</td></tr><tr><th scope="row">Jul</th><td>15</td></tr><tr><th scope="row">Aug</th><td>17</td></tr><tr><th scope="row">Sep</th><td>18</td></tr></tbody></table></pk-chart></pk-card>
+<pk-card heading="Orders by channel"><pk-chart kind="donut" caption="Orders by channel"><table><thead><tr><th>Channel</th><th>Orders</th></tr></thead><tbody><tr><th scope="row">Web</th><td>52</td></tr><tr><th scope="row">Market</th><td>31</td></tr><tr><th scope="row">Live</th><td>17</td></tr></tbody></table></pk-chart></pk-card>
+</div>
+<pk-card heading="Fulfilment"><div class="stack-sm"><pk-chart kind="stack" caption="Orders by stage"><table><thead><tr><th>Stage</th><th>Orders</th></tr></thead><tbody><tr><th scope="row">Shipped</th><td>50</td></tr><tr><th scope="row">Packed</th><td>30</td></tr><tr><th scope="row">Waiting</th><td>20</td></tr></tbody></table></pk-chart><pk-progress label="Receiving PO 1042" value="18" max="24" show-value variant="ok"></pk-progress></div></pk-card>
+<pk-table label="Products" caption="Stock by product" striped hover selectable sticky-header cards filterable max-height="24rem" columns='[{"key":"sku","label":"SKU","sortable":true},{"key":"title","label":"Title","sortable":true},{"key":"publisher","label":"Publisher","sortable":true,"hidePhone":true},{"key":"price","label":"Price","type":"number","sortable":true},{"key":"onHand","label":"On hand","type":"number","sortable":true}]' rows='[{"id":1,"sku":"AC-001","title":"Widget 1","publisher":"Red","price":"$4.99","onHand":12},{"id":2,"sku":"AC-002","title":"Widget 2","publisher":"Red","price":"$3.99","onHand":4},{"id":3,"sku":"AC-010","title":"Widget 10","publisher":"Green","price":"$4.99","onHand":21},{"id":4,"sku":"AC-005","title":"Saga #5","publisher":"Blue","price":"$16.99","onHand":7}]'>
+<pk-button slot="bulk" size="mini" variant="ghost">Archive</pk-button>
+<pk-empty-state slot="empty" heading="No products match" description="Clear the filters to see everything."></pk-empty-state>
+<pk-pagination slot="footer" page="1" pages="12" total="290" page-size="25"></pk-pagination>
+</pk-table>
+<pk-list-group variant="action" label="Shortcuts"><a href="#products">Receive PO 1042 <pk-badge count="3" variant="warn"></pk-badge></a><a href="#products">Print labels <pk-badge count="120"></pk-badge></a><a href="#products" aria-current="page">Low stock report</a></pk-list-group>
+<div class="split">
+<pk-card heading="Order 1042"><pk-timeline label="Order history"><pk-timeline-item heading="Delivered" time="2026-09-18" status="done">Left at the front desk.</pk-timeline-item><pk-timeline-item heading="Shipped" time="2026-09-16" status="done">Tracking 9400 1000 0000.</pk-timeline-item><pk-timeline-item heading="Packed" time="2026-09-15" status="active"></pk-timeline-item><pk-timeline-item heading="Payment failed once" time="2026-09-14" status="danger">Retried and cleared.</pk-timeline-item></pk-timeline></pk-card>
+<pk-card heading="Team"><div class="stack-sm"><pk-avatar-group max="3" label="Assigned to Ada, Sam, Ana and 2 others"><pk-avatar name="Ada Lovelace" status="online"></pk-avatar><pk-avatar name="Sam Lee" status="away"></pk-avatar><pk-avatar name="Ana Ruiz"></pk-avatar><pk-avatar name="Jo Park"></pk-avatar><pk-avatar name="Ty Ng"></pk-avatar></pk-avatar-group><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><pk-tag removable>Green</pk-tag><pk-tag removable>Variant</pk-tag><pk-tag>Signed</pk-tag></div><div class="cluster cluster--horizontal cluster--gap-md cluster--align-center cluster--justify-start"><pk-badge dot variant="ok">Online</pk-badge><pk-badge dot variant="warn">Syncing</pk-badge><pk-badge dot variant="danger">Offline</pk-badge></div></div></pk-card>
+</div>
+<div class="split">
+<pk-card heading="Product"><pk-field-list><dt>SKU</dt><dd><code>AC-001</code></dd><dt>Status</dt><dd><span class="chip chip-success">Active</span></dd><dt>Vendor</dt><dd>Acme Supply</dd><dt>Cost</dt><dd>$2.10</dd></pk-field-list><pk-divider>Notes</pk-divider><pk-hint label="What is landed cost?">Freight and duties added to the item cost; it is a margin view and never changes the recorded cost.</pk-hint></pk-card>
+<pk-card heading="Widget 1" orientation="horizontal"><pk-media slot="media" ratio="4/3" caption="Variant cover"><svg viewBox="0 0 4 3" role="img" aria-label="Placeholder cover"><rect width="4" height="3" fill="currentColor" opacity="0.15"></rect></svg></pk-media><p>First printing, near mint.</p></pk-card>
+</div>
+<div class="split">
+<pk-card heading="Receive date"><pk-calendar value="2026-09-19" marks='["2026-09-05","2026-09-24"]'></pk-calendar></pk-card>
+<pk-card heading="Categories"><pk-tree label="Categories"><pk-tree-item label="Books" expanded selected><pk-tree-item label="Green"></pk-tree-item><pk-tree-item label="DC"></pk-tree-item></pk-tree-item><pk-tree-item label="Cards"><pk-tree-item label="Puzzles"></pk-tree-item></pk-tree-item></pk-tree></pk-card>
+</div>
+<pk-accordion exclusive><pk-accordion-item heading="Shipping" open>Ships in 2 business days.</pk-accordion-item><pk-accordion-item heading="Returns">30 days, unopened.</pk-accordion-item></pk-accordion>
+<pk-code-block label="import.json" line-numbers max-height="12rem">{ "sku": "AC-001", "qty": 24, "unitCost": 2.10 }</pk-code-block>
+<div class="cluster cluster--horizontal cluster--gap-md cluster--align-center cluster--justify-start"><pk-skeleton variant="circle"></pk-skeleton><pk-spinner label="Saving"></pk-spinner><pk-spinner variant="dots" label="Working"></pk-spinner></div>
+<div class="prose"><p class="eyebrow">Note</p><p class="lead">Press <kbd>Ctrl</kbd> <kbd>K</kbd> to search.</p><blockquote class="quote">Count twice, receive once.</blockquote></div>
+</div>

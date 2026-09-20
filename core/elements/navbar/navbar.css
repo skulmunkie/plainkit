@@ -1,0 +1,34 @@
+/* pk-navbar: brand, links, actions on one row; below 1024px the links fold behind a hamburger that toggles [open]. */
+:host { display: block; background: var(--color-panel); border-bottom: 1px solid var(--color-border); color: var(--color-text); font-size: var(--text-read); }
+
+:host([sticky]) { position: sticky; top: 0; z-index: var(--z-sticky); }
+
+[part="nav"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: var(--app-header-h); padding: 0 var(--space-4); }
+
+::slotted([slot="brand"]) { display: inline-flex; align-items: center; min-height: var(--touch-target); color: inherit; font-weight: 600; text-decoration: none; white-space: nowrap; }
+
+[part="links"] { display: flex; align-items: center; gap: var(--space-1); }
+
+[part="actions"] { display: flex; align-items: center; gap: var(--space-2); margin-inline-start: auto; }
+
+::slotted(a) { display: inline-flex; align-items: center; min-height: 2.25rem; padding: var(--space-1) var(--space-3); border-radius: var(--radius-md); color: inherit; text-decoration: none; }
+
+::slotted(a:hover) { background: var(--color-surface-alt); }
+
+::slotted(a[aria-current="page"]) { color: var(--color-link); box-shadow: inset 0 -2px 0 var(--color-accent); border-radius: var(--radius-md) var(--radius-md) 0 0; }
+
+::slotted(a:focus-visible) { outline: var(--focus-ring); outline-offset: -2px; }
+
+[part="toggle"] { display: none; flex: none; width: var(--touch-target); height: var(--touch-target); padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; cursor: pointer; }
+
+[part="toggle"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+[part="bars"] { display: block; width: 1.25rem; height: 2px; margin: auto; background: var(--color-text); box-shadow: 0 -6px 0 var(--color-text), 0 6px 0 var(--color-text); }
+
+@media (max-width: 1024px) {
+    [part="toggle"] { display: block; margin-inline-start: auto; }
+    [part="actions"] { margin-inline-start: 0; }
+    [part="links"] { display: none; flex: 1 1 100%; flex-direction: column; align-items: stretch; padding-bottom: var(--space-2); }
+    :host([open]) [part="links"] { display: flex; }
+    ::slotted(a) { min-height: var(--touch-target); }
+}

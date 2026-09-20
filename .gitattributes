@@ -1,0 +1,13 @@
+# Keep line endings deterministic in the index.
+* text=auto
+
+# The toolkit build emits CRLF and its tests compare bytes (dist files, SRI hashes), so these are CRLF on every platform.
+core/** eol=crlf
+blazor/src/Plainkit.Blazor/Generated/** eol=crlf
+blazor/src/Plainkit.Blazor/wwwroot/** eol=crlf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.nupkg binary

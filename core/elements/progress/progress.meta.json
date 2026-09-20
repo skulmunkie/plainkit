@@ -1,0 +1,185 @@
+{
+  "tag": "pk-progress",
+  "title": "Progress",
+  "group": "Feedback",
+  "summary": "A determinate or indeterminate progress bar on the native progress element, with sizes, colours, stripes, a label, a value readout and automatic warning colours.",
+  "props": [
+    {
+      "name": "value",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Current value."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 100,
+      "reflect": true,
+      "description": "Upper bound."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "accent",
+      "values": [
+        "accent",
+        "ok",
+        "warn",
+        "danger"
+      ],
+      "reflect": true,
+      "description": "Colour."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "sm",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Height."
+    },
+    {
+      "name": "striped",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Diagonal stripes."
+    },
+    {
+      "name": "indeterminate",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Unknown duration: the bar sweeps."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Text above the bar; also its accessible name."
+    },
+    {
+      "name": "showValue",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Append the percentage next to the label."
+    },
+    {
+      "name": "levelThresholds",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Two percentages, for example \"70,90\": the bar turns warn then danger."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "row",
+      "description": "Label and value row."
+    },
+    {
+      "name": "label",
+      "description": "The label."
+    },
+    {
+      "name": "value",
+      "description": "The percentage readout."
+    },
+    {
+      "name": "bar",
+      "description": "The native progress element."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-progress-color",
+      "description": "Fill colour.",
+      "default": "var(--color-accent)"
+    },
+    {
+      "name": "--pk-progress-height",
+      "description": "Bar height.",
+      "default": "var(--space-2)"
+    },
+    {
+      "name": "--pk-progress-track",
+      "description": "Track colour.",
+      "default": "var(--chart-track)"
+    }
+  ],
+  "methods": [],
+  "a11y": "Built on the native progress element, so its role, value and range are exposed without extra ARIA; the label names it (aria-labelledby). Always give it a label. Indeterminate when no value applies.",
+  "blazor": {
+    "component": "Progress",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "double"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "double"
+      },
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Striped",
+        "prop": "striped",
+        "type": "bool"
+      },
+      {
+        "name": "Indeterminate",
+        "prop": "indeterminate",
+        "type": "bool"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "ShowValue",
+        "prop": "showValue",
+        "type": "bool"
+      },
+      {
+        "name": "LevelThresholds",
+        "prop": "levelThresholds",
+        "type": "string"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Labelled",
+      "html": "<pk-progress label=\"Import\" value=\"60\" show-value></pk-progress>"
+    },
+    {
+      "title": "Auto colour and striped",
+      "html": "<pk-progress label=\"Disk\" value=\"82\" level-thresholds=\"70,90\"></pk-progress>\n<pk-progress label=\"Upload\" value=\"45\" striped variant=\"ok\"></pk-progress>"
+    },
+    {
+      "title": "Indeterminate",
+      "html": "<pk-progress label=\"Working\" indeterminate></pk-progress>"
+    }
+  ]
+}

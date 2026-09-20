@@ -1,0 +1,5 @@
+:host { display: block; }
+.sum { margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--field-error); border-inline-start-width: 4px; border-radius: var(--radius-sm); background: var(--pk-form-summary-bg, var(--color-surface-alt)); }
+.st { margin: 0 0 var(--space-2); font-size: var(--text-read); font-weight: 600; }
+.sl { margin: 0; padding-inline-start: var(--space-5); }
+.sl a { color: var(--field-error); cursor: pointer; }

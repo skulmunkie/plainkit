@@ -1,0 +1,36 @@
+{
+  "folder": "remedy",
+  "controls": [
+    {
+      "id": "remedy",
+      "name": "Remedy",
+      "kind": "Feedback & status",
+      "purpose": "A message that carries the control which fixes it.",
+      "replaces": "text that names a problem with no way to fix it",
+      "mobile": "Action wraps under the message.",
+      "states": [
+        "warn",
+        "error",
+        "info"
+      ],
+      "classes": [
+        "remedy",
+        "remedy--error",
+        "remedy--info",
+        "remedy-body",
+        "remedy-actions"
+      ],
+      "css": [
+        "components/remedy/remedy.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"remedy\"><div class=\"remedy-body\">Message</div><div class=\"remedy-actions\"><button class=\"btn-mini btn-primary\">Fix</button></div></div>",
+      "blazor": {
+        "component": "Remedy",
+        "snippet": "<Remedy><ChildContent>…</ChildContent><ActionContent><Button>Fix</Button></ActionContent></Remedy>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

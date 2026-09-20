@@ -1,0 +1,294 @@
+{
+  "tag": "pk-popover",
+  "title": "Popover",
+  "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the panel is shown."
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "default": "bottom-start",
+      "reflect": true,
+      "description": "Preferred side."
+    },
+    {
+      "name": "trigger",
+      "type": "enum",
+      "default": "click",
+      "values": [
+        "click",
+        "hover",
+        "manual"
+      ],
+      "reflect": true,
+      "description": "What opens it."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Panel title."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Accessible name when there is no heading."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "default",
+      "values": [
+        "default",
+        "confirm"
+      ],
+      "reflect": true,
+      "description": "confirm adds Cancel and Confirm buttons."
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Body text for the confirm variant."
+    },
+    {
+      "name": "confirmLabel",
+      "type": "string",
+      "default": "Confirm",
+      "reflect": true,
+      "description": "Confirm button text."
+    },
+    {
+      "name": "cancelLabel",
+      "type": "string",
+      "default": "Cancel",
+      "reflect": true,
+      "description": "Cancel button text."
+    },
+    {
+      "name": "danger",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Styles Confirm as destructive."
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger",
+      "description": "The control that opens it."
+    },
+    {
+      "name": "",
+      "description": "Panel body."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "Panel opened."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "Panel closed (escape, outside, cancel, confirm, toggle)."
+    },
+    {
+      "name": "pk-confirm",
+      "detail": null,
+      "description": "Confirm pressed (variant confirm)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "panel",
+      "description": "The floating panel"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "body",
+      "description": "Main content"
+    },
+    {
+      "name": "actions",
+      "description": "Action buttons"
+    },
+    {
+      "name": "cancel",
+      "description": "Cancel button"
+    },
+    {
+      "name": "confirm",
+      "description": "Confirm button"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-popover-w",
+      "description": "Panel width",
+      "default": "--pop-w"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    },
+    {
+      "name": "toggle()",
+      "description": "Toggles it"
+    }
+  ],
+  "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
+  "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
+  "blazor": {
+    "component": "Popover",
+    "params": [
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "Placement",
+        "type": "string",
+        "default": "bottom-start",
+        "map": "prop",
+        "prop": "placement"
+      },
+      {
+        "name": "Trigger",
+        "type": "PopoverTrigger",
+        "default": "click",
+        "map": "prop",
+        "prop": "trigger",
+        "enum": {
+          "Click": "click",
+          "Hover": "hover",
+          "Manual": "manual"
+        }
+      },
+      {
+        "name": "Heading",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Variant",
+        "type": "PopoverVariant",
+        "default": "default",
+        "map": "prop",
+        "prop": "variant",
+        "enum": {
+          "Default": "default",
+          "Confirm": "confirm"
+        }
+      },
+      {
+        "name": "Message",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "message"
+      },
+      {
+        "name": "ConfirmLabel",
+        "type": "string",
+        "default": "Confirm",
+        "map": "prop",
+        "prop": "confirmLabel"
+      },
+      {
+        "name": "CancelLabel",
+        "type": "string",
+        "default": "Cancel",
+        "map": "prop",
+        "prop": "cancelLabel"
+      },
+      {
+        "name": "Danger",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "danger"
+      },
+      {
+        "name": "TriggerContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "trigger"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnOpen",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-open"
+      },
+      {
+        "name": "OnClose",
+        "type": "EventCallback<PopoverCloseEventArgs>",
+        "map": "event",
+        "event": "pk-close",
+        "cancelable": true
+      },
+      {
+        "name": "OnConfirm",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-confirm"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Popover on click",
+      "html": "<pk-popover heading=\"Order 1042\"><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Details</button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
+    },
+    {
+      "title": "Confirmation popover",
+      "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><button type=\"button\" slot=\"trigger\" class=\"btn-warn\">Delete line</button></pk-popover>"
+    }
+  ]
+}

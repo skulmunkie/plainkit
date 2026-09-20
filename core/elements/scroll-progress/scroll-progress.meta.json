@@ -1,0 +1,51 @@
+{
+  "tag": "pk-scroll-progress",
+  "title": "Scroll progress",
+  "summary": "A thin bar at the top of the screen that fills as the page (or a named scroller) is read.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "for",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Scroll container (default: the window)."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "bar",
+      "description": "The bar"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-progress",
+      "description": "Scrolled fraction 0 to 1, set by the element",
+      "default": "0"
+    }
+  ],
+  "methods": [],
+  "a11y": "Decorative (aria-hidden); the scroll position is already available to assistive tech.",
+  "mobile": "3px bar; ignores the safe-area inset because it sits at the top edge of the content.",
+  "blazor": {
+    "component": "ScrollProgress",
+    "params": [
+      {
+        "name": "For",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "for"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Reading progress bar",
+      "html": "<pk-scroll-progress></pk-scroll-progress>"
+    }
+  ]
+}

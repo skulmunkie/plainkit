@@ -1,0 +1,45 @@
+/* pk-side-nav: a column with a brand row, an optional filter, one scroller and a footer; an icon rail when [collapsed]; an off-canvas drawer at 1024px and below. */
+:host { display: flex; flex-direction: column; box-sizing: border-box; width: var(--shell-nav-w); min-height: 0; background: var(--color-panel); border-inline-end: 1px solid var(--color-border); color: var(--color-text); font-size: var(--text-read); overflow: hidden; }
+
+:host([collapsed]) { width: var(--shell-nav-w-collapsed); }
+
+[part="nav"] { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+[part="brand"] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex: none; height: var(--app-header-h); padding: 0 var(--space-3); border-bottom: 1px solid var(--color-border); font-weight: 600; white-space: nowrap; }
+
+::slotted([slot="brand"]) { color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; }
+
+:host([collapsed]) ::slotted([slot="brand"]) { display: none; }
+
+[part="collapse"] { flex: none; width: 2rem; height: 2rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
+
+[part="collapse"]::before { content: "\00ab"; }
+
+:host([collapsed]) [part="collapse"]::before { content: "\00bb"; }
+
+[part="collapse"]:hover { background: var(--color-surface-alt); }
+
+[part="collapse"]:focus-visible, [part="filter-input"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+[part="filter"] { flex: none; padding: var(--space-2) var(--space-2) 0; }
+
+:host([collapsed]) [part="filter"] { display: none; }
+
+[part="filter-input"] { box-sizing: border-box; width: 100%; min-height: 2.25rem; padding: var(--space-1) var(--space-3); border: 1px solid var(--color-input-border); border-radius: var(--radius-md); background: var(--color-surface); color: inherit; font: inherit; }
+
+[part="scroll"] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-2); }
+
+[part="foot"] { flex: none; padding: var(--space-2); border-top: 1px solid var(--color-border); }
+
+[part="foot"]:not(:has(::slotted(*))) { display: none; }
+
+[part="backdrop"] { display: none; }
+
+@media (max-width: 1024px) {
+    :host, :host([collapsed]) { position: fixed; inset: 0 auto 0 0; z-index: var(--z-flyout); width: min(var(--shell-nav-w), 88vw); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0s linear 0.2s; box-shadow: var(--shadow-flyout); }
+    :host([open]) { transform: none; visibility: visible; transition-delay: 0s; }
+    :host([open]) [part="backdrop"] { display: block; position: fixed; inset: 0 0 0 auto; width: calc(100vw - min(var(--shell-nav-w), 88vw)); z-index: var(--z-flyout-backdrop); background: var(--flyout-backdrop-bg); }
+    [part="collapse"] { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { :host, :host([collapsed]) { transition: none; } }

@@ -1,0 +1,247 @@
+{
+  "tag": "pk-checkbox",
+  "title": "Checkbox",
+  "group": "Form controls",
+  "summary": "A checkbox drawn from tokens, with an indeterminate state and select-all groups: a master checkbox mirrors every checkbox of its group.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "on",
+      "reflect": false,
+      "description": "The value submitted while checked."
+    },
+    {
+      "name": "checked",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the box is checked."
+    },
+    {
+      "name": "indeterminate",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The mixed state (some of a group are checked)."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "group",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Puts this checkbox in a select-all group of that name."
+    },
+    {
+      "name": "master",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Makes this the select-all checkbox of the group of that name; it shows checked, unchecked or indeterminate as its members change."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "md",
+        "sm"
+      ],
+      "reflect": true,
+      "description": "sm is the compact checkbox of a toolbar: smaller label text."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The label."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-change",
+      "detail": "{ checked: boolean }",
+      "detailProps": {
+        "checked": "bool"
+      },
+      "description": "The user changed the value (same moment as change; carries it)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "control",
+      "description": "The label wrapper (the whole row is the tap target)."
+    },
+    {
+      "name": "input",
+      "description": "The inner checkbox."
+    },
+    {
+      "name": "label",
+      "description": "The label text."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-checkbox-border",
+      "description": "Border colour of the box.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-checkbox-size",
+      "description": "Box size.",
+      "default": "1.15rem"
+    },
+    {
+      "name": "--pk-checkbox-font",
+      "description": "Label font size.",
+      "default": "var(--text-read)"
+    },
+    {
+      "name": "--pk-checkbox-gap",
+      "description": "Space between the box and its label.",
+      "default": "var(--space-2)"
+    },
+    {
+      "name": "--pk-checkbox-color",
+      "description": "Label colour.",
+      "default": "var(--color-text)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "toggle()",
+      "description": "Toggles as a click does."
+    },
+    {
+      "name": "focus()",
+      "description": "Focuses the box."
+    }
+  ],
+  "a11y": "A native checkbox inside its label, so it is named by its text and toggled by Space; indeterminate is announced as mixed; invalid sets aria-invalid and a red border. Rows are 44px tall on a phone.",
+  "blazor": {
+    "component": "CheckField",
+    "params": [
+      {
+        "name": "Checked",
+        "prop": "checked",
+        "type": "bool"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Indeterminate",
+        "prop": "indeterminate",
+        "type": "bool"
+      },
+      {
+        "name": "Group",
+        "prop": "group",
+        "type": "string"
+      },
+      {
+        "name": "Master",
+        "prop": "master",
+        "type": "string"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      }
+    ],
+    "model": {
+      "prop": "checked",
+      "event": "pk-change",
+      "key": "checked",
+      "type": "bool"
+    }
+  },
+  "examples": [
+    {
+      "title": "States",
+      "html": "<pk-checkbox checked>Track inventory</pk-checkbox>\n<pk-checkbox>Include archived</pk-checkbox>\n<pk-checkbox indeterminate>Some variants selected</pk-checkbox>\n<pk-checkbox disabled>Disabled</pk-checkbox>"
+    },
+    {
+      "title": "Select all",
+      "html": "<pk-checkbox master=\"rows\">Select all</pk-checkbox>\n<pk-checkbox group=\"rows\" checked>Widget 1</pk-checkbox>\n<pk-checkbox group=\"rows\">Widget 2</pk-checkbox>"
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "tag": "pk-radio-group",
+  "title": "Radio group",
+  "group": "Form controls",
+  "summary": "One choice from a few options, as radios or as a segmented bar. The options are its own option children; the radios are native inputs, so arrow keys and grouping are the browser's.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The current value; what the form submits."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "radio",
+      "values": [
+        "radio",
+        "segmented"
+      ],
+      "reflect": true,
+      "description": "radio draws a list of radios; segmented draws one bar of segments."
+    },
+    {
+      "name": "direction",
+      "type": "enum",
+      "default": "vertical",
+      "values": [
+        "vertical",
+        "horizontal"
+      ],
+      "reflect": true,
+      "description": "Radio variant: stacked or in a wrapping row."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Segmented variant: spread the segments across the full width."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "option elements (value, disabled and text)."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-value-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user changed the value (same moment as change; carries it)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The radiogroup container."
+    },
+    {
+      "name": "option",
+      "description": "One option label (dynamic)."
+    },
+    {
+      "name": "option-label",
+      "description": "The option text (dynamic)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-radio-border",
+      "description": "Border colour of a radio.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-segmented-active",
+      "description": "Background of the chosen segment.",
+      "default": "var(--color-accent)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the chosen radio, or the first enabled one."
+    }
+  ],
+  "a11y": "role=radiogroup named by label; each option is a native radio in one tab stop with arrow-key movement; the segmented variant hides the radio visually but keeps it focusable and shows the focus ring on the segment. Options are 44px tall on a phone.",
+  "blazor": {
+    "component": "RadioGroup",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Direction",
+        "prop": "direction",
+        "type": "string"
+      },
+      {
+        "name": "Fill",
+        "prop": "fill",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-value-change",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Radios",
+      "html": "<pk-radio-group label=\"Condition\" value=\"nm\"><option value=\"nm\">Near mint</option><option value=\"vf\">Very fine</option><option value=\"g\" disabled>Graded (unavailable)</option></pk-radio-group>"
+    },
+    {
+      "title": "Segmented",
+      "html": "<pk-radio-group variant=\"segmented\" label=\"View\" value=\"week\"><option value=\"day\">Day</option><option value=\"week\">Week</option><option value=\"month\">Month</option></pk-radio-group>\n<pk-radio-group variant=\"segmented\" fill label=\"Channel\" value=\"all\"><option value=\"all\">All</option><option value=\"web\">Web</option><option value=\"market\">Market</option></pk-radio-group>"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+<!-- extras: canonical markup. Each sample is a valid, copy-pasteable fragment; the build reads the @sample markers. -->
+
+<!-- @sample control="form-extras" title="Form grid with states" -->
+<div class="form-grid"><label class="ff"><span>Price</span><div class="input-group"><span class="input-group-text">$</span><input type="text" value="19.99"></div><span class="field-help">Per unit.</span></label><label class="ff"><span>SKU</span><input type="text" class="is-invalid" value="bad sku"><span class="field-error">SKU cannot contain spaces.</span></label><label class="switch"><input type="checkbox" checked><span>Active</span></label><label class="ff"><span>Volume</span><input type="range" min="0" max="10" value="4"></label></div>
+
+<!-- @sample control="button-group" title="Group and pills" -->
+<div class="stack-sm"><div class="btn-group" role="group" aria-label="View"><button class="btn-ghost">Day</button><button class="btn-ghost">Week</button><button class="btn-ghost">Month</button></div><div class="pills"><button class="pill active">All</button><button class="pill">Open</button><button class="pill">Closed</button></div></div>
+
+<!-- @sample control="table-extras" title="Striped, hover, sortable, paged" -->
+<pk-table striped hover><table><thead><tr><th aria-sort="ascending">SKU</th><th>Title</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>A1</code></td><td>One</td><td class="num">$1</td></tr><tr><td><code>A2</code></td><td>Two</td><td class="num">$2</td></tr><tr><td><code>A3</code></td><td>Three</td><td class="num">$3</td></tr></tbody></table></pk-table><ul class="pagination u-mt-3" aria-label="Pages"><li><a class="page-link" href="#">1</a></li><li><a class="page-link" href="#" aria-current="page">2</a></li><li><a class="page-link" href="#">3</a></li></ul>
+
+<!-- @sample control="feedback-extras" title="Feedback" -->
+<div class="stack-sm"><div class="progress" role="progressbar" aria-label="Import" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"><span></span></div><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><span class="spinner" role="status" aria-label="Loading"></span><span class="avatar" aria-label="Ada">A</span></div><span class="skeleton skeleton--w-60"></span><div class="toast" role="status">Saved. <button class="btn-mini btn-ghost">Undo</button></div></div>
+
+<!-- @sample control="navigation-extras" title="Structure" -->
+<div class="stack"><ol class="stepper"><li class="done">Basics</li><li class="active">Pricing</li><li>Review</li></ol><ul class="list-group"><li>Receive PO 1042</li><li>Print labels</li></ul><div class="accordion"><details open><summary>Shipping</summary><div>Ships in 2 days.</div></details><details><summary>Returns</summary><div>30 days.</div></details></div><ul class="timeline"><li>Created</li><li>Received</li></ul><p>Press <kbd>Ctrl</kbd> + <kbd>K</kbd></p></div>

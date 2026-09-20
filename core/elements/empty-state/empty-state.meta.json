@@ -1,0 +1,151 @@
+{
+  "tag": "pk-empty-state",
+  "title": "Empty state",
+  "group": "Feedback",
+  "summary": "What a list shows when it has no rows: an optional icon, a title, a description and the actions that fill it. Densities for a whole page, a panel or a table row.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The title."
+    },
+    {
+      "name": "level",
+      "type": "number",
+      "default": 3,
+      "reflect": false,
+      "description": "Heading level exposed to assistive technology."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The explanation."
+    },
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "default",
+      "values": [
+        "default",
+        "compact",
+        "boxed",
+        "error"
+      ],
+      "reflect": true,
+      "description": "Density and frame."
+    },
+    {
+      "name": "announce",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Announce the element politely when it appears (role status), for results that replace a search."
+    }
+  ],
+  "slots": [
+    {
+      "name": "icon",
+      "description": "An illustration or icon."
+    },
+    {
+      "name": "heading",
+      "description": "A rich title; overrides heading."
+    },
+    {
+      "name": "",
+      "description": "A rich description; overrides description."
+    },
+    {
+      "name": "actions",
+      "description": "Buttons that fill the empty state."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "root",
+      "description": "The wrapper."
+    },
+    {
+      "name": "icon",
+      "description": "The icon wrapper."
+    },
+    {
+      "name": "heading",
+      "description": "The title."
+    },
+    {
+      "name": "description",
+      "description": "The description."
+    },
+    {
+      "name": "actions",
+      "description": "The action row."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-empty-state-padding",
+      "description": "Padding.",
+      "default": "var(--space-8) var(--space-6)"
+    }
+  ],
+  "methods": [],
+  "a11y": "Plain text with a heading whose level you choose. Actions are real buttons and links. Set announce when it replaces content after a search or filter so the change is announced politely.",
+  "blazor": {
+    "component": "EmptyState",
+    "existing": true,
+    "params": [
+      {
+        "name": "Title",
+        "prop": "heading",
+        "type": "string?"
+      },
+      {
+        "name": "Description",
+        "prop": "description",
+        "type": "string?"
+      },
+      {
+        "name": "Tone",
+        "prop": "tone",
+        "type": "string"
+      },
+      {
+        "name": "TitleContent",
+        "slot": "heading",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "DescriptionContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "IconContent",
+        "slot": "icon",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "ActionContent",
+        "slot": "actions",
+        "type": "RenderFragment?"
+      }
+    ],
+    "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot."
+  },
+  "examples": [
+    {
+      "title": "With an action",
+      "html": "<pk-empty-state heading=\"No products yet\" description=\"Create your first product to see it here.\">\n  <pk-button slot=\"actions\">Add product</pk-button>\n</pk-empty-state>"
+    },
+    {
+      "title": "Compact",
+      "html": "<pk-empty-state tone=\"compact\" heading=\"No matches\"></pk-empty-state>"
+    }
+  ]
+}

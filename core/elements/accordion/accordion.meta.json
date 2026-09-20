@@ -1,0 +1,59 @@
+{
+  "tag": "pk-accordion",
+  "title": "Accordion",
+  "group": "Containers",
+  "summary": "A stack of collapsible sections; exclusive mode keeps one open.",
+  "props": [
+    {
+      "name": "exclusive",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Opening one item closes the others."
+    },
+    {
+      "name": "flush",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "No gaps: one shared frame."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-accordion-item children."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "Each item is a native details and summary, so Enter and Space toggle it and find-in-page opens matches. The accordion only coordinates the items.",
+  "blazor": {
+    "component": "Accordion",
+    "params": [
+      {
+        "name": "Exclusive",
+        "prop": "exclusive",
+        "type": "bool"
+      },
+      {
+        "name": "Flush",
+        "prop": "flush",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Exclusive",
+      "html": "<pk-accordion exclusive>\n  <pk-accordion-item heading=\"Shipping\" open>Ships in 2 days.</pk-accordion-item>\n  <pk-accordion-item heading=\"Returns\">30 days.</pk-accordion-item>\n</pk-accordion>"
+    }
+  ]
+}

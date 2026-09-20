@@ -1,0 +1,51 @@
+{
+  "note": "innerHTML-style sinks allowed per file, with the source of the markup. Prefer textContent or DOM APIs; a new sink needs a line here.",
+  "htmlSinks": {
+    "site/gallery/gallery.js": {
+      "count": 8,
+      "source": "Markup assembled from gallery.data.js (generated from the repo's component folders) with every dynamic value passed through esc()."
+    },
+    "js/code-explorer/element.js": {
+      "count": 10,
+      "source": "Provider data (file paths, code lines, search hits) is escaped with esc() before interpolation; tokens are wrapped in fixed spans."
+    },
+    "modules/scorecard/scorecard.js": {
+      "count": 2,
+      "source": "The module's own fixed markup and the ranked table built from finding text and scores, every dynamic value passed through esc()."
+    },
+    "site/scorecard/scorecard.js": {
+      "count": 10,
+      "source": "Scores and finding text from the scorecard's own measurements, escaped with esc()."
+    },
+    "site/gallery/elements-view.js": {
+      "count": 4,
+      "source": "The element's own example markup from its meta file, and markup the reader types into the playground (their own page, their own input)."
+    },
+    "js/element.js": {
+      "count": 1,
+      "source": "The element class's static template: markup authored in elements/<name>/<name>.html and inlined by the build, parsed once into a template element."
+    },
+    "site/shell.js": {
+      "count": 1,
+      "source": "Static navigation markup from the PAGES constant and fixed strings."
+    },
+    "samples/templates/chrome.js": {
+      "count": 4,
+      "source": "Static example-page chrome from constants; page title and crumbs come from the page's own script."
+    },
+    "site/theme/theme.js": {
+      "count": 6,
+      "source": "Token names and values from tokens.css and validated overrides, escaped with esc()."
+    },
+    "site/reference/page.js": {
+      "count": 1,
+      "source": "Fixed sample markup constants in the same file, rendered twice (dark and light)."
+    },
+    "site/spacing/page.js": {
+      "count": 2,
+      "source": "Computed custom-property values read from getComputedStyle and fixed role names in the same file."
+    }
+  },
+  "dynamicScript": [],
+  "legacyVar": []
+}

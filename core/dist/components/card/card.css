@@ -1,0 +1,50 @@
+/* -------- Cards / buttons -------- */
+
+.card {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) 1.25rem;
+    margin-top: var(--space-4);
+    box-shadow: var(--shadow-card);
+}
+
+.card.error {
+    border-color: var(--card-error-border);
+}
+
+/* -------- Card header bar (h2 + inline action button) -------- */
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Wrap rather than overflow. A header is a title plus whatever the card
+       wants beside it — a sentence, a toggle, a link — and on a narrow column
+       that pair does not fit on one line. Pages used to restate this flex row
+       as an inline style just to add a gap, which then outranked every
+       responsive rule the stylesheet tried to apply to it. */
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    /* A rule under the header, so the card reads as a titled panel rather than
+       a bordered box whose first line happens to be bold. Inset to the card's
+       own padding rather than bled to its edges: .card-header is used in a
+       handful of places that are not inside a .card, and a full-bleed line
+       needs negative margins matched to a padding those places do not have. */
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.card-header h2 {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+/* btn-mini exists to be unobtrusive on a dense desktop table; on a phone
+       it is a 22px target. Generic selector, so every page's card-header
+       buttons get the same floor -- moved here from product-detail.css
+       (T-128, 2026-09-18), where it named nothing product-specific but sat
+       bundled with two selectors that were. */
+.card-header .btn-mini { min-height: var(--touch-target); padding: var(--space-2) var(--space-3); font-size: var(--text-base); }
+}

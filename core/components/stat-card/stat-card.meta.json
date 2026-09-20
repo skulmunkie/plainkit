@@ -1,0 +1,40 @@
+{
+  "folder": "stat-card",
+  "controls": [
+    {
+      "id": "stat-card",
+      "name": "StatCard",
+      "kind": "Data display",
+      "purpose": "A headline number with a caption, optional link or click, used for dashboards.",
+      "replaces": "stat-tile divs",
+      "mobile": "Tiles wrap into the grid; a clickable tile is the whole card.",
+      "states": [
+        "default",
+        "positive",
+        "warning",
+        "critical",
+        "link"
+      ],
+      "classes": [
+        "stat-card",
+        "stat-card--positive",
+        "stat-card--warning",
+        "stat-card--critical",
+        "stat-card--link",
+        "stat-card-label",
+        "stat-card-value",
+        "stat-card-subtext",
+        "stat-card-grid"
+      ],
+      "css": [],
+      "js": [],
+      "snippet": "<div class=\"stat-card\"><span class=\"stat-card-label\">Label</span><div class=\"stat-card-value-row\"><span class=\"stat-card-value\">12</span></div></div>",
+      "blazor": {
+        "component": "StatCard",
+        "snippet": "<StatCard Label=\"Open POs\" Value=\"@n\" Href=\"/stock/purchase-orders\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

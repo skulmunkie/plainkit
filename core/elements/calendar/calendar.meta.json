@@ -1,0 +1,213 @@
+{
+  "tag": "pk-calendar",
+  "title": "Calendar",
+  "group": "Forms",
+  "summary": "A small month grid to pick or show a date, with marks, minimum and maximum, and full keyboard control.",
+  "props": [
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The selected day, an ISO date such as 2026-09-19."
+    },
+    {
+      "name": "month",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An ISO date whose month is shown; defaults to the value or today."
+    },
+    {
+      "name": "min",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Earliest selectable ISO date."
+    },
+    {
+      "name": "max",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Latest selectable ISO date."
+    },
+    {
+      "name": "weekStart",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "First weekday: 0 Sunday, 1 Monday."
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Language of month and weekday names; defaults to the page language."
+    },
+    {
+      "name": "marks",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "ISO dates that get a dot."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show only; no selection."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Inert."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "value": "string"
+      },
+      "description": "A day was chosen. Cancel to keep the current value.",
+      "cancelable": true
+    },
+    {
+      "name": "pk-month",
+      "detail": {
+        "month": "string"
+      },
+      "description": "The shown month changed (yyyy-mm).",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "header",
+      "description": "The title row."
+    },
+    {
+      "name": "prev",
+      "description": "Previous month."
+    },
+    {
+      "name": "title",
+      "description": "Month and year."
+    },
+    {
+      "name": "next",
+      "description": "Next month."
+    },
+    {
+      "name": "grid",
+      "description": "The table."
+    },
+    {
+      "name": "weekdays",
+      "description": "The weekday header."
+    },
+    {
+      "name": "days",
+      "description": "The day rows."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-calendar-cell",
+      "description": "Day size: the touch target on a phone, 2rem on desktop.",
+      "default": "var(--touch-target)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "monthGrid(year, month, weekStart)",
+      "description": "Weeks of a month."
+    },
+    {
+      "name": "dateForKey(iso, key)",
+      "description": "Keyboard movement."
+    },
+    {
+      "name": "addMonths(iso, n)",
+      "description": "Clamped month step."
+    }
+  ],
+  "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels.",
+  "blazor": {
+    "component": "Calendar",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "DateOnly?"
+      },
+      {
+        "name": "ValueChanged",
+        "event": "pk-select",
+        "type": "EventCallback<DateOnly?>"
+      },
+      {
+        "name": "Month",
+        "prop": "month",
+        "type": "DateOnly?"
+      },
+      {
+        "name": "Min",
+        "prop": "min",
+        "type": "DateOnly?"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "DateOnly?"
+      },
+      {
+        "name": "WeekStart",
+        "prop": "weekStart",
+        "type": "int"
+      },
+      {
+        "name": "Locale",
+        "prop": "locale",
+        "type": "string?"
+      },
+      {
+        "name": "Marks",
+        "prop": "marks",
+        "type": "IReadOnlyList<DateOnly>"
+      },
+      {
+        "name": "ReadOnly",
+        "prop": "readonly",
+        "type": "bool"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "OnMonthChanged",
+        "event": "pk-month",
+        "type": "EventCallback<MonthEventArgs>"
+      }
+    ],
+    "notes": "Bind with @bind-Value; dates convert to and from ISO strings."
+  },
+  "examples": [
+    {
+      "title": "Selected day with marks",
+      "html": "<pk-calendar value=\"2026-09-19\" marks='[\"2026-09-05\",\"2026-09-24\"]'></pk-calendar>"
+    },
+    {
+      "title": "Monday start, limited range",
+      "html": "<pk-calendar week-start=\"1\" min=\"2026-09-10\" max=\"2026-09-28\"></pk-calendar>"
+    }
+  ]
+}

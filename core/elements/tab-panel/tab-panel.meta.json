@@ -1,0 +1,52 @@
+{
+  "tag": "pk-tab-panel",
+  "title": "Tab panel",
+  "group": "Navigation",
+  "summary": "The content of one tab; shown while its tab is selected.",
+  "props": [
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The key that pairs this panel with the pk-tab of the same value."
+    },
+    {
+      "name": "selected",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the surrounding pk-tabs."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The panel content."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "Exposes role=tabpanel; pk-tabs sets aria-labelledby to its tab.",
+  "blazor": {
+    "component": "TabPanel",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value"
+      },
+      {
+        "name": "ChildContent",
+        "slot": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Two panels",
+      "html": "<pk-tabs value=\"a\">\n  <pk-tab value=\"a\">One</pk-tab>\n  <pk-tab value=\"b\">Two</pk-tab>\n  <pk-tab-panel value=\"a\">First</pk-tab-panel>\n  <pk-tab-panel value=\"b\">Second</pk-tab-panel>\n</pk-tabs>"
+    }
+  ]
+}

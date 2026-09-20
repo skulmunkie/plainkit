@@ -1,0 +1,135 @@
+{
+  "tag": "pk-field-list",
+  "title": "Field list",
+  "group": "Data display",
+  "summary": "A titled description list: term and value pairs as slotted dt and dd, beside each other, stacked or run in; with dividers and a dense mode.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Section title."
+    },
+    {
+      "name": "level",
+      "type": "number",
+      "default": 3,
+      "reflect": false,
+      "description": "Heading level exposed to assistive technology."
+    },
+    {
+      "name": "layout",
+      "type": "enum",
+      "default": "grid",
+      "values": [
+        "grid",
+        "stacked"
+      ],
+      "reflect": true,
+      "description": "Term beside value, or above it."
+    },
+    {
+      "name": "dividers",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A rule under each value."
+    },
+    {
+      "name": "dense",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Tighter rhythm and smaller text."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "dt and dd pairs; a dd may hold chips, links or code."
+    },
+    {
+      "name": "heading",
+      "description": "A rich heading; overrides heading."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "section",
+      "description": "The wrapper."
+    },
+    {
+      "name": "heading",
+      "description": "The heading."
+    },
+    {
+      "name": "list",
+      "description": "The description list."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-field-list-term",
+      "description": "The term column width.",
+      "default": "minmax(9rem, 1fr)"
+    },
+    {
+      "name": "--pk-field-list-columns",
+      "description": "The whole column template, for a page that re-flows the list (a flyout on a phone sizes the term to its text; a wide card runs two pairs per line).",
+      "default": "term column and 2fr; one column on a phone"
+    },
+    {
+      "name": "--pk-field-list-gap",
+      "description": "Row and column gap on a phone.",
+      "default": "0"
+    }
+  ],
+  "methods": [],
+  "a11y": "A real description list: slotted dt and dd are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
+  "blazor": {
+    "component": "FieldList",
+    "existing": true,
+    "params": [
+      {
+        "name": "Title",
+        "prop": "heading",
+        "type": "string?"
+      },
+      {
+        "name": "Layout",
+        "prop": "layout",
+        "type": "string"
+      },
+      {
+        "name": "Dividers",
+        "prop": "dividers",
+        "type": "bool"
+      },
+      {
+        "name": "Dense",
+        "prop": "dense",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      }
+    ],
+    "notes": "Keeps Title (heading) and ChildContent. The Field component keeps emitting a dt and dd pair (Label, Value, LabelTip, When, SkipEmpty), so pages need no change."
+  },
+  "examples": [
+    {
+      "title": "Product fields",
+      "html": "<pk-field-list heading=\"Identifiers\">\n  <dt>SKU</dt><dd><code>AC-001</code></dd>\n  <dt>Vendor</dt><dd>Acme Supply</dd>\n</pk-field-list>"
+    },
+    {
+      "title": "Stacked, dense",
+      "html": "<pk-field-list layout=\"stacked\" dense>\n  <dt>Cost</dt><dd>$2.10</dd>\n</pk-field-list>"
+    }
+  ],
+  "contentStyles": [],
+  "contentStylesNote": "Slotted dt and dd are styled from the shadow root with ::slotted (they are direct children). Anything inside them (a code element, an info tip) is light DOM and takes the page styles."
+}

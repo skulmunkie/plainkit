@@ -1,0 +1,20 @@
+<!-- code-explorer: canonical markup. Each sample is a valid, copy-pasteable fragment; the build reads the @sample markers. -->
+
+<!-- @sample control="code-viewer" title="Viewer" -->
+<div class="cv"><div class="cv-title"><span class="cv-name">src/Foo.cs</span><span class="cv-meta"><span class="cv-lang">C#</span><span class="cv-count">4 lines</span></span></div><div class="cv-scroll"><div class="cv-row"><span class="cv-no">1</span><span class="cv-code"><span class="tk-keyword">public</span> <span class="tk-keyword">class</span> <span class="tk-type">Foo</span></span></div><div class="cv-row cv-row--focus"><span class="cv-no">2</span><span class="cv-code">{</span></div><div class="cv-row"><span class="cv-no">3</span><span class="cv-code">    <span class="tk-comment">// the <span class="cv-word">Foo</span> value</span></span></div><div class="cv-row"><span class="cv-no">4</span><span class="cv-code">    <span class="tk-keyword">var</span> s = <span class="tk-string">"text"</span>;</span></div></div></div>
+
+<!-- @sample control="file-tree" title="Tree" -->
+<div class="ft"><ul class="ft-list"><li><button type="button" class="ft-row ft-folder"><span class="ft-caret">▾</span>sdk<span class="ft-count muted">3</span></button><ul class="ft-list"><li><button type="button" class="ft-row ft-file ft-selected"><span class="ft-name">tokens.css</span><span class="ft-lines muted">260</span></button></li><li><button type="button" class="ft-row ft-file"><span class="ft-name">base.css</span><span class="ft-lines muted">80</span></button></li></ul></li></ul></div>
+
+<!-- @sample control="code-outline" title="Outline" -->
+<ul class="co"><li><button type="button" class="co-item"><span class="co-kind">class</span><span class="co-name">Foo</span><span class="muted co-line">1</span></button></li><li><button type="button" class="co-item co-d1 co-active"><span class="co-kind">method</span><span class="co-name">Bar</span><span class="muted co-line">12</span></button></li></ul>
+
+<!-- @sample control="code-search-results" title="Results" -->
+<div class="csr"><div class="csr-group"><div class="csr-title">sdk/js/tabs.js <span class="muted">(2)</span></div><button type="button" class="csr-hit"><span class="csr-no">18</span><span class="csr-text">export function <mark>scrollLeftFor</mark>(tabLeft, …)</span></button></div></div>
+
+<!-- @sample control="code-explorer" title="code-explorer on an in-memory snapshot" height="420" -->
+<!-- @boot code-explorer -->
+<code-explorer height="fill" initial="sdk/js/tabs.js"></code-explorer>
+
+<!-- @sample control="code-nav-bar" title="Trail" -->
+<div class="cnb"><button type="button" class="btn-mini btn-ghost" aria-label="Back">←</button><button type="button" class="btn-mini btn-ghost" aria-label="Forward">→</button><ol class="cnb-trail"><li><button type="button" class="cnb-folder">sdk</button><span aria-hidden="true">/</span></li><li><button type="button" class="cnb-folder">js</button><span aria-hidden="true">/</span></li><li><span class="cnb-file">tabs.js</span></li></ol></div>

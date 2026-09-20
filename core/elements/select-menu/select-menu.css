@@ -1,0 +1,62 @@
+/* pk-select-menu: a trigger that looks like the SDK's inputs and a fixed listbox placed by the positioning helper. */
+:host { display: inline-block; min-width: 10rem; }
+
+[part="trigger"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-input-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+[part="trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
+
+[part="value"] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+:host(:not([value])) [part="value"], :host([value=""]) [part="value"] { color: var(--color-muted); }
+
+[part="caret"]::before { content: "\2304"; color: var(--color-muted); }
+
+:host([disabled]) [part="trigger"] { opacity: 0.5; cursor: not-allowed; }
+
+:host([invalid]) [part="trigger"] { border-color: var(--color-notice-error); }
+
+[part="list"] {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-pop);
+    box-sizing: border-box;
+    max-height: min(20rem, calc(100dvh - 2 * var(--space-4)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-1);
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+}
+
+:host([open]) [part="list"] { display: block; }
+
+[part="option"] { display: flex; align-items: center; gap: var(--space-2); min-height: 2.25rem; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); color: var(--color-text); cursor: pointer; }
+
+[part="option"][data-active] { background: var(--color-surface-alt); }
+
+[part="option"][aria-selected="true"] { color: var(--color-link); font-weight: 600; }
+
+[part="option"][aria-selected="true"]::after { content: "\2713"; margin-left: auto; }
+
+[part="option"][aria-disabled="true"] { opacity: 0.5; cursor: default; }
+
+@media (max-width: 640px) { [part="trigger"], [part="option"] { min-height: var(--touch-target); } }

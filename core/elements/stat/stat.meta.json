@@ -1,0 +1,266 @@
+{
+  "tag": "pk-stat",
+  "title": "Stat tile",
+  "group": "Data display",
+  "summary": "A headline number with a label, an optional change indicator (arrow, sign and a spoken form), a sparkline and a tone. With an href the whole tile is one link. The tile prop gives the compact dashboard look; interactive makes a tile with no href a button.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "What the number is."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The headline number, already formatted."
+    },
+    {
+      "name": "subtext",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A line under the value."
+    },
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "neutral",
+      "values": [
+        "neutral",
+        "positive",
+        "warning",
+        "critical"
+      ],
+      "reflect": true,
+      "description": "Value colour."
+    },
+    {
+      "name": "delta",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+    },
+    {
+      "name": "deltaDirection",
+      "type": "enum",
+      "default": "auto",
+      "values": [
+        "auto",
+        "up",
+        "down",
+        "flat"
+      ],
+      "reflect": true,
+      "description": "Override the direction derived from delta."
+    },
+    {
+      "name": "invert",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Down is good news (costs, returns): swaps the trend colours."
+    },
+    {
+      "name": "versus",
+      "type": "string",
+      "default": "the previous period",
+      "reflect": false,
+      "description": "What the change compares with, spoken to assistive technology."
+    },
+    {
+      "name": "values",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Points for the sparkline (needs at least two)."
+    },
+    {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Makes the tile a link."
+    },
+    {
+      "name": "tile",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The compact dashboard tile look: less padding, a 600-weight larger value, a panel background."
+    },
+    {
+      "name": "interactive",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Without an href, make the tile a button (Enter and Space) that fires pk-activate."
+    }
+  ],
+  "slots": [
+    {
+      "name": "icon",
+      "description": "An icon before the value."
+    },
+    {
+      "name": "",
+      "description": "The subtext; overrides subtext."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-activate",
+      "detail": {
+        "href": "string"
+      },
+      "description": "The tile link was pressed. Cancel to stop navigation (a Blazor OnClick handler navigates itself).",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "tile",
+      "description": "The panel."
+    },
+    {
+      "name": "label",
+      "description": "The label."
+    },
+    {
+      "name": "row",
+      "description": "The value row."
+    },
+    {
+      "name": "value",
+      "description": "The value."
+    },
+    {
+      "name": "delta",
+      "description": "The change indicator."
+    },
+    {
+      "name": "subtext",
+      "description": "The subtext wrapper."
+    },
+    {
+      "name": "spark",
+      "description": "The sparkline wrapper."
+    },
+    {
+      "name": "link",
+      "description": "The overlay link."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-stat-value-size",
+      "description": "Value font size.",
+      "default": "1.5rem"
+    }
+  ],
+  "methods": [
+    {
+      "name": "delta(current, previous)",
+      "description": "Direction and percent."
+    },
+    {
+      "name": "formatDelta(d)",
+      "description": "A signed percentage."
+    },
+    {
+      "name": "deltaSpeech(d, versus)",
+      "description": "The spoken form."
+    }
+  ],
+  "a11y": "The change is text (an arrow glyph and a sign) and has a spoken form (\"up 12.5 percent versus last month\"), so colour is never the only signal. A tile with href holds one link named by the label and value, so there is a single tab stop. An interactive tile is a role=button overlay reachable by keyboard.",
+  "blazor": {
+    "component": "StatCard",
+    "existing": true,
+    "params": [
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Subtext",
+        "prop": "subtext",
+        "type": "string?"
+      },
+      {
+        "name": "Variant",
+        "prop": "tone",
+        "type": "StatCardVariant"
+      },
+      {
+        "name": "Href",
+        "prop": "href",
+        "type": "string?"
+      },
+      {
+        "name": "Delta",
+        "prop": "delta",
+        "type": "string?"
+      },
+      {
+        "name": "Invert",
+        "prop": "invert",
+        "type": "bool"
+      },
+      {
+        "name": "Series",
+        "prop": "values",
+        "type": "IReadOnlyList<double>"
+      },
+      {
+        "name": "SubtextContent",
+        "slot": "",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "IconContent",
+        "slot": "icon",
+        "type": "RenderFragment?"
+      },
+      {
+        "name": "OnClick",
+        "event": "pk-activate",
+        "type": "EventCallback"
+      },
+      {
+        "name": "Tile",
+        "prop": "tile",
+        "type": "bool"
+      },
+      {
+        "name": "Interactive",
+        "prop": "interactive",
+        "type": "bool"
+      }
+    ],
+    "notes": "Keeps the existing parameter names."
+  },
+  "examples": [
+    {
+      "title": "Tones",
+      "html": "<pk-stat label=\"Open POs\" value=\"12\"></pk-stat>\n<pk-stat label=\"Negative on hand\" value=\"3\" tone=\"critical\" href=\"#\"></pk-stat>"
+    },
+    {
+      "title": "Change and trend",
+      "html": "<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values='[12,15,14,17,18]'></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert></pk-stat>"
+    },
+    {
+      "title": "Dashboard tile as a button",
+      "html": "<pk-stat tile interactive label=\"Open orders\" value=\"12\"></pk-stat>"
+    }
+  ]
+}

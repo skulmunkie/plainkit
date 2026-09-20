@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Plainkit gallery: every foundation, control, layout and template, with live samples.">
+<title>Plainkit Gallery</title>
+<link rel="stylesheet" href="../../plainkit.css">
+<link rel="stylesheet" href="../site.css">
+<link rel="stylesheet" href="gallery.css">
+</head>
+<body>
+<div class="site-body">
+    <div class="notice notice--warning gx-notice-file" id="boot-notice" role="status">
+        Loading the gallery. If this message stays, the page was opened from disk: browsers block ES modules and fetch on <code>file://</code>.
+        Serve the <code>core</code> folder with any static file server (for example <code>node core/tools/serve.mjs</code>) and open <code>/gallery/</code>.
+    </div>
+</div>
+<noscript><div class="notice notice--error gx-notice-file">The gallery needs JavaScript.</div></noscript>
+<script type="module" src="standalone.js"></script>
+</body>
+</html>

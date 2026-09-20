@@ -1,0 +1,59 @@
+/* Plainkit a11y layer: loaded LAST, because these rules must beat the component defaults at equal specificity.
+   Keyboard focus ring for every interactive control, tap behaviour, and the phone rules
+   (16px inputs so iOS does not zoom on focus; 44px touch targets). */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+}
+
+button,
+a.btn-primary,
+a.btn-ghost,
+a.btn-warn,
+a.btn-secondary,
+.tab,
+.tab-close,
+select,
+summary {
+    touch-action: manipulation;
+}
+
+@media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    button.btn-primary,
+    button.btn-ghost,
+    button.btn-warn,
+    button.btn-secondary,
+    button.btn-mini,
+    a.btn-primary,
+    a.btn-ghost,
+    a.btn-warn,
+    a.btn-secondary,
+    .tab,
+    .tab-close,
+    .chip-btn,
+    a.btn-mini,
+    .snav-link,
+    .tnav-link,
+    .dropdown-item,
+    .page-link,
+    .pill,
+    .btn-group > *,
+    summary,
+    select,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+        min-height: var(--touch-target);
+    }
+}

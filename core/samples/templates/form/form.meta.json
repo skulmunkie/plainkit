@@ -1,0 +1,17 @@
+{
+  "id": "form",
+  "title": "Form and settings",
+  "summary": "Sectioned form with help and validation states and a sticky save bar.",
+  "slots": "sections, fields, save bar",
+  "used": [
+    "button",
+    "card",
+    "cluster",
+    "extras",
+    "flyout",
+    "form-field",
+    "shell",
+    "spacing"
+  ],
+  "order": 5
+}

@@ -1,0 +1,243 @@
+{
+  "tag": "pk-drawer",
+  "title": "Drawer",
+  "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether it is shown"
+    },
+    {
+      "name": "side",
+      "type": "enum",
+      "default": "right",
+      "values": [
+        "left",
+        "right",
+        "bottom"
+      ],
+      "reflect": true,
+      "description": "Edge it slides from."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Title; also the accessible name."
+    },
+    {
+      "name": "persistent",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The backdrop does not close it."
+    },
+    {
+      "name": "wide",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A wider panel (up to 70% of the viewport)."
+    },
+    {
+      "name": "controlled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The host owns open: close requests (Escape, close button, backdrop, swipe) only raise pk-close and never close the element; the host closes it by clearing open. Used by Blazor wrappers."
+    },
+    {
+      "name": "docked",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A non-modal inspector: it sits inside the nearest positioned ancestor instead of the viewport, has no backdrop and no focus trap, and the page behind stays usable. Escape still asks to close."
+    }
+  ],
+  "slots": [
+    {
+      "name": "header",
+      "description": "Custom header content."
+    },
+    {
+      "name": "",
+      "description": "Body."
+    },
+    {
+      "name": "footer",
+      "description": "Actions."
+    },
+    {
+      "name": "actions",
+      "description": "Actions strip under the header (Save, Cancel)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "pk-open"
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "escape, backdrop, close button, swipe or method."
+    }
+  ],
+  "parts": [
+    {
+      "name": "panel",
+      "description": "The floating panel"
+    },
+    {
+      "name": "handle",
+      "description": "Grab handle of a bottom sheet"
+    },
+    {
+      "name": "header",
+      "description": "Header row"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "close",
+      "description": "Close or dismiss button"
+    },
+    {
+      "name": "body",
+      "description": "Main content"
+    },
+    {
+      "name": "footer",
+      "description": "Footer row"
+    },
+    {
+      "name": "actions",
+      "description": "Actions strip under the header"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-drawer-w",
+      "description": "Side drawer width",
+      "default": "min(24rem, 90vw)"
+    },
+    {
+      "name": "--pk-drawer-h",
+      "description": "Bottom sheet maximum height",
+      "default": "85dvh"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    }
+  ],
+  "a11y": "A native modal dialog with an accessible name; focus returns to the opener on close; Escape and the backdrop close it (set persistent to keep the backdrop inert).",
+  "mobile": "Left and right drawers are at most 90vw wide; the bottom sheet takes at most 85% of the height; swipe toward the edge it came from to close.",
+  "blazor": {
+    "component": "FlyoutPanel",
+    "params": [
+      {
+        "name": "IsOpen",
+        "type": "bool",
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "Title",
+        "type": "string?",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "FooterContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "footer"
+      },
+      {
+        "name": "ActionsContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "actions"
+      },
+      {
+        "name": "OnClose",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-close",
+        "cancelable": true
+      },
+      {
+        "name": "Persistent",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "persistent"
+      },
+      {
+        "name": "Wide",
+        "type": "bool",
+        "map": "prop",
+        "prop": "wide"
+      },
+      {
+        "name": "Backdrop",
+        "type": "bool",
+        "default": true,
+        "map": "wrapper",
+        "note": "A docked, backdrop-less inspector stays on the compat flyout."
+      },
+      {
+        "name": "IsLoading",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "Wrap the body in pk-loading-overlay busy."
+      },
+      {
+        "name": "PhoneCards",
+        "type": "bool",
+        "default": true,
+        "map": "wrapper",
+        "note": "Compat class only."
+      },
+      {
+        "name": "Docked",
+        "type": "bool",
+        "map": "prop",
+        "prop": "docked"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Drawer from the right",
+      "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><button type=\"button\" slot=\"footer\" class=\"btn-primary\">Apply</button></pk-drawer>"
+    }
+  ]
+}

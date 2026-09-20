@@ -1,0 +1,9 @@
+:host { display: block; }
+[part="root"] { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--pk-empty-state-padding, var(--space-8) var(--space-6)); text-align: center; color: var(--color-muted); }
+:host([tone="compact"]) [part="root"] { padding: var(--pk-empty-state-padding, var(--space-3) var(--space-4)); }
+:host([tone="boxed"]) [part="root"] { border: 1px dashed var(--color-border); border-radius: var(--radius-md); }
+:host([tone="error"]) [part="root"] { border: 1px solid var(--color-notice-error); border-radius: var(--radius-md); }
+[part="icon"] { opacity: 0.6; }
+[part="heading"] { margin: 0; font-size: var(--text-lg); font-weight: 600; color: var(--color-text); }
+[part="description"] { margin: 0; max-inline-size: 40rem; line-height: 1.5; }
+[part="actions"] { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-block-start: var(--space-2); }

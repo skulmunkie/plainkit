@@ -1,0 +1,34 @@
+{
+  "folder": "card",
+  "controls": [
+    {
+      "id": "card",
+      "name": "Card",
+      "kind": "Layout & structure",
+      "purpose": "The panel every page wraps its blocks in: border, shadow, optional title or header slot.",
+      "replaces": "div.card",
+      "mobile": "Full width; padding is fixed so the content, not the card, decides overflow.",
+      "states": [
+        "default",
+        "with header",
+        "error border"
+      ],
+      "classes": [
+        "card",
+        "card-header",
+        "card--error"
+      ],
+      "css": [
+        "components/card/card.css"
+      ],
+      "js": [],
+      "snippet": "<section class=\"card\"><div class=\"card-header\"><h2>Title</h2></div>…</section>",
+      "blazor": {
+        "component": "Card",
+        "snippet": "<Card Title=\"Shipping\">…</Card>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

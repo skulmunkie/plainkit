@@ -1,0 +1,128 @@
+/* Plainkit base: reset, typography, form-control and link baselines. Element selectors only, so a component class always wins. */
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+/* Form-control baseline: themed surface and readable text. Element selectors, so a component class still wins. */
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+textarea,
+select) {
+    background: var(--color-input);
+    color: var(--color-text);
+    border: 1px solid var(--color-input-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-muted);
+    opacity: 1;   /* Firefox dims placeholders by default; keep them legible */
+}
+
+/* Global link baseline, and the same argument as the form controls above: an
+   unstyled control inherits the browser's defaults, which were never chosen
+   against this palette. A bare <a> rendered in default browser blue — roughly 2.3:1 on the
+   dark panel, and the purple :visited variant is worse — which is what the
+   "Tools → File importer" links in the order page's cards were doing.
+
+   Scoped with :not([class]) rather than to every anchor on purpose. An anchor
+   that carries a class has been dressed deliberately — a.btn-primary, the docs
+   nav, the help-flyout footer — and a blanket `a { }` would fight all of them
+   over colour and underline. This targets exactly the case that has no answer
+   at all. Note it ties on specificity with rules like .docs-body a, so it sits
+   here near the top of the file where source order lets those win. */
+
+a:not([class]) {
+    color: var(--color-link);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+a:not([class]):hover {
+    color: var(--color-link-hover);
+}
+
+.required {
+    color: var(--color-required);
+}
+
+.form-error {
+    color: var(--color-notice-error);
+    margin: var(--space-1) 0 var(--space-2) 0;
+    font-size: var(--text-md);
+}
+
+.muted {
+    color: var(--color-muted);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* Base rhythm. Every rule is wrapped in :where() so it has ZERO specificity: it gives raw content sensible spacing by default and
+   any component or page rule that sets its own margin simply wins. Roles come from tokens.css (--gap-heading, --space-*). */
+
+:where(h1, h2, h3, h4, h5, h6) {
+    margin-block: 0 var(--gap-heading);
+    line-height: 1.25;
+}
+
+:where(p, ul, ol, dl, blockquote, pre, figure, fieldset) {
+    margin-block: 0 var(--space-3);
+}
+
+:where(p, ul, ol, dl, blockquote, pre, figure, fieldset):last-child {
+    margin-block-end: 0;
+}
+
+:where(ul, ol) {
+    padding-inline-start: var(--space-6);
+}
+
+:where(li + li) {
+    margin-block-start: var(--space-1);
+}
+
+:where(blockquote) {
+    padding-inline-start: var(--space-4);
+    border-inline-start: 3px solid var(--color-border);
+    color: var(--color-muted);
+}
+
+:where(pre) {
+    padding: var(--space-3);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+:where(hr) {
+    margin-block: var(--space-4);
+    border: 0;
+    border-top: 1px solid var(--color-border);
+}
+
+:where(fieldset) {
+    padding: var(--pad-form-section);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+:where(legend) {
+    padding-inline: var(--space-1);
+    color: var(--color-muted);
+}

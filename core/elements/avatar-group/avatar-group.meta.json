@@ -1,0 +1,75 @@
+{
+  "tag": "pk-avatar-group",
+  "title": "AvatarGroup",
+  "group": "Data display",
+  "summary": "Overlapping avatars with a +N tile for the overflow.",
+  "props": [
+    {
+      "name": "max",
+      "type": "number",
+      "default": 4,
+      "reflect": true,
+      "description": "Avatars shown before the +N tile."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of the group."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-avatar children."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "more",
+      "description": "The +N tile."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-avatar-group-overlap",
+      "description": "How far avatars overlap.",
+      "default": "var(--space-2)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "groupOverflow(people, max)",
+      "description": "Shown people and the remainder."
+    }
+  ],
+  "a11y": "role=group with a label; the +N tile is text, so the count of hidden people is available without seeing them.",
+  "blazor": {
+    "component": "AvatarGroup",
+    "params": [
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "double"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Overflow",
+      "html": "<pk-avatar-group max=\"2\" label=\"Team\">\n  <pk-avatar name=\"Ada L\"></pk-avatar>\n  <pk-avatar name=\"Sam L\"></pk-avatar>\n  <pk-avatar name=\"Ana R\"></pk-avatar>\n</pk-avatar-group>"
+    }
+  ]
+}

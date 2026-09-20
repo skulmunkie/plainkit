@@ -1,0 +1,38 @@
+/* Buttons: one shape, four variants, a mini size and a large one. Works on <button> and <a>. Sizes come from the control height token. */
+.btn-primary, .btn-ghost, .btn-warn, .btn-secondary, .btn-mini {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    min-height: var(--ctl-h); padding: var(--space-2) var(--space-4);
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    font: inherit; font-size: var(--text-read); font-weight: 500; line-height: 1.3;
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn-primary { background: var(--color-accent); color: var(--btn-primary-fg); }
+.btn-primary:hover { background: var(--color-accent-hover); }
+a.btn-primary:hover { color: var(--a-btn-primary-hover-fg); }
+
+.btn-ghost { background: transparent; color: var(--field-muted); border-color: var(--color-border); }
+.btn-ghost:hover:not(:disabled) { color: var(--color-text); border-color: var(--color-text); }
+
+.btn-warn { background: var(--btn-warn-bg); color: var(--btn-warn-fg); }
+.btn-warn:hover:not(:disabled) { background: var(--btn-warn-hover-bg); }
+
+.btn-secondary { background: transparent; color: var(--color-accent); border-color: var(--color-accent); }
+.btn-secondary:hover:not(:disabled) { color: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+
+.btn-primary:disabled, .btn-primary[disabled], .btn-ghost:disabled, .btn-ghost[disabled], .btn-warn:disabled, .btn-warn[disabled],
+.btn-secondary:disabled, .btn-secondary[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* Mini: the 12px desktop-density control; the a11y layer raises it to the touch size on a phone. It is the primary colour unless combined. */
+.btn-mini {
+    min-height: 0; padding: var(--space-1) var(--space-2); margin-right: var(--space-1);
+    background: var(--color-accent); color: var(--btn-mini-fg); font-size: var(--text-meta); font-weight: 400;
+}
+.btn-mini:hover:not(:disabled) { background: var(--color-accent-hover); }
+.btn-mini:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-mini.btn-warn { background: var(--btn-mini-btn-warn-bg); }
+.btn-mini.btn-warn:hover:not(:disabled) { background: var(--btn-mini-btn-warn-hover-bg); }
+.btn-mini.btn-secondary { background: transparent; border-color: var(--color-accent); color: var(--color-accent); }
+.btn-mini.btn-ghost { background: transparent; border-color: var(--color-border); color: var(--field-muted); }
+.btn-mini.btn-ghost:hover:not(:disabled) { color: var(--color-text); border-color: var(--color-text); }

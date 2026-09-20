@@ -1,0 +1,29 @@
+{
+  "folder": "local-date-time",
+  "controls": [
+    {
+      "id": "local-date-time",
+      "name": "LocalDateTime",
+      "kind": "Data display",
+      "purpose": "Renders a UTC timestamp in the browser's local time. Vanilla: a <time datetime> element you format with toLocaleString.",
+      "replaces": "@value.ToString() on a UTC date",
+      "mobile": "Text only; no layout of its own.",
+      "states": [
+        "date and time",
+        "date only"
+      ],
+      "classes": [],
+      "css": [],
+      "js": [
+        "components/local-date-time/local-date-time.js"
+      ],
+      "snippet": "<time datetime=\"2026-09-19T14:30:00Z\"></time> <!-- format with new Date(t.dateTime).toLocaleString() -->",
+      "blazor": {
+        "component": "LocalDateTime",
+        "snippet": "<LocalDateTime Value=\"@row.CreatedAt\" Format=\"DateTimeFormat.DateOnly\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

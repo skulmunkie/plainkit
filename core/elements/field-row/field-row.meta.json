@@ -1,0 +1,59 @@
+{
+  "tag": "pk-field-row",
+  "title": "Field row",
+  "group": "Form layout",
+  "summary": "A wrapping row of fields that share the width: each field grows from a 120px minimum, a wide field takes a row of its own.",
+  "props": [
+    {
+      "name": "align",
+      "type": "enum",
+      "default": "stretch",
+      "values": ["stretch", "end", "center"],
+      "reflect": true,
+      "description": "Vertical alignment of the fields in the row."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The fields, checkboxes or switches."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [
+    {
+      "name": "--pk-field-row-gap",
+      "description": "Gap between the fields.",
+      "default": "var(--space-4)"
+    },
+    {
+      "name": "--pk-field-row-margin",
+      "description": "Space below the row.",
+      "default": "var(--space-3)"
+    }
+  ],
+  "methods": [],
+  "a11y": "Plain layout with no role of its own.",
+  "blazor": {
+    "component": "FieldRow",
+    "params": [
+      {
+        "name": "Align",
+        "prop": "align",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Two fields",
+      "html": "<pk-field-row><pk-field label=\"First\"><input></pk-field><pk-field label=\"Second\"><input></pk-field></pk-field-row>"
+    }
+  ]
+}

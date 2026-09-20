@@ -1,0 +1,62 @@
+/* pk-menu-item: a row (item, checkbox, radio), a section header or a divider. The submenu slot is a fixed layer placed by the dropdown. */
+:host {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--text-read);
+    cursor: pointer;
+    user-select: none;
+}
+
+:host(:hover), :host(:focus) { background: var(--color-surface-alt); outline: none; }
+
+:host(:focus-visible) { outline: var(--focus-ring); outline-offset: -2px; }
+
+:host([disabled]) { opacity: 0.5; cursor: default; pointer-events: none; }
+
+:host([danger]) { color: var(--color-notice-error); }
+
+[part="mark"] { flex: none; width: 1rem; text-align: center; }
+
+:host(:not([type="checkbox"]):not([type="radio"])) [part="mark"] { display: none; }
+
+:host([type="checkbox"][checked]) [part="mark"]::before { content: "\2713"; }
+
+:host([type="radio"][checked]) [part="mark"]::before { content: "\2022"; }
+
+[part="label"] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+::slotted([slot="suffix"]) { color: var(--color-muted); font-size: var(--text-meta); }
+
+[part="chevron"] { display: none; color: var(--color-muted); }
+
+:host([has-submenu]) [part="chevron"] { display: block; }
+
+[part="chevron"]::before { content: "\203A"; }
+
+:host([type="header"]) { min-height: 0; padding-block: var(--space-2) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); letter-spacing: 0.06em; text-transform: uppercase; cursor: default; pointer-events: none; }
+
+:host([type="divider"]) { min-height: 0; height: 1px; margin-block: var(--space-1); padding: 0; background: var(--color-border); border-radius: 0; pointer-events: none; }
+
+:host([type="divider"]) > * { display: none; }
+
+@media (max-width: 640px) {
+    :host { min-height: var(--touch-target); }
+    :host([type="header"]) { min-height: 0; }
+    :host([type="divider"]) { min-height: 0; }
+    :host([has-submenu]) [part="chevron"]::before { content: "\2304"; }
+}
+
+[part="submenu"] { display: none; position: fixed; top: 0; left: 0; z-index: var(--z-pop); box-sizing: border-box; min-width: 12rem; padding: var(--space-1); background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); }
+
+:host([open]) [part="submenu"] { display: block; }
+
+@media (max-width: 640px) {
+    :host { flex-wrap: wrap; }
+    [part="submenu"] { position: static; flex: 1 0 100%; border: 0; box-shadow: none; padding-inline-start: var(--space-4); }
+}

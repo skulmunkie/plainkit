@@ -1,0 +1,8 @@
+{
+  "id": "overlays-nav",
+  "title": "Overlays and navigation",
+  "summary": "An app page built from the overlay, feedback and navigation elements: app shell with a filterable side nav, breadcrumb, banner, stepper, on-this-page list, dropdown, select, tooltip, confirm popover, drawer, dialog, context menu, loading overlay, pager, command palette and back to top.",
+  "slots": "nav, header, banner, wizard steps, content, on this page, footer",
+  "used": ["alert","app-shell","back-to-top","breadcrumb","button","card","cluster","command-palette","context-menu","dialog","drawer","dropdown","flyout","loading-overlay","menu-item","nav-item","pager","popover","scroll-progress","select","shell","side-nav","skip-link","spacing","step","stepper","toc","tooltip"],
+  "order": 10
+}

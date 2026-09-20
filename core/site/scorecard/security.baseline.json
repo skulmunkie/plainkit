@@ -1,0 +1,9 @@
+{
+  "note": "Counts per severity may only go down. Refresh with node tools/security.mjs --write after a fix.",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 6
+  }
+}

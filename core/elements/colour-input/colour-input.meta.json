@@ -1,0 +1,160 @@
+{
+  "tag": "pk-colour-input",
+  "title": "Colour input",
+  "group": "Form controls",
+  "summary": "The native colour picker beside an editable hex field that stay in step; the field accepts #abc, abc and #aabbcc and is normalised to #rrggbb.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The colour as #rrggbb."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-colour",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "A valid colour was picked or typed (lowercase #rrggbb)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "box",
+      "description": "The row of swatch and hex field."
+    },
+    {
+      "name": "swatch",
+      "description": "The native colour picker."
+    },
+    {
+      "name": "control",
+      "description": "The hex text field."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the hex field."
+    }
+  ],
+  "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
+  "blazor": {
+    "component": "ColourInput",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-colour",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Picker and hex",
+      "html": "<pk-colour-input label=\"Accent colour\" value=\"#4a90e2\"></pk-colour-input>"
+    }
+  ]
+}

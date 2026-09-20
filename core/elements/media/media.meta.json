@@ -1,0 +1,143 @@
+{
+  "tag": "pk-media",
+  "title": "Media",
+  "group": "Media",
+  "summary": "An image or video in a fixed aspect-ratio box with an optional figure caption and lightbox-ready behaviour.",
+  "props": [
+    {
+      "name": "ratio",
+      "type": "string",
+      "default": "16/9",
+      "reflect": false,
+      "description": "Aspect ratio as width/height: 16/9, 4/3, 1/1, 3/4."
+    },
+    {
+      "name": "fit",
+      "type": "enum",
+      "default": "cover",
+      "values": [
+        "cover",
+        "contain"
+      ],
+      "reflect": true,
+      "description": "How media fills the box."
+    },
+    {
+      "name": "caption",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Figure caption."
+    },
+    {
+      "name": "lightbox",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The box becomes a button that fires pk-open."
+    },
+    {
+      "name": "square",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Square corners."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "An img, picture, video or svg."
+    },
+    {
+      "name": "caption",
+      "description": "A rich caption; overrides caption."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-open",
+      "detail": {
+        "src": "string",
+        "alt": "string",
+        "caption": "string"
+      },
+      "description": "A lightbox request. Cancel if you handle it yourself.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "figure",
+      "description": "The figure."
+    },
+    {
+      "name": "box",
+      "description": "The ratio box."
+    },
+    {
+      "name": "caption",
+      "description": "The caption."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-media-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-md)"
+    }
+  ],
+  "methods": [],
+  "a11y": "A real figure with a figcaption; slotted images keep their author-written alt text. Lightbox mode makes the box a focusable button (Enter and Space) named \"Enlarge\". The ratio reserves space so a late image never shifts the layout.",
+  "blazor": {
+    "component": "Media",
+    "params": [
+      {
+        "name": "Ratio",
+        "prop": "ratio",
+        "type": "string"
+      },
+      {
+        "name": "Fit",
+        "prop": "fit",
+        "type": "string"
+      },
+      {
+        "name": "Caption",
+        "prop": "caption",
+        "type": "string"
+      },
+      {
+        "name": "Lightbox",
+        "prop": "lightbox",
+        "type": "bool"
+      },
+      {
+        "name": "Square",
+        "prop": "square",
+        "type": "bool"
+      },
+      {
+        "name": "OnOpen",
+        "event": "pk-open",
+        "type": "EventCallback<OpenEventArgs>"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "CaptionContent",
+        "slot": "caption",
+        "type": "RenderFragment?"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Captioned 4:3",
+      "html": "<pk-media ratio=\"4/3\" caption=\"Widget 1\">\n  <svg viewBox=\"0 0 4 3\" role=\"img\" aria-label=\"Placeholder\"><rect width=\"4\" height=\"3\" fill=\"currentColor\" opacity=\"0.15\"></rect></svg>\n</pk-media>"
+    }
+  ]
+}

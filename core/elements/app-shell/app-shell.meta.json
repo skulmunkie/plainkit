@@ -1,0 +1,122 @@
+{
+  "tag": "pk-app-shell",
+  "title": "App shell",
+  "summary": "The page frame: nav column, header, one scrolling body and footer. Header and footer stay put; safe-area insets are added on notched phones; a slotted control marked data-nav-toggle opens the side nav drawer.",
+  "group": "Layout & structure",
+  "props": [
+    {
+      "name": "navOpen",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Drawer state, mirrors the side nav."
+    }
+  ],
+  "slots": [
+    {
+      "name": "nav",
+      "description": "A pk-side-nav."
+    },
+    {
+      "name": "header",
+      "description": "Top bar content."
+    },
+    {
+      "name": "",
+      "description": "The scrolling body."
+    },
+    {
+      "name": "footer",
+      "description": "Footer content."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-nav-toggle",
+      "detail": {
+        "open": "boolean"
+      },
+      "description": "A data-nav-toggle control was pressed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "main",
+      "description": "Main column"
+    },
+    {
+      "name": "header",
+      "description": "Header row"
+    },
+    {
+      "name": "body",
+      "description": "Main content"
+    },
+    {
+      "name": "footer",
+      "description": "Footer row"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
+  "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
+  "blazor": {
+    "component": "AppShell",
+    "params": [
+      {
+        "name": "SidebarContent",
+        "type": "RenderFragment",
+        "map": "slot",
+        "slot": "nav"
+      },
+      {
+        "name": "HeaderContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "header"
+      },
+      {
+        "name": "BodyContent",
+        "type": "RenderFragment",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "FooterContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "footer"
+      },
+      {
+        "name": "ShowErrorOverlay",
+        "type": "bool",
+        "default": true,
+        "map": "wrapper",
+        "note": "The Blazor error UI stays in the wrapper."
+      },
+      {
+        "name": "ErrorOverlayMessage",
+        "type": "string",
+        "map": "wrapper",
+        "note": "As ShowErrorOverlay."
+      },
+      {
+        "name": "NavOpen",
+        "type": "bool",
+        "map": "prop",
+        "prop": "navOpen",
+        "bind": {
+          "event": "pk-nav-toggle",
+          "value": "detail.open"
+        }
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "App shell with a sticky footer",
+      "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><button type=\"button\" class=\"btn-ghost\" data-nav-toggle aria-label=\"Open the menu\">Menu</button></div><div class=\"container stack\"><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></div><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+    }
+  ]
+}

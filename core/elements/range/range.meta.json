@@ -1,0 +1,230 @@
+{
+  "tag": "pk-range",
+  "title": "Range",
+  "group": "Form controls",
+  "summary": "A slider, or with dual a minimum and maximum slider, drawn from tokens with a live value output.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "min",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Lowest value."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 100,
+      "reflect": false,
+      "description": "Highest value."
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "Increment."
+    },
+    {
+      "name": "value",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Single mode: the value."
+    },
+    {
+      "name": "valueLow",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Dual mode: the low value."
+    },
+    {
+      "name": "valueHigh",
+      "type": "number",
+      "default": 100,
+      "reflect": false,
+      "description": "Dual mode: the high value."
+    },
+    {
+      "name": "dual",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Two thumbs: a low and a high value; the low thumb never passes the high one."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "output",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the current value under the slider."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-range",
+      "detail": "{ value: number, low: number, high: number }",
+      "detailProps": {
+        "value": "number",
+        "low": "number",
+        "high": "number"
+      },
+      "description": "The user committed a value (single) or a pair (dual)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "wrap",
+      "description": "The slider area."
+    },
+    {
+      "name": "track",
+      "description": "The track with its fill."
+    },
+    {
+      "name": "control",
+      "description": "The single slider, or the low thumb."
+    },
+    {
+      "name": "control-high",
+      "description": "The high thumb (dual)."
+    },
+    {
+      "name": "output",
+      "description": "The value text."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-range-thumb",
+      "description": "Thumb size.",
+      "default": "1.25rem"
+    },
+    {
+      "name": "--pk-range-fill",
+      "description": "Colour of the filled track and the thumb.",
+      "default": "var(--color-accent)"
+    },
+    {
+      "name": "--pk-range-track",
+      "description": "Colour of the empty track.",
+      "default": "a mix of muted and the input colour"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the first thumb."
+    }
+  ],
+  "a11y": "Native range inputs: arrow keys, Home, End and Page keys; each thumb of a dual slider is named \"<label> minimum\" and \"<label> maximum\". The 44px phone hit area comes from the taller wrapper. A form receives one entry (single) or two entries under the same name (dual).",
+  "blazor": {
+    "component": "RangeSlider",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "double"
+      },
+      {
+        "name": "ValueLow",
+        "prop": "valueLow",
+        "type": "double"
+      },
+      {
+        "name": "ValueHigh",
+        "prop": "valueHigh",
+        "type": "double"
+      },
+      {
+        "name": "Min",
+        "prop": "min",
+        "type": "double"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "double"
+      },
+      {
+        "name": "Step",
+        "prop": "step",
+        "type": "double"
+      },
+      {
+        "name": "Dual",
+        "prop": "dual",
+        "type": "bool"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "ShowOutput",
+        "prop": "output",
+        "type": "bool"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-range",
+      "key": "value",
+      "type": "number"
+    }
+  },
+  "examples": [
+    {
+      "title": "Single and dual",
+      "html": "<pk-range label=\"Volume\" value=\"40\" output></pk-range>\n<pk-range label=\"Price range\" dual value-low=\"20\" value-high=\"80\" output></pk-range>"
+    }
+  ]
+}

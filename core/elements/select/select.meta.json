@@ -1,0 +1,196 @@
+{
+  "tag": "pk-select",
+  "title": "Select",
+  "group": "Form controls",
+  "summary": "The browser select in the same skin as the text input. Its options are its own option and optgroup children; a phone shows its native picker.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The current value; what the form submits."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "warning",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the warning state (a value the user may want to check)."
+    },
+    {
+      "name": "valid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the valid state."
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Allows several selections (value is comma-separated; the form submits one entry each)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "option and optgroup elements."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-value-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user committed a new value (same moment as change; carries the value)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "box",
+      "description": "The bordered field."
+    },
+    {
+      "name": "control",
+      "description": "The inner select."
+    },
+    {
+      "name": "chevron",
+      "description": "The drop-down arrow."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Moves focus to the select."
+    }
+  ],
+  "a11y": "A native select in the shadow root: keyboard, type-to-select and the platform picker are the browser's own. Named by label, described by description.",
+  "blazor": {
+    "component": "SelectField",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Multiple",
+        "prop": "multiple",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-value-change",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Select and multiple",
+      "html": "<pk-select label=\"Status\" value=\"Draft\"><option>Active</option><option>Draft</option><option>Archived</option></pk-select>\n<pk-select label=\"Formats\" multiple value=\"JSON\"><option>CSV</option><option>JSON</option><option>XML</option></pk-select>"
+    }
+  ]
+}

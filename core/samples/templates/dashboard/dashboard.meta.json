@@ -1,0 +1,19 @@
+{
+  "id": "dashboard",
+  "title": "Dashboard",
+  "summary": "Stat tiles, a chart area and a table.",
+  "slots": "stat tiles, chart, table",
+  "used": [
+    "card",
+    "chip",
+    "cluster",
+    "extras",
+    "flyout",
+    "shell",
+    "spacing",
+    "table-content",
+    "utilities",
+    "workspace"
+  ],
+  "order": 4
+}

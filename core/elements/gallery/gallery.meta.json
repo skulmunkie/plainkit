@@ -1,0 +1,47 @@
+{
+  "tag": "pk-gallery",
+  "title": "Gallery",
+  "group": "Data display",
+  "summary": "The SDK gallery inside your page: every control, element, layout and template with live samples, narrowed by attributes to just what you want to show. Loads on demand in its own frame.",
+  "props": [
+    { "name": "kind", "type": "string", "default": "", "reflect": false, "description": "What to show: foundations, controls, elements, layouts or templates. Empty shows the controls when a group or control is named, otherwise everything." },
+    { "name": "group", "type": "string", "default": "", "reflect": false, "description": "One control group by name (\"Forms & inputs\") or slug (forms-inputs); with kind layouts or templates, that samples group." },
+    { "name": "control", "type": "string", "default": "", "reflect": false, "description": "One control, element or sample id, or a comma separated list (\"button,input\"); elements also match by tag (pk-tabs)." },
+    { "name": "theme", "type": "enum", "default": "auto", "values": ["auto", "dark", "light"], "reflect": true, "description": "The theme of the gallery and its samples. auto keeps the gallery's own default (dark)." },
+    { "name": "width", "type": "enum", "default": "desktop", "values": ["desktop", "phone"], "reflect": true, "description": "Render the samples at desktop width or in a 375px phone frame." },
+    { "name": "filter", "type": "string", "default": "", "reflect": false, "description": "Search text: only controls whose name (or group) contains it are shown." },
+    { "name": "chrome", "type": "enum", "default": "none", "values": ["none", "full"], "reflect": true, "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector." },
+    { "name": "height", "type": "number", "default": 0, "reflect": false, "description": "A fixed height in pixels. 0 fits the content when chrome is none and uses the default height when chrome is full." },
+    { "name": "src", "type": "string", "default": "", "reflect": false, "description": "Address of the gallery's embed.html when it is not next to the element module, for example on a CDN prefix." }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "frame", "description": "The iframe that hosts the gallery." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-gallery-height", "description": "Height of the frame. The element sets it from height or from the height the gallery reports.", "default": "28rem" }
+  ],
+  "methods": [],
+  "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
+  "blazor": {
+    "component": "Gallery",
+    "params": [
+      { "name": "Kind", "prop": "kind" },
+      { "name": "Group", "prop": "group" },
+      { "name": "Control", "prop": "control" },
+      { "name": "Theme", "prop": "theme" },
+      { "name": "Width", "prop": "width" },
+      { "name": "Filter", "prop": "filter" },
+      { "name": "Chrome", "prop": "chrome" },
+      { "name": "Height", "prop": "height" },
+      { "name": "Src", "prop": "src" }
+    ],
+    "notes": "New component, no Blazor equivalent. Needs the SDK dist folder served with the app so embed.html is reachable."
+  },
+  "examples": [
+    { "title": "Every form control, phone width, light theme", "html": "<pk-gallery kind=\"controls\" group=\"Forms & inputs\" width=\"phone\" theme=\"light\"></pk-gallery>" },
+    { "title": "Two controls only", "html": "<pk-gallery control=\"button,badge\"></pk-gallery>" },
+    { "title": "The full gallery at a fixed height", "html": "<pk-gallery chrome=\"full\" height=\"560\"></pk-gallery>" }
+  ]
+}

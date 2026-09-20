@@ -1,0 +1,35 @@
+/* Scorecard chrome. Tokens only. */
+
+/* A mounted scorecard with its own theme paints itself, so the host page's colours do not leak in. */
+.sc-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }
+
+.sc-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
+
+.sc-score-big .stat-card-value { font-size: 2.25rem; }
+
+.sc-bar { display: block; height: 0.5rem; margin-top: var(--space-1); background: var(--color-surface-alt); border-radius: var(--radius-pill); overflow: hidden; }
+
+.sc-bar > span { display: block; height: 100%; background: var(--color-accent); }
+
+.sc-good { color: var(--stat-card-positive-fg); }
+
+.sc-warn { color: var(--stat-card-warning-fg); }
+
+.sc-bad { color: var(--stat-card-critical-fg); }
+
+.sc-section { margin-top: var(--space-4); }
+
+.sc-table td, .sc-table th { overflow-wrap: anywhere; }
+
+.sc-table td:first-child { min-width: 8rem; }
+
+.sc-table td:last-child { min-width: 14rem; }
+
+.sc-table th.num { overflow-wrap: normal; white-space: nowrap; }
+
+.sc-frames { position: fixed; left: -10000px; top: 0; width: 1280px; height: 700px; overflow: hidden; visibility: hidden; }
+
+.sc-frames iframe { border: 0; }
+
+.sc-progress { margin: var(--space-3) 0; }
+.sc-import-label { cursor: pointer; }

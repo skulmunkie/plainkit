@@ -1,0 +1,6 @@
+/* pk-skip-link: off-screen until it takes focus, then a visible button at the top-start corner. */
+:host { position: fixed; inset-block-start: var(--space-2); inset-inline-start: var(--space-2); z-index: var(--z-skip); }
+
+[part="link"] { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
+
+[part="link"]:focus { position: static; clip-path: none; width: auto; height: auto; display: inline-flex; align-items: center; min-height: var(--touch-target); padding: var(--space-1) var(--space-4); border-radius: var(--radius-md); background: var(--color-accent); color: var(--btn-primary-fg); font-size: var(--text-read); font-weight: 600; text-decoration: none; box-shadow: var(--shadow-pop); outline: var(--focus-ring); outline-offset: 2px; }

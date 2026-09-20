@@ -1,0 +1,8 @@
+:host { display: block; }
+[part="list"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4); }
+:host([scroll]) [part="list"] { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; }
+:host([scroll]) [part="list"]::-webkit-scrollbar { display: none; }
+:host([scroll]) ::slotted(*) { flex: none; white-space: nowrap; scroll-snap-align: start; }
+[part="list"][data-fade="end"] { mask-image: linear-gradient(to right, black calc(100% - 1.75rem), transparent); }
+[part="list"][data-fade="start"] { mask-image: linear-gradient(to right, transparent, black 1.75rem); }
+[part="list"][data-fade="both"] { mask-image: linear-gradient(to right, transparent, black 1.75rem, black calc(100% - 1.75rem), transparent); }

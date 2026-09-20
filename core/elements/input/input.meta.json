@@ -1,0 +1,509 @@
+{
+  "tag": "pk-input",
+  "title": "Input",
+  "group": "Form controls",
+  "summary": "The single-line control: text, email, url, tel, search, password, number and the date and time types, with an optional clear button, password reveal, number stepper, money format, prefix and suffix, and a floating label.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "type",
+      "type": "enum",
+      "default": "text",
+      "values": [
+        "text",
+        "email",
+        "url",
+        "tel",
+        "search",
+        "password",
+        "number",
+        "date",
+        "time",
+        "datetime-local",
+        "month",
+        "week"
+      ],
+      "reflect": true,
+      "description": "The kind of value. Date and time types open the platform picker."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The current value; what the form submits."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty (ignored by a floating label)."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The value can be read and selected but not edited."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "warning",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the warning state (a value the user may want to check)."
+    },
+    {
+      "name": "valid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the valid state."
+    },
+    {
+      "name": "min",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Minimum value (number and date types)."
+    },
+    {
+      "name": "max",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Maximum value (number and date types)."
+    },
+    {
+      "name": "step",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Step for number and date types; also the stepper increment."
+    },
+    {
+      "name": "minlength",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Minimum text length."
+    },
+    {
+      "name": "maxlength",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Maximum text length."
+    },
+    {
+      "name": "pattern",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A regular expression the whole value must match."
+    },
+    {
+      "name": "autocomplete",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The autofill token, for example current-password, new-password or one-time-code."
+    },
+    {
+      "name": "inputmode",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The virtual keyboard to request (numeric, decimal, email, ...)."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Control height."
+    },
+    {
+      "name": "clearable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a clear button while there is a value."
+    },
+    {
+      "name": "reveal",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Password only: a show and hide button."
+    },
+    {
+      "name": "stepper",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Number only: minus and plus buttons that respect min, max and step."
+    },
+    {
+      "name": "format",
+      "type": "enum",
+      "default": "none",
+      "values": [
+        "none",
+        "money"
+      ],
+      "reflect": true,
+      "description": "money formats the value as an amount (1,234.50) when the field is left and shows the plain number while editing; value stays the plain number."
+    },
+    {
+      "name": "decimals",
+      "type": "number",
+      "default": 2,
+      "reflect": false,
+      "description": "Decimal places for the money format."
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "USD",
+      "reflect": false,
+      "description": "ISO currency code whose symbol leads a money field."
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "en-US",
+      "reflect": false,
+      "description": "Locale for money formatting."
+    },
+    {
+      "name": "floating",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label inside the field until it has focus or a value, then floats it to the top edge."
+    },
+    {
+      "name": "autohide",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Password reveal: seconds until the value is masked again; 0 keeps it revealed."
+    },
+    {
+      "name": "debounce",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Search only: milliseconds to wait after typing before pk-search fires; 0 fires on every change."
+    }
+  ],
+  "slots": [
+    {
+      "name": "prefix",
+      "description": "A leading add-on: a currency sign, an icon, a unit."
+    },
+    {
+      "name": "suffix",
+      "description": "A trailing add-on: a unit, a domain, a button."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-value-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user committed a new value (same moment as change; carries the value)."
+    },
+    {
+      "name": "pk-search",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "Search type: the debounced search text, or immediately on Enter and clear."
+    }
+  ],
+  "parts": [
+    {
+      "name": "box",
+      "description": "The bordered field that holds the control and its add-ons."
+    },
+    {
+      "name": "control",
+      "description": "The inner input element."
+    },
+    {
+      "name": "search-icon",
+      "description": "The magnifier of a search field."
+    },
+    {
+      "name": "currency",
+      "description": "The currency symbol of a money field."
+    },
+    {
+      "name": "floating-label",
+      "description": "The floating label."
+    },
+    {
+      "name": "clear",
+      "description": "The clear button."
+    },
+    {
+      "name": "reveal",
+      "description": "The password reveal button."
+    },
+    {
+      "name": "step-down",
+      "description": "The stepper minus button."
+    },
+    {
+      "name": "step-up",
+      "description": "The stepper plus button."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Moves focus to the inner input."
+    }
+  ],
+  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone.",
+  "blazor": {
+    "component": "TextInput",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Type",
+        "prop": "type",
+        "type": "string"
+      },
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Placeholder",
+        "prop": "placeholder",
+        "type": "string"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "ReadOnly",
+        "prop": "readonly",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Min",
+        "prop": "min",
+        "type": "string"
+      },
+      {
+        "name": "Max",
+        "prop": "max",
+        "type": "string"
+      },
+      {
+        "name": "Step",
+        "prop": "step",
+        "type": "string"
+      },
+      {
+        "name": "MaxLength",
+        "prop": "maxlength",
+        "type": "string"
+      },
+      {
+        "name": "Pattern",
+        "prop": "pattern",
+        "type": "string"
+      },
+      {
+        "name": "AutoComplete",
+        "prop": "autocomplete",
+        "type": "string"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Clearable",
+        "prop": "clearable",
+        "type": "bool"
+      },
+      {
+        "name": "Revealable",
+        "prop": "reveal",
+        "type": "bool"
+      },
+      {
+        "name": "Stepper",
+        "prop": "stepper",
+        "type": "bool"
+      },
+      {
+        "name": "Format",
+        "prop": "format",
+        "type": "string"
+      },
+      {
+        "name": "Currency",
+        "prop": "currency",
+        "type": "string"
+      },
+      {
+        "name": "Floating",
+        "prop": "floating",
+        "type": "bool"
+      },
+      {
+        "name": "DebounceMs",
+        "prop": "debounce",
+        "type": "int"
+      },
+      {
+        "name": "OnSearch",
+        "event": "pk-search",
+        "type": "{ value: string }"
+      },
+      {
+        "name": "PrefixContent",
+        "slot": "prefix",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "SuffixContent",
+        "slot": "suffix",
+        "type": "RenderFragment"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-value-change",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Text, states and sizes",
+      "html": "<pk-input label=\"Product title\" value=\"Widget 1\"></pk-input>\n<pk-input label=\"Read only\" value=\"AC-1001\" readonly></pk-input>\n<pk-input label=\"Invalid\" value=\"bad sku\" invalid></pk-input>\n<pk-input label=\"Small\" size=\"sm\"></pk-input>"
+    },
+    {
+      "title": "Add-ons, money and stepper",
+      "html": "<pk-input label=\"Price\" format=\"money\" value=\"1234.5\"></pk-input>\n<pk-input label=\"Quantity\" type=\"number\" stepper min=\"0\" max=\"10\" value=\"3\"></pk-input>\n<pk-input label=\"Domain\" value=\"example\"><span slot=\"prefix\">https://</span><span slot=\"suffix\">.com</span></pk-input>"
+    },
+    {
+      "title": "Search, password and floating label",
+      "html": "<pk-input type=\"search\" label=\"Search products\" placeholder=\"Search products\" clearable debounce=\"250\"></pk-input>\n<pk-input type=\"password\" label=\"Password\" reveal autohide=\"15\" autocomplete=\"current-password\"></pk-input>\n<pk-input label=\"Product title\" floating></pk-input>"
+    },
+    {
+      "title": "Date and time",
+      "html": "<pk-input type=\"date\" label=\"Release date\" value=\"2026-09-19\"></pk-input>\n<pk-input type=\"time\" label=\"Ships by\" value=\"14:30\"></pk-input>"
+    }
+  ]
+}

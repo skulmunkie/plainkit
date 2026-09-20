@@ -1,0 +1,2 @@
+:host { display: block; }
+[part="frame"] { display: block; inline-size: 100%; block-size: var(--pk-gallery-height, 28rem); border: 0; }

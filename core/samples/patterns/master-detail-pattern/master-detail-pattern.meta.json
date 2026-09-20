@@ -1,0 +1,17 @@
+{
+  "id": "master-detail-pattern",
+  "title": "Master and detail with tabs",
+  "summary": "A selectable list beside a record with tabs; the selected row is marked and the detail keeps its own actions.",
+  "built": "List group, Tabs, FieldList, Timeline, Button.",
+  "mobile": "The two columns stack; selecting a row scrolls to the detail.",
+  "used": [
+    "button",
+    "card",
+    "chip",
+    "extras",
+    "field-list",
+    "shell",
+    "tabs"
+  ],
+  "order": 2
+}

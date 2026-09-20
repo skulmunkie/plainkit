@@ -1,0 +1,139 @@
+.top-row {
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-panel);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* The top bar is the SITE header and is always present. It used to be hidden on
+   desktop unless a page supplied content, which meant the app had no header at
+   all on most screens and the page began flush against the window. */
+
+.top-row {
+    flex: none;
+    height: var(--app-header-h);
+}
+
+/* Centred by taking the free space either side. margin:auto on a flex child
+   centres against the row rather than against its siblings, so a long page
+   title appearing after it does not drag the search off-centre. */
+
+.app-header-search {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+}
+
+/* Hamburger button — hidden on desktop, shown in the top bar on small screens. */
+
+.mobile-nav-toggle {
+    display: none; flex: none; width: 34px; height: 34px; padding: 7px 6px;
+    flex-direction: column; justify-content: space-between; cursor: pointer;
+    background: transparent; border: 1px solid var(--color-border); border-radius: 7px;
+}
+
+.mobile-nav-toggle span { display: block; height: 2px; background: var(--color-text); border-radius: 2px; }
+
+@media (max-width: 1024px) {
+    /* content takes the full width */
+    .top-row { display: flex; padding: 0 0.7rem; }
+    .mobile-nav-toggle { display: flex; }
+}
+
+/* ── Site search (app header) ────────────────────────────────────────
+   The input is centred in the header; results slide in over the content
+   area once the query is long enough to mean something. */
+
+.app-search { position: relative; width: min(34rem, 100%); }
+
+.app-search-input {
+    width: 100%;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: inherit;
+    font-size: var(--text-read);
+}
+
+.app-search-input:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+@container (max-width: 60rem) {
+    .app-search { width: 100%; }
+}
+
+/* ── Top bar: the page's back button and title live in the app header at every width; on a phone the search collapses to a button. ── */
+
+.app-search-toggle,
+.app-search-close { display: none; }
+
+.app-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 45%;
+}
+
+.topbar-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    color: inherit;
+    text-decoration: none;
+}
+
+.topbar-back:hover { color: var(--color-accent); }
+
+@media (max-width: 640px) {
+    .app-header-title { flex: 1 1 auto; max-width: none; }
+    .app-header-search { flex: none; }
+    .app-search { width: auto; }
+    .app-search-input { display: none; }
+    .app-search-toggle,
+    .app-search-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: var(--touch-target, 44px);
+        min-height: var(--touch-target, 44px);
+        background: transparent;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+    }
+    .app-search.is-field {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--app-header-h);
+        z-index: 1600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 0.7rem;
+        background: var(--color-panel);
+    }
+    .app-search.is-field .app-search-input { display: block; flex: 1 1 auto; width: auto; }
+    .app-search.is-field .app-search-toggle { display: none; }
+    .app-search:not(.is-field) .app-search-close { display: none; }
+}
+
+@media (max-width: 640px) {
+    .mobile-nav-toggle { width: var(--touch-target); height: var(--touch-target); }
+}

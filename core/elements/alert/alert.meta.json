@@ -1,0 +1,214 @@
+{
+  "tag": "pk-alert",
+  "title": "Alert",
+  "summary": "A persistent message in a kind (info, success, warning, danger): optional heading, actions, a dismiss button, a full-bleed banner variant for the top of a page, and a plain form (coloured text only, optionally inline and compact).",
+  "group": "Feedback & status",
+  "props": [
+    {
+      "name": "kind",
+      "type": "enum",
+      "default": "info",
+      "values": [
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "reflect": true,
+      "description": "The kind setting"
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The heading setting"
+    },
+    {
+      "name": "dismissible",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The dismissible setting"
+    },
+    {
+      "name": "banner",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Page-level strip."
+    },
+    {
+      "name": "plain",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Coloured text with no box, icon or panel: the quiet form for a message beside a field or under a button."
+    },
+    {
+      "name": "inline",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Flows in a line of text (like a span) instead of a block; use with plain."
+    },
+    {
+      "name": "compact",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Smaller text and no margin, for an actions strip."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Message."
+    },
+    {
+      "name": "action",
+      "description": "Buttons or links."
+    },
+    {
+      "name": "icon",
+      "description": "Custom icon."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-dismiss",
+      "detail": null,
+      "description": "Dismissed; cancelable."
+    }
+  ],
+  "parts": [
+    {
+      "name": "icon",
+      "description": "Kind icon"
+    },
+    {
+      "name": "content",
+      "description": "Title and message"
+    },
+    {
+      "name": "title",
+      "description": "Heading text"
+    },
+    {
+      "name": "message",
+      "description": "Message text"
+    },
+    {
+      "name": "actions",
+      "description": "Action buttons"
+    },
+    {
+      "name": "close",
+      "description": "Close or dismiss button"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-alert-c",
+      "description": "Kind colour",
+      "default": "--color-accent"
+    }
+  ],
+  "methods": [
+    {
+      "name": "dismiss()",
+      "description": "Dismisses it"
+    }
+  ],
+  "a11y": "role=alert for warning and danger, role=status for info and success, applied to the host; the dismiss button is labelled; colour is never the only signal (icon and heading).",
+  "mobile": "Actions wrap onto their own line; the dismiss button is 44px.",
+  "blazor": {
+    "component": "Notice",
+    "params": [
+      {
+        "name": "Kind",
+        "type": "NoticeKind",
+        "enum": {
+          "Error": "danger",
+          "Warning": "warning",
+          "Info": "info",
+          "Success": "success"
+        },
+        "default": "Error",
+        "map": "prop",
+        "prop": "kind"
+      },
+      {
+        "name": "Title",
+        "type": "string?",
+        "map": "prop",
+        "prop": "heading"
+      },
+      {
+        "name": "Message",
+        "type": "string?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "Dismissible",
+        "type": "bool",
+        "map": "prop",
+        "prop": "dismissible"
+      },
+      {
+        "name": "OnDismiss",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-dismiss",
+        "cancelable": true
+      },
+      {
+        "name": "Boxed",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "The alert element is always boxed; unboxed text notices stay on the compat class."
+      },
+      {
+        "name": "Inline",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "Alert is a block; inline text notices stay on the compat class."
+      },
+      {
+        "name": "Compact",
+        "type": "bool",
+        "map": "wrapper",
+        "note": "Compat class only."
+      },
+      {
+        "name": "ExtraClass",
+        "type": "string",
+        "map": "wrapper",
+        "note": "Passed to the host element class attribute."
+      },
+      {
+        "name": "AdditionalAttributes",
+        "type": "Dictionary<string, object>?",
+        "map": "wrapper",
+        "note": "Splatted onto the host element."
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Kinds",
+      "html": "<div class=\"stack\"><pk-alert kind=\"info\" heading=\"Heads up\">Imports run overnight.</pk-alert><pk-alert kind=\"success\">Product published.</pk-alert><pk-alert kind=\"warning\" heading=\"Low stock\">Three copies left.</pk-alert><pk-alert kind=\"danger\" heading=\"Sync failed\" dismissible>The channel rejected the update.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Retry</button></pk-alert></div>"
+    },
+    {
+      "title": "Page-level banner",
+      "html": "<pk-alert kind=\"warning\" banner dismissible>Scheduled maintenance tonight at 22:00.<a slot=\"action\" href=\"#\">Details</a></pk-alert>"
+    }
+  ]
+}

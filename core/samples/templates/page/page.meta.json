@@ -1,0 +1,13 @@
+{
+  "id": "page",
+  "title": "Page",
+  "summary": "Breadcrumbs, title with optional back button, page actions, content, footer.",
+  "slots": "crumbs, title, actions, content, footer",
+  "used": [
+    "button",
+    "card",
+    "field-list",
+    "flyout"
+  ],
+  "order": 1
+}

@@ -1,0 +1,34 @@
+{
+  "folder": "record-header",
+  "controls": [
+    {
+      "id": "record-header",
+      "name": "RecordHeader",
+      "kind": "Layout & structure",
+      "purpose": "The strip under the top bar of a record page: identifying chips on the left, actions on the right. The back button and title live in the top bar.",
+      "replaces": "per-page back link + heading rows",
+      "mobile": "Chips and actions share one row down to the phone, where the actions stay right.",
+      "states": [
+        "chips",
+        "actions"
+      ],
+      "classes": [
+        "record-header",
+        "record-header-title",
+        "record-header-actions"
+      ],
+      "css": [
+        "components/record-header/record-header.css",
+        "components/topbar/topbar.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"record-header\"><div class=\"record-header-title\">chips</div><div class=\"record-header-actions\">buttons</div></div>",
+      "blazor": {
+        "component": "RecordHeader",
+        "snippet": "<RecordHeader Title=\"@_p.Title\" BackHref=\"/products\" BackLabel=\"Products\" />"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

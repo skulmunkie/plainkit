@@ -1,0 +1,44 @@
+/* pk-lightbox: the image fills a dark native dialog; controls sit in the corners and at the middle edges. */
+:host { display: contents; }
+
+[part="dialog"] { box-sizing: border-box; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: var(--space-6); border: 0; background: transparent; color: var(--color-text); }
+
+[part="dialog"][open] { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); }
+
+[part="dialog"]::backdrop { background: var(--modal-overlay-bg); backdrop-filter: blur(6px); }
+
+[part="figure"] { grid-column: 2; display: flex; flex-direction: column; align-items: center; gap: var(--space-3); min-width: 0; min-height: 0; margin: 0; }
+
+[part="image"] { max-width: 100%; max-height: calc(100dvh - 8rem); object-fit: contain; border-radius: var(--radius-md); box-shadow: var(--shadow-modal); touch-action: pan-y pinch-zoom; }
+
+[part="caption"] { max-width: 60ch; color: var(--color-text); font-size: var(--text-read); text-align: center; overflow-wrap: anywhere; }
+
+[part="caption"]:empty { display: none; }
+
+[part="close"], [part="prev"], [part="next"] { width: var(--touch-target); height: var(--touch-target); border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-panel); color: var(--color-text); font: inherit; font-size: 1.25rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow-pop); }
+
+[part="close"] { position: absolute; inset-block-start: max(var(--space-3), env(safe-area-inset-top)); inset-inline-end: max(var(--space-3), env(safe-area-inset-right)); }
+
+[part="close"]::before { content: "\00d7"; }
+[part="prev"]::before { content: "\2039"; }
+[part="next"]::before { content: "\203A"; }
+
+[part="prev"] { grid-column: 1; }
+[part="next"] { grid-column: 3; }
+
+:host([single]) [part="prev"], :host([single]) [part="next"] { visibility: hidden; }
+
+[part="close"]:hover, [part="prev"]:hover, [part="next"]:hover { background: var(--color-surface-alt); }
+
+[part="close"]:focus-visible, [part="prev"]:focus-visible, [part="next"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+[part="counter"] { position: absolute; inset-block-end: max(var(--space-3), env(safe-area-inset-bottom)); inset-inline: 0; margin: 0; text-align: center; color: var(--color-text); font-size: var(--text-meta); }
+
+@media (max-width: 640px) {
+    [part="dialog"] { padding: var(--space-3); }
+    [part="dialog"][open] { grid-template-columns: 1fr; }
+    [part="figure"] { grid-column: 1; }
+    [part="prev"], [part="next"] { position: absolute; inset-block-end: max(var(--space-3), env(safe-area-inset-bottom)); }
+    [part="prev"] { inset-inline-start: var(--space-3); }
+    [part="next"] { inset-inline-end: var(--space-3); }
+}

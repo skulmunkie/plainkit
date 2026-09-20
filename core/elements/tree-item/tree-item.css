@@ -1,0 +1,11 @@
+:host { display: block; outline: none; }
+[part="row"] { display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); padding-inline: var(--space-2); padding-inline-start: calc(var(--space-2) + (var(--pk-tree-item-level, 1) - 1) * var(--pk-tree-item-indent, var(--space-5))); border-radius: var(--radius-sm); cursor: pointer; }
+[part="row"]:hover { background: var(--color-surface-alt); }
+:host(:focus-visible) > [part="row"] { outline: var(--focus-ring); outline-offset: -2px; }
+:host([selected]) > [part="row"] { background: color-mix(in srgb, var(--color-accent) 16%, transparent); font-weight: 600; }
+:host([disabled]) > [part="row"] { opacity: 0.55; cursor: default; }
+[part="toggle"] { flex: none; inline-size: 0.45em; block-size: 0.45em; margin-inline: 0.25em; border: solid var(--color-muted); border-width: 0 2px 2px 0; transform: rotate(-45deg); transition: transform 0.15s; }
+:host(:not([expandable])) [part="toggle"] { visibility: hidden; }
+:host([expanded]) > [part="row"] [part="toggle"] { transform: rotate(45deg); }
+@media (min-width: 641px) { [part="row"] { min-block-size: var(--space-8); } }
+@media (prefers-reduced-motion: reduce) { [part="toggle"] { transition: none; } }

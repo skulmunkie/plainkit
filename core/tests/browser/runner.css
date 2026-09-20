@@ -1,0 +1,6 @@
+/* Layout for the in-browser element test page only; not part of the SDK. */
+.tb-results { padding-left: var(--space-6); }
+.tb-results li { margin: var(--space-1) 0; }
+.tb-pass::marker { color: var(--color-success, var(--color-accent)); }
+.tb-fail { color: var(--color-error, var(--color-text)); }
+.tb-stage { position: absolute; left: -10000px; top: 0; width: 900px; }

@@ -1,0 +1,22 @@
+:host { display: block; --_th: var(--pk-range-thumb, 1.25rem); --_bar: 0.35rem; --f: 0; --lo: 0; --hi: 1; }
+.wrap { position: relative; height: 1.75rem; }
+.tr { position: absolute; inset-inline: 0; top: calc(50% - var(--_bar) / 2); height: var(--_bar); border-radius: var(--radius-pill); background: linear-gradient(to right, var(--pk-range-fill, var(--color-accent)) calc(var(--f) * (100% - var(--_th)) + var(--_th) / 2), var(--pk-range-track, color-mix(in srgb, var(--color-muted) 45%, var(--color-input))) 0); }
+:host([dual]) .tr { background: linear-gradient(to right, var(--pk-range-track, color-mix(in srgb, var(--color-muted) 45%, var(--color-input))) calc(var(--lo) * (100% - var(--_th)) + var(--_th) / 2), var(--pk-range-fill, var(--color-accent)) 0 calc(var(--hi) * (100% - var(--_th)) + var(--_th) / 2), var(--pk-range-track, color-mix(in srgb, var(--color-muted) 45%, var(--color-input))) 0); }
+input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; appearance: none; background: transparent; cursor: pointer; }
+:host([dual]) input { pointer-events: none; }
+:host(:not([dual])) .hi { display: none; }
+input::-webkit-slider-runnable-track { height: var(--_bar); background: none; }
+input::-moz-range-track { height: var(--_bar); background: none; }
+input::-webkit-slider-thumb { width: var(--_th); height: var(--_th); margin-top: calc((var(--_bar) - var(--_th)) / 2); appearance: none; border: 2px solid var(--color-panel); border-radius: var(--radius-round); background: var(--pk-range-fill, var(--color-accent)); box-shadow: var(--shadow-card); }
+input::-moz-range-thumb { width: var(--_th); height: var(--_th); box-sizing: border-box; border: 2px solid var(--color-panel); border-radius: var(--radius-round); background: var(--pk-range-fill, var(--color-accent)); box-shadow: var(--shadow-card); }
+:host([dual]) input::-webkit-slider-thumb { pointer-events: auto; }
+:host([dual]) input::-moz-range-thumb { pointer-events: auto; }
+input:focus-visible { outline: none; }
+input:focus-visible::-webkit-slider-thumb { outline: var(--focus-ring); outline-offset: 2px; }
+input:focus-visible::-moz-range-thumb { outline: var(--focus-ring); outline-offset: 2px; }
+.top { z-index: 1; }
+:host([disabled]) { opacity: 0.5; }
+:host([disabled]) input { cursor: not-allowed; }
+.out { display: none; margin-top: var(--space-1); color: var(--field-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
+:host([output]) .out { display: block; }
+@media (max-width: 640px) { .wrap { height: var(--touch-target); } }

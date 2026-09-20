@@ -1,0 +1,129 @@
+{
+  "tag": "pk-form",
+  "title": "Form validation",
+  "group": "Form layout",
+  "summary": "Wraps a form and shows the browser's constraint validation well: messages in each field, a summary with links, focus on the first problem, and live re-checking.",
+  "delegatesFocus": true,
+  "props": [
+    {
+      "name": "validate",
+      "type": "enum",
+      "default": "blur",
+      "values": [
+        "blur",
+        "input",
+        "submit"
+      ],
+      "reflect": true,
+      "description": "When to check: blur (after leaving a field, and on submit), input (while typing) or submit (only on submit). A field already showing an error re-checks as you type."
+    },
+    {
+      "name": "showValid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Also shows the valid state on fields that hold a value."
+    },
+    {
+      "name": "summary",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a summary of the problems with links to the fields."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "A form element."
+    },
+    {
+      "name": "summary-title",
+      "description": "The summary heading."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-invalid",
+      "detail": "{ count: number, controls: Element[], messages: string[] }",
+      "detailProps": {
+        "count": "number"
+      },
+      "description": "A submit was stopped because these controls are invalid."
+    },
+    {
+      "name": "pk-valid",
+      "detail": "null",
+      "description": "A submit passed validation."
+    }
+  ],
+  "parts": [
+    {
+      "name": "summary",
+      "description": "The problem summary box."
+    },
+    {
+      "name": "summary-title",
+      "description": "The summary heading."
+    },
+    {
+      "name": "summary-list",
+      "description": "The list of problems."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-form-summary-bg",
+      "description": "Summary background.",
+      "default": "var(--color-surface-alt)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "validateAll()",
+      "description": "Checks every control now; returns true when all are valid."
+    }
+  ],
+  "a11y": "Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
+  "blazor": {
+    "component": "ValidationForm",
+    "params": [
+      {
+        "name": "Validate",
+        "prop": "validate",
+        "type": "string"
+      },
+      {
+        "name": "ShowValid",
+        "prop": "showValid",
+        "type": "bool"
+      },
+      {
+        "name": "Summary",
+        "prop": "summary",
+        "type": "bool"
+      },
+      {
+        "name": "OnInvalid",
+        "event": "pk-invalid",
+        "type": "{ controls: Element[], messages: string[] }"
+      },
+      {
+        "name": "OnValid",
+        "event": "pk-valid",
+        "type": "null"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Validated form with summary",
+      "html": "<pk-form summary>\n  <form>\n    <pk-field label=\"Name\" required><pk-input name=\"name\" required data-msg-required=\"Enter a name.\"></pk-input></pk-field>\n    <pk-field label=\"Email\" required><pk-input name=\"email\" type=\"email\" required data-msg-type=\"Use the form name@example.com.\"></pk-input></pk-field>\n    <pk-button type=\"submit\">Save</pk-button>\n  </form>\n</pk-form>"
+    }
+  ]
+}

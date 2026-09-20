@@ -1,0 +1,16 @@
+{
+  "id": "notifications",
+  "title": "Notifications and toasts",
+  "summary": "Transient toasts for confirmations, inline notices for what needs attention, and a count badge on the bell.",
+  "built": "Toast, Notice, Button, Badge (snav-badge).",
+  "mobile": "Toasts stack full-width at the bottom.",
+  "used": [
+    "button",
+    "cluster",
+    "extras",
+    "nav",
+    "notice",
+    "spacing"
+  ],
+  "order": 5
+}

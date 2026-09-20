@@ -1,0 +1,17 @@
+:host { --_c: var(--pk-progress-color, var(--color-accent)); --_h: var(--pk-progress-height, var(--space-2)); display: block; }
+:host([variant="ok"]), :host([data-level="ok"]) { --_c: var(--pk-progress-color, var(--delta-up)); }
+:host([variant="warn"]), :host([data-level="warn"]) { --_c: var(--pk-progress-color, var(--chart-2)); }
+:host([variant="danger"]), :host([data-level="danger"]) { --_c: var(--pk-progress-color, var(--delta-down)); }
+:host([size="sm"]) { --_h: var(--pk-progress-height, var(--space-1)); }
+:host([size="lg"]) { --_h: var(--pk-progress-height, var(--space-4)); }
+[part="row"] { display: flex; justify-content: space-between; gap: var(--space-3); margin-block-end: var(--space-1); }
+[part="value"] { color: var(--color-muted); font-variant-numeric: tabular-nums; }
+[part="bar"] { display: block; inline-size: 100%; block-size: var(--_h); border: 0; appearance: none; background: var(--pk-progress-track, var(--chart-track)); border-radius: var(--radius-pill); overflow: hidden; }
+[part="bar"]::-webkit-progress-bar { background: transparent; }
+[part="bar"]::-webkit-progress-value { background: var(--_c); border-radius: var(--radius-pill); transition: inline-size 0.3s; }
+[part="bar"]::-moz-progress-bar { background: var(--_c); border-radius: var(--radius-pill); }
+:host([striped]) [part="bar"]::-webkit-progress-value { background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--btn-primary-fg) 25%, transparent) 0 var(--space-2), transparent var(--space-2) var(--space-4)); }
+:host([striped]) [part="bar"]::-moz-progress-bar { background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--btn-primary-fg) 25%, transparent) 0 var(--space-2), transparent var(--space-2) var(--space-4)); }
+[part="bar"]:indeterminate { background: linear-gradient(90deg, var(--pk-progress-track, var(--chart-track)) 30%, var(--_c) 50%, var(--pk-progress-track, var(--chart-track)) 70%) 0 0 / 200% 100%; animation: sweep 1.4s linear infinite; }
+@keyframes sweep { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { [part="bar"]:indeterminate { animation: none; } [part="bar"]::-webkit-progress-value { transition: none; } }

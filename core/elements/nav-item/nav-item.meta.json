@@ -1,0 +1,194 @@
+{
+  "tag": "pk-nav-item",
+  "title": "Nav item",
+  "summary": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Makes it a link; omit for a branch."
+    },
+    {
+      "name": "current",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The current setting"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Prevents interaction"
+    },
+    {
+      "name": "expanded",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Branch open."
+    },
+    {
+      "name": "rail",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set by the nav in icon-rail mode."
+    },
+    {
+      "name": "flyout",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "In the icon rail, the branch is open as a flyout beside the rail."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Label."
+    },
+    {
+      "name": "icon",
+      "description": "Icon."
+    },
+    {
+      "name": "badge",
+      "description": "Count or tag."
+    },
+    {
+      "name": "children",
+      "description": "Nested pk-nav-item."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "expanded": "boolean"
+      },
+      "description": "A branch folded or unfolded."
+    }
+  ],
+  "parts": [
+    {
+      "name": "link",
+      "description": "A link"
+    },
+    {
+      "name": "icon",
+      "description": "Kind icon"
+    },
+    {
+      "name": "label",
+      "description": "Label text"
+    },
+    {
+      "name": "badge",
+      "description": "Count or tag"
+    },
+    {
+      "name": "chevron",
+      "description": "Submenu or branch chevron"
+    },
+    {
+      "name": "sub",
+      "description": "Children of a branch"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
+  "mobile": "44px tall.",
+  "blazor": {
+    "component": "NavItem",
+    "params": [
+      {
+        "name": "Href",
+        "type": "string",
+        "default": "",
+        "map": "prop",
+        "prop": "href"
+      },
+      {
+        "name": "Current",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "current"
+      },
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "disabled"
+      },
+      {
+        "name": "Expanded",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "expanded",
+        "bind": {
+          "event": "pk-toggle",
+          "value": "detail.expanded"
+        }
+      },
+      {
+        "name": "Rail",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "rail"
+      },
+      {
+        "name": "Flyout",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "flyout"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "IconContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "icon"
+      },
+      {
+        "name": "BadgeContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "badge"
+      },
+      {
+        "name": "ChildrenContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "children"
+      },
+      {
+        "name": "OnToggle",
+        "type": "EventCallback<NavItemToggleEventArgs>",
+        "map": "event",
+        "event": "pk-toggle"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Row states",
+      "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item></div>"
+    }
+  ]
+}

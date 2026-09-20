@@ -1,0 +1,22 @@
+:host { display: block; --_bd: var(--pk-radio-border, var(--color-input-border)); }
+:host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
+.grp { display: flex; flex-direction: column; gap: var(--space-2); }
+:host([direction="horizontal"]) .grp { flex-flow: row wrap; gap: var(--space-2) var(--space-4); }
+.opt { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text); font-size: var(--text-read); cursor: pointer; }
+input { position: relative; flex: none; width: 1.15rem; height: 1.15rem; margin: 0; appearance: none; background: var(--color-input); border: 1px solid var(--_bd); border-radius: var(--radius-round); cursor: pointer; }
+input:hover:not(:disabled) { border-color: var(--color-muted); }
+input:checked { background: var(--color-accent); border-color: var(--color-accent); }
+input::after { content: ""; position: absolute; inset: 28%; display: none; border-radius: var(--radius-round); background: var(--btn-primary-fg); }
+input:checked::after { display: block; }
+input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.opt:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+:host([disabled]) .opt { opacity: 0.55; cursor: not-allowed; }
+:host([variant="segmented"]) .grp { display: inline-flex; flex-flow: row nowrap; gap: var(--space-1); padding: var(--space-1); background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+:host([variant="segmented"][fill]) .grp { display: flex; width: 100%; }
+:host([variant="segmented"]) .opt { position: relative; flex: 1 1 auto; justify-content: center; min-height: calc(var(--ctl-h) - 0.5rem); padding-inline: var(--space-4); border-radius: var(--radius-sm); color: var(--field-muted); white-space: nowrap; }
+:host([variant="segmented"][fill]) .opt { flex: 1 1 0; }
+:host([variant="segmented"]) input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+:host([variant="segmented"]) .opt:hover { color: var(--color-text); }
+:host([variant="segmented"]) .opt:has(input:checked) { background: var(--pk-segmented-active, var(--color-accent)); color: var(--btn-primary-fg); }
+:host([variant="segmented"]) .opt:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: 1px; }
+@media (max-width: 640px) { .opt { min-height: var(--touch-target); } }

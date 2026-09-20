@@ -1,0 +1,67 @@
+/* ── Modal ───────────────────────────────────────────────────────────
+   A modal is dismissed by interacting with it — never by clicking the
+   backdrop. These carry half-filled forms, and losing a typed record to a
+   stray click is the kind of small betrayal that stops people trusting the
+   app. Every modal gets a Cancel; the backdrop is inert.
+
+   Centred rather than top-anchored, and the page behind is dimmed AND
+   blurred so the modal reads as the only live thing on screen. */
+
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: var(--modal-overlay-bg);
+    /* Progressive: browsers without it still get the dim. */
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: var(--z-modal); padding: var(--space-4);
+}
+
+/* A modal raised over an open FlyoutPanel (1501). The condition-map form asks
+   "this replaces an existing rule — overwrite?" without closing the flyout
+   behind it, so the answer arrives next to the form it is about. */
+
+.modal-overlay--over-flyout { z-index: var(--z-modal-over-flyout); }
+
+.modal-card {
+    /* No --t-bg (plain modal) → the theme panel colour, so the card is solid and
+       readable in both themes (dark card + light text in dark mode). The tinted
+       variants below override --t-bg with a fixed light wash + force dark text. */
+    background: var(--t-bg, var(--color-panel));
+    color: var(--color-text);
+    border: 1.5px solid var(--t-bd, var(--color-border));
+    border-radius: var(--radius-xl); padding: 1.25rem var(--space-6);
+    width: min(560px, 92vw); max-height: 88vh; overflow-y: auto;
+    box-shadow: var(--shadow-modal);
+}
+
+/* No fixed "wide" class: every caller goes through the Modal component
+   component now, which sets its own inline width from MaxWidthPx. */
+
+.modal-card.t-product { --t-bg: var(--modal-card-t-product-bg); --t-bd: var(--modal-card-t-product-bd); color: var(--modal-card-t-product-fg); }
+
+.modal-card.t-archived { --t-bg: var(--modal-card-t-archived-bg); --t-bd: var(--modal-card-t-archived-bd); color: var(--modal-card-t-archived-fg); }
+
+@media (max-width: 640px) {
+.modal-overlay { padding: 0; align-items: stretch; }
+.modal-card {
+        width: 100%; max-width: none;
+        height: 100vh; height: 100dvh; max-height: none;
+        border-radius: 0;
+        display: flex; flex-direction: column;
+    }
+.modal-card .card-header { flex: none; }
+.modal-card .modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.modal-card .modal-footer { flex: none; }
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+.modal-footer--end {
+    justify-content: flex-end;
+}

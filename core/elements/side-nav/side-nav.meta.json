@@ -1,0 +1,202 @@
+{
+  "tag": "pk-side-nav",
+  "title": "Side nav",
+  "summary": "The app’s side navigation: brand, filter box, nested groups with arrow-key tree navigation, collapse to an icon rail (tooltips on rows, branches open as flyouts), persisted state, and an off-canvas drawer with backdrop at 1024px and below.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Main",
+      "reflect": true,
+      "description": "Accessible name"
+    },
+    {
+      "name": "collapsed",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Icon rail."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Drawer open (phones and tablets)."
+    },
+    {
+      "name": "filterable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show the filter box."
+    },
+    {
+      "name": "persist",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "localStorage key for collapsed and open branches."
+    }
+  ],
+  "slots": [
+    {
+      "name": "brand",
+      "description": "Brand link."
+    },
+    {
+      "name": "",
+      "description": "pk-nav-item children."
+    },
+    {
+      "name": "footer",
+      "description": "Pinned bottom items."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-nav-toggle",
+      "detail": {
+        "collapsed": "boolean"
+      },
+      "description": "Rail toggled."
+    },
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "Drawer opened."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "Drawer closed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "nav",
+      "description": "The nav landmark"
+    },
+    {
+      "name": "brand",
+      "description": "Brand area"
+    },
+    {
+      "name": "collapse",
+      "description": "Collapse toggle"
+    },
+    {
+      "name": "filter",
+      "description": "Filter row"
+    },
+    {
+      "name": "filter-input",
+      "description": "Filter field"
+    },
+    {
+      "name": "scroll",
+      "description": "The scrolling list"
+    },
+    {
+      "name": "foot",
+      "description": "Footer area"
+    },
+    {
+      "name": "backdrop",
+      "description": "Dimmed backdrop"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens it"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    },
+    {
+      "name": "toggleCollapsed()",
+      "description": "Toggles the icon rail"
+    }
+  ],
+  "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
+  "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",
+  "blazor": {
+    "component": "NavMenu",
+    "params": [
+      {
+        "name": "Label",
+        "type": "string",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Collapsed",
+        "type": "bool",
+        "map": "prop",
+        "prop": "collapsed",
+        "bind": {
+          "event": "pk-nav-toggle",
+          "value": "detail.collapsed"
+        }
+      },
+      {
+        "name": "Open",
+        "type": "bool",
+        "map": "prop",
+        "prop": "open",
+        "bind": {
+          "event": "pk-close",
+          "value": false
+        }
+      },
+      {
+        "name": "Filterable",
+        "type": "bool",
+        "map": "prop",
+        "prop": "filterable"
+      },
+      {
+        "name": "Persist",
+        "type": "string?",
+        "map": "prop",
+        "prop": "persist"
+      },
+      {
+        "name": "BrandContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "brand"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "FooterContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "footer"
+      },
+      {
+        "name": "OnToggle",
+        "type": "EventCallback<bool>",
+        "map": "event",
+        "event": "pk-nav-toggle"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Side nav with a branch, filter and icon rail",
+      "html": "<div class=\"shell shell--fill\"><pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav></div>"
+    }
+  ]
+}

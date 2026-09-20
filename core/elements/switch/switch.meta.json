@@ -1,0 +1,188 @@
+{
+  "tag": "pk-switch",
+  "title": "Switch",
+  "group": "Form controls",
+  "summary": "An on/off toggle that takes part in a form: it submits its value when on and resets with the form.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "checked",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the switch is on."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "on",
+      "reflect": false,
+      "description": "The value submitted while checked."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state (a red ring) and sets aria-invalid."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Track size."
+    },
+    {
+      "name": "labelPosition",
+      "type": "enum",
+      "default": "end",
+      "values": [
+        "end",
+        "start",
+        "between"
+      ],
+      "reflect": true,
+      "description": "end puts the label after the switch, start before it, between pushes them to opposite edges of the row."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The label."
+    }
+  ],
+  "events": [
+    {
+      "name": "change",
+      "detail": "{ checked }",
+      "description": "The user toggled the switch (a native-style event)."
+    },
+    {
+      "name": "pk-change",
+      "detail": "{ checked: boolean }",
+      "detailProps": {
+        "checked": "bool"
+      },
+      "description": "The same toggle as a typed custom event; the Blazor wrapper listens to this one."
+    }
+  ],
+  "parts": [
+    {
+      "name": "control",
+      "description": "The inner button."
+    },
+    {
+      "name": "track",
+      "description": "The track."
+    },
+    {
+      "name": "thumb",
+      "description": "The thumb."
+    },
+    {
+      "name": "label",
+      "description": "The label wrapper."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-switch-on",
+      "description": "Track colour when on.",
+      "default": "var(--color-accent)"
+    },
+    {
+      "name": "--pk-switch-off",
+      "description": "Track colour when off.",
+      "default": "var(--color-border)"
+    }
+  ],
+  "methods": [],
+  "a11y": "An inner button with role=switch and aria-checked, named by the label slot. Space and Enter toggle it. In a form it contributes name=value while checked, resets to its initial state with the form, and is disabled by a disabled fieldset. Use it only for settings that take effect at once; a value that needs Save is a checkbox.",
+  "blazor": {
+    "component": "Switch",
+    "params": [
+      {
+        "name": "Checked",
+        "prop": "checked",
+        "type": "bool"
+      },
+      {
+        "name": "CheckedChanged",
+        "event": "pk-change",
+        "type": "{ checked: boolean }"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "LabelPosition",
+        "prop": "labelPosition",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "model": {
+      "prop": "checked",
+      "event": "pk-change",
+      "key": "checked",
+      "type": "bool"
+    }
+  },
+  "examples": [
+    {
+      "title": "In a form",
+      "html": "<form>\n  <pk-switch name=\"notify\" checked>Email me</pk-switch>\n  <pk-button type=\"submit\">Save</pk-button>\n</form>"
+    },
+    {
+      "title": "Sizes and label position",
+      "html": "<pk-switch size=\"sm\">Small</pk-switch>\n<pk-switch size=\"lg\" checked>Large</pk-switch>\n<pk-switch label-position=\"between\">Email me a daily summary</pk-switch>"
+    }
+  ]
+}

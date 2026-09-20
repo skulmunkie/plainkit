@@ -1,0 +1,16 @@
+{
+  "id": "list",
+  "title": "List page",
+  "summary": "A search page: crumbs and actions, a toolbar and a grid whose rows navigate to a record page.",
+  "built": "PageHeader, Toolbar, Button, DataGrid, Chip.",
+  "mobile": "Toolbar actions take their own row; the grid turns rows into cards with the first column as identity.",
+  "used": [
+    "button",
+    "chip",
+    "page-header",
+    "table-content",
+    "toolbar",
+    "workspace"
+  ],
+  "order": 1
+}

@@ -1,0 +1,6 @@
+/* pk-stepper: a row (or column) of pk-step children; the container sets each step's state, index and last. */
+:host { display: block; }
+
+[part="list"] { display: flex; align-items: flex-start; gap: var(--space-2); }
+
+:host([orientation="vertical"]) [part="list"] { flex-direction: column; gap: 0; }

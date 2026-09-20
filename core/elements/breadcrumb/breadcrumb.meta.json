@@ -1,0 +1,98 @@
+{
+  "tag": "pk-breadcrumb",
+  "title": "Breadcrumb",
+  "summary": "The path to the current page as a trail of links with chevrons; the middle collapses behind a \"...\" button when the trail is long, sooner on a phone.",
+  "group": "Navigation",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Breadcrumb",
+      "reflect": true,
+      "description": "Landmark name."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 4,
+      "reflect": true,
+      "description": "Crumbs shown before the middle folds (3 on a phone)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "a elements; the last one is the current page."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-expand",
+      "detail": null,
+      "description": "The fold button revealed the hidden crumbs."
+    }
+  ],
+  "parts": [
+    {
+      "name": "nav",
+      "description": "The nav landmark"
+    },
+    {
+      "name": "list",
+      "description": "The list of items"
+    },
+    {
+      "name": "item",
+      "description": "Crumb list item"
+    },
+    {
+      "name": "fold",
+      "description": "Fold item"
+    },
+    {
+      "name": "more",
+      "description": "Fold button"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded.",
+  "mobile": "More than three crumbs fold the middle ones; links and the fold button are 44px tall.",
+  "blazor": {
+    "component": "Breadcrumb",
+    "params": [
+      {
+        "name": "Label",
+        "type": "string",
+        "default": "Breadcrumb",
+        "map": "prop",
+        "prop": "label"
+      },
+      {
+        "name": "Max",
+        "type": "int",
+        "default": 4,
+        "map": "prop",
+        "prop": "max"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "OnExpand",
+        "type": "EventCallback",
+        "map": "event",
+        "event": "pk-expand"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Breadcrumb",
+      "html": "<pk-breadcrumb label=\"Breadcrumb\"><a href=\"#\">Home</a><a href=\"#\">Products</a><a href=\"#\">Books</a><a href=\"#\">Item 12</a><a href=\"#\" aria-current=\"page\">Variants</a></pk-breadcrumb>"
+    }
+  ]
+}

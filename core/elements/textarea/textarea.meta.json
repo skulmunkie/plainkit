@@ -1,0 +1,263 @@
+{
+  "tag": "pk-textarea",
+  "title": "Textarea",
+  "group": "Form controls",
+  "summary": "A multi-line control that can grow with its content up to a cap.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The current value; what the form submits."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The value can be read but not edited."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the value is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "warning",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the warning state (a value the user may want to check)."
+    },
+    {
+      "name": "valid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the valid state."
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "default": 3,
+      "reflect": false,
+      "description": "Visible rows of a fixed-height textarea."
+    },
+    {
+      "name": "minlength",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Minimum text length."
+    },
+    {
+      "name": "maxlength",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Maximum text length."
+    },
+    {
+      "name": "autogrow",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Grows with the content instead of scrolling."
+    },
+    {
+      "name": "maxHeight",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Auto-grow cap in pixels; 0 means no cap and the box scrolls beyond it otherwise."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed: bubbles out of the shadow root). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the value (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-value-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user committed a new value (same moment as change; carries the value)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "box",
+      "description": "The bordered field."
+    },
+    {
+      "name": "control",
+      "description": "The inner textarea."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    },
+    {
+      "name": "--pk-textarea-max-height",
+      "description": "Cap on the auto-grow height (set from max-height).",
+      "default": "none"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Moves focus to the textarea."
+    },
+    {
+      "name": "select()",
+      "description": "Selects the text."
+    }
+  ],
+  "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
+  "blazor": {
+    "component": "TextArea",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "value",
+        "type": "string"
+      },
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Placeholder",
+        "prop": "placeholder",
+        "type": "string"
+      },
+      {
+        "name": "AriaLabel",
+        "prop": "label",
+        "type": "string"
+      },
+      {
+        "name": "Disabled",
+        "prop": "disabled",
+        "type": "bool"
+      },
+      {
+        "name": "ReadOnly",
+        "prop": "readonly",
+        "type": "bool"
+      },
+      {
+        "name": "Required",
+        "prop": "required",
+        "type": "bool"
+      },
+      {
+        "name": "IsInvalid",
+        "prop": "invalid",
+        "type": "bool"
+      },
+      {
+        "name": "Rows",
+        "prop": "rows",
+        "type": "int"
+      },
+      {
+        "name": "MaxLength",
+        "prop": "maxlength",
+        "type": "string"
+      },
+      {
+        "name": "AutoGrow",
+        "prop": "autogrow",
+        "type": "bool"
+      },
+      {
+        "name": "MaxHeight",
+        "prop": "maxHeight",
+        "type": "int"
+      }
+    ],
+    "model": {
+      "prop": "value",
+      "event": "pk-value-change",
+      "key": "value",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "title": "Fixed and auto-grow",
+      "html": "<pk-textarea label=\"Notes\" rows=\"3\" value=\"Fixed height, resizable.\"></pk-textarea>\n<pk-textarea label=\"Description\" autogrow max-height=\"160\" value=\"Grows as you type, up to 160px.\"></pk-textarea>"
+    }
+  ]
+}

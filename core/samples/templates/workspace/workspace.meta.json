@@ -1,0 +1,19 @@
+{
+  "id": "workspace",
+  "title": "Workspace",
+  "summary": "A nav rail, one tab strip over a content pane and a docked inspector. Fills the viewport; rail and pane scroll on their own.",
+  "slots": "nav rail, tab strip, pane, docked inspector",
+  "used": [
+    "button",
+    "code-explorer",
+    "extras",
+    "field-list",
+    "flyout",
+    "form-field",
+    "spacing",
+    "tabs",
+    "utilities",
+    "workspace"
+  ],
+  "order": 2
+}

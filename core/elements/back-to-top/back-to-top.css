@@ -1,0 +1,12 @@
+/* pk-back-to-top: a floating pill at the end of the screen, clear of the safe area; hidden until the reader has scrolled. */
+:host { position: fixed; inset-block-end: max(var(--space-4), env(safe-area-inset-bottom)); inset-inline-end: max(var(--space-4), env(safe-area-inset-right)); z-index: var(--z-sticky); display: none; }
+
+:host([visible]) { display: block; }
+
+[part="button"] { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--touch-target); padding: var(--space-1) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-panel); color: var(--color-text); box-shadow: var(--shadow-pop); font: inherit; font-size: var(--text-read); cursor: pointer; }
+
+[part="icon"]::before { content: "\2191"; }
+
+[part="button"]:hover { background: var(--color-surface-alt); }
+
+[part="button"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

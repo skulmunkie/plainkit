@@ -1,0 +1,88 @@
+{
+  "tag": "pk-form-actions",
+  "title": "Form actions",
+  "group": "Form layout",
+  "summary": "The bar of buttons under a form, aligned start, end or between, and sticky to the bottom of a long form.",
+  "props": [
+    {
+      "name": "sticky",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Sticks to the bottom of the scrolling area with a top edge, clearing the phone home indicator."
+    },
+    {
+      "name": "align",
+      "type": "enum",
+      "default": "start",
+      "values": [
+        "start",
+        "end",
+        "between"
+      ],
+      "reflect": true,
+      "description": "Where the buttons sit."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The buttons."
+    },
+    {
+      "name": "status",
+      "description": "A status message such as \"Unsaved changes\"."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "bar",
+      "description": "The bar."
+    },
+    {
+      "name": "status",
+      "description": "The status text."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-form-actions-bg",
+      "description": "Background of a sticky bar.",
+      "default": "var(--color-panel)"
+    }
+  ],
+  "methods": [],
+  "a11y": "Plain layout; the status text is not a live region (use a Notice for announcements). On a phone the buttons of a sticky bar share the width.",
+  "blazor": {
+    "component": "FormActions",
+    "params": [
+      {
+        "name": "Sticky",
+        "prop": "sticky",
+        "type": "bool"
+      },
+      {
+        "name": "Align",
+        "prop": "align",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      },
+      {
+        "name": "StatusContent",
+        "slot": "status",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "End-aligned",
+      "html": "<pk-form-actions align=\"end\"><pk-button variant=\"ghost\">Cancel</pk-button><pk-button>Save</pk-button></pk-form-actions>"
+    }
+  ]
+}

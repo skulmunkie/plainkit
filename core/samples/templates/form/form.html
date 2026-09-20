@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SDK template: Form and settings">
+<title>Form and settings - SDK template</title>
+<link rel="stylesheet" href="../../../plainkit.css">
+</head>
+<body>
+<main id="content">
+<form class="stack">
+<section class="card"><div class="card-header"><h2>Section one</h2></div><div class="form-grid"><label class="ff"><span>Name <span class="ff-required" aria-hidden="true">*</span></span><input type="text" value="Example"><span class="field-help">Help text sits below the input.</span></label><label class="ff"><span>Email</span><input type="text" class="is-invalid" value="not-an-email"><span class="field-error">Enter a valid email address.</span></label><label class="ff"><span>Choice</span><select><option>One</option></select></label></div></section>
+<section class="card"><div class="card-header"><h2>Section two</h2></div><div class="stack-sm"><label class="switch"><input type="checkbox" checked><span>Option enabled</span></label><label class="ff"><span>Amount</span><input type="range" min="0" max="100" value="40"></label></div></section>
+<div class="sticky-header form-savebar"><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button class="btn-primary">Save</button><button class="btn-ghost" type="button">Cancel</button><span class="muted">Unsaved changes</span></div></div>
+</form>
+</main>
+<script type="module" src="form.js"></script>
+
+</body>
+</html>

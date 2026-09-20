@@ -1,0 +1,38 @@
+{
+  "folder": "cluster",
+  "controls": [
+    {
+      "id": "cluster",
+      "name": "Cluster",
+      "kind": "Layout & structure",
+      "purpose": "A wrapping row (or column) of controls with a fixed gap; the layout primitive for button rows and chip lists.",
+      "replaces": "hand-written flex rows with their own gap",
+      "mobile": "Wraps at the container edge, so a row that fits on desktop stacks on a phone with no rule of its own.",
+      "states": [
+        "horizontal",
+        "vertical",
+        "gaps",
+        "alignment"
+      ],
+      "classes": [
+        "cluster",
+        "cluster--horizontal",
+        "cluster--vertical",
+        "cluster--gap-sm",
+        "cluster--align-center",
+        "cluster--justify-start"
+      ],
+      "css": [
+        "components/cluster/cluster.css"
+      ],
+      "js": [],
+      "snippet": "<div class=\"cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start\">…</div>",
+      "blazor": {
+        "component": "Cluster",
+        "snippet": "<Cluster Gap=\"ClusterGap.Large\">…</Cluster>"
+      },
+      "accessibility": "",
+      "related": []
+    }
+  ]
+}

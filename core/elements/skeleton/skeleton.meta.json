@@ -1,0 +1,104 @@
+{
+  "tag": "pk-skeleton",
+  "title": "Skeleton",
+  "group": "Feedback",
+  "summary": "A placeholder shape (line, paragraph, circle, block) that holds the layout while content loads.",
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "line",
+      "values": [
+        "line",
+        "text",
+        "circle",
+        "block"
+      ],
+      "reflect": true,
+      "description": "Shape."
+    },
+    {
+      "name": "lines",
+      "type": "number",
+      "default": 3,
+      "reflect": true,
+      "description": "Lines in the text variant."
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Diameter of a circle or height of a block, any CSS length."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Loading",
+      "reflect": false,
+      "description": "Text for assistive technology."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "label",
+      "description": "The visually hidden status text."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-skeleton-bg",
+      "description": "Fill colour.",
+      "default": "var(--color-surface-alt)"
+    },
+    {
+      "name": "--pk-skeleton-lines",
+      "description": "Lines in the text variant (set from lines).",
+      "default": "3"
+    },
+    {
+      "name": "--pk-skeleton-size",
+      "description": "Circle diameter or block height (set from size)."
+    }
+  ],
+  "methods": [],
+  "a11y": "Decorative. Wrap a loading region in aria-busy=\"true\" and let one skeleton carry the label so a single status is announced. The pulse stops under prefers-reduced-motion.",
+  "blazor": {
+    "component": "Skeleton",
+    "params": [
+      {
+        "name": "Variant",
+        "prop": "variant",
+        "type": "string"
+      },
+      {
+        "name": "Lines",
+        "prop": "lines",
+        "type": "double"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      }
+    ],
+    "notes": "New component. Pair with the existing Loading text line where a status message is wanted."
+  },
+  "examples": [
+    {
+      "title": "Paragraph and avatar",
+      "html": "<pk-skeleton variant=\"text\" lines=\"3\"></pk-skeleton>\n<pk-skeleton variant=\"circle\"></pk-skeleton>"
+    },
+    {
+      "title": "Card placeholder",
+      "html": "<pk-skeleton variant=\"block\"></pk-skeleton>"
+    }
+  ]
+}

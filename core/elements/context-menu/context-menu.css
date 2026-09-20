@@ -1,0 +1,24 @@
+/* pk-context-menu: the region is the host; the menu is a fixed layer at the pointer. Same look as the dropdown menu. */
+:host { display: block; }
+
+[part="menu"] {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-pop);
+    box-sizing: border-box;
+    min-width: 12rem;
+    max-width: calc(100vw - 2 * var(--space-4));
+    max-height: min(24rem, calc(100dvh - 2 * var(--space-4)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-1);
+    background: var(--color-panel);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+}
+
+:host([open]) [part="menu"] { display: block; }

@@ -1,0 +1,105 @@
+{
+  "tag": "pk-context-menu",
+  "title": "Context menu",
+  "summary": "A menu opened at the pointer by right click, by Shift+F10 or the Menu key, or by a touch long press, over the region it wraps.",
+  "group": "Overlays",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Whether the menu is shown."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Leave the browser menu alone."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The region the menu belongs to."
+    },
+    {
+      "name": "menu",
+      "description": "pk-menu-item children."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "element",
+        "value": "string",
+        "checked": "boolean"
+      },
+      "description": "An item was chosen."
+    }
+  ],
+  "parts": [
+    {
+      "name": "menu",
+      "description": "The menu layer"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "showAt(x, y)",
+      "description": "See the description"
+    },
+    {
+      "name": "hide()",
+      "description": "Closes it"
+    }
+  ],
+  "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
+  "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
+  "blazor": {
+    "component": "ContextMenu",
+    "params": [
+      {
+        "name": "Open",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "open"
+      },
+      {
+        "name": "Disabled",
+        "type": "bool",
+        "default": false,
+        "map": "prop",
+        "prop": "disabled"
+      },
+      {
+        "name": "ChildContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": ""
+      },
+      {
+        "name": "MenuContent",
+        "type": "RenderFragment?",
+        "map": "slot",
+        "slot": "menu"
+      },
+      {
+        "name": "OnSelect",
+        "type": "EventCallback<ContextMenuSelectEventArgs>",
+        "map": "event",
+        "event": "pk-select"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Right-click, long-press or Shift+F10",
+      "html": "<pk-context-menu><div class=\"card\"><p>Right-click here.</p></div><pk-menu-item slot=\"menu\">Rename</pk-menu-item><pk-menu-item slot=\"menu\">Duplicate</pk-menu-item><pk-menu-item slot=\"menu\" danger>Delete</pk-menu-item></pk-context-menu>"
+    }
+  ]
+}

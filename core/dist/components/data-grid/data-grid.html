@@ -1,0 +1,10 @@
+<!-- data-grid: canonical markup. Each sample is a valid, copy-pasteable fragment; the build reads the @sample markers. -->
+
+<!-- @sample control="data-grid" title="Grid look" -->
+<div class="dg"><div class="dg-toolbar"><input type="search" aria-label="Search" placeholder="Search SKU or title…"><button class="btn-mini btn-primary">+ Add</button></div><pk-table class="dg-body"><table class="data"><thead><tr><th>SKU</th><th>Title</th><th>Status</th><th class="num">Price</th></tr></thead><tbody><tr class="dg-clickable"><td><code>AC-1001</code></td><td>Widget one</td><td><span class="chip chip-success">Active</span></td><td class="num">$19.99</td></tr><tr class="dg-clickable"><td><code>AC-1002</code></td><td>Widget two</td><td><span class="chip chip-muted">Draft</span></td><td class="num">$9.50</td></tr></tbody></table></pk-table><div class="dg-pager"><span class="muted">1-2 of 2</span></div></div>
+
+<!-- @sample control="list-page" title="List page" -->
+<header class="page-header"><div class="page-header-titlebar"><div class="page-header-actions"><button class="btn-primary">Add product</button></div></div></header><div class="notice notice--warning">2 products have no price.</div><section class="card"><table class="data"><thead><tr><th>SKU</th><th>Title</th><th>Status</th></tr></thead><tbody><tr class="dg-clickable"><td><code>AC-1001</code></td><td>Widget one</td><td><span class="chip chip-success">Active</span></td></tr><tr class="dg-clickable"><td><code>AC-1002</code></td><td>Widget two</td><td><span class="chip chip-muted">Draft</span></td></tr></tbody></table></section>
+
+<!-- @sample control="data-grid-filter" title="Filter row" -->
+<div class="dg"><pk-table class="dg-body"><table class="data"><thead><tr><th>SKU</th><th>Status</th></tr><tr class="dg-filterrow"><th><input type="text" aria-label="Filter SKU" placeholder="filter…"></th><th><select aria-label="Filter status"><option></option><option>Active</option></select></th></tr></thead><tbody><tr><td><code>AC-1001</code></td><td>Active</td></tr></tbody></table></pk-table></div>
