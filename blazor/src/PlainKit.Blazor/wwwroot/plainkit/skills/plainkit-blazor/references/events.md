@@ -6,6 +6,7 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 
 | Element event | Args class | Raised by | Fields |
 |---|---|---|---|
+| `pk-activate` | `PkActivateEventArgs` | `PkStat` | Href: string? |
 | `pk-add` | `PkAddEventArgs` | `PkImageGallery` | Files: PkFileInfo[]?, Names: string[]? |
 | `pk-change` | `PkChangeEventArgs` | `PkCheckbox` `PkLightbox` `PkSelectMenu` `PkSwitch` | Checked: bool?, Index: double?, Value: string?, Label: string?, Previous: string? |
 | `pk-close` | `PkCloseEventArgs` | `PkDialog` `PkDrawer` `PkDropdown` `PkLightbox` `PkPopover` `PkSideNav` | Reason: string? |

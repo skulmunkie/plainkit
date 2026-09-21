@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-form-actions sticky="@Sticky"
-                 align="@Align">@ChildContent@if (StatusContent is not null) {<span slot="status">@StatusContent</span>}</pk-form-actions>
+                 align="@Align"
+                 class="@Css()"
+                 @attributes="Splat">@ChildContent@if (StatusContent is not null) {<span slot="status">@StatusContent</span>}</pk-form-actions>
 
 @code {
     /// <summary>Sticks to the bottom of the scrolling area with a top edge, clearing the phone home indicator.</summary>

@@ -8,6 +8,7 @@
                  required="@Required"
                  invalid="@IsInvalid"
                  label="@AriaLabel"
+                 class="@Css()"
                  @attributes="Splat"></pk-colour-input>
 
 @code {
@@ -29,15 +30,10 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-colour"] = EventCallback.Factory.Create<PkColourEventArgs>(this, HandlePkColour),
-        };
+        handlers["onpk-colour"] = EventCallback.Factory.Create<PkColourEventArgs>(this, HandlePkColour);
     }
 
     private async Task HandlePkColour(PkColourEventArgs e)

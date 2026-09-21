@@ -7,6 +7,7 @@
          activation="@(Activation?.ToAttr())"
          none-active="@NoneActive"
          scroll="@Scroll"
+         class="@Css()"
          @attributes="Splat">@ChildContent@if (TrailingContent is not null) {<span slot="trailing">@TrailingContent</span>}</pk-tabs>
 
 @code {
@@ -32,15 +33,10 @@
     /// <summary>Content inside the strip after the last tab: a hint, links or buttons.</summary>
     [Parameter] public RenderFragment? TrailingContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-tab-change"] = EventCallback.Factory.Create<PkTabChangeEventArgs>(this, HandlePkTabChange),
-        };
+        handlers["onpk-tab-change"] = EventCallback.Factory.Create<PkTabChangeEventArgs>(this, HandlePkTabChange);
     }
 
     private async Task HandlePkTabChange(PkTabChangeEventArgs e)

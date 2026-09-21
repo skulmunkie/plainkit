@@ -14,6 +14,7 @@
                label="@Label"
                loading="@Loading"
                edges="@Edges"
+               class="@Css()"
                @attributes="Splat"></pk-pagination>
 
 @code {
@@ -59,17 +60,12 @@
     /// <summary>Show First and Last buttons beside Previous and Next.</summary>
     [Parameter] public bool Edges { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-page"] = EventCallback.Factory.Create<PkPageEventArgs>(this, HandlePkPage),
-            ["onpk-page-size"] = EventCallback.Factory.Create<PkPageSizeEventArgs>(this, HandlePkPageSize),
-            ["onpk-load-more"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkLoadMore),
-        };
+        handlers["onpk-page"] = EventCallback.Factory.Create<PkPageEventArgs>(this, HandlePkPage);
+        handlers["onpk-page-size"] = EventCallback.Factory.Create<PkPageSizeEventArgs>(this, HandlePkPageSize);
+        handlers["onpk-load-more"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkLoadMore);
     }
 
     private async Task HandlePkPage(PkPageEventArgs e)

@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-scroll-progress for="@For"></pk-scroll-progress>
+<pk-scroll-progress for="@For"
+                    class="@Css()"
+                    @attributes="Splat"></pk-scroll-progress>
 
 @code {
     /// <summary>Scroll container (default: the window).</summary>

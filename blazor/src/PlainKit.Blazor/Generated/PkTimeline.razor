@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-timeline label="@Label">@ChildContent</pk-timeline>
+<pk-timeline label="@Label"
+             class="@Css()"
+             @attributes="Splat">@ChildContent</pk-timeline>
 
 @code {
     /// <summary>Accessible name of the list.</summary>

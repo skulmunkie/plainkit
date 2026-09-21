@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-accordion exclusive="@Exclusive"
-              flush="@Flush">@ChildContent</pk-accordion>
+              flush="@Flush"
+              class="@Css()"
+              @attributes="Splat">@ChildContent</pk-accordion>
 
 @code {
     /// <summary>Opening one item closes the others.</summary>

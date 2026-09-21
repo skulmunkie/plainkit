@@ -12,6 +12,7 @@
              marks="@PkAttr.Json(Marks)"
              readonly="@ReadOnly"
              disabled="@Disabled"
+             class="@Css()"
              @attributes="Splat"></pk-calendar>
 
 @code {
@@ -48,16 +49,11 @@
     /// <summary>The shown month changed (yyyy-mm).</summary>
     [Parameter] public EventCallback<PkMonthEventArgs> OnMonthChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-            ["onpk-month"] = EventCallback.Factory.Create<PkMonthEventArgs>(this, HandlePkMonth),
-        };
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
+        handlers["onpk-month"] = EventCallback.Factory.Create<PkMonthEventArgs>(this, HandlePkMonth);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

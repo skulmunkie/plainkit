@@ -5,7 +5,10 @@
 
 <pk-tooltip text="@Text"
             placement="@(Placement.ToAttr())"
-            delay="@PkAttr.Num(HoverDelay)">@if (TooltipContent is not null) {<span slot="content">@TooltipContent</span>}@ChildContent</pk-tooltip>
+            delay="@PkAttr.Num(HoverDelay)"
+            heading="@Title"
+            class="@Css()"
+            @attributes="Splat">@if (TooltipContent is not null) {<span slot="content">@TooltipContent</span>}@if (LinksContent is not null) {<span slot="links">@LinksContent</span>}@ChildContent</pk-tooltip>
 
 @code {
     /// <summary>The label.</summary>
@@ -13,6 +16,9 @@
 
     /// <summary>Rich tip content in place of text.</summary>
     [Parameter] public RenderFragment? TooltipContent { get; set; }
+
+    /// <summary>Links shown under the panel text (a doc link, a more link).</summary>
+    [Parameter] public RenderFragment? LinksContent { get; set; }
 
     /// <summary>The element the tip describes.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -22,4 +28,7 @@
 
     /// <summary>Mouse hover delay; focus is immediate.</summary>
     [Parameter] public int HoverDelay { get; set; } = 200;
+
+    /// <summary>A bold heading inside the panel.</summary>
+    [Parameter] public string? Title { get; set; }
 }

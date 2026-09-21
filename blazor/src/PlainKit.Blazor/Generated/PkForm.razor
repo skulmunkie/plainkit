@@ -6,6 +6,7 @@
 <pk-form validate="@Validate"
          show-valid="@ShowValid"
          summary="@Summary"
+         class="@Css()"
          @attributes="Splat">@ChildContent</pk-form>
 
 @code {
@@ -27,16 +28,11 @@
     /// <summary>A form element.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-invalid"] = EventCallback.Factory.Create<PkInvalidEventArgs>(this, HandlePkInvalid),
-            ["onpk-valid"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkValid),
-        };
+        handlers["onpk-invalid"] = EventCallback.Factory.Create<PkInvalidEventArgs>(this, HandlePkInvalid);
+        handlers["onpk-valid"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkValid);
     }
 
     private async Task HandlePkInvalid(PkInvalidEventArgs e)

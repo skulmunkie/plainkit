@@ -963,53 +963,53 @@
     },
     {
       "path": "skills/plainkit-blazor/SKILL.md",
-      "bytes": 8867,
-      "integrity": "sha384-EcSiJhLf3mWe2eC13mrYObaqMRYpbGbgIq7951wTQFkSEMGkHANFOvYjWgzC7ocp"
+      "bytes": 8864,
+      "integrity": "sha384-mNZUkwAgCY0+aDzFiXMsXLeFTcecWLapMcRiKANrb/vh9i2GoxLVw4YLhN33ZHVq"
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
-      "bytes": 5271,
-      "integrity": "sha384-HvT8e6W8l5hOB/nt2P/XAlKPvC7LDkWK2rmgwF/LS7aAicw/jYqL8/HWvAaVOzOT"
+      "bytes": 5320,
+      "integrity": "sha384-OYj4+VnEaZnh+wtt+haWTNBGSPBzM1++W/HIGkWDZBFY3YLkzhteh8sAuSife2p7"
     },
     {
       "path": "skills/plainkit-blazor/references/components-data-display.md",
-      "bytes": 18835,
-      "integrity": "sha384-1t+aGhMjzq+HWAj6V+rKvB1P80KGx4KUDQoFGbI70SBvBAUZWjyCz4HZGDpgfrQm"
+      "bytes": 21059,
+      "integrity": "sha384-17dUgwAhvp1qe/7YR8lz4AvivpCLPZjbInWZtH4MZ6kdVIqqAF4Fcng7DM0Rt+W3"
     },
     {
       "path": "skills/plainkit-blazor/references/components-feedback.md",
-      "bytes": 9289,
-      "integrity": "sha384-o8j9KaQQgTHgQPHmKGikcX11M7BNslqINyuJI9NQXc0CkWIXJqaINxtPg2R9sXJX"
+      "bytes": 10077,
+      "integrity": "sha384-XZXm/hyWCJcKMZp2R06tGf2xsv3ZuPnGkZrNHe+PkTRbXo0SqsstSB8ML8efqfJu"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-controls.md",
-      "bytes": 28388,
-      "integrity": "sha384-lGTTDeVgtwy6AJ82hLjyr3Y9rIaQfe641RZuySIaCihvjHCEjhK4Z14YDU7EbwfB"
+      "bytes": 28437,
+      "integrity": "sha384-0TgfwYVJd2OLS/MXnBqCRGifXMoEFPsNKBn0Q1xSX0dyPmJDGF6MwuB+WGlu5sHa"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-layout.md",
-      "bytes": 6232,
-      "integrity": "sha384-bHtqOcbCAofgoKcGCE5dqlrtdoFoVFuZHjO3+TnpHWVNC0glftSIrRcAnLgAhrie"
+      "bytes": 6281,
+      "integrity": "sha384-1p6qa5CATUO4jSG1Y8sbPAMqQCroH7H7duLXudSySqPOlmmG6vZMFFWrKFCzVeYO"
     },
     {
       "path": "skills/plainkit-blazor/references/components-index.md",
-      "bytes": 7966,
-      "integrity": "sha384-l6Ha8rJEsi+F6y7HBKqejLTin5uFKu/Ro6uTLfqhnHp8blgwiJmEKFG718DbSuNL"
+      "bytes": 7962,
+      "integrity": "sha384-0MSVS4dknVktCw6FIPNTdyIafhDdARzeYwZhBo4DiyDaddlH3VJ9mIzcajkyfLNW"
     },
     {
       "path": "skills/plainkit-blazor/references/components-layout.md",
-      "bytes": 13936,
-      "integrity": "sha384-ah8aJaXc8rhHfnxKrhsE8cw2NyY28uE9COLbt9kZmOLEnSkeLlt48XBoFzdS5gAu"
+      "bytes": 15446,
+      "integrity": "sha384-fqgbPFUpBPisrAvjcPJ9hwJZITn5brCiujSHLioX9KvQ9lnJfHvDpYRDuhjMjEBc"
     },
     {
       "path": "skills/plainkit-blazor/references/components-navigation.md",
-      "bytes": 22763,
-      "integrity": "sha384-o/XBvU9HS/y0PoIyMvbZBQLL/SsCgHepCaNE3ySZwCJT+v7lg07Sl8ZOagZz+wVE"
+      "bytes": 22812,
+      "integrity": "sha384-RpV1vXdjgfHw09Qfr1hIqoXQj6UJMEL1DH9acuF9xplSfQ0/cLntzLUmJfFyt1lj"
     },
     {
       "path": "skills/plainkit-blazor/references/components-overlays.md",
-      "bytes": 17335,
-      "integrity": "sha384-EVep2GR0cysjY47hJeRTatjRBz+IFJzDFsyI14dfJFaBYltqTjGexk1v7BItkADw"
+      "bytes": 18044,
+      "integrity": "sha384-4CJI2wi3kPBn2iAX/9PTEurk6JXtzQa9sViRDyDVMvEC1D2WtUL7I/Mw5jqrOeUP"
     },
     {
       "path": "skills/plainkit-blazor/references/devtools.md",
@@ -1018,18 +1018,18 @@
     },
     {
       "path": "skills/plainkit-blazor/references/enums.md",
-      "bytes": 1781,
-      "integrity": "sha384-Sc7HtjUfKjVrVjBj0my9CTjgFHk/jNIZTBwAs6cpImYZiIfpnpjCEp7K27sFmpkK"
+      "bytes": 1848,
+      "integrity": "sha384-w0XwEFuL88ezegSRMeAJl90gXIRlfLy907DLwqKi9swbRViXojyKsTO8ebdGautK"
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
-      "bytes": 3783,
-      "integrity": "sha384-IN6ixNkRECXqyHHmQkMWMLgWaVvKHsL6t4dGpi9KrAmq4+4xyEJ8CAmBn/5nbiTy"
+      "bytes": 3853,
+      "integrity": "sha384-tlhonbfPhYovi924O6qUJ2epHtV6Pz8ShjNXw0vJs0qMQnW8w8+1jKgU++HMTXiQ"
     },
     {
       "path": "skills/plainkit-blazor/references/known-gaps.md",
-      "bytes": 4459,
-      "integrity": "sha384-hlACAjNVB0VMSaxoBxG1C6KpI4804EXl6O10USzATxwDndk/vtBcBLVjJFniZN6o"
+      "bytes": 4038,
+      "integrity": "sha384-9sixxNyONED177Chdh61fWQE4efU5PO23zROd6dnkps7+qpx/W+VYY/6qBx9HKMV"
     },
     {
       "path": "skills/plainkit-blazor/references/logging.md",

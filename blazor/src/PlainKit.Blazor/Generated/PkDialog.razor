@@ -5,6 +5,8 @@
 
 <pk-dialog open="@IsOpen"
            heading="@Title"
+           hide-close="@(!ShowCloseButton)"
+           class="@Css()"
            @attributes="Splat">@if (HeaderContent is not null) {<span slot="header">@HeaderContent</span>}@ChildContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-dialog>
 
 @code {
@@ -29,15 +31,14 @@
     /// <summary>escape, close button or method.</summary>
     [Parameter] public EventCallback<PkCloseEventArgs> OnClose { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
+    /// <summary>Hide the header close button (the dialog offers its own Cancel in the footer).</summary>
+    /// <remarks>False hides the header close button (the opposite of hideClose); give the dialog its own Cancel or Close.</remarks>
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-        };
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
     }
 
     private async Task HandlePkClose(PkCloseEventArgs e)

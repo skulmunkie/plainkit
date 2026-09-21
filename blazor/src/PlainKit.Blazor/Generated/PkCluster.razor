@@ -7,7 +7,9 @@
             gap="@Gap"
             align="@Align"
             justify="@Justify"
-            nowrap="@NoWrap">@ChildContent</pk-cluster>
+            nowrap="@NoWrap"
+            class="@Css()"
+            @attributes="Splat">@ChildContent</pk-cluster>
 
 @code {
     /// <summary>Row (wraps at the edge) or column.</summary>

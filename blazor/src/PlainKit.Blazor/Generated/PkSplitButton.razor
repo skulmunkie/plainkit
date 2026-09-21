@@ -9,6 +9,7 @@
                  open="@Open"
                  menu-align="@MenuAlign"
                  @onclick="HandleClick"
+                 class="@Css()"
                  @attributes="Splat">@ChildContent@if (MenuContent is not null) {<span slot="menu">@MenuContent</span>}</pk-split-button>
 
 @code {
@@ -39,15 +40,10 @@
     /// <summary>The menu items: buttons (with a value or data-value).</summary>
     [Parameter] public RenderFragment? MenuContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-split-select"] = EventCallback.Factory.Create<PkSplitSelectEventArgs>(this, HandlePkSplitSelect),
-        };
+        handlers["onpk-split-select"] = EventCallback.Factory.Create<PkSplitSelectEventArgs>(this, HandlePkSplitSelect);
     }
 
     private async Task HandleClick(MouseEventArgs e)

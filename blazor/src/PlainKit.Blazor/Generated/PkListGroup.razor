@@ -5,7 +5,9 @@
 
 <pk-list-group variant="@Variant"
                checklist="@Checklist"
-               label="@Label">@ChildContent</pk-list-group>
+               label="@Label"
+               class="@Css()"
+               @attributes="Splat">@ChildContent</pk-list-group>
 
 @code {
     /// <summary>Row behaviour and frame.</summary>

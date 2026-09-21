@@ -45,20 +45,22 @@
     {
       "name": "ShowCloseButton",
       "type": "bool",
-      "map": "wrapper",
-      "note": "The element always shows its close button (house rule: every modal has its own Cancel or Close)."
+      "default": true,
+      "prop": "hideClose",
+      "invert": true,
+      "note": "False hides the header close button (the opposite of hideClose); give the dialog its own Cancel or Close."
     },
     {
       "name": "CloseButtonLabel",
       "type": "string",
       "map": "wrapper",
-      "note": "Text of the close button; the element draws a cross with an accessible name."
+      "note": "The element has no prop for the close button text; it draws a cross with a fixed accessible name (hideClose, mapped as ShowCloseButton, removes it)."
     },
     {
       "name": "FooterAlignEnd",
       "type": "bool",
       "map": "wrapper",
-      "note": "The footer is always end-aligned."
+      "note": "The footer is always end-aligned; there is nothing to switch."
     },
     {
       "name": "MaxWidthPx",
@@ -71,7 +73,7 @@
       "name": "OverFlyout",
       "type": "bool",
       "map": "wrapper",
-      "note": "Not needed: a native dialog is in the top layer above any flyout."
+      "note": "Not needed: a native dialog is in the top layer, above any flyout."
     },
     {
       "name": "Theme",

@@ -14,6 +14,11 @@
       "slot": "content"
     },
     {
+      "name": "LinksContent",
+      "slot": "links",
+      "type": "RenderFragment?"
+    },
+    {
       "name": "ChildContent",
       "type": "RenderFragment?",
       "map": "slot",
@@ -50,14 +55,13 @@
     {
       "name": "Title",
       "type": "string?",
-      "map": "wrapper",
-      "note": "Bold heading inside the rich content slot."
+      "prop": "heading"
     },
     {
       "name": "DocLink",
       "type": "string?",
       "map": "wrapper",
-      "note": "Link inside the rich content slot."
+      "note": "The element has no link props: links are your own anchors in the links slot (LinksContent), where you choose the text and target."
     },
     {
       "name": "ExternalLink",
@@ -69,13 +73,13 @@
       "name": "LoadAsync",
       "type": "Func<CancellationToken, Task<RenderFragment?>>?",
       "map": "wrapper",
-      "note": "Loads the rich slot content on the first pk-show."
+      "note": "Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler."
     },
     {
       "name": "OnClick",
       "type": "EventCallback",
       "map": "wrapper",
-      "note": "Click on the target."
+      "note": "The element has no click event; put a click handler on the element you wrap."
     }
   ]
 }

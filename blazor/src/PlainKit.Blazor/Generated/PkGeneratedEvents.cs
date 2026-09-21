@@ -18,6 +18,13 @@ public sealed class PkFileInfo
     public string? Type { get; set; }
 }
 
+/// <summary>The detail of <c>pk-activate</c>, raised by PkStat. A field is set only when the element sends it.</summary>
+public class PkActivateEventArgs : EventArgs
+{
+    /// <summary>The <c>href</c> field of the detail (<c>string</c>).</summary>
+    public string? Href { get; set; }
+}
+
 /// <summary>The detail of <c>pk-add</c>, raised by PkImageGallery. A field is set only when the element sends it.</summary>
 public class PkAddEventArgs : EventArgs
 {
@@ -318,6 +325,7 @@ public class PkValueChangeEventArgs : EventArgs
 }
 
 /// <summary>Registers the custom events of the elements with Blazor so <c>@onpk-...</c> reaches a component; the browser side is <c>PlainKit.Blazor.lib.module.js</c>.</summary>
+[EventHandler("onpk-activate", typeof(PkActivateEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-add", typeof(PkAddEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-change", typeof(PkChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-close", typeof(PkCloseEventArgs), enableStopPropagation: true, enablePreventDefault: true)]

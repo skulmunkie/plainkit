@@ -12,6 +12,38 @@ public abstract class PkElementBase : ComponentBase
 {
     [Inject] private PkRuntime Runtime { get; set; } = default!;
 
+    private Dictionary<string, object>? _handlers;
+
+    /// <summary>
+    /// Attributes that match no parameter (<c>id</c>, <c>data-*</c>, <c>aria-*</c>, <c>class</c>, ...). They are put on the element; a <c>class</c>
+    /// is added to the component's own classes.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// What the element is splatted with after its generated attributes: the <c>pk-*</c> event handlers (built once per component) and the
+    /// <see cref="AdditionalAttributes"/> (without <c>class</c>, see <see cref="Css"/>).
+    /// </summary>
+    protected Dictionary<string, object> Splat { get; private set; } = new();
+
+    /// <summary>Adds the component's <c>pk-*</c> event handlers. Called once, the first time the parameters are set.</summary>
+    protected virtual void AddEventHandlers(Dictionary<string, object> handlers) { }
+
+    /// <summary>The <c>class</c> attribute: the component's own classes, then the caller's <c>class</c>. Null when there is none.</summary>
+    protected string? Css(string? own = null) => PkAttr.Class(own, AdditionalAttributes);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (_handlers is null)
+        {
+            _handlers = new Dictionary<string, object>();
+            AddEventHandlers(_handlers);
+        }
+        // No caller attributes: the cached dictionary is used as it is, nothing is allocated for a parameter change.
+        Splat = AdditionalAttributes is { Count: > 0 } ? PkAttr.Merge(_handlers, AdditionalAttributes) : _handlers;
+    }
+
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -23,6 +55,26 @@ public abstract class PkElementBase : ComponentBase
 internal static class PkAttr
 {
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
+
+    /// <summary>The event handlers plus the caller's attributes; <c>class</c> is left out (it is merged by <see cref="PkAttr.Class"/>). A caller's attribute wins over a handler of the same name.</summary>
+    internal static Dictionary<string, object> Merge(Dictionary<string, object> handlers, Dictionary<string, object> attributes)
+    {
+        var merged = new Dictionary<string, object>(handlers);
+        foreach (var (name, value) in attributes)
+            if (!string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)) merged[name] = value;
+        return merged;
+    }
+
+    /// <summary>The component's own classes followed by the caller's <c>class</c> attribute; null when both are empty.</summary>
+    internal static string? Class(string? own, Dictionary<string, object>? attributes)
+    {
+        string? extra = null;
+        if (attributes is not null)
+            foreach (var (name, value) in attributes)
+                if (string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)) extra = Convert.ToString(value, CultureInfo.InvariantCulture);
+        var joined = string.Join(' ', new[] { own, extra }.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!.Trim()));
+        return joined.Length == 0 ? null : joined;
+    }
 
     /// <summary>A number in invariant culture, or null when unset (the attribute is left off).</summary>
     internal static string? Num(IFormattable? value) => value?.ToString(null, CultureInfo.InvariantCulture);

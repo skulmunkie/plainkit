@@ -8,6 +8,7 @@
           message="@Message"
           duration="@PkAttr.Num(Duration)"
           no-close="@NoClose"
+          class="@Css()"
           @attributes="Splat">@ChildContent@if (ActionContent is not null) {<span slot="action">@ActionContent</span>}</pk-toast>
 
 @code {
@@ -35,15 +36,10 @@
     /// <summary>timeout, close, action or method.</summary>
     [Parameter] public EventCallback<PkDismissEventArgs> OnDismiss { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-dismiss"] = EventCallback.Factory.Create<PkDismissEventArgs>(this, HandlePkDismiss),
-        };
+        handlers["onpk-dismiss"] = EventCallback.Factory.Create<PkDismissEventArgs>(this, HandlePkDismiss);
     }
 
     private async Task HandlePkDismiss(PkDismissEventArgs e)

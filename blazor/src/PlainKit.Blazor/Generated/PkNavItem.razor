@@ -10,6 +10,7 @@
              rail="@Rail"
              flyout="@Flyout"
              group="@Group"
+             class="@Css()"
              @attributes="Splat">@ChildContent@if (IconContent is not null) {<span slot="icon">@IconContent</span>}@if (BadgeContent is not null) {<span slot="badge">@BadgeContent</span>}@if (ChildrenContent is not null) {<span slot="children">@ChildrenContent</span>}</pk-nav-item>
 
 @code {
@@ -52,15 +53,10 @@
     /// <summary>A branch folded or unfolded.</summary>
     [Parameter] public EventCallback<PkToggleEventArgs> OnToggle { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkToggle(PkToggleEventArgs e)

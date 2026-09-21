@@ -6,7 +6,9 @@
 <pk-chart kind="@Kind"
           caption="@Caption"
           height="@PkAttr.Num(Height)"
-          data="@PkAttr.Json(Data)">@if (CaptionContent is not null) {<span slot="caption">@CaptionContent</span>}@ChildContent</pk-chart>
+          data="@PkAttr.Json(Data)"
+          class="@Css()"
+          @attributes="Splat">@if (CaptionContent is not null) {<span slot="caption">@CaptionContent</span>}@ChildContent</pk-chart>
 
 @code {
     /// <summary>Chart type.</summary>

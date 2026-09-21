@@ -20,8 +20,7 @@
     {
       "name": "Variant",
       "prop": "tone",
-      "type": "StatCardVariant",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): StatCardVariant"
+      "type": "StatCardVariant"
     },
     {
       "name": "Href",

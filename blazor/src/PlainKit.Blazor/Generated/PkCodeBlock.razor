@@ -8,6 +8,7 @@
                wrap="@Wrap"
                no-copy="@NoCopy"
                max-height="@MaxHeight"
+               class="@Css()"
                @attributes="Splat">@ChildContent</pk-code-block>
 
 @code {
@@ -32,15 +33,10 @@
     /// <summary>The content.</summary>
     [Parameter] public string? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-copy"] = EventCallback.Factory.Create<PkCopyEventArgs>(this, HandlePkCopy),
-        };
+        handlers["onpk-copy"] = EventCallback.Factory.Create<PkCopyEventArgs>(this, HandlePkCopy);
     }
 
     private async Task HandlePkCopy(PkCopyEventArgs e)

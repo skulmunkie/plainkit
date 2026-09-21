@@ -10,7 +10,9 @@
          disabled="@Disabled"
          last="@Last"
          clickable="@Clickable"
-         orientation="@(Orientation.ToAttr())">@ChildContent@if (DescriptionContent is not null) {<span slot="description">@DescriptionContent</span>}</pk-step>
+         orientation="@(Orientation.ToAttr())"
+         class="@Css()"
+         @attributes="Splat">@ChildContent@if (DescriptionContent is not null) {<span slot="description">@DescriptionContent</span>}</pk-step>
 
 @code {
     /// <summary>The title setting</summary>

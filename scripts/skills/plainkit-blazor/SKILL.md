@@ -12,13 +12,13 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 ## Status (alpha)
 
 - **Blazor Server is verified. Blazor WebAssembly is not** (never run in a WebAssembly host; the Files dev tool is server-side only).
-- **Components that do not exist yet:** {{missing}}. Use their elements as raw markup (`<pk-card>`, `<pk-table>`, ...); see the "raw elements" workflow.
-- **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.ShowCloseButton`, `PkAlert.Boxed`, `PkTooltip.Title`), and `PkDialog.MaxWidthPx`, `PkDialog.Theme`, `PkTooltip.Kind`, `PkChart.Data` and `PkImageGallery.Images` are not generated. `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
+- **Components that do not exist yet:** {{missing}}. Use their elements as raw markup (`<pk-table>`); see the "raw elements" workflow.
+- **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.CloseButtonLabel`, `PkDrawer.IsLoading`, `PkTooltip.OnClick`), and `PkDialog.MaxWidthPx`, `PkDialog.Theme`, `PkTooltip.Kind`, `PkChart.Data` and `PkImageGallery.Images` are not generated. `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
 
 ## Rules
 
 - Use only components and parameters listed in the references. Find a component in `references/components-index.md`, then open the file it names. Do not invent parameters.
-- A generated component takes only its listed parameters. An attribute that is not one (`class`, `style`, ...) throws when the component renders; only a component that lists `ExtraClass` (such as `PkAlert`) takes a class. Put classes on a wrapping element.
+- An attribute that is not a parameter (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, and a `class` is added to the component's own, so `<PkButton id="save" data-test="x" class="wide">` works. Inline `style` is blocked by the CSP: use a class or a CSS custom property set in a stylesheet.
 - A prop with a fixed set of values is an enum (`ButtonVariant.Primary`); a null enum leaves the element's default. Values are in `references/enums.md`.
 - Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`. Events are `EventCallback` or `EventCallback<PkXxxEventArgs>` (`references/events.md`).
 - Named slots are `RenderFragment` parameters (`FooterContent`). When you use one, write the body as an explicit `<ChildContent>` too.

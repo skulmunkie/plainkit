@@ -5,7 +5,9 @@
 
 <pk-loading-overlay busy="@Busy"
                     label="@Label"
-                    fullscreen="@Fullscreen">@ChildContent</pk-loading-overlay>
+                    fullscreen="@Fullscreen"
+                    class="@Css()"
+                    @attributes="Splat">@ChildContent</pk-loading-overlay>
 
 @code {
     /// <summary>The busy setting</summary>

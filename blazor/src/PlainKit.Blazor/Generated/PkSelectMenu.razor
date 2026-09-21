@@ -9,6 +9,7 @@
                 open="@Open"
                 disabled="@Disabled"
                 required="@Required"
+                class="@Css()"
                 @attributes="Splat">@ChildContent</pk-select-menu>
 
 @code {
@@ -39,15 +40,10 @@
     /// <summary>The selection changed.</summary>
     [Parameter] public EventCallback<PkChangeEventArgs> OnChange { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange),
-        };
+        handlers["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange);
     }
 
     private async Task HandlePkChange(PkChangeEventArgs e)

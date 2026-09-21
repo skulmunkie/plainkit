@@ -9,6 +9,7 @@
               selected="@Selected"
               disabled="@Disabled"
               expandable="@Expandable"
+              class="@Css()"
               @attributes="Splat">@ChildContent@if (LabelContent is not null) {<span slot="label">@LabelContent</span>}@if (IconContent is not null) {<span slot="icon">@IconContent</span>}</pk-tree-item>
 
 @code {
@@ -45,16 +46,11 @@
     /// <summary>The branch opened or closed.</summary>
     [Parameter] public EventCallback<PkToggleEventArgs> OnToggle { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

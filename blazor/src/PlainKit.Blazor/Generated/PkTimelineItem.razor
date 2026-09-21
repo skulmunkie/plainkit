@@ -5,7 +5,9 @@
 
 <pk-timeline-item heading="@Heading"
                   time="@Time"
-                  status="@Status">@ChildContent@if (HeadingContent is not null) {<span slot="heading">@HeadingContent</span>}@if (TimeContent is not null) {<span slot="time">@TimeContent</span>}</pk-timeline-item>
+                  status="@Status"
+                  class="@Css()"
+                  @attributes="Splat">@ChildContent@if (HeadingContent is not null) {<span slot="heading">@HeadingContent</span>}@if (TimeContent is not null) {<span slot="time">@TimeContent</span>}</pk-timeline-item>
 
 @code {
     /// <summary>Title of the event.</summary>

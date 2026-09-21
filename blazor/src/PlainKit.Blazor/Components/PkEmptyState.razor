@@ -1,0 +1,32 @@
+@namespace PlainKit.Blazor
+@inherits PkElementBase
+
+@* Hand-written (blazor/mappings/empty-state.json marks it "existing"): what a list shows when it has no rows, over <pk-empty-state>. *@
+<pk-empty-state heading="@Title"
+                description="@Description"
+                tone="@Tone"
+                class="@Css()"
+                @attributes="Splat">@DescriptionContent@if (IconContent is not null) {<span slot="icon">@IconContent</span>}@if (TitleContent is not null) {<span slot="heading">@TitleContent</span>}@if (ActionContent is not null) {<span slot="actions">@ActionContent</span>}</pk-empty-state>
+
+@code {
+    /// <summary>The title, as text (the element's <c>heading</c>).</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The description, as text.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>The density: <c>default</c>, <c>compact</c>, <c>boxed</c> or <c>error</c>. Left off, the element's own default applies.</summary>
+    [Parameter] public string? Tone { get; set; }
+
+    /// <summary>A title with markup; it fills the heading slot.</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>A description with markup; it is the body of the element.</summary>
+    [Parameter] public RenderFragment? DescriptionContent { get; set; }
+
+    /// <summary>An icon above the title.</summary>
+    [Parameter] public RenderFragment? IconContent { get; set; }
+
+    /// <summary>The actions that fill the empty state (a button to add the first row).</summary>
+    [Parameter] public RenderFragment? ActionContent { get; set; }
+}

@@ -12,6 +12,7 @@
              free="@Free"
              filtering="@Filtering"
              label="@AriaLabel"
+             class="@Css()"
              @attributes="Splat">@ChildContent@if (EmptyContent is not null) {<span slot="empty">@EmptyContent</span>}</pk-combobox>
 
 @code {
@@ -54,16 +55,11 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-combo-query"] = EventCallback.Factory.Create<PkComboQueryEventArgs>(this, HandlePkComboQuery),
-            ["onpk-combo-select"] = EventCallback.Factory.Create<PkComboSelectEventArgs>(this, HandlePkComboSelect),
-        };
+        handlers["onpk-combo-query"] = EventCallback.Factory.Create<PkComboQueryEventArgs>(this, HandlePkComboQuery);
+        handlers["onpk-combo-select"] = EventCallback.Factory.Create<PkComboSelectEventArgs>(this, HandlePkComboSelect);
     }
 
     private async Task HandlePkComboQuery(PkComboQueryEventArgs e)

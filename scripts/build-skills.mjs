@@ -420,7 +420,7 @@ function blazorFiles(src) {
     const index = [];
     for (const [slug, els] of [...bySlug].sort((a, b) => a[0].localeCompare(b[0]))) {
         els.sort((a, b) => a.tag.localeCompare(b.tag));
-        files.set(`references/components-${slug}.md`, [`# Components: ${groupTitle(slug)}`, '', stamp(src, 'Generated/*.razor, blazor/mappings, generated.manifest.json and core/dist/elements/api.json'), '', 'Every generated component also renders its element with the attributes you set; it accepts only the parameters listed (an unlisted attribute such as `class` throws when the component renders, so put classes on a wrapping element). Names are `Pk` plus the tag in PascalCase.', '', els.map(e => componentSection(src, e.tag, enumMap)).join('\n\n')].join('\n') + '\n');
+        files.set(`references/components-${slug}.md`, [`# Components: ${groupTitle(slug)}`, '', stamp(src, 'Generated/*.razor, blazor/mappings, generated.manifest.json and core/dist/elements/api.json'), '', 'Every component renders its element with the parameters you set as attributes. An attribute that is not a parameter (`id`, `class`, `data-*`, `aria-*`, ...) is put on the element as it is, and a `class` is added to the component\'s own (`ExtraClass` on a component that lists it). Names are `Pk` plus the tag in PascalCase.', '', els.map(e => componentSection(src, e.tag, enumMap)).join('\n\n')].join('\n') + '\n');
         for (const e of els) { const c = componentOfTag(e.tag); const r = src.razor[c]; index.push([code(c), code(e.tag), e.group, r ? (r.kind === 'generated' ? 'generated' : 'hand-written') : 'not available', code(`components-${slug}.md`)]); }
     }
     index.sort((a, b) => a[0].localeCompare(b[0]));

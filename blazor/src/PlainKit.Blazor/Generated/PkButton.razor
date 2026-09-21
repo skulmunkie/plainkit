@@ -14,7 +14,9 @@
            icon="@Icon"
            toggle="@Toggle"
            pressed="@Pressed"
-           @onclick="HandleClick">@ChildContent@if (StartContent is not null) {<span slot="start">@StartContent</span>}@if (EndContent is not null) {<span slot="end">@EndContent</span>}</pk-button>
+           @onclick="HandleClick"
+           class="@Css()"
+           @attributes="Splat">@ChildContent@if (StartContent is not null) {<span slot="start">@StartContent</span>}@if (EndContent is not null) {<span slot="end">@EndContent</span>}</pk-button>
 
 @code {
     /// <summary>Visual weight.</summary>

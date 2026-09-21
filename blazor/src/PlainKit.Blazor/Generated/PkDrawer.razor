@@ -8,6 +8,7 @@
            persistent="@Persistent"
            wide="@Wide"
            docked="@Docked"
+           class="@Css()"
            @attributes="Splat">@ChildContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}</pk-drawer>
 
 @code {
@@ -41,15 +42,10 @@
     /// <summary>A non-modal inspector: it sits inside the nearest positioned ancestor instead of the viewport, has no backdrop and no focus trap, and the page behind stays usable. Escape still asks to close.</summary>
     [Parameter] public bool Docked { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-        };
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
     }
 
     private async Task HandlePkClose(PkCloseEventArgs e)

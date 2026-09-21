@@ -9,7 +9,9 @@
           required="@Required"
           max="@PkAttr.Num(MaxLength)"
           layout="@Layout"
-          size="@Size">@ChildContent@if (LabelExtra is not null) {<span slot="label">@LabelExtra</span>}@if (LabelAction is not null) {<span slot="label-action">@LabelAction</span>}@if (HintContent is not null) {<span slot="help">@HintContent</span>}</pk-field>
+          size="@Size"
+          class="@Css()"
+          @attributes="Splat">@ChildContent@if (LabelExtra is not null) {<span slot="label">@LabelExtra</span>}@if (LabelAction is not null) {<span slot="label-action">@LabelAction</span>}@if (HintContent is not null) {<span slot="help">@HintContent</span>}</pk-field>
 
 @code {
     /// <summary>The label text (or use the label slot).</summary>

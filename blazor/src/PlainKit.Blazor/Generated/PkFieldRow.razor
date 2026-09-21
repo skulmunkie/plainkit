@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-field-row align="@Align">@ChildContent</pk-field-row>
+<pk-field-row align="@Align"
+              class="@Css()"
+              @attributes="Splat">@ChildContent</pk-field-row>
 
 @code {
     /// <summary>Vertical alignment of the fields in the row.</summary>

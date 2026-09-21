@@ -8,6 +8,7 @@
              open="@Open"
              filterable="@Filterable"
              persist="@Persist"
+             class="@Css()"
              @attributes="Splat">@if (BrandContent is not null) {<span slot="brand">@BrandContent</span>}@ChildContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-side-nav>
 
 @code {
@@ -44,16 +45,11 @@
     /// <summary>Rail toggled.</summary>
     [Parameter] public EventCallback<bool> OnToggle { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-nav-toggle"] = EventCallback.Factory.Create<PkNavToggleEventArgs>(this, HandlePkNavToggle),
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-        };
+        handlers["onpk-nav-toggle"] = EventCallback.Factory.Create<PkNavToggleEventArgs>(this, HandlePkNavToggle);
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
     }
 
     private async Task HandlePkNavToggle(PkNavToggleEventArgs e)

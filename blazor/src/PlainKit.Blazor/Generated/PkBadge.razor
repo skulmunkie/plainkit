@@ -6,7 +6,9 @@
 <pk-badge variant="@Variant"
           count="@Count"
           max="@PkAttr.Num(Max)"
-          dot="@Dot">@ChildContent</pk-badge>
+          dot="@Dot"
+          class="@Css()"
+          @attributes="Splat">@ChildContent</pk-badge>
 
 @code {
     /// <summary>Colour.</summary>

@@ -177,17 +177,52 @@ test('events: no detail is a plain callback, a detail a typed one, click the nat
 test('wrapper parameters: ExtraClass and AdditionalAttributes are generated, the rest are listed; a css property needs a helper', () => {
     const r = run();
     const razor = r.files.get('PkDemo.razor');
-    assert.match(razor, /class="@ExtraClass"/);
-    assert.match(razor, /CaptureUnmatchedValues = true\)\] public Dictionary<string, object>\? AdditionalAttributes/);
+    assert.match(razor, /class="@Css\(ExtraClass\)"/);
     assert.match(razor, /@attributes="Splat"/);
-    assert.match(razor, /if \(AdditionalAttributes is not null\)/);
+    // AdditionalAttributes is captured once, by PkElementBase, not declared per component
+    assert.doesNotMatch(razor, /AdditionalAttributes/);
     assert.ok(r.report.notGenerated.some(n => n.param === 'Compact'));
     assert.ok(r.report.notGenerated.some(n => n.param === 'Width' && /CSP/.test(n.reason)));
 });
 
+test('every component takes unmatched attributes: class is merged, the rest splatted, without ExtraClass too', () => {
+    const plain = run({ component: 'PkDemo', params: [{ name: 'Label', prop: 'label', type: 'string' }] }).files.get('PkDemo.razor');
+    assert.match(plain, /class="@Css\(\)"/);
+    assert.match(plain, /@attributes="Splat"/);
+    assert.doesNotMatch(plain, /AdditionalAttributes/);
+    // the class attribute comes before the splat, and the splat never carries class (PkAttr.Merge drops it), so the merged value wins
+    assert.ok(plain.indexOf('class="@Css()"') < plain.indexOf('@attributes="Splat"'));
+});
+
+test('the event handlers are added once (AddEventHandlers), never rebuilt in OnParametersSet', () => {
+    const razor = run().files.get('PkDemo.razor');
+    assert.match(razor, /protected override void AddEventHandlers\(Dictionary<string, object> handlers\)/);
+    assert.match(razor, /handlers\["onpk-close"\] = EventCallback\.Factory\.Create<PkCloseEventArgs>\(this, HandlePkClose\);/);
+    assert.doesNotMatch(razor, /OnParametersSet|new Dictionary<string, object>/);
+    // a component with no custom event has no override at all
+    assert.doesNotMatch(run({ component: 'PkDemo', params: [{ name: 'Label', prop: 'label', type: 'string' }] }).files.get('PkDemo.razor'), /AddEventHandlers/);
+});
+
+test('invert: a bool parameter is sent as the negation of its prop, still a plain attribute', () => {
+    const m = { component: 'PkDemo', params: [{ name: 'Boxed', prop: 'open', type: 'bool', default: true, invert: true }] };
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /open="@\(!Boxed\)"/);
+    assert.match(razor, /\[Parameter\] public bool Boxed \{ get; set; \} = true;/);
+});
+
+test('a hand-written component still gets its pk-* events registered', () => {
+    const m = { component: 'PkDemo', existing: true, params: [{ name: 'OnClose', event: 'pk-close', type: 'EventCallback' }] };
+    const r = run(m, new Set(['PkDemo']));
+    assert.match(r.files.get('PkGeneratedEvents.cs'), /\[EventHandler\("onpk-close", typeof\(PkCloseEventArgs\)/);
+    assert.match(r.moduleText, /'pk-close',/);
+    assert.equal(r.files.has('PkDemo.razor'), false);
+    // a skipped component that is not hand-written registers nothing
+    assert.doesNotMatch(run(m).files.get('PkGeneratedEvents.cs'), /onpk-close/);
+});
+
 test('text: "" is the element text content', () => {
     const m = { component: 'PkDemo', params: [{ name: 'ChildContent', text: '', type: 'string' }] };
-    assert.match(run(m).files.get('PkDemo.razor'), /<pk-demo>@ChildContent<\/pk-demo>/);
+    assert.match(run(m).files.get('PkDemo.razor'), /@attributes="Splat">@ChildContent<\/pk-demo>/);
     assert.match(run(m).files.get('PkDemo.razor'), /string\? ChildContent/);
 });
 

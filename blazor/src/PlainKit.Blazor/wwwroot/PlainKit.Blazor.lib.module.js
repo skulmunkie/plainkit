@@ -2,6 +2,7 @@
 // A Razor class library initializer: Blazor loads it by name and calls it once it has started. It registers each pk-* custom event the
 // generated components listen for (@onpk-...), so Blazor listens for it and hands the component the event's detail as a plain object.
 const events = [
+    'pk-activate',
     'pk-add',
     'pk-change',
     'pk-close',

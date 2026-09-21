@@ -6,7 +6,10 @@
 <pk-alert kind="@(Kind.ToAttr())"
           heading="@Title"
           dismissible="@Dismissible"
-          class="@ExtraClass"
+          plain="@(!Boxed)"
+          inline="@Inline"
+          compact="@Compact"
+          class="@Css(ExtraClass)"
           @attributes="Splat">@Message@ChildContent</pk-alert>
 
 @code {
@@ -28,22 +31,23 @@
     /// <summary>Dismissed; cancelable.</summary>
     [Parameter] public EventCallback OnDismiss { get; set; }
 
+    /// <summary>Coloured text with no box, icon or panel: the quiet form for a message beside a field or under a button.</summary>
+    /// <remarks>False is the plain form (coloured text, no box); the parameter is the opposite of the plain prop.</remarks>
+    [Parameter] public bool Boxed { get; set; } = true;
+
+    /// <summary>Flows in a line of text (like a span) instead of a block; use with plain.</summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>Smaller text and no margin, for an actions strip.</summary>
+    [Parameter] public bool Compact { get; set; }
+
     /// <summary>Extra CSS classes for the element.</summary>
     [Parameter] public string? ExtraClass { get; set; }
 
-    /// <summary>Attributes that match no parameter are put on the element.</summary>
-    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
-
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-dismiss"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkDismiss),
-        };
-        if (AdditionalAttributes is not null) foreach (var (name, value) in AdditionalAttributes) Splat[name] = value;
+        handlers["onpk-dismiss"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkDismiss);
     }
 
     private async Task HandlePkDismiss(EventArgs e)

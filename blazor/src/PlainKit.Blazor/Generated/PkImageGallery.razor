@@ -10,6 +10,7 @@
                   editable="@Editable"
                   add-label="@AddLabel"
                   accept="@Accept"
+                  class="@Css()"
                   @attributes="Splat"></pk-image-gallery>
 
 @code {
@@ -46,17 +47,12 @@
     /// <summary>Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images.</summary>
     [Parameter] public EventCallback<PkAddEventArgs> OnAdd { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-primary-change"] = EventCallback.Factory.Create<PkPrimaryChangeEventArgs>(this, HandlePkPrimaryChange),
-            ["onpk-remove"] = EventCallback.Factory.Create<PkRemoveEventArgs>(this, HandlePkRemove),
-            ["onpk-add"] = EventCallback.Factory.Create<PkAddEventArgs>(this, HandlePkAdd),
-        };
+        handlers["onpk-primary-change"] = EventCallback.Factory.Create<PkPrimaryChangeEventArgs>(this, HandlePkPrimaryChange);
+        handlers["onpk-remove"] = EventCallback.Factory.Create<PkRemoveEventArgs>(this, HandlePkRemove);
+        handlers["onpk-add"] = EventCallback.Factory.Create<PkAddEventArgs>(this, HandlePkAdd);
     }
 
     private async Task HandlePkPrimaryChange(PkPrimaryChangeEventArgs e)

@@ -5,7 +5,9 @@
 
 <pk-page-header heading="@Heading"
                 level="@PkAttr.Num(Level)"
-                variant="@Variant">@ChildContent@if (BreadcrumbContent is not null) {<span slot="breadcrumb">@BreadcrumbContent</span>}@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta">@MetaContent</span>}</pk-page-header>
+                variant="@Variant"
+                class="@Css()"
+                @attributes="Splat">@ChildContent@if (BreadcrumbContent is not null) {<span slot="breadcrumb">@BreadcrumbContent</span>}@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta">@MetaContent</span>}</pk-page-header>
 
 @code {
     /// <summary>The title. Without it (and without default or actions content) the title bar is not shown.</summary>

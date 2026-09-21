@@ -49,20 +49,20 @@
     {
       "name": "Boxed",
       "type": "bool",
-      "map": "wrapper",
-      "note": "The alert element is always boxed; it has no unboxed variant."
+      "default": true,
+      "prop": "plain",
+      "invert": true,
+      "note": "False is the plain form (coloured text, no box); the parameter is the opposite of the plain prop."
     },
     {
       "name": "Inline",
       "type": "bool",
-      "map": "wrapper",
-      "note": "Alert is a block; it has no inline variant."
+      "prop": "inline"
     },
     {
       "name": "Compact",
       "type": "bool",
-      "map": "wrapper",
-      "note": "Compat class only."
+      "prop": "compact"
     },
     {
       "name": "ExtraClass",

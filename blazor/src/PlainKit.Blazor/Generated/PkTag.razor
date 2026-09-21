@@ -6,6 +6,7 @@
 <pk-tag removable="@Removable"
         value="@Value"
         disabled="@Disabled"
+        class="@Css()"
         @attributes="Splat">@ChildContent</pk-tag>
 
 @code {
@@ -25,15 +26,10 @@
     /// <remarks>The event can be cancelled in the browser (preventDefault); a callback cannot cancel it.</remarks>
     [Parameter] public EventCallback<PkRemoveEventArgs> OnRemove { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-remove"] = EventCallback.Factory.Create<PkRemoveEventArgs>(this, HandlePkRemove),
-        };
+        handlers["onpk-remove"] = EventCallback.Factory.Create<PkRemoveEventArgs>(this, HandlePkRemove);
     }
 
     private async Task HandlePkRemove(PkRemoveEventArgs e)

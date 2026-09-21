@@ -12,6 +12,7 @@
              master="@Master"
              label="@Label"
              size="@Size"
+             class="@Css()"
              @attributes="Splat">@ChildContent</pk-checkbox>
 
 @code {
@@ -48,15 +49,10 @@
     /// <summary>Raised when Checked changes (two-way binding: &lt;c&gt;@bind-Checked&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange),
-        };
+        handlers["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange);
     }
 
     private async Task HandlePkChange(PkChangeEventArgs e)

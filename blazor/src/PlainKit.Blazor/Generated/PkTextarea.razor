@@ -15,6 +15,7 @@
              maxlength="@MaxLength"
              autogrow="@AutoGrow"
              max-height="@PkAttr.Num(MaxHeight)"
+             class="@Css()"
              @attributes="Splat"></pk-textarea>
 
 @code {
@@ -57,15 +58,10 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-value-change"] = EventCallback.Factory.Create<PkValueChangeEventArgs>(this, HandlePkValueChange),
-        };
+        handlers["onpk-value-change"] = EventCallback.Factory.Create<PkValueChangeEventArgs>(this, HandlePkValueChange);
     }
 
     private async Task HandlePkValueChange(PkValueChangeEventArgs e)

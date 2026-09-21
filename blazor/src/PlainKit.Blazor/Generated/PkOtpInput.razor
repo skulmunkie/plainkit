@@ -10,6 +10,7 @@
               disabled="@Disabled"
               invalid="@IsInvalid"
               label="@AriaLabel"
+              class="@Css()"
               @attributes="Splat"></pk-otp-input>
 
 @code {
@@ -40,16 +41,11 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-otp-complete"] = EventCallback.Factory.Create<PkOtpCompleteEventArgs>(this, HandlePkOtpComplete),
-            ["onpk-otp-change"] = EventCallback.Factory.Create<PkOtpChangeEventArgs>(this, HandlePkOtpChange),
-        };
+        handlers["onpk-otp-complete"] = EventCallback.Factory.Create<PkOtpCompleteEventArgs>(this, HandlePkOtpComplete);
+        handlers["onpk-otp-change"] = EventCallback.Factory.Create<PkOtpChangeEventArgs>(this, HandlePkOtpChange);
     }
 
     private async Task HandlePkOtpComplete(PkOtpCompleteEventArgs e)

@@ -9,6 +9,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 - Added: the ownership and reactivity contract (`core/STANDARDS.md`, "Ownership and reactivity", and the matching "How binding works" section of the PlainKit.Blazor README): the host owns attributes and light-DOM children, the element owns its shadow tree, two-way values follow a commit event, subscriptions outside an element's subtree are added in `connected()` and removed in `disconnected()`, and the reactive core stays "attributes and properties in, one microtask-batched render, events out". Enforced by `core/tests/ownership.test.mjs` (a source guard for document, window, matchMedia, interval and observer subscriptions, plus a fake-DOM reconnect check) and `core/tests/element-surface.test.mjs` (the `PkElement` surface, its lifecycle hooks and the `{{ }}` / `data-if` syntax are frozen).
 
+- Added: `PkCard`, `PkEmptyState`, `PkFieldList` and `PkStat`, hand-written over their elements (`Components/`, following `blazor/mappings`), each with the rest of the components' behaviour (unmatched attributes, `class`). `StatCardVariant` is the tone of `PkStat`; its `OnClick` is the element's `pk-activate`, registered for Blazor like the generated events. Only `PkTable` is still not available (issue #2).
+- Added: `PkAlert.Boxed` (false is the plain form), `PkAlert.Inline`, `PkAlert.Compact`, `PkDialog.ShowCloseButton` (false hides the header close button) and `PkTooltip.Title` (the heading), plus `PkTooltip.LinksContent` (the `links` slot). They are plain attributes of the element; the mapping's new `invert` flag sends a negated bool (`Boxed` is `!plain`). 12 wrapper-only parameters stay unavailable, each with its reason in `generated.manifest.json` and the skills' `known-gaps.md`; `PkDialog.MaxWidthPx` stays unsupported (it needs an inline style, which the CSP blocks: set `--pk-dialog-w` in a stylesheet instead).
+
+### Changed
+
+- Changed: every Blazor component takes the attributes it has no parameter for (`id`, `data-*`, `aria-*`, `class`, ...) and puts them on its element, so `<PkButton id="x" data-test="y" aria-label="z">` works instead of throwing; a `class` is merged with the component's own (`ExtraClass` on the components that list it). `AdditionalAttributes` now lives once in `PkElementBase` (issue #44).
+- Changed: the generated components build their `pk-*` event-handler dictionary once (`AddEventHandlers`, called by `PkElementBase`) instead of on every parameter change; a parameter change allocates only when the caller passed extra attributes.
+
 ### Fixed
 
 - Fixed: `pk-select`, `pk-radio-group` and `pk-combobox` wired their inner listeners again every time they were moved in the DOM, so a change event fired twice after a reconnect; they now wire once.

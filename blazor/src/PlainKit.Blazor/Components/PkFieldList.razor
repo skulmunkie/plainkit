@@ -1,0 +1,27 @@
+@namespace PlainKit.Blazor
+@inherits PkElementBase
+
+@* Hand-written (blazor/mappings/field-list.json marks it "existing"): a titled description list over <pk-field-list>. Put dt and dd pairs in the content. *@
+<pk-field-list heading="@Title"
+               layout="@Layout"
+               dividers="@Dividers"
+               dense="@Dense"
+               class="@Css()"
+               @attributes="Splat">@ChildContent</pk-field-list>
+
+@code {
+    /// <summary>The list's title (the element's <c>heading</c>).</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The layout: <c>grid</c> (term beside value) or <c>stacked</c>. Left off, the element's own default applies.</summary>
+    [Parameter] public string? Layout { get; set; }
+
+    /// <summary>Draws a rule between the pairs.</summary>
+    [Parameter] public bool Dividers { get; set; }
+
+    /// <summary>Tighter spacing.</summary>
+    [Parameter] public bool Dense { get; set; }
+
+    /// <summary>The term and value pairs: slotted <c>dt</c> and <c>dd</c> elements.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

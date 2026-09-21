@@ -6,7 +6,9 @@
 <pk-grid min="@Min"
          columns="@PkAttr.Num(Columns)"
          ratio="@Ratio"
-         gap="@Gap">@ChildContent</pk-grid>
+         gap="@Gap"
+         class="@Css()"
+         @attributes="Splat">@ChildContent</pk-grid>
 
 @code {
     /// <summary>Minimum column width as a CSS length (for example 12rem or 200px). Columns are equal width and never narrower than this, so the grid drops to one column when the container is narrower than two.</summary>

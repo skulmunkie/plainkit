@@ -29,6 +29,19 @@ public enum PkChrome
     Full,
 }
 
+/// <summary>The colour of a <see cref="PkStat"/> value. <see cref="Neutral"/> is the element's default.</summary>
+public enum StatCardVariant
+{
+    /// <summary>The default colour.</summary>
+    Neutral,
+    /// <summary>Good news (green).</summary>
+    Positive,
+    /// <summary>Needs attention (amber).</summary>
+    Warning,
+    /// <summary>Bad news (red).</summary>
+    Critical,
+}
+
 /// <summary>What the gallery shows.</summary>
 public enum PkGalleryKind
 {
