@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { build } from '../tools/build.mjs';
-import { KINDS, DEFAULT_PAIRS, AA_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, AA_PAIRS, auditPairs, auditSummary, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
 
@@ -129,3 +129,20 @@ for (const theme of ['dark', 'light']) {
         }
     });
 }
+
+test('the live audit grades every pair in both themes under the edits in force, and says how many fail and where', () => {
+    const clean = auditPairs(emptyOverrides(), tokens);
+    assert.equal(clean.length, AA_PAIRS.length * 2);
+    assert.ok(clean.every(r => !r.bad && r.ratio >= 4.5));
+    assert.deepEqual(auditSummary(clean), { bad: 0, text: `All ${AA_PAIRS.length} text pairs are 4.5:1 or better in both themes.` });
+    const worse = { shared: {}, dark: { '--color-text': '#3a3a3a' }, light: { '--color-muted': '#eeeeee', '--color-link': 'var(--color-accent)' } };
+    const rows = auditPairs(worse, tokens);
+    const bad = rows.filter(r => r.bad).map(r => `${r.theme} ${r.fg} ${r.bg}`);
+    assert.ok(bad.includes('dark --color-text --color-bg') && bad.includes('light --color-muted --color-bg'), bad.join('; '));
+    assert.ok(!bad.some(b => b.includes('--color-link')), 'a value that is not a literal colour is n/a, not a failure');
+    assert.equal(rows.find(r => r.theme === 'light' && r.fg === '--color-link').ratio, null);
+    const s = auditSummary(rows);
+    assert.equal(s.bad, bad.length); assert.match(s.text, /below 4\.5:1 \(\d+ in dark, \d+ in light\)\./);
+    assert.equal(auditPairs({ shared: { '--color-bg': '#000000' }, dark: {}, light: {} }, tokens).find(r => r.theme === 'light' && r.fg === '--color-text' && r.bg === '--color-bg').bad, true, 'a shared edit applies to both themes');
+    assert.ok(auditPairs(worse, tokens, [['--color-text', '--color-bg']], 21).every(r => r.bad === true || r.ratio >= 21), 'the minimum is a parameter');
+});

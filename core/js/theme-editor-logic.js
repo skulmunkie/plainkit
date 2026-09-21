@@ -69,6 +69,16 @@ export function withoutToken(overrides, name) {
     return next;
 }
 
+// What to write out (the override CSS, the snippet): the overrides with the light theme's own value added for every token edited only for the dark theme.
+// The dark block is written under :root, which also matches the page in the light theme, and it comes after the stylesheet's light block, so a dark-only
+// edit would show in the light theme too. The light value written is the stylesheet's own. The edits themselves (state, the change list, the JSON) stay as the user made them.
+export function guardLeaks(overrides, tokens) {
+    const light = { ...overrides.light };
+    let added = false;
+    for (const name of Object.keys(overrides.dark)) if (!(name in light) && !(name in overrides.shared)) { light[name] = baseValue(tokens, 'light', name); added = true; }
+    return added ? { shared: overrides.shared, dark: overrides.dark, light } : overrides;
+}
+
 export const overrideCount = o => Object.keys(o.shared).length + Object.keys(o.dark).length + Object.keys(o.light).length;
 
 // Contrast of each pair. read(name) gives the token's computed value; a value that is not a literal colour (var(), color-mix()) has ratio null.
@@ -77,6 +87,23 @@ export function evaluatePairs(pairs, read, min = MIN_CONTRAST) {
         const ratio = contrast(read(fg), read(bg));
         return { fg, bg, ratio, bad: ratio !== null && ratio < min, grade: grade(ratio, { aaa: 7, aa: min }) };
     });
+}
+
+// The live audit: every pair in both themes under the current edits (the stylesheet's values with the overrides in force), as
+// { theme, fg, bg, fgValue, bgValue, ratio, grade, bad }. A value that is not a literal colour (var(), color-mix()) has ratio null and is not counted as failing.
+export function auditPairs(overrides, tokens, pairs = AA_PAIRS, min = MIN_CONTRAST) {
+    return ['dark', 'light'].flatMap(theme => {
+        const read = name => effectiveValue(overrides, tokens, theme, name);
+        return evaluatePairs(pairs, read, min).map(r => ({ theme, fg: r.fg, bg: r.bg, fgValue: read(r.fg), bgValue: read(r.bg), ratio: r.ratio, grade: r.grade, bad: r.bad }));
+    });
+}
+
+// The audit as a sentence for a status line: how many pairs are below the minimum and in which themes.
+export function auditSummary(rows, min = MIN_CONTRAST) {
+    const bad = rows.filter(r => r.bad);
+    if (!bad.length) return { bad: 0, text: `All ${rows.length / 2} text pairs are ${min}:1 or better in both themes.` };
+    const per = ['dark', 'light'].map(t => [t, bad.filter(r => r.theme === t).length]).filter(([, n]) => n);
+    return { bad: bad.length, text: `${bad.length} text pair${bad.length === 1 ? '' : 's'} below ${min}:1 (${per.map(([t, n]) => `${n} in ${t}`).join(', ')}).` };
 }
 
 // What an element target receives for a theme: the shared overrides under the theme's own, only names and values the SDK's rules accept.

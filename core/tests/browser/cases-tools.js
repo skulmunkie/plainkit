@@ -173,6 +173,64 @@ export const toolCases = [
         editor.reset(); await t.settle(); t.eq(summary(), 'No changes'); t.ok(editor.undo(), 'Reset all is itself undoable');
         editor.destroy();
     }],
+    ['theme editor module: the export tab has a copy-paste snippet and a text-only theme link that another editor (or the page hash) applies as edits', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: false });
+        await until(() => host.querySelector('pk-textarea[label="Copy-paste snippet"]'), 'the export tab'); await t.load(host); await t.settle();
+        const snippet = host.querySelector('pk-textarea[label="Copy-paste snippet"]');
+        t.ok(snippet.value.startsWith('/* Plainkit theme: 0 token overrides'), 'the snippet header counts overrides');
+        t.eq((await editor.share()).error?.slice(0, 20), 'There is nothing to ', 'an empty theme has no link');
+        editor.applyBrand('#e11d74'); await t.settle();
+        t.ok(/--color-accent:\s*#/.test(snippet.value) && /\[data-theme="light"\]/.test(snippet.value), 'the snippet holds the :root and [data-theme] blocks');
+        const link = await editor.share();
+        t.ok(link.url.includes('#pk-theme=') && link.hash.length <= 4096, 'a link with the theme in the fragment');
+        t.eq(host.querySelector('pk-input[label="Theme link"]').value, link.url, 'shown in the link field');
+        const other = await mountThemeEditor(t.stage(''), { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false });
+        const got = await other.importShare(link.url);
+        t.ok(!got.error && JSON.stringify(other.overrides()) === JSON.stringify(editor.overrides()), 'another editor gets the same edits');
+        t.ok(other.undo() && Object.keys(other.overrides().dark).length === 0, 'they are ordinary edits: Undo takes them back');
+        const hostile = btoa('{"dark":{"--x-y":"url(https://evil.test)","BAD":"<b>x</b>"}}').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const bad = await other.importShare('#pk-theme=p.' + hostile);
+        t.ok(bad.error && Object.keys(other.overrides().dark).length === 0, 'hostile names and values are refused and nothing changes');
+        const old = location.hash;
+        try {
+            history.replaceState(null, '', '#' + link.hash);
+            const fromHash = await mountThemeEditor(t.stage(''), { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, readHash: true });
+            t.eq(JSON.stringify(fromHash.overrides()), JSON.stringify(editor.overrides()), 'readHash applies the theme in the page fragment');
+            fromHash.destroy();
+        } finally { history.replaceState(null, '', old || location.pathname + location.search); }
+        other.destroy(); editor.destroy();
+    }],
+    ['theme editor module: the Contrast tab audits every pair in both themes under the edits, counts the failures and jumps to the token', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: false });
+        await until(() => host.querySelector('.te-audit .te-pair'), 'the audit rows'); await t.load(host); await t.settle();
+        const tab = () => [...host.querySelectorAll('pk-tab')].find(x => x.textContent.trim().startsWith('Contrast'));
+        const rows = () => [...host.querySelectorAll('.te-audit .te-pair')];
+        t.ok(rows().length >= 32 && rows().every(r => r.querySelector('pk-badge').getAttribute('variant') === 'ok'), 'the stylesheet passes every pair in both themes');
+        t.eq(tab().textContent.trim(), 'Contrast');
+        // a low-contrast edit for the light theme only shows up as a failure in light, and the tab title counts it
+        editor.setTheme('light'); await t.settle();
+        const accent = host.querySelector('[data-token="--color-muted"] pk-colour-input');
+        await t.load(host); await t.settle();
+        accent.part('control').value = '#eeeeee'; accent.part('control').dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        const failing = rows().filter(r => r.querySelector('pk-badge').getAttribute('variant') === 'danger').map(r => r.dataset.pairRow);
+        t.ok(failing.length === 2 && failing.every(f => f.startsWith('light --color-muted')), failing.join('; '));
+        t.ok(/2 below AA/.test(tab().textContent) && /2 text pairs below 4\.5:1 \(2 in light\)/.test(host.textContent), 'counted in the tab and the summary');
+        t.ok(rows().find(r => r.dataset.pairRow.startsWith('light')).dataset.pairRow.includes('--color-muted'), 'failing rows come first in their theme');
+        // jump to the token from the dark side of a pair
+        editor.setTheme('dark'); await t.settle();
+        const jumpBtn = host.querySelector('[data-jump="--color-text"][data-jump-theme="dark"]');
+        jumpBtn.click(); await t.settle();
+        t.eq(host.querySelectorAll('.te-row').length, 1, 'the token list is filtered to that token');
+        t.eq(host.querySelector('.te-row').dataset.token, '--color-text');
+        t.eq(host.querySelector('pk-tabs').value, 'tokens', 'and the Tokens tab is open');
+        editor.destroy();
+    }],
     ['theme editor module: blocked storage is logged and saved themes still work until the page closes', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
