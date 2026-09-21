@@ -86,7 +86,7 @@ What is not generated is listed in `Generated/generated.manifest.json` (written 
 
 ## Types for structured parameters
 
-An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The generator types a JSON parameter only when it holds simple values, so these parameters are declared `object?`: pass the record (or a list of them) and it is serialised for you.
+An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The parameter is declared with that type (`PkChart.Data` is a `PkChartData?`, `PkImageGallery.Images` an `IReadOnlyList<PkGalleryImage>?`), so the compiler checks what you pass; the value is serialised for you. The generator uses the type a mapping names for a JSON prop when the package declares it, and lists a JSON prop that has no type in `generated.manifest.json` (`typesToDefine`); today none is left.
 
 | Parameter | Pass | Sent as |
 |---|---|---|

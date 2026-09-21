@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, generate, load, outputs, differences } from '../generate-blazor.mjs';
+import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, knownTypes, generate, load, outputs, differences } from '../generate-blazor.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const generatedDir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
@@ -141,6 +141,53 @@ test('an unknown type is kept as an object, sent as JSON, and listed as a type t
     assert.match(r.files.get('PkDemo.razor'), /rows="@PkAttr\.Json\(Rows\)"/);
     assert.match(r.files.get('PkDemo.razor'), /object\? Rows/);
     assert.ok(r.report.todo.some(t => t.component === 'PkDemo' && t.param === 'Rows'));
+});
+
+test('a JSON prop takes the public type its mapping names (issue #77): a record, or a collection of records, once the package declares it', () => {
+    assert.ok(!isJsonType('PkChartData') && isJsonType('PkChartData', new Set(['PkChartData'])));
+    assert.ok(isJsonType('IReadOnlyList<PkGalleryImage>?', new Set(['PkGalleryImage'])) && !isJsonType('IReadOnlyList<PkGalleryImage>'));
+    const typed = structuredClone(mapping);
+    typed.params.find(p => p.name === 'Rows').type = 'IReadOnlyList<DemoRow>';
+    delete typed.params.find(p => p.name === 'Rows').todo;
+    const r = generate(api, { demo: typed }, new Set(), new Set(['DemoRow']));
+    const razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public IReadOnlyList<DemoRow>\? Rows/);
+    assert.match(razor, /rows="@PkAttr\.Json\(Rows\)"/);
+    assert.ok(!r.report.todo.some(t => t.param === 'Rows'));
+    // a type the package does not declare stays an object and is listed, as before
+    assert.ok(generate(api, { demo: typed }).report.todo.some(t => t.param === 'Rows'));
+    // a record on its own (not a collection) is a JSON value too when the element prop is json
+    const bare = structuredClone(mapping);
+    bare.params.find(p => p.name === 'Rows').type = 'DemoRows';
+    delete bare.params.find(p => p.name === 'Rows').todo;
+    assert.match(generate(api, { demo: bare }, new Set(), new Set(['DemoRows'])).files.get('PkDemo.razor'), /\[Parameter\] public DemoRows\? Rows/);
+});
+
+test('a JSON prop with no mapping type stays an object but is listed as a type to define', () => {
+    const untyped = structuredClone(mapping);
+    delete untyped.params.find(p => p.name === 'Rows').type;
+    delete untyped.params.find(p => p.name === 'Rows').todo;
+    const r = generate(api, { demo: untyped }, new Set(), new Set());
+    assert.match(r.files.get('PkDemo.razor'), /object\? Rows/);
+    assert.ok(r.report.todo.some(t => t.param === 'Rows' && /no mapping type/.test(t.reason)));
+});
+
+test('knownTypes reads the public records of the package; the real chart and image gallery use them', () => {
+    const known = knownTypes(path.join(root, 'blazor', 'src', 'PlainKit.Blazor'));
+    for (const t of ['PkChartData', 'PkChartSeries', 'PkGalleryImage', 'PkTableColumn', 'PkCrumb', 'PkRuntime']) assert.ok(known.has(t), t);
+    assert.ok(!known.has('Generated') && !known.has('PkAttr'), 'internal types are not offered');
+    const razor = name => fs.readFileSync(path.join(generatedDir, name + '.razor'), 'utf8');
+    assert.match(razor('PkChart'), /\[Parameter\] public PkChartData\? Data/);
+    assert.match(razor('PkImageGallery'), /\[Parameter\] public IReadOnlyList<PkGalleryImage>\? Images/);
+});
+
+test('no generated parameter is an unexplained object: each one is in the manifest as a type to define', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(generatedDir, 'generated.manifest.json'), 'utf8'));
+    const listed = new Set(manifest.typesToDefine.map(t => `${t.component}.${t.param}`));
+    for (const f of fs.readdirSync(generatedDir).filter(x => x.endsWith('.razor')))
+        for (const m of fs.readFileSync(path.join(generatedDir, f), 'utf8').matchAll(/\[Parameter\] public object\? (\w+)/g))
+            assert.ok(listed.has(`${f.replace('.razor', '')}.${m[1]}`), `${f} ${m[1]} is object? and not explained in the manifest`);
+    assert.deepEqual(manifest.typesToDefine, [], 'today every JSON parameter has a type');
 });
 
 test('slots: the default slot is the content, a named slot a slotted span; a dynamic slot is skipped and listed', () => {
