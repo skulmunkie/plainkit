@@ -9,6 +9,7 @@
          subtext="@Subtext"
          tone="@Tone.Attr()"
          delta="@Delta"
+         delta-unit="@DeltaUnit"
          invert="@Invert"
          values="@PkAttr.Json(Series)"
          href="@Href"
@@ -35,6 +36,9 @@
 
     /// <summary>The percent change, for example <c>12.5</c> or <c>-3</c>; the element draws the arrow and the signed percentage.</summary>
     [Parameter] public string? Delta { get; set; }
+
+    /// <summary>What <see cref="Delta"/> is measured in: <c>percent</c> (the element's default, leave it unset) or <c>points</c> (a change in points, shown as "+4 pts").</summary>
+    [Parameter] public string? DeltaUnit { get; set; }
 
     /// <summary>Down is good news (costs, returns): swaps the trend colours.</summary>
     [Parameter] public bool Invert { get; set; }

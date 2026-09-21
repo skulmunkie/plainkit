@@ -30,6 +30,7 @@ const events = [
     'pk-rating-change',
     'pk-remove',
     'pk-reset',
+    'pk-resize',
     'pk-search',
     'pk-section-change',
     'pk-select',

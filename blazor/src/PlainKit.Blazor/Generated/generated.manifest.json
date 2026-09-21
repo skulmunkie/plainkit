@@ -62,6 +62,7 @@
     "PkSkipLink",
     "PkSpinner",
     "PkSplitButton",
+    "PkSplitter",
     "PkStack",
     "PkStep",
     "PkStepper",
@@ -81,6 +82,7 @@
     "PkTooltip",
     "PkTree",
     "PkTreeItem",
+    "PkUnitInput",
     "PkWorkspace"
   ],
   "skipped": [
@@ -335,6 +337,7 @@
     "pk-rating-change",
     "pk-remove",
     "pk-reset",
+    "pk-resize",
     "pk-search",
     "pk-section-change",
     "pk-select",

@@ -10,6 +10,7 @@
              step="@PkAttr.Num(Step)"
              label="@AriaLabel"
              disabled="@Disabled"
+             class="@Css()"
              @attributes="Splat">@if (StartContent is not null) {<span slot="start">@StartContent</span>}@if (EndContent is not null) {<span slot="end">@EndContent</span>}</pk-splitter>
 
 @code {
@@ -43,15 +44,10 @@
     /// <summary>The second pane, which takes the rest.</summary>
     [Parameter] public RenderFragment? EndContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-resize"] = EventCallback.Factory.Create<PkResizeEventArgs>(this, HandlePkResize),
-        };
+        handlers["onpk-resize"] = EventCallback.Factory.Create<PkResizeEventArgs>(this, HandlePkResize);
     }
 
     private async Task HandlePkResize(PkResizeEventArgs e)

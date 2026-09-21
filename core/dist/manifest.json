@@ -43,8 +43,8 @@
     },
     {
       "path": "custom-elements.json",
-      "bytes": 576889,
-      "integrity": "sha384-QIz/1NTKpf5coL/Y8VhoGFz6v9TgLH/oGlxSe6bLKvNSMum23fpdJ+996SaKPt8J"
+      "bytes": 602468,
+      "integrity": "sha384-wS4TmoXLNeB4JGkIO4hVl0zNrQMC5lykH0vPlvDVwyV47hJgoS6ZH4GSCuaTSMso"
     },
     {
       "path": "devtools/devtools.css",
@@ -63,13 +63,13 @@
     },
     {
       "path": "elements.d.ts",
-      "bytes": 80614,
-      "integrity": "sha384-t/zolPU3LU7raCpia+0OatQUzIsUsNRGnh4Cl0NsJAFprEQfUNQIaCcbeFxJ7D0W"
+      "bytes": 84738,
+      "integrity": "sha384-oAJY6810LvWYmmXDYdrlXW0BGL9AvGT/f49uVL+5Lh1hFg2I3tqzSGh34ZBeTSPS"
     },
     {
       "path": "elements.vue.d.ts",
-      "bytes": 12831,
-      "integrity": "sha384-Z3XSprg8XDvBxgTEr0gAUVcA0tcYxddmFnBxN4r+GKy4oT2bAeNMXwDprp0+brXS"
+      "bytes": 13262,
+      "integrity": "sha384-aoAXarveE9DFk6PmSYtSO4A6N7GY/xegEVmBnORaE/lG+O3MWBzgnc/qicRQk4jB"
     },
     {
       "path": "elements/accordion-item.js",
@@ -88,8 +88,8 @@
     },
     {
       "path": "elements/api.json",
-      "bytes": 318278,
-      "integrity": "sha384-INWZR9Qr/d0tacnvM96P2yuaMsSf4xdsPIVqVw0OieaaDw8f8Nve84o8oR3VS7Pg"
+      "bytes": 333041,
+      "integrity": "sha384-SAfhUugDPhJvYUinLIYhKl5gM+FTDiYpt2AaUJ3cdrVTxyQrC9JUFqgAIBUwJ2Tq"
     },
     {
       "path": "elements/app-shell.js",
@@ -163,8 +163,8 @@
     },
     {
       "path": "elements/colour-input.js",
-      "bytes": 4508,
-      "integrity": "sha384-y7KcOdkvrHBUPMYFjbfXVVs5+jf+jr6gAk6VaCvt1j8lx5aFotAGCdCIuQggnspM"
+      "bytes": 4722,
+      "integrity": "sha384-sUCidKu1W/Gm4ZuK/eXXjYb1J+nT7kt2U39q9RYb3gaHI0GQljUGOwukYZufyiR6"
     },
     {
       "path": "elements/combobox.js",
@@ -238,8 +238,8 @@
     },
     {
       "path": "elements/form.js",
-      "bytes": 5481,
-      "integrity": "sha384-nIp2OQERNziyksgsbu5Uu5L1n11vQ2U1R3QOrmNsqgoFHpUjipfBgXG8U3V+tnj3"
+      "bytes": 5496,
+      "integrity": "sha384-9llIm9nEk7fW6JzFossZLQSkUzZB8S8gPoxQXhBk5p/PdB+p1dUI2yzO8bE1Z+6y"
     },
     {
       "path": "elements/gallery.js",
@@ -358,8 +358,8 @@
     },
     {
       "path": "elements/registry.js",
-      "bytes": 3269,
-      "integrity": "sha384-Y5wYQznJQ7ZMRnocXzPW6ZvBjWs6PUnI6SKPdsm4/7B8AFXuRps73BIkiHKRdTLY"
+      "bytes": 3347,
+      "integrity": "sha384-TgolDBHjb8wHhLuNQknnXk2dbRbIad1h+3IGLUyGj5SDd7/o2gfgbQk8v1DRm/97"
     },
     {
       "path": "elements/scroll-progress.js",
@@ -402,14 +402,19 @@
       "integrity": "sha384-7NS9NkZg1tChFfQECwrW91wWTIOmygmo2xbbwMQNaWjfN9mb63Dfw3zd6FfBq42w"
     },
     {
+      "path": "elements/splitter.js",
+      "bytes": 7318,
+      "integrity": "sha384-XDGiHGPxQ6HyxTE0kZ9dY780Ac/s6a/8/VtVTa/vT+jBOiS+AA4yCs0oPQP9f5wl"
+    },
+    {
       "path": "elements/stack.js",
       "bytes": 1326,
       "integrity": "sha384-U1ZzL6Etiak4tm9cDUr+LYBOlw49ehMpQd+OHyncstlu4KMo98Sb6D/937HCc47y"
     },
     {
       "path": "elements/stat.js",
-      "bytes": 7194,
-      "integrity": "sha384-o+7RoFLf7l+WRqBM9sz5m4qHnd6kiG6PVyMrwOc19AaPXqWWOir+9Jh1D2FCqoRg"
+      "bytes": 7519,
+      "integrity": "sha384-QmXjZJzfqMrdX5Ph/Kbm5y/0nYzanaZZJoXtPT9BgLLplhqAgpNJqVTJsoThpD+0"
     },
     {
       "path": "elements/step.js",
@@ -458,8 +463,8 @@
     },
     {
       "path": "elements/textarea.js",
-      "bytes": 5082,
-      "integrity": "sha384-OXjt/NiRkVWYRBvpBoVcnUaYaAxMWJG/tqQPsaTVhCzjUxDb5xmGn+ND+peroK13"
+      "bytes": 5296,
+      "integrity": "sha384-JToRb2APPLvKgn4tMwn0HIi2hTBTDG2VkB0YoaHmJhA4Xca6zsFDBHbfr04v7Rdy"
     },
     {
       "path": "elements/timeline-item.js",
@@ -505,6 +510,11 @@
       "path": "elements/tree.js",
       "bytes": 5878,
       "integrity": "sha384-HtH+TI7zkjVKDrtL2ZmApcABDt6DmqkFmOrktz9bLrub6VtVzsMnVGJWs4DYz/73"
+    },
+    {
+      "path": "elements/unit-input.js",
+      "bytes": 6607,
+      "integrity": "sha384-iA88eK+Vwq3DP/rtAQt1p9sMKzTFAHbsKIM++0zIhwAlhf9N0jHyovq0ROZG+SYf"
     },
     {
       "path": "elements/workspace.js",
@@ -553,8 +563,8 @@
     },
     {
       "path": "gallery/gallery.data.js",
-      "bytes": 428607,
-      "integrity": "sha384-q8WKmP+Hy7uaLRWW5UI0FwtP9esScjnTjyoI6fx8ojhGeK2q6nimnopu9/qZ1VHM"
+      "bytes": 445938,
+      "integrity": "sha384-GycFHMmkk0DAgJ4NS5sHsNdq7vpWR4+p0c4ViJ7DUiMfYmbYrivJeWcon1O0w0zS"
     },
     {
       "path": "gallery/gallery.js",
@@ -963,8 +973,8 @@
     },
     {
       "path": "plainkit.css",
-      "bytes": 39182,
-      "integrity": "sha384-KV4UdEacYPchOiSHIpeXJf79xNy8WccSrT8l+ZB/JO76ju+0Wv0y3RmCxuvILvCG"
+      "bytes": 39236,
+      "integrity": "sha384-KfZUeP7wCXf1wR2TilsdylpJkrLYKjGzIAxKDNNWUo4/aYcFzxJcvF1fhEOBTg1A"
     },
     {
       "path": "plainkit.js",
@@ -973,8 +983,8 @@
     },
     {
       "path": "plainkit.min.css",
-      "bytes": 28101,
-      "integrity": "sha384-tfwoNox9krl/cgiFOhJ0YlGGQwl2c6X9AfeD3zGNu9DqR+fFWyD7/erzPh2gKouG"
+      "bytes": 28155,
+      "integrity": "sha384-EdPAZc4CvCjtTQ+dtp0G+1+qXYsY4aBFKWl1lAI0NfS8u/n68Ivo1ipS/BGy1NDn"
     },
     {
       "path": "quality/quality.js",
@@ -1008,13 +1018,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
-      "bytes": 5320,
-      "integrity": "sha384-OYj4+VnEaZnh+wtt+haWTNBGSPBzM1++W/HIGkWDZBFY3YLkzhteh8sAuSife2p7"
+      "bytes": 5412,
+      "integrity": "sha384-8R4MAE+Xdp1Ms5EwrVPri7GN3nu83vBvg90XAS/pQmkknYS0xaYJXzqTWUmeYJ2s"
     },
     {
       "path": "skills/plainkit-blazor/references/components-data-display.md",
-      "bytes": 21831,
-      "integrity": "sha384-DQyCoEos0+Y/JDPLGKr17vqpFdah6l4CCatAF2Z5tSu83TsaihTp9P3pKz3NWllJ"
+      "bytes": 22020,
+      "integrity": "sha384-2Xg88L6CawFCBssuJVSBJN5/Yb623ZGdU5gxVwO8Nf1JLOTaKCskOAMeVyw2UpbC"
     },
     {
       "path": "skills/plainkit-blazor/references/components-feedback.md",
@@ -1023,8 +1033,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-controls.md",
-      "bytes": 31897,
-      "integrity": "sha384-Ou+XwcOh0ynzAUP6oUb+CT7mkfDzExTi9e6m4vBsQNCnj4If42q0oousXAleJz79"
+      "bytes": 35046,
+      "integrity": "sha384-ZNW6VPlpUcxertriLX60sw9sLLuCEvNOlc28IsE7OKRt8BO+csEGWb+kgFnYxVuN"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-layout.md",
@@ -1033,13 +1043,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-index.md",
-      "bytes": 7962,
-      "integrity": "sha384-0MSVS4dknVktCw6FIPNTdyIafhDdARzeYwZhBo4DiyDaddlH3VJ9mIzcajkyfLNW"
+      "bytes": 8139,
+      "integrity": "sha384-qplHCPh6If7iqN2uYLLC203sUm4gSlNcFobK5BUq8Rz2y4lq1/wt2mE0vKSRozFZ"
     },
     {
       "path": "skills/plainkit-blazor/references/components-layout.md",
-      "bytes": 15446,
-      "integrity": "sha384-fqgbPFUpBPisrAvjcPJ9hwJZITn5brCiujSHLioX9KvQ9lnJfHvDpYRDuhjMjEBc"
+      "bytes": 17428,
+      "integrity": "sha384-/+Pq9miHykPi7QaO2SJZO5v3b56Z3g/tiBiTIGCOJpQfK5yQTAuzaMIv7df/cJSa"
     },
     {
       "path": "skills/plainkit-blazor/references/components-navigation.md",
@@ -1063,8 +1073,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
-      "bytes": 4057,
-      "integrity": "sha384-9rdN9BowOZ3LY+53H4223WHD8saXn/xFK0zBsOsArHGGCD9sWSy5g9D0xwLnJNk3"
+      "bytes": 4141,
+      "integrity": "sha384-lD5qdgEod+8iRbgy2RXOjia5iYHA4RjJB3hxgxCit0HACVvsNxdRGMuei7AplmMf"
     },
     {
       "path": "skills/plainkit-blazor/references/known-gaps.md",
@@ -1084,17 +1094,17 @@
     {
       "path": "skills/plainkit-sdk/SKILL.md",
       "bytes": 8235,
-      "integrity": "sha384-9vf9u7tbslfsQp/Jc8GHnMzCAN3NXHYyoG5ErNl+5npFyB4dMviAU4POO6spLOmk"
+      "integrity": "sha384-u0GBaHNAszEsPW34KJDRQnKNPx2rO7Ln26iyZ1jEo1uSOeLwZEcu7ZYNOQO+YbgL"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-actions.md",
-      "bytes": 9701,
-      "integrity": "sha384-9mjJD8FSKucfVWm50qc0e/6SW7hcpWAOL1NlIEIauy2f+TKi5echKdsHj2JpVPB0"
+      "bytes": 10457,
+      "integrity": "sha384-I/g9Ydhj0cQ3B6TRGI5MpNEMqwNrrj5fWoBHWMgJbop6blFMKqgbes+gAk1Yie9e"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-data-display.md",
-      "bytes": 45636,
-      "integrity": "sha384-ITl7nw97KRhMqn8yT8IcXm1ljFXdnvufSRFlGlETMopygO/Iui9pQ3giH6mi96fq"
+      "bytes": 46076,
+      "integrity": "sha384-4yYKKNvKeqqSyC8QN9J2dNQlnp9DcyYMwosjglusQo+JnsS9KcAuXVmobl1SjOns"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-feedback.md",
@@ -1103,8 +1113,8 @@
     },
     {
       "path": "skills/plainkit-sdk/references/elements-form-controls.md",
-      "bytes": 57410,
-      "integrity": "sha384-sVeqz8qF4+kMoB8CZvd9mXjkK8fXyVg5kHfjjIvnzakxWcUMv0//7n8/YcoScHwI"
+      "bytes": 62798,
+      "integrity": "sha384-fbQsXm9ECsspe7wVCS9AqxHNzk47N/b+7Enp7DnwVzUULkLpzyGreEe2n7yqTrpx"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-form-layout.md",
@@ -1113,13 +1123,13 @@
     },
     {
       "path": "skills/plainkit-sdk/references/elements-index.md",
-      "bytes": 15554,
-      "integrity": "sha384-tdqdcqAnWU8pPftC/GZ0FJwtNSL372HEub/0CHsFnqMQaVdVb1IZ6gQcLuYhgNUe"
+      "bytes": 16029,
+      "integrity": "sha384-BbEHjNGIJSt89uY8UCZ2/60s+YRCY5xt/2qFLDGukwDn0KTKCY9W1WC5MXnhJN1N"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-layout.md",
-      "bytes": 25843,
-      "integrity": "sha384-34ZdRdJtV3QVqiOyY6w5OBxlEx42hl8engJYjWVlbuypUAn05gTIUEvVr/cQhJC0"
+      "bytes": 29996,
+      "integrity": "sha384-+VOkTofQ/+yY0RwzgxlYJotbYs6PN+uIRH1ERNwd0I2H3ZhTRfeYOlwHQQ78Y48Y"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-navigation.md",
@@ -1193,13 +1203,13 @@
     },
     {
       "path": "vscode.html-custom-data.json",
-      "bytes": 121837,
-      "integrity": "sha384-QPWn/y8zAr7I0X1v2CBNc8bwuzXE9HzBrdEeg49WHgOFJmuRDqgGD9eaXTx5HODS"
+      "bytes": 127504,
+      "integrity": "sha384-/TL7clbg+FQvww3M1Df/eJR50JtVj/sPwM46ki0EyjcAvpQC7bF0LwtaBS+E+5TK"
     },
     {
       "path": "web-types.json",
-      "bytes": 219334,
-      "integrity": "sha384-gCQ0pFvZXpJmt6djE13kqhmp43EeN/x3pcKBxCwcNlK4Ob80gLlj+uV6YPaSl23U"
+      "bytes": 229309,
+      "integrity": "sha384-tIcsw68AhQAe70RNt/a87MaAQYXxiEBff3GA2quAB/dHnujcf4bItFwv45TyNiXi"
     }
   ]
 }

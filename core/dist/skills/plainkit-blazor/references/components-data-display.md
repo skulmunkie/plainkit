@@ -258,6 +258,7 @@ Hand-written component (not generated).
 | `Tone` | `PkStatTone` | `Neutral` `Positive` `Warning` `Critical` | attribute `tone` | The colour of the value. Neutral is the element's default and leaves the attribute off. |
 | `Href` | `string?` |  | attribute `href` | Makes the whole tile one link to this address. |
 | `Delta` | `string?` |  | attribute `delta` | The percent change, for example `12.5` or `-3`; the element draws the arrow and the signed percentage. |
+| `DeltaUnit` | `string?` |  | attribute `delta-unit` | What Delta is measured in: `percent` (the element's default, leave it unset) or `points` (a change in points, shown as "+4 pts"). |
 | `Invert` | `bool` |  | attribute `invert` | Down is good news (costs, returns): swaps the trend colours. |
 | `Series` | `IReadOnlyList<double>?` |  | attribute `values` | Points for the sparkline (at least two). |
 | `SubtextContent` | `RenderFragment?` |  | default slot | A subtext with markup; it is the body of the element. |
