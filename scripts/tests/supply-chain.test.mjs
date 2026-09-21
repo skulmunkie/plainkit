@@ -78,6 +78,14 @@ test('the release workflow uses only GitHub\'s own actions and the pinned NuGet 
     assert.match(release, /tags: \['v\*'\]/);
 });
 
+test('the package build records its repository and commit (SourceLink) and is deterministic on CI', () => {
+    const props = read('Directory.Build.props');
+    assert.match(props, /<PublishRepositoryUrl>true<\/PublishRepositoryUrl>/);
+    assert.match(props, /<EmbedUntrackedSources>true<\/EmbedUntrackedSources>/);
+    assert.match(props, /<ContinuousIntegrationBuild Condition="'\$\(GITHUB_ACTIONS\)' == 'true'">true<\/ContinuousIntegrationBuild>/);
+    assert.match(props, /<RepositoryUrl>https:\/\/github\.com\/skulmunkie\/plainkit<\/RepositoryUrl>/);
+});
+
 test('Dependabot watches the GitHub Actions and the NuGet packages', () => {
     const d = read('.github/dependabot.yml');
     assert.match(d, /package-ecosystem: github-actions\n\s+directory: \//);
