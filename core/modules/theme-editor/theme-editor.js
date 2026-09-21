@@ -16,7 +16,9 @@
 // as ordinary edits. Presets tab: the built-in presets (default, high contrast, compact and roomy density; js/theme-presets-logic.js) replace the edits, and the
 // user's saved themes (by name; apply, rename, delete) live in localStorage under the savedKey option ('pk-theme-editor-saved'; false keeps none), best effort:
 // a blocked storage is logged and the themes last until the page closes.
-// Returns { export(), overrides(), setTheme(name), reset(), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
+// Undo and redo (buttons, Ctrl/Cmd+Z, Shift+Z or Y outside a text field; typing in one field is one step) walk every change; the Changes tab lists each edit against the
+// stylesheet value (js/theme-history-logic.js), '3 changes', with a reset for each edit and for each group of tokens.
+// Returns { export(), overrides(), setTheme(name), reset(), undo(), redo(), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
 // The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
@@ -24,6 +26,7 @@ import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setTheme
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
 import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
 import { PRESETS, presetById, presetOverrides, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
+import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -95,6 +98,10 @@ export async function mountThemeEditor(container, options = {}) {
     }
 
     const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '', palette: null, saved: readSavedThemes() };
+    // Every change of the overrides goes through commit(), so undo and redo see it; typing in one field is one step.
+    let hist = createHistory(state.overrides);
+    const recordStep = (next, key = null) => { hist = record(hist, next, { key, at: Date.now() }); return hist.present; };
+    const commit = (next, key = null) => { state.overrides = recordStep(next, key); };
     const themeHost = isDoc ? target.documentElement : target;
     const styleRoot = isDoc ? target.documentElement : target;
     if (options.theme) setThemeAttr(themeHost, options.theme);
@@ -130,6 +137,10 @@ export async function mountThemeEditor(container, options = {}) {
     const scopeSelect = h(doc, 'pk-select', { label: 'Edits apply to', value: 'theme' }, h(doc, 'option', { value: 'theme' }, 'The current theme'), h(doc, 'option', { value: 'both' }, 'Both themes'));
     const find = h(doc, 'pk-input', { type: 'search', label: 'Find token', placeholder: 'e.g. accent, radius', clearable: true });
     const resetAll = h(doc, 'pk-button', { variant: 'warn', size: 'mini' }, 'Reset all');
+    const undoBtn = h(doc, 'pk-button', { variant: 'ghost', size: 'mini', label: 'Undo' }, 'Undo');
+    const redoBtn = h(doc, 'pk-button', { variant: 'ghost', size: 'mini', label: 'Redo' }, 'Redo');
+    const changesTab = h(doc, 'pk-tab', { value: 'changes' }, 'Changes');
+    const changesBox = h(doc, 'div', { class: 'te-changes' });
     const shown = h(doc, 'span', { class: 'muted', role: 'status' });
     const count = h(doc, 'pk-stat', { label: 'Overrides', value: '0', tile: true });
     const warn = h(doc, 'pk-alert', { kind: 'warning' });
@@ -163,6 +174,7 @@ export async function mountThemeEditor(container, options = {}) {
 
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
+        changesTab, h(doc, 'pk-tab-panel', { value: 'changes' }, changesBox),
         h(doc, 'pk-tab', { value: 'palette' }, 'Palette'),
         h(doc, 'pk-tab-panel', { value: 'palette' },
             h(doc, 'p', { class: 'muted' }, 'Pick a brand colour: the accent, fill, hover and link colours and the text and surface ramps of both themes are generated so every text pair below is 4.5:1 or better. Apply writes them as ordinary edits you can still change.'),
@@ -182,7 +194,7 @@ export async function mountThemeEditor(container, options = {}) {
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
         h(doc, 'div', { class: 'te-toolbar' }, find, kindSelect, themeSelect, scopeSelect),
-        h(doc, 'pk-cluster', { justify: 'between' }, count, shown, resetAll),
+        h(doc, 'pk-cluster', { justify: 'between' }, count, shown, h(doc, 'pk-cluster', {}, undoBtn, redoBtn, resetAll)),
         tabs);
     if (height) { root.classList.add('te--fixed'); root.style.height = height; }
     container.replaceChildren(root);
@@ -293,9 +305,37 @@ export async function mountThemeEditor(container, options = {}) {
 
     // Replaces the current edits (an ordinary edit set the user can still change) and repaints everything that shows them.
     function replaceOverrides(next, message) {
-        state.overrides = { shared: next.shared, dark: next.dark, light: next.light };
+        commit({ shared: next.shared, dark: next.dark, light: next.light });
         apply(); paintList();
         if (message) presetNote('success', message);
+    }
+
+    // The change list: every edit against the stylesheet value (grouped, each with its scope and a reset), the count, and the undo and redo buttons.
+    function paintChanges() {
+        const diff = diffOverrides(state.overrides, tokens);
+        changesTab.textContent = `Changes (${changedTokens(state.overrides)})`;
+        undoBtn.toggleAttribute('disabled', !canUndo(hist));
+        redoBtn.toggleAttribute('disabled', !canRedo(hist));
+        const scopeName = { shared: 'Both themes', dark: 'Dark', light: 'Light' };
+        const groups = [...new Set(diff.map(d => d.group))];
+        changesBox.replaceChildren(h(doc, 'p', { class: 'te-summary', role: 'status' }, changeSummary(state.overrides)),
+            ...(diff.length ? groups.flatMap(g => [
+                h(doc, 'div', { class: 'te-change-head' }, h(doc, 'h4', { class: 'te-caption' }, g), h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-reset-group': g, label: `Reset every ${g} token` }, 'Reset group')),
+                ...diff.filter(d => d.group === g).map(d => h(doc, 'div', { class: 'te-change', 'data-change': `${d.scope} ${d.name}` },
+                    h(doc, 'code', { class: 'te-pair-name' }, d.name), h(doc, 'pk-badge', { variant: 'muted' }, scopeName[d.scope]),
+                    h(doc, 'span', { class: 'te-diff' }, h(doc, 'code', {}, d.from || 'unset'), ' \u2192 ', h(doc, 'code', {}, d.to)),
+                    h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-reset': d.name, 'data-scope': d.scope, label: `Reset ${d.name} (${scopeName[d.scope]})` }, 'Reset'))),
+            ]) : [h(doc, 'p', { class: 'muted' }, 'Nothing differs from the stylesheet.')]));
+    }
+
+    // Applies a new history state (undo, redo) or any external change of the overrides: everything that shows them repaints.
+    function step(fn) {
+        const before = hist;
+        hist = fn(hist);
+        if (hist === before) return false;
+        state.overrides = hist.present;
+        apply(); paintList();
+        return true;
     }
 
     function paintExport(css, rejected) {
@@ -312,12 +352,13 @@ export async function mountThemeEditor(container, options = {}) {
         applyToPreview(css);
         if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch (error) { log.debug('storage blocked: the edit applies but is not saved', error); }
         paintPairs();
+        paintChanges();
         paintExport(css, rejected);
         onchange?.({ css, overrides: api.overrides() });
     }
 
     function edit(name, value) {
-        state.overrides = withEdit(state.overrides, { theme: theme(), scope: state.scope, name, value, base: baseValue(tokens, theme(), name) });
+        commit(withEdit(state.overrides, { theme: theme(), scope: state.scope, name, value, base: baseValue(tokens, theme(), name) }), name);
         apply();
     }
 
@@ -329,7 +370,7 @@ export async function mountThemeEditor(container, options = {}) {
         const read = readImport(text);
         if (read.error) { log.warn(`import refused, the overrides are unchanged: ${read.error}`); note('error', read.error); return; }
         const parsed = read.overrides;
-        state.overrides = { shared: parsed.shared, dark: parsed.dark, light: parsed.light };
+        state.overrides = recordStep({ shared: parsed.shared, dark: parsed.dark, light: parsed.light });
         note('success', 'Imported.');
         apply(); paintList(); paintPairs();
     }
@@ -344,6 +385,22 @@ export async function mountThemeEditor(container, options = {}) {
     on(scopeSelect, 'change', e => { state.scope = e.target.value; });
     on(themeSelect, 'change', e => { if (e.target.value !== theme()) api.setTheme(e.target.value); });
     on(resetAll, 'click', () => api.reset());
+    on(undoBtn, 'click', () => api.undo());
+    on(redoBtn, 'click', () => api.redo());
+    on(changesBox, 'click', e => {
+        const b = e.target.closest?.('pk-button');
+        if (!b || b.hasAttribute('disabled')) return;
+        if (b.dataset.resetGroup) commit(withoutGroup(state.overrides, b.dataset.resetGroup));
+        else if (b.dataset.reset) commit(withoutEntry(state.overrides, b.dataset.scope, b.dataset.reset));
+        else return;
+        apply(); paintList();
+    });
+    // Ctrl or Cmd+Z undoes, plus Shift+Z or Y redoes, except in a text field (which keeps its own undo).
+    on(root, 'keydown', e => {
+        if (!(e.ctrlKey || e.metaKey) || e.altKey || /^pk-(input|textarea|unit-input|colour-input)$/.test(e.target.localName)) return;
+        const k = e.key.toLowerCase();
+        if (k === 'z' && !e.shiftKey) { if (api.undo()) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (api.redo()) e.preventDefault(); }
+    });
     on(list, 'pk-colour', e => { const n = tokenOf(e); if (n) edit(n, e.detail.value); });
     const editField = e => {
         if (e.target.localName !== 'pk-input' && e.target.localName !== 'pk-unit-input') return;
@@ -361,7 +418,7 @@ export async function mountThemeEditor(container, options = {}) {
         const b = e.target.closest?.('pk-button');
         const n = tokenOf(e);
         if (!b || !n || b.hasAttribute('disabled')) return;
-        state.overrides = withoutToken(state.overrides, n);
+        commit(withoutToken(state.overrides, n));
         apply();
         const fresh = makeRow(n);
         const old = list.querySelector(`[data-token="${CSS.escape(n)}"]`);
@@ -371,7 +428,7 @@ export async function mountThemeEditor(container, options = {}) {
     for (const el of [brandInput, neutralInput, warnInput]) on(el, 'input', () => paintPalette());
     on(applyBrand, 'click', () => {
         if (!state.palette || applyBrand.hasAttribute('disabled')) return;
-        state.overrides = applyPalette(state.overrides, state.palette.overrides, tokens);
+        commit(applyPalette(state.overrides, state.palette.overrides, tokens));
         apply(); paintList();
         paletteMsg.replaceChildren(h(doc, 'pk-alert', { kind: 'success' }, `Applied: ${overrideCount(state.overrides)} overrides in all. Edit any token in the Tokens tab.`));
     });
@@ -416,7 +473,9 @@ export async function mountThemeEditor(container, options = {}) {
         export: () => buildOverrides(state.overrides).css,
         overrides: () => ({ shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }),
         setTheme(name) { setThemeAttr(isDoc ? target.documentElement : themeHost, name); apply(); paintList(); },
-        reset() { state.overrides = emptyOverrides(); apply(); paintList(); },
+        reset() { commit(emptyOverrides()); apply(); paintList(); },
+        undo() { return step(undo); },
+        redo() { return step(redo); },
         // Built-in presets ({ id, name, description }) and the user's saved theme names.
         presets: () => PRESETS.map(({ id, name, description }) => ({ id, name, description })),
         saved: () => state.saved.map(t => t.name),
@@ -433,7 +492,7 @@ export async function mountThemeEditor(container, options = {}) {
         applyBrand(colour, options = {}) {
             const p = generatePalette(colour, options);
             if (p.error) { log.warn(`applyBrand refused: ${p.error}`); return p; }
-            state.overrides = applyPalette(state.overrides, p.overrides, tokens);
+            commit(applyPalette(state.overrides, p.overrides, tokens));
             brandInput.setAttribute('value', p.brand); brandInput.value = p.brand;
             apply(); paintList(); paintPalette();
             return p;
