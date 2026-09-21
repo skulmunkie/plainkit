@@ -4,13 +4,16 @@
 // Framework-free; ES module.
 
 import { PAGE_CSS } from './paths.js';
+import { SCRIPT_NAME, DESTROY_EVENT } from './pattern-mount.js';
 
 export const GALLERY_BASE = new URL('./', import.meta.url).href;
 export const PHONE_WIDTH = 375;
 
 // The document a sample renders in: plainkit.css, the sample's markup, and every behaviour module initialised.
-export function sampleDoc(html, { theme = 'dark', scale = 1, script = '' } = {}) {
-    return `<!doctype html><html lang="en" data-theme="${theme}" data-scale="${scale}"${script ? ` data-boot="${script}"` : ''}><head><meta charset="utf-8">`
+// script: a boot module (boots/<name>.js). pattern: a pattern's own script (<id>/<id>.js), mounted on the markup so the sample behaves like
+// the real thing (frame-boot.js); a name of any other shape is left out.
+export function sampleDoc(html, { theme = 'dark', scale = 1, script = '', pattern = '' } = {}) {
+    return `<!doctype html><html lang="en" data-theme="${theme}" data-scale="${scale}"${script ? ` data-boot="${script}"` : ''}${SCRIPT_NAME.test(pattern) ? ` data-pattern="${pattern}"` : ''}><head><meta charset="utf-8">`
         + `<meta name="viewport" content="width=device-width, initial-scale=1"><base href="${GALLERY_BASE}">`
         + `${PAGE_CSS.map(h => `<link rel="stylesheet" href="${h}">`).join('')}<link rel="stylesheet" href="frame.css"></head><body>${html}`
         + `<script type="module" src="frame-boot.js"></script></body></html>`;
@@ -52,13 +55,19 @@ export function fit(frame) {
     frame.style.height = `${Math.max(doc.documentElement.scrollHeight, 40) + edge}px`;
 }
 
+// Ends the sample's script (if it runs) before the gallery drops the frame, so nothing it added outlives the view.
+export function destroyFrame(frame) {
+    const win = frame.contentWindow;
+    if (win) win.dispatchEvent(new win.Event(DESTROY_EVENT));
+}
+
 export function makeFrame(sample, state, control = '') {
     const frame = document.createElement('iframe');
     frame.className = 'gx-frame';
     frame.title = sample.title ?? control;
     if (control) frame.dataset.control = control;
     if (sample.height) frame.dataset.height = String(sample.height);
-    frame.srcdoc = sampleDoc(sample.html, { theme: state.theme, scale: state.scale, script: sample.script });
+    frame.srcdoc = sampleDoc(sample.html, { theme: state.theme, scale: state.scale, script: sample.script, pattern: sample.pattern });
     frame.addEventListener('load', () => {
         applyToFrame(frame, state);
         const doc = frame.contentDocument;

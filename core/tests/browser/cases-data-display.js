@@ -7,7 +7,110 @@ const bodyIds = el => [...el.shadowRoot.querySelectorAll('tbody tr')].map(r => r
 const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 const key = (el, k) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
+// The gallery, drawn without chrome (so a pattern shows inline, not as a full page), in a frame of the given width. sample(n) is the n-th sample
+// frame of the view (0 = desktop, 1 = phone); go(id) opens another pattern; logged(sample) is the warnings and errors the SDK logger holds
+// inside that sample frame, as text (empty when the log is clean).
+async function inlineGallery(t, id, width) {
+    const embed = new URL('../../site/gallery/embed.html', import.meta.url).href;
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'gallery'; f.style.width = `${width}px`; f.style.height = '900px'; f.style.border = '0';
+    const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+    // The gallery draws a sample frame only when its slot is on screen, and the stage sits off-screen: pin this frame into the window (the next stage() removes it).
+    f.style.position = 'fixed'; f.style.left = '0'; f.style.top = '0'; f.style.zIndex = '10';
+    host.append(f);
+    f.src = `${embed}?chrome=none#/samples/patterns/${id}`; await loaded;
+    const win = f.contentWindow;
+    const sample = n => { const fr = win.document.querySelectorAll('iframe.gx-frame')[n]; return fr && { frame: fr, win: fr.contentWindow, doc: fr.contentDocument }; };
+    const ready = name => until(() => { const s = sample(0); return s?.doc?.body?.firstElementChild && s.doc.documentElement.dataset.pattern === `${name}/${name}.js` && [...s.doc.querySelectorAll('*')].every(e => !e.localName.startsWith('pk-') || s.win.customElements.get(e.localName)) && s; }, `the ${name} sample frame`);
+    await ready(id);
+    await wait(400); // the script mounts right after the frame boots: let its module load and the behaviours settle
+    return {
+        win, sample,
+        async go(next) { win.location.hash = `#/samples/patterns/${next}`; await wait(200); await ready(next); await wait(400); },
+        async logged(s) {
+            const log = await s.win.eval(`import(${JSON.stringify(new URL('../../js/log.js', import.meta.url).href)})`);
+            return log.getLogBuffer().filter(e => e.level === 'error' || e.level === 'warn').map(e => `${e.level} ${e.scope}: ${e.message}`).join('; ');
+        },
+    };
+}
+
 export const dataDisplayCases = [
+    // ---- the gallery's inline pattern views run the pattern's script inside the sample frame -------------------------------------------------
+    ['gallery inline patterns: notifications, unsaved settings and onboarding respond to clicks and edits in the sample frame, at desktop and phone width, with nothing in the log', async t => {
+        for (const width of [1200, 375]) {
+            const g = await inlineGallery(t, 'notifications', width);
+            const view = g.sample(0);
+            const doc = view.doc;
+            t.eq(doc.documentElement.getAttribute('data-pattern'), 'notifications/notifications.js', 'the frame names the script');
+            const badge = doc.querySelector('[data-unread]');
+            t.eq(badge.getAttribute('count'), '3');
+            doc.querySelector('[data-toast="saved"]').click();
+            await until(() => doc.querySelector('pk-toast'), 'a toast');
+            t.eq(badge.getAttribute('count'), '4', `${width}px: the bell counts the toast`);
+            doc.querySelector('[data-bell]').click(); await t.settle();
+            t.ok(badge.hidden, 'the bell clears the count');
+            t.eq(await g.logged(view), '', `${width}px notifications: nothing in the log`);
+
+            await g.go('unsaved-settings');
+            const u = g.sample(0).doc;
+            const bar = u.querySelector('[data-bar]');
+            t.ok(bar.hidden, 'the bar starts hidden');
+            const name = u.querySelector('pk-input'); name.value = 'A new name'; name.dispatchEvent(new u.defaultView.Event('input', { bubbles: true, composed: true }));
+            await until(() => !bar.hidden, 'the unsaved bar');
+            u.querySelector('[data-discard]').click(); await until(() => bar.hidden, 'the bar to hide after Discard');
+            t.eq(await g.logged(g.sample(0)), '', `${width}px unsaved-settings: nothing in the log`);
+
+            await g.go('onboarding');
+            const o = g.sample(0).doc;
+            const done = o.querySelector('[data-done]'); const before = done.textContent;
+            o.querySelector('[data-start]').click(); await until(() => done.textContent !== before, 'the step to advance');
+            t.ok(/^\d+ of \d+ done$/.test(done.textContent), done.textContent);
+            t.eq(await g.logged(g.sample(0)), '', `${width}px onboarding: nothing in the log`);
+        }
+    }],
+
+    ['gallery inline patterns: live search, master-detail and the filter table respond to typing and clicks in the sample frame, with nothing in the log', async t => {
+        const type = (win, el, text) => { el.value = text; el.dispatchEvent(new win.Event('input', { bubbles: true, composed: true })); };
+        const g = await inlineGallery(t, 'search-results', 1200);
+        let s = g.sample(0); const shown = () => [...s.doc.querySelectorAll('pk-list-group > button')].filter(b => !b.hidden).length;
+        const all = shown(); t.ok(all > 1, 'the results start listed');
+        const q = s.doc.querySelector('[data-query]'); const empty = s.doc.querySelector('[data-empty]');
+        type(s.win, q, 'zzqq'); await until(() => shown() === 0 && !empty.hidden, 'the empty state');
+        type(s.win, q, ''); await until(() => shown() >= all && empty.hidden, 'the full list again'); // the sample opens with the query "item", so clearing shows at least as many rows
+        t.eq(await g.logged(s), '', 'search-results: nothing in the log');
+
+        await g.go('master-detail-pattern');
+        s = g.sample(0);
+        const detail = s.doc.querySelector('[data-detail]'); const first = detail.textContent;
+        const other = [...s.doc.querySelectorAll('a[data-id]')].find(a => !first.includes(a.textContent.trim()));
+        other.click(); await until(() => detail.textContent !== first, 'the detail to change');
+        t.eq(await g.logged(s), '', 'master-detail: nothing in the log');
+
+        await g.go('filter-table');
+        s = g.sample(0);
+        const table = s.doc.querySelector('[data-table]'); const rowsIn = () => table.shadowRoot?.querySelectorAll('tbody tr').length ?? 0;
+        await until(() => rowsIn() > 0, 'the table rows'); const total = rowsIn();
+        type(s.win, s.doc.querySelector('[data-field="name"]'), 'zzqq');
+        await until(() => rowsIn() === 0 && s.doc.querySelectorAll('[data-applied] pk-tag').length > 0, 'the table to filter and a tag to show');
+        s.doc.querySelector('[data-clear]').click(); await until(() => rowsIn() >= total && !s.doc.querySelector('[data-applied] pk-tag'), 'Clear to bring the rows back and drop the tags');
+        t.eq(await g.logged(s), '', 'filter-table: nothing in the log');
+    }],
+
+    ['gallery inline patterns: drawing another view ends the old frame\'s script and starts the new one, a theme change keeps the state, and views do not pile up', async t => {
+        const g = await inlineGallery(t, 'notifications', 1200);
+        const old = g.sample(0); let destroyed = 0;
+        old.win.addEventListener('pk-sample-destroy', () => { destroyed += 1; });
+        old.doc.querySelector('[data-toast="saved"]').click(); await until(() => old.doc.querySelector('pk-toast'), 'a toast');
+        g.win.document.dispatchEvent(new g.win.CustomEvent('site-theme', { detail: 'light' })); await t.settle();
+        t.eq(old.doc.documentElement.dataset.theme, 'light', 'the theme follows');
+        t.eq(old.doc.querySelector('[data-unread]').getAttribute('count'), '4', 'the frame was not redrawn: the script keeps its state');
+        await g.go('onboarding');
+        t.eq(destroyed, 1, 'the old frame was told to end its script, once');
+        t.ok(!old.frame.isConnected, 'and the frame is gone');
+        for (const id of ['search-results', 'notifications', 'search-results']) await g.go(id);
+        t.eq(g.win.document.querySelectorAll('iframe.gx-frame').length, 2, 'the desktop and the phone frame, no leftovers');
+    }],
+
     ['skeleton: text variant sets the line count, circle and block take a size, the label is for assistive tech', async t => {
         const s = await t.mount('<pk-skeleton variant="text" lines="5"></pk-skeleton>');
         t.eq(s.style.getPropertyValue('--pk-skeleton-lines'), '5'); t.eq(s.part('label').textContent, 'Loading');

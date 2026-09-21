@@ -279,7 +279,7 @@ function patternsMd(src, kind) {
         if (t.built) out.push(`Built from: ${t.built}`, '');
         if (t.mobile) out.push(`On a phone: ${t.mobile}`, '');
         out.push(`Elements used: ${t.used.map(u => code('pk-' + u)).join(' ')}.`, '', fence('html', t.html));
-        if (t.scriptSource) out.push('', 'Script (the demo runs it after the markup is on the page: `mount(root)` gets the element that holds the markup, works only inside it, and returns `{ destroy() }`; its imports assume `plainkit/` is a copy of `dist`):', '', fence('js', t.scriptSource));
+        if (t.scriptSource) out.push('', 'Script (the gallery runs it after the markup is on the page, in the full-page view and in the inline views alike: `mount(root)` gets the element that holds the markup, works only inside it, and returns `{ destroy() }` (call it when the markup is removed, so its listeners go); its imports assume `plainkit/` is a copy of `dist`):', '', fence('js', t.scriptSource));
         out.push('');
     }
     return out.join('\n');

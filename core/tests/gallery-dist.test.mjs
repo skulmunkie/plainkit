@@ -18,7 +18,7 @@ test('relocate drops one level from specifiers that climb out of the gallery fol
 });
 
 test('dist/gallery holds the modules, data, styles and templates the embed page needs', () => {
-    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/crud/crud.html', 'templates/chrome.js', 'preview.html', 'preview.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
+    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/crud/crud.html', 'templates/chrome.js', 'preview.html', 'preview.js', 'pattern-mount.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
     assert.ok(out.has('dist/js/gallery-options.js'));
     for (const f of ['standalone.js', 'index.html']) assert.ok(!out.has(`dist/gallery/${f}`), `${f} is the SDK site's own host page`);
 });

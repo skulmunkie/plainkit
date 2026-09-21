@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Files copied as they are, plus the rewritten ones. standalone.js and index.html are the SDK site's own host page and stay out.
-const COPY = ['gallery.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js'];
+const COPY = ['gallery.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js', 'pattern-mount.js'];
 
 // The dist layout puts js/, plainkit.css and icons.svg one level above the gallery folder, not two: drop one "../" from a specifier that
 // climbs out of the folder. depth is how many folders deep the file sits inside the gallery folder.

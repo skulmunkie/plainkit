@@ -16,7 +16,7 @@ import { readSetting, writeSetting } from './settings.js';
 import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, PREVIEW, HAS_SITE } from './paths.js';
 import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../../js/gallery-options.js';
 import { BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS } from './gallery.data.js';
-import { makeFrame, applyToFrame, applyToPage, PHONE_WIDTH } from './frame.js';
+import { makeFrame, applyToFrame, applyToPage, destroyFrame, PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind, currentTheme, setTheme } from '../../js/theme.js';
 import { contrast, grade } from '../../js/colour.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -145,8 +145,15 @@ function closeContents() {
 }
 
 // ---- frames (lazy) -------------------------------------------------------------------------------------------------------
+// The view is being drawn again: the sample scripts of the frames it replaces end now (a frame never scrolled into view has none).
+function releaseFrames() {
+    for (const f of frames) destroyFrame(f);
+    frames.clear();
+}
+
 function watchFrames() {
     lazy?.disconnect();
+    releaseFrames();
     lazy = new IntersectionObserver(entries => { for (const e of entries) if (e.isIntersecting) { lazy.unobserve(e.target); mountFrame(e.target); } }, { root: bare ? null : $('#gx-view'), rootMargin: '400px' });
 }
 
@@ -371,7 +378,8 @@ function samplesView(out, put, a, b) {
         if (!p) return put(notFound('Not found', '', ['Back to patterns', '#/samples/patterns']));
         put(`${heading(p.title, p.summary, groupCrumb('patterns', p.title))}<pk-card class="gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(p.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</p><p class="muted"><strong>Elements used:</strong> ${p.used.map(u => { const m = ELEMENTS.find(x => x.tag === `pk-${u}`); return m ? `<a href="#/elements/${m.tag}">${esc(m.title)}</a>` : esc(u); }).join(', ')}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div><p><a href="#/samples/patterns">Back to patterns</a></p></pk-card>`);
         const [d, ph] = out.querySelectorAll('.gx-pair > div');
-        d.append(slot({ title: `${p.title} desktop`, html: p.html }, `pattern-${p.id}`, 'desktop')); ph.append(slot({ title: `${p.title} phone`, html: p.html }, `pattern-${p.id}`, 'phone'));
+        // A pattern that ships a script runs it in each frame, on that frame's own markup (frame-boot.js).
+        d.append(slot({ title: `${p.title} desktop`, html: p.html, pattern: p.script }, `pattern-${p.id}`, 'desktop')); ph.append(slot({ title: `${p.title} phone`, html: p.html, pattern: p.script }, `pattern-${p.id}`, 'phone'));
         return out;
     }
     if (a === 'layouts') {
@@ -391,7 +399,7 @@ function samplesView(out, put, a, b) {
 function view() {
     inspecting = null; stage = null;
     full = fullPage();
-    if (full) return fullView(full);
+    if (full) { releaseFrames(); return fullView(full); }
     const { section: sec, a, b } = route();
     const out = document.createElement('pk-stack'); out.className = 'gx-page';
     watchFrames();
