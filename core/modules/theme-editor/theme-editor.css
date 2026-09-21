@@ -2,9 +2,6 @@
 
 .te { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
-/* Room under the last row so the dev tools launcher (fixed, bottom end) never covers a control when the editor is a dock tab. */
-.te:not(.te--fixed) { padding-block-end: calc(var(--touch-target) + var(--space-4)); }
-
 .te--fixed { min-height: 0; }
 
 .te--fixed pk-tabs { flex: 1 1 auto; min-height: 0; overflow: auto; }
@@ -32,6 +29,8 @@
 .te-preview-body { padding: var(--space-4); }
 
 @media (max-width: 640px) {
+    /* The search and the scope select ("The current theme") need the full width; the short Kind and Theme selects share a row. */
+    .te-toolbar > :first-child, .te-toolbar > :last-child { grid-column: 1 / -1; }
     .te-row { grid-template-columns: minmax(0, 1fr) auto auto; padding-inline: var(--space-2); }
     .te-name { grid-column: 1 / -1; font-size: var(--text-base); }
     .te-row > pk-input, .te-row > pk-colour-input { grid-column: 1; }
