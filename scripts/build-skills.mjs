@@ -468,6 +468,34 @@ function blazorFiles(src) {
             '## `PkTableColumn<TItem>` (the columns of `PkDataList` and `PkTable`)', '', table(['Member', 'Description'], src.cs.tableColumn.map(m => [code(m.decl), m.doc])), ''].join('\n'));
     }
 
+    // reading picked files: PkDropzone with Blazor's InputFile (issue #83); a workflow, so no element table
+    files.set('references/file-upload.md', ['# Reading picked files: PkDropzone with InputFile', '', stamp(src, 'the pk-dropzone element and Components/PkDropzone (generated)'), '',
+        'The dropzone element keeps its files in its own shadow-tree input, which Blazor cannot read. To read the bytes use the Blazor `InputFile`: put it in the `input` slot of the dropzone and the zone only draws the target. There is no `IBrowserFile` marshalling in Plainkit and no interop per render; `InputFileChangeEventArgs`, `IBrowserFile` and `OpenReadStream` belong to Blazor and work the same in Blazor Server and Blazor WebAssembly.', '',
+        '```razor', '@using Microsoft.AspNetCore.Components.Forms', '',
+        '<PkDropzone Label="Files to upload" BrowseLabel="Choose files" Multiple="true">',
+        '    <ChildContent>',
+        '        <InputFile slot="input" multiple OnChange="OnChange" />',
+        '        Drop files here or click to choose',
+        '    </ChildContent>',
+        '    <HintContent>Text files, up to 1 MB each</HintContent>',
+        '</PkDropzone>', '',
+        '@code {',
+        '    private async Task OnChange(InputFileChangeEventArgs e)',
+        '    {',
+        '        foreach (var file in e.GetMultipleFiles(10))',
+        '        {',
+        '            using var stream = file.OpenReadStream(1024 * 1024); // the limit is yours; the default is 500 KB',
+        '            // read or copy the stream',
+        '        }',
+        '    }',
+        '}', '```', '',
+        'Rules:', '',
+        '- `slot="input"` goes on the `InputFile` itself (it passes unknown attributes to the `<input>`), as a direct child of `PkDropzone`, so the input covers the whole zone. When any named fragment (`HintContent`) is used, wrap the title and the `InputFile` in an explicit `<ChildContent>`.',
+        '- A drop and the picker (the zone itself, or the `BrowseLabel` button) both end in the `OnChange` of the `InputFile`: a drop puts the dropped files into that input and raises its `change` event. A single-file input (no `multiple`) keeps the first dropped file; a drop without files does nothing.',
+        '- `OnChange` is the source of truth. In this mode the zone does not check `Accept`, `MaxFileSizeBytes` or `MaxFiles`, does not draw a file list and does not raise `OnFiles`: use `accept` and `multiple` on the `InputFile`, check `IBrowserFile.Size` and `ContentType` in `OnChange`, and set `maxAllowedSize` in `OpenReadStream` (it throws `IOException` past the limit).',
+        '- `BrowseLabel` and `Disabled` keep working (`Disabled` blocks the button and drops). Render the file list yourself from the `IBrowserFile`s.',
+        '- Without an `InputFile` (no slot), `OnFiles` reports counts and the accepted and rejected files stay in the browser: use it for client-side checks, not for reading bytes.', ''].join('\n'));
+
     // tools and setup
     const toolRows = TOOL_COMPONENTS.filter(c => src.razor[c]).map(c => {
         const r = src.razor[c];
@@ -535,7 +563,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'file-upload.md': '`PkDropzone` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';

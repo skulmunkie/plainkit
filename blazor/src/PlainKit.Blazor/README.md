@@ -38,6 +38,38 @@ Every element has a component, named `Pk` plus the tag in PascalCase, so `pk-ale
 
 A component takes its listed parameters, and every other attribute (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, so `<PkButton id="save" data-test="x" aria-label="Save">` works. A `class` is added to the component's own classes (the components that list `ExtraClass` combine both). An inline `style` is blocked by the CSP: use a class. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own (see "Events on raw elements").
 
+## Reading uploaded files (`PkDropzone` with `InputFile`)
+
+`PkDropzone` keeps its own file input inside the element, where Blazor cannot read it, so `OnFiles` reports only counts. To read the bytes, place Blazor's own `InputFile` in the dropzone's `input` slot: the zone then only draws the drop target and `InputFile` (a real `<input type="file">` that Blazor owns) does the reading, so `InputFileChangeEventArgs` and `IBrowserFile` come from Blazor with no custom interop. Nothing is marshalled per render, and it works the same in Blazor Server and Blazor WebAssembly.
+
+```razor
+@using Microsoft.AspNetCore.Components.Forms
+
+<PkDropzone Label="Files to upload" BrowseLabel="Choose files" Multiple="true">
+    <ChildContent>
+        <InputFile slot="input" multiple OnChange="OnChange" />
+        Drop files here or click to choose
+    </ChildContent>
+    <HintContent>Text files, up to 1 MB each</HintContent>
+</PkDropzone>
+
+@code {
+    private async Task OnChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(10))
+        {
+            using var stream = file.OpenReadStream(1024 * 1024); // maxAllowedSize is yours to set (default 500 KB)
+            // copy or read the stream
+        }
+    }
+}
+```
+
+- `slot="input"` goes on the `InputFile` itself, as a direct child of `PkDropzone`, so the input covers the whole zone. Once a named fragment such as `HintContent` is used, the title and the `InputFile` go in an explicit `<ChildContent>`.
+- A drop and the picker (the zone, or the `BrowseLabel` button) both raise the `InputFile`'s `OnChange`: on a drop the element puts the dropped files into that input and raises `change`. A single-file input (no `multiple`) keeps the first dropped file.
+- In this mode `OnChange` is the source of truth. The zone does not apply `Accept`, `MaxFileSizeBytes` or `MaxFiles`, draws no file list and does not raise `OnFiles`: set `accept` and `multiple` on the `InputFile`, check `IBrowserFile.Size` and `ContentType`, and pass the size limit to `OpenReadStream`.
+- Why not an event that carries the files: a .NET side cannot read a browser `File` except through `InputFile`'s own machinery (or a custom stream interop per file), so the slot reuses the one path Blazor already supports. The sample page `/upload` in `blazor/samples/PlainKit.Playground` is the working example.
+
 ## Events on raw elements
 
 Every `pk-*` event of every element is registered with Blazor and mapped to its args class, whether or not a component listens for it, so a raw element in Razor works with typed handlers and no JavaScript:

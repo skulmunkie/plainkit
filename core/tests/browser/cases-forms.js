@@ -269,6 +269,17 @@ export const formCases = [
         t.eq(input.files.length, 1); t.eq(changes, 1, 'the slotted input reports the change so Blazor can read it');
     }],
 
+    ['dropzone: an input placed directly in the input slot (Blazor InputFile) gets one file unless multiple, and a drop without files changes nothing', async t => {
+        const host = t.stage('<pk-dropzone><input slot="input" type="file">Drop</pk-dropzone>'); await t.load(host); await t.settle();
+        const z = host.firstElementChild; const input = z.querySelector('input'); t.ok(z.hasAttribute('has-input'));
+        let changes = 0; input.addEventListener('change', () => changes++);
+        const drop = files => { const dt = new DataTransfer(); for (const f of files) dt.items.add(f); const e = new Event('drop', { cancelable: true }); e.dataTransfer = dt; z.part('zone').dispatchEvent(e); };
+        drop([new File(['x'], 'a.csv'), new File(['y'], 'b.csv')]);
+        t.eq(input.files.length, 1, 'a single-file input keeps the first file, like a native drop'); t.eq(input.files[0].name, 'a.csv'); t.eq(changes, 1);
+        drop([]); t.eq(changes, 1, 'no files, no change event'); t.eq(input.files.length, 1);
+        input.multiple = true; drop([new File(['x'], 'c.csv'), new File(['y'], 'd.csv')]); t.eq(input.files.length, 2); t.eq(changes, 2);
+    }],
+
     ['combobox: typing reports the query even when the client filters, and an option refresh keeps the filter', async t => {
         const c = await t.mount('<pk-combobox label="V"><option value="1">Widget A</option><option value="2">Gadget</option></pk-combobox>'); await t.settle();
         const q = []; c.addEventListener('pk-combo-query', e => q.push(e.detail.query));
