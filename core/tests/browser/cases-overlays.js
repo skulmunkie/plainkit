@@ -334,6 +334,17 @@ export const overlaysCases = [
         sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open); t.ok(sh.navOpen);
     }],
 
+    ['app shell: the title slot and back link fill the top bar; the link is a real 44px link named by back-label, and an unsafe address is dropped', async t => {
+        const sh = await t.mount('<pk-app-shell back-href="#list" back-label="Back to Things"><h1 slot="title">Thing 7</h1><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>'); await t.settle();
+        const back = sh.part('back'); const box = back.getBoundingClientRect();
+        t.ok(!back.hidden && back.getAttribute('href') === '#list', 'a real link to the parent'); t.eq(back.getAttribute('aria-label'), 'Back to Things');
+        t.ok(box.width >= 43.5 && box.height >= 43.5, 'a 44px target'); back.focus(); t.eq(sh.shadowRoot.activeElement, back, 'reachable by keyboard');
+        t.eq(sh.slotted('title')[0].textContent, 'Thing 7'); t.ok(getComputedStyle(sh.part('header')).display === 'flex' && sh.part('title').getBoundingClientRect().width > 0, 'the title shows in the top bar');
+        t.ok(sh.querySelector('h1').getBoundingClientRect().left > box.right - 1, 'the title follows the back link');
+        sh.backHref = ['javascript', 'void(0)'].join(':'); await t.settle(); t.ok(back.hidden, 'a script address is not linked');
+        const bare = await t.mount('<pk-app-shell><button slot="header">Menu</button>Body</pk-app-shell>'); await t.settle(); t.ok(bare.part('title').hidden && getComputedStyle(bare.part('title')).display === 'none' && bare.part('back').hidden, 'no title and no link: the header slot keeps its place at the start'); t.ok(bare.querySelector('button').getBoundingClientRect().left < bare.getBoundingClientRect().left + 100);
+    }],
+
     ['scroll aids: progress starts at 0, back-to-top is hidden until scrolled, the skip link points at a same-page fragment', async t => {
         const p = await t.mount('<pk-scroll-progress></pk-scroll-progress>'); await t.settle();
         t.ok(Number(p.style.getPropertyValue('--pk-progress')) >= 0);

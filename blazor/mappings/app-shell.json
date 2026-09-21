@@ -14,6 +14,26 @@
       "slot": "header"
     },
     {
+      "name": "TitleContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "title"
+    },
+    {
+      "name": "BackHref",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "backHref"
+    },
+    {
+      "name": "BackLabel",
+      "type": "string",
+      "default": "Back",
+      "map": "prop",
+      "prop": "backLabel"
+    },
+    {
       "name": "BodyContent",
       "type": "RenderFragment",
       "map": "slot",

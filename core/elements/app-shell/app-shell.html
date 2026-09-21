@@ -1,1 +1,1 @@
-<slot name="nav"></slot><div part="main"><header part="header"><slot name="header"></slot></header><div part="body"><slot></slot></div><footer part="footer"><slot name="footer"></slot></footer></div>
+<slot name="nav"></slot><div part="main"><header part="header"><a part="back" data-if="backHref" aria-label="{{backLabel}}"><span aria-hidden="true">&larr;</span></a><div part="title"><slot name="title"></slot></div><slot name="header"></slot></header><div part="body"><slot></slot></div><footer part="footer"><slot name="footer"></slot></footer></div>
