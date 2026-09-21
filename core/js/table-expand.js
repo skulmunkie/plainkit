@@ -26,10 +26,19 @@ export function rows(table, tr, id, i, span, h) {
     return has ? [tr, h('tr', { id: `pk-d${i}`, 'data-detail': true, hidden: !open }, h('td', { colspan: span }, h('slot', { name: `detail-${id}` })))] : [tr];
 }
 
+// A click on content the host put in a cell slot: it is light DOM, so closest('tr') cannot reach the row from the target; the composed path can. Only a click on non-interactive content is a row click
+// (a slotted button, link or field keeps its click). Clicks inside the shadow tree stay with the table's own handler.
+export function slotted(table, e) {
+    const p = table.clickable && !table.shadowRoot.contains(e.target) ? e.composedPath?.() ?? [] : [], i = p.findIndex(n => n.matches?.('tbody tr[data-id]'));
+    if (i < 0) return false;
+    if (!p.slice(0, i).some(n => n.matches?.('input,button,a,select,label'))) table.emit('pk-row-click', { id: p[i].dataset.id, row: table.view[table.ids().indexOf(p[i].dataset.id)] });
+    return true;
+}
+
 // A click on a toggle: the element owns the change until the event, then the host owns it (STANDARDS: two-way values).
 export function click(table, e) {
     const b = e.target.closest?.('button[data-expand-id]');
-    if (!b) return false;
+    if (!b) return slotted(table, e);
     const id = b.dataset.expandId, open = b.getAttribute('aria-expanded') !== 'true';
     table.expanded = toggled(table.expanded, id, open);
     table.$f = id;

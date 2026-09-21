@@ -92,6 +92,20 @@ test('activating a toggle changes expanded and raises pk-row-expand with { id, i
     assert.equal(X.click(t, { target: { closest: () => null } }), false);
 });
 
+test('a click on slotted cell content raises pk-row-click by the composed path; slotted controls and shadow clicks do not', () => {
+    const events = [], row = { matches: s => s === 'tbody tr[data-id]', dataset: { id: '2' } };
+    const t = table({ clickable: true, shadowRoot: { contains: () => false }, ids: () => ['1', '2'], view: [{ a: 1 }, { a: 2 }], emit: (n, d) => events.push([n, d]) });
+    const node = m => ({ matches: s => s.split(',').includes(m) });
+    const at = (path, tt = t) => X.click(tt, { target: {}, composedPath: () => path });
+    assert.equal(at([node('zzz'), row]), true);
+    assert.deepEqual(events, [['pk-row-click', { id: '2', row: { a: 2 } }]]);
+    assert.equal(at([node('button'), node('zzz'), row]), true); assert.equal(events.length, 1, 'a slotted button keeps its click');
+    assert.equal(at([node('a'), row]), true); assert.equal(events.length, 1, 'a slotted link keeps its click');
+    assert.equal(at([node('zzz'), row], { ...t, clickable: false }), false); assert.equal(events.length, 1, 'not clickable');
+    assert.equal(at([node('zzz'), row], { ...t, shadowRoot: { contains: () => true } }), false, 'inside the shadow tree the table handles it');
+    assert.equal(at([node('zzz')]), false, 'no row in the path');
+});
+
 test('the empty state has a text prop, and the table detail slots are listed in the meta', async () => {
     const { readFileSync } = await import('node:fs');
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
