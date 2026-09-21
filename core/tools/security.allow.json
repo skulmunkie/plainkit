@@ -2,7 +2,7 @@
   "note": "innerHTML-style sinks allowed per file, with the source of the markup. Prefer textContent or DOM APIs; a new sink needs a line here.",
   "htmlSinks": {
     "site/gallery/gallery.js": {
-      "count": 3,
+      "count": 2,
       "source": "Markup assembled from gallery.data.js (generated from the element and sample folders) with every dynamic value passed through esc()."
     },
     "site/gallery/preview.js": {
@@ -24,6 +24,10 @@
     "site/gallery/elements-view.js": {
       "count": 4,
       "source": "The element's own example markup from its meta file, and markup the reader types into the playground (their own page, their own input)."
+    },
+    "js/element-inspector.js": {
+      "count": 1,
+      "source": "Reads only: the live element's outerHTML is shown as text in a code block (textContent); nothing is parsed or written as markup."
     },
     "js/element.js": {
       "count": 1,

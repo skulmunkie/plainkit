@@ -537,7 +537,7 @@ export interface PkGalleryElement extends HTMLElement {
     width: "desktop" | "phone";
     /** Search text: only controls whose name (or group) contains it are shown. */
     filter: string;
-    /** none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector. */
+    /** none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup). */
     chrome: "none" | "full";
     /** A fixed height in pixels. 0 fits the content when chrome is none and uses the default height when chrome is full. */
     height: number;
