@@ -111,3 +111,35 @@ JSON
 ```
 
 Merge queue availability depends on the plan; if the API refuses the `merge_queue` rule, leave this for later.
+
+## 6. Security features (from the security audit, issue 106)
+
+Nothing here has been applied. All are free on a public repository. Each is one call; read the state first with `gh api repos/skulmunkie/plainkit --jq .security_and_analysis`.
+
+```
+# Secret scanning and push protection (blocks a push that contains a token; the audit's history scan found none)
+gh api -X PATCH repos/skulmunkie/plainkit --input - <<'JSON'
+{ "security_and_analysis": { "secret_scanning": { "status": "enabled" }, "secret_scanning_push_protection": { "status": "enabled" } } }
+JSON
+
+# Dependabot alerts and security updates (.github/dependabot.yml then handles the version updates)
+gh api -X PUT repos/skulmunkie/plainkit/vulnerability-alerts
+gh api -X PUT repos/skulmunkie/plainkit/automated-security-fixes
+
+# Private vulnerability reporting (SECURITY.md sends reporters to it)
+gh api -X PUT repos/skulmunkie/plainkit/private-vulnerability-reporting
+
+# The labels the Dependabot pull requests carry (no-changelog is section 2)
+gh label create dependencies --repo skulmunkie/plainkit --color 0366d6 --description "Dependency or action update"
+```
+
+- **Code scanning:** `.github/workflows/codeql.yml` runs weekly and on demand (Actions > CodeQL > Run workflow) and reports under Security > Code scanning. Do **not** add it to the
+  required checks (section 3); it does not run on pull requests. After the first run, decide whether to promote its alerts to a gate.
+- **Actions permissions:** Settings > Actions > General: "Allow actions created by GitHub, and verified creators' actions" or an allow-list (`actions/*`, `github/*`, `NuGet/login`), and
+  "Workflow permissions: Read repository contents" as the default, with "Allow GitHub Actions to create and approve pull requests" off. Set "Fork pull request workflows from outside
+  collaborators: Require approval for all outside collaborators".
+- **The release environment (optional):** put the release job behind an environment named `release` with the owner as required reviewer and add `environment: release` to the job; then a
+  pushed tag still needs an approval click before NuGet is touched. The NuGet trusted publishing policy can name the environment as well.
+- **Tags:** section 4 already protects `v*` tags; keep it. It is what keeps a contributor's push from publishing a package.
+- **Package signing:** nuget.org signs every package it hosts (a repository signature). An author signature needs a code-signing certificate (a purchased one, or Azure Trusted Signing);
+  consider it for 1.0, together with a `NuGet.config` package source mapping for consumers. Not needed before then.
