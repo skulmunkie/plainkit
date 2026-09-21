@@ -17,6 +17,13 @@ public sealed partial class PkSnapshot
     private static readonly HashSet<string> SkipFiles = new(StringComparer.OrdinalIgnoreCase) { "snapshot.json", "package-lock.json" };
     private const long MaxBytes = 512 * 1024;
 
+    // Files that hold credentials by convention: the Files tab shows source, not the app's connection strings, keys and user secrets. Never listed, whatever
+    // the extension list says (an app that really wants one can put it in a folder it points SourceRoot at).
+    private static readonly Regex SensitiveFile = SensitiveFileName();
+
+    [GeneratedRegex(@"^(appsettings(\..+)?\.json|secrets?\.(json|ya?ml)|launchSettings\.json|.*\.(secrets?|credentials?)\.(json|ya?ml)|.*(credentials?|passwords?|tokens?|apikeys?)\.(json|ya?ml))$", RegexOptions.IgnoreCase)]
+    private static partial Regex SensitiveFileName();
+
     /// <summary>The snapshot format version.</summary>
     [JsonPropertyName("version")] public int Version { get; init; } = 1;
 
@@ -39,11 +46,13 @@ public sealed partial class PkSnapshot
     private static void Walk(string root, string dir, List<PkSnapshotFile> into, Func<string, bool>? exclude)
     {
         foreach (var sub in Directory.EnumerateDirectories(dir))
-            if (!SkipDirs.Contains(Path.GetFileName(sub)) && exclude?.Invoke(Path.GetRelativePath(root, sub).Replace('\\', '/')) != true) Walk(root, sub, into, exclude);
+            // A link (symlink or junction) can point outside the source root: it is not followed.
+            if (!SkipDirs.Contains(Path.GetFileName(sub)) && !new DirectoryInfo(sub).Attributes.HasFlag(FileAttributes.ReparsePoint) && exclude?.Invoke(Path.GetRelativePath(root, sub).Replace('\\', '/')) != true) Walk(root, sub, into, exclude);
         foreach (var file in Directory.EnumerateFiles(dir))
         {
             var ext = Path.GetExtension(file);
-            if (!TextExtensions.Contains(ext) || SkipFiles.Contains(Path.GetFileName(file)) || new FileInfo(file).Length > MaxBytes) continue;
+            var name = Path.GetFileName(file);
+            if (!TextExtensions.Contains(ext) || SkipFiles.Contains(name) || SensitiveFile.IsMatch(name) || new FileInfo(file).Attributes.HasFlag(FileAttributes.ReparsePoint) || new FileInfo(file).Length > MaxBytes) continue;
             var content = File.ReadAllText(file).ReplaceLineEndings("\n");
             var language = ext.TrimStart('.').ToLowerInvariant();
             if (language == "mjs") language = "js";

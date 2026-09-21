@@ -65,7 +65,7 @@ else
 
     private string? ToolTab => Tools.Contains(Tab) ? Tab : null;
 
-    private bool Enabled => Options.DevTools ?? PkHostEnvironment.IsDevelopment(Services);
+    private bool Enabled => PkHostEnvironment.DevToolsEnabled(Options, Services);
 
     private IReadOnlyList<PkScoreTarget> Targets => Options.ScoreTargets ??
     [

@@ -49,7 +49,7 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
             if (string.IsNullOrEmpty(sdk) || sdk == PkAssets.Version) return;
             var message = $"PlainKit.Blazor {PkAssets.Version} is running with the Plainkit JavaScript {sdk}: the versions differ, so components and elements may not match. Serve the JavaScript that ships in the package (the static web assets under _content/PlainKit.Blazor/plainkit/), and clear a stale cache or a CDN copy.";
             logger?.LogWarning("{PkMessage}", message);
-            await bridge.InvokeVoidAsync("writeLog", "warn", "blazor", message, $"{{\"package\":\"{PkAssets.Version}\",\"javascript\":\"{sdk}\"}}");
+            await bridge.InvokeVoidAsync("writeLog", "warn", "blazor", message, System.Text.Json.JsonSerializer.Serialize(new { package = PkAssets.Version, javascript = sdk }));
         }
         catch (Exception e) when (e is JSException or JSDisconnectedException or InvalidOperationException or OperationCanceledException or ObjectDisposedException)
         {
