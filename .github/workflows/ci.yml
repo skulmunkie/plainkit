@@ -54,6 +54,11 @@ jobs:
           node core/tools/build.mjs
           git diff --exit-code -- core/dist
 
+      # The agent skills (core/dist/skills) are generated from the API, the Blazor mappings and manifest, the sample folders and the tool modules; a change to
+      # any of them must be regenerated. The build above keeps them in the manifest without producing them, so this is what proves they are current.
+      - name: Agent skills are current
+        run: node scripts/build-skills.mjs --check
+
   blazor:
     name: Blazor (dotnet)
     runs-on: ubuntu-latest

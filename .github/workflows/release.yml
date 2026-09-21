@@ -1,7 +1,7 @@
 name: Release
 
 # Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to publish the NuGet package (PlainKit.Blazor) and a GitHub release carrying core/dist as a zip, its integrity
-# manifest and the .nupkg. The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
+# manifest, the .nupkg and the agent skills as plainkit-skills-<version>.zip. The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
 # Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
 # Pinned CDN use needs nothing published: https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@<tag>/core/dist/...
 # NuGet uses Trusted Publishing (OIDC): no API key is stored. A policy on nuget.org trusts this repository and this workflow file
@@ -40,6 +40,7 @@ jobs:
           node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
           node core/tools/build.mjs
           git diff --exit-code -- core/dist
+          node scripts/build-skills.mjs --check
 
       - name: Publish to npm (only when NPM_TOKEN is set)
         if: env.NPM_TOKEN != ''
@@ -73,11 +74,16 @@ jobs:
       - name: Zip dist for the release
         run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip .
 
+      # The agent skills as their own asset: the skill folders (plainkit-sdk/, plainkit-blazor/) at the top of the zip, ready to unzip into .claude/skills/.
+      - name: Zip the agent skills for the release
+        run: cd core/dist/skills && zip -r ../../../plainkit-skills-$VERSION.zip .
+
       - name: GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             plainkit-dist-${{ env.VERSION }}.zip
+            plainkit-skills-${{ env.VERSION }}.zip
             nupkg/PlainKit.Blazor.${{ env.VERSION }}.nupkg
             core/dist/manifest.json
           generate_release_notes: true

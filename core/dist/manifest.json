@@ -553,8 +553,8 @@
     },
     {
       "path": "gallery/gallery.data.js",
-      "bytes": 414233,
-      "integrity": "sha384-k2eZP1dN+6uwUaFZg8173owShamXGWiNgIqY769bFMWXUXvldneGr/+vOlK8nRop"
+      "bytes": 414227,
+      "integrity": "sha384-do2j78RhC1jQtnxAkDmtyPy1mHKwxarHP7uGLmM/fvD8KgCoHgs3/S/UneeTPoPl"
     },
     {
       "path": "gallery/gallery.js",
@@ -960,6 +960,181 @@
       "path": "scorecard/sections.js",
       "bytes": 13404,
       "integrity": "sha384-49e0mgfFv1DdwoaEz+1qTL+f0gaLfHH4uPy/lPEdhi4HTokmIi8Od26VA6JeJORc"
+    },
+    {
+      "path": "skills/plainkit-blazor/SKILL.md",
+      "bytes": 8867,
+      "integrity": "sha384-EcSiJhLf3mWe2eC13mrYObaqMRYpbGbgIq7951wTQFkSEMGkHANFOvYjWgzC7ocp"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-actions.md",
+      "bytes": 5271,
+      "integrity": "sha384-HvT8e6W8l5hOB/nt2P/XAlKPvC7LDkWK2rmgwF/LS7aAicw/jYqL8/HWvAaVOzOT"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-data-display.md",
+      "bytes": 18835,
+      "integrity": "sha384-1t+aGhMjzq+HWAj6V+rKvB1P80KGx4KUDQoFGbI70SBvBAUZWjyCz4HZGDpgfrQm"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-feedback.md",
+      "bytes": 9289,
+      "integrity": "sha384-o8j9KaQQgTHgQPHmKGikcX11M7BNslqINyuJI9NQXc0CkWIXJqaINxtPg2R9sXJX"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-form-controls.md",
+      "bytes": 28388,
+      "integrity": "sha384-lGTTDeVgtwy6AJ82hLjyr3Y9rIaQfe641RZuySIaCihvjHCEjhK4Z14YDU7EbwfB"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-form-layout.md",
+      "bytes": 6232,
+      "integrity": "sha384-bHtqOcbCAofgoKcGCE5dqlrtdoFoVFuZHjO3+TnpHWVNC0glftSIrRcAnLgAhrie"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-index.md",
+      "bytes": 7966,
+      "integrity": "sha384-l6Ha8rJEsi+F6y7HBKqejLTin5uFKu/Ro6uTLfqhnHp8blgwiJmEKFG718DbSuNL"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-layout.md",
+      "bytes": 13936,
+      "integrity": "sha384-ah8aJaXc8rhHfnxKrhsE8cw2NyY28uE9COLbt9kZmOLEnSkeLlt48XBoFzdS5gAu"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-navigation.md",
+      "bytes": 22763,
+      "integrity": "sha384-o/XBvU9HS/y0PoIyMvbZBQLL/SsCgHepCaNE3ySZwCJT+v7lg07Sl8ZOagZz+wVE"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/components-overlays.md",
+      "bytes": 17335,
+      "integrity": "sha384-EVep2GR0cysjY47hJeRTatjRBz+IFJzDFsyI14dfJFaBYltqTjGexk1v7BItkADw"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/devtools.md",
+      "bytes": 5842,
+      "integrity": "sha384-LOj1VqBP/KmGKi/6+XD2GQ1ut04sH3HC0I/h2yA+oHF1kQjqWiDSDzeBxPIZk5Ok"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/enums.md",
+      "bytes": 1781,
+      "integrity": "sha384-Sc7HtjUfKjVrVjBj0my9CTjgFHk/jNIZTBwAs6cpImYZiIfpnpjCEp7K27sFmpkK"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/events.md",
+      "bytes": 3783,
+      "integrity": "sha384-IN6ixNkRECXqyHHmQkMWMLgWaVvKHsL6t4dGpi9KrAmq4+4xyEJ8CAmBn/5nbiTy"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/known-gaps.md",
+      "bytes": 4459,
+      "integrity": "sha384-hlACAjNVB0VMSaxoBxG1C6KpI4804EXl6O10USzATxwDndk/vtBcBLVjJFniZN6o"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/logging.md",
+      "bytes": 4577,
+      "integrity": "sha384-A33U3Y9MxSYilHuF3rKztdIMBJSLdGWcOI4F18AdrL0WFmicLiCAi6/ScG4r2KFv"
+    },
+    {
+      "path": "skills/plainkit-blazor/references/setup-and-options.md",
+      "bytes": 4456,
+      "integrity": "sha384-VLWP2S8TIThjxwMUQu9OOSa0RcTX8oJvQ0+RwB7pZ7qagoVhcxfh0Urijozm3yVv"
+    },
+    {
+      "path": "skills/plainkit-sdk/SKILL.md",
+      "bytes": 8235,
+      "integrity": "sha384-9vf9u7tbslfsQp/Jc8GHnMzCAN3NXHYyoG5ErNl+5npFyB4dMviAU4POO6spLOmk"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-actions.md",
+      "bytes": 9701,
+      "integrity": "sha384-9mjJD8FSKucfVWm50qc0e/6SW7hcpWAOL1NlIEIauy2f+TKi5echKdsHj2JpVPB0"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-data-display.md",
+      "bytes": 43734,
+      "integrity": "sha384-MNrMg403tiqB8Ai5r2M+9mZiMGZQPs+Cx8yNZ748gvjA7UwYH2oy96ZmKRQj6wpg"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-feedback.md",
+      "bytes": 17543,
+      "integrity": "sha384-17xi5k7tvYgr3B0mfhJkZG1yNgEJ09d/4gZCKqiQY55rmlBEX1XpIfzvx2AZp7aj"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-form-controls.md",
+      "bytes": 53863,
+      "integrity": "sha384-3S3Z4ljjvI4HvE8ZcT3hu1EpttuIQFY+AsqVilflyso0Ku1EpwA/IpcmIYczuGyD"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-form-layout.md",
+      "bytes": 11121,
+      "integrity": "sha384-3N9AQSFZwfa7ztUyQUB8SU/XzfKENEIgQ1I5FXahZkNEEgpW5zINW+eVHY9aeWUF"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-index.md",
+      "bytes": 15554,
+      "integrity": "sha384-tdqdcqAnWU8pPftC/GZ0FJwtNSL372HEub/0CHsFnqMQaVdVb1IZ6gQcLuYhgNUe"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-layout.md",
+      "bytes": 25843,
+      "integrity": "sha384-34ZdRdJtV3QVqiOyY6w5OBxlEx42hl8engJYjWVlbuypUAn05gTIUEvVr/cQhJC0"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-navigation.md",
+      "bytes": 34146,
+      "integrity": "sha384-I6pLpMf8xGOhzwRtlAc65dzDYYgRMc0vSdaYw1+jFwa8O4lO5tIjgCkEPReD0vfO"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/elements-overlays.md",
+      "bytes": 23145,
+      "integrity": "sha384-a9Bd01iHMN3GbEmPL07SWlHk5PzlGnicnl0lc2gjtV+3lYIKHDHxJXEp7/hITbcc"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/known-gaps.md",
+      "bytes": 2905,
+      "integrity": "sha384-G6dMvXS148vrlmxkefr0SvF5scQTC+WWK2tx+IP+n4PHS5kq23+yS/BZjp3PIZTL"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/layouts.md",
+      "bytes": 5485,
+      "integrity": "sha384-STunqAtnmaEr0+eGrbPpjhiSE+Ps+W0Wf7+boPCOvv5kAr0XPahAtdAhAUs1YalQ"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/loading.md",
+      "bytes": 3804,
+      "integrity": "sha384-4ssStn5gFN2b7GWpSoiwuvv1NXzh1Nrv0EPWoqZSMixm7/2H4KRp7pq2unysdk+r"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/logging.md",
+      "bytes": 4220,
+      "integrity": "sha384-AJlvMg85AtZ9ymj+9yh4nu/bquBOH+iCy1vtTHvMLWH4y4N/Zhb98SThbUg74NBc"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/openers.md",
+      "bytes": 1883,
+      "integrity": "sha384-1WdcYAn8KIV3p8euDCVEyYhD2l3Z3NeFaLslQ/NwrdBxGMVtrzKXPlVOHeh/WyIJ"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/patterns.md",
+      "bytes": 22279,
+      "integrity": "sha384-0Qi9osPkG2BMYlOqRAJmlW3D5a/eu2ZM/mfheyV8TnfDNlmTjpwV11uB+UlfZpNa"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/templates.md",
+      "bytes": 23139,
+      "integrity": "sha384-z/MLYzBTkaaVSYha/YOLP5uy0GMX5IxJjiMdwftyYT9xFLpZfKNlw/erWfSYtLrx"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/theming.md",
+      "bytes": 6491,
+      "integrity": "sha384-2Z9yTND6yUN/rkEV/zSY/lnnGoKxVaifhiLSUjAEr1jrdn2JlxYh6WzbfTf9y/ra"
+    },
+    {
+      "path": "skills/plainkit-sdk/references/tools.md",
+      "bytes": 17537,
+      "integrity": "sha384-TeC7rSO4NxpjMqxnOF2N2YA/zeMgaOcH2rdAe/H6iz6wsnaJwI7KKxLremXgSQhH"
     },
     {
       "path": "theme-editor/theme-editor.css",

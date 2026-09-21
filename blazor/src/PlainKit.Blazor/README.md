@@ -31,7 +31,7 @@ How each SDK element becomes a component (its `Pk` name, parameters, slots and e
 | an event | an `EventCallback`, or `EventCallback<PkXxxEventArgs>` when the event carries a detail (`pk-value-change` gives `PkValueChangeEventArgs`); `click` gives `MouseEventArgs` |
 | a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen` (a `...Changed` callback next to it) |
 
-`ExtraClass` and any attribute that matches no parameter go on the element. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own.
+A component takes only the parameters it lists: an attribute that matches none (`class`, `style`, ...) throws when the component renders, and only a component that lists `ExtraClass` (such as `PkAlert`) takes a class, so put classes on a wrapping element. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own.
 
 What is not generated is listed in [`Generated/generated.manifest.json`](Generated/generated.manifest.json): components whose mapping says `existing` (`PkGallery` is hand-written in `Components/`; `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable` are not in this package yet), parameters that need a type this repository does not define yet (issue #9), dynamic slots, wrapper-only behaviour and CSS-property parameters.
 
@@ -94,6 +94,13 @@ Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn,
 await PkLog.WriteAsync(PkLogLevel.Warn, "checkout", "Card declined", detail: orderId);
 await PkLog.SetLevelAsync(PkLogLevel.Debug);
 ```
+
+## Agent skills
+
+The package serves two skills for developer agents (Claude Code and others) as static web assets, next to the toolkit: `plainkit-blazor` (these components, their parameters, enums and events, `AddPlainKit`, `PkOptions`, `IPkLog`, the dev tools, what is not available yet) and `plainkit-sdk` (the underlying `pk-*` elements, needed for the raw elements that have no component yet). Each is a short `SKILL.md` plus plain markdown `references/`, generated from the same sources as the components and tested, at the version of this package.
+
+- **Claude Code:** copy the two folders into `.claude/skills/` of your project (or `~/.claude/skills/`). Get them from the `plainkit-skills-<version>.zip` on the [GitHub release](https://github.com/skulmunkie/plainkit/releases), or from a running app: `_content/PlainKit.Blazor/plainkit/skills/<skill>/SKILL.md` and `.../references/<file>.md` (verified in Development).
+- **Any other agent:** read the markdown under `references/` (start with `components-index.md`); nothing in it is specific to one tool.
 
 ## Licence
 
