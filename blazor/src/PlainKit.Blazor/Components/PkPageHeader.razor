@@ -4,10 +4,14 @@
 
 @* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title, a pk-breadcrumb built from
    a list of crumbs (the last one is the current page) and, when ShellSection names the layout's SectionOutlet, the title in the app shell's
-   top bar. Which crumbs belong to a route is the app's business: pass the list. *@
+   top bar. BackLink adds a back anchor to the parent crumb (a ghost pk-button link, chevron only, named "Back to <label>"). Which crumbs belong to a route is the app's business: pass the list. *@
 @if (ShellSection is not null)
 {
-    <SectionContent SectionName="@ShellSection">@EffectiveTitle</SectionContent>
+    <SectionContent SectionName="@ShellSection">@if (BackCrumb is not null) {@BackAnchor}@EffectiveTitle</SectionContent>
+}
+@if (ShellSection is null && BackCrumb is not null)
+{
+    @BackAnchor
 }
 <pk-page-header heading="@InPageTitle"
                 level="@PkAttr.Num(Level)"
@@ -32,6 +36,13 @@
     /// shell's top bar holds the page's one heading) and this header does not draw it again; it still draws the breadcrumb, the suffix and the actions.
     /// </summary>
     [Parameter] public string? ShellSection { get; set; }
+
+    /// <summary>
+    /// Draw a back link to the parent page: the last crumb before the current one that has an <c>Href</c> (a crumb without an address is skipped; without one there is no link). It is a real link
+    /// (a ghost <c>PkButton</c> with a chevron, <c>Href</c> and the name <c>Back to &lt;crumb label&gt;</c>) drawn before the title inside the <see cref="ShellSection"/> outlet, or, without a shell section, just above the header.
+    /// Off by default because the app shell can draw its own (<c>back-href</c> and <c>back-label</c> on <c>PkAppShell</c>, which the layout owns and this header cannot reach): turn this on when the layout does not.
+    /// </summary>
+    [Parameter] public bool BackLink { get; set; }
 
     /// <summary>The heading level the title exposes to assistive technology (<c>aria-level</c>). 1 by default: this is the page's title.</summary>
     [Parameter] public int Level { get; set; } = 1;
@@ -77,6 +88,25 @@
             builder.AddContent(9, BreadcrumbContent);
             builder.CloseElement();
         }
+    };
+
+    // The parent: the last crumb before the current one (the last) that links somewhere.
+    private PkCrumb? BackCrumb => BackLink && HasCrumbs ? Crumbs!.Take(Crumbs!.Count - 1).LastOrDefault(c => !string.IsNullOrEmpty(c.Href)) : null;
+
+    private RenderFragment BackAnchor => builder =>
+    {
+        builder.OpenComponent<PkButton>(0);
+        builder.AddAttribute(1, nameof(PkButton.Variant), ButtonVariant.Ghost);
+        builder.AddAttribute(2, nameof(PkButton.Href), BackCrumb!.Href);
+        builder.AddAttribute(3, nameof(PkButton.Icon), true);
+        builder.AddAttribute(4, nameof(PkButton.AriaLabel), "Back to " + BackCrumb.Label);
+        builder.AddAttribute(5, nameof(PkButton.ChildContent), (RenderFragment)(inner =>
+        {
+            inner.OpenComponent<PkIcon>(0);
+            inner.AddAttribute(1, nameof(PkIcon.Name), "chevron-left");
+            inner.CloseComponent();
+        }));
+        builder.CloseComponent();
     };
 
     private bool HasCrumbs => Crumbs is { Count: > 0 };

@@ -121,7 +121,7 @@ app.MapRazorComponents<App>()
 
 ### Give a page a header with breadcrumbs
 
-`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it.
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it. `BackLink` (off by default) adds a chevron link `Back to <crumb>` to the last parent crumb that has an `Href`, before the title in that outlet (above the header without `ShellSection`); leave it off when the layout's `PkAppShell` already sets `BackHref` and `BackLabel`, which the header cannot reach.
 
 ```razor
 <PkPageHeader Crumbs="@_crumbs" Title="@_name">

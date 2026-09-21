@@ -53,6 +53,12 @@
       "map": "wrapper",
       "type": "string?",
       "note": "Blazor only: the SectionOutlet name in the layout that feeds the app shell's title slot; the title is written there and not drawn twice."
+    },
+    {
+      "name": "BackLink",
+      "map": "wrapper",
+      "type": "bool",
+      "note": "Blazor only: draws a back link (a ghost pk-button with href and a chevron, named Back to <label>) to the last crumb before the current one that has an Href, before the title in the ShellSection outlet, or above the header without a shell section. Off by default."
     }
   ],
   "existing": true,
