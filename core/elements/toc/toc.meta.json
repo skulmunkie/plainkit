@@ -136,7 +136,7 @@
   "examples": [
     {
       "title": "On this page",
-      "html": "<div class=\"split\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></div>"
+      "html": "<pk-grid columns=\"2\" min=\"16rem\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></pk-grid>"
     }
   ]
 }

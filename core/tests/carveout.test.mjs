@@ -52,8 +52,7 @@ test('nothing in the copy depends on the repository layout, the host app or an a
     for (const f of walk(copy)) {
         const r = rel(copy, f);
         if (ignore.has(r) || r.startsWith('dist/') || !/\.(html|css|js|mjs|json|md|svg)$/.test(r)) continue;
-        // The generated PARAMS block quotes Blazor component doc text; it is data, not a dependency.
-        const text = fs.readFileSync(f, 'utf8').replace(/\/\/ <generated:params>[\s\S]*?\/\/ <\/generated:params>/, '');
+        const text = fs.readFileSync(f, 'utf8');
         for (const rx of banned) if (rx.test(text.split('\n').filter(l => !/Blazor|blazor|Razor/.test(l)).join('\n'))) hits.push(`${r}: ${rx}`);
     }
     assert.deepEqual(hits, [], 'files that know about the repository or an absolute path');
@@ -85,8 +84,6 @@ async function crawl(base, start) {
         if (res.status !== 200) { failures.push(`${res.status} ${url}`); continue; }
         const kind = /\.html$|\/$/.test(url.split('?')[0]) ? 'html' : /\.css$/.test(url) ? 'css' : /\.m?js$/.test(url) ? 'js' : null;
         if (!kind) continue;
-        // Component html files are fragments (not pages): their icon paths are written for the frame they render in, so only the fragment itself is checked.
-        if (url.includes('/components/')) continue;
         for (const r of references(await res.text(), kind)) queue.push(new URL(r, url).href);
     }
     return { count: seen.size, failures };

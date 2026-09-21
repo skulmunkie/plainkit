@@ -237,14 +237,14 @@
         "name": "Theme",
         "type": "ModalTheme",
         "map": "wrapper",
-        "note": "Product/archived tints stay on the compat class version until the wrapper switches over."
+        "note": "The element has no product or archived tint."
       }
     ]
   },
   "examples": [
     {
       "title": "Dialog with a footer",
-      "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><button type=\"button\" slot=\"footer\" class=\"btn-ghost\">Cancel</button><button type=\"button\" slot=\"footer\" class=\"btn-warn\">Discard</button></pk-dialog>"
+      "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><pk-button slot=\"footer\" variant=\"ghost\">Cancel</pk-button><pk-button slot=\"footer\" variant=\"warn\">Discard</pk-button></pk-dialog>"
     }
   ]
 }

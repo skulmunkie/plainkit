@@ -6,7 +6,6 @@
 <meta name="description" content="SDK sample: overlays, feedback and navigation elements in one app page">
 <title>Overlays and navigation - SDK sample</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
 <pk-skip-link href="#main">Skip to content</pk-skip-link>
@@ -43,7 +42,7 @@
     </pk-dropdown>
   </pk-cluster>
 
-  <pk-stack id="main-body" class="container">
+  <pk-stack id="main-body">
     <pk-alert kind="warning" banner dismissible>Scheduled maintenance tonight at 22:00.<a slot="action" href="#">Details</a></pk-alert>
 
     <main id="main" tabindex="-1">
@@ -56,7 +55,7 @@
           <pk-step heading="Review"></pk-step>
         </pk-stepper>
 
-        <div class="split">
+        <pk-grid columns="2" min="20rem">
           <pk-stack id="article">
             <pk-card>
               <pk-stack>
@@ -99,7 +98,7 @@
           </pk-stack>
 
           <pk-toc for="#article" scroller="#main-body" title="On this page" label="On this page"></pk-toc>
-        </div>
+        </pk-grid>
       </pk-stack>
     </main>
   </pk-stack>

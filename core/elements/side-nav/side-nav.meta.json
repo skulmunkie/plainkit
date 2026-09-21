@@ -196,7 +196,7 @@
   "examples": [
     {
       "title": "Side nav with a branch, filter and icon rail",
-      "html": "<div class=\"shell shell--fill\"><pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav></div>"
+      "html": "<pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav>"
     }
   ]
 }

@@ -90,7 +90,7 @@
   "examples": [
     {
       "title": "Busy region",
-      "html": "<pk-loading-overlay busy label=\"Loading orders…\"><div class=\"card\"><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></div></pk-loading-overlay>"
+      "html": "<pk-loading-overlay busy label=\"Loading orders…\"><pk-card><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></pk-card></pk-loading-overlay>"
     }
   ]
 }

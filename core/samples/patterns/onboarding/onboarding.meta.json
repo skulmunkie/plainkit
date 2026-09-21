@@ -7,7 +7,6 @@
   "used": [
     "button",
     "card",
-    "flyout",
     "list-group",
     "progress",
     "stack",

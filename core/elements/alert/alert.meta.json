@@ -173,13 +173,13 @@
         "name": "Boxed",
         "type": "bool",
         "map": "wrapper",
-        "note": "The alert element is always boxed; unboxed text notices stay on the compat class."
+        "note": "The alert element is always boxed; it has no unboxed variant."
       },
       {
         "name": "Inline",
         "type": "bool",
         "map": "wrapper",
-        "note": "Alert is a block; inline text notices stay on the compat class."
+        "note": "Alert is a block; it has no inline variant."
       },
       {
         "name": "Compact",
@@ -204,7 +204,7 @@
   "examples": [
     {
       "title": "Kinds",
-      "html": "<div class=\"stack\"><pk-alert kind=\"info\" heading=\"Heads up\">Imports run overnight.</pk-alert><pk-alert kind=\"success\">Product published.</pk-alert><pk-alert kind=\"warning\" heading=\"Low stock\">Three copies left.</pk-alert><pk-alert kind=\"danger\" heading=\"Sync failed\" dismissible>The channel rejected the update.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Retry</button></pk-alert></div>"
+      "html": "<div class=\"stack\"><pk-alert kind=\"info\" heading=\"Heads up\">Imports run overnight.</pk-alert><pk-alert kind=\"success\">Product published.</pk-alert><pk-alert kind=\"warning\" heading=\"Low stock\">Three copies left.</pk-alert><pk-alert kind=\"danger\" heading=\"Sync failed\" dismissible>The channel rejected the update.<pk-button slot=\"action\" variant=\"ghost\" size=\"mini\">Retry</pk-button></pk-alert></div>"
     },
     {
       "title": "Page-level banner",

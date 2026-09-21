@@ -221,12 +221,12 @@ export const dataDisplayCases = [
 
     ['gallery: attributes narrow the framed view, theme and width apply, a changed attribute reloads it, the frame follows the content height', async t => {
         const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
-        const el = await t.mount('<pk-gallery kind="controls" group="Forms & inputs" theme="light" width="phone" filter="tag"></pk-gallery>');
+        const el = await t.mount('<pk-gallery kind="elements" group="Form controls" theme="light" width="phone" filter="tag"></pk-gallery>');
         const frame = el.part('frame');
         frame.loading = 'eager'; // The stage sits off-screen, where a lazy frame may never be asked to load; the element keeps loading=lazy for real pages, the test forces it.
-        t.ok(/[?&]chrome=none\b/.test(frame.getAttribute('src')) && /group=forms-inputs/.test(frame.getAttribute('src')), 'the attributes are in the frame address');
+        t.ok(/[?&]chrome=none\b/.test(frame.getAttribute('src')) && /group=form-controls/.test(frame.getAttribute('src')), 'the attributes are in the frame address');
         const doc = await until(() => frame.contentDocument?.querySelectorAll('#gx-view pk-page-header[level="1"]').length && frame.contentDocument, 'the gallery view');
-        t.eq([...doc.querySelectorAll('#gx-view pk-page-header[level="1"]')].map(h => h.getAttribute('heading')).join(), 'TagInput', 'the filter narrows the group to one control');
+        t.eq([...doc.querySelectorAll('#gx-view pk-page-header[level="1"]')].map(h => h.getAttribute('heading')).join(), 'Tag input', 'the filter narrows the group to one element');
         t.eq(doc.documentElement.dataset.theme, 'light');
         t.ok(!doc.querySelector('#gx-nav'), 'no chrome: no nav');
         t.eq(doc.documentElement.dataset.width, 'phone', 'phone width');

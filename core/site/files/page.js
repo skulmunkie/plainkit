@@ -2,7 +2,7 @@ import { mountShell } from '../shell.js';
 import { mountCodeExplorer } from '../../modules/code-explorer/code-explorer.js';
 mountShell({ page: 'files', title: 'SDK files' });
 
-// Deep link: files/#path=components/tabs/tabs.js&line=12 opens that file at that line.
+// Deep link: files/#path=elements/tabs/tabs.js&line=12 opens that file at that line.
 const link = new URLSearchParams(location.hash.slice(1));
 const explorer = mountCodeExplorer(document.querySelector('.site-body'), {
     snapshot: 'snapshot.json', height: 'fill', file: link.get('path') || 'tokens/tokens.css', line: Number(link.get('line')) || undefined,

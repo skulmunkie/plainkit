@@ -10,12 +10,12 @@ const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (['dis
 
 export function surface() {
     const files = walk(root);
-    const cssDirs = f => /(^|[\\/])(components[\\/][^\\/]+[\\/][^\\/]+|modules[\\/][^\\/]+[\\/][^\\/]+|tokens|base|a11y)\.css$/.test(path.relative(root, f));
+    const cssDirs = f => /(^|[\\/])(modules[\\/][^\\/]+[\\/][^\\/]+|tokens[\\/]tokens|base[\\/][^\\/]+)\.css$/.test(path.relative(root, f));
     const css = files.filter(f => f.endsWith('.css') && cssDirs(f)).map(f => fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')).join('\n');
     const classes = [...new Set([...css.matchAll(/\.(-?[A-Za-z_][\w-]*)/g)].map(m => m[1]))].sort();
     const tokens = [...new Set([...fs.readFileSync(path.join(root, 'tokens', 'tokens.css'), 'utf8').matchAll(/(--[a-z0-9-]+)\s*:/g)].map(m => m[1]))].sort();
     const exports = [];
-    for (const f of files.filter(f => /\.js$/.test(f) && /[\\/](js|components)[\\/]/.test(f))) {
+    for (const f of files.filter(f => /\.js$/.test(f) && /[\\/]js[\\/]/.test(f))) {
         const rel = path.relative(root, f).split(path.sep).join('/');
         for (const m of fs.readFileSync(f, 'utf8').matchAll(/^export (?:async )?(?:function|const|class)\s+([A-Za-z_$][\w$]*)/gm)) exports.push(`${rel}:${m[1]}`);
     }

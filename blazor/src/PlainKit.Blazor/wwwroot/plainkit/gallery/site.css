@@ -22,7 +22,12 @@
 
 .site pk-navbar > a[aria-current="page"] { color: var(--color-link); }
 
-.site pk-navbar .app-search-input { width: 14rem; }
+/* The search field: inline on a desktop bar, a button on a phone that opens it as a full-width row over the bar. */
+.site-search { display: flex; align-items: center; gap: var(--space-1); }
+
+.site-search-field { width: 14rem; }
+
+.site-search-toggle, .site-search-close { display: none; }
 
 @media (max-width: 1024px) {
     .site pk-navbar::part(nav) { position: relative; flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-3); }
@@ -38,4 +43,16 @@
 
 @media (max-width: 640px) {
     .site-scroll { padding: var(--space-3); }
+
+    .site-search-field { display: none; }
+
+    .site-search-toggle { display: inline-block; }
+
+    .site-search[data-open] { position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-sticky); height: var(--app-header-h); padding-inline: var(--space-3); background: var(--color-panel); }
+
+    .site-search[data-open] .site-search-field { display: block; flex: 1 1 auto; min-width: 0; width: auto; }
+
+    .site-search[data-open] .site-search-toggle { display: none; }
+
+    .site-search[data-open] .site-search-close { display: inline-block; }
 }

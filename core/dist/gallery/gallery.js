@@ -1,13 +1,13 @@
 // The SDK gallery. ONE side nav (a pk-side-nav) whose tree is exactly the content: section > group > item. Every nav
-// entry is a view with its own URL hash (#/controls/actions/button), so each view shows one topic and back/forward work. The
+// entry is a view with its own URL hash (#/elements/pk-button), so each view shows one topic and back/forward work. The
 // top navbar (site/shell.js) is the only other navigation. Samples render in iframes (frame.js) so the phone switch is real.
-// The gallery's own chrome and views are pk-* elements; only the samples inside the frames use the class-based controls.
+// The gallery's own chrome, views and samples are pk-* elements.
 // Framework-free; ES module driven by gallery.data.js.
 
 import { readSetting, writeSetting } from './settings.js';
 import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, PREVIEW, HAS_SITE } from './paths.js';
 import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../js/gallery-options.js';
-import { CONTROLS, KINDS, BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS, PARAMS } from './gallery.data.js';
+import { BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS } from './gallery.data.js';
 import { makeFrame, applyToFrame, applyToPage, PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind, currentTheme, setTheme } from '../js/theme.js';
 import { contrast, grade } from '../js/colour.js';
@@ -44,8 +44,6 @@ const FOUNDATIONS = [
     ['icons', 'Icons', 'The sprite: 24px line icons drawn in the surrounding text colour.'],
     ['tokens', 'Every token', 'All custom properties in tokens.css, searchable and paged.'],
 ];
-const controlKinds = () => KINDS.filter(k => k !== 'Page templates');
-const templates = () => CONTROLS.filter(c => c.kind === 'Page templates');
 const LAYOUT_ITEMS = () => [['shell', 'App shell'], ['responsive', 'Responsive rules'], ...LAYOUTS.map(l => [l.id, l.title])];
 // [id, title, path under samples/templates, summary, slots]
 const TEMPLATE_PAGES = TEMPLATES.map(t => [t.id, t.title, t.file.replace('samples/templates/', ''), t.summary, t.slots]);
@@ -60,34 +58,32 @@ const keeps = (sec, grp, id) => Boolean(scopeGroup(sec, grp)?.items.some(i => i.
 function elementGroups() {
     const by = new Map();
     for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}` }); }
-    // A group that shares its name with a controls group ("Layout & structure") is labelled as the elements one, so the two nav branches read differently.
-    const taken = new Set(controlKinds());
-    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title: taken.has(title) ? `${title} (elements)` : title, hash: '#/elements', items }));
+    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: '#/elements', items }));
 }
 
 function allSections() {
     return [
         { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `#/foundations/${id}` })) },
-        { id: 'controls', title: 'Controls', groups: controlKinds().map(k => ({ id: slug(k), title: k, hash: `#/controls/${slug(k)}`, items: CONTROLS.filter(c => c.kind === k).map(c => ({ id: c.id, title: c.name, hash: `#/controls/${slug(k)}/${c.id}` })) })) },
         { id: 'elements', title: 'Elements', groups: elementGroups() },
         { id: 'samples', title: 'Samples', groups: [
             { id: 'templates', title: 'Templates', hash: '#/samples/templates', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/templates' }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `#/samples/templates/${id}` }))] },
             { id: 'patterns', title: 'Patterns', hash: '#/samples/patterns', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/patterns' }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `#/samples/patterns/${p.id}` }))] },
             { id: 'layouts', title: 'Layouts', hash: '#/samples/layouts', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/layouts' }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `#/samples/layouts/${id}` }))] },
-            { id: 'blocks', title: 'Building blocks', hash: '#/samples/blocks', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/blocks' }, ...templates().map(c => ({ id: c.id, title: c.name, hash: `#/samples/blocks/${c.id}` }))] },
         ] },
     ];
 }
 
-// A bare embed (no nav) with no route of its own lists the matching controls one after another.
-const collection = () => bare && !location.hash && (isScoped(opts) || Boolean(opts.filter)) && tree().some(s => s.id === 'controls');
+// A bare embed (no nav) with no route of its own lists the matching elements one after another.
+const collection = () => bare && !location.hash && (isScoped(opts) || Boolean(opts.filter)) && tree().some(s => s.id === 'elements');
 
 function route() {
     const hash = location.hash || (isScoped(opts) && !collection() ? initialHash(tree()) : '');
     const [raw = '', a0, b0] = hash.replace(/^#\/?/, '').split('?')[0].split('/');
-    // Old routes keep working: layouts and templates now live under samples.
+    // Old routes keep working: layouts and templates now live under samples, a control page is its element's page, building blocks are gone.
+    if (raw === 'controls') { const tag = `pk-${b0}`; return { section: 'elements', a: ELEMENTS.some(m => m.tag === tag) ? tag : undefined }; }
+    if (raw === 'samples' && a0 === 'blocks') return { section: 'samples' };
     if (raw === 'layouts') return { section: 'samples', a: 'layouts', b: a0 };
-    if (raw === 'templates') return { section: 'samples', a: a0 === 'block' ? 'blocks' : 'templates', b: a0 === 'block' ? b0 : a0 };
+    if (raw === 'templates') return a0 === 'block' ? { section: 'samples' } : { section: 'samples', a: 'templates', b: a0 };
     return { section: raw || 'overview', a: a0, b: b0 };
 }
 
@@ -323,43 +319,14 @@ function viewFoundation(id) {
     } finally { dark.remove(); light.remove(); }
 }
 
-// ---- controls ------------------------------------------------------------------------------------------------------------
-function paramTable(component) {
-    const rows = PARAMS[component];
-    if (!rows?.length) return '<p class="muted">No parameters.</p>';
-    const item = ([n, t, d, req, s]) => `<li><div class="gx-param-head"><code>${esc(n)}</code><span class="gx-param-type">${esc(t)}${d ? ` = ${esc(d)}` : ''}</span></div>${s ? `<p class="gx-param-text">${esc(s)}</p>` : ''}</li>`;
-    const attr = r => /^(AdditionalAttributes|ExtraClass|Title)$/.test(r[0]);
-    const required = rows.filter(r => r[3]); const optional = rows.filter(r => !r[3] && !attr(r)); const inherited = rows.filter(r => !r[3] && attr(r));
-    return (required.length ? `<h4>Required</h4><ul class="gx-params">${required.map(item).join('')}</ul>` : '') + `<h4>Optional</h4><ul class="gx-params">${optional.map(item).join('')}</ul>` + (inherited.length ? `<pk-accordion-item heading="Attributes and extras (${inherited.length})"><ul class="gx-params">${inherited.map(item).join('')}</ul></pk-accordion-item>` : '');
-}
-
+// The docked inspector's content, { title, html }, or null to hide its toggle. No view fills it since the controls went; the chrome stays for a view that needs it.
 let inspector = null;
-function contractHtml(c) {
-    return `<pk-stack>
-        <div><h3>Snippet</h3>${codeBlock(c.snippet, 'Markup')}</div>
-        <div><h3>Class contract</h3><p>${(c.classes ?? []).map(k => `<code>${esc(k)}</code>`).join(' ') || '<span class="muted">none</span>'}</p></div>
-        <p class="muted"><strong>CSS:</strong> ${c.css.map(f => `<code>${f}</code>`).join(', ') || 'none'}${c.js?.length ? ` &middot; <strong>JS:</strong> ${c.js.map(f => `<code>${f}</code>`).join(', ')}` : ''}</p>
-        ${c.blazor ? `<div><h3>Blazor: <code>${esc(c.blazor.component)}</code></h3>${codeBlock(c.blazor.snippet, 'Razor')}${paramTable(c.blazor.component)}</div>` : ''}</pk-stack>`;
-}
-
-function viewControl(c, crumb = '') {
-    inspector = { title: c.name, html: contractHtml(c) };
-    const box = document.createElement('pk-stack');
-    box.innerHTML = `${heading(c.name, c.purpose, crumb)}
-        <pk-card class="gx-entry"><p class="muted">${c.replaces ? `<strong>Replaces:</strong> ${esc(c.replaces)}<br>` : ''}<strong>Mobile:</strong> ${esc(c.mobile)}</p>${c.states?.length ? `<p class="muted"><strong>States:</strong> ${c.states.map(esc).join(', ')}</p>` : ''}<pk-stack class="gx-samples"></pk-stack></pk-card>`;
-    const host = $('.gx-samples', box);
-    for (const s of c.samples) { const h = document.createElement('h3'); h.textContent = s.title; host.append(h, slot(s, c.id)); }
-    return box;
-}
-
-const controlCard = (c, kindSlug) => cardLink(`#/controls/${kindSlug}/${c.id}`, c.name, c.purpose.split('. ')[0].replace(/.$/, '') + '.', `<pk-cluster gap="xs" class="gx-states">${(c.states ?? []).slice(0, 4).map(s => `<pk-tag>${esc(s)}</pk-tag>`).join('')}</pk-cluster>`);
 
 // ---- views ---------------------------------------------------------------------------------------------------------------
 function overviewHtml() {
     const narrowed = isScoped(opts) || Boolean(opts.filter);
     const cards = [
         ['#/foundations', 'Foundations', 'Colours, type, spacing, radii, breakpoints, utilities, icons and every token.'],
-        ['#/controls', 'Controls', `${CONTROLS.filter(c => c.kind !== 'Page templates').length} controls with live samples, states and the markup contract.`],
         ['#/elements', 'Elements', `${ELEMENTS.length} custom elements generated from their API data, each with a live playground.`],
         ['#/samples', 'Samples', `${TEMPLATE_PAGES.length} page templates, ${PATTERNS.length} patterns and ${LAYOUTS.length + 2} layouts, all built only from the SDK.`],
         ...(HAS_SITE && !narrowed ? [
@@ -374,8 +341,8 @@ function overviewHtml() {
 }
 
 function samplesView(out, put, a, b) {
-    const groups = { templates: 'Templates', patterns: 'Patterns', layouts: 'Layouts', blocks: 'Building blocks' };
-    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours), layouts and building blocks.') + grid(Object.entries(groups).filter(([id]) => scopeGroup('samples', id)).map(([id, t]) => cardLink(`#/samples/${id}`, t, { templates: `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`, patterns: `${PATTERNS.length} realistic composed examples.`, layouts: 'Page anatomies at desktop and phone width.', blocks: 'The reusable templates and the top bar.' }[id])).join('')));
+    const groups = { templates: 'Templates', patterns: 'Patterns', layouts: 'Layouts' };
+    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours) and layouts.') + grid(Object.entries(groups).filter(([id]) => scopeGroup('samples', id)).map(([id, t]) => cardLink(`#/samples/${id}`, t, { templates: `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`, patterns: `${PATTERNS.length} realistic composed examples.`, layouts: 'Page anatomies at desktop and phone width.' }[id])).join('')));
     const groupCrumb = (id, name) => crumbs(['Samples', '#/samples'], [groups[id], `#/samples/${id}`], [name]);
     if (a === 'templates') {
         if (!b) return put(heading('Templates', 'Full-page templates, each a runnable example with a slot contract: preview one in the side-nav or top-nav variant, light or dark.', crumbs(['Samples', '#/samples'], ['Templates'])) + grid(TEMPLATE_PAGES.filter(([id]) => keeps('samples', 'templates', id)).map(([id, tt, , d]) => cardLink(`#/samples/templates/${id}`, tt, d)).join('')));
@@ -387,30 +354,24 @@ function samplesView(out, put, a, b) {
         return out;
     }
     if (a === 'patterns') {
-        if (!b) return put(heading('Patterns', 'Composed examples: several controls working together to do one job.', crumbs(['Samples', '#/samples'], ['Patterns'])) + grid(PATTERNS.filter(p => keeps('samples', 'patterns', p.id)).map(p => cardLink(`#/samples/patterns/${p.id}`, p.title, p.summary)).join('')));
+        if (!b) return put(heading('Patterns', 'Composed examples: several elements working together to do one job.', crumbs(['Samples', '#/samples'], ['Patterns'])) + grid(PATTERNS.filter(p => keeps('samples', 'patterns', p.id)).map(p => cardLink(`#/samples/patterns/${p.id}`, p.title, p.summary)).join('')));
         const p = PATTERNS.find(x => x.id === b);
         if (!p) return put(notFound('Not found', '', ['Back to patterns', '#/samples/patterns']));
-        put(`${heading(p.title, p.summary, groupCrumb('patterns', p.title))}<pk-card class="gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(p.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</p><p class="muted"><strong>Controls used:</strong> ${p.used.map(u => { const c = CONTROLS.find(x => x.id === u); return c ? `<a href="#/controls/${slug(c.kind)}/${c.id}">${esc(c.name)}</a>` : esc(u); }).join(', ')}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div><p><a href="#/samples/patterns">Back to patterns</a></p></pk-card>`);
+        put(`${heading(p.title, p.summary, groupCrumb('patterns', p.title))}<pk-card class="gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(p.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</p><p class="muted"><strong>Elements used:</strong> ${p.used.map(u => { const m = ELEMENTS.find(x => x.tag === `pk-${u}`); return m ? `<a href="#/elements/${m.tag}">${esc(m.title)}</a>` : esc(u); }).join(', ')}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div><p><a href="#/samples/patterns">Back to patterns</a></p></pk-card>`);
         const [d, ph] = out.querySelectorAll('.gx-pair > div');
         d.append(slot({ title: `${p.title} desktop`, html: p.html }, `pattern-${p.id}`, 'desktop')); ph.append(slot({ title: `${p.title} phone`, html: p.html }, `pattern-${p.id}`, 'phone'));
         return out;
     }
     if (a === 'layouts') {
-        if (!b) return put(heading('Layouts', 'How the controls compose into pages.', crumbs(['Samples', '#/samples'], ['Layouts'])) + grid(LAYOUT_ITEMS().filter(([id]) => keeps('samples', 'layouts', id)).map(([id, t]) => cardLink(`#/samples/layouts/${id}`, t, '')).join('')));
+        if (!b) return put(heading('Layouts', 'How the elements compose into pages.', crumbs(['Samples', '#/samples'], ['Layouts'])) + grid(LAYOUT_ITEMS().filter(([id]) => keeps('samples', 'layouts', id)).map(([id, t]) => cardLink(`#/samples/layouts/${id}`, t, '')).join('')));
         if (b === 'responsive') return put(heading('Responsive rules', '', groupCrumb('layouts', 'Responsive rules')) + section('Width steps', `${dataTable('Responsive width steps', ['Width', 'What changes'], RESPONSIVE_RULES.map(r => [r.width, esc(r.change)]))}<p class="muted">Design mobile-first: write the phone layout, then add the multi-column layout above it.</p>`));
-        if (b === 'shell') { put(heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.', groupCrumb('layouts', 'App shell')) + '<pk-card class="gx-entry"><div class="gx-samples"></div></pk-card>'); $('.gx-samples', out).append(slot(CONTROLS.find(c => c.id === 'app-shell').samples[0], 'app-shell')); return out; }
+        if (b === 'shell') { put(heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.', groupCrumb('layouts', 'App shell')) + '<pk-card class="gx-entry"><div class="gx-samples"></div></pk-card>'); $('.gx-samples', out).append(slot({ title: 'App shell', html: ELEMENTS.find(m => m.tag === 'pk-app-shell').examples[0].html }, 'app-shell')); return out; }
         const l = LAYOUTS.find(x => x.id === b);
         if (!l) return put(notFound('Not found', '', ['Back to layouts', '#/samples/layouts']));
         put(`${heading(l.title, l.summary, groupCrumb('layouts', l.title))}<pk-card class="gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(l.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(l.mobile)}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div></pk-card>`);
         const [d, ph] = out.querySelectorAll('.gx-pair > div');
         d.append(slot({ title: `${l.title} desktop`, html: l.html }, `layout-${l.id}`, 'desktop')); ph.append(slot({ title: `${l.title} phone`, html: l.html }, `layout-${l.id}`, 'phone'));
         return out;
-    }
-    if (a === 'blocks') {
-        if (!b) return put(heading('Building blocks', 'The reusable page templates and the top bar.', crumbs(['Samples', '#/samples'], ['Building blocks'])) + grid(templates().filter(c => keeps('samples', 'blocks', c.id)).map(c => cardLink(`#/samples/blocks/${c.id}`, c.name, c.purpose.split('. ')[0].replace(/.$/, '') + '.')).join('')));
-        const c = templates().find(x => x.id === b);
-        if (!c) return put(notFound('Not found', '', ['Back to building blocks', '#/samples/blocks']));
-        out.append(viewControl(c, groupCrumb('blocks', c.name))); return out;
     }
     return put(notFound('Not found', '', ['Back to samples', '#/samples']));
 }
@@ -424,25 +385,16 @@ function view() {
     watchFrames();
     const put = html => { out.innerHTML = html; applyDynamic(out); return out; };
     if (collection()) {
-        const shown = filterLeaves(leaves(tree()), opts.filter).filter(l => l.section.id === 'controls');
+        const shown = filterLeaves(leaves(tree()), opts.filter).filter(l => l.section.id === 'elements');
         if (!shown.length) return put(nothing());
-        for (const l of shown) out.append(viewControl(CONTROLS.find(c => c.id === l.id)));
+        for (const l of shown) out.append(renderElement(ELEMENTS.find(m => m.tag === l.id)));
         return out;
     }
     // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
-    if (!a && ['foundations', 'controls', 'elements', 'samples'].includes(sec) && !scope(sec)) return put(nothing());
+    if (!a && ['foundations', 'elements', 'samples'].includes(sec) && !scope(sec)) return put(nothing());
     if (sec === 'foundations') {
         if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`#/foundations/${id}`, t, d)).join('')));
         return put(viewFoundation(a));
-    }
-    if (sec === 'controls') {
-        if (!a) { const gs = scope('controls').groups; return put(heading('Controls', `${gs.reduce((n, g) => n + g.items.length, 0)} controls in ${gs.length} groups. Pick a group.`) + grid(gs.map(g => cardLink(g.hash, g.title, g.items.map(i => i.title).join(', '))).join(''))); }
-        const kind = controlKinds().find(k => slug(k) === a);
-        if (!kind) return put(notFound('Not found', 'No such group.'));
-        if (!b) { const items = scopeGroup('controls', a)?.items ?? []; return put(heading(kind, `${items.length} controls.`) + grid(items.map(i => controlCard(CONTROLS.find(c => c.id === i.id), a)).join(''))); }
-        const c = CONTROLS.find(x => x.id === b);
-        if (!c) return put(notFound('Not found', 'No such control.'));
-        out.append(viewControl(c)); return out;
     }
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {

@@ -1,6 +1,7 @@
 // The gallery's embedding options and the pure logic around them: parsing them from a query string, writing them back, and cutting the
 // content tree down to what an embedder asked for. No DOM, no fetch; the gallery module and the <pk-gallery> element share it.
 
+// 'controls' is the old name of the elements section (the class-based controls are gone): still accepted, and it means elements.
 export const KINDS = ['foundations', 'controls', 'elements', 'layouts', 'templates'];
 export const THEMES = ['dark', 'light'];
 export const WIDTHS = ['desktop', 'phone'];
@@ -43,10 +44,11 @@ export function toQuery(options) {
 export const isScoped = o => Boolean(o.kind || o.group || o.control?.length);
 
 // The tree is [{ id, title, items | groups: [{ id, title, items }] }], the shape the gallery builds. Kind picks a section (layouts and
-// templates are groups of the samples section), group picks a group by id or title, control picks items by id (an element by tag, with or without the pk- prefix).
+// templates are groups of the samples section; no kind, or the old 'controls', means elements), group picks a group by id or title, control picks
+// items by id (an element by tag, with or without the pk- prefix).
 export function restrictTree(tree, options) {
     if (!isScoped(options)) return tree;
-    const kind = options.kind ?? 'controls';
+    const kind = !options.kind || options.kind === 'controls' ? 'elements' : options.kind;
     const wanted = options.control ?? [];
     const takes = it => { const id = String(it.id).toLowerCase(); return !wanted.length || wanted.includes(id) || wanted.includes(id.replace(/^pk-/, '')); };
     const inGroup = g => !options.group || options.group === g.id || options.group === slug(g.title);
@@ -93,7 +95,7 @@ export function filterLeaves(list, filter) {
     return f ? list.filter(it => it.title.toLowerCase().includes(f) || it.group?.title.toLowerCase().includes(f)) : list;
 }
 
-// Where the gallery opens: the one control, the one group, or the section the options name; empty when nothing narrows the view.
+// Where the gallery opens: the one element, the one group, or the section the options name; empty when nothing narrows the view.
 export function initialHash(tree) {
     if (!tree.length) return '';
     const all = leaves(tree);

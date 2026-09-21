@@ -221,7 +221,7 @@
   "examples": [
     {
       "title": "Tooltip on hover, focus and long press",
-      "html": "<div class=\"cluster cluster--horizontal\"><pk-tooltip text=\"Saves the draft without publishing\"><button type=\"button\" class=\"btn-ghost\">Save draft</button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><button type=\"button\" class=\"btn-ghost\">Right</button></pk-tooltip></div>"
+      "html": "<pk-cluster><pk-tooltip text=\"Saves the draft without publishing\"><pk-button variant=\"ghost\">Save draft</pk-button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><pk-button variant=\"ghost\">Right</pk-button></pk-tooltip></pk-cluster>"
     }
   ]
 }

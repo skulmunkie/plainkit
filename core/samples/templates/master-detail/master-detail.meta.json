@@ -6,8 +6,8 @@
   "used": [
     "card",
     "field-list",
+    "grid",
     "list-group",
-    "shell",
     "tab",
     "tab-panel",
     "tabs",

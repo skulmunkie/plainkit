@@ -17,7 +17,7 @@ import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 import { shortName, formatBytes, formatMs } from '../js/perf-logic.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./console.css'];
 
 export const DEFAULTS = Object.freeze({ max: 500, capture: ['console', 'errors', 'events', 'network'] });

@@ -3,8 +3,7 @@
 import path from 'node:path';
 import { relocate } from './gallery-dist.mjs';
 
-// files: what the folder holds. The source imports the SDK stylesheet as one page sheet; dist splits it into the page layer and the
-// class-based components, so the STYLES line is widened to both.
+// files: what the folder holds. The source imports the SDK stylesheet as one page sheet; relocate() drops one ../ from it for the dist layout.
 export const MODULES = {
     'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'tokenize.js', 'code-explorer.css'] },
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
@@ -15,8 +14,7 @@ export const MODULES = {
     'theme-editor': { files: ['theme-editor.js', 'theme-editor.css'], tokens: true },
 };
 
-const SOURCE_STYLES = "['../../plainkit.css']";
-const DIST_STYLES = "['../plainkit.css', '../plainkit-compat.css']";
+const DIST_STYLES = "['../plainkit.css']";
 
 export function modulesDist(read, root) {
     const out = new Map();
@@ -26,8 +24,8 @@ export function modulesDist(read, root) {
         for (const f of files) {
             const text = read(path.join(root, 'modules', name, f));
             if (!/\.js$/.test(f)) { out.set(`${name}/${f}`, text); continue; }
-            const dist = relocate(text).replace("['../plainkit.css']", DIST_STYLES).replace("'../tokens/tokens.css'", "'./tokens.css'");
-            if (text.includes(SOURCE_STYLES) && !dist.includes(DIST_STYLES)) throw new Error(`${name}/${f}: STYLES did not relocate`);
+            const dist = relocate(text).replace("'../tokens/tokens.css'", "'./tokens.css'");
+            if (/const STYLES = /.test(text) && !dist.includes(`const STYLES = ${DIST_STYLES}`)) throw new Error(`${name}/${f}: STYLES did not relocate`);
             out.set(`${name}/${f}`, dist);
         }
     }

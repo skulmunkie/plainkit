@@ -6,7 +6,6 @@
   "used": [
     "button",
     "field-list",
-    "flyout",
     "input",
     "stack",
     "tab",

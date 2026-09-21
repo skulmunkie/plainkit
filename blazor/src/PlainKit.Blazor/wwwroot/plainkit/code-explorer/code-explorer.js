@@ -12,7 +12,7 @@ import './element.js';
 import { SnapshotProvider } from './providers.js';
 import { ensureStyles, styleUrls, loadJson } from '../js/mount-support.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 
 export async function mountCodeExplorer(container, options = {}) {
     const { snapshot, provider, file, line, search, theme, height } = options;

@@ -18,7 +18,7 @@ import { pageScore, scoreTone, findingRows } from '../js/inspect-logic.js';
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 export const PHONE_MAX = 640;
 
 function h(doc, tag, props = {}, ...children) {

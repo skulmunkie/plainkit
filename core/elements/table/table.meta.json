@@ -396,5 +396,5 @@
     "pk-table :is(th, td).num",
     "pk-table[sticky-header] thead th"
   ],
-  "contentStylesNote": "Slotted-table content is light DOM: shadow CSS cannot reach its cells, so the page-level layer (components/table-content) styles it by these selectors."
+  "contentStylesNote": "Slotted-table content is light DOM: shadow CSS cannot reach its cells, so the page-level layer (base/table-content.css) styles it by these selectors."
 }

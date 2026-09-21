@@ -15,7 +15,7 @@ import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, su
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./performance.css'];
 
 export const DEFAULTS = Object.freeze({ interval: 1000, history: 60 });

@@ -24,7 +24,7 @@ jobs:
           node-version: '22'
 
       - name: Node tests
-        run: node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+        run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
 
       # The build is deterministic and dist is committed, so a rebuild must change nothing.
       - name: Rebuild and check dist is current

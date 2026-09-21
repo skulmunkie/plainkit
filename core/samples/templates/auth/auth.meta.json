@@ -8,11 +8,8 @@
     "card",
     "checkbox",
     "field",
-    "flyout",
     "input",
-    "shell",
-    "stack",
-    "utilities"
+    "stack"
   ],
   "order": 9
 }

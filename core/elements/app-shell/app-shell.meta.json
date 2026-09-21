@@ -116,7 +116,7 @@
   "examples": [
     {
       "title": "App shell with a sticky footer",
-      "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><button type=\"button\" class=\"btn-ghost\" data-nav-toggle aria-label=\"Open the menu\">Menu</button></div><div class=\"container stack\"><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></div><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+      "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
     }
   ]
 }

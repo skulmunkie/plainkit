@@ -28,7 +28,7 @@ test('the blazor block maps every prop and the default slot', () => {
     assert.ok(meta.blazor.params.some(x => x.slot === ''));
 });
 
-test('it matches components/cluster: wraps by default, all alignments and justifications, vertical and nowrap', () => {
+test('it wraps by default, all alignments and justifications, vertical and nowrap', () => {
     assert.equal(prop('direction').default, 'horizontal'); assert.equal(prop('nowrap').default, false);
     for (const v of ['start', 'center', 'end', 'stretch']) assert.ok(prop('align').values.includes(v));
     for (const v of ['start', 'center', 'end', 'between']) assert.ok(prop('justify').values.includes(v));

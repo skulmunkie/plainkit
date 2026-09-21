@@ -2,8 +2,8 @@
   "note": "innerHTML-style sinks allowed per file, with the source of the markup. Prefer textContent or DOM APIs; a new sink needs a line here.",
   "htmlSinks": {
     "site/gallery/gallery.js": {
-      "count": 6,
-      "source": "Markup assembled from gallery.data.js (generated from the repo's component folders) with every dynamic value passed through esc()."
+      "count": 3,
+      "source": "Markup assembled from gallery.data.js (generated from the element and sample folders) with every dynamic value passed through esc()."
     },
     "site/gallery/preview.js": {
       "count": 1,

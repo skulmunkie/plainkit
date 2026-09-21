@@ -174,7 +174,7 @@
   "examples": [
     {
       "title": "Kinds",
-      "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Undo</button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
+      "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<pk-button slot=\"action\" variant=\"ghost\" size=\"mini\">Undo</pk-button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
     }
   ]
 }

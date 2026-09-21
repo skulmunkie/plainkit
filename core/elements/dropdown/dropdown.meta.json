@@ -162,7 +162,7 @@
   "examples": [
     {
       "title": "Menu with a header, checkable items and a submenu",
-      "html": "<pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Actions</button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
+      "html": "<pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">Actions</pk-button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
     }
   ]
 }

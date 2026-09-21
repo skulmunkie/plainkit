@@ -5,11 +5,9 @@
   "built": "Input, List group, Typography (kbd, mark).",
   "mobile": "The field is full width; results are single-line rows with 44px targets.",
   "used": [
-    "flyout",
     "input",
     "list-group",
-    "stack",
-    "typography"
+    "stack"
   ],
   "order": 6
 }

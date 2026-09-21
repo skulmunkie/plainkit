@@ -206,7 +206,7 @@ export async function mountScorecard(container, options = {}) {
             setProgress('Estimating unused selectors…');
             const all = await openFrame(host, files.frame, { theme: 'dark', width: 1280, base: options.base });
             for (const [n, css] of Object.entries(cssFiles)) {
-                if (!(files.unusedIn ?? ['components/']).some(p => n.startsWith(p))) continue;
+                if (!(files.unusedIn ?? ['base/']).some(p => n.startsWith(p))) continue;
                 const u = unusedSelectors(css, [all.contentDocument]); total += u.total; unused += u.unused.length;
             }
             all.remove();

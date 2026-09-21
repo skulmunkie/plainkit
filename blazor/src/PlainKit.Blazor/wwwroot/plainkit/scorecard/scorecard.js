@@ -36,7 +36,7 @@ import { sameOrigin } from '../js/framework-checks.js';
 import { watchVitals, timeRows, recalcMs, readTexts, measureSizes } from './measure.js';
 import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./scorecard.css'];
 
 export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120 });
@@ -206,7 +206,7 @@ export async function mountScorecard(container, options = {}) {
             setProgress('Estimating unused selectors…');
             const all = await openFrame(host, files.frame, { theme: 'dark', width: 1280, base: options.base });
             for (const [n, css] of Object.entries(cssFiles)) {
-                if (!(files.unusedIn ?? ['components/']).some(p => n.startsWith(p))) continue;
+                if (!(files.unusedIn ?? ['base/']).some(p => n.startsWith(p))) continue;
                 const u = unusedSelectors(css, [all.contentDocument]); total += u.total; unused += u.unused.length;
             }
             all.remove();

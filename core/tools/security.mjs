@@ -63,7 +63,7 @@ export function scan(opts = {}) {
             if (hits.length > allowed) hits.slice(allowed).forEach(line => findings.push({ severity: 'medium', rule: 'html-sink-not-allow-listed', file: r, line, message: `innerHTML-style sink ${hits.length} > allowed ${allowed}; document its source in tools/security.allow.json or use textContent/DOM APIs` }));
             ls.forEach((l, i) => { if (/\bcreateElement\(\s*['"]script['"]\s*\)|\.src\s*=\s*['"`]?http/.test(l) && !allow.dynamicScript.includes(r)) findings.push({ severity: 'high', rule: 'dynamic-script-injection', file: r, line: i + 1, message: 'creates a script element dynamically' }); });
         }
-        if (/\.html$/.test(r) && !r.startsWith('components/') && !r.startsWith('dist/')) {
+        if (/\.html$/.test(r) && !r.startsWith('dist/')) {
             const inline = [...text.matchAll(/<script(?![^>]*\ssrc=)[^>]*>/g)];
             for (const m of inline) findings.push({ severity: 'low', rule: 'csp-inline-script', file: r, line: text.slice(0, m.index).split('\n').length, message: 'inline script: needs script-src \'unsafe-inline\' or a nonce; move it to a .js file for a strict CSP' });
             for (const m of text.matchAll(/<style[\s>]/g)) findings.push({ severity: 'high', rule: 'csp-inline-style', file: r, line: text.slice(0, m.index).split('\n').length, message: 'inline <style> block' });

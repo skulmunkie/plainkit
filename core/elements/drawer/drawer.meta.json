@@ -211,7 +211,7 @@
         "type": "bool",
         "default": true,
         "map": "wrapper",
-        "note": "A docked, backdrop-less inspector stays on the compat flyout."
+        "note": "A docked, backdrop-less inspector is the element's docked prop."
       },
       {
         "name": "IsLoading",
@@ -237,7 +237,7 @@
   "examples": [
     {
       "title": "Drawer from the right",
-      "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><button type=\"button\" slot=\"footer\" class=\"btn-primary\">Apply</button></pk-drawer>"
+      "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><pk-button slot=\"footer\">Apply</pk-button></pk-drawer>"
     }
   ]
 }

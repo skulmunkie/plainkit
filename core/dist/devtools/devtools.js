@@ -19,7 +19,7 @@ import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 import { qualityPanel, inspectorPanel, themePanel } from './panels.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./devtools.css'];
 
 export const SIZES = Object.freeze({ small: '25vh', medium: '40vh', large: '65vh' });

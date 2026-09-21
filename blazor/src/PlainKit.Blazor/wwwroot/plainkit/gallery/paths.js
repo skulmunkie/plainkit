@@ -3,11 +3,11 @@
 export const ROOT = new URL('../', import.meta.url).href;
 
 // Stylesheets a sample frame loads, in order.
-export const PAGE_CSS = ['../plainkit.css', '../plainkit-compat.css'];
+export const PAGE_CSS = ['../plainkit.css'];
 
 export const TOKENS_CSS = 'tokens.css';
-export const UTILITIES_CSS = '../components/utilities/utilities.css';
-export const SPACING_CSS = '../components/spacing/spacing.css';
+export const UTILITIES_CSS = 'utilities.css';
+export const SPACING_CSS = 'spacing.css';
 export const ICONS = '../icons.svg';
 
 // The SDK site pages (theme editor, scorecard, files) are not part of dist.

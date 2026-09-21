@@ -1,7 +1,5 @@
-// The gallery's hand-maintained static data: kinds, breakpoints, text pairs, layouts. The controls themselves are generated from
-// components/*/ by tools/build.mjs into gallery.data.js.
-
-export const KINDS = ['Layout & structure', 'Navigation', 'Actions', 'Data display', 'Forms & inputs', 'Feedback & status', 'Overlays', 'Media', 'Code', 'Page templates'];
+// The gallery's hand-maintained static data: breakpoints, text pairs, responsive rules. The elements, samples and layouts are generated
+// by tools/build.mjs into gallery.data.js.
 
 export const BREAKPOINTS = [
     { name: 'phone', px: 640, meaning: 'Single column, thumb-reachable. PkTable becomes cards, Toolbar and PkDialog go full width, PkDrawer is full screen, the top bar shows the title and collapses the search to a button.' },

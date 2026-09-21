@@ -19,7 +19,7 @@ import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChang
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 
-const STYLES = ['../plainkit.css', '../plainkit-compat.css'];
+const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./theme-editor.css'];
 const TOKENS = './tokens.css';
 const MAX_STORED = 100000;

@@ -38,8 +38,8 @@ const withLoad = doc => {
 
 test('ensureStyles adds only the stylesheets the document lacks and resolves once they load', async () => {
     const doc = withLoad(fakeDoc(['http://x/dist/plainkit.css']));
-    await ensureStyles(['http://x/dist/plainkit.css', 'http://x/dist/plainkit-compat.css'], doc);
-    assert.deepEqual(doc.links.map(l => l.href), ['http://x/dist/plainkit.css', 'http://x/dist/plainkit-compat.css']);
+    await ensureStyles(['http://x/dist/plainkit.css', 'http://x/dist/plainkit-extra.css'], doc);
+    assert.deepEqual(doc.links.map(l => l.href), ['http://x/dist/plainkit.css', 'http://x/dist/plainkit-extra.css']);
     assert.equal(doc.links[1].rel, 'stylesheet');
 });
 

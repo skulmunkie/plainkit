@@ -31,10 +31,10 @@ public sealed class ComponentTests : TestContext
     public void Dev_tools_page_offers_the_five_tabs_and_marks_the_current_one()
     {
         var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "console"));
-        var tabs = cut.FindAll("[role=tab]");
+        var tabs = cut.FindAll("pk-tab");
 
         Assert.Equal(["Gallery", "Files", "Scorecard", "Performance", "Console"], tabs.Select(t => t.TextContent.Trim()));
-        Assert.Equal("Console", cut.Find("[role=tab].active").TextContent.Trim());
+        Assert.Equal("console", cut.Find("pk-tabs").GetAttribute("value"));
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public sealed class ComponentTests : TestContext
     {
         var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "nonsense"));
 
-        Assert.Equal("Gallery", cut.Find("[role=tab].active").TextContent.Trim());
+        Assert.Equal("gallery", cut.Find("pk-tabs").GetAttribute("value"));
         Assert.NotNull(cut.Find("pk-gallery"));
     }
 
@@ -54,7 +54,7 @@ public sealed class ComponentTests : TestContext
         ctx.Services.AddPlainKit(o => o.DevTools = false);
         var cut = ctx.RenderComponent<PkDevToolsPage>();
 
-        Assert.Empty(cut.FindAll("[role=tab]"));
+        Assert.Empty(cut.FindAll("pk-tab"));
         Assert.Contains("Dev tools are off", cut.Markup);
     }
 

@@ -121,7 +121,7 @@ code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
     .cv-no { min-width: 2.8em; padding: 0 0.4em; }
 }
 
-/* Parts of the outline and the trail that the explorer itself does not draw but the class-based samples and other pages still use. */
+/* Parts of the outline and the trail that the explorer itself does not draw but other pages still use. */
 .co-active { background: var(--color-surface-alt); box-shadow: inset 3px 0 0 var(--color-accent); }
 .co-detail { font-size: var(--text-meta); }
 

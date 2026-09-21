@@ -16,13 +16,12 @@
 }
 else
 {
-    <div class="tabs" role="tablist" aria-label="Dev tools">
+    <pk-tabs value="@Current" aria-label="Dev tools">
         @foreach (var (key, label) in Tabs)
         {
-            <button type="button" role="tab" class="tab @(Current == key ? "active" : null)" aria-selected="@(Current == key ? "true" : "false")"
-                    tabindex="@(Current == key ? 0 : -1)" @onclick="() => Go(key)">@label</button>
+            <pk-tab value="@key" @onclick="() => Go(key)">@label</pk-tab>
         }
-    </div>
+    </pk-tabs>
 
     @* Performance and the console stay mounted so they keep watching while another tab is open; the rest mount when shown. *@
     <div hidden="@(Current != "performance")"><PkPerformance /></div>

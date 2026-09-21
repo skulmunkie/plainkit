@@ -74,16 +74,15 @@ export const EXCEPTIONS = [
 // Reference: Bootstrap 5 ships about 25 KB gzip CSS and 16 KB gzip JS. The SDK's CSS covers the whole app (data grid, code explorer,
 // workspace, shell) and is not yet at target; every module is loaded only where used, and first paint needs no JS at all.
 // What the static score measures: the new API only. The page-level sheets, every element's css, and the scripts (shared modules and element behaviours).
-export const PRIMARY_CSS = ['tokens/tokens.css', 'base/base.css', 'components/utilities/utilities.css', 'components/spacing/spacing.css', 'base/a11y.css'];
+export const PRIMARY_CSS = ['tokens/tokens.css', 'base/base.css', 'base/utilities.css', 'base/spacing.css', 'base/a11y.css'];
 
 export const BUDGETS = {
-    // The element pipeline and the class-based compat layer are budgeted separately. Limits only ever come down.
+    // The page layer, each element and the scripts are budgeted separately. Limits only ever come down.
     pageCssGzKb: { target: 8, limit: 10, reference: 25, note: 'dist/plainkit.css: tokens, base, utilities, spacing and a11y for the light DOM (Bootstrap 5 CSS is about 25 KB gzip)' },
-    compatCssGzKb: { limit: 42, note: 'dist/plainkit-compat.css: the class-based components kept for the Blazor app until its wrappers use the pk-* elements. It holds the groups that are not converted yet (29.3 KB was the whole layer before the forms, data display and overlay groups arrived); the limit drops as each group becomes elements, and nothing is added.' },
     elementGzKb: { target: 2, limit: 4, note: 'one dist/elements/<name>.js: template, css and behaviour together' },
     baseRuntimeGzKb: { target: 2, limit: 2.5, note: 'js/element.js + js/element-core.js (comments stripped)' },
     jsModuleGzKb: { target: 3, limit: 6 },
-    baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: overlay, tabs, search-field, workspace, nav, theme, colour' },
+    baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },
 };
 
 // Text policy, two tiers (px at the 14px root). Reading text (body, cells, labels, inputs, buttons, nav items, help) is at least

@@ -351,13 +351,13 @@
           "name": "Boxed",
           "type": "bool",
           "map": "wrapper",
-          "note": "The alert element is always boxed; unboxed text notices stay on the compat class."
+          "note": "The alert element is always boxed; it has no unboxed variant."
         },
         {
           "name": "Inline",
           "type": "bool",
           "map": "wrapper",
-          "note": "Alert is a block; inline text notices stay on the compat class."
+          "note": "Alert is a block; it has no inline variant."
         },
         {
           "name": "Compact",
@@ -382,7 +382,7 @@
     "examples": [
       {
         "title": "Kinds",
-        "html": "<div class=\"stack\"><pk-alert kind=\"info\" heading=\"Heads up\">Imports run overnight.</pk-alert><pk-alert kind=\"success\">Product published.</pk-alert><pk-alert kind=\"warning\" heading=\"Low stock\">Three copies left.</pk-alert><pk-alert kind=\"danger\" heading=\"Sync failed\" dismissible>The channel rejected the update.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Retry</button></pk-alert></div>"
+        "html": "<div class=\"stack\"><pk-alert kind=\"info\" heading=\"Heads up\">Imports run overnight.</pk-alert><pk-alert kind=\"success\">Product published.</pk-alert><pk-alert kind=\"warning\" heading=\"Low stock\">Three copies left.</pk-alert><pk-alert kind=\"danger\" heading=\"Sync failed\" dismissible>The channel rejected the update.<pk-button slot=\"action\" variant=\"ghost\" size=\"mini\">Retry</pk-button></pk-alert></div>"
       },
       {
         "title": "Page-level banner",
@@ -508,7 +508,7 @@
     "examples": [
       {
         "title": "App shell with a sticky footer",
-        "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><button type=\"button\" class=\"btn-ghost\" data-nav-toggle aria-label=\"Open the menu\">Menu</button></div><div class=\"container stack\"><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></div><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+        "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
       }
     ]
   },
@@ -3286,7 +3286,7 @@
     "examples": [
       {
         "title": "Right-click, long-press or Shift+F10",
-        "html": "<pk-context-menu><div class=\"card\"><p>Right-click here.</p></div><pk-menu-item slot=\"menu\">Rename</pk-menu-item><pk-menu-item slot=\"menu\">Duplicate</pk-menu-item><pk-menu-item slot=\"menu\" danger>Delete</pk-menu-item></pk-context-menu>"
+        "html": "<pk-context-menu><pk-card><p>Right-click here.</p></pk-card><pk-menu-item slot=\"menu\">Rename</pk-menu-item><pk-menu-item slot=\"menu\">Duplicate</pk-menu-item><pk-menu-item slot=\"menu\" danger>Delete</pk-menu-item></pk-context-menu>"
       }
     ]
   },
@@ -3529,14 +3529,14 @@
           "name": "Theme",
           "type": "ModalTheme",
           "map": "wrapper",
-          "note": "Product/archived tints stay on the compat class version until the wrapper switches over."
+          "note": "The element has no product or archived tint."
         }
       ]
     },
     "examples": [
       {
         "title": "Dialog with a footer",
-        "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><button type=\"button\" slot=\"footer\" class=\"btn-ghost\">Cancel</button><button type=\"button\" slot=\"footer\" class=\"btn-warn\">Discard</button></pk-dialog>"
+        "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><pk-button slot=\"footer\" variant=\"ghost\">Cancel</pk-button><pk-button slot=\"footer\" variant=\"warn\">Discard</pk-button></pk-dialog>"
       }
     ]
   },
@@ -3852,7 +3852,7 @@
           "type": "bool",
           "default": true,
           "map": "wrapper",
-          "note": "A docked, backdrop-less inspector stays on the compat flyout."
+          "note": "A docked, backdrop-less inspector is the element's docked prop."
         },
         {
           "name": "IsLoading",
@@ -3878,7 +3878,7 @@
     "examples": [
       {
         "title": "Drawer from the right",
-        "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><button type=\"button\" slot=\"footer\" class=\"btn-primary\">Apply</button></pk-drawer>"
+        "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><pk-button slot=\"footer\">Apply</pk-button></pk-drawer>"
       }
     ]
   },
@@ -4046,7 +4046,7 @@
     "examples": [
       {
         "title": "Menu with a header, checkable items and a submenu",
-        "html": "<pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Actions</button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
+        "html": "<pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">Actions</pk-button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
       }
     ]
   },
@@ -6505,7 +6505,7 @@
     "examples": [
       {
         "title": "Lightbox trigger",
-        "html": "<pk-lightbox label=\"Product images\"><button type=\"button\" class=\"btn-ghost\">Open the gallery</button></pk-lightbox>"
+        "html": "<pk-lightbox label=\"Product images\"><pk-button variant=\"ghost\">Open the gallery</pk-button></pk-lightbox>"
       }
     ]
   },
@@ -6681,7 +6681,7 @@
     "examples": [
       {
         "title": "Busy region",
-        "html": "<pk-loading-overlay busy label=\"Loading orders…\"><div class=\"card\"><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></div></pk-loading-overlay>"
+        "html": "<pk-loading-overlay busy label=\"Loading orders…\"><pk-card><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></pk-card></pk-loading-overlay>"
       }
     ]
   },
@@ -7497,11 +7497,11 @@
     "examples": [
       {
         "title": "Navbar with a menu and actions",
-        "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">Orders</a><pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">More</button><pk-menu-item href=\"#\">Customers</pk-menu-item><pk-menu-item href=\"#\">Reports</pk-menu-item></pk-dropdown><button type=\"button\" slot=\"actions\" class=\"btn-mini btn-ghost\">Account</button></pk-navbar>"
+        "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">Orders</a><pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">More</pk-button><pk-menu-item href=\"#\">Customers</pk-menu-item><pk-menu-item href=\"#\">Reports</pk-menu-item></pk-dropdown><pk-button slot=\"actions\" variant=\"ghost\" size=\"mini\">Account</pk-button></pk-navbar>"
       },
       {
         "title": "Navbar with a mega menu",
-        "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><pk-dropdown mega><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Products</button><pk-menu-item type=\"header\">Catalog</pk-menu-item><pk-menu-item href=\"#\">All products</pk-menu-item><pk-menu-item href=\"#\">Drafts</pk-menu-item><pk-menu-item type=\"header\">Stock</pk-menu-item><pk-menu-item href=\"#\">Receiving</pk-menu-item><pk-menu-item href=\"#\">Adjustments</pk-menu-item></pk-dropdown><a href=\"#\">Orders</a></pk-navbar>"
+        "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><pk-dropdown mega><pk-button slot=\"trigger\" variant=\"ghost\">Products</pk-button><pk-menu-item type=\"header\">Catalog</pk-menu-item><pk-menu-item href=\"#\">All products</pk-menu-item><pk-menu-item href=\"#\">Drafts</pk-menu-item><pk-menu-item type=\"header\">Stock</pk-menu-item><pk-menu-item href=\"#\">Receiving</pk-menu-item><pk-menu-item href=\"#\">Adjustments</pk-menu-item></pk-dropdown><a href=\"#\">Orders</a></pk-navbar>"
       }
     ]
   },
@@ -8518,11 +8518,11 @@
     "examples": [
       {
         "title": "Popover on click",
-        "html": "<pk-popover heading=\"Order 1042\"><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Details</button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
+        "html": "<pk-popover heading=\"Order 1042\"><pk-button slot=\"trigger\" variant=\"ghost\">Details</pk-button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
       },
       {
         "title": "Confirmation popover",
-        "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><button type=\"button\" slot=\"trigger\" class=\"btn-warn\">Delete line</button></pk-popover>"
+        "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><pk-button slot=\"trigger\" variant=\"warn\">Delete line</pk-button></pk-popover>"
       }
     ]
   },
@@ -9912,7 +9912,7 @@
     "examples": [
       {
         "title": "Side nav with a branch, filter and icon rail",
-        "html": "<div class=\"shell shell--fill\"><pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav></div>"
+        "html": "<pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav>"
       }
     ]
   },
@@ -11907,7 +11907,7 @@
       "pk-table :is(th, td).num",
       "pk-table[sticky-header] thead th"
     ],
-    "contentStylesNote": "Slotted-table content is light DOM: shadow CSS cannot reach its cells, so the page-level layer (components/table-content) styles it by these selectors."
+    "contentStylesNote": "Slotted-table content is light DOM: shadow CSS cannot reach its cells, so the page-level layer (base/table-content.css) styles it by these selectors."
   },
   {
     "tag": "pk-tabs",
@@ -12963,7 +12963,7 @@
     "examples": [
       {
         "title": "Kinds",
-        "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Undo</button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
+        "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<pk-button slot=\"action\" variant=\"ghost\" size=\"mini\">Undo</pk-button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
       }
     ]
   },
@@ -13191,7 +13191,7 @@
     "examples": [
       {
         "title": "On this page",
-        "html": "<div class=\"split\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></div>"
+        "html": "<pk-grid columns=\"2\" min=\"16rem\"><article id=\"toc-demo\"><h2 id=\"toc-a\">Overview</h2><p>What it is.</p><h2 id=\"toc-b\">Usage</h2><p>How to use it.</p><h3 id=\"toc-c\">Options</h3><p>The knobs.</p></article><pk-toc for=\"#toc-demo\" heading=\"On this page\" label=\"On this page\"></pk-toc></pk-grid>"
       }
     ]
   },
@@ -13517,7 +13517,7 @@
     "examples": [
       {
         "title": "Tooltip on hover, focus and long press",
-        "html": "<div class=\"cluster cluster--horizontal\"><pk-tooltip text=\"Saves the draft without publishing\"><button type=\"button\" class=\"btn-ghost\">Save draft</button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><button type=\"button\" class=\"btn-ghost\">Right</button></pk-tooltip></div>"
+        "html": "<pk-cluster><pk-tooltip text=\"Saves the draft without publishing\"><pk-button variant=\"ghost\">Save draft</pk-button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><pk-button variant=\"ghost\">Right</pk-button></pk-tooltip></pk-cluster>"
       }
     ]
   },

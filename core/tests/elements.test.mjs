@@ -100,7 +100,7 @@ test('a tag is pk-<folder>, and the generated module inlines template, css and b
     }
 });
 
-test('the build writes per-element modules, a registry, the FOUC guard and a split of primary and compat css', () => {
+test('the build writes per-element modules, a registry, the FOUC guard and a page layer with no component rules', () => {
     const { out } = build({ write: false });
     const registry = JSON.parse(out.get('dist/elements/registry.js').replace(/^[\s\S]*?export default /, '').replace(/;\s*$/, ''));
     assert.deepEqual(Object.keys(registry).sort(), elements.map(e => e.meta.tag).sort());
@@ -109,13 +109,13 @@ test('the build writes per-element modules, a registry, the FOUC guard and a spl
     for (const el of elements) assert.ok(fouc.includes(`${el.meta.tag}:not(:defined)`), `${el.meta.tag} is hidden until defined`);
     assert.doesNotMatch(out.get('dist/plainkit.css'), /\.btn-primary:hover|\.card-header \{/, 'the primary sheet carries no class-based component rules');
     assert.match(out.get('dist/plainkit.css'), /:not\(:defined\)/);
-    assert.match(out.get('dist/plainkit-compat.css'), /\.btn-primary:hover/);
-    assert.ok(out.has('dist/plainkit-compat.min.css') && out.has('dist/elements/api.json'));
+    assert.ok(out.has('dist/elements/api.json'));
+    assert.ok(!out.has('dist/plainkit-compat.css') && ![...out.keys()].some(f => f.startsWith('dist/components/')), 'the class-based layer is gone');
 });
 
 test('generated element files on disk are the build output (run node tools/build.mjs)', () => {
     const { out } = build({ write: false });
-    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `elements/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit-compat.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
+    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `elements/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
 });
 
 test('the element base stays small: element.js + element-core.js under 2.5 KB gzipped (comments and blank lines stripped)', () => {

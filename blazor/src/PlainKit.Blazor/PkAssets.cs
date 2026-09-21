@@ -9,9 +9,6 @@ public static class PkAssets
     /// <summary>The page stylesheet: tokens, base, utilities and the layout the custom elements rely on.</summary>
     public const string Css = Root + "plainkit.css";
 
-    /// <summary>The class-based components (buttons, chips, notices...) that the gallery's samples and the tools still use.</summary>
-    public const string CompatCss = Root + "plainkit-compat.css";
-
     /// <summary>The page <c>&lt;pk-gallery&gt;</c> frames.</summary>
     public const string GalleryEmbed = Root + "gallery/embed.html";
 

@@ -25,11 +25,11 @@ for (const name of Object.keys(MODULES)) {
         assert.deepEqual(missing, []);
     });
 
-    test(`dist/${name} names no source folder and asks for the page layer and the class-based components`, () => {
+    test(`dist/${name} names no source folder and asks for the page layer only`, () => {
         for (const f of files(name).filter(x => /\.js$/.test(x))) {
             const code = out.get(f).replace(/\/\/ .*$/gm, '');
             assert.ok(!/\bsite\/|modules\/|samples\/|\/tokens\/tokens\.css/.test(code), `${f} names the source tree`);
-            if (/STYLES/.test(code)) assert.match(code, /const STYLES = \['\.\.\/plainkit\.css', '\.\.\/plainkit-compat\.css'/, `${f} loads both stylesheets`);
+            if (/STYLES/.test(code)) assert.match(code, /const STYLES = \['\.\.\/plainkit\.css'\];/, `${f} loads the page stylesheet only`);
         }
     });
 }

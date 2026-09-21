@@ -12,7 +12,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 ## Styling
 
 - Tokens only: no literal colours in component or element CSS, and sizes come from the space and text scales. Two themes (`data-theme="dark|light"`) and two densities (`data-density`) are token sets, never separate stylesheets.
-- The page layer, `dist/plainkit.css`, has a 10 KB gzip budget. A tool's own CSS belongs in its module folder and is loaded by the module.
+- The page layer, `dist/plainkit.css` (`tokens/` plus `base/`: base, spacing, typography, table-content, utilities, a11y, in that cascade order), has a 10 KB gzip budget. A tool's own CSS belongs in its module folder and is loaded by the module.
 - Use only components that exist in core. If something is missing, list it as a gap rather than building a one-off.
 
 ## Modules
@@ -51,4 +51,4 @@ A change that lands in only one of the two is incomplete.
 
 ## Tests
 
-`node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` from the repository root. A change to an element source, `js/element*.js`, `js/loader.js` or a browser case needs the browser suite re-run (`tests/browser/`), because `elements-attest.test.mjs` compares it with the attested report.
+`node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` from the repository root. A change to an element source, `js/element*.js`, `js/loader.js` or a browser case needs the browser suite re-run (`tests/browser/`), because `elements-attest.test.mjs` compares it with the attested report.

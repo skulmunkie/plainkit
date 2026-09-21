@@ -20,7 +20,7 @@ closed by a merged pull request.
 
 A change is done when, on its pull request:
 
-- `node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` passes, and `dotnet test PlainKit.slnx` passes.
+- `node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` passes, and `dotnet test PlainKit.slnx` passes.
 - `node core/tools/build.mjs` has been run, so `core/dist` is current, and `node scripts/publish-dist.mjs` has copied it into the Blazor package (CI checks both).
 - If an element source or a browser case changed, the in-browser suite was re-run so `core/tests/browser/report.json` is current (`node core/tools/serve.mjs 5341 --write-reports`, open `/tests/browser/` in a visible tab at desktop size, wait for "report saved").
 - SDK and Blazor changes ship together: an element change updates its `blazor` metadata and, once generated, its wrapper.

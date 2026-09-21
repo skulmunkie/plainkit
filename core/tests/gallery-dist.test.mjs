@@ -52,15 +52,14 @@ test('the embed page and the templates carry no inline script, style or handler'
         assert.ok(!/<script(?![^>]*\ssrc=)[^>]*>/i.test(t), `${f} has an inline script`);
         assert.ok(!/<style[\s>]|\sstyle\s*=|\son[a-z]+\s*=/i.test(t), `${f} has an inline style or handler`);
     }
-    // The chrome is pk-* elements: the embed page does not load the class-based components; the sample frames do (paths.js PAGE_CSS).
-    assert.doesNotMatch(out.get('dist/gallery/embed.html'), /plainkit-compat\.css/, 'the gallery chrome needs no class-based component');
-    assert.match(out.get('dist/gallery/paths.js'), /PAGE_CSS = \[[^\]]*plainkit-compat\.css/, 'sample frames need the class-based components');
+    // The chrome and the samples are pk-* elements: every page needs only the page layer.
+    assert.deepEqual(gallery.filter(g => /\.(html|js)$/.test(g) && /plainkit-compat/.test(out.get(g))), [], 'no page asks for the removed class-based stylesheet');
+    assert.match(out.get('dist/gallery/paths.js'), /PAGE_CSS = \['\.\.\/plainkit\.css'\];/);
 });
 
 test('the preview host ships in dist/gallery with its paths relocated, and the templates send ?width=phone to it', () => {
     const html = out.get('dist/gallery/preview.html');
     assert.match(html, /href="\.\.\/plainkit\.css"/);
-    assert.match(html, /plainkit-compat\.css/, 'patterns use the class-based components');
     assert.match(html, /<script type="module" src="preview\.js">/);
     const js = out.get('dist/gallery/preview.js');
     assert.match(js, /from '\.\.\/js\/plainkit\.js'/);

@@ -33,7 +33,7 @@ jobs:
 
       - name: Tests
         run: |
-          node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+          node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
           node core/tools/build.mjs
           git diff --exit-code -- core/dist
 

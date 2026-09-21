@@ -284,11 +284,11 @@
   "examples": [
     {
       "title": "Popover on click",
-      "html": "<pk-popover heading=\"Order 1042\"><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Details</button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
+      "html": "<pk-popover heading=\"Order 1042\"><pk-button slot=\"trigger\" variant=\"ghost\">Details</pk-button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
     },
     {
       "title": "Confirmation popover",
-      "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><button type=\"button\" slot=\"trigger\" class=\"btn-warn\">Delete line</button></pk-popover>"
+      "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><pk-button slot=\"trigger\" variant=\"warn\">Delete line</pk-button></pk-popover>"
     }
   ]
 }

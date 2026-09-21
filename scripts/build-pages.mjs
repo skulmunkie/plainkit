@@ -14,7 +14,7 @@ const core = path.join(root, 'core');
 const out = path.resolve(root, process.argv[2] ?? '_site');
 
 // Folders and files the site loads at run time (source layout) plus dist.
-const INCLUDE = ['index.html', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'components', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
+const INCLUDE = ['index.html', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
 const SKIP_NAMES = new Set(['node_modules', '.git']);
 // Test files that sit beside sources (component and element folders) are not served.
 const skip = name => SKIP_NAMES.has(name) || /\.test\.mjs$/.test(name);
