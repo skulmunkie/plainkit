@@ -2,12 +2,13 @@
 // element only builds the frame's address from its attributes and follows the height the gallery reports. No gallery code loads here.
 import { normalizeOptions, toQuery, EMBED_URL } from '../../js/gallery-options.js';
 import { READY_MESSAGE, sectionsMessage } from '../../js/gallery-sections.js';
+import { safeLink } from '../../js/safe-url.js';
 
-// The frame address for a set of element props. The element shows content only by default (chrome none); theme "auto" leaves the theme to the gallery.
+// The frame address for a set of element props. A src that is not a same-site path or http(s) (a javascript: or data: address would run in the host page) is ignored. The element shows content only by default (chrome none); theme "auto" leaves the theme to the gallery.
 export function frameUrl(props, base = EMBED_URL) {
     const { src, theme, height: _height, sections: _sections, ...rest } = props;
     const query = toQuery({ chrome: 'none', ...normalizeOptions({ ...rest, theme: theme === 'auto' ? '' : theme }) });
-    return `${new URL(src || base, globalThis.document?.baseURI ?? globalThis.location?.href).href}?${query}`;
+    return `${new URL(safeLink(src) ? src : base, globalThis.document?.baseURI ?? globalThis.location?.href).href}?${query}`;
 }
 
 // The height a message from the gallery asks for, or 0 when the message is not from this frame's gallery or is not a sane height.

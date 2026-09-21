@@ -2,6 +2,7 @@
 // ({ src, alt, primary, status }[]); a click opens the pk-lightbox, and pk-media, pk-badge and pk-button draw the tiles. The pure parts
 // (cleaning the list, which one is primary, what a removal does to it) are exported so node can test them.
 import { loadElements } from '../../js/loader.js';
+import { safeLink } from '../../js/safe-url.js';
 
 export const DEFAULT_MIN = '6.25rem';
 
@@ -10,8 +11,7 @@ export function safeSrc(src) {
     if (typeof src !== 'string' || !src.trim()) return null;
     const s = src.trim();
     if (/^data:image\/(png|jpe?g|gif|webp|avif);/i.test(s)) return s;
-    if (/^[\w+.-]+:/.test(s) && !/^https?:/i.test(s)) return null;
-    return s;
+    return safeLink(s) ? s : null;
 }
 
 // Pure: the list as the gallery uses it: objects with a string src, each with alt, status and a boolean primary.
