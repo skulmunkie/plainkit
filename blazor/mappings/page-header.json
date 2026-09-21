@@ -2,7 +2,7 @@
   "component": "PkPageHeader",
   "params": [
     {
-      "name": "Heading",
+      "name": "Title",
       "prop": "heading",
       "type": "string"
     },
@@ -17,7 +17,7 @@
       "type": "string"
     },
     {
-      "name": "ChildContent",
+      "name": "SuffixContent",
       "slot": "",
       "type": "RenderFragment?"
     },
@@ -35,6 +35,26 @@
       "name": "MetaContent",
       "slot": "meta",
       "type": "RenderFragment?"
+    },
+    {
+      "name": "Crumbs",
+      "map": "wrapper",
+      "type": "IReadOnlyList<PkCrumb>?",
+      "note": "Blazor only: the trail is rendered as a pk-breadcrumb in the breadcrumb slot, one link per PkCrumb and aria-current on the last."
+    },
+    {
+      "name": "BreadcrumbLabel",
+      "map": "wrapper",
+      "type": "string",
+      "note": "Blazor only: the label of the pk-breadcrumb the crumbs are rendered into."
+    },
+    {
+      "name": "ShellSection",
+      "map": "wrapper",
+      "type": "string?",
+      "note": "Blazor only: the SectionOutlet name in the layout that feeds the app shell's title slot; the title is written there and not drawn twice."
     }
-  ]
+  ],
+  "existing": true,
+  "notes": "Hand-written: Title maps to heading and falls back to the last crumb's label; Level starts at 1; SuffixContent is the default slot (beside the title)."
 }

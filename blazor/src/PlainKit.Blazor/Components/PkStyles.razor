@@ -1,4 +1,32 @@
-@* Links the toolkit's stylesheet from the page head. Put it once in App.razor or MainLayout.razor. *@
-<HeadContent>
-    <link rel="stylesheet" href="@PkAssets.Css" />
-</HeadContent>
+@* Links the toolkit's stylesheet where it is written: a plain <link>, in place. The toolkit's base layer (tokens, resets, utilities) has to come
+   BEFORE the application's own stylesheets so the app's rules win, so put <PkStyles /> in the <head> of App.razor above the app's links (see the
+   README, "Where the stylesheet goes"). Written in a layout it lands in the body, after the app's head links; InHead (HeadContent) is the old
+   behaviour and puts it after them, in HeadOutlet. *@
+@if (InHead)
+{
+    <HeadContent>
+        <link rel="stylesheet" href="@Href" />
+    </HeadContent>
+}
+else
+{
+    <link rel="stylesheet" href="@Href" />
+}
+
+@code {
+    /// <summary>The minified stylesheet (<see cref="PkAssets.CssMin"/>) instead of <see cref="PkAssets.Css"/>. Same rules.</summary>
+    [Parameter] public bool Minified { get; set; }
+
+    /// <summary>Adds <c>?v=</c> and a content hash of the file (see <see cref="PkAssets.Versioned"/>), so a browser fetches the file again exactly when it changed. On by default.</summary>
+    [Parameter] public bool Versioned { get; set; } = true;
+
+    /// <summary>
+    /// Render the link through <c>HeadContent</c> (into <c>HeadOutlet</c>) instead of in place. That puts it after the app's own stylesheets in the
+    /// standard <c>App.razor</c>, so the toolkit's base layer overrides app rules of equal specificity: leave it off unless you know you want that.
+    /// </summary>
+    [Parameter] public bool InHead { get; set; }
+
+    private string Href => Minified
+        ? (Versioned ? PkAssets.CssMinVersioned : PkAssets.CssMin)
+        : (Versioned ? PkAssets.CssVersioned : PkAssets.Css);
+}

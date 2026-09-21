@@ -13,6 +13,7 @@ A parameter whose element prop has a fixed set of values is an enum; each member
 | `MenuitemType` | `Item` `Checkbox` `Radio` `Header` `Divider` | `PkMenuItem` |
 | `PaginationMode` | `Numbered` `Simple` `LoadMore` | `PkPagination` |
 | `PkAlertKind` | `Error` `Warning` `Info` `Success` | `PkAlert` |
+| `PkDialogSize` | `Sm` `Md` `Lg` `Xl` `Fullscreen` | `PkDialog` |
 | `PkDialogTint` | `None` `Product` `Archived` | `PkDialog` |
 | `PkTabOnly` | `All` `Phone` `Desktop` | `PkTab` |
 | `PkTabsActivation` | `Auto` `Manual` | `PkTabs` |

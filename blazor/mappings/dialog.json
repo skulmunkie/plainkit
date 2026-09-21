@@ -63,6 +63,12 @@
       "note": "The footer is always end-aligned; there is nothing to switch."
     },
     {
+      "name": "Size",
+      "type": "PkDialogSize",
+      "map": "prop",
+      "prop": "size"
+    },
+    {
       "name": "MaxWidthPx",
       "type": "int",
       "map": "prop",

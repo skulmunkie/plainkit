@@ -68,6 +68,21 @@ public enum PkAlertKind
 }
 
 /// <summary>The values of the PkDialog parameter that use it. Each member is one attribute value of the element.</summary>
+public enum PkDialogSize
+{
+    /// <summary><c>sm</c></summary>
+    Sm,
+    /// <summary><c>md</c></summary>
+    Md,
+    /// <summary><c>lg</c></summary>
+    Lg,
+    /// <summary><c>xl</c></summary>
+    Xl,
+    /// <summary><c>fullscreen</c></summary>
+    Fullscreen,
+}
+
+/// <summary>The values of the PkDialog parameter that use it. Each member is one attribute value of the element.</summary>
 public enum PkDialogTint
 {
     /// <summary><c>none</c></summary>
@@ -236,6 +251,16 @@ internal static class PkGeneratedEnumAttributes
         PkAlertKind.Warning => "warning",
         PkAlertKind.Info => "info",
         PkAlertKind.Success => "success",
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    internal static string ToAttr(this PkDialogSize value) => value switch
+    {
+        PkDialogSize.Sm => "sm",
+        PkDialogSize.Md => "md",
+        PkDialogSize.Lg => "lg",
+        PkDialogSize.Xl => "xl",
+        PkDialogSize.Fullscreen => "fullscreen",
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 

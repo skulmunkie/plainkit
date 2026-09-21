@@ -54,7 +54,7 @@
 | `PkNavbar` | `pk-navbar` | Navigation | generated | `components-navigation.md` |
 | `PkNavItem` | `pk-nav-item` | Navigation | generated | `components-navigation.md` |
 | `PkOtpInput` | `pk-otp-input` | Form controls | generated | `components-form-controls.md` |
-| `PkPageHeader` | `pk-page-header` | Layout & structure | generated | `components-layout.md` |
+| `PkPageHeader` | `pk-page-header` | Layout & structure | hand-written | `components-layout.md` |
 | `PkPager` | `pk-pager` | Navigation | generated | `components-navigation.md` |
 | `PkPagination` | `pk-pagination` | Navigation | generated | `components-navigation.md` |
 | `PkPopover` | `pk-popover` | Overlays | generated | `components-overlays.md` |

@@ -1013,8 +1013,8 @@
     },
     {
       "path": "skills/plainkit-blazor/SKILL.md",
-      "bytes": 8875,
-      "integrity": "sha384-n5SDPJaAmdfbGHp1Qg4GYArV6uXm0gN11eFIieh5IJJMM/bDsKO7l3HVBXZUKok6"
+      "bytes": 10449,
+      "integrity": "sha384-8qwSVSzh3lGr4HkJOuzAwWA+pFUJBxSpmgqQYO5k7qIEJdDn2gk5PcCdCb9BBUId"
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
@@ -1043,13 +1043,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-index.md",
-      "bytes": 8139,
-      "integrity": "sha384-qplHCPh6If7iqN2uYLLC203sUm4gSlNcFobK5BUq8Rz2y4lq1/wt2mE0vKSRozFZ"
+      "bytes": 8142,
+      "integrity": "sha384-uI4oT57Xd3TtbIkpzpDcTbw9s5dL5YMn9bOkC0p5wJlYqMgmhy8bhNjW3jdBJPMJ"
     },
     {
       "path": "skills/plainkit-blazor/references/components-layout.md",
-      "bytes": 17428,
-      "integrity": "sha384-/+Pq9miHykPi7QaO2SJZO5v3b56Z3g/tiBiTIGCOJpQfK5yQTAuzaMIv7df/cJSa"
+      "bytes": 18025,
+      "integrity": "sha384-It6TXhcN2XYaPVasq371qfxenCoEdFJvJb9maZOe0DQgstvhhvCTeHPYKBEdKkP9"
     },
     {
       "path": "skills/plainkit-blazor/references/components-navigation.md",
@@ -1058,18 +1058,18 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-overlays.md",
-      "bytes": 18902,
-      "integrity": "sha384-c423yk0CYvQZ0R4pjpy0abGwx4FPbtysJmhjJyd1otlDu2aDcpvTdr4vkIbItrgI"
+      "bytes": 19005,
+      "integrity": "sha384-FFUBVsrN9ibBl1Q4BMyro0KpxnKsY9KGQpF2BGWsSaaWzYMvO7HPC+CuCNdGDfcN"
     },
     {
       "path": "skills/plainkit-blazor/references/devtools.md",
-      "bytes": 7878,
-      "integrity": "sha384-gpuO/XdeLEGLDwazRrac/LqJKYbIRfbTOyHep3F5ghn/+E6xQZ9FJm29zWBWJZec"
+      "bytes": 8456,
+      "integrity": "sha384-yThZPwzc6bJpC7i/0dJSE+ehje5VlygwQ9eudT5HoghMlBri13mt8zpxcIDN49CZ"
     },
     {
       "path": "skills/plainkit-blazor/references/enums.md",
-      "bytes": 1998,
-      "integrity": "sha384-PMoKXbBYmIgL0mWd/m9NRTh/yxKUTTTja4OV50CD08ny6tesE9RwHEzDYLrFQj9z"
+      "bytes": 2066,
+      "integrity": "sha384-/Q7mmIOuo+PL9YsChSvh5P1+3TXBN3zKHHysKyJnpB1MyWdi0zhJxojGJG8Wl7VN"
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
@@ -1083,13 +1083,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/logging.md",
-      "bytes": 4577,
-      "integrity": "sha384-A33U3Y9MxSYilHuF3rKztdIMBJSLdGWcOI4F18AdrL0WFmicLiCAi6/ScG4r2KFv"
+      "bytes": 4881,
+      "integrity": "sha384-NPQDwuiXCij6MMRJin0uCg/xWcCr7bAWg2alw8/Eh5Ostl4w0CY0juvqYkc2MjnN"
     },
     {
       "path": "skills/plainkit-blazor/references/setup-and-options.md",
-      "bytes": 4658,
-      "integrity": "sha384-SAXRV5ioPmXuH6qfUBcfYLWox/jkjRvhF1iGL38miJKO3aj1AEORkczL3zmqekIL"
+      "bytes": 5866,
+      "integrity": "sha384-sBRyGefTLY8oe0olduLwLEogUAmwd2LXSzpdu6FlayoAgNkX0BRtA0V+fYL8jmPb"
     },
     {
       "path": "skills/plainkit-sdk/SKILL.md",

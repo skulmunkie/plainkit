@@ -11,18 +11,14 @@ This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
 - **Not verified:** Blazor WebAssembly. It has not been run in a WebAssembly host, so treat it as untested there (the Files tool is server-side only by design).
 - **Not yet available as a component (1):** `PkTable` (the data grid), whose API is being reworked first. Its element works as plain `<pk-table>` markup. `PkCard`, `PkEmptyState`, `PkFieldList` and `PkStat` are hand-written in `Components/` and available.
-- **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
+- **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`; left null the element default applies) and `PkDialog.MaxWidthPx` (the element's `maxWidth`, pixels before the viewport clamp) both work.
 - **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
 
-The full list is in [`Generated/generated.manifest.json`](Generated/generated.manifest.json) (a repository file, not part of the package) and `node scripts/generate-blazor.mjs --list`.
-
-## Where the element mappings live
-
-How each SDK element becomes a component (its `Pk` name, parameters, slots and events) is not in the SDK's element metadata: it is one file per element in [`blazor/mappings/`](../../mappings). `scripts/tests/blazor-mappings.test.mjs` checks them against `core/elements/*/*.meta.json`.
+The full list is in [`generated.manifest.json`](https://github.com/skulmunkie/plainkit/blob/main/blazor/src/PlainKit.Blazor/Generated/generated.manifest.json) in the repository.
 
 ## Element components (generated)
 
-`node scripts/generate-blazor.mjs` writes one Razor component per element into [`Generated/`](Generated), from `core/dist/elements/api.json` (props, slots, events and their details) and the mapping. Never edit those files: change the mapping or the SDK and run it again (`--check` fails when they are stale; CI runs it). The component is `Pk` plus the tag in PascalCase, so `pk-alert` is `<PkAlert>`.
+Every element has a component, named `Pk` plus the tag in PascalCase, so `pk-alert` is `<PkAlert>`. They are generated from the SDK's element API, so their parameters are the element's props, slots and events. How an element maps to its component is described by the [mapping files](https://github.com/skulmunkie/plainkit/tree/main/blazor/mappings) in the repository.
 
 | The element has | The component gets |
 |---|---|
@@ -33,7 +29,7 @@ How each SDK element becomes a component (its `Pk` name, parameters, slots and e
 
 A component takes its listed parameters, and every other attribute (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, so `<PkButton id="save" data-test="x" aria-label="Save">` works. A `class` is added to the component's own classes (the components that list `ExtraClass` combine both). An inline `style` is blocked by the CSP: use a class. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own.
 
-What is not generated is listed in [`Generated/generated.manifest.json`](Generated/generated.manifest.json): components whose mapping says `existing` (`PkGallery` is hand-written in `Components/`; `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable` are not in this package yet), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+A few components are written by hand rather than generated (`PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat`, `PkGallery`, `PkPageHeader`, `PkStyles`); `PkTable` is not in this package yet. What is not available, with the reason for each item, is in [`generated.manifest.json`](https://github.com/skulmunkie/plainkit/blob/main/blazor/src/PlainKit.Blazor/Generated/generated.manifest.json).
 
 ## Types for structured parameters
 
@@ -49,8 +45,12 @@ Fields left at their default are left out of the JSON. Two former parameters bec
 
 ## Set up
 
+Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the components and `PkLogLevel`).
+
 ```csharp
 // Program.cs
+using PlainKit.Blazor;
+
 builder.Services.AddPlainKit();
 
 app.MapRazorComponents<App>()
@@ -59,14 +59,64 @@ app.MapRazorComponents<App>()
 ```
 
 ```razor
-@* Routes.razor: only needed for the dev tools page *@
-<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">
+@* App.razor: the stylesheet goes first in the head, see "Where the stylesheet goes" *@
+<head>
+    <meta charset="utf-8" />
+    <base href="/" />
+    <PkStyles />
+    <link rel="stylesheet" href="app.css" />
+    <HeadOutlet />
+</head>
 ```
 
 ```razor
-@* MainLayout.razor *@
-<PkStyles />
+@* Routes.razor: only the dev tools page needs this. Add the AdditionalAssemblies attribute to the Router you already have and keep the rest of it. *@
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PkAssets).Assembly }">
+    ...
+</Router>
 ```
+
+**Render mode.** The components need an interactive render mode for `OnClick` and binding to work: put `@rendermode InteractiveServer` on the page, or set a global render mode (`<Routes @rendermode="InteractiveServer" />` in `App.razor`). Without one they render, but nothing responds.
+
+### Where the stylesheet goes
+
+`<PkStyles />` writes a plain `<link rel="stylesheet">` exactly where you put it. The toolkit's page layer (tokens, base resets and utilities) is meant to be the **bottom** of your cascade, so it has to come **first**: put `<PkStyles />` in the `<head>` of `App.razor`, above your own stylesheets. The browser applies stylesheets in the order of their links, so your `app.css` and scoped bundle then win over the toolkit's base rules of equal specificity.
+
+- In `App.razor`'s head, above the app's links, is the right place.
+- Written in `MainLayout.razor` it lands in the body, after everything in the head: it works, but the base layer is then last and overrides your rules.
+- `<PkStyles InHead="true" />` renders through `HeadContent` into `<HeadOutlet />`, which comes after the app's stylesheets in the standard `App.razor`. That was how `PkStyles` worked in the first alpha; use it only if you want the base layer last.
+- Direct link, no component: `<link rel="stylesheet" href="@PkAssets.CssVersioned" />` in the head, first. `PkAssets.Css` is the file, `PkAssets.CssMin` the minified one and `PkAssets.CssMinVersioned` that with a cache-busting query. `<PkStyles Minified="true" Versioned="false" />` picks the same variants.
+- **Cache busting.** `PkAssets.Versioned("js/plainkit.js")` (any file of the toolkit, relative to `PkAssets.Root` or a full path) appends `?v=` and the first 12 characters of the file's SHA-384, so a browser fetches the file again exactly when its content changed. The hash comes from the package's manifest, embedded in the assembly and read once: no file access per request. `PkAssets.Integrity(path)` gives the full `sha384-...` value for an `integrity` attribute. `PkStyles` uses the versioned URL by default (`Versioned="false"` turns it off).
+
+### Page header
+
+`PkPageHeader` is the top of a page: the title and a `pk-breadcrumb` built from a list of `PkCrumb(Label, Href)`. The last crumb is the current page (`aria-current="page"`), and the title is its label unless you pass `Title` (a record's name, say). `SuffixContent` goes beside the title (a status chip, a count); `ActionsContent` and `MetaContent` fill the element's other slots. Which crumbs belong to a route is your app's business (a lookup by route, a page registry): the header only draws the list.
+
+```razor
+<PkPageHeader Crumbs="@_crumbs" Title="@_order.Name">
+    <SuffixContent><PkBadge>@_order.Status</PkBadge></SuffixContent>
+    <ActionsContent><PkButton OnClick="Receive">Receive</PkButton></ActionsContent>
+</PkPageHeader>
+
+@code {
+    private IReadOnlyList<PkCrumb> _crumbs = [new("Stock", "/stock"), new("Purchase orders", "/stock/orders"), new("PO 1042")];
+}
+```
+
+A page has one `<h1>`, in one place: the header's title, or the app shell's title slot. To put it in the shell's top bar, give the layout a `SectionOutlet` in the `title` slot of `pk-app-shell` and name it in `ShellSection`; the header then writes the title there and does not draw it a second time (it still draws the breadcrumb, the suffix and the actions):
+
+```razor
+@* MainLayout.razor: the shell's title slot holds the one h1 (pk-app-shell's title slot and its back-href / back-label are new in the SDK) *@
+<pk-app-shell back-href="@_parentHref" back-label="@_parentLabel">
+    <h1 slot="title"><SectionOutlet SectionName="shell-title" /></h1>
+    ...
+</pk-app-shell>
+
+@* the page *@
+<PkPageHeader ShellSection="shell-title" Crumbs="@_crumbs" />
+```
+
+The header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). Until `PkAppShell` gets `TitleContent`, `BackHref` and `BackLabel` parameters (the mapping follows the SDK), use the `pk-app-shell` element directly, as above.
 
 ## How binding works
 
@@ -81,7 +131,7 @@ The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivit
 
 ## Dev tools (built in)
 
-In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK. The page has three workspaces, and the SDK's dev tools dock (`mountDevTools`, through `PkDevTools`) over it. ``Ctrl+` `` shows and hides the dock; `/_plainkit/console` and the like open it on that tab.
+In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK. The page renders inside your app's own layout (it is a routable component like any other, so your `MainLayout` and stylesheets apply), and it is served only in Development unless you turn it on (below). It has three workspaces, and the SDK's dev tools dock (`mountDevTools`, through `PkDevTools`) over it. ``Ctrl+` `` shows and hides the dock; `/_plainkit/console` and the like open it on that tab.
 
 | Workspace (the page's menu) | What it does |
 |---|---|
@@ -104,7 +154,7 @@ In the Development environment, `/_plainkit` serves the toolkit's own tools, all
 
 **The Blazor section of the inspector** (Components tab) is built from `blazor/mappings/*.json` and the generator's manifest, which the package carries inside its assembly (`PkMappingInfo`); the SDK holds no copy. For an element it shows the component (generated, hand-written or not available yet), each parameter, event and content slot with its type, the element's default and whether it is two-way, why a parameter is not generated when it is not, and the equivalent Razor (the example's attributes as parameters, enums as `ButtonVariant.Primary`, a two-way value as `@bind-Value`). The gallery's own inspector cannot show it yet: it has no hook to pass `extraSections` (see Known limits).
 
-Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`, `PkLogs`, `PkLogSettings`, `PkQuality`, `PkThemeEditor` and `PkDevTools`. JavaScript owns everything inside a tool's element (Blazor renders no children in it) and the component lets go of it when disposed.
+Serve it outside Development with `AddPlainKit(o => o.DevTools = true)` (keep it behind your own authorisation if you do). Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`, `PkLogs`, `PkLogSettings`, `PkQuality`, `PkThemeEditor` and `PkDevTools`. JavaScript owns everything inside a tool's element (Blazor renders no children in it) and the component lets go of it when disposed.
 
 ```razor
 <PkDevTools />                                       @* the dock, on any page (Ctrl+` toggles it) *@
@@ -131,7 +181,7 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It is designed to work in Blazor Server and WebAssembly (only Server is verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
+Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. To see the forwarder work, put a misspelt element on a page, for example `<pk-buton></pk-buton>`: the SDK's loader logs the warning "`<pk-buton>` is not a Plainkit element" (scope `loader`, once per tag and page), and it appears in your `ILogger` output as a `Warning` in the category `PlainKit.loader`. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It is designed to work in Blazor Server and WebAssembly (only Server is verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
 
 ```csharp
 @inject IPkLog PkLog

@@ -1,0 +1,88 @@
+@namespace PlainKit.Blazor
+@using Microsoft.AspNetCore.Components.Sections
+@inherits PkElementBase
+
+@* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title, a pk-breadcrumb built from
+   a list of crumbs (the last one is the current page) and, when ShellSection names the layout's SectionOutlet, the title in the app shell's
+   top bar. Which crumbs belong to a route is the app's business: pass the list. *@
+@if (ShellSection is not null)
+{
+    <SectionContent SectionName="@ShellSection">@EffectiveTitle</SectionContent>
+}
+<pk-page-header heading="@InPageTitle"
+                level="@PkAttr.Num(Level)"
+                variant="@Variant"
+                class="@Css()"
+                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta">@MetaContent</span>}</pk-page-header>
+
+@code {
+    /// <summary>
+    /// The page title. Leave it off and the title is the label of the last crumb; set it for a page whose name is dynamic (a record's name).
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The trail from the section down to the current page, as a list of <see cref="PkCrumb"/>: every crumb but the last links, and the last one carries <c>aria-current="page"</c>. The app looks the route up; this only draws it.</summary>
+    [Parameter] public IReadOnlyList<PkCrumb>? Crumbs { get; set; }
+
+    /// <summary>The accessible name of the breadcrumb landmark.</summary>
+    [Parameter] public string BreadcrumbLabel { get; set; } = "Breadcrumb";
+
+    /// <summary>
+    /// The name of the <c>SectionOutlet</c> in your layout that sits in the app shell's <c>title</c> slot. When set, the title is written there (the
+    /// shell's top bar holds the page's one heading) and this header does not draw it again; it still draws the breadcrumb, the suffix and the actions.
+    /// </summary>
+    [Parameter] public string? ShellSection { get; set; }
+
+    /// <summary>The heading level the title exposes to assistive technology (<c>aria-level</c>). 1 by default: this is the page's title.</summary>
+    [Parameter] public int Level { get; set; } = 1;
+
+    /// <summary>page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right). Left off, the element's own default applies.</summary>
+    [Parameter] public string? Variant { get; set; }
+
+    /// <summary>Beside the title: a status chip, a count or a badge.</summary>
+    [Parameter] public RenderFragment? SuffixContent { get; set; }
+
+    /// <summary>Your own trail in the <c>breadcrumb</c> slot, used only when <see cref="Crumbs"/> is not set.</summary>
+    [Parameter] public RenderFragment? BreadcrumbContent { get; set; }
+
+    /// <summary>Buttons at the right of the title bar; full width and touch-sized on a narrow container.</summary>
+    [Parameter] public RenderFragment? ActionsContent { get; set; }
+
+    /// <summary>A note or metadata line under the title bar.</summary>
+    [Parameter] public RenderFragment? MetaContent { get; set; }
+
+    // The breadcrumb, written without whitespace between the crumbs (the element reads its light DOM).
+    private RenderFragment Trail => builder =>
+    {
+        if (HasCrumbs)
+        {
+            builder.OpenElement(0, "pk-breadcrumb");
+            builder.AddAttribute(1, "slot", "breadcrumb");
+            builder.AddAttribute(2, "label", BreadcrumbLabel);
+            for (var i = 0; i < Crumbs!.Count; i++)
+            {
+                var crumb = Crumbs[i];
+                builder.OpenElement(3, crumb.Href is null ? "span" : "a");
+                if (crumb.Href is not null) builder.AddAttribute(4, "href", crumb.Href);
+                if (i == Crumbs.Count - 1) builder.AddAttribute(5, "aria-current", "page");
+                builder.AddContent(6, crumb.Label);
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+        }
+        else if (BreadcrumbContent is not null)
+        {
+            builder.OpenElement(7, "span");
+            builder.AddAttribute(8, "slot", "breadcrumb");
+            builder.AddContent(9, BreadcrumbContent);
+            builder.CloseElement();
+        }
+    };
+
+    private bool HasCrumbs => Crumbs is { Count: > 0 };
+
+    private string? EffectiveTitle => !string.IsNullOrEmpty(Title) ? Title : HasCrumbs ? Crumbs![^1].Label : null;
+
+    // With a shell title the header leaves the heading out: one title per page.
+    private string? InPageTitle => ShellSection is null ? EffectiveTitle : null;
+}

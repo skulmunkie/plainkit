@@ -156,19 +156,22 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-grid
 
 `<pk-page-header>`: **Page header** (Layout & structure). The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Stacks by its own width, with the actions full width and touch-sized on a phone.
 
+Hand-written component (not generated).
+
 **Parameters**
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Heading` | `string?` |  | attribute `heading` | The title. Without it (and without default or actions content) the title bar is not shown. |
-| `Level` | `int` |  | attribute `level` | The heading level the title exposes to assistive technology (aria-level). |
-| `Variant` | `string?` |  | attribute `variant` | page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right). |
-| `ChildContent` | `RenderFragment?` |  | default slot | Beside the title: status chips, badges or your own heading element. |
-| `BreadcrumbContent` | `RenderFragment?` |  | slot `breadcrumb` | A pk-breadcrumb (or any trail) above the title; hidden when empty. |
+| `Title` | `string?` |  | attribute `heading` | The page title. Leave it off and the title is the label of the last crumb; set it for a page whose name is dynamic (a record's name). |
+| `Crumbs` | `IReadOnlyList<PkCrumb>?` |  |  | The trail from the section down to the current page, as a list of PkCrumb: every crumb but the last links, and the last one carries `aria-current="page"`. The app looks the route up; this only draws it. |
+| `BreadcrumbLabel` | `string` |  |  | The accessible name of the breadcrumb landmark. |
+| `ShellSection` | `string?` |  |  | The name of the `SectionOutlet` in your layout that sits in the app shell's `title` slot. When set, the title is written there (the shell's top bar holds the page's one heading) and this header does not draw it again; it still draws the breadcrumb, the suffix and the actions. |
+| `Level` | `int` |  | attribute `level` | The heading level the title exposes to assistive technology (`aria-level`). 1 by default: this is the page's title. |
+| `Variant` | `string?` |  | attribute `variant` | page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right). Left off, the element's own default applies. |
+| `SuffixContent` | `RenderFragment?` |  | default slot | Beside the title: a status chip, a count or a badge. |
+| `BreadcrumbContent` | `RenderFragment?` |  | slot `breadcrumb` | Your own trail in the `breadcrumb` slot, used only when Crumbs is not set. |
 | `ActionsContent` | `RenderFragment?` |  | slot `actions` | Buttons at the right of the title bar; full width and touch-sized on a narrow container. |
-| `MetaContent` | `RenderFragment?` |  | slot `meta` | A note or metadata line under the title bar; hidden when empty. |
-
-When you set a named fragment (`BreadcrumbContent`, `ActionsContent`, `MetaContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
+| `MetaContent` | `RenderFragment?` |  | slot `meta` | A note or metadata line under the title bar. |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-page-header` in the `plainkit-sdk` skill.
 

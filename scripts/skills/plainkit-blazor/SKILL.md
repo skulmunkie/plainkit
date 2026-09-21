@@ -46,11 +46,11 @@ app.MapRazorComponents<App>()
 ```
 
 ```razor
-@* MainLayout.razor (or App.razor), after its directive lines: the stylesheet, once *@
+@* App.razor: in the head, FIRST, above the app's own stylesheets and HeadOutlet: the toolkit's base layer must be the bottom of the cascade *@
 <PkStyles />
 ```
 
-Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
+`PkStyles` writes a plain in-place `<link>` (with a `?v=` content hash; `Minified`, `Versioned="false"`; `InHead="true"` is the old HeadContent behaviour, which lands after the app's stylesheets). In a layout it lands in the body, after the head links. `CssVersioned`, `CssMin` and `Versioned(path)` on `PkAssets` are for a direct `<link>`. Add `@using PlainKit.Blazor` (and `using PlainKit.Blazor;` in `Program.cs`) so the `Pk*` components resolve, and an interactive render mode (`@rendermode InteractiveServer` or a global one) for `OnClick` and binding. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
 
 ### Add a page (a bound input, a list and a toast)
 
@@ -59,7 +59,7 @@ Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve
 @inject IPkLog PkLog
 
 <PkStack>
-    <PkPageHeader Heading="Tasks" Level="1" />
+    <PkPageHeader Title="Tasks" />
     <PkField Label="New task">
         <PkInput @bind-Value="_title" Placeholder="What needs doing?" />
     </PkField>
@@ -118,11 +118,29 @@ Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve
 }
 ```
 
+### Give a page a header with breadcrumbs
+
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it.
+
+```razor
+<PkPageHeader Crumbs="@_crumbs" Title="@_name">
+    <SuffixContent><PkBadge>Open</PkBadge></SuffixContent>
+    <ActionsContent><PkButton>Receive</PkButton></ActionsContent>
+</PkPageHeader>
+
+@code {
+    private string _name = "Acme Supply order";
+    private readonly PkCrumb[] _crumbs = [new("Stock", "/stock"), new("Purchase orders", "/stock/orders"), new("PO 1042")];
+}
+```
+
 ### Open a dialog from C#
+
+`Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
 
 ```razor
 <PkButton OnClick="@(() => _open = true)">Open</PkButton>
-<PkDialog @bind-IsOpen="_open" Title="Discard changes?">
+<PkDialog @bind-IsOpen="_open" Title="Discard changes?" Size="PkDialogSize.Lg">
     <ChildContent><p>This cannot be undone.</p></ChildContent>
     <FooterContent><PkButton OnClick="@(() => _open = false)">Close</PkButton></FooterContent>
 </PkDialog>

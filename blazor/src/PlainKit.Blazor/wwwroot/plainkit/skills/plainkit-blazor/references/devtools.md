@@ -112,7 +112,11 @@ In the Development environment, `/_plainkit` serves the toolkit's own tools: the
 
 ## `PkStyles`
 
-No parameters.
+| Parameter | Type | Description |
+|---|---|---|
+| `Minified` | `bool` | The minified stylesheet (CssMin) instead of Css. Same rules. |
+| `Versioned` | `bool` | Adds `?v=` and a content hash of the file (see Versioned), so a browser fetches the file again exactly when it changed. On by default. |
+| `InHead` | `bool` | Render the link through `HeadContent` (into `HeadOutlet`) instead of in place. That puts it after the app's own stylesheets in the standard `App.razor`, so the toolkit's base layer overrides app rules of equal specificity: leave it off unless you know you want that. |
 
 ## `PkDevToolsPage`
 

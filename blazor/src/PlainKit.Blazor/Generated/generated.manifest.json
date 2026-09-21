@@ -46,7 +46,6 @@
     "PkNavItem",
     "PkNavbar",
     "PkOtpInput",
-    "PkPageHeader",
     "PkPager",
     "PkPagination",
     "PkPopover",
@@ -107,6 +106,12 @@
     {
       "component": "PkGallery",
       "tag": "pk-gallery",
+      "reason": "hand-written in Components/",
+      "handWritten": true
+    },
+    {
+      "component": "PkPageHeader",
+      "tag": "pk-page-header",
       "reason": "hand-written in Components/",
       "handWritten": true
     },
@@ -182,6 +187,19 @@
       ],
       "usedBy": [
         "PkAlert"
+      ]
+    },
+    {
+      "name": "PkDialogSize",
+      "members": [
+        "Sm",
+        "Md",
+        "Lg",
+        "Xl",
+        "Fullscreen"
+      ],
+      "usedBy": [
+        "PkDialog"
       ]
     },
     {

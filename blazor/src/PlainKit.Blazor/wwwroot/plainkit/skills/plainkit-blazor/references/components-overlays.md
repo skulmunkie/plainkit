@@ -70,6 +70,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-cont
 | `FooterContent` | `RenderFragment?` |  | slot `footer` | Actions. |
 | `OnClose` | `EventCallback<PkCloseEventArgs>` |  | event `pk-close` | escape, close button or method. |
 | `ShowCloseButton` | `bool` |  | attribute `hide-close` | Hide the header close button (the dialog offers its own Cancel in the footer). False hides the header close button (the opposite of hideClose); give the dialog its own Cancel or Close. |
+| `Size` | `PkDialogSize?` | `Sm` `Md` `Lg` `Xl` `Fullscreen` | attribute `size` | The size setting |
 | `MaxWidthPx` | `int` |  | attribute `max-width` | Card width in pixels before the viewport clamp; 0 keeps the size preset. |
 | `Tint` | `PkDialogTint` | `None` `Product` `Archived` | attribute `tint` | A tinted card: product (green wash) or archived (red wash). |
 
