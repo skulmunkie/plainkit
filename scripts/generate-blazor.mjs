@@ -44,12 +44,23 @@ const SIMPLE = new Set(['string', 'bool', 'DateOnly', 'object', ...NUMERIC]);
 const COLLECTION = /^(IReadOnlyList|IReadOnlyCollection|IEnumerable|List|IDictionary|Dictionary|HashSet)</;
 const stripNull = t => t.replace(/\?$/, '');
 
-/** True for a collection or array whose element types are all simple, so it can be sent to the element as a JSON attribute. */
-export function isJsonType(t) {
+/**
+ * True for a collection or array whose element types are all simple, so it can be sent to the element as a JSON attribute. `known` are the public
+ * types PlainKit.Blazor declares (records such as PkChartData): with them a collection of them, or one of them on its own, is a JSON value too.
+ */
+export function isJsonType(t, known = new Set()) {
     const base = stripNull(t);
-    if (!(COLLECTION.test(base) || /\[\]$/.test(base))) return false;
+    if (!(COLLECTION.test(base) || /\[\]$/.test(base) || known.has(base))) return false;
     const ids = base.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
-    return ids.every(i => SIMPLE.has(i) || COLLECTION.test(i + '<') || i === 'IDictionary');
+    return ids.every(i => SIMPLE.has(i) || known.has(i) || COLLECTION.test(i + '<') || i === 'IDictionary');
+}
+
+/** The public types (record, class, struct, enum) declared in the .cs files directly in `dir`: what a mapping type may name for a JSON parameter. */
+export function knownTypes(dir) {
+    const found = new Set();
+    for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.cs')))
+        for (const m of fs.readFileSync(path.join(dir, f), 'utf8').matchAll(/^public\s+(?:(?:sealed|static|abstract|readonly|partial)\s+)*(?:record\s+struct|record|class|struct|enum)\s+(\w+)/gm)) found.add(m[1]);
+    return found;
 }
 
 /** The C# type of one detail field, from the API's description of it ("string", "bool" or "boolean", "number", "string[]", ...). */
@@ -168,7 +179,7 @@ export function modelElement(el, mapping, reg) {
     for (const p of mapping.params) {
         const map = inferMap(p);
         const r = { p, map, name: p.name };
-        if (map === 'prop') resolved.push(resolveProp(el, p, r, comp, enumType, todo)); else resolved.push(r);
+        if (map === 'prop') resolved.push(resolveProp(el, p, r, comp, enumType, todo, reg.types)); else resolved.push(r);
     }
     for (const r of resolved) if (r.map === 'prop' && r.cs) propParam[r.name] = r;
 
@@ -274,7 +285,7 @@ function pickField(ev, key) {
 }
 
 /** The C# type and the attribute expression of a prop parameter. */
-function resolveProp(el, p, r, comp, enumType, todo) {
+function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
     const api = el.props.find(x => x.name === p.prop);
     if (!api) return { ...r, reason: `the element has no prop ${p.prop}` };
     r.api = api;
@@ -297,7 +308,7 @@ function resolveProp(el, p, r, comp, enumType, todo) {
         // No mapping type: derive from the SDK prop.
         if (api.type === 'boolean') { cs = 'bool'; attr = 'bool'; }
         else if (api.type === 'number') { cs = 'double?'; attr = 'num'; }
-        else if (api.type === 'json') { cs = 'object?'; attr = 'json'; }
+        else if (api.type === 'json') { cs = 'object?'; attr = 'json'; r.todo = p.todo ?? 'a JSON prop with no mapping type: give it a public record in PlainKit.Blazor and name it as the mapping type (issue #77)'; }
         else { cs = 'string?'; attr = 'str'; }
     } else {
         const base = stripNull(t);
@@ -315,7 +326,7 @@ function resolveProp(el, p, r, comp, enumType, todo) {
             attr = 'num';
         }
         else if (base === 'DateOnly') { cs = 'DateOnly?'; attr = 'date'; }
-        else if (isJsonType(t)) { cs = base + '?'; attr = 'json'; }
+        else if (isJsonType(t, api.type === 'json' ? types : undefined)) { cs = base + '?'; attr = 'json'; }
         else if (api.type === 'enum' && /^[A-Z][A-Za-z0-9]*$/.test(base)) {
             enumType(base, api.values.map(v => [memberName(v), v]), comp);
             const def = hasDefault ? api.values.find(v => v.toLowerCase() === String(p.default).toLowerCase() || memberName(v).toLowerCase() === String(p.default).toLowerCase()) : null;
@@ -471,9 +482,9 @@ export function afterWebStarted(blazor) { register(blazor); }
  * Everything the generator writes: Map(relative path from the repository root -> LF text), plus the report.
  * `mappings` is { name: mapping }, `handWritten` the component names that already exist as .razor files by hand.
  */
-export function generate(api, mappings, handWritten = new Set()) {
+export function generate(api, mappings, handWritten = new Set(), types = new Set()) {
     const byTag = new Map(api.map(e => [e.tag, e]));
-    const reg = { enums: new Map(), events: new Map(), eventNames: new Set() };
+    const reg = { enums: new Map(), events: new Map(), eventNames: new Set(), types };
     const files = new Map();
     const generated = [], skipped = [], todo = [], notGenerated = [];
     for (const name of Object.keys(mappings).sort()) {
@@ -487,7 +498,7 @@ export function generate(api, mappings, handWritten = new Set()) {
             skipped.push({ component: mapping.component, tag: el.tag, reason: hand ? 'hand-written in Components/' : 'existing: true in the mapping (kept by hand, not in this package yet)', handWritten: hand });
             // A hand-written component listens for the element's pk-* events too: register them (and their args classes) so Blazor delivers them.
             // Only the event registry is shared; the model itself is thrown away.
-            if (hand) modelElement(el, mapping, { enums: new Map(), events: reg.events, eventNames: reg.eventNames });
+            if (hand) modelElement(el, mapping, { enums: new Map(), events: reg.events, eventNames: reg.eventNames, types });
             continue;
         }
         const m = modelElement(el, mapping, reg);
@@ -523,7 +534,7 @@ export function load() {
     const api = JSON.parse(fs.readFileSync(paths.api, 'utf8'));
     const mappings = Object.fromEntries(fs.readdirSync(paths.mappings).filter(f => f.endsWith('.json')).sort().map(f => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(paths.mappings, f), 'utf8'))]));
     const handWritten = new Set(fs.existsSync(paths.components) ? fs.readdirSync(paths.components).filter(f => f.endsWith('.razor') && !f.startsWith('_')).map(f => f.replace(/\.razor$/, '')) : []);
-    return generate(api, mappings, handWritten);
+    return generate(api, mappings, handWritten, knownTypes(paths.package));
 }
 
 /** The files as they belong on disk: absolute path -> CRLF text. */

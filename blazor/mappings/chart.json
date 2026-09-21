@@ -19,7 +19,8 @@
     {
       "name": "Data",
       "prop": "data",
-      "note": "Pass a PkChartData: { Labels, Series: [{ Name, Values }] }. It is sent as a JSON attribute (camelCase) and replaces the slotted table."
+      "type": "PkChartData",
+      "note": "{ Labels, Series: [{ Name, Values }] }. It is sent as a JSON attribute (camelCase) and replaces the slotted table."
     },
     {
       "name": "CaptionContent",
@@ -32,5 +33,5 @@
       "type": "RenderFragment?"
     }
   ],
-  "notes": "Data takes a PkChartData (labels plus named series of numbers); the parameter is an object because the generator types a JSON parameter only when it holds simple values."
+  "notes": "Data takes a PkChartData (labels plus named series of numbers), sent as the data attribute in camelCase JSON."
 }

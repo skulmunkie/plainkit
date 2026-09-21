@@ -50,6 +50,10 @@
         <ActionContent><PkButton Variant="ButtonVariant.Primary">Add</PkButton></ActionContent>
     </PkEmptyState>
 
+    @* Typed JSON parameters (issue #77): the record is serialised into the data / images attribute and the element draws it. *@
+    <PkChart id="chart" Kind="bar" Data="_chart" />
+    <PkImageGallery id="gallery" Images="_images" />
+
     <PkButton OnClick="WriteLogs">Write logs with IPkLog</PkButton>
     <pk-nope></pk-nope>
 
@@ -64,6 +68,8 @@
     private int _clicks;
     private int _closes;
     private string _search = "";
+    private readonly PkChartData _chart = new() { Labels = ["Mon", "Tue", "Wed"], Series = [new PkChartSeries { Name = "Visits", Values = [3, 5.5, 4] }] };
+    private readonly IReadOnlyList<PkGalleryImage> _images = [new() { Src = "/a.png", Alt = "First", Primary = true }, new() { Src = "/b.png", Alt = "Second", Status = "Staged" }];
 
     // Runs once while prerendering (where JavaScript is not available: the call is dropped without throwing) and once on the circuit (where it is written).
     protected override async Task OnInitializedAsync() =>

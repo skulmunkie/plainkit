@@ -67,6 +67,37 @@ public sealed class TypedParameterTests : TestContext
         Assert.Equal("[{\"key\":\"n\",\"label\":\"N\",\"type\":\"number\",\"align\":\"end\",\"sortable\":true}]", json);
     }
 
+    // Issue #77: the chart's data and the gallery's images are typed parameters now, and the attribute is byte for byte what the object? parameter sent.
+    [Fact]
+    public void Chart_data_and_gallery_images_are_typed_parameters_not_object()
+    {
+        Assert.Equal(typeof(PkChartData), typeof(PkChart).GetProperty(nameof(PkChart.Data))!.PropertyType);
+        Assert.Equal(typeof(IReadOnlyList<PkGalleryImage>), typeof(PkImageGallery).GetProperty(nameof(PkImageGallery.Images))!.PropertyType);
+    }
+
+    [Fact]
+    public void No_generated_component_has_an_untyped_object_parameter()
+    {
+        var untyped = typeof(PkChart).Assembly.GetTypes()
+            .Where(t => typeof(PkElementBase).IsAssignableFrom(t) && t.Namespace == "PlainKit.Blazor" && !t.IsAbstract)
+            .SelectMany(t => t.GetProperties().Where(pr => pr.PropertyType == typeof(object) && pr.GetCustomAttributes(typeof(Microsoft.AspNetCore.Components.ParameterAttribute), false).Length > 0)
+                .Select(pr => t.Name + "." + pr.Name))
+            .ToList();
+
+        Assert.Empty(untyped);
+    }
+
+    [Fact]
+    public void The_typed_chart_data_and_images_serialise_exactly_as_before()
+    {
+        var chart = RenderComponent<PkChart>(p => p.Add(x => x.Data, new PkChartData { Labels = ["Mon", "Tue"], Series = [new PkChartSeries { Name = "Visits", Values = [3, 5.5] }] }));
+        Assert.Equal("""{"labels":["Mon","Tue"],"series":[{"name":"Visits","values":[3,5.5]}]}""", chart.Find("pk-chart").GetAttribute("data"));
+
+        IReadOnlyList<PkGalleryImage> images = [new PkGalleryImage { Src = "/a.png", Alt = "A", Primary = true }, new PkGalleryImage { Src = "/b.png", Alt = "B", Status = "Staged" }];
+        var gallery = RenderComponent<PkImageGallery>(p => p.Add(x => x.Images, images));
+        Assert.Equal("""[{"src":"/a.png","alt":"A","primary":true},{"src":"/b.png","alt":"B","status":"Staged"}]""", gallery.Find("pk-image-gallery").GetAttribute("images"));
+    }
+
     [Fact]
     public void The_dialog_tint_is_sent_as_its_attribute_value()
     {

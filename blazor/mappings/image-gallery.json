@@ -5,7 +5,8 @@
       "name": "Images",
       "map": "prop",
       "prop": "images",
-      "note": "Pass an IReadOnlyList<PkGalleryImage>: sent as a JSON attribute ([{ src, alt, primary, status }])."
+      "type": "IReadOnlyList<PkGalleryImage>",
+      "note": "Sent as a JSON attribute ([{ src, alt, primary, status }], camelCase)."
     },
     {
       "name": "Primary",
