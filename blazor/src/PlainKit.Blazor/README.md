@@ -4,6 +4,18 @@ Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the d
 
 The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
 
+## Alpha status
+
+This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
+
+- **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
+- **Not verified:** Blazor WebAssembly. It has not been run in a WebAssembly host, so treat it as untested there (the Files tool is server-side only by design).
+- **Not yet available as components (5):** `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable` (the data grid). Their elements work as plain `<pk-card>` etc. markup.
+- **Wrapper-only parameters not generated (17):** behaviour of the old wrappers that is not a property of the element. `PkAlert`: `Boxed`, `Compact`, `Inline`. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay`. `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`, `ShowCloseButton`. `PkDrawer`: `Backdrop`, `IsLoading`, `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink`, `LoadAsync`, `OnClick`, `Title`. (`PkDialog.MaxWidthPx` is also not generated: it sets a CSS custom property, which needs a CSSOM helper because the CSP blocks inline styles.)
+- **Parameters with a type not defined yet (4, issue #9):** `PkChart.Data` and `PkImageGallery.Images` (not generated), `PkDialog.Theme` and `PkTooltip.Kind` (not generated).
+
+The full list is in [`Generated/generated.manifest.json`](Generated/generated.manifest.json) (a repository file, not part of the package) and `node scripts/generate-blazor.mjs --list`.
+
 ## Where the element mappings live
 
 How each SDK element becomes a component (its `Pk` name, parameters, slots and events) is not in the SDK's element metadata: it is one file per element in [`blazor/mappings/`](../../mappings). `scripts/tests/blazor-mappings.test.mjs` checks them against `core/elements/*/*.meta.json`.
@@ -75,7 +87,7 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It works the same in Blazor Server and WebAssembly, and its calls do not throw while prerendering or after the circuit disconnects.
+Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It is designed to work in Blazor Server and WebAssembly (only Server is verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
 
 ```csharp
 @inject IPkLog PkLog

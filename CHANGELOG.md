@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+- Alpha status of PlainKit.Blazor: Blazor Server is verified in a live host; Blazor WebAssembly is not verified. Not yet available as components: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat`, `PkTable` (data grid). Not generated: 17 wrapper-only parameters (`PkAlert` `Boxed`, `Compact`, `Inline`; `PkAppShell` `ErrorOverlayMessage`, `ShowErrorOverlay`; `PkDialog` `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`, `ShowCloseButton`; `PkDrawer` `Backdrop`, `IsLoading`, `PhoneCards`; `PkTooltip` `DocLink`, `ExternalLink`, `LoadAsync`, `OnClick`, `Title`) plus `PkDialog.MaxWidthPx` (a CSS custom property), and 4 parameters whose app-era type is not defined (issue #9): `PkChart.Data`, `PkImageGallery.Images`, `PkDialog.Theme`, `PkTooltip.Kind`. See the "Alpha status" section of the package README.
+- Fixed: the NuGet package no longer contains `Generated/generated.manifest.json` (it was packed as `content/` and `contentFiles/` and copied into consumers' projects); `scripts/tests/blazor-package.test.mjs` guards it.
+- Fixed: every public enum and member in PlainKit.Blazor (`PkTheme`, `PkWidth`, `PkChrome`, `PkGalleryKind`, `PkLogLevel`) has an XML doc comment, so the build has no CS1591 warnings.
+- Changed: the gallery's Guides page says "Coming soon" (a `pk-badge` above the empty state); the docs engine is undecided (issue #6).
 ### Breaking
 
 - Changed (breaking): the code explorer element is now `<pk-code-explorer>` (was `<code-explorer>`), its events `pk-code-explorer-open` and `pk-code-explorer-error` (were `code-explorer-open` and `code-explorer-error`) and its height hook `--pk-code-explorer-height` (was `--code-explorer-height`), following the `pk-` naming rule (issue #12). There is no alias for the old tag. `mountCodeExplorer`, the module name and the JS exports are unchanged; `PkCodeExplorer` in Blazor is unaffected.

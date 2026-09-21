@@ -20,6 +20,14 @@
   <!-- wwwroot/plainkit is a byte-for-byte copy of core/dist (node scripts/publish-dist.mjs; CI verifies it is current). It is served under
        _content/PlainKit.Blazor/plainkit/. Files outside wwwroot cannot be served by the static web assets runtime, hence the copy. -->
 
+  <!-- Generated/generated.manifest.json is a review aid for the generator (the generator's check compares it), not something consumers need. The SDK treats
+       *.json as Content, which packs it under content/ and contentFiles/ and copies it into a consumer's project, so it is taken out of the package.
+       scripts/tests/blazor-package.test.mjs checks this. -->
+  <ItemGroup>
+    <Content Remove="Generated\generated.manifest.json" />
+    <None Include="Generated\generated.manifest.json" Pack="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
