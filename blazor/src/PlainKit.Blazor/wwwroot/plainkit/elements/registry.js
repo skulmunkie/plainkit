@@ -64,6 +64,7 @@ export default {
     "pk-skip-link": "./skip-link.js",
     "pk-spinner": "./spinner.js",
     "pk-split-button": "./split-button.js",
+    "pk-splitter": "./splitter.js",
     "pk-stack": "./stack.js",
     "pk-stat": "./stat.js",
     "pk-step": "./step.js",
@@ -85,5 +86,6 @@ export default {
     "pk-tooltip": "./tooltip.js",
     "pk-tree": "./tree.js",
     "pk-tree-item": "./tree-item.js",
+    "pk-unit-input": "./unit-input.js",
     "pk-workspace": "./workspace.js"
 };

@@ -1,0 +1,70 @@
+{
+  "component": "PkSplitter",
+  "params": [
+    {
+      "name": "Orientation",
+      "type": "string",
+      "default": "horizontal",
+      "map": "prop",
+      "prop": "orientation"
+    },
+    {
+      "name": "Size",
+      "type": "double",
+      "default": 50,
+      "map": "prop",
+      "prop": "size",
+      "bind": {
+        "event": "pk-resize",
+        "value": "detail.size"
+      }
+    },
+    {
+      "name": "Min",
+      "type": "double",
+      "default": 10,
+      "map": "prop",
+      "prop": "min"
+    },
+    {
+      "name": "Max",
+      "type": "double",
+      "default": 90,
+      "map": "prop",
+      "prop": "max"
+    },
+    {
+      "name": "Step",
+      "type": "double",
+      "default": 2,
+      "map": "prop",
+      "prop": "step"
+    },
+    {
+      "name": "AriaLabel",
+      "type": "string",
+      "default": "Resize panes",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Disabled",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "disabled"
+    },
+    {
+      "name": "StartContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "start"
+    },
+    {
+      "name": "EndContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "end"
+    }
+  ]
+}

@@ -7,19 +7,21 @@ export function delta(current, previous, flatBelow = 0.05) {
     return { direction: Math.abs(pct) < flatBelow ? 'flat' : pct > 0 ? 'up' : 'down', pct: Math.round(pct * 10) / 10 };
 }
 
-// "+12.5%", "-3%", "0%" ; "New" when there was nothing to compare with.
-export function formatDelta({ pct, direction }) {
-    if (pct === null) return direction === 'up' ? 'New' : '0%';
-    return `${pct > 0 ? '+' : ''}${pct}%`;
+// "+12.5%", "-3%", "0%" ; "New" when there was nothing to compare with. unit 'points' reads "+4 pts" (a change in points, not a percentage).
+export function formatDelta({ pct, direction }, unit = 'percent') {
+    const suffix = unit === 'points' ? ' pts' : '%';
+    if (pct === null) return direction === 'up' ? 'New' : `0${suffix}`;
+    return `${pct > 0 ? '+' : ''}${pct}${suffix}`;
 }
 
 // Whether a direction is good news. Most metrics are up-is-good; costs and returns are down-is-good (invert = true).
 export const isGood = (direction, invert = false) => (direction === 'flat' ? null : (direction === 'up') !== invert);
 
 // The spoken form: "up 12.5 percent versus last month".
-export function deltaSpeech({ pct, direction }, versus = 'the previous period') {
+export function deltaSpeech({ pct, direction }, versus = 'the previous period', unit = 'percent') {
     if (pct === null) return `new, nothing to compare with ${versus}`;
-    return direction === 'flat' ? `unchanged versus ${versus}` : `${direction} ${Math.abs(pct)} percent versus ${versus}`;
+    const word = unit === 'points' ? (Math.abs(pct) === 1 ? 'point' : 'points') : 'percent';
+    return direction === 'flat' ? `unchanged versus ${versus}` : `${direction} ${Math.abs(pct)} ${word} versus ${versus}`;
 }
 
 // "x,y x,y" for a sparkline scaled to its own min and max in a w by h box.
@@ -52,8 +54,8 @@ export default Base => class extends Base {
         if (!chip.hidden) {
             const d = { pct, direction: this.deltaDirection === 'auto' ? (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat') : this.deltaDirection };
             chip.dataset.trend = { true: 'good', false: 'bad', null: 'flat' }[String(isGood(d.direction, this.invert))];
-            chip.textContent = `${d.direction === 'up' ? '▲' : d.direction === 'down' ? '▼' : '▬'} ${formatDelta(d)}`;
-            const say = doc.createElement('span'); say.className = 'sr'; say.textContent = ` ${deltaSpeech(d, this.versus)}`; chip.append(say);
+            chip.textContent = `${d.direction === 'up' ? '▲' : d.direction === 'down' ? '▼' : '▬'} ${formatDelta(d, this.deltaUnit)}`;
+            const say = doc.createElement('span'); say.className = 'sr'; say.textContent = ` ${deltaSpeech(d, this.versus, this.deltaUnit)}`; chip.append(say);
         }
         const spark = this.part('spark');
         spark.hidden = this.values.length < 2;

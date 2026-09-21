@@ -106,4 +106,29 @@ export const layoutCases = [
         await t.load(host); await t.settle();
         t.eq(Math.round(host.querySelector('pk-grid').getBoundingClientRect().width), 500);
     }],
+
+    ['splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once', async t => {
+        const host = t.stage('<pk-splitter size="30" min="10" max="80" step="5" label="Resize the list"><div slot="start">A</div><div slot="end">B</div></pk-splitter>');
+        host.style.inlineSize = '500px'; await t.load(host); await t.settle();
+        const el = host.firstElementChild; const h = el.part('handle');
+        const w = p => el.part(p).getBoundingClientRect().width; const room = 500 - h.getBoundingClientRect().width;
+        t.ok(Math.abs(w('start') - room * 0.3) < 1.5, 'the start pane is 30 percent of the room'); t.ok(Math.abs(w('end') - room * 0.7) < 1.5);
+        t.eq(h.getAttribute('role'), 'separator'); t.eq(h.getAttribute('aria-orientation'), 'vertical'); t.eq(h.getAttribute('aria-valuenow'), '30'); t.eq(h.getAttribute('aria-valuemin'), '10'); t.eq(h.getAttribute('aria-valuemax'), '80'); t.eq(h.getAttribute('aria-label'), 'Resize the list'); t.eq(h.tabIndex, 0); t.eq(h.getAttribute('aria-controls'), 'p'); t.ok(el.shadowRoot.getElementById('p'));
+        const seen = []; el.addEventListener('pk-resize', e => seen.push(e.detail.size));
+        const key = k => h.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        key('ArrowRight'); await t.settle(); t.eq(el.size, 35); t.eq(h.getAttribute('aria-valuenow'), '35'); t.eq(seen.join(), '35');
+        key('End'); key('End'); key('Home'); await t.settle(); t.eq(seen.join(), '35,80,10'); t.eq(el.size, 10);
+        key('ArrowDown'); t.eq(seen.length, 3, 'Down does nothing side by side');
+        el.size = 40; await t.settle(); t.eq(seen.length, 3, 'a size the host sets raises nothing'); t.ok(Math.abs(w('start') - room * 0.4) < 1.5);
+        const box = el.part('root').getBoundingClientRect(); const r = h.getBoundingClientRect(); const cx = r.left + r.width / 2;
+        const ptr = (type, x) => h.dispatchEvent(new PointerEvent(type, { pointerId: 7, clientX: x, clientY: r.top + 5, button: 0, bubbles: true, composed: true }));
+        let inputs = 0; el.addEventListener('input', () => { inputs++; });
+        ptr('pointerdown', cx); ptr('pointermove', box.left + 4 + room * 0.6); await t.settle(); t.ok(Math.abs(el.size - 60) < 0.5, 'the drag lands at 60 percent'); t.eq(seen.length, 3, 'no commit while dragging'); t.ok(inputs >= 1);
+        ptr('pointerup', 0); await t.settle(); t.eq(seen.length, 4); t.eq(seen[3], el.size); t.ok(!el.part('root').hasAttribute('data-dragging'));
+        el.disabled = true; await t.settle(); t.eq(h.tabIndex, -1); t.eq(h.getAttribute('aria-disabled'), 'true'); const kept = el.size; key('ArrowRight'); t.eq(el.size, kept);
+        const v = t.stage('<pk-splitter orientation="vertical" size="50"><div slot="start">A</div><div slot="end">B</div></pk-splitter>'); await t.load(v); await t.settle();
+        const ve = v.firstElementChild; const vh = ve.part('handle'); t.eq(vh.getAttribute('aria-orientation'), 'horizontal');
+        vh.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true })); t.eq(ve.size, 52);
+        t.ok(ve.part('start').getBoundingClientRect().height > 0 && ve.getBoundingClientRect().height >= 200, 'stacked panes share a fixed height');
+    }],
 ];

@@ -1486,7 +1486,7 @@ export const ELEMENTS = [
         "tag": "pk-button-group",
         "title": "Button group",
         "group": "Actions",
-        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
         "props": [
             {
                 "name": "orientation",
@@ -1541,8 +1541,12 @@ export const ELEMENTS = [
         ],
         "cssProperties": [],
         "methods": [],
-        "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
+        "a11y": "role=group with an aria-label (a group of toggle buttons, not a radiogroup: each keeps its own tab stop and Space or Enter presses it). In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height. A segmented control: give each toggle button a value and listen for pk-toggle on the group (it bubbles); the choice is the event whose detail.pressed is true, and pressing the pressed button again also raises pk-toggle with pressed false, which the group immediately undoes, so ignore that one.",
         "examples": [
+            {
+                "title": "Segmented control (Dark and Light)",
+                "html": "<pk-button-group label=\"Theme\" mode=\"single\"><pk-button toggle pressed value=\"dark\" variant=\"ghost\">Dark</pk-button><pk-button toggle value=\"light\" variant=\"ghost\">Light</pk-button></pk-button-group>"
+            },
             {
                 "title": "Group and single choice",
                 "html": "<pk-button-group label=\"View\"><pk-button variant=\"ghost\">Day</pk-button><pk-button variant=\"ghost\">Week</pk-button><pk-button variant=\"ghost\">Month</pk-button></pk-button-group>\n<pk-button-group label=\"Density\" mode=\"single\"><pk-button toggle pressed variant=\"ghost\">Compact</pk-button><pk-button toggle variant=\"ghost\">Comfortable</pk-button></pk-button-group>"
@@ -2428,6 +2432,13 @@ export const ELEMENTS = [
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
                 "name": "description",
                 "type": "string",
                 "default": "",
@@ -2479,6 +2490,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The row of swatch and hex field."
             },
@@ -2516,6 +2531,10 @@ export const ELEMENTS = [
         ],
         "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
         "examples": [
+            {
+                "title": "Visible label",
+                "html": "<pk-colour-input label=\"Accent colour\" show-label value=\"#4a90e2\"></pk-colour-input>"
+            },
             {
                 "title": "Picker and hex",
                 "html": "<pk-colour-input label=\"Accent colour\" value=\"#4a90e2\"></pk-colour-input>"
@@ -8054,6 +8073,142 @@ export const ELEMENTS = [
         ]
     },
     {
+        "tag": "pk-splitter",
+        "title": "Splitter",
+        "group": "Layout",
+        "summary": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.",
+        "delegatesFocus": true,
+        "props": [
+            {
+                "name": "orientation",
+                "type": "enum",
+                "default": "horizontal",
+                "values": [
+                    "horizontal",
+                    "vertical"
+                ],
+                "reflect": true,
+                "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise)."
+            },
+            {
+                "name": "size",
+                "type": "number",
+                "default": 50,
+                "reflect": false,
+                "commit": "pk-resize",
+                "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does."
+            },
+            {
+                "name": "min",
+                "type": "number",
+                "default": 10,
+                "reflect": false,
+                "description": "Smallest size of the start pane, in percent (aria-valuemin)."
+            },
+            {
+                "name": "max",
+                "type": "number",
+                "default": 90,
+                "reflect": false,
+                "description": "Largest size of the start pane, in percent (aria-valuemax)."
+            },
+            {
+                "name": "step",
+                "type": "number",
+                "default": 2,
+                "reflect": false,
+                "description": "Percent moved by one arrow key press."
+            },
+            {
+                "name": "label",
+                "type": "string",
+                "default": "Resize panes",
+                "reflect": false,
+                "description": "The separator's accessible name (aria-label)."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Fixes the size: the separator no longer takes focus or moves."
+            }
+        ],
+        "slots": [
+            {
+                "name": "start",
+                "description": "The first pane (left, or top when stacked); its size is size percent."
+            },
+            {
+                "name": "end",
+                "description": "The second pane, which takes the rest."
+            }
+        ],
+        "events": [
+            {
+                "name": "input",
+                "detail": "native Event",
+                "description": "The size is changing while a drag is in progress (native, composed). Read the size from the element."
+            },
+            {
+                "name": "pk-resize",
+                "detail": "{ size: number }",
+                "detailProps": {
+                    "size": "number"
+                },
+                "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+            }
+        ],
+        "parts": [
+            {
+                "name": "root",
+                "description": "The grid that lays out the two panes and the separator."
+            },
+            {
+                "name": "start",
+                "description": "The first pane wrapper (it scrolls on its own)."
+            },
+            {
+                "name": "handle",
+                "description": "The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen."
+            },
+            {
+                "name": "end",
+                "description": "The second pane wrapper (it scrolls on its own)."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-splitter-handle",
+                "description": "Thickness of the separator.",
+                "default": "var(--space-2)"
+            },
+            {
+                "name": "--pk-splitter-height",
+                "description": "Height of the splitter (the panes scroll inside it).",
+                "default": "auto, or 16rem when stacked"
+            },
+            {
+                "name": "--pk-splitter-line",
+                "description": "Colour of the separator line at rest.",
+                "default": "var(--color-border)"
+            }
+        ],
+        "methods": [],
+        "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.",
+        "mobile": "On a touch screen the separator's hit area is 44px in the resize direction (the line stays thin), and touch-action is off on it so a drag resizes instead of scrolling.",
+        "examples": [
+            {
+                "title": "Side by side",
+                "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+            },
+            {
+                "title": "Stacked",
+                "html": "<pk-splitter orientation=\"vertical\" size=\"60\" label=\"Resize the console\"><div slot=\"start\">Editor</div><div slot=\"end\">Console</div></pk-splitter>"
+            }
+        ]
+    },
+    {
         "tag": "pk-stack",
         "title": "Stack",
         "group": "Layout",
@@ -8173,7 +8328,18 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+                "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+            },
+            {
+                "name": "deltaUnit",
+                "type": "enum",
+                "default": "percent",
+                "values": [
+                    "percent",
+                    "points"
+                ],
+                "reflect": true,
+                "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points."
             },
             {
                 "name": "deltaDirection",
@@ -8298,11 +8464,11 @@ export const ELEMENTS = [
                 "description": "Direction and percent."
             },
             {
-                "name": "formatDelta(d)",
-                "description": "A signed percentage."
+                "name": "formatDelta(d, unit)",
+                "description": "A signed percentage, or points when unit is points."
             },
             {
-                "name": "deltaSpeech(d, versus)",
+                "name": "deltaSpeech(d, versus, unit)",
                 "description": "The spoken form."
             }
         ],
@@ -8315,6 +8481,10 @@ export const ELEMENTS = [
             {
                 "title": "Change and trend",
                 "html": "<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values='[12,15,14,17,18]'></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert></pk-stat>"
+            },
+            {
+                "title": "Change in points",
+                "html": "<pk-stat label=\"Quality score\" value=\"87\" delta=\"4\" delta-unit=\"points\" versus=\"last run\"></pk-stat>"
             },
             {
                 "title": "Dashboard tile as a button",
@@ -9563,6 +9733,13 @@ export const ELEMENTS = [
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
                 "name": "description",
                 "type": "string",
                 "default": "",
@@ -9670,6 +9847,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The bordered field."
             },
@@ -9712,6 +9893,10 @@ export const ELEMENTS = [
         ],
         "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
         "examples": [
+            {
+                "title": "Visible label",
+                "html": "<pk-textarea label=\"Notes\" show-label rows=\"3\"></pk-textarea>"
+            },
             {
                 "title": "Fixed and auto-grow",
                 "html": "<pk-textarea label=\"Notes\" rows=\"3\" value=\"Fixed height, resizable.\"></pk-textarea>\n<pk-textarea label=\"Description\" autogrow max-height=\"160\" value=\"Grows as you type, up to 160px.\"></pk-textarea>"
@@ -10525,6 +10710,192 @@ export const ELEMENTS = [
             {
                 "title": "Leaf and branch",
                 "html": "<pk-tree-item label=\"Puzzles\" selected></pk-tree-item>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-unit-input",
+        "title": "Unit input",
+        "group": "Form controls",
+        "summary": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.",
+        "delegatesFocus": true,
+        "formAssociated": true,
+        "props": [
+            {
+                "name": "name",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The form field name."
+            },
+            {
+                "name": "value",
+                "type": "string",
+                "default": "",
+                "reflect": false,
+                "commit": "pk-value-change",
+                "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+            },
+            {
+                "name": "units",
+                "type": "string",
+                "default": "px,rem,em,%",
+                "reflect": false,
+                "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select."
+            },
+            {
+                "name": "placeholder",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Hint shown in the number field while it is empty."
+            },
+            {
+                "name": "label",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty."
+            },
+            {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
+                "name": "description",
+                "type": "string",
+                "default": "",
+                "reflect": false,
+                "description": "Help and error text, exposed as aria-description; pk-field fills it."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Blocks interaction; also set by a disabled fieldset."
+            },
+            {
+                "name": "readonly",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows the value but does not let it change (the unit select is disabled too)."
+            },
+            {
+                "name": "required",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "The form cannot be submitted while the number is empty."
+            },
+            {
+                "name": "invalid",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+            },
+            {
+                "name": "min",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Lowest number (the number, whatever the unit)."
+            },
+            {
+                "name": "max",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Highest number."
+            },
+            {
+                "name": "step",
+                "type": "string",
+                "default": "any",
+                "reflect": true,
+                "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by."
+            }
+        ],
+        "slots": [],
+        "events": [
+            {
+                "name": "input",
+                "detail": "native Event",
+                "description": "The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element."
+            },
+            {
+                "name": "change",
+                "detail": "native Event",
+                "description": "The user committed the number or picked another unit (re-dispatched from the inner control, composed)."
+            },
+            {
+                "name": "pk-value-change",
+                "detail": "{ value: string }",
+                "detailProps": {
+                    "value": "string"
+                },
+                "description": "The user committed a new value (same moment as change; carries the value)."
+            }
+        ],
+        "parts": [
+            {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
+                "name": "box",
+                "description": "The bordered field that holds the number and the unit."
+            },
+            {
+                "name": "control",
+                "description": "The inner number input."
+            },
+            {
+                "name": "unit",
+                "description": "The inner unit select."
+            },
+            {
+                "name": "chevron",
+                "description": "The arrow drawn on the unit select."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-control-bg",
+                "description": "Background of the field.",
+                "default": "var(--color-input)"
+            },
+            {
+                "name": "--pk-control-border",
+                "description": "Border colour.",
+                "default": "var(--color-input-border)"
+            },
+            {
+                "name": "--pk-control-radius",
+                "description": "Corner radius.",
+                "default": "var(--radius-sm)"
+            }
+        ],
+        "methods": [
+            {
+                "name": "focus()",
+                "description": "Moves focus to the number field."
+            }
+        ],
+        "a11y": "A native number input and a native select live in the shadow root: the number is named by label (aria-label) and described by description, the select is named \"<label> unit\", so both are reachable by Tab and the arrow keys change the number by step. invalid sets aria-invalid and the state is never colour alone (the ring is thicker). Text is 16px and the control 44px tall on a phone.",
+        "examples": [
+            {
+                "title": "Lengths",
+                "html": "<pk-unit-input label=\"Width\" value=\"1.5rem\"></pk-unit-input>\n<pk-unit-input label=\"Gap\" show-label units=\"px rem\" value=\"12px\" min=\"0\"></pk-unit-input>"
+            },
+            {
+                "title": "Another set of units",
+                "html": "<pk-unit-input label=\"Duration\" units=\"ms s\" value=\"250ms\"></pk-unit-input>"
             }
         ]
     },

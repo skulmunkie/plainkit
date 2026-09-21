@@ -43,7 +43,18 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+      "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+    },
+    {
+      "name": "deltaUnit",
+      "type": "enum",
+      "default": "percent",
+      "values": [
+        "percent",
+        "points"
+      ],
+      "reflect": true,
+      "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points."
     },
     {
       "name": "deltaDirection",
@@ -168,11 +179,11 @@
       "description": "Direction and percent."
     },
     {
-      "name": "formatDelta(d)",
-      "description": "A signed percentage."
+      "name": "formatDelta(d, unit)",
+      "description": "A signed percentage, or points when unit is points."
     },
     {
-      "name": "deltaSpeech(d, versus)",
+      "name": "deltaSpeech(d, versus, unit)",
       "description": "The spoken form."
     }
   ],
@@ -185,6 +196,10 @@
     {
       "title": "Change and trend",
       "html": "<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values='[12,15,14,17,18]'></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert></pk-stat>"
+    },
+    {
+      "title": "Change in points",
+      "html": "<pk-stat label=\"Quality score\" value=\"87\" delta=\"4\" delta-unit=\"points\" versus=\"last run\"></pk-stat>"
     },
     {
       "title": "Dashboard tile as a button",

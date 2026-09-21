@@ -34,7 +34,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-butt
 
 ## `PkButtonGroup`
 
-`<pk-button-group>`: **Button group** (Actions). Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice.
+`<pk-button-group>`: **Button group** (Actions). Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).
 
 **Parameters**
 

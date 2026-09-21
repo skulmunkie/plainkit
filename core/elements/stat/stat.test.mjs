@@ -36,3 +36,20 @@ test('deltaSpeech reads the change out loud', () => {
     assert.equal(deltaSpeech({ direction: 'down', pct: -3 }), 'down 3 percent versus the previous period');
     assert.equal(deltaSpeech({ direction: 'flat', pct: 0 }), 'unchanged versus the previous period');
 });
+
+// Issue #8: a point delta (an absolute change in points) beside the percentage one.
+test('formatDelta and deltaSpeech read a change in points when the unit is points', () => {
+    assert.equal(formatDelta({ direction: 'up', pct: 4 }, 'points'), '+4 pts');
+    assert.equal(formatDelta({ direction: 'down', pct: -2.5 }, 'points'), '-2.5 pts');
+    assert.equal(formatDelta({ direction: 'flat', pct: 0 }, 'points'), '0 pts');
+    assert.equal(formatDelta({ direction: 'up', pct: 12.5 }), '+12.5%');
+    assert.equal(deltaSpeech({ direction: 'up', pct: 4 }, 'last run', 'points'), 'up 4 points versus last run');
+    assert.equal(deltaSpeech({ direction: 'down', pct: -1 }, 'last run', 'points'), 'down 1 point versus last run');
+    assert.equal(deltaSpeech({ direction: 'up', pct: 4 }, 'last run'), 'up 4 percent versus last run');
+});
+test('deltaUnit is an additive enum defaulting to percent', async () => {
+    const fs = await import('node:fs'); const { fileURLToPath } = await import('node:url');
+    const meta = JSON.parse(fs.readFileSync(fileURLToPath(new URL('./stat.meta.json', import.meta.url)), 'utf8'));
+    const p = meta.props.find(x => x.name === 'deltaUnit');
+    assert.equal(p.default, 'percent'); assert.deepEqual(p.values, ['percent', 'points']); assert.equal(p.reflect, true);
+});
