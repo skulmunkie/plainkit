@@ -33,4 +33,6 @@ A parameter whose element prop has a fixed set of values is an enum; each member
 | `PkChrome` | `None` `Full` |
 | `StatCardVariant` | `Neutral` `Positive` `Warning` `Critical` |
 | `PkGalleryKind` | `All` `Foundations` `Controls` `Elements` `Layouts` `Templates` |
+| `PkDevToolsMode` | `Dock` `Inline` |
+| `PkDevToolsSize` | `Medium` `Small` `Large` |
 | `PkLogLevel` | `Debug` `Info` `Warn` `Error` `Silent` |

@@ -193,9 +193,10 @@ public sealed class BlazorPanelTests : TestContext
     [Fact]
     public void Components_that_do_not_exist_yet_say_so_and_hand_written_ones_say_that()
     {
-        var card = PkMappingInfo.Describe("pk-card")!;
-        Assert.Equal("not available", card.Status);
-        Assert.Contains("existing", card.Note);
+        var table = PkMappingInfo.Describe("pk-table")!;
+        Assert.Equal("not available", table.Status);
+        Assert.Contains("existing", table.Note);
+        Assert.Equal("hand-written", PkMappingInfo.Describe("pk-card")!.Status);
 
         Assert.Equal("hand-written", PkMappingInfo.Describe("pk-gallery")!.Status);
         Assert.Null(PkMappingInfo.Describe("pk-nonsense"));
@@ -204,10 +205,10 @@ public sealed class BlazorPanelTests : TestContext
     [Fact]
     public void Parameters_the_generator_leaves_out_are_marked_with_its_reason()
     {
-        var alert = PkMappingInfo.Describe("pk-alert")!;
+        var dialog = PkMappingInfo.Describe("pk-dialog")!;
 
-        Assert.Contains("wrapper behaviour", alert.Parameters.Single(p => p.Name == "Boxed").NotGenerated);
-        Assert.Null(alert.Parameters.Single(p => p.Name == "Dismissible").NotGenerated);
+        Assert.Contains("wrapper behaviour", dialog.Parameters.Single(p => p.Name == "CloseButtonLabel").NotGenerated);
+        Assert.Null(dialog.Parameters.Single(p => p.Name == "ShowCloseButton").NotGenerated); // implemented as an attribute (inverted)
         Assert.Equal("object", PkMappingInfo.Describe("pk-chart")!.Parameters.Single(p => p.Name == "Data").Type); // a type not defined yet is generated as object
     }
 

@@ -38,6 +38,8 @@ Register the services, add `<PkStyles />` once (layout or `App.razor`), and add 
 
 | Member | Description |
 |---|---|
+| `public PkInteropLog Interop` | The calls made through the bridge so far: count, duration and errors per function. |
+| `public bool IsInitialized` | True once EnsureInitializedAsync has finished. |
 | `public Task EnsureInitializedAsync()` | Wires the `pk-*` elements and behaviours for the page once, however many components ask. |
 | `public async ValueTask<string> GetSdkVersionAsync()` | The version of the Plainkit JavaScript the page loaded (`PK_VERSION` in `js/version.js`). It equals Version unless the app serves an older or newer copy of the assets. |
 

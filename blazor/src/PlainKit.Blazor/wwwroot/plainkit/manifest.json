@@ -1053,13 +1053,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/devtools.md",
-      "bytes": 5842,
-      "integrity": "sha384-LOj1VqBP/KmGKi/6+XD2GQ1ut04sH3HC0I/h2yA+oHF1kQjqWiDSDzeBxPIZk5Ok"
+      "bytes": 7878,
+      "integrity": "sha384-gpuO/XdeLEGLDwazRrac/LqJKYbIRfbTOyHep3F5ghn/+E6xQZ9FJm29zWBWJZec"
     },
     {
       "path": "skills/plainkit-blazor/references/enums.md",
-      "bytes": 1848,
-      "integrity": "sha384-w0XwEFuL88ezegSRMeAJl90gXIRlfLy907DLwqKi9swbRViXojyKsTO8ebdGautK"
+      "bytes": 1937,
+      "integrity": "sha384-9O6yBQESM8boxONZNHbaKF17vG4zUDgQZAyKP8kHZTF0Lx5xaK6mmaHlvaZsqIdU"
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
@@ -1078,8 +1078,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/setup-and-options.md",
-      "bytes": 4456,
-      "integrity": "sha384-VLWP2S8TIThjxwMUQu9OOSa0RcTX8oJvQ0+RwB7pZ7qagoVhcxfh0Urijozm3yVv"
+      "bytes": 4658,
+      "integrity": "sha384-SAXRV5ioPmXuH6qfUBcfYLWox/jkjRvhF1iGL38miJKO3aj1AEORkczL3zmqekIL"
     },
     {
       "path": "skills/plainkit-sdk/SKILL.md",
