@@ -23,7 +23,7 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 
 ## Workflows
 
-Below, `plainkit/` is a copy of `dist` next to your page (see `references/loading.md` for the CDN, zip and other ways).
+Below, `plainkit/` is a copy of `dist` next to your page (see `references/loading.md` for the release zip, NuGet and other ways).
 
 ### Start a page
 

@@ -1,2 +1,0 @@
-/* A centred single-card page (sign-in, error): the card sits in the middle of the window. Tokens only. */
-body { display: grid; place-items: center; min-height: 100dvh; margin: 0; background: var(--color-bg); color: var(--color-text); }

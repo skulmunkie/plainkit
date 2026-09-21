@@ -1,4 +1,5 @@
 // dist/js is exactly what the build produces: a leftover from a renamed or removed source must show up.
+import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,7 +9,7 @@ import { build, staleDistJs } from '../tools/build.mjs';
 
 test('no file under dist/js is left over from a source that no longer exists', () => {
     const { out } = build({ write: false });
-    assert.deepEqual(staleDistJs(out), [], 'run node tools/build.mjs (it removes them) and delete the source-less file from git');
+    assert.deepEqual(staleDistJs(out), [], 'run node scripts/bootstrap.mjs (the build removes them)');
 });
 
 test('staleDistJs lists files the build did not produce, including nested ones, and nothing else', () => {

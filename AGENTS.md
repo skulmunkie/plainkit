@@ -1,7 +1,7 @@
 # Agents working on Plainkit
 
-This file is for developer agents changing this repository. (Agents *using* Plainkit in another project want the skills in `core/dist/skills/`;
-see the README, "Using the skills with an agent".) People: `CONTRIBUTING.md` is the same flow with the reasons.
+This file is for developer agents changing this repository. (Agents *using* Plainkit in another project want the skills, generated into `core/dist/skills/` by
+the bootstrap or taken from a release; see the README, "Using the skills with an agent".) People: `CONTRIBUTING.md` is the same flow with the reasons.
 
 Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and reactivity"), and the issue you were given.
 
@@ -18,26 +18,19 @@ Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and re
 
 ## Definition of done
 
-Run these from the repository root, in this order (each reads the previous one's output), and commit what they change:
+Run these from the repository root, in this order. The first produces every generated file (they are not in git); the rest are the checks CI runs:
 
 ```
-node core/tools/build.mjs
-node scripts/generate-blazor.mjs
-node scripts/build-skills.mjs
-node scripts/publish-dist.mjs
-```
-
-Then the checks CI runs:
-
-```
+node scripts/bootstrap.mjs
 node core/tools/versioning.mjs check
-node scripts/generate-blazor.mjs --check
-node scripts/build-skills.mjs --check
-node scripts/publish-dist.mjs --check
 node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
 dotnet test PlainKit.slnx --configuration Release
 node scripts/changelog.mjs check
+node scripts/generated.mjs check
 ```
+
+On a fresh clone, after switching branches and after editing any source, run `node scripts/bootstrap.mjs` first (about 4 seconds). `dotnet build` refuses to run without it,
+and a test that reads a generated file says so. **Never commit generated files**: they are gitignored, and `node scripts/generated.mjs check` fails if one is tracked.
 
 Also part of done, in the same pull request (owner directive): the **agent skills and documentation** describe the change (a new prop, element,
 option or workflow appears in the docs, the gallery samples and the skills' workflows in `scripts/skills/`), the SDK and Blazor change together
@@ -50,17 +43,18 @@ re-run so `core/tests/browser/report.json` is current. `node core/tools/serve.mj
 in a visible tab at desktop size, wait for "report saved", stop the server, commit the report. If `scripts/attest-browser.mjs` exists on your base, use it instead
 (read its header). Do not edit the report by hand, and if a case fails, fix the cause; never weaken the case.
 
-## Generated files: never hand-edit
+## Generated files: not in git, never hand-edit
 
-About 40% of tracked files are generated: `core/dist/**` (including `core/dist/skills/` and the manifests), `blazor/src/PlainKit.Blazor/wwwroot/plainkit/**`,
-`blazor/src/PlainKit.Blazor/Generated/**`, `core/site/files/snapshot.json`, `core/site/gallery/gallery.data.js`, `core/elements/*/*.element.js`,
-`core/elements/elements.css`, `core/site/scorecard/api.current.json`, and `core/tests/browser/report.json`. They are marked `linguist-generated` in
-`.gitattributes` so GitHub collapses them in diffs. Change the source, then regenerate with the commands above. (A later phase moves regeneration to
-CI; until then you do it.)
+About 40% of what the build touches is generated, and none of it is committed: `core/dist/**` (including `core/dist/skills/` and the manifests), `blazor/src/PlainKit.Blazor/wwwroot/plainkit/**`,
+`blazor/src/PlainKit.Blazor/Generated/**`, `wwwroot/PlainKit.Blazor.lib.module.js`, `core/site/files/snapshot.json`, `core/site/gallery/gallery.data.js`, `core/elements/*/*.element.js`,
+`core/elements/elements.css`, `core/elements/registry.js`, `core/plainkit.css`, `core/js/version.js` and `core/site/scorecard/api.current.json` (the exact list: `node scripts/generated.mjs list`, and
+the section "Generated output" of `.gitignore`). `node scripts/bootstrap.mjs` writes them; change the source and run it again.
 
-**Expect merge conflicts in them** when another pull request landed first. Never resolve one by editing the file: take either side (or the one from
-`main`), fix any source conflicts, then re-run the four generation commands and commit the result. `CHANGELOG.md` conflicts should not happen: you
-do not edit it (below).
+Still committed, because they are release artefacts and not build output: `core/VERSION`, `core/site/scorecard/api.baseline.json` (refreshed only in a release pull request) and
+`core/tests/browser/report.json` (the browser attestation, below).
+
+**Expect no conflicts in generated files any more**: there is nothing to conflict. A conflict in a source file is resolved like any other; then re-run the bootstrap.
+`CHANGELOG.md` conflicts should not happen either: you do not edit it (below).
 
 ## Changelog fragments
 
@@ -73,8 +67,8 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 - **Ownership and reactivity:** `core/STANDARDS.md`, "Ownership and reactivity". The host owns attributes and light-DOM children, the element owns
   its shadow tree, subscriptions outside the element's subtree are added in `connected()` and removed in `disconnected()`, no new base-class hooks.
   `core/tests/ownership.test.mjs` and `core/tests/element-surface.test.mjs` enforce it; do not edit them to make your change pass.
-- **Line endings.** Everything under `core/`, `blazor/mappings/`, `blazor/src/PlainKit.Blazor/Generated/` and `.../wwwroot/` is CRLF (`.gitattributes`); the build
-  emits CRLF and tests compare bytes. Do not rewrite a whole file with a tool that strips carriage returns; check `git diff --stat` for whole-file diffs.
+- **Line endings.** Tracked files under `core/`, `blazor/mappings/` and `blazor/src/PlainKit.Blazor/wwwroot/` are CRLF (`.gitattributes`); the build writes CRLF for
+  the generated files and tests compare bytes. Do not rewrite a whole file with a tool that strips carriage returns; check `git diff --stat` for whole-file diffs.
 - **CSP.** The site runs under `script-src 'self'; style-src 'self'`: no inline scripts, `style` attributes, `<style>` elements, inline handlers, `eval` or
   cross-origin requests. `innerHTML`-style sinks are counted in `core/tools/security.allow.json`; prefer DOM APIs and `textContent`.
 - **Tokens only.** No literal colours or ad-hoc sizes in CSS; use the tokens (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`), and an
@@ -97,7 +91,7 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 ## Releases
 
 - **Packages are published only from a version tag.** Merging to `main` never publishes anything. CI may build and pack for verification but never pushes to a registry.
-- A release goes through a release pull request (`release/X.Y.Z`, template `release.md`): `core/VERSION` set, generated output rebuilt, the changelog compiled
+- A release goes through a release pull request (`release/X.Y.Z`, template `release.md`): `core/VERSION` set, the changelog compiled
   (`node scripts/changelog.mjs compile --version X.Y.Z`), the API baseline refreshed. The tag `vX.Y.Z` must equal `core/VERSION`; `release.yml` refuses otherwise.
 - **Cadence:** a release is cut when a batch of finished issues is worth shipping, not on a schedule. nuget.org versions cannot be deleted, only unlisted,
   so publish less often, not more.

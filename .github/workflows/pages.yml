@@ -27,7 +27,10 @@ jobs:
         with:
           node-version: '22'
 
-      # dist is committed and CI proves it is current, so the site is built from what is in the repository.
+      # Generated files (dist, the element modules, the gallery data) are not in git: produce them, then copy what the site needs.
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
+
       - name: Build the site
         run: node scripts/build-pages.mjs _site
 

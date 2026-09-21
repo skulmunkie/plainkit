@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureGenerated } from './generated.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reportFile = path.join(root, 'core', 'tests', 'browser', 'report.json');
@@ -100,6 +101,7 @@ async function main() {
     try { chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) }); } catch (e) { console.error(e.message); return 2; }
     if (!chrome) { console.error('No Chrome, Chromium or Edge found. Install one, or set PK_CHROME to its path.'); return 2; }
 
+    ensureGenerated(); // the suite loads the generated element modules; a fresh clone has none (node scripts/bootstrap.mjs)
     const before = readReport();
     const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-attest-'));
     const url = `http://localhost:${options.port}/tests/browser/`;

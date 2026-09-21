@@ -1,6 +1,7 @@
 // The Blazor wrapper generator (scripts/generate-blazor.mjs): its rules on small fixtures, and the generated folder against the real API and
 // mappings. Dependency-free.
 // Run: node --test scripts/tests/*.test.mjs
+import '../../core/tests/needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -271,8 +272,9 @@ test('every element is either generated once or skipped as existing, and the ski
     for (const s of real.report.skipped) assert.equal(real.files.has(`${s.component}.razor`), false, s.component);
 });
 
-test('the generated folder is current: nothing missing, changed or left over (node scripts/generate-blazor.mjs)', () => {
-    assert.deepEqual(differences(outputs(real)), []);
+test('the generator is deterministic and the generated folder is what it produces: nothing missing, changed or left over (run node scripts/bootstrap.mjs)', () => {
+    assert.deepEqual([...outputs(load())], [...outputs(real)], 'two runs of the generator differ');
+    assert.deepEqual(differences(outputs(real)), [], 'run node scripts/bootstrap.mjs');
 });
 
 test('generated files are CRLF and name the generator', () => {

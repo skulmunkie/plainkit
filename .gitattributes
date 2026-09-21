@@ -1,10 +1,10 @@
 # Keep line endings deterministic in the index.
 * text=auto
 
-# The toolkit build emits CRLF and its tests compare bytes (dist files, SRI hashes), so these are CRLF on every platform.
+# The toolkit build emits CRLF and its tests compare bytes, so tracked files under these folders are CRLF on every platform.
+# (The generated output, which is not in git, is written as CRLF by the scripts themselves; see scripts/bootstrap.mjs.)
 core/** eol=crlf
 blazor/mappings/** eol=crlf
-blazor/src/PlainKit.Blazor/Generated/** eol=crlf
 blazor/src/PlainKit.Blazor/wwwroot/** eol=crlf
 
 # Binary assets
@@ -13,13 +13,5 @@ blazor/src/PlainKit.Blazor/wwwroot/** eol=crlf
 *.woff2 binary
 *.nupkg binary
 
-# Generated output: GitHub collapses these in pull request diffs. Change the source and regenerate (AGENTS.md); never edit them by hand.
-core/dist/** linguist-generated=true
-blazor/src/PlainKit.Blazor/wwwroot/plainkit/** linguist-generated=true
-blazor/src/PlainKit.Blazor/Generated/** linguist-generated=true
-core/site/files/snapshot.json linguist-generated=true
-core/site/gallery/gallery.data.js linguist-generated=true
-core/site/scorecard/api.current.json linguist-generated=true
-core/elements/*/*.element.js linguist-generated=true
-core/elements/elements.css linguist-generated=true
+# The browser attestation is rewritten by scripts/attest-browser.mjs (never by hand); GitHub collapses it in pull request diffs.
 core/tests/browser/report.json linguist-generated=true

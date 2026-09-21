@@ -17,10 +17,17 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <!-- wwwroot/plainkit is a byte-for-byte copy of core/dist (node scripts/publish-dist.mjs; CI verifies it is current). It is served under
+  <!-- Generated/ (the Pk* components) and wwwroot/plainkit (a copy of core/dist) are NOT in git: node scripts/bootstrap.mjs writes them. Without them the
+       project does not compile (the components do not exist) or embeds nothing, with errors far from the cause, so it stops here with one instruction. -->
+  <Target Name="PkRequireGeneratedFiles" BeforeTargets="BeforeBuild;CoreCompile;ResolveStaticWebAssetsInputs;PrepareResourceNames">
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)/Generated/generated.manifest.json') Or !Exists('$(MSBuildProjectDirectory)/wwwroot/plainkit/manifest.json')"
+           Text="Generated files are missing: run node scripts/bootstrap.mjs from the repository root" />
+  </Target>
+
+  <!-- wwwroot/plainkit is a byte-for-byte copy of core/dist (node scripts/publish-dist.mjs, part of node scripts/bootstrap.mjs; not in git). It is served under
        _content/PlainKit.Blazor/plainkit/. Files outside wwwroot cannot be served by the static web assets runtime, hence the copy. -->
 
-  <!-- Generated/generated.manifest.json is a review aid for the generator (the generator's check compares it), not something consumers need. The SDK treats
+  <!-- Generated/generated.manifest.json is a review aid for the generator (the generator's check compares it), not something consumers need (also not in git). The SDK treats
        *.json as Content, which packs it under content/ and contentFiles/ and copies it into a consumer's project, so it is taken out of the package.
        scripts/tests/blazor-package.test.mjs checks this. -->
   <ItemGroup>

@@ -7,7 +7,7 @@
 
 ## Checklist
 
-- [ ] `node core/tools/versioning.mjs set X.Y.Z`, then `node core/tools/build.mjs` and `node scripts/publish-dist.mjs` (the stamp is in the committed `dist` and the Blazor package copy)
+- [ ] `node core/tools/versioning.mjs set X.Y.Z`, then `node scripts/bootstrap.mjs` passes (the stamp reaches the generated `dist`, the skills and the package copy; none of it is committed)
 - [ ] `node scripts/changelog.mjs compile --version X.Y.Z`: the fragments in `changelog/unreleased/` are now a dated section of `CHANGELOG.md` (breaking changes under `### Breaking`), the folder is empty, "Unreleased" is empty
 - [ ] Last: `node core/tools/api-surface.mjs --write --release X.Y.Z` (the API baseline describes this release)
 - [ ] CI is green, including "Release pull request checks" (`check --release` and `bump --require`)

@@ -146,7 +146,7 @@ async function main(argv) {
         const raw = readText(pkgFile);
         const eol = fs.readFileSync(pkgFile, 'utf8').includes('\r\n') ? '\r\n' : '\n';
         fs.writeFileSync(pkgFile, raw.replace(/("version"\s*:\s*")[^"]+(")/, `$1${arg}$2`).replace(/\n/g, eol));
-        console.log(`core/VERSION and core/package.json are ${arg}. Run node core/tools/build.mjs to stamp dist, then node scripts/publish-dist.mjs.`);
+        console.log(`core/VERSION and core/package.json are ${arg}. Run node scripts/bootstrap.mjs to stamp the generated files.`);
     } else if (cmd === 'bump') {
         const { surface } = await import('./api-surface.mjs');
         const from = argv.indexOf('--baseline');

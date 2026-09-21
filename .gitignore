@@ -26,3 +26,19 @@ scratch*/
 ## GitHub Pages build output, and Claude Code local state
 _site/
 .claude/
+
+## Generated output: NOT in git. Produce it with `node scripts/bootstrap.mjs` (build, Blazor wrappers, skills, package copy), and never commit it.
+## The list is scripts/generated.mjs (node scripts/generated.mjs list); scripts/tests/generated-paths.test.mjs keeps the two in step.
+## Release artefacts (core/site/scorecard/api.baseline.json, core/tests/browser/report.json, core/VERSION) are NOT generated and stay tracked.
+/core/dist/
+/core/plainkit.css
+/core/elements/elements.css
+/core/elements/registry.js
+/core/elements/*/*.element.js
+/core/js/version.js
+/core/site/gallery/gallery.data.js
+/core/site/files/snapshot.json
+/core/site/scorecard/api.current.json
+/blazor/src/PlainKit.Blazor/Generated/
+/blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js
+/blazor/src/PlainKit.Blazor/wwwroot/plainkit/

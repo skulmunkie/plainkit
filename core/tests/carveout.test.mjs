@@ -32,7 +32,7 @@ test('the copy rebuilds dist/, plainkit.css and the gallery data byte-for-byte',
     assert.equal(r.status, 0, r.stderr);
     const files = [...walk(path.join(source, 'dist')).map(f => rel(source, f)), 'plainkit.css', 'site/gallery/gallery.data.js'];
     const different = files.filter(f => !fs.readFileSync(path.join(source, f)).equals(fs.readFileSync(path.join(copy, f))));
-    assert.deepEqual(different, [], 'a rebuild in the copy differs from the committed output: run node tools/build.mjs');
+    assert.deepEqual(different, [], 'a rebuild in the copy differs from the bootstrap output: run node scripts/bootstrap.mjs');
     const extra = walk(path.join(copy, 'dist')).map(f => rel(copy, f)).filter(f => !fs.existsSync(path.join(source, f)));
     assert.deepEqual(extra, []);
 });

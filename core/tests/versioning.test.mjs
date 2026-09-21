@@ -1,4 +1,5 @@
 // Versioning (issue #23): SemVer rules, the bump an API diff needs, and every place the version appears agreeing with core/VERSION.
+import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

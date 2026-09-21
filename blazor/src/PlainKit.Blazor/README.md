@@ -4,6 +4,8 @@ Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the d
 
 The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
 
+**Building this repository:** the generated components (`Generated/`) and the package copy of the toolkit (`wwwroot/plainkit/`) are not in git. On a fresh clone run `node scripts/bootstrap.mjs` from the repository root (Node only, about 4 seconds) before `dotnet build` or `dotnet test PlainKit.slnx`; without it the build stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root". Consumers of the NuGet package are not affected: the package already contains everything.
+
 ## Alpha status
 
 This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
@@ -205,7 +207,7 @@ The package serves two skills for developer agents (Claude Code and others) as s
 | The GitHub release | `gh release download v0.1.0-alpha.1 --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
 | The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
 | The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
-| A clone or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
+| A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
 | Nothing local, only the internet | each file is also served at `https://skulmunkie.github.io/plainkit/dist/skills/<skill>/SKILL.md` (and `.../references/<file>.md`) |
 
 Commit the folders to the project so every agent and teammate gets them, and re-copy them when you upgrade Plainkit (they carry the version of the release they came from, in their first lines).

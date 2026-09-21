@@ -8,10 +8,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureGenerated } from './generated.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const core = path.join(root, 'core');
 const out = path.resolve(root, process.argv[2] ?? '_site');
+ensureGenerated(); // dist/ and the site's generated modules are not in git: bootstrap when they are missing
 
 // Folders and files the site loads at run time (source layout) plus dist.
 const INCLUDE = ['index.html', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
@@ -33,7 +35,7 @@ function copy(from, to) {
 fs.rmSync(out, { recursive: true, force: true });
 for (const item of INCLUDE) {
     const from = path.join(core, item);
-    if (!fs.existsSync(from)) throw new Error(`core/${item} is missing: run node core/tools/build.mjs first`);
+    if (!fs.existsSync(from)) throw new Error(`core/${item} is missing: run node scripts/bootstrap.mjs first`);
     copy(from, path.join(out, item));
 }
 // Pages must not run the site through Jekyll (it would hide any folder that starts with an underscore).
