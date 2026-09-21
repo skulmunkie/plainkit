@@ -2,6 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { filterNav, splitMatch, treeKey, serializeNav, parseNav, navMode, railRowTooltip } from './side-nav.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import sideNav, { rowsOf } from './side-nav.js';
 
 const entries = [
     { id: 'sell', label: 'Sell', parent: null },
@@ -67,3 +70,32 @@ test('the nav is a drawer on a phone or tablet, a rail when collapsed, otherwise
     assert.equal(railRowTooltip(undefined), '');
 });
 
+// Issue #21: group titles (a pk-nav-item with the group attribute) are static: never a row, never focused, hidden by the filter.
+const item = (label, extra = {}) => ({ childNodes: [{ nodeType: 3, textContent: label }], textContent: label, parentElement: null, hidden: false, expanded: false, ...extra });
+
+test('rowsOf leaves group titles out', () => {
+    const list = [item('Sell', { group: true }), item('Orders'), item('Reports')];
+    assert.deepEqual(rowsOf({ querySelectorAll: () => list }).map(i => i.textContent), ['Orders', 'Reports']);
+});
+
+test('arrow-key rows skip group titles', () => {
+    const list = [item('Sell', { group: true }), item('Orders'), item('Reports')];
+    const SideNav = sideNav(class {});
+    assert.deepEqual(SideNav.prototype.rows.call({ querySelectorAll: () => list }).map(i => i.textContent), ['Orders', 'Reports']);
+});
+
+test('the filter hides group titles while a query is active and shows them again after', () => {
+    const list = [item('Sell', { group: true }), item('Orders'), item('Reports')];
+    const SideNav = sideNav(class {});
+    const scroll = { setAttribute() {} };
+    const host = { querySelectorAll: () => list, part: () => scroll, $saved: null };
+    SideNav.prototype.filter.call(host, 'ord');
+    assert.equal(list[0].hidden, true); assert.equal(list[1].hidden, false); assert.equal(list[2].hidden, true);
+    SideNav.prototype.filter.call(host, '');
+    assert.equal(list[0].hidden, false); assert.equal(list[2].hidden, false);
+});
+
+test('the meta says a group title goes in the default slot', () => {
+    const meta = JSON.parse(fs.readFileSync(fileURLToPath(new URL('./side-nav.meta.json', import.meta.url)), 'utf8'));
+    assert.match(meta.slots.find(s => s.name === '').description, /group/);
+});

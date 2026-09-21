@@ -10,6 +10,13 @@
       "default": false,
       "reflect": true,
       "description": "Drawer state, mirrors the side nav."
+    },
+    {
+      "name": "flush",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay)."
     }
   ],
   "slots": [

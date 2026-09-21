@@ -42,6 +42,11 @@
       "type": "bool"
     },
     {
+      "name": "Inline",
+      "prop": "inline",
+      "type": "bool"
+    },
+    {
       "name": "LevelThresholds",
       "prop": "levelThresholds",
       "type": "string"

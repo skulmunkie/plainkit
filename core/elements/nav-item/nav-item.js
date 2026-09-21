@@ -16,11 +16,13 @@ export default Base => class extends Base {
     focusRow() { this.row?.focus({ preventScroll: true }); }
     get hasChildren() { return this.slotted('children').length > 0; }
     branch() {
+        if (this.group) return;
         if (this.rail) { this.flyout = !this.flyout; return; }
         this.expanded = !this.expanded; this.emit('pk-toggle', { expanded: this.expanded });
     }
     updated() {
         const row = this.row; if (!row) return;
+        if (this.group) { for (const a of ['href', 'tabindex', 'aria-current', 'aria-disabled', 'aria-expanded', 'title']) row.removeAttribute(a); row.setAttribute('role', 'presentation'); return; }
         if (this.href) { row.setAttribute('href', this.href); row.removeAttribute('role'); row.removeAttribute('tabindex'); } else { row.removeAttribute('href'); row.setAttribute('role', 'button'); row.tabIndex = 0; }
         if (this.current) row.setAttribute('aria-current', 'page'); else row.removeAttribute('aria-current');
         if (this.disabled) row.setAttribute('aria-disabled', 'true'); else row.removeAttribute('aria-disabled');

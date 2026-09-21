@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { flattenTree, treeKey, typeahead, ariaPositions } from './tree.js';
+import tree from './tree.js';
 
 const data = [
     { id: 'a', label: 'Products', expanded: true, children: [{ id: 'a1', label: 'Books' }, { id: 'a2', label: 'Cards', expanded: false, children: [{ id: 'a21', label: 'Puzzles' }] }] },
@@ -58,4 +59,26 @@ test('ariaPositions reports level, set size and position among siblings', () => 
     assert.deepEqual(p[1], { level: 2, setsize: 2, posinset: 1 });
     assert.deepEqual(p[2], { level: 2, setsize: 2, posinset: 2 });
     assert.deepEqual(p[3], { level: 1, setsize: 2, posinset: 2 });
+});
+
+// Issue #21: connecting with items that are already in the document but not upgraded yet must not throw (no aria() on them).
+test('updated waits for un-upgraded items instead of calling aria() on them', async () => {
+    let waited = null; let updates = 0; const calls = [];
+    globalThis.customElements = { whenDefined: name => { waited = name; return Promise.resolve(); } };
+    const Tree = tree(class {});
+    const raw = {}; // a pk-tree-item that has not been defined yet: a plain element without aria()
+    const host = { label: '', selection: 'single', value: '', aria: m => calls.push(m), querySelectorAll: () => [raw], requestUpdate: () => { updates++; } };
+    assert.doesNotThrow(() => Tree.prototype.updated.call(host));
+    assert.deepEqual(calls, [{ role: 'tree', ariaLabel: null }]);
+    assert.equal(waited, 'pk-tree-item');
+    await Promise.resolve();
+    assert.equal(updates, 1);
+});
+
+test('updated still sets the item roles once every item is upgraded', () => {
+    const seen = []; const item = { tabIndex: 0, selected: false, aria: m => seen.push(m) };
+    const Tree = tree(class {});
+    const host = { label: 'Files', selection: 'single', value: '', aria() {}, querySelectorAll: () => [item], nodes: [{ el: item, level: 1, parent: -1, expandable: false, expanded: false }], requestUpdate() {} };
+    Tree.prototype.updated.call(host);
+    assert.deepEqual(seen, [{ role: 'treeitem', ariaLevel: '1', ariaSetSize: '1', ariaPosInSet: '1', ariaExpanded: null, ariaSelected: 'false' }]);
 });

@@ -8,7 +8,7 @@
     { "name": "selected", "type": "boolean", "default": false, "reflect": true, "description": "Set by the surrounding pk-tabs." },
     { "name": "disabled", "type": "boolean", "default": false, "reflect": true, "description": "Cannot be selected or focused by arrow keys." },
     { "name": "count", "type": "string", "default": "", "reflect": false, "description": "A badge shown in muted parentheses after the label (a queue count); empty shows none." },
-    { "name": "closable", "type": "boolean", "default": false, "reflect": true, "description": "Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab." },
+    { "name": "closable", "type": "boolean", "default": false, "reflect": true, "description": "Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab." },
     { "name": "only", "type": "enum", "default": "all", "values": ["all", "phone", "desktop"], "reflect": true, "description": "all shows the tab everywhere; phone only at phone width (640px and below); desktop hides it at phone width." }
   ],
   "slots": [
@@ -26,7 +26,7 @@
     { "name": "--pk-tab-fg", "description": "Text colour of an unselected tab.", "default": "var(--color-muted)" }
   ],
   "methods": [],
-  "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is outside the tab order (tabindex -1) and labelled; keyboard users close a tab from the page's own command.",
+  "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is labelled and reachable with Tab from the selected tab (the other tabs' buttons stay out of the tab order, like the tabs themselves); Enter or Space closes.",
   "examples": [
     { "title": "Inside pk-tabs", "html": "<pk-tabs value=\"a\">\n  <pk-tab value=\"a\" count=\"12\">Pending</pk-tab>\n  <pk-tab value=\"b\" closable>Draft</pk-tab>\n  <pk-tab value=\"c\" disabled>Locked</pk-tab>\n  <pk-tab-panel value=\"a\">Pending content</pk-tab-panel>\n</pk-tabs>" }
   ]

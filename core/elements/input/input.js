@@ -17,13 +17,13 @@ export function moneyProblem(n, text, min, max) {
     if (max !== null && n > max) return `At most ${formatMoney(max)}.`;
     return '';
 }
-const decimalsOf = n => { const s = String(n); const i = s.indexOf('.'); return i < 0 ? 0 : s.length - i - 1; };
+const decimalsOf = n => (String(n).split('.')[1] ?? '').length;
 export function stepValue(current, step, direction, min = -Infinity, max = Infinity) {
     const s = step > 0 ? step : 1;
     const base = Number.isFinite(current) ? current : 0;
     return Math.min(max, Math.max(min, Number((base + direction * s).toFixed(Math.max(decimalsOf(s), decimalsOf(base))))));
 }
-const bound = s => (s === '' || isNaN(s) ? null : Number(s));
+const num = (s, d = null) => (s === '' || isNaN(s) ? d : Number(s));
 
 export default Base => class extends Base {
     connected() {
@@ -31,13 +31,14 @@ export default Base => class extends Base {
         this.$init = true; this.$initial = this.value;
         const i = this.part('control');
         i.addEventListener('input', () => this.fromInner());
-        i.addEventListener('change', () => { this.dispatchEvent(new Event('change', { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); });
+        i.addEventListener('change', () => this.fire(['change']));
         i.addEventListener('focus', () => this.edit(true));
         i.addEventListener('blur', () => this.edit(false));
         i.addEventListener('keydown', e => this.keys(e));
         for (const [p, fn] of [['clear', () => this.clear()], ['reveal', () => this.showText(!this.$rev)], ['step-down', () => this.stepBy(-1)], ['step-up', () => this.stepBy(1)]]) this.part(p).addEventListener('click', fn);
     }
     money() { return this.format === 'money'; }
+    n() { return this.value === '' ? NaN : Number(this.value); }
     show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value !== '') return formatMoney(Number(this.value), { decimals: this.decimals, locale: this.locale }); return this.value; }
     updated() {
         const i = this.part('control');
@@ -49,12 +50,12 @@ export default Base => class extends Base {
         this.$typing = false;
         this.toggleAttribute('has-value', this.value !== '');
         if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch { this.warnOnce('c', 'bad currency'); } this.part('currency').textContent = c; }
-        if (this.stepper) { const v = this.value === '' ? NaN : Number(this.value); this.part('step-down').disabled = this.disabled || v <= (bound(this.min) ?? -Infinity); this.part('step-up').disabled = this.disabled || v >= (bound(this.max) ?? Infinity); }
+        if (this.stepper) { this.part('step-down').disabled = this.disabled || this.n() <= num(this.min, -Infinity); this.part('step-up').disabled = this.disabled || this.n() >= num(this.max, Infinity); }
         this.check();
     }
     check() {
         const i = this.part('control');
-        if (this.money()) { const n = this.value === '' ? null : Number(this.value); i.setCustomValidity(moneyProblem(this.$badMoney ? null : n, this.$badMoney ? 'x' : this.value, bound(this.min), bound(this.max))); }
+        if (this.money()) { i.setCustomValidity(moneyProblem(this.$badMoney ? null : this.n(), this.$badMoney ? 'x' : this.value, num(this.min), num(this.max))); }
         this.setValidity(flagsOf(i.validity), i.validationMessage, i);
         this.setFormValue(this.value);
     }
@@ -70,11 +71,10 @@ export default Base => class extends Base {
         this.$editing = on;
         if (this.money()) { const i = this.part('control'); if (on && this.value !== '') { i.value = String(Number(this.value)); i.select(); } this.requestUpdate(); }
     }
-    fire() { for (const t of ['input', 'change']) this.dispatchEvent(new Event(t, { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); }
+    fire(types = ['input', 'change']) { for (const t of types) this.dispatchEvent(new Event(t, { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); }
     clear() { const i = this.part('control'); i.value = ''; this.value = ''; this.$badMoney = false; i.focus(); this.fire(); this.search(true); }
     stepBy(dir) {
-        const v = this.value === '' ? NaN : Number(this.value);
-        this.value = String(stepValue(v, bound(this.step) ?? 1, dir, bound(this.min) ?? -Infinity, bound(this.max) ?? Infinity));
+        this.value = String(stepValue(this.n(), num(this.step, 1), dir, num(this.min, -Infinity), num(this.max, Infinity)));
         this.part('control').value = this.show(); this.fire();
     }
     showText(on) {
@@ -88,11 +88,12 @@ export default Base => class extends Base {
         if (this.type !== 'search') return;
         clearTimeout(this.$t);
         const send = () => this.emit('pk-search', { value: this.value });
-        if (now) send(); else if (this.debounce > 0) this.$t = setTimeout(send, this.debounce); else send();
+        if (!now && this.debounce > 0) this.$t = setTimeout(send, this.debounce); else send();
     }
     keys(e) {
-        if (this.type === 'search' && e.key === 'Escape' && this.value !== '') { e.preventDefault(); e.stopPropagation(); this.clear(); }
-        else if (this.type === 'search' && e.key === 'Enter') this.search(true);
+        if (this.type !== 'search') return;
+        if (e.key === 'Escape' && this.value !== '') { e.preventDefault(); e.stopPropagation(); this.clear(); }
+        else if (e.key === 'Enter') this.search(true);
     }
     onReset() { this.value = this.$initial ?? ''; this.$badMoney = false; }
     onRestore(state) { this.value = state ?? ''; }

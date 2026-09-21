@@ -5,7 +5,8 @@
     inline-size: 100%; /* a grid has no intrinsic width of its own: fill the container, also inside a shrink-to-fit or flex-row parent */
     min-inline-size: 0;
     box-sizing: border-box;
-    grid-template-columns: repeat(auto-fit, minmax(max(min(var(--pk-grid-min, 16rem), 100%), var(--_share, 0px)), 1fr));
+    --_cols: repeat(auto-fit, minmax(max(min(var(--pk-grid-min, 16rem), 100%), var(--_share, 0px)), 1fr));
+    grid-template-columns: var(--pk-grid-ratio, var(--_cols));
     gap: var(--_g);
 }
 :host([hidden]) { display: none; }
@@ -15,3 +16,4 @@
 :host([gap="lg"]) { --_g: var(--space-6); }
 :host([gap="xl"]) { --_g: var(--space-8); }
 ::slotted(*) { min-inline-size: 0; }
+@media (width <= 640px) { :host { grid-template-columns: var(--_cols); } }

@@ -93,6 +93,11 @@
           "name": "nav-open",
           "description": "Drawer state, mirrors the side nav.",
           "valueSet": "v"
+        },
+        {
+          "name": "flush",
+          "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay).",
+          "valueSet": "v"
         }
       ]
     },
@@ -476,7 +481,7 @@
         },
         {
           "name": "flush",
-          "description": "No padding around the content, for a table or an edge-to-edge body.",
+          "description": "No padding around the body, for a table or an edge-to-edge body; the heading row keeps its padding.",
           "valueSet": "v"
         },
         {
@@ -1403,6 +1408,10 @@
           "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min."
         },
         {
+          "name": "ratio",
+          "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks."
+        },
+        {
           "name": "gap",
           "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap).",
           "values": [
@@ -1583,6 +1592,11 @@
         {
           "name": "label",
           "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label.",
+          "valueSet": "v"
         },
         {
           "name": "description",
@@ -1962,6 +1976,11 @@
           "name": "flyout",
           "description": "In the icon rail, the branch is open as a flyout beside the rail.",
           "valueSet": "v"
+        },
+        {
+          "name": "group",
+          "description": "A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider.",
+          "valueSet": "v"
         }
       ]
     },
@@ -2276,6 +2295,11 @@
         {
           "name": "show-value",
           "description": "Append the percentage next to the label.",
+          "valueSet": "v"
+        },
+        {
+          "name": "inline",
+          "description": "Puts the label before the bar and the value after it on one line, instead of a row above the bar.",
           "valueSet": "v"
         },
         {
@@ -3037,7 +3061,7 @@
         },
         {
           "name": "closable",
-          "description": "Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab.",
+          "description": "Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab.",
           "valueSet": "v"
         },
         {

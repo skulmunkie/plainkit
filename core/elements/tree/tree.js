@@ -96,8 +96,10 @@ export default Base => class extends Base {
     focusItem(item) { for (const n of this.nodes) n.el.tabIndex = n.el === item ? 0 : -1; item.focus(); }
     updated() {
         this.aria({ role: 'tree', ariaLabel: this.label || null });
-        const items = this.nodes, pos = ariaPositions(items);
         const all = Array.from(this.querySelectorAll('pk-tree-item'));
+        // Items parsed before pk-tree-item is defined are not upgraded yet (no aria(), no props): wait for the definition, then update again.
+        if (all.some(it => typeof it.aria !== 'function')) { customElements.whenDefined('pk-tree-item').then(() => this.requestUpdate()); return; }
+        const items = this.nodes, pos = ariaPositions(items);
         for (const it of all) { const sel = this.selection !== 'none' && this.value !== '' && (it.value || it.label) === this.value; if (it.selected !== sel) it.selected = sel; }
         const current = items.find(n => n.el.tabIndex === 0)?.el ?? items.find(n => n.el.selected)?.el ?? items[0]?.el;
         for (const n of all) n.tabIndex = -1;

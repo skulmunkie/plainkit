@@ -12,6 +12,11 @@
       "type": "int"
     },
     {
+      "name": "Ratio",
+      "prop": "ratio",
+      "type": "string"
+    },
+    {
       "name": "Gap",
       "prop": "gap",
       "type": "string"

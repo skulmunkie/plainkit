@@ -9,6 +9,8 @@
 
 [part="body"] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
+:host([flush]) [part="body"] { padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
+
 [part="footer"] { flex: none; display: flex; align-items: center; gap: var(--space-3); min-height: var(--app-footer-h); padding: var(--pad-footer); padding-bottom: env(safe-area-inset-bottom); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); background: var(--color-panel); border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: var(--text-meta); }
 
 [part="footer"]:not(:has(::slotted(*))) { display: none; }
