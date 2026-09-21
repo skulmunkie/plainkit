@@ -59,3 +59,17 @@ test('the meta documents pick(), the browse-label prop and its part, and the tem
     assert.match(read('html'), /<button part="browse"[^>]*data-if="browseLabel"/);
     assert.match(read('css'), /@media \(pointer: coarse\)[^{]*\{ \.browse \{ min-block-size: var\(--touch-target\)/);
 });
+
+test('a drop with an input in the input slot goes into that input: the first file unless multiple, nothing without files or while disabled', () => {
+    const globalDT = globalThis.DataTransfer;
+    globalThis.DataTransfer = class { constructor() { this.list = []; this.items = { add: f => this.list.push(f) }; } get files() { return this.list; } };
+    try {
+        const changes = []; const ext = { localName: 'input', multiple: false, disabled: false, files: null, dispatchEvent: e => changes.push(e.type) };
+        globalThis.Event ??= class { constructor(type) { this.type = type; } };
+        const { el } = make({}, [ext]);
+        el.drop(['a', 'b']); assert.deepEqual(ext.files, ['a']); assert.deepEqual(changes, ['change']);
+        el.drop([]); assert.deepEqual(changes, ['change']);
+        ext.multiple = true; el.drop(['a', 'b']); assert.deepEqual(ext.files, ['a', 'b']); assert.equal(changes.length, 2);
+        el.disabled = true; el.drop(['c']); assert.equal(changes.length, 2);
+    } finally { globalThis.DataTransfer = globalDT; }
+});

@@ -47,10 +47,12 @@ export default Base => class extends Base {
     external() { const slot = this.slotted('input')[0]; return slot?.localName === 'input' ? slot : slot?.querySelector('input') ?? null; }
     // Opens the file picker, for a host's own button: like the native input it needs a user gesture. The slotted input opens its own picker when there is one.
     pick() { if (!this.disabled) (this.external() ?? this.part('control')).click(); }
-    // With an input in the input slot (a Blazor InputFile) the zone is only a drop target: dropped files go into that input and it reports them.
+    // With an input in the input slot (a Blazor InputFile) the zone is only a drop target: dropped files go into that input and it reports them (one file unless the input is multiple; nothing for a drop with no files).
     drop(files) {
         const ext = this.external();
         if (!ext) { this.take(files); return; }
+        if (!ext.multiple) files = files.slice(0, 1); // like a native drop on a single-file input
+        if (!files.length || ext.disabled || this.disabled) return;
         const dt = new DataTransfer(); for (const f of files) dt.items.add(f);
         ext.files = dt.files; ext.dispatchEvent(new Event('change', { bubbles: true }));
     }

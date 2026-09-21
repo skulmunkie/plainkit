@@ -95,7 +95,7 @@
     },
     {
       "name": "input",
-      "description": "An existing file input (a Blazor InputFile) that keeps doing the reading: the zone then only draws the target, and dropped files are placed in that input."
+      "description": "An existing file input (a Blazor InputFile) that keeps doing the reading: the zone then only draws the target, and dropped files are placed in that input (one file unless it is multiple). Put slot=\"input\" on the input itself (in Blazor: <InputFile slot=\"input\" OnChange=... />) so it covers the whole zone."
     }
   ],
   "events": [

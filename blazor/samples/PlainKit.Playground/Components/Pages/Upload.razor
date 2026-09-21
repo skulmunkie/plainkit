@@ -1,0 +1,49 @@
+@page "/upload"
+@using Microsoft.AspNetCore.Components.Forms
+
+@* Issue #83: PkDropzone with Blazor's InputFile in its input slot. The zone draws the drop target; InputFile owns the <input type="file"> and
+   Blazor reads the bytes. A drop reaches OnChange the same way as the picker (the element puts the dropped files into the input and raises change).
+   Each result shows in an element with an id so a script can check it in a real browser. *@
+<div style="padding:1rem;display:grid;gap:1rem;max-width:44rem">
+    <h1>Upload with InputFile</h1>
+
+    <PkDropzone Label="Files to upload" BrowseLabel="Choose files" Multiple="true">
+        <ChildContent>
+            <InputFile slot="input" multiple OnChange="OnChange" />
+            Drop files here or click to choose
+        </ChildContent>
+        <HintContent>Text files, up to 1 MB each</HintContent>
+    </PkDropzone>
+
+    <p>Change events: <code id="out-changes">@_changes</code></p>
+    <ul id="out-files">
+        @foreach (var f in _results)
+        {
+            <li><span class="name">@f.Name</span> <span class="size">@f.Size</span> <code class="text">@f.Text</code></li>
+        }
+    </ul>
+    <p id="out-error">@_error</p>
+</div>
+
+@code {
+    private record Result(string Name, long Size, string Text);
+
+    private readonly List<Result> _results = new();
+    private int _changes;
+    private string? _error;
+
+    // The bytes are read on the server through Blazor's own stream (SignalR in Blazor Server, in-process in WebAssembly).
+    private async Task OnChange(InputFileChangeEventArgs e)
+    {
+        _changes++; _results.Clear(); _error = null;
+        try
+        {
+            foreach (var file in e.GetMultipleFiles(10))
+            {
+                using var reader = new StreamReader(file.OpenReadStream(1024 * 1024));
+                _results.Add(new Result(file.Name, file.Size, await reader.ReadToEndAsync()));
+            }
+        }
+        catch (IOException ex) { _error = ex.Message; }
+    }
+}
