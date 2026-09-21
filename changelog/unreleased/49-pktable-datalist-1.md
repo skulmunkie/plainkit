@@ -1,4 +1,0 @@
----
-type: fixed
----
-`@onpk-sort`, `@onpk-filter`, `@onpk-row-click` and every other `@onpk-...` handler on a raw `pk-*` element never fired (#49). Blazor needs the event registered in the browser (`Blazor.registerCustomEventType`, `PlainKit.Blazor.lib.module.js`) and an `[EventHandler]` attribute on a class that the Razor compiler finds, and that class has to be named exactly `EventHandlers` (the generated one was `PkEventHandlers`, so no handler was ever matched, in raw markup or not). The generator now emits `EventHandlers` and registers **every** `pk-*` event of every element with its `Pk...EventArgs` class (48 events, including `pk-sort`, `pk-filter`, `pk-row-click`, `pk-row-expand`, `pk-activate` and `pk-menu-toggle`, which no component listened for), so `<pk-table @onpk-sort="OnSort">` with `void OnSort(PkSortEventArgs e)` works with no JavaScript workaround. A bUnit test compiles raw markup with handlers; the Playground `/datalist` page checks it live.
