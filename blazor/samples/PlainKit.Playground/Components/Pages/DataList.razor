@@ -1,0 +1,88 @@
+@page "/datalist"
+
+@* A searchable, sortable, server-paged list (PkDataList) over an in-memory "database" with a short delay, plus a RAW <pk-table> whose
+   @onpk-sort and @onpk-row-click reach C# (issue #49: no JavaScript workaround). Each result is shown in an element with an id so a script can
+   check it. *@
+<div style="padding:1rem;display:grid;gap:1.5rem;max-width:56rem">
+    <h1>Data list</h1>
+
+    <PkDataList TItem="Person"
+                Load="LoadAsync"
+                Columns="_columns"
+                IdOf="p => p.Id.ToString()"
+                Label="People"
+                PagerLabel="People pages"
+                SearchPlaceholder="Search people"
+                EmptyText="No people yet."
+                AddLabel="+ Add person"
+                OnAdd="Add"
+                OnRowClick="Open"
+                CurrentId="@_current?.Id.ToString()"
+                PageSize="10"
+                id="people"
+                @ref="_list" />
+    <p>Loads: <code id="out-loads">@_loads</code>, cancelled: <code id="out-cancelled">@_cancelled</code>, last request: <code id="out-request">@_last</code></p>
+    <p>Opened: <code id="out-open">@(_current?.Name ?? "-")</code> | Added clicks: <code id="out-added">@_adds</code></p>
+    <PkButton OnClick="Remove">Delete the last 60 (then reload)</PkButton>
+
+    <h2>Raw <code>&lt;pk-table&gt;</code> with <code>@@onpk-sort</code></h2>
+    <pk-table id="raw" manual clickable label="Raw table" columns="@RawColumns" rows="@RawRows"
+              @onpk-sort="OnRawSort" @onpk-row-click="OnRawRow"></pk-table>
+    <p>Raw sort: <code id="out-raw-sort">@_rawSort</code> | raw row: <code id="out-raw-row">@_rawRow</code></p>
+</div>
+
+@code {
+    private sealed record Person(int Id, string Name, string City, string Status);
+
+    private const string RawColumns = "[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"city\",\"label\":\"City\",\"sortable\":true}]";
+    private const string RawRows = "[{\"id\":1,\"name\":\"Ada\",\"city\":\"London\"},{\"id\":2,\"name\":\"Grace\",\"city\":\"New York\"}]";
+
+    private static readonly string[] Names = ["Ada", "Grace", "Alan", "Edsger", "Barbara", "Linus", "Margaret", "Dennis", "Ken", "Radia"];
+    private static readonly string[] Cities = ["London", "Leeds", "Oslo", "Lima", "Paris", "Turin"];
+    private readonly List<Person> _all = Enumerable.Range(1, 87).Select(i => new Person(i, $"{Names[i % Names.Length]} {i:00}", Cities[i % Cities.Length], i % 3 == 0 ? "Away" : "Active")).ToList();
+
+    private PkDataList<Person>? _list;
+    private Person? _current;
+    private int _loads, _cancelled, _adds;
+    private string _last = "-", _rawSort = "-", _rawRow = "-";
+
+    private readonly IReadOnlyList<PkTableColumn<Person>> _columns =
+    [
+        new() { Key = "name", Label = "Name", Sortable = true },
+        new() { Key = "city", Label = "City", Sortable = true, HidePhone = true },
+        new() { Key = "status", Label = "Status", Cell = p => @<PkBadge>@p.Status</PkBadge> },
+    ];
+
+    private async Task<PkListResult<Person>> LoadAsync(PkListRequest request)
+    {
+        _loads++;
+        _last = $"{request.Search ?? "-"}|{request.SortKey ?? "-"}|{(request.Descending ? "desc" : "asc")}|p{request.Page}|{request.PageSize}";
+        await InvokeAsync(StateHasChanged);
+        try { await Task.Delay(250, request.CancellationToken); }
+        catch (OperationCanceledException) { _cancelled++; await InvokeAsync(StateHasChanged); throw; }
+        IEnumerable<Person> q = _all;
+        if (request.Search is { } s) q = q.Where(p => p.Name.Contains(s, StringComparison.OrdinalIgnoreCase) || p.City.Contains(s, StringComparison.OrdinalIgnoreCase));
+        q = (request.SortKey, request.Descending) switch
+        {
+            ("name", false) => q.OrderBy(p => p.Name),
+            ("name", true) => q.OrderByDescending(p => p.Name),
+            ("city", false) => q.OrderBy(p => p.City).ThenBy(p => p.Id),
+            ("city", true) => q.OrderByDescending(p => p.City).ThenBy(p => p.Id),
+            _ => q.OrderBy(p => p.Id),
+        };
+        var list = q.ToList();
+        return new PkListResult<Person>(list.Skip(request.Skip).Take(request.PageSize).ToList(), list.Count);
+    }
+
+    private void Open(Person person) => _current = person;
+    private void Add() => _adds++;
+
+    private async Task Remove()
+    {
+        _all.RemoveRange(_all.Count - 60, 60);
+        if (_list is not null) await _list.ReloadAsync();
+    }
+
+    private void OnRawSort(PkSortEventArgs e) => _rawSort = $"{e.Key} {e.Direction}";
+    private void OnRawRow(PkRowClickEventArgs e) => _rawRow = e.Id ?? "?";
+}

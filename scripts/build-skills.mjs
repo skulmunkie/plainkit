@@ -189,7 +189,7 @@ export function collect() {
     return {
         version, api, mappings, manifest, razor, enums,
         events: csEventArgs(read(path.join(pkg, 'Generated', 'PkGeneratedEvents.cs'))),
-        cs: { options: csMembers(cs('PkOptions.cs'), 'PkOptions'), logging: csMembers(cs('PkLogging.cs'), 'PkLoggingOptions'), ipklog: csMembers(cs('PkLogging.cs'), 'IPkLog'), scoreTarget: csMembers(cs('PkScoreTarget.cs'), 'PkScoreTarget'), runtime: csMembers(cs('PkRuntime.cs'), 'PkRuntime'), assets: csMembers(cs('PkAssets.cs'), 'PkAssets'), snapshot: csMembers(cs('DevTools/PkSnapshot.cs'), 'PkSnapshot') },
+        cs: { options: csMembers(cs('PkOptions.cs'), 'PkOptions'), logging: csMembers(cs('PkLogging.cs'), 'PkLoggingOptions'), ipklog: csMembers(cs('PkLogging.cs'), 'IPkLog'), scoreTarget: csMembers(cs('PkScoreTarget.cs'), 'PkScoreTarget'), runtime: csMembers(cs('PkRuntime.cs'), 'PkRuntime'), assets: csMembers(cs('PkAssets.cs'), 'PkAssets'), snapshot: csMembers(cs('DevTools/PkSnapshot.cs'), 'PkSnapshot'), listRequest: csMembers(cs('PkListTypes.cs'), 'PkListRequest'), tableColumn: csMembers(cs('PkTableTypes.cs'), 'PkTableColumn'), listTypesText: cs('PkListTypes.cs') },
         modules: [...modules, gallery],
         // A pattern that ships a script: its source, with the SDK import paths as they are in an app (a copy of dist at ./plainkit/).
         samples: { templates, patterns: samples.patterns.map(p => (p.script ? { ...p, scriptSource: read(path.join(core, 'samples', 'patterns', p.script)).replace(/from '(?:\.\.\/){3}js\//g, "from './plainkit/js/").trim() } : p)), layouts: samples.layouts },
@@ -433,8 +433,21 @@ function blazorFiles(src) {
         '## Hand-written', '', table(['Enum', 'Members'], src.enums.map(e => [code(e.name), e.members.map(code).join(' ')])), ''].join('\n'));
 
     const evRows = src.events.map(x => [code(x.event), code(x.name), x.raisedBy.map(code).join(' '), x.fields.map(f => `${f.name}: ${f.type}`).join(', ')]);
-    files.set('references/events.md', ['# Events', '', stamp(src, 'Generated/PkGeneratedEvents.cs'), '', 'An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has one nullable property per field of the element\'s detail (set only when the element sends it). An event with no detail gives `EventCallback`; `click` gives `MouseEventArgs`. A change event that drives a value is also exposed as a two-way `@bind-` parameter.', '', table(['Element event', 'Args class', 'Raised by', 'Fields'], evRows), '',
+    files.set('references/events.md', ['# Events', '', stamp(src, 'Generated/PkGeneratedEvents.cs'), '', 'An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has one nullable property per field of the element\'s detail (set only when the element sends it). An event with no detail gives `EventCallback`; `click` gives `MouseEventArgs`. A change event that drives a value is also exposed as a two-way `@bind-` parameter. **Every** `pk-*` event of every element is registered with Blazor and mapped to its args class (the generated `EventHandlers` class; Razor only finds a class with that exact name), so raw markup works too: `<pk-table @onpk-sort="OnSort">` with `void OnSort(PkSortEventArgs e)`, no JavaScript needed (add `@using PlainKit.Blazor`).', '', table(['Element event', 'Args class', 'Raised by', 'Fields'], evRows), '',
         `Events without a detail (${src.manifest.events.filter(n => !src.events.some(x => x.event === n)).map(code).join(' ')}) use \`EventArgs\`.`, ''].join('\n'));
+
+    // the list component: no element of its own, so it is not in the per-group component files
+    const dl = src.razor.PkDataList;
+    if (dl) {
+        const sig = name => new RegExp('public sealed record ' + name + '(<\\w+>)?\\(([^)]*)\\)').exec(src.cs.listTypesText);
+        const req = sig('PkListRequest'), res = sig('PkListResult');
+        files.set('references/data-list.md', ['# PkDataList: a searchable, sortable, server-paged list', '', stamp(src, 'Components/PkDataList.razor, PkListTypes.cs and PkTableTypes.cs'), '',
+            'A hand-written component with no element of its own. It is a `PkTable` in manual mode with a `PkInput` (type search) in the toolbar and a `PkPagination` in the footer. It owns the state (search text, sort key and direction, page, page size, total) and asks you for one page at a time through `Load`; you own the data. Use it for any list you load from a database a page at a time. For a table you fill yourself, use `PkTable`.', '',
+            `Request: ${code('record PkListRequest(' + (req?.[2] ?? '') + ')')}, with ${src.cs.listRequest.map(m => code(m.decl) + ' (' + m.doc + ')').join(' and ')}. Result: ${code('record PkListResult<T>(' + (res?.[2] ?? '') + ')')}.`, '',
+            'Rules the component follows: a new search, sort or page size goes back to page 1; the search box debounces itself (`SearchDebounceMs`, the element\'s own timer, no .NET timer and no JavaScript); a request that is replaced by a newer one has its `CancellationToken` cancelled and its result ignored, so no stale rows appear; while a request is in flight the table is `loading` (no rows); when the total shrinks below the current page (rows deleted elsewhere) it settles on the last page that exists and loads it; a thrown `Load` shows an error with a Retry button (`OnLoadError` reports it). `ReloadAsync()` loads the current page again (after the host saved something). The first column is the row\'s identity: it stays in the phone `cards` layout, marks the current row (`CurrentId`: bold and `aria-current`) and, with `OnRowClick`, holds a link so the row is reachable by keyboard. Limits today: the table element has no current-row highlight, its rows are not keyboard stops and its sort only toggles between ascending and descending (see `known-gaps.md`).', '',
+            '## `PkDataList`', '', table(['Parameter', 'Type', 'Description'], dl.params.map(p => [code(p.name), code(p.type), p.doc])), '',
+            '## `PkTableColumn<TItem>` (the columns of `PkDataList` and `PkTable`)', '', table(['Member', 'Description'], src.cs.tableColumn.map(m => [code(m.decl), m.doc])), ''].join('\n'));
+    }
 
     // tools and setup
     const toolRows = TOOL_COMPONENTS.filter(c => src.razor[c]).map(c => {
@@ -453,7 +466,8 @@ function blazorFiles(src) {
     files.set('references/known-gaps.md', ['# Not yet available and known gaps', '', stamp(src, 'generated.manifest.json and the "Alpha status" section of the package README'), '', `PlainKit.Blazor ${src.version} is an alpha.`, '',
         '- **Blazor Server is verified** in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).',
         '- **Blazor WebAssembly is not verified.** It has not been run in a WebAssembly host; treat it as untested there. The Files tool is server-side only by design.', '',
-        `## Components that do not exist yet (${missing.length})`, '', missing.map(m => `- ${code(m.component)}: use the element ${code('<' + m.tag + '>')} directly in markup (raw \`pk-*\` tags work; see the SKILL for how they get loaded).`).join('\n'), '',
+        `## Components that do not exist yet (${missing.length})`, '', (missing.length ? missing.map(m => `- ${code(m.component)}: use the element ${code('<' + m.tag + '>')} directly in markup (raw \`pk-*\` tags work; see the SKILL for how they get loaded).`).join('\n') : 'None: every element has a component.'), '',
+        '## Table and list limits that need the element (not the wrapper)', '', '- `pk-table` has no current-row highlight (`selected` is the checkbox selection); `PkDataList` marks the current row\'s first cell instead.', '- The rows of `pk-table` are not keyboard stops: `Clickable` rows react to a mouse or touch click only. `PkDataList` puts a link in the first cell for keyboard users.', '- The sort only toggles between ascending and descending; a third click does not clear it, and the element never reports a null key.', '- A column with `HidePhone` is still shown in the `cards` layout on a phone (the card rule overrides the hide rule).', '',
         `## Wrapper-only parameters that do not exist (${cats.wrapper.length})`, '', 'Behaviour of the old wrappers that is not a property of the element. They are not generated; do not use them.', '', table(['Component', 'Parameter', 'Why'], cats.wrapper.map(n => [code(n.component), code(n.param), n.reason])), '',
         `## Parameters set through a CSS custom property (${cats.css.length}), not generated`, '', table(['Component', 'Parameter', 'Why'], cats.css.map(n => [code(n.component), code(n.param), n.reason])), '',
         `## Parameters whose type is not defined yet (${cats.type.length})`, '', 'Not generated until the type exists.', '', table(['Component', 'Parameter', 'Why'], cats.type.map(n => [code(n.component), code(n.param), n.reason])), '',
@@ -502,14 +516,14 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component)', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
         const text = fill(tpl, {
             version: src.version, stamp: stampLine(src), elementCount: String(src.api.length),
             references: isSdk ? [listRefs(skill, describe).split('\n').filter(l => !/references\/elements-(?!index)/.test(l)).join('\n'), sdkGroupFiles].join('\n') : [listRefs(skill, bzDescribe).split('\n').filter(l => !/references\/components-(?!index)/.test(l)).join('\n'), bzGroupFiles].join('\n'),
-            missing: src.manifest.skipped.filter(s => !s.handWritten).map(s => '`' + s.component + '`').join(', '),
+            missing: src.manifest.skipped.filter(s => !s.handWritten).map(s => '`' + s.component + '`').join(', ') || 'none (every element has a component)',
             wrapperCount: String(src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour')).length),
         });
         out.set(`${skill}/SKILL.md`, text.replace(/\n*$/, '\n'));

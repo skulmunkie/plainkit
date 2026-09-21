@@ -12,7 +12,7 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 ## Status (alpha)
 
 - **Blazor Server is verified. Blazor WebAssembly is not** (never run in a WebAssembly host; the Files dev tool is server-side only).
-- **Components that do not exist yet:** {{missing}}. Use their elements as raw markup (`<pk-table>`); see the "raw elements" workflow.
+- **Components that do not exist yet:** {{missing}}. `PkTable<TItem>` (typed columns, cell templates, manual server mode) and `PkDataList<TItem>` (searchable, sortable, server-paged list, no element of its own) are hand-written; see the "table" and "server-paged list" workflows. Any element can also be used as raw markup with `@onpk-...` handlers; see the "raw elements" workflow.
 - **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.CloseButtonLabel`, `PkDrawer.IsLoading`, `PkTooltip.OnClick`). The chart's `Data` and the image gallery's `Images` take the public records `PkChartData` and `PkGalleryImage` (declared as `object?`). `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
 
 ## Rules
@@ -150,9 +150,49 @@ app.MapRazorComponents<App>()
 }
 ```
 
+### Show a table of typed rows (`PkTable`)
+
+`PkTable<TItem>` takes typed columns and items. A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`.
+
+```razor
+<PkTable Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
+         @bind-Sort="_sort" @bind-SortDirection="_dir" OnSort="Reload" OnRowClick="Open" />
+
+@code {
+    private readonly IReadOnlyList<PkTableColumn<Order>> _columns =
+    [
+        new() { Key = "customer", Label = "Customer", Sortable = true },
+        new() { Key = "total", Label = "Total", Type = PkTableColumnType.Number, Text = o => o.Total.ToString("C") },
+        new() { Key = "status", Label = "Status", HidePhone = true, Cell = o => @<PkBadge>@o.Status</PkBadge> },
+    ];
+
+    private void Reload(PkSortEventArgs e) { /* load the rows in _sort/_dir order into _orders */ }
+    private void Open(PkTableRowClickArgs<Order> row) => Console.WriteLine(row.Item.Number);
+}
+```
+
+### Show a searchable, server-paged list (`PkDataList`)
+
+`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time; a new search, sort or page size goes back to page 1, a superseded request is cancelled (pass `request.CancellationToken` to the database), a total that shrinks below the current page settles on the last page, `ReloadAsync()` reloads. Every parameter: `references/data-list.md`.
+
+```razor
+<PkDataList @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
+            SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentId="@_openId" />
+
+@code {
+    private async Task<PkListResult<Customer>> LoadAsync(PkListRequest request)
+    {
+        var query = _db.Customers.Where(c => request.Search == null || c.Name.Contains(request.Search)).OrderBy(c => c.Name);
+        var items = await query.Skip(request.Skip).Take(request.PageSize).ToListAsync(request.CancellationToken);
+        return new PkListResult<Customer>(items, await query.CountAsync(request.CancellationToken));
+    }
+    // Columns are PkTableColumn<Customer> records (see references/data-list.md); Open and Add are your handlers.
+}
+```
+
 ### Use an element that has no component (raw elements)
 
-Raw `pk-*` markup works in Razor with the SDK's props as attributes (`references/` of the `plainkit-sdk` skill). The elements load once a `Pk*` component has rendered on the page (any one: the runtime initialises on the first render); on a page with only raw tags, initialise it yourself:
+Raw `pk-*` markup works in Razor with the SDK's props as attributes (`references/` of the `plainkit-sdk` skill), and so do its events: every `pk-*` event is registered with Blazor and mapped to a `Pk...EventArgs` class, so `@onpk-sort="OnSort"` with `void OnSort(PkSortEventArgs e)` just works (no JavaScript listener, no `ElementReference`; `references/events.md` lists the args). The elements load once a `Pk*` component has rendered on the page (any one: the runtime initialises on the first render); on a page with only raw tags, initialise it yourself:
 
 ```razor
 @inject PkRuntime Runtime

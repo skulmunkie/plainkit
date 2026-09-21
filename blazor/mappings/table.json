@@ -5,28 +5,69 @@
     {
       "name": "Columns",
       "prop": "columns",
-      "note": "Pass an IReadOnlyList<PkTableColumn>: sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone }])."
+      "type": "IReadOnlyList<PkTableColumn<TItem>>",
+      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row."
     },
     {
       "name": "Items",
       "prop": "rows",
-      "type": "IReadOnlyList<TItem>"
+      "type": "IReadOnlyList<TItem>",
+      "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf)."
     },
     {
-      "name": "EnableSelection",
+      "name": "IdOf",
+      "type": "Func<TItem, string>",
+      "note": "Wrapper parameter: writes the row key (the element is always given rowKey \"id\") and names each row's slots; without it the row index is the id."
+    },
+    {
+      "name": "Manual",
+      "prop": "manual",
+      "type": "bool"
+    },
+    {
+      "name": "Sort",
+      "prop": "sort",
+      "type": "string?"
+    },
+    {
+      "name": "SortDirection",
+      "prop": "sortDir",
+      "type": "PkSortDirection?"
+    },
+    {
+      "name": "Filters",
+      "prop": "filters",
+      "type": "Dictionary<string, string>?"
+    },
+    {
+      "name": "Selected",
+      "prop": "selected",
+      "type": "IReadOnlyList<string>?"
+    },
+    {
+      "name": "Expanded",
+      "prop": "expanded",
+      "type": "IReadOnlyList<string>?"
+    },
+    {
+      "name": "Selectable",
       "prop": "selectable",
       "type": "bool"
     },
     {
-      "name": "SelectedKeys",
-      "prop": "selected",
-      "type": "HashSet<int>"
+      "name": "Clickable",
+      "prop": "clickable",
+      "type": "bool"
     },
     {
-      "name": "Cards",
-      "prop": "cards",
-      "type": "bool",
-      "note": "Each row becomes a card below 640px."
+      "name": "Filterable",
+      "prop": "filterable",
+      "type": "bool"
+    },
+    {
+      "name": "Expandable",
+      "prop": "expandable",
+      "type": "bool"
     },
     {
       "name": "Loading",
@@ -36,75 +77,119 @@
     {
       "name": "EmptyText",
       "prop": "emptyText",
-      "type": "string"
+      "type": "string?"
     },
     {
-      "name": "Expandable",
-      "prop": "expandable",
+      "name": "Cards",
+      "prop": "cards",
       "type": "bool"
     },
     {
-      "name": "ExpandedKeys",
-      "prop": "expanded",
-      "type": "HashSet<int>"
+      "name": "Striped",
+      "prop": "striped",
+      "type": "bool"
     },
     {
-      "name": "HeaderActionsTemplate",
+      "name": "Hover",
+      "prop": "hover",
+      "type": "bool"
+    },
+    {
+      "name": "Bordered",
+      "prop": "bordered",
+      "type": "bool"
+    },
+    {
+      "name": "Density",
+      "prop": "density",
+      "type": "PkTableDensity?"
+    },
+    {
+      "name": "StickyHeader",
+      "prop": "stickyHeader",
+      "type": "bool"
+    },
+    {
+      "name": "StickyColumn",
+      "prop": "stickyColumn",
+      "type": "bool"
+    },
+    {
+      "name": "MaxHeight",
+      "prop": "maxHeight",
+      "type": "string?"
+    },
+    {
+      "name": "Caption",
+      "prop": "caption",
+      "type": "string?"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string?"
+    },
+    {
+      "name": "Flow",
+      "prop": "flow",
+      "type": "bool"
+    },
+    {
+      "name": "ToolbarContent",
       "slot": "toolbar",
       "type": "RenderFragment"
     },
     {
-      "name": "FilterTemplate",
-      "slot": "toolbar",
-      "type": "RenderFragment"
-    },
-    {
-      "name": "FooterTemplate",
-      "slot": "footer",
-      "type": "RenderFragment"
-    },
-    {
-      "name": "BulkTemplate",
+      "name": "BulkContent",
       "slot": "bulk",
       "type": "RenderFragment"
     },
     {
-      "name": "RowTemplate",
-      "slot": "cell-<rowId>-<key>",
-      "type": "RenderFragment<TItem>",
-      "note": "The slot name is dynamic: the wrapper renders one slot=\"cell-<rowId>-<key>\" per cell, so it is not a fixed slot of the element."
+      "name": "CaptionContent",
+      "slot": "caption",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "EmptyContent",
+      "slot": "empty",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "FooterContent",
+      "slot": "footer",
+      "type": "RenderFragment"
     },
     {
       "name": "DetailTemplate",
       "slot": "detail-<rowId>",
       "type": "RenderFragment<TItem>",
-      "note": "The slot name is dynamic: the wrapper renders one slot=\"detail-<rowId>\" per row that has detail content, and only those rows get a toggle."
-    },
-    {
-      "name": "OnRowClick",
-      "event": "pk-row-click",
-      "type": "EventCallback<TItem>"
-    },
-    {
-      "name": "OnRowExpand",
-      "event": "pk-row-expand",
-      "type": "EventCallback<RowExpandEventArgs>"
-    },
-    {
-      "name": "OnSelectionChanged",
-      "event": "pk-select",
-      "type": "EventCallback"
+      "note": "The slot name is dynamic: the component renders one slot=\"detail-<rowId>\" per row when Expandable is set, and only those rows get a toggle."
     },
     {
       "name": "OnSort",
       "event": "pk-sort",
-      "type": "EventCallback<SortEventArgs>"
+      "type": "EventCallback<PkSortEventArgs>"
     },
     {
       "name": "OnFilter",
       "event": "pk-filter",
-      "type": "EventCallback<FilterEventArgs>"
+      "type": "EventCallback<PkFilterEventArgs>"
+    },
+    {
+      "name": "OnSelect",
+      "event": "pk-select",
+      "type": "EventCallback<PkSelectEventArgs>"
+    },
+    {
+      "name": "OnRowClick",
+      "event": "pk-row-click",
+      "type": "EventCallback<PkTableRowClickArgs<TItem>>"
+    },
+    {
+      "name": "OnRowExpand",
+      "event": "pk-row-expand",
+      "type": "EventCallback<PkTableRowExpandArgs<TItem>>"
     }
   ],
-  "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property."
+  "notes": "Hand-written, generic: PkTable<TItem> (Components/PkTable.razor). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows."
 }

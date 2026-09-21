@@ -1,0 +1,21 @@
+@* Raw pk-* markup with @onpk-... handlers (issue #49). It is compiled by the Razor compiler, so the test proves that the [EventHandler] classes in
+   PkEventHandlers make the attributes real event handlers with typed args, not literal "@onpk-sort" attributes. *@
+<pk-table manual clickable label="Raw" @onpk-sort="OnSort" @onpk-filter="OnFilter" @onpk-row-click="OnRowClick" @onpk-row-expand="OnRowExpand"></pk-table>
+<pk-pagination total="100" @onpk-page="OnPage"></pk-pagination>
+<pk-dialog @onpk-open="OnOpen"></pk-dialog>
+
+@code {
+    public PkSortEventArgs? Sorted { get; private set; }
+    public PkFilterEventArgs? Filtered { get; private set; }
+    public PkRowClickEventArgs? Clicked { get; private set; }
+    public PkRowExpandEventArgs? Expanded { get; private set; }
+    public PkPageEventArgs? Paged { get; private set; }
+    public int Opened { get; private set; }
+
+    private void OnSort(PkSortEventArgs e) => Sorted = e;
+    private void OnFilter(PkFilterEventArgs e) => Filtered = e;
+    private void OnRowClick(PkRowClickEventArgs e) => Clicked = e;
+    private void OnRowExpand(PkRowExpandEventArgs e) => Expanded = e;
+    private void OnPage(PkPageEventArgs e) => Paged = e;
+    private void OnOpen() => Opened++;
+}
