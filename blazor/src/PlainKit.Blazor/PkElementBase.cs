@@ -91,4 +91,10 @@ internal static class PkAttr
 
     /// <summary>The value as a JSON attribute (camelCase), or null when unset.</summary>
     internal static string? Json(object? value) => value is null ? null : JsonSerializer.Serialize(value, Web);
+
+    // Like Json, but the keys of a dictionary keep their spelling (the default Web options camelCase them): for data keyed by a column key (filters).
+    private static readonly JsonSerializerOptions Verbatim = new(JsonSerializerDefaults.Web) { DictionaryKeyPolicy = null };
+
+    /// <summary>JSON for a value whose dictionary keys are names the host chose (for example column keys) and must reach the element unchanged.</summary>
+    internal static string? JsonVerbatimKeys(object? value) => value is null ? null : JsonSerializer.Serialize(value, Verbatim);
 }

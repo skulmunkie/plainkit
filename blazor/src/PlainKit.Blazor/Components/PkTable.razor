@@ -17,7 +17,7 @@
           manual="@Manual"
           sort="@Sort"
           sort-dir="@(SortDirection?.ToAttr())"
-          filters="@PkAttr.Json(Filters)"
+          filters="@PkAttr.JsonVerbatimKeys(Filters)"
           selected="@PkAttr.Json(Selected)"
           expanded="@PkAttr.Json(Expanded)"
           selectable="@Selectable"
@@ -62,7 +62,7 @@
     private List<PkTableColumn<TItem>> _cells = [];
     private readonly Dictionary<string, TItem> _byId = new();
 
-    /// <summary>The columns: what the header says, how it sorts, and what fills the cells. Keys are the camelCase names of the item properties (or any name, when the column has a <c>Text</c> or a <c>Cell</c>).</summary>
+    /// <summary>The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a <c>Text</c> or a <c>Cell</c>) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (<c>Sort</c>, <c>OnSort</c>, <c>Filters</c>).</summary>
     [Parameter] public IReadOnlyList<PkTableColumn<TItem>>? Columns { get; set; }
 
     /// <summary>The rows, one item each. In manual mode these are the rows the server returned for the current page. They are sent to the element as JSON (camelCase), so a row holds the item's public properties; a cell template can use the whole item.</summary>
@@ -207,15 +207,13 @@
         {
             var item = items[i];
             var id = IdOf?.Invoke(item) ?? i.ToString(CultureInfo.InvariantCulture);
-            var node = JsonSerializer.SerializeToNode(item, Web) as JsonObject ?? new JsonObject();
-            foreach (var column in columns)
-                if (column.Text is { } text) node[column.Key] = text(item);
+            var node = PkTableRows.Serialize(item, columns);
             node["id"] = id;
             rows.Add(node);
             _items.Add(new Row(id, item));
             _byId.TryAdd(id, item);
         }
-        _rows = rows.ToJsonString(Web);
+        _rows = PkTableRows.ToJson(rows);
     }
 
     /// <inheritdoc />

@@ -193,7 +193,7 @@
     private bool IsCurrent(TItem item) => CurrentId is not null && IdOf(item) == CurrentId;
 
     private string? TextOf(PkTableColumn<TItem> column, TItem item) =>
-        column.Text?.Invoke(item) ?? (JsonSerializer.SerializeToNode(item, Web) as JsonObject)?[column.Key]?.ToString();
+        column.Text?.Invoke(item) ?? (JsonSerializer.SerializeToNode(item, Web) is JsonObject node ? PkTableRows.Find(node, column.Key)?.ToString() : null);
 
     private RenderFragment Body(PkTableColumn<TItem> column, TItem item) => builder =>
     {
