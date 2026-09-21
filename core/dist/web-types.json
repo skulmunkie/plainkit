@@ -589,7 +589,7 @@
         },
         {
           "name": "pk-button-group",
-          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
           "attributes": [
             {
               "name": "orientation",
@@ -905,7 +905,7 @@
             },
             {
               "name": "checked",
-              "description": "Whether the box is checked.",
+              "description": "Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -1137,6 +1137,10 @@
             {
               "name": "pk-copy",
               "description": "After a copy attempt."
+            },
+            {
+              "name": "pk-wrap-change",
+              "description": "The wrap toggle was pressed; wrap already has the new value."
             }
           ]
         },
@@ -1154,7 +1158,7 @@
             },
             {
               "name": "value",
-              "description": "The colour as #rrggbb.",
+              "description": "The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -1166,6 +1170,14 @@
               "value": {
                 "type": "string",
                 "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
               }
             },
             {
@@ -1243,7 +1255,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -1352,6 +1364,10 @@
             {
               "name": "pk-combo-query",
               "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+            },
+            {
+              "name": "pk-combo-toggle",
+              "description": "The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made."
             }
           ]
         },
@@ -1405,6 +1421,14 @@
             {
               "name": "pk-select",
               "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened (the shortcut, show(), or open set by the host)."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason \"select\", already closed). Cancelable except for \"select\": preventDefault keeps it open."
             }
           ]
         },
@@ -1443,6 +1467,14 @@
             {
               "name": "pk-select",
               "description": "An item was chosen."
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened at the pointer position."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open."
             }
           ]
         },
@@ -2168,6 +2200,10 @@
             {
               "name": "pk-valid",
               "description": "A submit passed validation."
+            },
+            {
+              "name": "pk-reset",
+              "description": "The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled."
             }
           ]
         },
@@ -2589,7 +2625,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -2909,6 +2945,10 @@
             {
               "name": "pk-close",
               "description": "pk-close"
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened."
             }
           ]
         },
@@ -3364,7 +3404,7 @@
             },
             {
               "name": "value",
-              "description": "The code typed so far.",
+              "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -3889,7 +3929,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4027,7 +4067,7 @@
             },
             {
               "name": "value",
-              "description": "Single mode: the value.",
+              "description": "Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "number",
                 "default": "0"
@@ -4120,7 +4160,7 @@
             },
             {
               "name": "value",
-              "description": "The rating, 0 for none.",
+              "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "number",
                 "default": "0"
@@ -4205,7 +4245,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4303,7 +4343,7 @@
           "attributes": [
             {
               "name": "value",
-              "description": "Selected option value.",
+              "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4360,6 +4400,14 @@
             {
               "name": "pk-change",
               "description": "The selection changed."
+            },
+            {
+              "name": "pk-open",
+              "description": "The list opened."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
             }
           ]
         },
@@ -4425,7 +4473,7 @@
           "events": [
             {
               "name": "pk-nav-toggle",
-              "description": "Rail toggled."
+              "description": "Rail toggled by the user, or restored from the saved state (persist) on connect."
             },
             {
               "name": "pk-open",
@@ -4646,6 +4694,92 @@
           ]
         },
         {
+          "name": "pk-splitter",
+          "description": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.",
+          "attributes": [
+            {
+              "name": "orientation",
+              "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise).",
+              "value": {
+                "type": "string",
+                "default": "\"horizontal\""
+              },
+              "values": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            {
+              "name": "size",
+              "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does.",
+              "value": {
+                "type": "number",
+                "default": "50"
+              }
+            },
+            {
+              "name": "min",
+              "description": "Smallest size of the start pane, in percent (aria-valuemin).",
+              "value": {
+                "type": "number",
+                "default": "10"
+              }
+            },
+            {
+              "name": "max",
+              "description": "Largest size of the start pane, in percent (aria-valuemax).",
+              "value": {
+                "type": "number",
+                "default": "90"
+              }
+            },
+            {
+              "name": "step",
+              "description": "Percent moved by one arrow key press.",
+              "value": {
+                "type": "number",
+                "default": "2"
+              }
+            },
+            {
+              "name": "label",
+              "description": "The separator's accessible name (aria-label).",
+              "value": {
+                "type": "string",
+                "default": "\"Resize panes\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Fixes the size: the separator no longer takes focus or moves.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            }
+          ],
+          "slots": [
+            {
+              "name": "start",
+              "description": "The first pane (left, or top when stacked); its size is size percent."
+            },
+            {
+              "name": "end",
+              "description": "The second pane, which takes the rest."
+            }
+          ],
+          "events": [
+            {
+              "name": "input",
+              "description": "The size is changing while a drag is in progress (native, composed). Read the size from the element."
+            },
+            {
+              "name": "pk-resize",
+              "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+            }
+          ]
+        },
+        {
           "name": "pk-stack",
           "description": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.",
           "attributes": [
@@ -4740,11 +4874,23 @@
             },
             {
               "name": "delta",
-              "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage.",
+              "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points.",
               "value": {
                 "type": "string",
                 "default": "\"\""
               }
+            },
+            {
+              "name": "delta-unit",
+              "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points.",
+              "value": {
+                "type": "string",
+                "default": "\"percent\""
+              },
+              "values": [
+                "percent",
+                "points"
+              ]
             },
             {
               "name": "delta-direction",
@@ -4993,7 +5139,7 @@
           "attributes": [
             {
               "name": "checked",
-              "description": "Whether the switch is on.",
+              "description": "Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -5177,7 +5323,7 @@
         },
         {
           "name": "pk-table",
-          "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
+          "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
           "attributes": [
             {
               "name": "columns",
@@ -5189,7 +5335,7 @@
             },
             {
               "name": "rows",
-              "description": "Row data, one object per row. A JSON attribute or a property.",
+              "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>.",
               "value": {
                 "type": "string",
                 "default": ""
@@ -5325,11 +5471,35 @@
               }
             },
             {
-              "name": "loading",
-              "description": "Show placeholder rows and mark the table busy.",
+              "name": "expandable",
+              "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row.",
               "value": {
                 "type": "boolean",
                 "default": "false"
+              }
+            },
+            {
+              "name": "expanded",
+              "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "loading",
+              "description": "Show a placeholder row, announce Loading and mark the table busy.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "empty-text",
+              "description": "Text shown when there are no rows. The empty slot replaces it.",
+              "value": {
+                "type": "string",
+                "default": "\"No rows\""
               }
             },
             {
@@ -5391,8 +5561,16 @@
               "description": "Rich caption."
             },
             {
+              "name": "cell-<rowId>-<key>",
+              "description": "Custom content for one cell of a data-driven table: rowId is the row's rowKey value, key the column key. Replaces the cell text."
+            },
+            {
+              "name": "detail-<rowId>",
+              "description": "Detail content of one row, shown under it when the row is expanded (expandable). A row without this slot has no toggle."
+            },
+            {
               "name": "empty",
-              "description": "Empty state; an pk-empty-state fits."
+              "description": "Empty state; an pk-empty-state fits. Replaces emptyText."
             },
             {
               "name": "footer",
@@ -5415,6 +5593,10 @@
             {
               "name": "pk-row-click",
               "description": "A clickable row was activated."
+            },
+            {
+              "name": "pk-row-expand",
+              "description": "The user expanded or collapsed a row. expanded is the new state; the expanded prop already holds it."
             }
           ]
         },
@@ -5476,7 +5658,7 @@
           "events": [
             {
               "name": "pk-tab-change",
-              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab."
+              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it."
             }
           ]
         },
@@ -5494,7 +5676,7 @@
             },
             {
               "name": "value",
-              "description": "Sent in the remove event; defaults to the text.",
+              "description": "Sent in the remove event (the identifier, not state); defaults to the text.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -5503,6 +5685,14 @@
             {
               "name": "disabled",
               "description": "Dim the tag and disable the button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "controlled",
+              "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -5518,7 +5708,7 @@
           "events": [
             {
               "name": "pk-remove",
-              "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself."
+              "description": "The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it."
             }
           ]
         },
@@ -5536,7 +5726,7 @@
             },
             {
               "name": "value",
-              "description": "The tags, comma-joined.",
+              "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -5645,7 +5835,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -5665,6 +5855,14 @@
               "value": {
                 "type": "string",
                 "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
               }
             },
             {
@@ -6278,6 +6476,139 @@
             {
               "name": "pk-toggle",
               "description": "The branch opened or closed."
+            }
+          ]
+        },
+        {
+          "name": "pk-unit-input",
+          "description": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The form field name.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "value",
+              "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "units",
+              "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select.",
+              "value": {
+                "type": "string",
+                "default": "\"px,rem,em,%\""
+              }
+            },
+            {
+              "name": "placeholder",
+              "description": "Hint shown in the number field while it is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "label",
+              "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "description",
+              "description": "Help and error text, exposed as aria-description; pk-field fills it.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "disabled",
+              "description": "Blocks interaction; also set by a disabled fieldset.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "readonly",
+              "description": "Shows the value but does not let it change (the unit select is disabled too).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "required",
+              "description": "The form cannot be submitted while the number is empty.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "invalid",
+              "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "min",
+              "description": "Lowest number (the number, whatever the unit).",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "max",
+              "description": "Highest number.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
+              }
+            },
+            {
+              "name": "step",
+              "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by.",
+              "value": {
+                "type": "string",
+                "default": "\"any\""
+              }
+            }
+          ],
+          "slots": [],
+          "events": [
+            {
+              "name": "input",
+              "description": "The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element."
+            },
+            {
+              "name": "change",
+              "description": "The user committed the number or picked another unit (re-dispatched from the inner control, composed)."
+            },
+            {
+              "name": "pk-value-change",
+              "description": "The user committed a new value (same moment as change; carries the value)."
             }
           ]
         },

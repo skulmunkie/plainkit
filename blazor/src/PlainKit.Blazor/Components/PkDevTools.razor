@@ -1,0 +1,102 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+@inject PkOptions Options
+@inject IServiceProvider Services
+
+@* The toolkit's dev tools: Console, Logs, Logging, Performance, Quality, Inspector and Theme tabs, plus Blazor and Components tabs of PlainKit.Blazor's own.
+   Docked (a launcher button and a bottom dock on any page, Ctrl+` toggles it) or inline in this element. JavaScript owns the dock, or the element's subtree;
+   Blazor renders nothing in it. The marker element is only how the component finds its tools again. *@
+<div @ref="_host" hidden="@(Mode == PkDevToolsMode.Dock)"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private DotNetObjectReference<PkDevToolsHost>? _callbacks;
+    private string? _mounted;
+    private string? _tab;
+    private bool? _open;
+
+    /// <summary><see cref="PkDevToolsMode.Dock"/> (the default) floats over the page; <see cref="PkDevToolsMode.Inline"/> fills this component's element.</summary>
+    [Parameter] public PkDevToolsMode Mode { get; set; }
+
+    /// <summary>The tab shown first (console, logs, logging, performance, quality, inspector, theme, blazor or blazor-components), and the one selected when this changes.</summary>
+    [Parameter] public string? Tab { get; set; }
+
+    /// <summary>Dock only: start open, and open or close it when this changes.</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Dock only: the key that toggles the dock. Null is Ctrl+`; an empty string turns the hotkey off.</summary>
+    [Parameter] public string? Hotkey { get; set; }
+
+    /// <summary>Dock only: the dock's height at first.</summary>
+    [Parameter] public PkDevToolsSize Size { get; set; }
+
+    /// <summary>The theme of the tools themselves.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Add the Blazor tab (circuit, JS interop, SDK log) and the Components tab (each element's component, parameters and Razor).</summary>
+    [Parameter] public bool BlazorPanels { get; set; } = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Runtime.EnsureInitializedAsync(); // applies the logging options before the tools start listening
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = $"{Mode}|{Hotkey}|{Size}|{Theme}|{BlazorPanels}";
+        if (key != _mounted)
+        {
+            _mounted = key;
+            _callbacks?.Dispose();
+            _callbacks = BlazorPanels ? DotNetObjectReference.Create(new PkDevToolsHost(Runtime, Options, Services.GetService(typeof(PkCircuitState)) as PkCircuitState)) : null;
+            _tab = Tab;
+            _open = Open;
+            await _bridge.InvokeVoidAsync("mountDevTools", _host, new
+            {
+                mode = Mode == PkDevToolsMode.Inline ? "inline" : "dock",
+                hotkey = Hotkey,
+                tab = Tab,
+                open = Open,
+                size = Size.Attr(),
+                theme = Theme.Attr(),
+            }, _callbacks);
+            return;
+        }
+        // Same tools, a new tab or open state: drive them rather than mount again.
+        if (Tab != _tab && !string.IsNullOrEmpty(Tab)) await SelectAsync(Tab);
+        _tab = Tab;
+        if (Mode == PkDevToolsMode.Dock && Open != _open) { if (Open) await OpenAsync(); else await CloseAsync(); }
+        _open = Open;
+    }
+
+    /// <summary>Shows the dock.</summary>
+    public async Task OpenAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("openTools", _host);
+    }
+
+    /// <summary>Hides the dock.</summary>
+    public async Task CloseAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("closeTools", _host);
+    }
+
+    /// <summary>Shows the dock if it is hidden and hides it if it is shown.</summary>
+    public async Task ToggleAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("toggleTools", _host);
+    }
+
+    /// <summary>Selects a tab by id (an unknown id is ignored).</summary>
+    public async Task SelectAsync(string id)
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("selectTool", _host, id);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        _callbacks?.Dispose();
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

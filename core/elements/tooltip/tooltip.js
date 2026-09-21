@@ -12,8 +12,9 @@ export function showDelay(kind, configured = DEFAULT_DELAY) {
 }
 
 // pk-tooltip wraps its target: hover shows it after `delay`, focus at once, a touch long press after LONG_PRESS; Escape, leaving or scrolling hides it.
-// The text also lives in a hidden light-DOM node the target points at with aria-describedby (ids do not cross the shadow boundary).
-const ids = { n: 0 };
+// The text is also the target's accessible description: aria-description on the slotted target, set here and taken off again when the text, the target or
+// the element goes. Nothing is added to the light DOM: an id cannot cross the shadow boundary (aria-describedby cannot reach the tip in the shadow tree) and
+// ElementInternals describes the host, not the target.
 export default Base => class extends Base {
     connected() {
         if (!this.$w) {
@@ -28,19 +29,17 @@ export default Base => class extends Base {
             on('pointerup', up); on('pointercancel', up);
             on('keydown', e => { if (e.key === 'Escape') this.hide(); });
             this.$hide = () => this.hide();
+            this.watchSlot('', () => this.describe());
             this.watchSlot('content', () => { if (this.shown) place(this, this.part('tip'), { placement: this.placement, offset: 6 }); });
         }
         this.describe();
     }
-    disconnected() { clearTimeout(this.$t); this.hide(); }
+    disconnected() { clearTimeout(this.$t); this.hide(); this.describe(true); }
     changed(name) { if (name === 'text') this.describe(); }
-    describe() {
-        if (this.help) return;
-        const target = this.slotted()[0];
-        if (!target || !this.text) return;
-        if (!this.$d || !this.$d.isConnected) { this.$d = document.createElement('span'); this.$d.hidden = true; this.$d.id = `pk-tip-${++ids.n}`; this.append(this.$d); }
-        this.$d.textContent = this.text;
-        target.setAttribute('aria-describedby', this.$d.id);
+    describe(off = false) {
+        const target = off || this.help || !this.text ? null : this.slotted()[0] ?? null, was = this.$d;
+        if (was && (was.el !== target || was.text !== this.text)) { if (was.el.getAttribute('aria-description') === was.text) was.el.removeAttribute('aria-description'); this.$d = null; }
+        if (target && !this.$d && !target.hasAttribute('aria-description')) { target.setAttribute('aria-description', this.text); this.$d = { el: target, text: this.text }; }
     }
     schedule(kind) { clearTimeout(this.$t); this.$t = setTimeout(() => this.show(), showDelay(kind, this.delay)); }
     show() {

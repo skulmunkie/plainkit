@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-tab-panel value="@Value">@ChildContent</pk-tab-panel>
+<pk-tab-panel value="@Value"
+              class="@Css()"
+              @attributes="Splat">@ChildContent</pk-tab-panel>
 
 @code {
     /// <summary>The key that pairs this panel with the pk-tab of the same value.</summary>

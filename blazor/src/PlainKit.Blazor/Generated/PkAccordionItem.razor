@@ -5,6 +5,7 @@
 
 <pk-accordion-item heading="@Heading"
                    open="@Open"
+                   class="@Css()"
                    @attributes="Splat">@ChildContent@if (HeadingContent is not null) {<span slot="heading">@HeadingContent</span>}@if (IconContent is not null) {<span slot="icon">@IconContent</span>}</pk-accordion-item>
 
 @code {
@@ -26,15 +27,10 @@
     /// <summary>An icon before the heading.</summary>
     [Parameter] public RenderFragment? IconContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkToggle(PkToggleEventArgs e)

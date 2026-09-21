@@ -9,6 +9,7 @@
              max-files="@PkAttr.Num(MaxFiles)"
              label="@Label"
              disabled="@Disabled"
+             class="@Css()"
              @attributes="Splat">@ChildContent@if (HintContent is not null) {<span slot="hint">@HintContent</span>}</pk-dropzone>
 
 @code {
@@ -39,15 +40,10 @@
     /// <summary>A hint under the title (types and limits).</summary>
     [Parameter] public RenderFragment? HintContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-files"] = EventCallback.Factory.Create<PkFilesEventArgs>(this, HandlePkFiles),
-        };
+        handlers["onpk-files"] = EventCallback.Factory.Create<PkFilesEventArgs>(this, HandlePkFiles);
     }
 
     private async Task HandlePkFiles(PkFilesEventArgs e)

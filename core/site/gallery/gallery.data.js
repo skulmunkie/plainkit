@@ -215,13 +215,14 @@ export const PATTERNS = [
         "id": "filter-table",
         "title": "Filter bar, table and bulk actions",
         "summary": "Filter chips and a search over a sortable table with row selection; choosing rows reveals a bulk-action bar.",
-        "built": "Table, Input, Select, Field, Tag, Badge, Button group, Pagination, Cluster.",
+        "built": "Table, Input, Select, Field, Tag, Badge, Button group, Pagination, Cluster, Empty state.",
         "mobile": "Filters wrap; the table scrolls inside its wrapper; the bulk bar stays under the header.",
         "used": [
             "badge",
             "button",
             "button-group",
             "cluster",
+            "empty-state",
             "field",
             "field-row",
             "input",
@@ -232,7 +233,8 @@ export const PATTERNS = [
             "tag"
         ],
         "order": 1,
-        "html": "<pk-table label=\"Items\" caption=\"Items\" striped hover selectable cards filterable sort=\"name\" selected='[1,2]' columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"status\",\"label\":\"Status\"},{\"key\":\"amount\",\"label\":\"Amount\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"name\":\"Item one\",\"status\":\"Active\",\"amount\":\"$12.00\"},{\"id\":2,\"name\":\"Item two\",\"status\":\"Draft\",\"amount\":\"$8.50\"},{\"id\":3,\"name\":\"Item three\",\"status\":\"Review\",\"amount\":\"$20.00\"},{\"id\":4,\"name\":\"Item four\",\"status\":\"Active\",\"amount\":\"$5.25\"}]'>\n<pk-stack slot=\"toolbar\" gap=\"sm\">\n<pk-field-row><pk-field label=\"Search\"><pk-input type=\"search\" placeholder=\"Name or SKU\"></pk-input></pk-field><pk-field label=\"Status\"><pk-select value=\"Any\"><option>Any</option><option>Active</option><option>Draft</option></pk-select></pk-field></pk-field-row>\n<pk-cluster><span class=\"muted\">Applied:</span><pk-tag removable>Status: Active</pk-tag><pk-tag removable>Price &gt; $5</pk-tag><pk-button size=\"mini\" variant=\"ghost\">Clear all</pk-button></pk-cluster>\n</pk-stack>\n<pk-button-group slot=\"bulk\" label=\"Bulk actions\"><pk-button size=\"mini\" variant=\"ghost\">Archive</pk-button><pk-button size=\"mini\" variant=\"ghost\">Export</pk-button><pk-button size=\"mini\" variant=\"warn\">Delete</pk-button></pk-button-group>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge>\n<pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n<pk-badge slot=\"cell-3-status\" variant=\"warn\">Review</pk-badge>\n<pk-badge slot=\"cell-4-status\" variant=\"ok\">Active</pk-badge>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"2\" label=\"Pages\"></pk-pagination>\n</pk-table>",
+        "html": "<pk-table label=\"Items\" caption=\"Items\" striped hover selectable cards filterable sort=\"name\" selected='[1,4]' filters='{\"status\":\"Active\"}' data-table columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"status\",\"label\":\"Status\"},{\"key\":\"amount\",\"label\":\"Amount\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"name\":\"Item one\",\"status\":\"Active\",\"amount\":\"$12.00\"},{\"id\":2,\"name\":\"Item two\",\"status\":\"Draft\",\"amount\":\"$8.50\"},{\"id\":3,\"name\":\"Item three\",\"status\":\"Review\",\"amount\":\"$20.00\"},{\"id\":4,\"name\":\"Item four\",\"status\":\"Active\",\"amount\":\"$5.25\"}]'>\n<pk-stack slot=\"toolbar\" gap=\"sm\">\n<pk-field-row><pk-field label=\"Search\"><pk-input type=\"search\" placeholder=\"Name or SKU\" data-field=\"name\"></pk-input></pk-field><pk-field label=\"Status\"><pk-select value=\"Active\" data-field=\"status\"><option>Any</option><option>Active</option><option>Draft</option><option>Review</option></pk-select></pk-field></pk-field-row>\n<pk-cluster data-applied><span class=\"muted\">Applied:</span><pk-tag removable data-key=\"status\">Status: Active</pk-tag><pk-button size=\"mini\" variant=\"ghost\" data-clear>Clear all</pk-button></pk-cluster>\n</pk-stack>\n<pk-button-group slot=\"bulk\" label=\"Bulk actions\"><pk-button size=\"mini\" variant=\"ghost\">Archive</pk-button><pk-button size=\"mini\" variant=\"ghost\">Export</pk-button><pk-button size=\"mini\" variant=\"warn\">Delete</pk-button></pk-button-group>\n<pk-empty-state slot=\"empty\" heading=\"No matching items\" description=\"Remove a filter to see more.\"></pk-empty-state>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge>\n<pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n<pk-badge slot=\"cell-3-status\" variant=\"warn\">Review</pk-badge>\n<pk-badge slot=\"cell-4-status\" variant=\"ok\">Active</pk-badge>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"2\" label=\"Pages\"></pk-pagination>\n</pk-table>",
+        "script": "filter-table/filter-table.js",
         "file": "samples/patterns/filter-table/filter-table.html"
     },
     {
@@ -255,7 +257,8 @@ export const PATTERNS = [
             "timeline-item"
         ],
         "order": 2,
-        "html": "<pk-grid columns=\"2\" min=\"18rem\">\n<pk-card heading=\"Items\"><pk-list-group variant=\"action\" label=\"Items\"><a href=\"#\">Item one</a><a href=\"#\" aria-current=\"true\"><strong>Item two</strong></a><a href=\"#\">Item three</a></pk-list-group></pk-card>\n<pk-card heading=\"Item two\"><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Edit</pk-button>\n<pk-tabs value=\"overview\"><pk-tab value=\"overview\">Overview</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"overview\"><pk-field-list><dt>Name</dt><dd>Item two</dd><dt>Status</dt><dd><pk-badge variant=\"muted\">Draft</pk-badge></dd></pk-field-list></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-timeline label=\"History\"><pk-timeline-item heading=\"Edited\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" status=\"done\"></pk-timeline-item></pk-timeline></pk-tab-panel>\n</pk-tabs></pk-card>\n</pk-grid>",
+        "html": "<pk-grid columns=\"2\" min=\"18rem\">\n<pk-card heading=\"Items\" data-list><pk-list-group variant=\"action\" label=\"Items\"><a href=\"#\" data-id=\"one\" data-status=\"Active\" data-variant=\"ok\" data-history=\"Published|Edited|Created\">Item one</a><a href=\"#\" aria-current=\"true\" data-id=\"two\" data-status=\"Draft\" data-variant=\"muted\" data-history=\"Edited|Created\"><strong>Item two</strong></a><a href=\"#\" data-id=\"three\" data-status=\"Review\" data-variant=\"warn\" data-history=\"Sent for review|Edited|Created\">Item three</a></pk-list-group></pk-card>\n<pk-card heading=\"Item two\" data-detail><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Edit</pk-button>\n<pk-tabs value=\"overview\" data-tabs><pk-tab value=\"overview\">Overview</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"overview\"><pk-field-list><dt>Name</dt><dd data-name>Item two</dd><dt>Status</dt><dd><pk-badge variant=\"muted\" data-status>Draft</pk-badge></dd></pk-field-list></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-timeline label=\"History\" data-history><pk-timeline-item heading=\"Edited\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" status=\"done\"></pk-timeline-item></pk-timeline></pk-tab-panel>\n</pk-tabs></pk-card>\n</pk-grid>",
+        "script": "master-detail-pattern/master-detail-pattern.js",
         "file": "samples/patterns/master-detail-pattern/master-detail-pattern.html"
     },
     {
@@ -296,14 +299,15 @@ export const PATTERNS = [
             "switch"
         ],
         "order": 4,
-        "html": "<form><pk-stack>\n<pk-card heading=\"Store\"><pk-field-row><pk-field label=\"Name\" help=\"Shown on packing slips.\"><pk-input value=\"Example store\"></pk-input></pk-field><pk-field label=\"Currency\"><pk-select value=\"USD\"><option>USD</option></pk-select></pk-field></pk-field-row></pk-card>\n<pk-card heading=\"Sync\"><pk-switch checked>Sync automatically</pk-switch></pk-card>\n<pk-accordion-item heading=\"Advanced\"><pk-field label=\"Rate limit\"><pk-range min=\"10\" max=\"120\" value=\"60\" output></pk-range></pk-field></pk-accordion-item>\n<pk-form-actions sticky><span slot=\"status\"><pk-alert kind=\"warning\" plain inline compact>Unsaved changes</pk-alert></span><pk-button type=\"button\">Save</pk-button><pk-button type=\"button\" variant=\"ghost\">Discard</pk-button></pk-form-actions>\n</pk-stack></form>",
+        "html": "<form><pk-stack>\n<pk-alert kind=\"success\" data-saved hidden>Settings saved.</pk-alert>\n<pk-card heading=\"Store\"><pk-field-row><pk-field label=\"Name\" help=\"Shown on packing slips.\"><pk-input value=\"Example store\"></pk-input></pk-field><pk-field label=\"Currency\"><pk-select value=\"USD\"><option>USD</option><option>EUR</option><option>GBP</option></pk-select></pk-field></pk-field-row></pk-card>\n<pk-card heading=\"Sync\"><pk-switch checked>Sync automatically</pk-switch></pk-card>\n<pk-accordion-item heading=\"Advanced\"><pk-field label=\"Rate limit\"><pk-range min=\"10\" max=\"120\" value=\"60\" output></pk-range></pk-field></pk-accordion-item>\n<pk-form-actions sticky data-bar><span slot=\"status\"><pk-alert kind=\"warning\" plain inline compact>Unsaved changes</pk-alert></span><pk-button type=\"button\" data-save>Save</pk-button><pk-button type=\"button\" variant=\"ghost\" data-discard>Discard</pk-button></pk-form-actions>\n</pk-stack></form>",
+        "script": "unsaved-settings/unsaved-settings.js",
         "file": "samples/patterns/unsaved-settings/unsaved-settings.html"
     },
     {
         "id": "notifications",
         "title": "Notifications and toasts",
         "summary": "Transient toasts for confirmations, inline notices for what needs attention, and a count badge on the bell.",
-        "built": "Toast, Alert, Button, Badge.",
+        "built": "Toast, Toast stack, Alert, Button, Badge.",
         "mobile": "Toasts stack full-width at the bottom.",
         "used": [
             "alert",
@@ -311,25 +315,28 @@ export const PATTERNS = [
             "button",
             "cluster",
             "stack",
-            "toast"
+            "toast-stack"
         ],
         "order": 5,
-        "html": "<pk-stack>\n<pk-cluster><pk-button variant=\"ghost\">Notifications <pk-badge count=\"3\" variant=\"danger\"></pk-badge></pk-button></pk-cluster>\n<pk-alert kind=\"success\">Item saved.</pk-alert>\n<pk-alert kind=\"warning\">Two items need a price.</pk-alert>\n<pk-stack gap=\"sm\"><pk-toast>Item archived.<pk-button slot=\"action\" size=\"mini\" variant=\"ghost\">Undo</pk-button></pk-toast><pk-toast>Export ready.<a slot=\"action\" href=\"#\">Download</a></pk-toast></pk-stack>\n</pk-stack>",
+        "html": "<pk-stack>\n<pk-cluster><pk-button variant=\"ghost\" data-bell aria-label=\"Notifications, mark all as read\">Notifications <pk-badge count=\"3\" variant=\"danger\" data-unread></pk-badge></pk-button></pk-cluster>\n<pk-alert kind=\"success\">Item saved.</pk-alert>\n<pk-alert kind=\"warning\">Two items need a price.</pk-alert>\n<pk-cluster><pk-button data-toast=\"saved\">Save item</pk-button><pk-button variant=\"ghost\" data-toast=\"archived\">Archive item</pk-button><pk-button variant=\"ghost\" data-toast=\"failed\">Export</pk-button></pk-cluster>\n<pk-toast-stack></pk-toast-stack>\n</pk-stack>",
+        "script": "notifications/notifications.js",
         "file": "samples/patterns/notifications/notifications.html"
     },
     {
         "id": "search-results",
         "title": "Search results and command palette",
         "summary": "A search field with a keyboard hint over results grouped by type, each row showing a snippet with the match marked.",
-        "built": "Input, List group, Typography (kbd, mark).",
+        "built": "Input, List group, Empty state, Typography (kbd, mark).",
         "mobile": "The field is full width; results are single-line rows with 44px targets.",
         "used": [
+            "empty-state",
             "input",
             "list-group",
             "stack"
         ],
         "order": 6,
-        "html": "<pk-stack>\n<pk-input type=\"search\" label=\"Search everything\" value=\"item\"><span slot=\"prefix\">Search</span><span slot=\"suffix\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></pk-input>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Products <span class=\"muted\">(2)</span></p><pk-list-group variant=\"action\" label=\"Products\"><button type=\"button\"><span><span class=\"muted\">1</span> <mark>Item</mark> one</span></button><button type=\"button\"><span><span class=\"muted\">2</span> <mark>Item</mark> two</span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Orders <span class=\"muted\">(1)</span></p><pk-list-group variant=\"action\" label=\"Orders\"><button type=\"button\"><span><span class=\"muted\">1</span> Order for <mark>item</mark> three</span></button></pk-list-group></pk-stack>\n</pk-stack>",
+        "html": "<pk-stack>\n<pk-input type=\"search\" label=\"Search everything\" value=\"item\" data-query><span slot=\"prefix\">Search</span><span slot=\"suffix\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></pk-input>\n<pk-stack gap=\"sm\" data-group><p class=\"eyebrow\">Products <span class=\"muted\" data-count>(2)</span></p><pk-list-group variant=\"action\" label=\"Products\"><button type=\"button\"><span><span class=\"muted\" data-n>1</span> <span data-label><mark>Item</mark> one</span></span></button><button type=\"button\"><span><span class=\"muted\" data-n>2</span> <span data-label><mark>Item</mark> two</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>3</span> <span data-label>Widget kit</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>4</span> <span data-label>Shipping label</span></span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\" data-group><p class=\"eyebrow\">Orders <span class=\"muted\" data-count>(1)</span></p><pk-list-group variant=\"action\" label=\"Orders\"><button type=\"button\"><span><span class=\"muted\" data-n>1</span> <span data-label>Order for <mark>item</mark> three</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>2</span> <span data-label>Order 1042</span></span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\" data-group hidden><p class=\"eyebrow\">Customers <span class=\"muted\" data-count>(0)</span></p><pk-list-group variant=\"action\" label=\"Customers\"><button type=\"button\" hidden><span><span class=\"muted\" data-n>1</span> <span data-label>Acme Supply</span></span></button></pk-list-group></pk-stack>\n<pk-empty-state heading=\"No results\" description=\"Try a different word.\" data-empty hidden></pk-empty-state>\n</pk-stack>",
+        "script": "search-results/search-results.js",
         "file": "samples/patterns/search-results/search-results.html"
     },
     {
@@ -348,7 +355,8 @@ export const PATTERNS = [
             "stepper"
         ],
         "order": 7,
-        "html": "<pk-card heading=\"Get set up\"><span slot=\"actions\" class=\"muted\">2 of 4 done</span>\n<pk-stack>\n<pk-progress label=\"Setup progress\" value=\"50\"></pk-progress>\n<pk-stepper label=\"Setup steps\" current=\"2\"><pk-step heading=\"Create account\"></pk-step><pk-step heading=\"Add a product\"></pk-step><pk-step heading=\"Connect a channel\"></pk-step><pk-step heading=\"Invite a teammate\"></pk-step></pk-stepper>\n<pk-list-group label=\"Next steps\"><div>Connect a channel <pk-button size=\"mini\">Start</pk-button></div><div class=\"muted\">Invite a teammate</div></pk-list-group>\n</pk-stack></pk-card>",
+        "html": "<pk-card heading=\"Get set up\"><span slot=\"actions\" class=\"muted\" data-done>2 of 4 done</span>\n<pk-stack>\n<pk-progress label=\"Setup progress\" value=\"50\" data-progress></pk-progress>\n<pk-stepper label=\"Setup steps\" current=\"2\" data-stepper><pk-step heading=\"Create account\"></pk-step><pk-step heading=\"Add a product\"></pk-step><pk-step heading=\"Connect a channel\"></pk-step><pk-step heading=\"Invite a teammate\"></pk-step></pk-stepper>\n<pk-list-group label=\"Next steps\" data-next><div>Connect a channel <pk-button size=\"mini\" data-start>Start</pk-button></div><div class=\"muted\">Invite a teammate</div></pk-list-group>\n</pk-stack></pk-card>",
+        "script": "onboarding/onboarding.js",
         "file": "samples/patterns/onboarding/onboarding.html"
     },
     {
@@ -449,7 +457,7 @@ export const LAYOUTS = [
         "id": "record",
         "title": "Record page",
         "summary": "One record: chips and actions under the top bar, a tab strip and read-only fields beside editable ones.",
-        "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert.",
+        "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert, Timeline.",
         "mobile": "Header actions wrap; the tab strip scrolls sideways; FieldList stacks label over value.",
         "used": [
             "alert",
@@ -463,10 +471,12 @@ export const LAYOUTS = [
             "stack",
             "tab",
             "tab-panel",
-            "tabs"
+            "tabs",
+            "timeline",
+            "timeline-item"
         ],
         "order": 2,
-        "html": "<pk-page-header variant=\"record\"><pk-badge variant=\"ok\">Received</pk-badge><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button></pk-page-header>\n<pk-tabs scroll value=\"details\"><pk-tab value=\"details\">Details</pk-tab><pk-tab value=\"lines\" count=\"3\">Lines</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"details\"><pk-card heading=\"Vendor\"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label=\"Notes\"><pk-input value=\"Ship together\"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"lines\"><pk-card heading=\"Lines\"><p>Three lines on this order.</p></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-card heading=\"History\"><p>No changes yet.</p></pk-card></pk-tab-panel>\n</pk-tabs>\n<pk-alert kind=\"info\">Receiving this PO creates ledger entries.</pk-alert>",
+        "html": "<pk-page-header variant=\"record\"><pk-badge variant=\"ok\">Received</pk-badge><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button></pk-page-header>\n<pk-tabs scroll value=\"details\"><pk-tab value=\"details\">Details</pk-tab><pk-tab value=\"lines\" count=\"3\">Lines</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"details\"><pk-card heading=\"Vendor\"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label=\"Notes\"><pk-input value=\"Ship together\"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"lines\"><pk-card heading=\"Lines\"><p>Three lines on this order.</p></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-card heading=\"History\"><pk-timeline label=\"History\"><pk-timeline-item heading=\"Received\" time=\"Sep 18\" status=\"done\">All three lines checked in.</pk-timeline-item><pk-timeline-item heading=\"Shipped by vendor\" time=\"Sep 15\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Approved\" time=\"Sep 12\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" time=\"Sep 12\" status=\"done\"></pk-timeline-item></pk-timeline></pk-card></pk-tab-panel>\n</pk-tabs>\n<pk-alert kind=\"info\">Receiving this PO creates ledger entries.</pk-alert>",
         "file": "layouts/record/record.html"
     },
     {
@@ -587,6 +597,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Expanded."
             }
         ],
@@ -1358,6 +1369,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "The pressed state of a toggle button."
             },
             {
@@ -1474,7 +1486,7 @@ export const ELEMENTS = [
         "tag": "pk-button-group",
         "title": "Button group",
         "group": "Actions",
-        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
         "props": [
             {
                 "name": "orientation",
@@ -1529,8 +1541,12 @@ export const ELEMENTS = [
         ],
         "cssProperties": [],
         "methods": [],
-        "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
+        "a11y": "role=group with an aria-label (a group of toggle buttons, not a radiogroup: each keeps its own tab stop and Space or Enter presses it). In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height. A segmented control: give each toggle button a value and listen for pk-toggle on the group (it bubbles); the choice is the event whose detail.pressed is true, and pressing the pressed button again also raises pk-toggle with pressed false, which the group immediately undoes, so ignore that one.",
         "examples": [
+            {
+                "title": "Segmented control (Dark and Light)",
+                "html": "<pk-button-group label=\"Theme\" mode=\"single\"><pk-button toggle pressed value=\"dark\" variant=\"ghost\">Dark</pk-button><pk-button toggle value=\"light\" variant=\"ghost\">Light</pk-button></pk-button-group>"
+            },
             {
                 "title": "Group and single choice",
                 "html": "<pk-button-group label=\"View\"><pk-button variant=\"ghost\">Day</pk-button><pk-button variant=\"ghost\">Week</pk-button><pk-button variant=\"ghost\">Month</pk-button></pk-button-group>\n<pk-button-group label=\"Density\" mode=\"single\"><pk-button toggle pressed variant=\"ghost\">Compact</pk-button><pk-button toggle variant=\"ghost\">Comfortable</pk-button></pk-button-group>"
@@ -1548,6 +1564,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
+                "commit": "pk-select",
                 "description": "The selected day, an ISO date such as 2026-09-19."
             },
             {
@@ -1989,7 +2006,8 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Whether the box is checked."
+                "commit": "pk-change",
+                "description": "Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "indeterminate",
@@ -2272,6 +2290,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-wrap-change",
                 "description": "Wrap long lines."
             },
             {
@@ -2297,6 +2316,14 @@ export const ELEMENTS = [
                     "ok": "bool"
                 },
                 "description": "After a copy attempt.",
+                "cancelable": false
+            },
+            {
+                "name": "pk-wrap-change",
+                "detail": {
+                    "wrap": "bool"
+                },
+                "description": "The wrap toggle was pressed; wrap already has the new value.",
                 "cancelable": false
             }
         ],
@@ -2394,7 +2421,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The colour as #rrggbb."
+                "commit": "pk-colour",
+                "description": "The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -2402,6 +2430,13 @@ export const ELEMENTS = [
                 "default": "",
                 "reflect": true,
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+            },
+            {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
             },
             {
                 "name": "description",
@@ -2455,6 +2490,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The row of swatch and hex field."
             },
@@ -2493,6 +2532,10 @@ export const ELEMENTS = [
         "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
         "examples": [
             {
+                "title": "Visible label",
+                "html": "<pk-colour-input label=\"Accent colour\" show-label value=\"#4a90e2\"></pk-colour-input>"
+            },
+            {
                 "title": "Picker and hex",
                 "html": "<pk-colour-input label=\"Accent colour\" value=\"#4a90e2\"></pk-colour-input>"
             }
@@ -2529,7 +2572,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -2596,6 +2640,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-combo-toggle",
                 "description": "Whether the list is open."
             }
         ],
@@ -2636,6 +2681,13 @@ export const ELEMENTS = [
                     "query": "string"
                 },
                 "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+            },
+            {
+                "name": "pk-combo-toggle",
+                "detail": {
+                    "open": "bool"
+                },
+                "description": "The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made."
             }
         ],
         "parts": [
@@ -2722,6 +2774,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -2761,6 +2817,18 @@ export const ELEMENTS = [
                     "item": "object"
                 },
                 "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+            },
+            {
+                "name": "pk-open",
+                "detail": null,
+                "description": "It opened (the shortcut, show(), or open set by the host)."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason \"select\", already closed). Cancelable except for \"select\": preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -2834,6 +2902,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the menu is shown."
             },
             {
@@ -2863,6 +2935,21 @@ export const ELEMENTS = [
                     "checked": "boolean"
                 },
                 "description": "An item was chosen."
+            },
+            {
+                "name": "pk-open",
+                "detail": {
+                    "x": "number",
+                    "y": "number"
+                },
+                "description": "It opened at the pointer position."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -2902,6 +2989,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -3143,6 +3234,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -3301,6 +3396,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the menu is shown."
             },
             {
@@ -4034,6 +4133,11 @@ export const ELEMENTS = [
                 "name": "pk-valid",
                 "detail": "null",
                 "description": "A submit passed validation."
+            },
+            {
+                "name": "pk-reset",
+                "detail": null,
+                "description": "The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled."
             }
         ],
         "parts": [
@@ -4426,6 +4530,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Expanded."
             },
             {
@@ -4765,7 +4870,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -5118,6 +5224,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": true,
+                "commit": "pk-change",
                 "description": "The index setting"
             },
             {
@@ -5132,6 +5239,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             }
         ],
@@ -5155,6 +5266,11 @@ export const ELEMENTS = [
                     "reason": "string"
                 },
                 "description": "pk-close"
+            },
+            {
+                "name": "pk-open",
+                "detail": {},
+                "description": "It opened."
             }
         ],
         "parts": [
@@ -5546,6 +5662,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-select",
                 "description": "Checkbox and radio state."
             },
             {
@@ -5674,6 +5791,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Branch open."
             },
             {
@@ -5780,6 +5898,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Links unfolded (small screens)."
             },
             {
@@ -5874,7 +5993,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The code typed so far."
+                "commit": "pk-otp-change",
+                "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -6196,6 +6316,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 1,
                 "reflect": true,
+                "commit": "pk-page",
                 "description": "Current page, 1-based."
             },
             {
@@ -6395,6 +6516,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the panel is shown."
             },
             {
@@ -6725,7 +6850,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -6903,7 +7029,8 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": false,
-                "description": "Single mode: the value."
+                "commit": "pk-range",
+                "description": "Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "valueLow",
@@ -7051,7 +7178,8 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": false,
-                "description": "The rating, 0 for none."
+                "commit": "pk-rating-change",
+                "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "max",
@@ -7193,7 +7321,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -7334,7 +7463,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": true,
-                "description": "Selected option value."
+                "commit": "pk-change",
+                "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "name",
@@ -7355,6 +7485,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the list is shown."
             },
             {
@@ -7387,6 +7521,18 @@ export const ELEMENTS = [
                     "previous": "string"
                 },
                 "description": "The selection changed."
+            },
+            {
+                "name": "pk-open",
+                "detail": null,
+                "description": "The list opened."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -7446,6 +7592,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-nav-toggle",
                 "description": "Icon rail."
             },
             {
@@ -7453,6 +7600,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Drawer open (phones and tablets)."
             },
             {
@@ -7490,7 +7641,7 @@ export const ELEMENTS = [
                 "detail": {
                     "collapsed": "boolean"
                 },
-                "description": "Rail toggled."
+                "description": "Rail toggled by the user, or restored from the saved state (persist) on connect."
             },
             {
                 "name": "pk-open",
@@ -7824,6 +7975,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-menu-toggle",
                 "description": "Whether the menu is open."
             },
             {
@@ -7917,6 +8069,142 @@ export const ELEMENTS = [
             {
                 "title": "Primary and ghost",
                 "html": "<pk-split-button><span>Save</span><button slot=\"menu\" value=\"close\">Save and close</button><button slot=\"menu\" value=\"new\">Save and new</button></pk-split-button>\n<pk-split-button variant=\"ghost\" menu-align=\"end\"><span>Export</span><button slot=\"menu\" value=\"csv\">CSV</button><button slot=\"menu\" value=\"pdf\">PDF</button></pk-split-button>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-splitter",
+        "title": "Splitter",
+        "group": "Layout",
+        "summary": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.",
+        "delegatesFocus": true,
+        "props": [
+            {
+                "name": "orientation",
+                "type": "enum",
+                "default": "horizontal",
+                "values": [
+                    "horizontal",
+                    "vertical"
+                ],
+                "reflect": true,
+                "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise)."
+            },
+            {
+                "name": "size",
+                "type": "number",
+                "default": 50,
+                "reflect": false,
+                "commit": "pk-resize",
+                "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does."
+            },
+            {
+                "name": "min",
+                "type": "number",
+                "default": 10,
+                "reflect": false,
+                "description": "Smallest size of the start pane, in percent (aria-valuemin)."
+            },
+            {
+                "name": "max",
+                "type": "number",
+                "default": 90,
+                "reflect": false,
+                "description": "Largest size of the start pane, in percent (aria-valuemax)."
+            },
+            {
+                "name": "step",
+                "type": "number",
+                "default": 2,
+                "reflect": false,
+                "description": "Percent moved by one arrow key press."
+            },
+            {
+                "name": "label",
+                "type": "string",
+                "default": "Resize panes",
+                "reflect": false,
+                "description": "The separator's accessible name (aria-label)."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Fixes the size: the separator no longer takes focus or moves."
+            }
+        ],
+        "slots": [
+            {
+                "name": "start",
+                "description": "The first pane (left, or top when stacked); its size is size percent."
+            },
+            {
+                "name": "end",
+                "description": "The second pane, which takes the rest."
+            }
+        ],
+        "events": [
+            {
+                "name": "input",
+                "detail": "native Event",
+                "description": "The size is changing while a drag is in progress (native, composed). Read the size from the element."
+            },
+            {
+                "name": "pk-resize",
+                "detail": "{ size: number }",
+                "detailProps": {
+                    "size": "number"
+                },
+                "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+            }
+        ],
+        "parts": [
+            {
+                "name": "root",
+                "description": "The grid that lays out the two panes and the separator."
+            },
+            {
+                "name": "start",
+                "description": "The first pane wrapper (it scrolls on its own)."
+            },
+            {
+                "name": "handle",
+                "description": "The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen."
+            },
+            {
+                "name": "end",
+                "description": "The second pane wrapper (it scrolls on its own)."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-splitter-handle",
+                "description": "Thickness of the separator.",
+                "default": "var(--space-2)"
+            },
+            {
+                "name": "--pk-splitter-height",
+                "description": "Height of the splitter (the panes scroll inside it).",
+                "default": "auto, or 16rem when stacked"
+            },
+            {
+                "name": "--pk-splitter-line",
+                "description": "Colour of the separator line at rest.",
+                "default": "var(--color-border)"
+            }
+        ],
+        "methods": [],
+        "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.",
+        "mobile": "On a touch screen the separator's hit area is 44px in the resize direction (the line stays thin), and touch-action is off on it so a drag resizes instead of scrolling.",
+        "examples": [
+            {
+                "title": "Side by side",
+                "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+            },
+            {
+                "title": "Stacked",
+                "html": "<pk-splitter orientation=\"vertical\" size=\"60\" label=\"Resize the console\"><div slot=\"start\">Editor</div><div slot=\"end\">Console</div></pk-splitter>"
             }
         ]
     },
@@ -8040,7 +8328,18 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+                "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+            },
+            {
+                "name": "deltaUnit",
+                "type": "enum",
+                "default": "percent",
+                "values": [
+                    "percent",
+                    "points"
+                ],
+                "reflect": true,
+                "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points."
             },
             {
                 "name": "deltaDirection",
@@ -8165,11 +8464,11 @@ export const ELEMENTS = [
                 "description": "Direction and percent."
             },
             {
-                "name": "formatDelta(d)",
-                "description": "A signed percentage."
+                "name": "formatDelta(d, unit)",
+                "description": "A signed percentage, or points when unit is points."
             },
             {
-                "name": "deltaSpeech(d, versus)",
+                "name": "deltaSpeech(d, versus, unit)",
                 "description": "The spoken form."
             }
         ],
@@ -8182,6 +8481,10 @@ export const ELEMENTS = [
             {
                 "title": "Change and trend",
                 "html": "<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values='[12,15,14,17,18]'></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert></pk-stat>"
+            },
+            {
+                "title": "Change in points",
+                "html": "<pk-stat label=\"Quality score\" value=\"87\" delta=\"4\" delta-unit=\"points\" versus=\"last run\"></pk-stat>"
             },
             {
                 "title": "Dashboard tile as a button",
@@ -8323,6 +8626,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": true,
+                "commit": "pk-step-change",
                 "description": "Zero-based current step."
             },
             {
@@ -8428,7 +8732,8 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Whether the switch is on."
+                "commit": "pk-change",
+                "description": "Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "disabled",
@@ -8690,7 +8995,7 @@ export const ELEMENTS = [
         "tag": "pk-table",
         "title": "Table",
         "group": "Data display",
-        "summary": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
+        "summary": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
         "props": [
             {
                 "name": "columns",
@@ -8704,7 +9009,7 @@ export const ELEMENTS = [
                 "type": "json",
                 "default": [],
                 "reflect": false,
-                "description": "Row data, one object per row. A JSON attribute or a property."
+                "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>."
             },
             {
                 "name": "rowKey",
@@ -8821,11 +9126,33 @@ export const ELEMENTS = [
                 "description": "Ids of the selected rows."
             },
             {
+                "name": "expandable",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row."
+            },
+            {
+                "name": "expanded",
+                "type": "json",
+                "default": [],
+                "reflect": false,
+                "commit": "pk-row-expand",
+                "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it."
+            },
+            {
                 "name": "loading",
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Show placeholder rows and mark the table busy."
+                "description": "Show a placeholder row, announce Loading and mark the table busy."
+            },
+            {
+                "name": "emptyText",
+                "type": "string",
+                "default": "No rows",
+                "reflect": false,
+                "description": "Text shown when there are no rows. The empty slot replaces it."
             },
             {
                 "name": "cards",
@@ -8881,8 +9208,18 @@ export const ELEMENTS = [
                 "description": "Rich caption."
             },
             {
+                "name": "cell-<rowId>-<key>",
+                "dynamic": true,
+                "description": "Custom content for one cell of a data-driven table: rowId is the row's rowKey value, key the column key. Replaces the cell text."
+            },
+            {
+                "name": "detail-<rowId>",
+                "dynamic": true,
+                "description": "Detail content of one row, shown under it when the row is expanded (expandable). A row without this slot has no toggle."
+            },
+            {
                 "name": "empty",
-                "description": "Empty state; an pk-empty-state fits."
+                "description": "Empty state; an pk-empty-state fits. Replaces emptyText."
             },
             {
                 "name": "footer",
@@ -8922,6 +9259,16 @@ export const ELEMENTS = [
                     "row": "object"
                 },
                 "description": "A clickable row was activated.",
+                "cancelable": false
+            },
+            {
+                "name": "pk-row-expand",
+                "detail": {
+                    "id": "string",
+                    "index": "number",
+                    "expanded": "bool"
+                },
+                "description": "The user expanded or collapsed a row. expanded is the new state; the expanded prop already holds it.",
                 "cancelable": false
             }
         ],
@@ -8980,7 +9327,7 @@ export const ELEMENTS = [
                 "description": "Sort programmatically."
             }
         ],
-        "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
+        "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
         "examples": [
             {
                 "title": "Sortable, selectable table",
@@ -8992,7 +9339,7 @@ export const ELEMENTS = [
             },
             {
                 "title": "Expandable rows",
-                "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
+                "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
             }
         ],
         "contentStyles": [
@@ -9015,6 +9362,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": true,
+                "commit": "pk-tab-change",
                 "description": "The value of the selected tab. Empty selects the first enabled tab."
             },
             {
@@ -9062,12 +9410,13 @@ export const ELEMENTS = [
         "events": [
             {
                 "name": "pk-tab-change",
-                "detail": "{ value, previous }",
+                "detail": "{ value, previous, fallback? }",
                 "detailProps": {
                     "value": "string",
-                    "previous": "string"
+                    "previous": "string",
+                    "fallback": "bool"
                 },
-                "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab."
+                "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it."
             }
         ],
         "parts": [
@@ -9112,7 +9461,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "Sent in the remove event; defaults to the text."
+                "description": "Sent in the remove event (the identifier, not state); defaults to the text."
             },
             {
                 "name": "disabled",
@@ -9120,6 +9469,13 @@ export const ELEMENTS = [
                 "default": false,
                 "reflect": true,
                 "description": "Dim the tag and disable the button."
+            },
+            {
+                "name": "controlled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper."
             }
         ],
         "slots": [
@@ -9134,7 +9490,7 @@ export const ELEMENTS = [
                 "detail": {
                     "value": "string"
                 },
-                "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself.",
+                "description": "The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it.",
                 "cancelable": true
             }
         ],
@@ -9189,7 +9545,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The tags, comma-joined."
+                "commit": "pk-tags-change",
+                "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -9358,7 +9715,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -9373,6 +9731,13 @@ export const ELEMENTS = [
                 "default": "",
                 "reflect": true,
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+            },
+            {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
             },
             {
                 "name": "description",
@@ -9482,6 +9847,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The bordered field."
             },
@@ -9524,6 +9893,10 @@ export const ELEMENTS = [
         ],
         "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
         "examples": [
+            {
+                "title": "Visible label",
+                "html": "<pk-textarea label=\"Notes\" show-label rows=\"3\"></pk-textarea>"
+            },
             {
                 "title": "Fixed and auto-grow",
                 "html": "<pk-textarea label=\"Notes\" rows=\"3\" value=\"Fixed height, resizable.\"></pk-textarea>\n<pk-textarea label=\"Description\" autogrow max-height=\"160\" value=\"Grows as you type, up to 160px.\"></pk-textarea>"
@@ -10117,7 +10490,7 @@ export const ELEMENTS = [
                 "description": "Closes it"
             }
         ],
-        "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
+        "a11y": "The tip is a role=tooltip node in the shadow tree, and the slotted target gets aria-description with the same text (an accessible description: nothing is added to your markup, and no id has to cross the shadow boundary; a target that already has its own aria-description keeps it). Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
         "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
         "examples": [
             {
@@ -10155,6 +10528,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
+                "commit": "pk-select",
                 "description": "The value (or label) of the selected item."
             }
         ],
@@ -10232,6 +10606,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Children visible."
             },
             {
@@ -10239,6 +10614,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-select",
                 "description": "The chosen item."
             },
             {
@@ -10334,6 +10710,192 @@ export const ELEMENTS = [
             {
                 "title": "Leaf and branch",
                 "html": "<pk-tree-item label=\"Puzzles\" selected></pk-tree-item>"
+            }
+        ]
+    },
+    {
+        "tag": "pk-unit-input",
+        "title": "Unit input",
+        "group": "Form controls",
+        "summary": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.",
+        "delegatesFocus": true,
+        "formAssociated": true,
+        "props": [
+            {
+                "name": "name",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The form field name."
+            },
+            {
+                "name": "value",
+                "type": "string",
+                "default": "",
+                "reflect": false,
+                "commit": "pk-value-change",
+                "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+            },
+            {
+                "name": "units",
+                "type": "string",
+                "default": "px,rem,em,%",
+                "reflect": false,
+                "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select."
+            },
+            {
+                "name": "placeholder",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Hint shown in the number field while it is empty."
+            },
+            {
+                "name": "label",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty."
+            },
+            {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
+                "name": "description",
+                "type": "string",
+                "default": "",
+                "reflect": false,
+                "description": "Help and error text, exposed as aria-description; pk-field fills it."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Blocks interaction; also set by a disabled fieldset."
+            },
+            {
+                "name": "readonly",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows the value but does not let it change (the unit select is disabled too)."
+            },
+            {
+                "name": "required",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "The form cannot be submitted while the number is empty."
+            },
+            {
+                "name": "invalid",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+            },
+            {
+                "name": "min",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Lowest number (the number, whatever the unit)."
+            },
+            {
+                "name": "max",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Highest number."
+            },
+            {
+                "name": "step",
+                "type": "string",
+                "default": "any",
+                "reflect": true,
+                "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by."
+            }
+        ],
+        "slots": [],
+        "events": [
+            {
+                "name": "input",
+                "detail": "native Event",
+                "description": "The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element."
+            },
+            {
+                "name": "change",
+                "detail": "native Event",
+                "description": "The user committed the number or picked another unit (re-dispatched from the inner control, composed)."
+            },
+            {
+                "name": "pk-value-change",
+                "detail": "{ value: string }",
+                "detailProps": {
+                    "value": "string"
+                },
+                "description": "The user committed a new value (same moment as change; carries the value)."
+            }
+        ],
+        "parts": [
+            {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
+                "name": "box",
+                "description": "The bordered field that holds the number and the unit."
+            },
+            {
+                "name": "control",
+                "description": "The inner number input."
+            },
+            {
+                "name": "unit",
+                "description": "The inner unit select."
+            },
+            {
+                "name": "chevron",
+                "description": "The arrow drawn on the unit select."
+            }
+        ],
+        "cssProperties": [
+            {
+                "name": "--pk-control-bg",
+                "description": "Background of the field.",
+                "default": "var(--color-input)"
+            },
+            {
+                "name": "--pk-control-border",
+                "description": "Border colour.",
+                "default": "var(--color-input-border)"
+            },
+            {
+                "name": "--pk-control-radius",
+                "description": "Corner radius.",
+                "default": "var(--radius-sm)"
+            }
+        ],
+        "methods": [
+            {
+                "name": "focus()",
+                "description": "Moves focus to the number field."
+            }
+        ],
+        "a11y": "A native number input and a native select live in the shadow root: the number is named by label (aria-label) and described by description, the select is named \"<label> unit\", so both are reachable by Tab and the arrow keys change the number by step. invalid sets aria-invalid and the state is never colour alone (the ring is thicker). Text is 16px and the control 44px tall on a phone.",
+        "examples": [
+            {
+                "title": "Lengths",
+                "html": "<pk-unit-input label=\"Width\" value=\"1.5rem\"></pk-unit-input>\n<pk-unit-input label=\"Gap\" show-label units=\"px rem\" value=\"12px\" min=\"0\"></pk-unit-input>"
+            },
+            {
+                "title": "Another set of units",
+                "html": "<pk-unit-input label=\"Duration\" units=\"ms s\" value=\"250ms\"></pk-unit-input>"
             }
         ]
     },

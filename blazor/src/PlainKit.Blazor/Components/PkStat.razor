@@ -1,0 +1,69 @@
+@namespace PlainKit.Blazor
+@using Microsoft.AspNetCore.Components.Web
+@inherits PkElementBase
+
+@* Hand-written (blazor/mappings/stat.json marks it "existing"): a headline number over <pk-stat>. The pk-activate event reaches OnClick through
+   AddEventHandlers (Blazor cannot name a hyphenated event in markup); it is registered by PlainKit.Blazor.lib.module.js. *@
+<pk-stat label="@Label"
+         value="@Value"
+         subtext="@Subtext"
+         tone="@Tone.Attr()"
+         delta="@Delta"
+         delta-unit="@DeltaUnit"
+         invert="@Invert"
+         values="@PkAttr.Json(Series)"
+         href="@Href"
+         tile="@Tile"
+         interactive="@Interactive"
+         class="@Css()"
+         @attributes="Splat">@SubtextContent@if (IconContent is not null) {<span slot="icon">@IconContent</span>}</pk-stat>
+
+@code {
+    /// <summary>What the number measures.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The headline value, as text (format it yourself).</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>A line of text under the value.</summary>
+    [Parameter] public string? Subtext { get; set; }
+
+    /// <summary>The colour of the value. <see cref="PkStatTone.Neutral"/> is the element's default and leaves the attribute off.</summary>
+    [Parameter] public PkStatTone Tone { get; set; }
+
+    /// <summary>Makes the whole tile one link to this address.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>The percent change, for example <c>12.5</c> or <c>-3</c>; the element draws the arrow and the signed percentage.</summary>
+    [Parameter] public string? Delta { get; set; }
+
+    /// <summary>What <see cref="Delta"/> is measured in: <c>percent</c> (the element's default, leave it unset) or <c>points</c> (a change in points, shown as "+4 pts").</summary>
+    [Parameter] public string? DeltaUnit { get; set; }
+
+    /// <summary>Down is good news (costs, returns): swaps the trend colours.</summary>
+    [Parameter] public bool Invert { get; set; }
+
+    /// <summary>Points for the sparkline (at least two).</summary>
+    [Parameter] public IReadOnlyList<double>? Series { get; set; }
+
+    /// <summary>A subtext with markup; it is the body of the element.</summary>
+    [Parameter] public RenderFragment? SubtextContent { get; set; }
+
+    /// <summary>An icon before the value.</summary>
+    [Parameter] public RenderFragment? IconContent { get; set; }
+
+    /// <summary>The tile was pressed (<c>pk-activate</c>): a link tile or, with <see cref="Interactive"/>, a button tile.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    /// <summary>The compact dashboard look.</summary>
+    [Parameter] public bool Tile { get; set; }
+
+    /// <summary>Without an <see cref="Href"/>, makes the tile a button (Enter and Space) that raises <see cref="OnClick"/>.</summary>
+    [Parameter] public bool Interactive { get; set; }
+
+    /// <inheritdoc />
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
+    {
+        handlers["onpk-activate"] = EventCallback.Factory.Create<PkActivateEventArgs>(this, () => OnClick.InvokeAsync());
+    }
+}

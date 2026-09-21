@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-skip-link href="@Href">@ChildContent</pk-skip-link>
+<pk-skip-link href="@Href"
+              class="@Css()"
+              @attributes="Splat">@ChildContent</pk-skip-link>
 
 @code {
     /// <summary>Same-page target.</summary>

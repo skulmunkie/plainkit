@@ -42,6 +42,8 @@ export const dataDisplayCases = [
         t.eq(detail.value, 'm'); t.ok(a.isConnected, 'cancelled: the tag stays');
         t.eq(b.part('remove').getAttribute('aria-label'), 'Remove DC');
         b.part('remove').click(); await t.settle(); t.ok(!b.isConnected, 'not cancelled: the tag removes itself');
+        const c = t.stage('<pk-tag removable controlled>Kept</pk-tag>').firstElementChild; await t.load(c.parentElement); let n = 0; c.addEventListener('pk-remove', () => n++);
+        c.part('remove').click(); await t.settle(); t.eq(n, 1); t.ok(c.isConnected, 'controlled: only the host removes it');
     }],
 
     ['avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N', async t => {
@@ -119,6 +121,12 @@ export const dataDisplayCases = [
         t.ok(s.part('spark').querySelector('polyline'), 'sparkline drawn'); t.eq(s.part('link').getAttribute('href'), '#x');
         let hit = null; s.addEventListener('pk-activate', e => { hit = e.detail.href; e.preventDefault(); }); s.part('link').click(); t.eq(hit, '#x');
         const n = await t.mount('<pk-stat label="Open" value="3"></pk-stat>'); t.ok(n.part('delta').hidden); t.ok(n.part('link').hidden);
+    }],
+
+    ['stat: delta-unit points reads +4 pts and is spoken as points; the default stays percent', async t => {
+        const s = await t.mount('<pk-stat label="Score" value="87" delta="4" delta-unit="points" versus="last run"></pk-stat>');
+        t.ok(s.part('delta').textContent.includes('+4 pts')); t.ok(!s.part('delta').textContent.includes('%')); t.ok(s.part('delta').querySelector('.sr').textContent.includes('up 4 points versus last run'));
+        s.deltaUnit = 'percent'; await t.settle(); t.ok(s.part('delta').textContent.includes('+4%'));
     }],
 
     ['empty-state: hides what is not given, exposes the heading level, and announces when asked', async t => {

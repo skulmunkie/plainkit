@@ -7,6 +7,7 @@
              placement="@Placement"
              keep-open="@KeepOpen"
              mega="@Mega"
+             class="@Css()"
              @attributes="Splat">@if (TriggerContent is not null) {<span slot="trigger">@TriggerContent</span>}@ChildContent</pk-dropdown>
 
 @code {
@@ -40,17 +41,12 @@
     /// <summary>Closed.</summary>
     [Parameter] public EventCallback<PkCloseEventArgs> OnClose { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-            ["onpk-open"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkOpen),
-        };
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
+        handlers["onpk-open"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkOpen);
     }
 
     private async Task HandlePkClose(PkCloseEventArgs e)

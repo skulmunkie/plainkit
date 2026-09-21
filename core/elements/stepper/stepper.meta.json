@@ -9,6 +9,7 @@
       "type": "number",
       "default": 0,
       "reflect": true,
+      "commit": "pk-step-change",
       "description": "Zero-based current step."
     },
     {

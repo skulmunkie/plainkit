@@ -52,6 +52,11 @@
       "type": "string"
     },
     {
+      "name": "ShowLabel",
+      "prop": "showLabel",
+      "type": "bool"
+    },
+    {
       "name": "AutoGrow",
       "prop": "autogrow",
       "type": "bool"

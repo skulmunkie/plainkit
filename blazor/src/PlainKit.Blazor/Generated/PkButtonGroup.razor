@@ -6,7 +6,9 @@
 <pk-button-group orientation="@Orientation"
                  fill="@Fill"
                  label="@AriaLabel"
-                 mode="@Mode">@ChildContent</pk-button-group>
+                 mode="@Mode"
+                 class="@Css()"
+                 @attributes="Splat">@ChildContent</pk-button-group>
 
 @code {
     /// <summary>Direction of the bar.</summary>

@@ -17,5 +17,8 @@ export const HAS_SITE = true;
 // Where the full-page templates live, relative to this folder.
 export const TEMPLATES_DIR = '../../samples/templates/';
 
+// Where a pattern's optional script lives (a pattern's data names it as <id>/<id>.js).
+export const PATTERNS_DIR = '../../samples/patterns/';
+
 // The page that hosts a pattern or layout fragment as a whole page (also what "Open in new page" opens).
 export const PREVIEW = 'preview.html';

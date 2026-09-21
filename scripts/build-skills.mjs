@@ -96,8 +96,10 @@ export function csMembers(text, typeName) {
 export function razorParams(text) {
     const src = lf(text);
     const out = [];
-    const re = /(?:\/\/\/ <summary>([\s\S]*?)<\/summary>\s*\n\s*)?\[Parameter[^\]]*\]\s*public\s+(.+?)\s+(\w+)\s*\{\s*get;\s*set;\s*\}(?:\s*=\s*([^;]+);)?/g;
-    for (const m of src.matchAll(re)) out.push({ name: m[3], type: m[2].trim(), default: m[4]?.trim() ?? null, doc: m[1] ? cleanDoc(m[1]) : '' });
+    // A parameter's doc is its <summary>, then an optional <remarks> line. A summary may not run past its own closing tag, or it swallows the
+    // parameter before it (a parameter with a <remarks> line used to vanish and hand its text to the next one).
+    const re = /(?:\/\/\/ <summary>((?:(?!<\/summary>)[\s\S])*)<\/summary>\s*\n(?:\s*\/\/\/ <remarks>((?:(?!<\/remarks>)[\s\S])*)<\/remarks>\s*\n)?\s*)?\[Parameter[^\]]*\]\s*public\s+(.+?)\s+(\w+)\s*\{\s*get;\s*set;\s*\}(?:\s*=\s*([^;]+);)?/g;
+    for (const m of src.matchAll(re)) out.push({ name: m[4], type: m[3].trim(), default: m[5]?.trim() ?? null, doc: [m[1], m[2]].filter(Boolean).map(cleanDoc).join(' ') });
     return out;
 }
 
@@ -189,7 +191,8 @@ export function collect() {
         events: csEventArgs(read(path.join(pkg, 'Generated', 'PkGeneratedEvents.cs'))),
         cs: { options: csMembers(cs('PkOptions.cs'), 'PkOptions'), logging: csMembers(cs('PkLogging.cs'), 'PkLoggingOptions'), ipklog: csMembers(cs('PkLogging.cs'), 'IPkLog'), scoreTarget: csMembers(cs('PkScoreTarget.cs'), 'PkScoreTarget'), runtime: csMembers(cs('PkRuntime.cs'), 'PkRuntime'), assets: csMembers(cs('PkAssets.cs'), 'PkAssets'), snapshot: csMembers(cs('DevTools/PkSnapshot.cs'), 'PkSnapshot') },
         modules: [...modules, gallery],
-        samples: { templates, patterns: samples.patterns, layouts: samples.layouts },
+        // A pattern that ships a script: its source, with the SDK import paths as they are in an app (a copy of dist at ./plainkit/).
+        samples: { templates, patterns: samples.patterns.map(p => (p.script ? { ...p, scriptSource: read(path.join(core, 'samples', 'patterns', p.script)).replace(/from '(?:\.\.\/){3}js\//g, "from './plainkit/js/").trim() } : p)), layouts: samples.layouts },
         tokens: parseTokenBlocks(tokenCss), tokenCount: [...tokenCss.matchAll(/(--[a-z0-9-]+)\s*:/g)].length,
         logHeader: headerComment(read(dist('js/log.js'))),
         invokersHeader: headerComment(read(dist('js/invokers.js'))),
@@ -215,10 +218,7 @@ const typeText = p => p.type + (p.type === 'json' ? ' (a JSON attribute, or set 
 const detailText = d => (d === null || d === undefined ? 'none' : typeof d === 'string' ? d : '{ ' + Object.entries(d).map(([k, v]) => `${k}: ${v}`).join(', ') + ' }');
 
 /** Examples in the element meta that the samples test proves wrong (a test also fails when one of these becomes valid, so the entry gets removed). */
-export const EXAMPLE_ISSUES = [
-    { tag: 'pk-table', title: 'Empty and loading', reason: 'the source uses the attribute `empty-text`, which is not a prop of `pk-table`; put the empty state in the `empty` slot (a `pk-empty-state` fits) and use `loading` for the loading state.' },
-    { tag: 'pk-table', title: 'Expandable rows', reason: 'the source uses an `expandable` attribute and `detail-<n>` slots, which `pk-table` does not have (it has no expandable rows).' },
-];
+export const EXAMPLE_ISSUES = [];
 
 function elementSection(e) {
     const out = [`## ${code(e.tag)}`, '', `**${e.title}** (${e.group}). ${e.summary}`];
@@ -270,12 +270,14 @@ function patternsMd(src, kind) {
     const isLayout = kind === 'layouts';
     const list = src.samples[kind];
     const out = [isLayout ? '# Page layouts' : '# Composed patterns', '', stamp(src, isLayout ? 'core/layouts and the element API' : 'core/samples/patterns and the element API'), '',
-        isLayout ? 'Page anatomies: the skeleton of a kind of page, as markup. Put the markup inside your page frame and replace the text and data.' : 'Small compositions of elements for a common job (confirming a delete, filtering a table, forms, notifications). They are markup only: the elements bring their behaviour, and the wiring that is specific to your data (what a button does, where a toast comes from) is yours to add.', ''];
+        isLayout ? 'Page anatomies: the skeleton of a kind of page, as markup. Put the markup inside your page frame and replace the text and data.' : 'Small compositions of elements for a common job (confirming a delete, filtering a table, forms, notifications). The elements bring their behaviour; a pattern whose wiring is not declarative (a toast on demand, an unsaved bar, results that filter, steps that advance, a selection that fills a detail) also ships a script, shown after its markup, that you adapt to your data. Patterns without a script are markup only.', ''];
     for (const t of list) {
         out.push(`## ${t.id}: ${t.title}`, '', t.summary, '');
         if (t.built) out.push(`Built from: ${t.built}`, '');
         if (t.mobile) out.push(`On a phone: ${t.mobile}`, '');
-        out.push(`Elements used: ${t.used.map(u => code('pk-' + u)).join(' ')}.`, '', fence('html', t.html), '');
+        out.push(`Elements used: ${t.used.map(u => code('pk-' + u)).join(' ')}.`, '', fence('html', t.html));
+        if (t.scriptSource) out.push('', 'Script (the demo runs it after the markup is on the page: `mount(root)` gets the element that holds the markup, works only inside it, and returns `{ destroy() }`; its imports assume `plainkit/` is a copy of `dist`):', '', fence('js', t.scriptSource));
+        out.push('');
     }
     return out.join('\n');
 }
@@ -349,10 +351,9 @@ const SDK_GAPS = [
     'The documentation site (Guides) is a placeholder ("Coming soon"): the references in this skill are the documentation.',
     'The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are not built. Behaviour is plain: props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively.',
     'A layout builder module (drag-and-drop page, template and form editor) is planned and not built; the element inspector (`createElementInspector`) is the reusable piece it will use.',
-    'Sample patterns and layouts are markup only, with no script of their own; templates that need behaviour ship a page script. Their data is placeholder text.',
+    'Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern\'s is shown in `patterns.md`, a template\'s in `templates.md`). Their data is placeholder text.',
     '`PkDialog` (`confirm`, `alert`, `prompt`) becomes a global when a `pk-dialog` has connected, and `PkToast` (`show`) when a `pk-toast-stack` has, so the page must contain one before you call them.',
     'Loading `dist/plainkit.js` as a script does not define any element by itself: the page has to call `initPlainkit()` (see `loading.md`).',
-    'Undocumented in the element API: `pk-table` per-cell slots are named `cell-<rowId>-<key>` (they are described in the `rows` prop, not listed under slots).',
 ];
 // Lines of a STANDARDS.md section that are about the toolkit's own development (its scan allow-list, budgets, module folders) are left out.
 const appFacing = text => text.split('\n').filter(l => !/security\.allow|budget|module folder|innerHTML/.test(l)).join('\n');
@@ -410,7 +411,7 @@ function componentSection(src, tag, enumMap) {
     return out.join('\n');
 }
 
-const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkStyles', 'PkDevToolsPage'];
+const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage'];
 
 function blazorFiles(src) {
     const files = new Map();
@@ -420,7 +421,7 @@ function blazorFiles(src) {
     const index = [];
     for (const [slug, els] of [...bySlug].sort((a, b) => a[0].localeCompare(b[0]))) {
         els.sort((a, b) => a.tag.localeCompare(b.tag));
-        files.set(`references/components-${slug}.md`, [`# Components: ${groupTitle(slug)}`, '', stamp(src, 'Generated/*.razor, blazor/mappings, generated.manifest.json and core/dist/elements/api.json'), '', 'Every generated component also renders its element with the attributes you set; it accepts only the parameters listed (an unlisted attribute such as `class` throws when the component renders, so put classes on a wrapping element). Names are `Pk` plus the tag in PascalCase.', '', els.map(e => componentSection(src, e.tag, enumMap)).join('\n\n')].join('\n') + '\n');
+        files.set(`references/components-${slug}.md`, [`# Components: ${groupTitle(slug)}`, '', stamp(src, 'Generated/*.razor, blazor/mappings, generated.manifest.json and core/dist/elements/api.json'), '', 'Every component renders its element with the parameters you set as attributes. An attribute that is not a parameter (`id`, `class`, `data-*`, `aria-*`, ...) is put on the element as it is, and a `class` is added to the component\'s own (`ExtraClass` on a component that lists it). Names are `Pk` plus the tag in PascalCase.', '', els.map(e => componentSection(src, e.tag, enumMap)).join('\n\n')].join('\n') + '\n');
         for (const e of els) { const c = componentOfTag(e.tag); const r = src.razor[c]; index.push([code(c), code(e.tag), e.group, r ? (r.kind === 'generated' ? 'generated' : 'hand-written') : 'not available', code(`components-${slug}.md`)]); }
     }
     index.sort((a, b) => a[0].localeCompare(b[0]));
@@ -442,10 +443,10 @@ function blazorFiles(src) {
     });
     const members = (title, ms) => ms.length ? [`## ${title}`, '', table(['Member', 'Description'], ms.map(m => [code(m.decl), m.doc])), ''].join('\n') : '';
     files.set('references/devtools.md', ['# Dev tools and tool components', '', stamp(src, 'Components/*.razor and the C# sources'), '',
-        'In the Development environment, `/_plainkit` serves the toolkit\'s own tools (tabs: Gallery, Files, Scorecard, Performance, Console, Logs). Serve it elsewhere with `AddPlainKit(o => o.DevTools = true)`. The Files tab reads a folder on the server (`PkOptions.SourceRoot`), so it does not work in a browser-only app. Each tool is also a component you can place on a page of your own:', '',
+        'In the Development environment, `/_plainkit` serves the toolkit\'s own tools: the Gallery, Files and Scorecard workspaces, and the SDK\'s dev tools dock (`PkDevTools`: Console, Logs, Logging, Performance, Quality, Inspector, Theme, plus the Blazor and Components tabs of PlainKit.Blazor). Serve it elsewhere with `AddPlainKit(o => o.DevTools = true)`. The Files tab reads a folder on the server (`PkOptions.SourceRoot`), so it does not work in a browser-only app. Each tool is also a component you can place on a page of your own:', '',
         toolRows.join('\n\n'), '', members('PkScoreTarget', src.cs.scoreTarget), members('PkSnapshot', src.cs.snapshot), ''].join('\n'));
     files.set('references/setup-and-options.md', ['# Setup, options and services', '', stamp(src, 'PkOptions.cs, PkLogging.cs, PkRuntime.cs, PkAssets.cs and the extension methods'), '',
-        'Register the services, add `<PkStyles />` once (layout or `App.razor`), and add the assembly to the router only when you serve the dev tools page. `AddPlainKit(Action<PkOptions>?)` registers `PkRuntime`, `IPkLog`, the options and the dev tools services. `AddPlainKitDevTools()` (chained after `MapRazorComponents`) makes `/_plainkit` routable. The toolkit is served as static web assets under `' + (src.cs.assets.find(m => /Root/.test(m.decl)) ? '_content/PlainKit.Blazor/plainkit/' : '') + '`.', '',
+        'Register the services, add `<PkStyles />` once, first in the `<head>` of `App.razor` (a plain in-place link: it must come before the app\'s own stylesheets), and add the assembly to the router only when you serve the dev tools page. `AddPlainKit(Action<PkOptions>?)` registers `PkRuntime`, `IPkLog`, the options and the dev tools services. `AddPlainKitDevTools()` (chained after `MapRazorComponents`) makes `/_plainkit` routable. The toolkit is served as static web assets under `' + (src.cs.assets.find(m => /Root/.test(m.decl)) ? '_content/PlainKit.Blazor/plainkit/' : '') + '`.', '',
         members('PkOptions', src.cs.options), members('PkLoggingOptions', src.cs.logging), members('IPkLog', src.cs.ipklog), members('PkRuntime', src.cs.runtime), members('PkAssets', src.cs.assets)].join('\n'));
     const cats = { wrapper: src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour')), css: src.manifest.notGenerated.filter(n => n.reason.startsWith('sets the ')), type: [...src.manifest.notGenerated.filter(n => n.reason.startsWith('type not yet defined')), ...src.manifest.typesToDefine] };
     const missing = src.manifest.skipped.filter(s => !s.handWritten);

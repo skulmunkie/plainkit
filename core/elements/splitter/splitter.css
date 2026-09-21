@@ -1,0 +1,23 @@
+:host { --_h: var(--pk-splitter-handle, var(--space-2)); display: block; min-inline-size: 0; block-size: var(--pk-splitter-height, auto); }
+:host([hidden]) { display: none; }
+:host([orientation="vertical"]) { block-size: var(--pk-splitter-height, 16rem); }
+.root { display: grid; grid-template-columns: minmax(0, var(--_a, 1fr)) var(--_h) minmax(0, var(--_b, 1fr)); block-size: 100%; min-block-size: 0; }
+:host([orientation="vertical"]) .root { grid-template-columns: none; grid-template-rows: minmax(0, var(--_a, 1fr)) var(--_h) minmax(0, var(--_b, 1fr)); }
+.pane { min-inline-size: 0; min-block-size: 0; overflow: auto; }
+.root[data-dragging] .pane { user-select: none; }
+.handle { position: relative; z-index: 1; display: grid; place-items: center; background: transparent; cursor: col-resize; touch-action: none; user-select: none; outline: none; }
+.handle::before { content: ""; grid-area: 1 / 1; inline-size: 1px; block-size: 100%; background: var(--pk-splitter-line, var(--color-border)); transition: background-color 0.15s, inline-size 0.15s; }
+.handle::after { content: ""; position: absolute; inset-block: 0; inset-inline: 0; }
+:host([orientation="vertical"]) .handle { cursor: row-resize; }
+:host([orientation="vertical"]) .handle::before { inline-size: 100%; block-size: 1px; transition: background-color 0.15s, block-size 0.15s; }
+.handle:hover::before, .root[data-dragging] .handle::before { background: var(--color-accent); inline-size: 3px; }
+:host([orientation="vertical"]) .handle:hover::before, :host([orientation="vertical"]) .root[data-dragging] .handle::before { inline-size: 100%; block-size: 3px; }
+.handle:focus-visible { outline: var(--focus-ring); outline-offset: -1px; }
+.handle:focus-visible::before { background: var(--color-accent-hover); }
+:host([disabled]) .handle { cursor: default; pointer-events: none; }
+:host([disabled]) .handle::before { background: var(--color-border); inline-size: 1px; }
+@media (pointer: coarse) {
+    .handle::after { inset-inline: calc((var(--_h) - var(--touch-target)) / 2); }
+    :host([orientation="vertical"]) .handle::after { inset-inline: 0; inset-block: calc((var(--_h) - var(--touch-target)) / 2); }
+}
+@media (prefers-reduced-motion: reduce) { .handle::before { transition: none; } }

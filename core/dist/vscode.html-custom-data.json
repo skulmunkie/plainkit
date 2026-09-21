@@ -359,7 +359,7 @@
     },
     {
       "name": "pk-button-group",
-      "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.\n\nSlots: (default).",
+      "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).\n\nSlots: (default).",
       "attributes": [
         {
           "name": "orientation",
@@ -552,7 +552,7 @@
         },
         {
           "name": "checked",
-          "description": "Whether the box is checked.",
+          "description": "Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
           "valueSet": "v"
         },
         {
@@ -730,11 +730,16 @@
         },
         {
           "name": "value",
-          "description": "The colour as #rrggbb."
+          "description": "The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "label",
           "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
         },
         {
           "name": "description",
@@ -779,7 +784,7 @@
         },
         {
           "name": "value",
-          "description": "The current value; what the form submits."
+          "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "placeholder",
@@ -1583,7 +1588,7 @@
         },
         {
           "name": "value",
-          "description": "The current value; what the form submits."
+          "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "placeholder",
@@ -2014,7 +2019,7 @@
         },
         {
           "name": "value",
-          "description": "The code typed so far."
+          "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "label",
@@ -2318,7 +2323,7 @@
         },
         {
           "name": "value",
-          "description": "The current value; what the form submits."
+          "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "label",
@@ -2396,7 +2401,7 @@
         },
         {
           "name": "value",
-          "description": "Single mode: the value."
+          "description": "Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "value-low",
@@ -2441,7 +2446,7 @@
         },
         {
           "name": "value",
-          "description": "The rating, 0 for none."
+          "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "max",
@@ -2483,7 +2488,7 @@
         },
         {
           "name": "value",
-          "description": "The current value; what the form submits."
+          "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "label",
@@ -2531,7 +2536,7 @@
       "attributes": [
         {
           "name": "value",
-          "description": "Selected option value."
+          "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "name",
@@ -2738,6 +2743,49 @@
       ]
     },
     {
+      "name": "pk-splitter",
+      "description": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.\n\nSlots: start, end.",
+      "attributes": [
+        {
+          "name": "orientation",
+          "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise).",
+          "values": [
+            {
+              "name": "horizontal"
+            },
+            {
+              "name": "vertical"
+            }
+          ]
+        },
+        {
+          "name": "size",
+          "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does."
+        },
+        {
+          "name": "min",
+          "description": "Smallest size of the start pane, in percent (aria-valuemin)."
+        },
+        {
+          "name": "max",
+          "description": "Largest size of the start pane, in percent (aria-valuemax)."
+        },
+        {
+          "name": "step",
+          "description": "Percent moved by one arrow key press."
+        },
+        {
+          "name": "label",
+          "description": "The separator's accessible name (aria-label)."
+        },
+        {
+          "name": "disabled",
+          "description": "Fixes the size: the separator no longer takes focus or moves.",
+          "valueSet": "v"
+        }
+      ]
+    },
+    {
       "name": "pk-stack",
       "description": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.\n\nSlots: (default).",
       "attributes": [
@@ -2826,7 +2874,19 @@
         },
         {
           "name": "delta",
-          "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+          "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+        },
+        {
+          "name": "delta-unit",
+          "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points.",
+          "values": [
+            {
+              "name": "percent"
+            },
+            {
+              "name": "points"
+            }
+          ]
         },
         {
           "name": "delta-direction",
@@ -2984,7 +3044,7 @@
       "attributes": [
         {
           "name": "checked",
-          "description": "Whether the switch is on.",
+          "description": "Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
           "valueSet": "v"
         },
         {
@@ -3098,7 +3158,7 @@
     },
     {
       "name": "pk-table",
-      "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.\n\nSlots: (default), toolbar, bulk, caption, empty, footer.",
+      "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.\n\nSlots: (default), toolbar, bulk, caption, cell-<rowId>-<key>, detail-<rowId>, empty, footer.",
       "attributes": [
         {
           "name": "columns",
@@ -3106,7 +3166,7 @@
         },
         {
           "name": "rows",
-          "description": "Row data, one object per row. A JSON attribute or a property."
+          "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>."
         },
         {
           "name": "row-key",
@@ -3197,9 +3257,22 @@
           "description": "Ids of the selected rows."
         },
         {
-          "name": "loading",
-          "description": "Show placeholder rows and mark the table busy.",
+          "name": "expandable",
+          "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row.",
           "valueSet": "v"
+        },
+        {
+          "name": "expanded",
+          "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it."
+        },
+        {
+          "name": "loading",
+          "description": "Show a placeholder row, announce Loading and mark the table busy.",
+          "valueSet": "v"
+        },
+        {
+          "name": "empty-text",
+          "description": "Text shown when there are no rows. The empty slot replaces it."
         },
         {
           "name": "cards",
@@ -3268,11 +3341,16 @@
         },
         {
           "name": "value",
-          "description": "Sent in the remove event; defaults to the text."
+          "description": "Sent in the remove event (the identifier, not state); defaults to the text."
         },
         {
           "name": "disabled",
           "description": "Dim the tag and disable the button.",
+          "valueSet": "v"
+        },
+        {
+          "name": "controlled",
+          "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper.",
           "valueSet": "v"
         }
       ]
@@ -3287,7 +3365,7 @@
         },
         {
           "name": "value",
-          "description": "The tags, comma-joined."
+          "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "placeholder",
@@ -3341,7 +3419,7 @@
         },
         {
           "name": "value",
-          "description": "The current value; what the form submits."
+          "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
         },
         {
           "name": "placeholder",
@@ -3350,6 +3428,11 @@
         {
           "name": "label",
           "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
         },
         {
           "name": "description",
@@ -3672,6 +3755,73 @@
           "name": "expandable",
           "description": "Set by the element when it has child items.",
           "valueSet": "v"
+        }
+      ]
+    },
+    {
+      "name": "pk-unit-input",
+      "description": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.\n\nSlots: none.",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "The form field name."
+        },
+        {
+          "name": "value",
+          "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+        },
+        {
+          "name": "units",
+          "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select."
+        },
+        {
+          "name": "placeholder",
+          "description": "Hint shown in the number field while it is empty."
+        },
+        {
+          "name": "label",
+          "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
+        },
+        {
+          "name": "description",
+          "description": "Help and error text, exposed as aria-description; pk-field fills it."
+        },
+        {
+          "name": "disabled",
+          "description": "Blocks interaction; also set by a disabled fieldset.",
+          "valueSet": "v"
+        },
+        {
+          "name": "readonly",
+          "description": "Shows the value but does not let it change (the unit select is disabled too).",
+          "valueSet": "v"
+        },
+        {
+          "name": "required",
+          "description": "The form cannot be submitted while the number is empty.",
+          "valueSet": "v"
+        },
+        {
+          "name": "invalid",
+          "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+          "valueSet": "v"
+        },
+        {
+          "name": "min",
+          "description": "Lowest number (the number, whatever the unit)."
+        },
+        {
+          "name": "max",
+          "description": "Highest number."
+        },
+        {
+          "name": "step",
+          "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by."
         }
       ]
     },

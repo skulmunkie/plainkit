@@ -5,7 +5,9 @@
 
 <pk-stack gap="@Gap"
           align="@Align"
-          dividers="@Dividers">@ChildContent</pk-stack>
+          dividers="@Dividers"
+          class="@Css()"
+          @attributes="Splat">@ChildContent</pk-stack>
 
 @code {
     /// <summary>Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space).</summary>

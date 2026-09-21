@@ -46,7 +46,6 @@
     "PkNavItem",
     "PkNavbar",
     "PkOtpInput",
-    "PkPageHeader",
     "PkPager",
     "PkPagination",
     "PkPopover",
@@ -62,6 +61,7 @@
     "PkSkipLink",
     "PkSpinner",
     "PkSplitButton",
+    "PkSplitter",
     "PkStack",
     "PkStep",
     "PkStepper",
@@ -81,26 +81,27 @@
     "PkTooltip",
     "PkTree",
     "PkTreeItem",
+    "PkUnitInput",
     "PkWorkspace"
   ],
   "skipped": [
     {
       "component": "PkCard",
       "tag": "pk-card",
-      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
-      "handWritten": false
+      "reason": "hand-written in Components/",
+      "handWritten": true
     },
     {
       "component": "PkEmptyState",
       "tag": "pk-empty-state",
-      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
-      "handWritten": false
+      "reason": "hand-written in Components/",
+      "handWritten": true
     },
     {
       "component": "PkFieldList",
       "tag": "pk-field-list",
-      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
-      "handWritten": false
+      "reason": "hand-written in Components/",
+      "handWritten": true
     },
     {
       "component": "PkGallery",
@@ -109,10 +110,16 @@
       "handWritten": true
     },
     {
+      "component": "PkPageHeader",
+      "tag": "pk-page-header",
+      "reason": "hand-written in Components/",
+      "handWritten": true
+    },
+    {
       "component": "PkStat",
       "tag": "pk-stat",
-      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
-      "handWritten": false
+      "reason": "hand-written in Components/",
+      "handWritten": true
     },
     {
       "component": "PkTable",
@@ -147,18 +154,6 @@
       ]
     },
     {
-      "name": "InfoTipPlacement",
-      "members": [
-        "Top",
-        "Bottom",
-        "Left",
-        "Right"
-      ],
-      "usedBy": [
-        "PkTooltip"
-      ]
-    },
-    {
       "name": "MenuitemType",
       "members": [
         "Item",
@@ -172,7 +167,18 @@
       ]
     },
     {
-      "name": "NoticeKind",
+      "name": "PaginationMode",
+      "members": [
+        "Numbered",
+        "Simple",
+        "LoadMore"
+      ],
+      "usedBy": [
+        "PkPagination"
+      ]
+    },
+    {
+      "name": "PkAlertKind",
       "members": [
         "Error",
         "Warning",
@@ -184,14 +190,27 @@
       ]
     },
     {
-      "name": "PaginationMode",
+      "name": "PkDialogSize",
       "members": [
-        "Numbered",
-        "Simple",
-        "LoadMore"
+        "Sm",
+        "Md",
+        "Lg",
+        "Xl",
+        "Fullscreen"
       ],
       "usedBy": [
-        "PkPagination"
+        "PkDialog"
+      ]
+    },
+    {
+      "name": "PkDialogTint",
+      "members": [
+        "None",
+        "Product",
+        "Archived"
+      ],
+      "usedBy": [
+        "PkDialog"
       ]
     },
     {
@@ -213,6 +232,18 @@
       ],
       "usedBy": [
         "PkTabs"
+      ]
+    },
+    {
+      "name": "PkTooltipPlacement",
+      "members": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "usedBy": [
+        "PkTooltip"
       ]
     },
     {
@@ -296,12 +327,14 @@
     }
   ],
   "events": [
+    "pk-activate",
     "pk-add",
     "pk-change",
     "pk-close",
     "pk-colour",
     "pk-combo-query",
     "pk-combo-select",
+    "pk-combo-toggle",
     "pk-confirm",
     "pk-copy",
     "pk-dismiss",
@@ -321,6 +354,8 @@
     "pk-range",
     "pk-rating-change",
     "pk-remove",
+    "pk-reset",
+    "pk-resize",
     "pk-search",
     "pk-section-change",
     "pk-select",
@@ -331,36 +366,11 @@
     "pk-tags-change",
     "pk-toggle",
     "pk-valid",
-    "pk-value-change"
+    "pk-value-change",
+    "pk-wrap-change"
   ],
-  "typesToDefine": [
-    {
-      "component": "PkChart",
-      "param": "Data",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ChartData"
-    },
-    {
-      "component": "PkImageGallery",
-      "param": "Images",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): GalleryImage"
-    }
-  ],
+  "typesToDefine": [],
   "notGenerated": [
-    {
-      "component": "PkAlert",
-      "param": "Boxed",
-      "reason": "wrapper behaviour, not a property of the element (The alert element is always boxed; it has no unboxed variant.)"
-    },
-    {
-      "component": "PkAlert",
-      "param": "Compact",
-      "reason": "wrapper behaviour, not a property of the element (Compat class only.)"
-    },
-    {
-      "component": "PkAlert",
-      "param": "Inline",
-      "reason": "wrapper behaviour, not a property of the element (Alert is a block; it has no inline variant.)"
-    },
     {
       "component": "PkAppShell",
       "param": "ErrorOverlayMessage",
@@ -369,57 +379,42 @@
     {
       "component": "PkAppShell",
       "param": "ShowErrorOverlay",
-      "reason": "wrapper behaviour, not a property of the element (The Blazor error UI stays in the wrapper.)"
+      "reason": "wrapper behaviour, not a property of the element (The framework error bar (#blazor-error-ui) belongs to the host page and its layout CSS, and pk-app-shell has no such feature; keep it in your layout.)"
     },
     {
       "component": "PkDialog",
       "param": "CloseButtonLabel",
-      "reason": "wrapper behaviour, not a property of the element (Text of the close button; the element draws a cross with an accessible name.)"
+      "reason": "wrapper behaviour, not a property of the element (The element has no prop for the close button text; it draws a cross with a fixed accessible name (hideClose, mapped as ShowCloseButton, removes it).)"
     },
     {
       "component": "PkDialog",
       "param": "FooterAlignEnd",
-      "reason": "wrapper behaviour, not a property of the element (The footer is always end-aligned.)"
-    },
-    {
-      "component": "PkDialog",
-      "param": "MaxWidthPx",
-      "reason": "sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper"
+      "reason": "wrapper behaviour, not a property of the element (The footer is always end-aligned; there is nothing to switch.)"
     },
     {
       "component": "PkDialog",
       "param": "OverFlyout",
-      "reason": "wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer above any flyout.)"
-    },
-    {
-      "component": "PkDialog",
-      "param": "ShowCloseButton",
-      "reason": "wrapper behaviour, not a property of the element (The element always shows its close button (house rule: every modal has its own Cancel or Close).)"
-    },
-    {
-      "component": "PkDialog",
-      "param": "Theme",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ModalTheme"
+      "reason": "wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer, above any flyout.)"
     },
     {
       "component": "PkDrawer",
       "param": "Backdrop",
-      "reason": "wrapper behaviour, not a property of the element (A docked, backdrop-less inspector is the element's docked prop.)"
+      "reason": "wrapper behaviour, not a property of the element (The element has no backdrop switch; the backdrop-less inspector is the docked prop, which is the Docked parameter.)"
     },
     {
       "component": "PkDrawer",
       "param": "IsLoading",
-      "reason": "wrapper behaviour, not a property of the element (Wrap the body in pk-loading-overlay busy.)"
+      "reason": "wrapper behaviour, not a property of the element (The element has no loading state. Wrapping the body in pk-loading-overlay from the component would change the shape of the markup when it toggles and remount the body; wrap ChildContent in PkLoadingOverlay yourself.)"
     },
     {
       "component": "PkDrawer",
       "param": "PhoneCards",
-      "reason": "wrapper behaviour, not a property of the element (Compat class only.)"
+      "reason": "wrapper behaviour, not a property of the element (The SDK has no phone card layout for a drawer.)"
     },
     {
       "component": "PkTooltip",
       "param": "DocLink",
-      "reason": "wrapper behaviour, not a property of the element (Link inside the rich content slot.)"
+      "reason": "wrapper behaviour, not a property of the element (The element has no link props: links are your own anchors in the links slot (LinksContent), where you choose the text and target.)"
     },
     {
       "component": "PkTooltip",
@@ -428,23 +423,13 @@
     },
     {
       "component": "PkTooltip",
-      "param": "Kind",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind"
-    },
-    {
-      "component": "PkTooltip",
       "param": "LoadAsync",
-      "reason": "wrapper behaviour, not a property of the element (Loads the rich slot content on the first pk-show.)"
+      "reason": "wrapper behaviour, not a property of the element (Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler.)"
     },
     {
       "component": "PkTooltip",
       "param": "OnClick",
-      "reason": "wrapper behaviour, not a property of the element (Click on the target.)"
-    },
-    {
-      "component": "PkTooltip",
-      "param": "Title",
-      "reason": "wrapper behaviour, not a property of the element (Bold heading inside the rich content slot.)"
+      "reason": "wrapper behaviour, not a property of the element (The element has no click event; put a click handler on the element you wrap.)"
     }
   ]
 }

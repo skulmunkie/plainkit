@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-avatar-group max="@PkAttr.Num(Max)"
-                 label="@Label">@ChildContent</pk-avatar-group>
+                 label="@Label"
+                 class="@Css()"
+                 @attributes="Splat">@ChildContent</pk-avatar-group>
 
 @code {
     /// <summary>Avatars shown before the +N tile.</summary>

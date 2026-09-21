@@ -60,6 +60,10 @@
       "name": "EmptyContent",
       "slot": "empty",
       "type": "RenderFragment"
+    },
+    {
+      "name": "OnToggle",
+      "event": "pk-combo-toggle"
     }
   ],
   "model": {

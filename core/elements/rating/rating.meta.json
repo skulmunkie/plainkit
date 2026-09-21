@@ -18,7 +18,8 @@
       "type": "number",
       "default": 0,
       "reflect": false,
-      "description": "The rating, 0 for none."
+      "commit": "pk-rating-change",
+      "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
       "name": "max",

@@ -1,7 +1,7 @@
 // The theme editor's pure logic (modules/theme-editor): which tokens to list, how an edit lands in the override dictionaries, which
 // contrast pairs fail, what an element target gets as inline properties. No DOM; imports only the SDK's theme and colour maths.
 
-import { tokenKind, nameProblem, valueProblem } from './theme.js';
+import { tokenKind, nameProblem, valueProblem, parseOverrides } from './theme.js';
 import { contrast, grade } from './colour.js';
 
 export const KINDS = Object.freeze(['all', 'colour', 'font', 'size', 'shadow', 'layer', 'other']);
@@ -64,4 +64,27 @@ export function inlineEntries(overrides, theme) {
     const out = {};
     for (const [name, value] of Object.entries({ ...overrides.shared, ...overrides[theme] })) if (!nameProblem(name) && !valueProblem(value)) out[name] = String(value).trim();
     return out;
+}
+
+// Reads text the user pasted into the import box. Returns { overrides } when it is a JSON { shared, dark, light } or an override CSS block that
+// holds at least one usable token, or { error } (a sentence for the status line) otherwise, so the caller keeps the current overrides. JSON
+// with a section key and nothing in it ({"shared":{}}) is a valid way to clear; text that is neither JSON nor CSS, or whose tokens the SDK's
+// rules all reject, is an error and never clears anything.
+export function readImport(text) {
+    const t = String(text ?? '').trim();
+    if (!t) return { error: 'Nothing to import: paste JSON or an override CSS block first.' };
+    const json = t.startsWith('{') && !t.includes('[data-theme') && !t.includes(':root');
+    const parsed = parseOverrides(t);
+    if (!parsed) return { error: 'Not JSON and not an override CSS block.' };
+    const count = overrideCount(parsed);
+    if (json) {
+        const raw = JSON.parse(t);
+        const sections = ['shared', 'dark', 'light'].filter(k => raw !== null && typeof raw === 'object' && k in raw);
+        if (!sections.length) return { error: 'The JSON has none of "shared", "dark" or "light".' };
+        const given = sections.reduce((n, k) => n + (raw[k] !== null && typeof raw[k] === 'object' ? Object.keys(raw[k]).length : 0), 0);
+        if (given > 0 && count === 0) return { error: 'None of the tokens in the JSON are allowed (a name must start with -- and a value must be safe).' };
+        return { overrides: parsed };
+    }
+    if (count === 0) return { error: 'Not JSON and not an override CSS block: no token declarations were found.' };
+    return { overrides: parsed };
 }

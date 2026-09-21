@@ -7,7 +7,9 @@
                format="@Format"
                length="@Length"
                locale="@Locale"
-               time-zone="@TimeZone">@ChildContent</pk-local-time>
+               time-zone="@TimeZone"
+               class="@Css()"
+               @attributes="Splat">@ChildContent</pk-local-time>
 
 @code {
     /// <summary>The instant: an ISO 8601 string (2026-09-19T14:30:00Z). A date-only value is a calendar day and is never shifted by the time zone.</summary>

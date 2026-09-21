@@ -9,6 +9,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
+      "commit": "pk-select",
       "description": "The selected day, an ISO date such as 2026-09-19."
     },
     {

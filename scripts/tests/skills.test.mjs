@@ -101,7 +101,8 @@ function checkSlot(tag, el, value, parent, problems, parentTag = parent?.lower) 
     if (!owner) return;
     const names = owner.slots.map(s => s.name);
     if (names.includes(value)) return;
-    if (parentTag === 'pk-table' && /^cell-[\w-]+$/.test(value)) return; // the per-cell slots are described in the rows prop
+    // A slot the element names per row (cell-<rowId>-<key>, detail-<rowId>) is listed as a pattern in its meta.
+    if (owner.slots.some(s => s.dynamic && new RegExp('^' + s.name.replace(/<[^>]+>/g, '[\\w.-]+') + '$').test(value))) return;
     problems.push(`<${parentTag}> has no slot "${value}" (it has: ${names.map(n => n || '(default)').join(', ')})`);
 }
 
@@ -340,10 +341,11 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     const skill = gen.get('plainkit-blazor/SKILL.md');
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
     assert.match(skill, /Blazor Server is verified\. Blazor WebAssembly is not/);
-    for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat', 'PkTable']) { assert.ok(skill.includes(`\`${c}\``), c); assert.ok(gaps.includes(`\`${c}\``), c); }
-    assert.match(skill, /\b17 wrapper-only parameters\b/);
+    for (const c of ['PkTable']) { assert.ok(skill.includes(`\`${c}\``), c); assert.ok(gaps.includes(`\`${c}\``), c); }
+    // PkCard, PkEmptyState, PkFieldList and PkStat are hand-written now, so they are not in the "does not exist" list.
+    for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.manifest.skipped.some(s => s.component === c && s.handWritten), `${c} is hand-written`);
     const wrapper = src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour'));
-    assert.equal(wrapper.length, 17);
+    assert.match(skill, new RegExp(String.raw`\b${wrapper.length} wrapper-only parameters\b`));
     for (const n of wrapper) assert.ok(gaps.includes(`\`${n.param}\``), n.param);
     for (const t of src.manifest.typesToDefine) assert.ok(gaps.includes(`\`${t.param}\``), t.param);
     // The parameters the SKILL.md names as missing are the ones the manifest lists as not generated.
@@ -356,6 +358,11 @@ test('the SDK skill covers templates, patterns, layouts, tools, logging, openers
     const f = n => gen.get(`plainkit-sdk/references/${n}.md`);
     for (const t of src.samples.templates) assert.ok(f('templates').includes(`## ${t.id}: `), t.id);
     for (const t of src.samples.patterns) assert.ok(f('patterns').includes(`## ${t.id}: `), t.id);
+    // A pattern can ship a script: the reference says so and shows its source, with the imports as an app has them.
+    const scripted = src.samples.patterns.filter(t => t.script);
+    assert.ok(scripted.length >= 6, 'the patterns that need behaviour have scripts');
+    assert.ok(f('patterns').includes('also ships a script'), 'the patterns reference says a pattern can have a script');
+    for (const t of scripted) { assert.ok(t.scriptSource.includes('export default function mount(root)'), t.id); assert.ok(f('patterns').includes(t.scriptSource), `${t.id}: its script is shown`); assert.ok(!f('patterns').includes('../../../js/'), 'script imports are rewritten to ./plainkit/js/'); }
     for (const t of src.samples.layouts) assert.ok(f('layouts').includes(`## ${t.id}: `), t.id);
     for (const m of src.modules) { assert.ok(m.mount, `${m.name} has no mount function`); assert.ok(f('tools').includes(`\`${m.mount}\``), m.name); assert.ok(f('tools').includes(m.header.split('\n')[0]), `${m.name} header`); }
     for (const n of src.logExports) assert.ok(f('logging').includes(`\`${n}\``), n);
@@ -409,6 +416,15 @@ test('the Blazor references name only Pk* types that exist (or are elements with
 });
 
 test('an example left out of the references is still wrong in its source (remove the entry when the source is fixed)', () => {
+    // The pk-table examples that were wrong (empty-text, expandable and detail slots; issue #39) are fixed: they are checked and published now.
+    for (const title of ['Empty and loading', 'Expandable rows']) {
+        const ex = byTag.get('pk-table').examples.find(x => x.title === title);
+        assert.ok(ex, `pk-table example "${title}" exists`);
+        assert.deepEqual(checkHtml(ex.html), [], `pk-table example "${title}" is valid`);
+        assert.ok(!EXAMPLE_ISSUES.some(i => i.tag === 'pk-table' && i.title === title), `${title} is not left out`);
+        assert.ok([...gen.values()].some(t => t.includes(ex.html.trim().split('\n')[0])), `${title} is in the references`);
+    }
+
     for (const i of EXAMPLE_ISSUES) {
         const ex = byTag.get(i.tag)?.examples.find(x => x.title === i.title);
         assert.ok(ex, `${i.tag} "${i.title}" no longer exists: remove it from EXAMPLE_ISSUES`);
@@ -450,4 +466,24 @@ test('the parsers read the C# and JavaScript sources', () => {
     assert.equal(csMembers('public sealed class C\n{\n    /// <summary>Does <c>x</c>.</summary>\n    public int X { get; set; }\n}\n', 'C')[0].doc, 'Does `x`.');
     assert.equal(headerComment('// one\n// two\ncode();\n// no'), 'one\ntwo');
     assert.ok(csEventArgs(read(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated', 'PkGeneratedEvents.cs'))).length > 20);
+});
+
+test('razorParams reads every [Parameter], including one whose doc has a remarks line, and never hands its text to the next', () => {
+    const src = [
+        '    /// <summary>Hide it.</summary>',
+        '    /// <remarks>False hides it.</remarks>',
+        '    [Parameter] public bool Show { get; set; } = true;',
+        '',
+        '    /// <summary>Card width.</summary>',
+        '    [Parameter] public int Width { get; set; } = 0;',
+        '',
+        '    [Parameter] public string? Bare { get; set; }',
+    ].join('\n');
+    assert.deepEqual(razorParams(src).map(p => [p.name, p.doc]), [['Show', 'Hide it. False hides it.'], ['Width', 'Card width.'], ['Bare', '']]);
+    // and against the real components: no [Parameter] goes missing from the parsed list
+    const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
+    for (const f of fs.readdirSync(dir).filter(n => n.endsWith('.razor'))) {
+        const text = read(path.join(dir, f));
+        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\]( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
+    }
 });

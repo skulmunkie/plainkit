@@ -1,0 +1,186 @@
+{
+  "tag": "pk-unit-input",
+  "title": "Unit input",
+  "group": "Form controls",
+  "summary": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-value-change",
+      "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+    },
+    {
+      "name": "units",
+      "type": "string",
+      "default": "px,rem,em,%",
+      "reflect": false,
+      "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown in the number field while it is empty."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the value but does not let it change (the unit select is disabled too)."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while the number is empty."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "min",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Lowest number (the number, whatever the unit)."
+    },
+    {
+      "name": "max",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Highest number."
+    },
+    {
+      "name": "step",
+      "type": "string",
+      "default": "any",
+      "reflect": true,
+      "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed the number or picked another unit (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-value-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user committed a new value (same moment as change; carries the value)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "label",
+      "description": "The visible label shown by showLabel."
+    },
+    {
+      "name": "box",
+      "description": "The bordered field that holds the number and the unit."
+    },
+    {
+      "name": "control",
+      "description": "The inner number input."
+    },
+    {
+      "name": "unit",
+      "description": "The inner unit select."
+    },
+    {
+      "name": "chevron",
+      "description": "The arrow drawn on the unit select."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Moves focus to the number field."
+    }
+  ],
+  "a11y": "A native number input and a native select live in the shadow root: the number is named by label (aria-label) and described by description, the select is named \"<label> unit\", so both are reachable by Tab and the arrow keys change the number by step. invalid sets aria-invalid and the state is never colour alone (the ring is thicker). Text is 16px and the control 44px tall on a phone.",
+  "examples": [
+    {
+      "title": "Lengths",
+      "html": "<pk-unit-input label=\"Width\" value=\"1.5rem\"></pk-unit-input>\n<pk-unit-input label=\"Gap\" show-label units=\"px rem\" value=\"12px\" min=\"0\"></pk-unit-input>"
+    },
+    {
+      "title": "Another set of units",
+      "html": "<pk-unit-input label=\"Duration\" units=\"ms s\" value=\"250ms\"></pk-unit-input>"
+    }
+  ]
+}

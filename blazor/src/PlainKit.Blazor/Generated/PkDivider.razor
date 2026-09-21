@@ -5,7 +5,9 @@
 
 <pk-divider vertical="@Vertical"
             label-position="@LabelPosition"
-            decorative="@Decorative">@ChildContent</pk-divider>
+            decorative="@Decorative"
+            class="@Css()"
+            @attributes="Splat">@ChildContent</pk-divider>
 
 @code {
     /// <summary>A vertical rule; the parent must be a flex row.</summary>

@@ -7,6 +7,7 @@
          activation="@(Activation?.ToAttr())"
          none-active="@NoneActive"
          scroll="@Scroll"
+         class="@Css()"
          @attributes="Splat">@ChildContent@if (TrailingContent is not null) {<span slot="trailing">@TrailingContent</span>}</pk-tabs>
 
 @code {
@@ -22,7 +23,7 @@
     /// <summary>One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows.</summary>
     [Parameter] public bool Scroll { get; set; }
 
-    /// <summary>A tab was chosen. Cancelable: preventDefault keeps the previous tab.</summary>
+    /// <summary>A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it.</summary>
     [Parameter] public EventCallback<PkTabChangeEventArgs> OnChange { get; set; }
 
     /// <summary>The content.</summary>
@@ -32,15 +33,10 @@
     /// <summary>Content inside the strip after the last tab: a hint, links or buttons.</summary>
     [Parameter] public RenderFragment? TrailingContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-tab-change"] = EventCallback.Factory.Create<PkTabChangeEventArgs>(this, HandlePkTabChange),
-        };
+        handlers["onpk-tab-change"] = EventCallback.Factory.Create<PkTabChangeEventArgs>(this, HandlePkTabChange);
     }
 
     private async Task HandlePkTabChange(PkTabChangeEventArgs e)

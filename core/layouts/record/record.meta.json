@@ -2,7 +2,7 @@
   "id": "record",
   "title": "Record page",
   "summary": "One record: chips and actions under the top bar, a tab strip and read-only fields beside editable ones.",
-  "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert.",
+  "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert, Timeline.",
   "mobile": "Header actions wrap; the tab strip scrolls sideways; FieldList stacks label over value.",
   "used": [
     "alert",
@@ -16,7 +16,9 @@
     "stack",
     "tab",
     "tab-panel",
-    "tabs"
+    "tabs",
+    "timeline",
+    "timeline-item"
   ],
   "order": 2
 }

@@ -6,7 +6,9 @@
 <pk-back-to-top for="@For"
                 threshold="@PkAttr.Num(Threshold)"
                 label="@Label"
-                visible="@Visible">@ChildContent</pk-back-to-top>
+                visible="@Visible"
+                class="@Css()"
+                @attributes="Splat">@ChildContent</pk-back-to-top>
 
 @code {
     /// <summary>Scroll container (default: the window).</summary>

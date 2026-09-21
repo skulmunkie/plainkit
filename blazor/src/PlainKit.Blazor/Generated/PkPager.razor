@@ -3,7 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @inherits PkElementBase
 
-<pk-pager label="@Label">@if (PrevContent is not null) {<span slot="prev">@PrevContent</span>}@if (NextContent is not null) {<span slot="next">@NextContent</span>}@ChildContent</pk-pager>
+<pk-pager label="@Label"
+          class="@Css()"
+          @attributes="Splat">@if (PrevContent is not null) {<span slot="prev">@PrevContent</span>}@if (NextContent is not null) {<span slot="next">@NextContent</span>}@ChildContent</pk-pager>
 
 @code {
     /// <summary>Accessible name</summary>

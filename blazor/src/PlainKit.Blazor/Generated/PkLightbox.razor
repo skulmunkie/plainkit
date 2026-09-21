@@ -6,6 +6,7 @@
 <pk-lightbox index="@PkAttr.Num(Index)"
              label="@Label"
              open="@Open"
+             class="@Css()"
              @attributes="Splat">@ChildContent</pk-lightbox>
 
 @code {
@@ -30,16 +31,11 @@
     /// <summary>pk-close</summary>
     [Parameter] public EventCallback<PkCloseEventArgs> OnClose { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-            ["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange),
-        };
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
+        handlers["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange);
     }
 
     private async Task HandlePkClose(PkCloseEventArgs e)

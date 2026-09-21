@@ -107,7 +107,7 @@ Example: Submits a form
 
 ## `pk-button-group`
 
-**Button group** (Actions). Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice.
+**Button group** (Actions). Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).
 
 **Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)
 
@@ -130,7 +130,13 @@ Example: Submits a form
 |---|---|
 | `group` | The role=group container. |
 
-**Accessibility.** role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.
+**Accessibility.** role=group with an aria-label (a group of toggle buttons, not a radiogroup: each keeps its own tab stop and Space or Enter presses it). In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height. A segmented control: give each toggle button a value and listen for pk-toggle on the group (it bubbles); the choice is the event whose detail.pressed is true, and pressing the pressed button again also raises pk-toggle with pressed false, which the group immediately undoes, so ignore that one.
+
+Example: Segmented control (Dark and Light)
+
+```html
+<pk-button-group label="Theme" mode="single"><pk-button toggle pressed value="dark" variant="ghost">Dark</pk-button><pk-button toggle value="light" variant="ghost">Light</pk-button></pk-button-group>
+```
 
 Example: Group and single choice
 

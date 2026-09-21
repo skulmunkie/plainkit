@@ -12,13 +12,13 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 ## Status (alpha)
 
 - **Blazor Server is verified. Blazor WebAssembly is not** (never run in a WebAssembly host; the Files dev tool is server-side only).
-- **Components that do not exist yet:** `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat`, `PkTable`. Use their elements as raw markup (`<pk-card>`, `<pk-table>`, ...); see the "raw elements" workflow.
-- **17 wrapper-only parameters do not exist** (for example `PkDialog.ShowCloseButton`, `PkAlert.Boxed`, `PkTooltip.Title`), and `PkDialog.MaxWidthPx`, `PkDialog.Theme`, `PkTooltip.Kind`, `PkChart.Data` and `PkImageGallery.Images` are not generated. `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
+- **Components that do not exist yet:** `PkTable`. Use their elements as raw markup (`<pk-table>`); see the "raw elements" workflow.
+- **12 wrapper-only parameters do not exist** (for example `PkDialog.CloseButtonLabel`, `PkDrawer.IsLoading`, `PkTooltip.OnClick`). The chart's `Data` and the image gallery's `Images` take the public records `PkChartData` and `PkGalleryImage` (declared as `object?`). `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
 
 ## Rules
 
 - Use only components and parameters listed in the references. Find a component in `references/components-index.md`, then open the file it names. Do not invent parameters.
-- A generated component takes only its listed parameters. An attribute that is not one (`class`, `style`, ...) throws when the component renders; only a component that lists `ExtraClass` (such as `PkAlert`) takes a class. Put classes on a wrapping element.
+- An attribute that is not a parameter (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, and a `class` is added to the component's own, so `<PkButton id="save" data-test="x" class="wide">` works. Inline `style` is blocked by the CSP: use a class or a CSS custom property set in a stylesheet.
 - A prop with a fixed set of values is an enum (`ButtonVariant.Primary`); a null enum leaves the element's default. Values are in `references/enums.md`.
 - Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`. Events are `EventCallback` or `EventCallback<PkXxxEventArgs>` (`references/events.md`).
 - Named slots are `RenderFragment` parameters (`FooterContent`). When you use one, write the body as an explicit `<ChildContent>` too.
@@ -60,11 +60,11 @@ app.MapRazorComponents<App>()
 ```
 
 ```razor
-@* MainLayout.razor (or App.razor), after its directive lines: the stylesheet, once *@
+@* App.razor: in the head, FIRST, above the app's own stylesheets and HeadOutlet: the toolkit's base layer must be the bottom of the cascade *@
 <PkStyles />
 ```
 
-Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
+`PkStyles` writes a plain in-place `<link>` (with a `?v=` content hash; `Minified`, `Versioned="false"`; `InHead="true"` is the old HeadContent behaviour, which lands after the app's stylesheets). In a layout it lands in the body, after the head links. `CssVersioned`, `CssMin` and `Versioned(path)` on `PkAssets` are for a direct `<link>`. Add `@using PlainKit.Blazor` (and `using PlainKit.Blazor;` in `Program.cs`) so the `Pk*` components resolve, and an interactive render mode (`@rendermode InteractiveServer` or a global one) for `OnClick` and binding. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
 
 ### Add a page (a bound input, a list and a toast)
 
@@ -73,7 +73,7 @@ Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve
 @inject IPkLog PkLog
 
 <PkStack>
-    <PkPageHeader Heading="Tasks" Level="1" />
+    <PkPageHeader Title="Tasks" />
     <PkField Label="New task">
         <PkInput @bind-Value="_title" Placeholder="What needs doing?" />
     </PkField>
@@ -132,11 +132,29 @@ Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve
 }
 ```
 
+### Give a page a header with breadcrumbs
+
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it.
+
+```razor
+<PkPageHeader Crumbs="@_crumbs" Title="@_name">
+    <SuffixContent><PkBadge>Open</PkBadge></SuffixContent>
+    <ActionsContent><PkButton>Receive</PkButton></ActionsContent>
+</PkPageHeader>
+
+@code {
+    private string _name = "Acme Supply order";
+    private readonly PkCrumb[] _crumbs = [new("Stock", "/stock"), new("Purchase orders", "/stock/orders"), new("PO 1042")];
+}
+```
+
 ### Open a dialog from C#
+
+`Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
 
 ```razor
 <PkButton OnClick="@(() => _open = true)">Open</PkButton>
-<PkDialog @bind-IsOpen="_open" Title="Discard changes?">
+<PkDialog @bind-IsOpen="_open" Title="Discard changes?" Size="PkDialogSize.Lg">
     <ChildContent><p>This cannot be undone.</p></ChildContent>
     <FooterContent><PkButton OnClick="@(() => _open = false)">Close</PkButton></FooterContent>
 </PkDialog>

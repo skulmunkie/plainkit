@@ -60,20 +60,20 @@
       "type": "bool",
       "default": true,
       "map": "wrapper",
-      "note": "A docked, backdrop-less inspector is the element's docked prop."
+      "note": "The element has no backdrop switch; the backdrop-less inspector is the docked prop, which is the Docked parameter."
     },
     {
       "name": "IsLoading",
       "type": "bool",
       "map": "wrapper",
-      "note": "Wrap the body in pk-loading-overlay busy."
+      "note": "The element has no loading state. Wrapping the body in pk-loading-overlay from the component would change the shape of the markup when it toggles and remount the body; wrap ChildContent in PkLoadingOverlay yourself."
     },
     {
       "name": "PhoneCards",
       "type": "bool",
       "default": true,
       "map": "wrapper",
-      "note": "Compat class only."
+      "note": "The SDK has no phone card layout for a drawer."
     },
     {
       "name": "Docked",

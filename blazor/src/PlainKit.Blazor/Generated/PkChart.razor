@@ -6,7 +6,9 @@
 <pk-chart kind="@Kind"
           caption="@Caption"
           height="@PkAttr.Num(Height)"
-          data="@PkAttr.Json(Data)">@if (CaptionContent is not null) {<span slot="caption">@CaptionContent</span>}@ChildContent</pk-chart>
+          data="@PkAttr.Json(Data)"
+          class="@Css()"
+          @attributes="Splat">@if (CaptionContent is not null) {<span slot="caption">@CaptionContent</span>}@ChildContent</pk-chart>
 
 @code {
     /// <summary>Chart type.</summary>
@@ -19,6 +21,7 @@
     [Parameter] public int Height { get; set; } = 140;
 
     /// <summary>Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }.</summary>
+    /// <remarks>Pass a PkChartData: { Labels, Series: [{ Name, Values }] }. It is sent as a JSON attribute (camelCase) and replaces the slotted table.</remarks>
     [Parameter] public object? Data { get; set; }
 
     /// <summary>A rich caption; overrides caption.</summary>

@@ -9,6 +9,7 @@
         scroller="@Scroller"
         heading="@Heading"
         label="@Label"
+        class="@Css()"
         @attributes="Splat"></pk-toc>
 
 @code {
@@ -33,15 +34,10 @@
     /// <summary>The current heading changed.</summary>
     [Parameter] public EventCallback<PkSectionChangeEventArgs> OnSectionChange { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-section-change"] = EventCallback.Factory.Create<PkSectionChangeEventArgs>(this, HandlePkSectionChange),
-        };
+        handlers["onpk-section-change"] = EventCallback.Factory.Create<PkSectionChangeEventArgs>(this, HandlePkSectionChange);
     }
 
     private async Task HandlePkSectionChange(PkSectionChangeEventArgs e)

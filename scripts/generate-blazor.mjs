@@ -213,7 +213,7 @@ export function modelElement(el, mapping, reg) {
             skip(p.name, `sets the ${p.cssProperty} custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper`);
         } else if (map === 'wrapper') {
             if (p.name === 'ExtraClass') { declare({ name: 'ExtraClass', kind: 'param', cs: 'string?', doc: 'Extra CSS classes for the element.' }); out.usesClass = true; }
-            else if (p.name === 'AdditionalAttributes') { declare({ name: 'AdditionalAttributes', kind: 'captured', cs: 'Dictionary<string, object>?', doc: 'Attributes that match no parameter are put on the element.' }); out.usesAttributes = true; }
+            else if (p.name === 'AdditionalAttributes') out.usesAttributes = true; // every component has it, from PkElementBase
             else skip(p.name, p.todo ? `${p.todo}` : `wrapper behaviour, not a property of the element (${p.note})`);
         }
     }
@@ -293,7 +293,11 @@ function resolveProp(el, p, r, comp, enumType, todo) {
     } else {
         const base = stripNull(t);
         if (base === 'string') { cs = 'string?'; attr = 'str'; if (hasDefault) init = lit(p.default); }
-        else if (base === 'bool') { cs = 'bool'; attr = 'bool'; if (p.default === true) init = 'true'; }
+        else if (base === 'bool') {
+            cs = 'bool'; attr = 'bool'; if (p.default === true) init = 'true';
+            // `invert`: the parameter says the opposite of the prop (Boxed is not plain, ShowCloseButton is not hideClose); it is sent negated, still as a plain attribute.
+            if (p.invert) r.expr = `@(!${p.name})`;
+        }
         else if (NUMERIC.has(base)) {
             // A plain `int` is non-nullable and starts at the element's own default (the mapping's, else the API's), so binding it needs no cast and
             // sending it always changes nothing; `int?` stays nullable and is sent only when set.
@@ -337,9 +341,10 @@ export function renderComponent(m, mappingName) {
     const attrs = [];
     for (const a of m.attrs) attrs.push(`${a.attr}="${a.expr}"`);
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
-    if (m.usesClass) attrs.push('class="@ExtraClass"');
-    const splat = custom.length > 0 || m.usesAttributes;
-    if (splat) attrs.push('@attributes="Splat"');
+    // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
+    // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).
+    attrs.push(`class="@Css(${m.usesClass ? 'ExtraClass' : ''})"`);
+    attrs.push('@attributes="Splat"');
     const children = m.children.map(c => (c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null) {<span slot=${lit(c.slot)}>@${c.name}</span>}`)).join('');
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
@@ -353,14 +358,12 @@ export function renderComponent(m, mappingName) {
         L.push(doc(d.doc));
         if (d.note) L.push(`    /// <remarks>${esc(d.note)}</remarks>`);
         if (d.cancelable) L.push('    /// <remarks>The event can be cancelled in the browser (preventDefault); a callback cannot cancel it.</remarks>');
-        const attr = d.kind === 'captured' ? '[Parameter(CaptureUnmatchedValues = true)]' : '[Parameter]';
-        L.push(`    ${attr} public ${d.cs} ${d.name} { get; set; }${d.init ? ` = ${d.init};` : d.cs === 'string' ? ' = "";' : ''}`);
+        L.push(`    [Parameter] public ${d.cs} ${d.name} { get; set; }${d.init ? ` = ${d.init};` : d.cs === 'string' ? ' = "";' : ''}`);
     });
-    if (splat) {
-        L.push('', '    private Dictionary<string, object> Splat { get; set; } = new();', '', '    /// <inheritdoc />', '    protected override void OnParametersSet()', '    {', '        Splat = new Dictionary<string, object>', '        {');
-        for (const h of custom) L.push(`            [${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)}),`);
-        L.push('        };');
-        if (m.usesAttributes) L.push('        if (AdditionalAttributes is not null) foreach (var (name, value) in AdditionalAttributes) Splat[name] = value;');
+    if (custom.length) {
+        // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
+        L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
+        for (const h of custom) L.push(`        handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
         L.push('    }');
     }
     for (const h of live) {
@@ -470,6 +473,9 @@ export function generate(api, mappings, handWritten = new Set()) {
         if (hand && !mapping.existing) throw new Error(`${mapping.component} exists by hand in Components/ but blazor/mappings/${name}.json is not marked "existing": true; mark it so the generator skips it`);
         if (mapping.existing) {
             skipped.push({ component: mapping.component, tag: el.tag, reason: hand ? 'hand-written in Components/' : 'existing: true in the mapping (kept by hand, not in this package yet)', handWritten: hand });
+            // A hand-written component listens for the element's pk-* events too: register them (and their args classes) so Blazor delivers them.
+            // Only the event registry is shared; the model itself is thrown away.
+            if (hand) modelElement(el, mapping, { enums: new Map(), events: reg.events, eventNames: reg.eventNames });
             continue;
         }
         const m = modelElement(el, mapping, reg);

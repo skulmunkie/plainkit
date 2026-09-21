@@ -31,6 +31,25 @@
     </PkDialog>
     <p>Dialog open in C#: <code id="out-open">@_open</code> (close events: <code id="out-closes">@_closes</code>)</p>
 
+    @* Unmatched attributes (id, data-*, aria-*, class) go on the element; the hand-written PkCard, PkEmptyState, PkFieldList and PkStat. *@
+    <PkButton id="pass-button" data-test="y" aria-label="Passthrough" class="mine" Variant="ButtonVariant.Secondary">Passthrough</PkButton>
+    <PkAlert id="pass-alert" ExtraClass="extra" class="mine" Kind="PkAlertKind.Info" Boxed="false" Compact="true">A plain, compact alert</PkAlert>
+
+    <PkCard id="card" Heading="A card" Level="3">
+        <ChildContent>Card body</ChildContent>
+        <ActionsContent><PkButton>Edit</PkButton></ActionsContent>
+        <FooterContent>Card footer</FooterContent>
+    </PkCard>
+    <PkStat id="stat" Label="Revenue" Value="$1.2k" Delta="4.5" Tone="PkStatTone.Positive" Series="@(new double[] { 1, 3, 2, 5 })" Interactive="true" OnClick="OnStat" />
+    <p>Stat clicks: <code id="out-stat">@_stats</code></p>
+    <PkFieldList id="fields" Title="Details" Dividers="true">
+        <dt>Name</dt><dd>Ada</dd>
+        <dt>Role</dt><dd>Engineer</dd>
+    </PkFieldList>
+    <PkEmptyState id="empty" Title="Nothing here" Description="Add the first item">
+        <ActionContent><PkButton Variant="ButtonVariant.Primary">Add</PkButton></ActionContent>
+    </PkEmptyState>
+
     <PkButton OnClick="WriteLogs">Write logs with IPkLog</PkButton>
     <pk-nope></pk-nope>
 
@@ -56,6 +75,8 @@
     private void OnClick() => _clicks++;
     private void OnSearch(PkSearchEventArgs e) => _search = e.Value ?? "(null)";
     private void OnClose() => _closes++;
+    private int _stats;
+    private void OnStat() => _stats++;
 
     private async Task WriteLogs()
     {

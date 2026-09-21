@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-toolbar heading="@Heading"
-            note="@Note">@ChildContent@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}</pk-toolbar>
+            note="@Note"
+            class="@Css()"
+            @attributes="Splat">@ChildContent@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}</pk-toolbar>
 
 @code {
     /// <summary>The lead title, in strong text.</summary>

@@ -5,6 +5,7 @@
 
 <pk-breadcrumb label="@Label"
                max="@PkAttr.Num(Max)"
+               class="@Css()"
                @attributes="Splat">@ChildContent</pk-breadcrumb>
 
 @code {
@@ -20,15 +21,10 @@
     /// <summary>The fold button revealed the hidden crumbs.</summary>
     [Parameter] public EventCallback OnExpand { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-expand"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkExpand),
-        };
+        handlers["onpk-expand"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkExpand);
     }
 
     private async Task HandlePkExpand(EventArgs e)

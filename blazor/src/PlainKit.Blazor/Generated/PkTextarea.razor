@@ -13,12 +13,14 @@
              invalid="@IsInvalid"
              rows="@PkAttr.Num(Rows)"
              maxlength="@MaxLength"
+             show-label="@ShowLabel"
              autogrow="@AutoGrow"
              max-height="@PkAttr.Num(MaxHeight)"
+             class="@Css()"
              @attributes="Splat"></pk-textarea>
 
 @code {
-    /// <summary>The current value; what the form submits.</summary>
+    /// <summary>The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>The form field name.</summary>
@@ -48,6 +50,9 @@
     /// <summary>Maximum text length.</summary>
     [Parameter] public string? MaxLength { get; set; }
 
+    /// <summary>Shows label as visible text above the field (linked to it), for use without a pk-field.</summary>
+    [Parameter] public bool ShowLabel { get; set; }
+
     /// <summary>Grows with the content instead of scrolling.</summary>
     [Parameter] public bool AutoGrow { get; set; }
 
@@ -57,15 +62,10 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-value-change"] = EventCallback.Factory.Create<PkValueChangeEventArgs>(this, HandlePkValueChange),
-        };
+        handlers["onpk-value-change"] = EventCallback.Factory.Create<PkValueChangeEventArgs>(this, HandlePkValueChange);
     }
 
     private async Task HandlePkValueChange(PkValueChangeEventArgs e)

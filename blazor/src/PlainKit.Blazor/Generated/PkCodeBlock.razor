@@ -8,6 +8,7 @@
                wrap="@Wrap"
                no-copy="@NoCopy"
                max-height="@MaxHeight"
+               class="@Css()"
                @attributes="Splat">@ChildContent</pk-code-block>
 
 @code {
@@ -26,21 +27,25 @@
     /// <summary>Cap the height, any CSS length.</summary>
     [Parameter] public string? MaxHeight { get; set; }
 
+    /// <summary>The wrap toggle was pressed; wrap already has the new value.</summary>
+    [Parameter] public EventCallback<PkWrapChangeEventArgs> OnWrapChange { get; set; }
+
     /// <summary>After a copy attempt.</summary>
     [Parameter] public EventCallback<PkCopyEventArgs> OnCopy { get; set; }
 
     /// <summary>The content.</summary>
     [Parameter] public string? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-copy"] = EventCallback.Factory.Create<PkCopyEventArgs>(this, HandlePkCopy),
-        };
+        handlers["onpk-wrap-change"] = EventCallback.Factory.Create<PkWrapChangeEventArgs>(this, HandlePkWrapChange);
+        handlers["onpk-copy"] = EventCallback.Factory.Create<PkCopyEventArgs>(this, HandlePkCopy);
+    }
+
+    private async Task HandlePkWrapChange(PkWrapChangeEventArgs e)
+    {
+        await OnWrapChange.InvokeAsync(e);
     }
 
     private async Task HandlePkCopy(PkCopyEventArgs e)

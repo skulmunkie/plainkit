@@ -8,6 +8,7 @@
         count="@Count"
         closable="@Closable"
         only="@(Only?.ToAttr())"
+        class="@Css()"
         @attributes="Splat">@ChildContent</pk-tab>
 
 @code {
@@ -32,15 +33,10 @@
     /// <summary>The tab label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-tab-close"] = EventCallback.Factory.Create<PkTabCloseEventArgs>(this, HandlePkTabClose),
-        };
+        handlers["onpk-tab-close"] = EventCallback.Factory.Create<PkTabCloseEventArgs>(this, HandlePkTabClose);
     }
 
     private async Task HandlePkTabClose(PkTabCloseEventArgs e)

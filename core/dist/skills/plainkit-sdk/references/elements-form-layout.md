@@ -131,6 +131,7 @@ It is delegates focus to its inner control.
 |---|---|---|
 | `pk-invalid` | `{ count: number, controls: Element[], messages: string[] }` | A submit was stopped because these controls are invalid. |
 | `pk-valid` | `null` | A submit passed validation. |
+| `pk-reset` | `none` | The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled. |
 
 **Methods**
 

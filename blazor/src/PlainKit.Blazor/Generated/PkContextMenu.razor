@@ -5,6 +5,7 @@
 
 <pk-context-menu open="@Open"
                  disabled="@Disabled"
+                 class="@Css()"
                  @attributes="Splat">@ChildContent@if (MenuContent is not null) {<span slot="menu">@MenuContent</span>}</pk-context-menu>
 
 @code {
@@ -23,15 +24,10 @@
     /// <summary>An item was chosen.</summary>
     [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-        };
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

@@ -28,6 +28,19 @@
     <None Include="Generated\generated.manifest.json" Pack="false" />
   </ItemGroup>
 
+  <!-- The element mappings and the generator's manifest travel inside the assembly (not as content or static assets): PkMappingInfo reads them to
+       describe a component in the dev tools' inspector. The mappings belong to this package; the SDK never holds a copy. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\mappings\*.json" LogicalName="plainkit-mappings/%(Filename)%(Extension)" Visible="false" />
+    <EmbeddedResource Include="Generated\generated.manifest.json" LogicalName="plainkit-mappings/generated.manifest.json" Visible="false" />
+  </ItemGroup>
+
+  <!-- The toolkit's file list with each file's SHA-384 travels inside the assembly too: PkAssets.Versioned builds a content-hash cache-busting
+       URL from it without touching the disk. It is a copy of the served manifest, so it is always the hash of the files this package serves. -->
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\plainkit\manifest.json" LogicalName="plainkit-assets/manifest.json" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

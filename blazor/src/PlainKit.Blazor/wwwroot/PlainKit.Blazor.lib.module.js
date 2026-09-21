@@ -2,12 +2,14 @@
 // A Razor class library initializer: Blazor loads it by name and calls it once it has started. It registers each pk-* custom event the
 // generated components listen for (@onpk-...), so Blazor listens for it and hands the component the event's detail as a plain object.
 const events = [
+    'pk-activate',
     'pk-add',
     'pk-change',
     'pk-close',
     'pk-colour',
     'pk-combo-query',
     'pk-combo-select',
+    'pk-combo-toggle',
     'pk-confirm',
     'pk-copy',
     'pk-dismiss',
@@ -27,6 +29,8 @@ const events = [
     'pk-range',
     'pk-rating-change',
     'pk-remove',
+    'pk-reset',
+    'pk-resize',
     'pk-search',
     'pk-section-change',
     'pk-select',
@@ -38,6 +42,7 @@ const events = [
     'pk-toggle',
     'pk-valid',
     'pk-value-change',
+    'pk-wrap-change',
 ];
 
 // The detail, made safe to serialize: files become { name, size, type }, DOM nodes are dropped, depth is capped.

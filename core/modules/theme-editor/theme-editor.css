@@ -2,6 +2,9 @@
 
 .te { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
+/* Room under the last row so the dev tools launcher (fixed, bottom end) never covers a control when the editor is a dock tab. */
+.te:not(.te--fixed) { padding-block-end: calc(var(--touch-target) + var(--space-4)); }
+
 .te--fixed { min-height: 0; }
 
 .te--fixed pk-tabs { flex: 1 1 auto; min-height: 0; overflow: auto; }

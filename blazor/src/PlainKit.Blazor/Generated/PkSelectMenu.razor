@@ -9,10 +9,11 @@
                 open="@Open"
                 disabled="@Disabled"
                 required="@Required"
+                class="@Css()"
                 @attributes="Splat">@ChildContent</pk-select-menu>
 
 @code {
-    /// <summary>Selected option value.</summary>
+    /// <summary>Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public string? Value { get; set; } = "";
 
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
@@ -39,15 +40,10 @@
     /// <summary>The selection changed.</summary>
     [Parameter] public EventCallback<PkChangeEventArgs> OnChange { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange),
-        };
+        handlers["onpk-change"] = EventCallback.Factory.Create<PkChangeEventArgs>(this, HandlePkChange);
     }
 
     private async Task HandlePkChange(PkChangeEventArgs e)

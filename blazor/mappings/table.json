@@ -5,8 +5,7 @@
     {
       "name": "Columns",
       "prop": "columns",
-      "type": "IReadOnlyList<DataGridColumn>",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridColumn"
+      "note": "Pass an IReadOnlyList<PkTableColumn>: sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone }])."
     },
     {
       "name": "Items",
@@ -24,15 +23,30 @@
       "type": "HashSet<int>"
     },
     {
-      "name": "PhoneLayout",
+      "name": "Cards",
       "prop": "cards",
-      "type": "DataGridPhoneLayout",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridPhoneLayout"
+      "type": "bool",
+      "note": "Each row becomes a card below 640px."
     },
     {
       "name": "Loading",
       "prop": "loading",
       "type": "bool"
+    },
+    {
+      "name": "EmptyText",
+      "prop": "emptyText",
+      "type": "string"
+    },
+    {
+      "name": "Expandable",
+      "prop": "expandable",
+      "type": "bool"
+    },
+    {
+      "name": "ExpandedKeys",
+      "prop": "expanded",
+      "type": "HashSet<int>"
     },
     {
       "name": "HeaderActionsTemplate",
@@ -61,9 +75,20 @@
       "note": "The slot name is dynamic: the wrapper renders one slot=\"cell-<rowId>-<key>\" per cell, so it is not a fixed slot of the element."
     },
     {
+      "name": "DetailTemplate",
+      "slot": "detail-<rowId>",
+      "type": "RenderFragment<TItem>",
+      "note": "The slot name is dynamic: the wrapper renders one slot=\"detail-<rowId>\" per row that has detail content, and only those rows get a toggle."
+    },
+    {
       "name": "OnRowClick",
       "event": "pk-row-click",
       "type": "EventCallback<TItem>"
+    },
+    {
+      "name": "OnRowExpand",
+      "event": "pk-row-expand",
+      "type": "EventCallback<RowExpandEventArgs>"
     },
     {
       "name": "OnSelectionChanged",
@@ -81,5 +106,5 @@
       "type": "EventCallback<FilterEventArgs>"
     }
   ],
-  "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. The Blazor EmptyText fills the empty slot."
+  "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property."
 }

@@ -10,6 +10,7 @@
               value="@Value"
               href="@Href"
               open="@Open"
+              class="@Css()"
               @attributes="Splat">@ChildContent@if (PrefixContent is not null) {<span slot="prefix">@PrefixContent</span>}@if (SuffixContent is not null) {<span slot="suffix">@SuffixContent</span>}@if (SubmenuContent is not null) {<span slot="submenu">@SubmenuContent</span>}</pk-menu-item>
 
 @code {
@@ -52,15 +53,10 @@
     /// <summary>Chosen (bubbles to the dropdown).</summary>
     [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-        };
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

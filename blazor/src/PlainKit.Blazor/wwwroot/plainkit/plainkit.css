@@ -303,9 +303,9 @@
     --pad-page: var(--space-4);
 }
 
-/* The page gutter narrows on a phone in every density. */
+/* The page gutter narrows on a phone in every density; secondary text (chips, captions, mini buttons) is 13px there, 12px elsewhere. */
 @media (max-width: 640px) {
-    :root { --pad-page: var(--space-4); }
+    :root { --pad-page: var(--space-4); --text-meta: 0.93rem; }
     [data-density="compact"] { --pad-page: var(--space-3); }
 }
 
@@ -621,7 +621,7 @@ kbd + kbd { margin-inline-start: var(--space-1); }
 
 .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-/* Page-level styling for the raw table slotted into <pk-table> (and the DataGrid chrome around it). The table is light DOM, so shadow CSS cannot
+/* Page-level styling for the raw table slotted into <pk-table> (and the data-table chrome around it). The table is light DOM, so shadow CSS cannot
    reach its cells; these rules are keyed by the tag. The frame, toolbar slot and scrolling are in the element's shadow root. Tokens only. */
 pk-table {
     & table { inline-size: 100%; border-collapse: collapse; font-size: var(--text-base); }
@@ -642,7 +642,7 @@ pk-table {
     & :is(tfoot th, tfoot td) { font-weight: 600; }
 }
 
-/* A DataGrid: tighter cells, a per-column filter row, and the toolbar and pager chrome. */
+/* A data table: tighter cells, a per-column filter row, and the toolbar and pager chrome. */
 pk-table.dg-body {
     &::part(toolbar) { display: block; margin: 0; }
     & tbody td { padding: 0.35rem var(--space-2); font-size: var(--text-read); }
@@ -817,7 +817,7 @@ pk-table.dg-body {
 .u-w-7r { width: 7rem !important; }
 .u-sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-pk-accordion:not(:defined),pk-accordion-item:not(:defined),pk-alert:not(:defined),pk-app-shell:not(:defined),pk-avatar:not(:defined),pk-avatar-group:not(:defined),pk-back-to-top:not(:defined),pk-badge:not(:defined),pk-breadcrumb:not(:defined),pk-button:not(:defined),pk-button-group:not(:defined),pk-calendar:not(:defined),pk-card:not(:defined),pk-chart:not(:defined),pk-checkbox:not(:defined),pk-cluster:not(:defined),pk-code-block:not(:defined),pk-colour-input:not(:defined),pk-combobox:not(:defined),pk-command-palette:not(:defined),pk-context-menu:not(:defined),pk-dialog:not(:defined),pk-divider:not(:defined),pk-drawer:not(:defined),pk-dropdown:not(:defined),pk-dropzone:not(:defined),pk-empty-state:not(:defined),pk-field:not(:defined),pk-field-list:not(:defined),pk-field-row:not(:defined),pk-form:not(:defined),pk-form-actions:not(:defined),pk-form-section:not(:defined),pk-gallery:not(:defined),pk-grid:not(:defined),pk-hint:not(:defined),pk-icon:not(:defined),pk-image-gallery:not(:defined),pk-input:not(:defined),pk-lightbox:not(:defined),pk-list-group:not(:defined),pk-loading-overlay:not(:defined),pk-local-time:not(:defined),pk-media:not(:defined),pk-menu-item:not(:defined),pk-nav-item:not(:defined),pk-navbar:not(:defined),pk-otp-input:not(:defined),pk-page-header:not(:defined),pk-pager:not(:defined),pk-pagination:not(:defined),pk-popover:not(:defined),pk-progress:not(:defined),pk-radio-group:not(:defined),pk-range:not(:defined),pk-rating:not(:defined),pk-scroll-progress:not(:defined),pk-select:not(:defined),pk-select-menu:not(:defined),pk-side-nav:not(:defined),pk-skeleton:not(:defined),pk-skip-link:not(:defined),pk-spinner:not(:defined),pk-split-button:not(:defined),pk-stack:not(:defined),pk-stat:not(:defined),pk-step:not(:defined),pk-stepper:not(:defined),pk-switch:not(:defined),pk-tab:not(:defined),pk-tab-panel:not(:defined),pk-table:not(:defined),pk-tabs:not(:defined),pk-tag:not(:defined),pk-tag-input:not(:defined),pk-textarea:not(:defined),pk-timeline:not(:defined),pk-timeline-item:not(:defined),pk-toast:not(:defined),pk-toast-stack:not(:defined),pk-toc:not(:defined),pk-toolbar:not(:defined),pk-tooltip:not(:defined),pk-tree:not(:defined),pk-tree-item:not(:defined),pk-workspace:not(:defined){visibility:hidden}
+pk-accordion:not(:defined),pk-accordion-item:not(:defined),pk-alert:not(:defined),pk-app-shell:not(:defined),pk-avatar:not(:defined),pk-avatar-group:not(:defined),pk-back-to-top:not(:defined),pk-badge:not(:defined),pk-breadcrumb:not(:defined),pk-button:not(:defined),pk-button-group:not(:defined),pk-calendar:not(:defined),pk-card:not(:defined),pk-chart:not(:defined),pk-checkbox:not(:defined),pk-cluster:not(:defined),pk-code-block:not(:defined),pk-colour-input:not(:defined),pk-combobox:not(:defined),pk-command-palette:not(:defined),pk-context-menu:not(:defined),pk-dialog:not(:defined),pk-divider:not(:defined),pk-drawer:not(:defined),pk-dropdown:not(:defined),pk-dropzone:not(:defined),pk-empty-state:not(:defined),pk-field:not(:defined),pk-field-list:not(:defined),pk-field-row:not(:defined),pk-form:not(:defined),pk-form-actions:not(:defined),pk-form-section:not(:defined),pk-gallery:not(:defined),pk-grid:not(:defined),pk-hint:not(:defined),pk-icon:not(:defined),pk-image-gallery:not(:defined),pk-input:not(:defined),pk-lightbox:not(:defined),pk-list-group:not(:defined),pk-loading-overlay:not(:defined),pk-local-time:not(:defined),pk-media:not(:defined),pk-menu-item:not(:defined),pk-nav-item:not(:defined),pk-navbar:not(:defined),pk-otp-input:not(:defined),pk-page-header:not(:defined),pk-pager:not(:defined),pk-pagination:not(:defined),pk-popover:not(:defined),pk-progress:not(:defined),pk-radio-group:not(:defined),pk-range:not(:defined),pk-rating:not(:defined),pk-scroll-progress:not(:defined),pk-select:not(:defined),pk-select-menu:not(:defined),pk-side-nav:not(:defined),pk-skeleton:not(:defined),pk-skip-link:not(:defined),pk-spinner:not(:defined),pk-split-button:not(:defined),pk-splitter:not(:defined),pk-stack:not(:defined),pk-stat:not(:defined),pk-step:not(:defined),pk-stepper:not(:defined),pk-switch:not(:defined),pk-tab:not(:defined),pk-tab-panel:not(:defined),pk-table:not(:defined),pk-tabs:not(:defined),pk-tag:not(:defined),pk-tag-input:not(:defined),pk-textarea:not(:defined),pk-timeline:not(:defined),pk-timeline-item:not(:defined),pk-toast:not(:defined),pk-toast-stack:not(:defined),pk-toc:not(:defined),pk-toolbar:not(:defined),pk-tooltip:not(:defined),pk-tree:not(:defined),pk-tree-item:not(:defined),pk-unit-input:not(:defined),pk-workspace:not(:defined){visibility:hidden}
 /* Plainkit a11y layer: loaded LAST, because these rules must beat the component defaults at equal specificity.
    Keyboard focus ring for every interactive control, tap behaviour, and the phone rules
    (16px inputs so iOS does not zoom on focus; 44px touch targets). */

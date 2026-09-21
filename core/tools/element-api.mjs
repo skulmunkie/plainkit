@@ -4,8 +4,9 @@
 // elements/<name>/<name>.meta.json:
 //   tag, title, summary, group          identity (tag is pk-<name>)
 //   delegatesFocus, formAssociated      optional booleans
-//   props[]         { name, type: string|boolean|number|enum|json (object or array: a JSON attribute or a property), default, values?, reflect, description }
-//   slots[]         { name ('' = default), description }
+//   props[]         { name, type: string|boolean|number|enum|json (object or array: a JSON attribute or a property), default, values?, reflect, commit?, description }
+//                   commit: the event (or events) that announce a change the user made to a two-way prop (value, open, checked...); each must be in events[]
+//   slots[]         { name ('' = default), description, dynamic? }   dynamic: the name is a pattern such as cell-<rowId>-<key> that the element builds per row, so the template has no fixed slot of that name
 //   events[]        { name, detail, description }
 //   parts[]         { name, description }      ::part(name) is the styling hook
 //   cssProperties[] { name (--pk-...), description, default? }
@@ -47,10 +48,12 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
         const seen = new Set();
         for (const x of list) {
             need(typeof x[key] === 'string' && (k === 'slot' || x[key] !== ''), `${k} needs a ${key}`);
+            if (k === 'slot' && x.dynamic) need(/<[^>]+>/.test(x.name), `dynamic slot "${x.name}" must be a pattern with a <placeholder>`);
             need(isText(x.description), `${k} "${x[key]}" needs a description`);
             need(!seen.has(x[key]), `${k} "${x[key]}" is declared twice`); seen.add(x[key]);
         }
     }
+    for (const d of meta.props) if ('commit' in d) { const named = [].concat(d.commit); need(named.length > 0 && named.every(n => typeof n === 'string' && meta.events.some(e => e.name === n)), `prop "${d.name}" commit must name events declared in events[] (${JSON.stringify(d.commit)})`); }
     for (const e of meta.events) need('detail' in e, `event "${e.name}" needs a detail (null when there is none)`);
     for (const c of meta.cssProperties) need(CSS_PROP.test(c.name), `css property "${c.name}" must start with --pk-`);
 
@@ -59,7 +62,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     for (const b of bound) need(names.has(b), `template binds {{${b}}} but no prop has that name`);
     const tplSlots = new Set([...template.matchAll(/<slot(?:\s+name="([^"]*)")?/g)].map(m => m[1] ?? ''));
     for (const s of tplSlots) need(meta.slots.some(x => x.name === s), `template has a slot "${s}" that meta.slots does not describe`);
-    for (const s of meta.slots) need(tplSlots.has(s.name), `meta.slots describes "${s.name}" but the template has no such slot`);
+    for (const s of meta.slots.filter(x => !x.dynamic)) need(tplSlots.has(s.name), `meta.slots describes "${s.name}" but the template has no such slot`);
     const tplParts = new Set([...template.matchAll(/\spart="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/)));
     for (const s of tplParts) need(meta.parts.some(x => x.name === s), `template part "${s}" is not in meta.parts`);
     for (const s of meta.parts) need(tplParts.has(s.name), `meta.parts describes "${s.name}" but the template has no such part`);

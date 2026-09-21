@@ -98,6 +98,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-toggle",
       "description": "The pressed state of a toggle button."
     },
     {

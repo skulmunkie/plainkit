@@ -10,10 +10,9 @@ Plainkit 0.1.0-alpha.1 is a pre-release. Things an agent should not assume:
 - The documentation site (Guides) is a placeholder ("Coming soon"): the references in this skill are the documentation.
 - The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are not built. Behaviour is plain: props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively.
 - A layout builder module (drag-and-drop page, template and form editor) is planned and not built; the element inspector (`createElementInspector`) is the reusable piece it will use.
-- Sample patterns and layouts are markup only, with no script of their own; templates that need behaviour ship a page script. Their data is placeholder text.
+- Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern's is shown in `patterns.md`, a template's in `templates.md`). Their data is placeholder text.
 - `PkDialog` (`confirm`, `alert`, `prompt`) becomes a global when a `pk-dialog` has connected, and `PkToast` (`show`) when a `pk-toast-stack` has, so the page must contain one before you call them.
 - Loading `dist/plainkit.js` as a script does not define any element by itself: the page has to call `initPlainkit()` (see `loading.md`).
-- Undocumented in the element API: `pk-table` per-cell slots are named `cell-<rowId>-<key>` (they are described in the `rows` prop, not listed under slots).
 
 ## Rules from the standards
 

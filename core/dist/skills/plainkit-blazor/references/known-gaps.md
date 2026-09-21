@@ -7,51 +7,33 @@ PlainKit.Blazor 0.1.0-alpha.1 is an alpha.
 - **Blazor Server is verified** in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
 - **Blazor WebAssembly is not verified.** It has not been run in a WebAssembly host; treat it as untested there. The Files tool is server-side only by design.
 
-## Components that do not exist yet (5)
+## Components that do not exist yet (1)
 
-- `PkCard`: use the element `<pk-card>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
-- `PkEmptyState`: use the element `<pk-empty-state>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
-- `PkFieldList`: use the element `<pk-field-list>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
-- `PkStat`: use the element `<pk-stat>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
 - `PkTable`: use the element `<pk-table>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
 
-## Wrapper-only parameters that do not exist (17)
+## Wrapper-only parameters that do not exist (12)
 
 Behaviour of the old wrappers that is not a property of the element. They are not generated; do not use them.
 
 | Component | Parameter | Why |
 |---|---|---|
-| `PkAlert` | `Boxed` | wrapper behaviour, not a property of the element (The alert element is always boxed; it has no unboxed variant.) |
-| `PkAlert` | `Compact` | wrapper behaviour, not a property of the element (Compat class only.) |
-| `PkAlert` | `Inline` | wrapper behaviour, not a property of the element (Alert is a block; it has no inline variant.) |
 | `PkAppShell` | `ErrorOverlayMessage` | wrapper behaviour, not a property of the element (As ShowErrorOverlay.) |
-| `PkAppShell` | `ShowErrorOverlay` | wrapper behaviour, not a property of the element (The Blazor error UI stays in the wrapper.) |
-| `PkDialog` | `CloseButtonLabel` | wrapper behaviour, not a property of the element (Text of the close button; the element draws a cross with an accessible name.) |
-| `PkDialog` | `FooterAlignEnd` | wrapper behaviour, not a property of the element (The footer is always end-aligned.) |
-| `PkDialog` | `OverFlyout` | wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer above any flyout.) |
-| `PkDialog` | `ShowCloseButton` | wrapper behaviour, not a property of the element (The element always shows its close button (house rule: every modal has its own Cancel or Close).) |
-| `PkDrawer` | `Backdrop` | wrapper behaviour, not a property of the element (A docked, backdrop-less inspector is the element's docked prop.) |
-| `PkDrawer` | `IsLoading` | wrapper behaviour, not a property of the element (Wrap the body in pk-loading-overlay busy.) |
-| `PkDrawer` | `PhoneCards` | wrapper behaviour, not a property of the element (Compat class only.) |
-| `PkTooltip` | `DocLink` | wrapper behaviour, not a property of the element (Link inside the rich content slot.) |
+| `PkAppShell` | `ShowErrorOverlay` | wrapper behaviour, not a property of the element (The framework error bar (#blazor-error-ui) belongs to the host page and its layout CSS, and pk-app-shell has no such feature; keep it in your layout.) |
+| `PkDialog` | `CloseButtonLabel` | wrapper behaviour, not a property of the element (The element has no prop for the close button text; it draws a cross with a fixed accessible name (hideClose, mapped as ShowCloseButton, removes it).) |
+| `PkDialog` | `FooterAlignEnd` | wrapper behaviour, not a property of the element (The footer is always end-aligned; there is nothing to switch.) |
+| `PkDialog` | `OverFlyout` | wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer, above any flyout.) |
+| `PkDrawer` | `Backdrop` | wrapper behaviour, not a property of the element (The element has no backdrop switch; the backdrop-less inspector is the docked prop, which is the Docked parameter.) |
+| `PkDrawer` | `IsLoading` | wrapper behaviour, not a property of the element (The element has no loading state. Wrapping the body in pk-loading-overlay from the component would change the shape of the markup when it toggles and remount the body; wrap ChildContent in PkLoadingOverlay yourself.) |
+| `PkDrawer` | `PhoneCards` | wrapper behaviour, not a property of the element (The SDK has no phone card layout for a drawer.) |
+| `PkTooltip` | `DocLink` | wrapper behaviour, not a property of the element (The element has no link props: links are your own anchors in the links slot (LinksContent), where you choose the text and target.) |
 | `PkTooltip` | `ExternalLink` | wrapper behaviour, not a property of the element (As DocLink.) |
-| `PkTooltip` | `LoadAsync` | wrapper behaviour, not a property of the element (Loads the rich slot content on the first pk-show.) |
-| `PkTooltip` | `OnClick` | wrapper behaviour, not a property of the element (Click on the target.) |
-| `PkTooltip` | `Title` | wrapper behaviour, not a property of the element (Bold heading inside the rich content slot.) |
+| `PkTooltip` | `LoadAsync` | wrapper behaviour, not a property of the element (Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler.) |
+| `PkTooltip` | `OnClick` | wrapper behaviour, not a property of the element (The element has no click event; put a click handler on the element you wrap.) |
 
-## Parameters set through a CSS custom property (1), not generated
+## Parameters set through a CSS custom property (0), not generated
 
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `MaxWidthPx` | sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper |
 
-## Parameters whose type is not defined yet (4)
+
+## Parameters whose type is not defined yet (0)
 
 Not generated until the type exists.
-
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `Theme` | type not yet defined in PlainKit.Blazor (issue #9): ModalTheme |
-| `PkTooltip` | `Kind` | type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind |
-| `PkChart` | `Data` | type not yet defined in PlainKit.Blazor (issue #9): ChartData |
-| `PkImageGallery` | `Images` | type not yet defined in PlainKit.Blazor (issue #9): GalleryImage |

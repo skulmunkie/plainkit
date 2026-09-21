@@ -2,6 +2,8 @@
 :host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
 :host([warning]) { --_bd: var(--field-warn); }
 :host([valid]) { --_bd: var(--field-ok); }
+label { display: none; margin-block-end: var(--space-1); }
+:host([show-label]) label { display: block; }
 .box { position: relative; display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--pk-control-bg, var(--color-input)); border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); transition: border-color 0.15s; }
 :host(:is([invalid], [aria-invalid="true"])) .box, :host([warning]) .box, :host([valid]) .box { box-shadow: inset 0 0 0 1px var(--_bd); }
 :host(:not([disabled], [readonly])) .box:hover { border-color: var(--color-muted); }

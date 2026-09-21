@@ -13,6 +13,7 @@
             confirm-label="@ConfirmLabel"
             cancel-label="@CancelLabel"
             danger="@Danger"
+            class="@Css()"
             @attributes="Splat">@if (TriggerContent is not null) {<span slot="trigger">@TriggerContent</span>}@ChildContent</pk-popover>
 
 @code {
@@ -64,17 +65,12 @@
     /// <summary>Confirm pressed (variant confirm).</summary>
     [Parameter] public EventCallback OnConfirm { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose),
-            ["onpk-open"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkOpen),
-            ["onpk-confirm"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkConfirm),
-        };
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
+        handlers["onpk-open"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkOpen);
+        handlers["onpk-confirm"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkConfirm);
     }
 
     private async Task HandlePkClose(PkCloseEventArgs e)

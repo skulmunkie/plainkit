@@ -29,6 +29,19 @@ public enum PkChrome
     Full,
 }
 
+/// <summary>The colour of a <see cref="PkStat"/> value. <see cref="Neutral"/> is the element's default.</summary>
+public enum PkStatTone
+{
+    /// <summary>The default colour.</summary>
+    Neutral,
+    /// <summary>Good news (green).</summary>
+    Positive,
+    /// <summary>Needs attention (amber).</summary>
+    Warning,
+    /// <summary>Bad news (red).</summary>
+    Critical,
+}
+
 /// <summary>What the gallery shows.</summary>
 public enum PkGalleryKind
 {
@@ -44,6 +57,26 @@ public enum PkGalleryKind
     Layouts,
     /// <summary>The page templates.</summary>
     Templates,
+}
+
+/// <summary>How the dev tools are placed.</summary>
+public enum PkDevToolsMode
+{
+    /// <summary>A floating button and a dock at the bottom of the page, shown and hidden with a hotkey.</summary>
+    Dock,
+    /// <summary>The same tabs, filling the component's own element.</summary>
+    Inline,
+}
+
+/// <summary>How tall the dock is at first (the dock itself has buttons to change it).</summary>
+public enum PkDevToolsSize
+{
+    /// <summary>40% of the window height.</summary>
+    Medium,
+    /// <summary>25% of the window height.</summary>
+    Small,
+    /// <summary>65% of the window height.</summary>
+    Large,
 }
 
 internal static class PkEnumExtensions

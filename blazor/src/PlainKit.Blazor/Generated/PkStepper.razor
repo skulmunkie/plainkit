@@ -9,6 +9,7 @@
             free="@Free"
             errors="@Errors"
             label="@Label"
+            class="@Css()"
             @attributes="Splat">@ChildContent</pk-stepper>
 
 @code {
@@ -39,15 +40,10 @@
     /// <summary>A step was entered; cancelable.</summary>
     [Parameter] public EventCallback<PkStepChangeEventArgs> OnStepChange { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-step-change"] = EventCallback.Factory.Create<PkStepChangeEventArgs>(this, HandlePkStepChange),
-        };
+        handlers["onpk-step-change"] = EventCallback.Factory.Create<PkStepChangeEventArgs>(this, HandlePkStepChange);
     }
 
     private async Task HandlePkStepChange(PkStepChangeEventArgs e)

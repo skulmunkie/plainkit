@@ -11,10 +11,11 @@
               separators="@Separators"
               max="@PkAttr.Num(Max)"
               label="@AriaLabel"
+              class="@Css()"
               @attributes="Splat"></pk-tag-input>
 
 @code {
-    /// <summary>The tags, comma-joined.</summary>
+    /// <summary>The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Hint shown in the empty field.</summary>
@@ -41,15 +42,10 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-tags-change"] = EventCallback.Factory.Create<PkTagsChangeEventArgs>(this, HandlePkTagsChange),
-        };
+        handlers["onpk-tags-change"] = EventCallback.Factory.Create<PkTagsChangeEventArgs>(this, HandlePkTagsChange);
     }
 
     private async Task HandlePkTagsChange(PkTagsChangeEventArgs e)

@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-form-section heading="@Title"
-                 description="@Description">@ChildContent</pk-form-section>
+                 description="@Description"
+                 class="@Css()"
+                 @attributes="Splat">@ChildContent</pk-form-section>
 
 @code {
     /// <summary>The section heading (or use the heading slot).</summary>

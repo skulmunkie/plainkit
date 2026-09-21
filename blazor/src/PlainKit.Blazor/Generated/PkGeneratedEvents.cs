@@ -18,6 +18,13 @@ public sealed class PkFileInfo
     public string? Type { get; set; }
 }
 
+/// <summary>The detail of <c>pk-activate</c>, raised by PkStat. A field is set only when the element sends it.</summary>
+public class PkActivateEventArgs : EventArgs
+{
+    /// <summary>The <c>href</c> field of the detail (<c>string</c>).</summary>
+    public string? Href { get; set; }
+}
+
 /// <summary>The detail of <c>pk-add</c>, raised by PkImageGallery. A field is set only when the element sends it.</summary>
 public class PkAddEventArgs : EventArgs
 {
@@ -47,7 +54,7 @@ public class PkChangeEventArgs : EventArgs
     public string? Previous { get; set; }
 }
 
-/// <summary>The detail of <c>pk-close</c>, raised by PkDialog, PkDrawer, PkDropdown, PkLightbox, PkPopover, PkSideNav. A field is set only when the element sends it.</summary>
+/// <summary>The detail of <c>pk-close</c>, raised by PkCommandPalette, PkDialog, PkDrawer, PkDropdown, PkLightbox, PkPopover, PkSideNav. A field is set only when the element sends it.</summary>
 public class PkCloseEventArgs : EventArgs
 {
     /// <summary>The <c>reason</c> field of the detail (<c>string</c>).</summary>
@@ -76,6 +83,13 @@ public class PkComboSelectEventArgs : EventArgs
 
     /// <summary>The <c>label</c> field of the detail (<c>string</c>).</summary>
     public string? Label { get; set; }
+}
+
+/// <summary>The detail of <c>pk-combo-toggle</c>, raised by PkCombobox. A field is set only when the element sends it.</summary>
+public class PkComboToggleEventArgs : EventArgs
+{
+    /// <summary>The <c>open</c> field of the detail (<c>bool</c>).</summary>
+    public bool? Open { get; set; }
 }
 
 /// <summary>The detail of <c>pk-copy</c>, raised by PkCodeBlock. A field is set only when the element sends it.</summary>
@@ -223,6 +237,13 @@ public class PkRemoveEventArgs : EventArgs
     public string? Value { get; set; }
 }
 
+/// <summary>The detail of <c>pk-resize</c>, raised by PkSplitter. A field is set only when the element sends it.</summary>
+public class PkResizeEventArgs : EventArgs
+{
+    /// <summary>The <c>size</c> field of the detail (<c>number</c>).</summary>
+    public double? Size { get; set; }
+}
+
 /// <summary>The detail of <c>pk-search</c>, raised by PkInput. A field is set only when the element sends it.</summary>
 public class PkSearchEventArgs : EventArgs
 {
@@ -281,6 +302,9 @@ public class PkTabChangeEventArgs : EventArgs
 
     /// <summary>The <c>previous</c> field of the detail (<c>string</c>).</summary>
     public string? Previous { get; set; }
+
+    /// <summary>The <c>fallback</c> field of the detail (<c>bool</c>).</summary>
+    public bool? Fallback { get; set; }
 }
 
 /// <summary>The detail of <c>pk-tab-close</c>, raised by PkTab. A field is set only when the element sends it.</summary>
@@ -310,20 +334,29 @@ public class PkToggleEventArgs : EventArgs
     public string? Id { get; set; }
 }
 
-/// <summary>The detail of <c>pk-value-change</c>, raised by PkInput, PkRadioGroup, PkSelect, PkTextarea. A field is set only when the element sends it.</summary>
+/// <summary>The detail of <c>pk-value-change</c>, raised by PkInput, PkRadioGroup, PkSelect, PkTextarea, PkUnitInput. A field is set only when the element sends it.</summary>
 public class PkValueChangeEventArgs : EventArgs
 {
     /// <summary>The <c>value</c> field of the detail (<c>string</c>).</summary>
     public string? Value { get; set; }
 }
 
+/// <summary>The detail of <c>pk-wrap-change</c>, raised by PkCodeBlock. A field is set only when the element sends it.</summary>
+public class PkWrapChangeEventArgs : EventArgs
+{
+    /// <summary>The <c>wrap</c> field of the detail (<c>bool</c>).</summary>
+    public bool? Wrap { get; set; }
+}
+
 /// <summary>Registers the custom events of the elements with Blazor so <c>@onpk-...</c> reaches a component; the browser side is <c>PlainKit.Blazor.lib.module.js</c>.</summary>
+[EventHandler("onpk-activate", typeof(PkActivateEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-add", typeof(PkAddEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-change", typeof(PkChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-close", typeof(PkCloseEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-colour", typeof(PkColourEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-combo-query", typeof(PkComboQueryEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-combo-select", typeof(PkComboSelectEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
+[EventHandler("onpk-combo-toggle", typeof(PkComboToggleEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-confirm", typeof(EventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-copy", typeof(PkCopyEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-dismiss", typeof(PkDismissEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
@@ -343,6 +376,8 @@ public class PkValueChangeEventArgs : EventArgs
 [EventHandler("onpk-range", typeof(PkRangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-rating-change", typeof(PkRatingChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-remove", typeof(PkRemoveEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
+[EventHandler("onpk-reset", typeof(EventArgs), enableStopPropagation: true, enablePreventDefault: true)]
+[EventHandler("onpk-resize", typeof(PkResizeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-search", typeof(PkSearchEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-section-change", typeof(PkSectionChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-select", typeof(PkSelectEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
@@ -354,6 +389,7 @@ public class PkValueChangeEventArgs : EventArgs
 [EventHandler("onpk-toggle", typeof(PkToggleEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-valid", typeof(EventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-value-change", typeof(PkValueChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
+[EventHandler("onpk-wrap-change", typeof(PkWrapChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 public static class PkEventHandlers
 {
 }

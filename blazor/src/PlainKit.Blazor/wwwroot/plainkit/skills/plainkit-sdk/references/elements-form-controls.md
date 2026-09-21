@@ -81,7 +81,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
 | `value` | `value` | string | `"on"` |  | The value submitted while checked. |
-| `checked` | `checked` | boolean | `false` |  | Whether the box is checked. |
+| `checked` | `checked` | boolean | `false` |  | Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `indeterminate` | `indeterminate` | boolean | `false` |  | The mixed state (some of a group are checked). |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
@@ -161,8 +161,9 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The colour as #rrggbb. |
+| `value` | `value` | string | `""` |  | The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
 | `required` | `required` | boolean | `false` |  | The form cannot be submitted while the value is empty. |
@@ -186,6 +187,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 | Part | Description |
 |---|---|
+| `label` | The visible label shown by showLabel. |
 | `box` | The row of swatch and hex field. |
 | `swatch` | The native colour picker. |
 | `control` | The hex text field. |
@@ -199,6 +201,12 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `--pk-control-radius` | `var(--radius-sm)` | Corner radius. |
 
 **Accessibility.** Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.
+
+Example: Visible label
+
+```html
+<pk-colour-input label="Accent colour" show-label value="#4a90e2"></pk-colour-input>
+```
 
 Example: Picker and hex
 
@@ -218,7 +226,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 |---|---|---|---|---|---|
 | `mode` | `mode` | enum | `"autocomplete"` | `autocomplete` `select` | autocomplete filters as you type; select is a button that opens the list (type a letter to jump). Prefer the native pk-select on a phone. |
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The current value; what the form submits. |
+| `value` | `value` | string | `""` |  | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `placeholder` | `placeholder` | string | `""` |  | Hint shown while empty. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
@@ -244,6 +252,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `change` | `native Event` | The user committed the value (re-dispatched from the inner control, composed). |
 | `pk-combo-select` | `{ value: string, label: string }` | An option was chosen. |
 | `pk-combo-query` | `{ query: string }` | The user typed: the text so far, so a host can fetch more options (with filtering="off" it also replaces the client filter). |
+| `pk-combo-toggle` | `{ open: bool }` | The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made. |
 
 **Methods**
 
@@ -370,7 +379,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 |---|---|---|---|---|---|
 | `type` | `type` | enum | `"text"` | `text` `email` `url` `tel` `search` `password` `number` `date` `time` `datetime-local` `month` `week` | The kind of value. Date and time types open the platform picker. |
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The current value; what the form submits. |
+| `value` | `value` | string | `""` |  | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `placeholder` | `placeholder` | string | `""` |  | Hint shown while empty (ignored by a floating label). |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label. |
@@ -497,7 +506,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The code typed so far. |
+| `value` | `value` | string | `""` |  | The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
@@ -558,7 +567,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The current value; what the form submits. |
+| `value` | `value` | string | `""` |  | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
@@ -632,7 +641,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `min` | `min` | number | `0` |  | Lowest value. |
 | `max` | `max` | number | `100` |  | Highest value. |
 | `step` | `step` | number | `1` |  | Increment. |
-| `value` | `value` | number | `0` |  | Single mode: the value. |
+| `value` | `value` | number | `0` |  | Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `value-low` | `valueLow` | number | `0` |  | Dual mode: the low value. |
 | `value-high` | `valueHigh` | number | `100` |  | Dual mode: the high value. |
 | `dual` | `dual` | boolean | `false` |  | Two thumbs: a low and a high value; the low thumb never passes the high one. |
@@ -693,7 +702,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | number | `0` |  | The rating, 0 for none. |
+| `value` | `value` | number | `0` |  | The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `max` | `max` | number | `5` |  | Number of stars. |
 | `readonly` | `readonly` | boolean | `false` |  | The display form: not interactive, exposed as an image with a text alternative. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
@@ -746,7 +755,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The current value; what the form submits. |
+| `value` | `value` | string | `""` |  | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
@@ -811,7 +820,7 @@ It is form-associated (takes part in a `<form>` by its `name`).
 
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
-| `value` | `value` | string | `""` |  | Selected option value. |
+| `value` | `value` | string | `""` |  | Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `name` | `name` | string | `""` |  | Form field name. |
 | `placeholder` | `placeholder` | string | `"Select…"` |  | Shown with no selection. |
 | `open` | `open` | boolean | `false` |  | Whether the list is shown. |
@@ -829,6 +838,8 @@ It is form-associated (takes part in a `<form>` by its `name`).
 | Event | Detail | Description |
 |---|---|---|
 | `pk-change` | `{ value: string, label: string, previous: string }` | The selection changed. |
+| `pk-open` | `none` | The list opened. |
+| `pk-close` | `{ reason: string }` | A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open. |
 
 **Methods**
 
@@ -864,7 +875,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
-| `checked` | `checked` | boolean | `false` |  | Whether the switch is on. |
+| `checked` | `checked` | boolean | `false` |  | Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
 | `name` | `name` | string | `""` |  | The form field name. |
 | `value` | `value` | string | `"on"` |  | The value submitted while checked. |
@@ -931,7 +942,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The tags, comma-joined. |
+| `value` | `value` | string | `""` |  | The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `placeholder` | `placeholder` | string | `""` |  | Hint shown in the empty field. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
@@ -995,9 +1006,10 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `name` | `name` | string | `""` |  | The form field name. |
-| `value` | `value` | string | `""` |  | The current value; what the form submits. |
+| `value` | `value` | string | `""` |  | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `placeholder` | `placeholder` | string | `""` |  | Hint shown while empty. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
 | `readonly` | `readonly` | boolean | `false` |  | The value can be read but not edited. |
@@ -1030,6 +1042,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 | Part | Description |
 |---|---|
+| `label` | The visible label shown by showLabel. |
 | `box` | The bordered field. |
 | `control` | The inner textarea. |
 
@@ -1044,9 +1057,87 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 **Accessibility.** A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.
 
+Example: Visible label
+
+```html
+<pk-textarea label="Notes" show-label rows="3"></pk-textarea>
+```
+
 Example: Fixed and auto-grow
 
 ```html
 <pk-textarea label="Notes" rows="3" value="Fixed height, resizable."></pk-textarea>
 <pk-textarea label="Description" autogrow max-height="160" value="Grows as you type, up to 160px."></pk-textarea>
+```
+
+## `pk-unit-input`
+
+**Unit input** (Form controls). A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.
+
+It is form-associated (takes part in a `<form>` by its `name`) and delegates focus to its inner control.
+
+**Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)
+
+| Attribute | Property | Type | Default | Values | Description |
+|---|---|---|---|---|---|
+| `name` | `name` | string | `""` |  | The form field name. |
+| `value` | `value` | string | `""` |  | The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
+| `units` | `units` | string | `"px,rem,em,%"` |  | The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select. |
+| `placeholder` | `placeholder` | string | `""` |  | Hint shown in the number field while it is empty. |
+| `label` | `label` | string | `""` |  | The accessible name (aria-label) of the number field; the unit select is named "<label> unit". pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
+| `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
+| `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
+| `readonly` | `readonly` | boolean | `false` |  | Shows the value but does not let it change (the unit select is disabled too). |
+| `required` | `required` | boolean | `false` |  | The form cannot be submitted while the number is empty. |
+| `invalid` | `invalid` | boolean | `false` |  | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
+| `min` | `min` | string | `""` |  | Lowest number (the number, whatever the unit). |
+| `max` | `max` | string | `""` |  | Highest number. |
+| `step` | `step` | string | `"any"` |  | The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by. |
+
+**Events** (`addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown)
+
+| Event | Detail | Description |
+|---|---|---|
+| `input` | `native Event` | The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element. |
+| `change` | `native Event` | The user committed the number or picked another unit (re-dispatched from the inner control, composed). |
+| `pk-value-change` | `{ value: string }` | The user committed a new value (same moment as change; carries the value). |
+
+**Methods**
+
+| Method | Description |
+|---|---|
+| `focus()` | Moves focus to the number field. |
+
+**CSS parts** (`::part(name)`)
+
+| Part | Description |
+|---|---|
+| `label` | The visible label shown by showLabel. |
+| `box` | The bordered field that holds the number and the unit. |
+| `control` | The inner number input. |
+| `unit` | The inner unit select. |
+| `chevron` | The arrow drawn on the unit select. |
+
+**CSS custom properties** (set on the element or a parent, from a stylesheet)
+
+| Property | Default | Description |
+|---|---|---|
+| `--pk-control-bg` | `var(--color-input)` | Background of the field. |
+| `--pk-control-border` | `var(--color-input-border)` | Border colour. |
+| `--pk-control-radius` | `var(--radius-sm)` | Corner radius. |
+
+**Accessibility.** A native number input and a native select live in the shadow root: the number is named by label (aria-label) and described by description, the select is named "<label> unit", so both are reachable by Tab and the arrow keys change the number by step. invalid sets aria-invalid and the state is never colour alone (the ring is thicker). Text is 16px and the control 44px tall on a phone.
+
+Example: Lengths
+
+```html
+<pk-unit-input label="Width" value="1.5rem"></pk-unit-input>
+<pk-unit-input label="Gap" show-label units="px rem" value="12px" min="0"></pk-unit-input>
+```
+
+Example: Another set of units
+
+```html
+<pk-unit-input label="Duration" units="ms s" value="250ms"></pk-unit-input>
 ```

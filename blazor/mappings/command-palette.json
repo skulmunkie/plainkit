@@ -37,6 +37,14 @@
       "prop": "label"
     },
     {
+      "name": "OnOpen",
+      "event": "pk-open"
+    },
+    {
+      "name": "OnClose",
+      "event": "pk-close"
+    },
+    {
       "name": "OnSelect",
       "type": "EventCallback<CommandPaletteSelectEventArgs>",
       "map": "event",

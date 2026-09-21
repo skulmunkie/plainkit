@@ -4,7 +4,9 @@
 @inherits PkElementBase
 
 <pk-toast-stack position="@(Position.ToAttr())"
-                max="@PkAttr.Num(Max)">@ChildContent</pk-toast-stack>
+                max="@PkAttr.Num(Max)"
+                class="@Css()"
+                @attributes="Splat">@ChildContent</pk-toast-stack>
 
 @code {
     /// <summary>The position setting</summary>

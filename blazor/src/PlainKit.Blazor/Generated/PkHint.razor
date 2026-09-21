@@ -6,6 +6,7 @@
 <pk-hint label="@Label"
          open="@Open"
          tone="@Tone"
+         class="@Css()"
          @attributes="Splat">@ChildContent</pk-hint>
 
 @code {
@@ -24,15 +25,10 @@
     /// <summary>The explanation.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkToggle(PkToggleEventArgs e)

@@ -6,6 +6,7 @@
 <pk-tree label="@Label"
          selection="@Selection"
          value="@Value"
+         class="@Css()"
          @attributes="Splat">@ChildContent</pk-tree>
 
 @code {
@@ -27,16 +28,11 @@
     /// <summary>Root pk-tree-item children.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect),
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

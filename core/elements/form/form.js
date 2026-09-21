@@ -22,9 +22,10 @@ export default Base => class extends Base {
         this.addEventListener('submit', e => this.submit(e));
         this.addEventListener('focusout', e => this.live(e, 'blur'));
         this.addEventListener('input', e => this.live(e, 'input'));
-        this.addEventListener('reset', () => this.reset());
+        this.addEventListener('reset', e => this.reset(e));
         const f = this.form_(); if (f) f.noValidate = true;
     }
+    disconnected() { clearTimeout(this.$rt); }
     form_() { return this.slotted().find(e => e.localName === 'form') ?? this.querySelector('form'); }
     controls() { const f = this.form_(); return f ? Array.from(f.elements).filter(checkable) : []; }
     show(control, message) {
@@ -36,7 +37,7 @@ export default Base => class extends Base {
     }
     check(control) { const m = messageFor(control); this.show(control, m); return !m; }
     live(e, kind) {
-        const c = e.target.closest?.('pk-input, pk-textarea, pk-select, pk-checkbox, pk-combobox, pk-tag-input, pk-otp-input, pk-range, pk-colour-input, pk-dropzone, pk-radio-group, pk-switch, input, select, textarea');
+        const c = e.target.closest?.('pk-input, pk-textarea, pk-select, pk-checkbox, pk-combobox, pk-tag-input, pk-otp-input, pk-range, pk-colour-input, pk-unit-input, pk-dropzone, pk-radio-group, pk-switch, input, select, textarea');
         if (!c || !this.controls().includes(c)) return;
         const showing = Boolean(c.closest('pk-field')?.error);
         if (shouldCheck(this.validate, kind, showing)) queueMicrotask(() => this.check(c));
@@ -61,6 +62,7 @@ export default Base => class extends Base {
             li.append(a); list.append(li);
         }
     }
-    reset() { for (const c of this.controls()) this.show(c, ''); this.summarise([]); }
+    // The reset event fires before the controls take their initial values, so pk-reset waits for the task to end (and is dropped when the reset was cancelled).
+    reset(e) { for (const c of this.controls()) this.show(c, ''); this.summarise([]); if (e) { clearTimeout(this.$rt); this.$rt = setTimeout(() => { if (!e.defaultPrevented) this.emit('pk-reset', null, { cancelable: false }); }, 0); } }
     validateAll() { const invalid = this.controls().filter(c => !this.check(c)); this.summarise(invalid); return invalid.length === 0; }
 };

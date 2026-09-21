@@ -210,7 +210,7 @@ export interface PkCheckboxElement extends HTMLElement {
     name: string;
     /** The value submitted while checked. */
     value: string;
-    /** Whether the box is checked. */
+    /** Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     checked: boolean;
     /** The mixed state (some of a group are checked). */
     indeterminate: boolean;
@@ -271,10 +271,12 @@ export interface PkCodeBlockElement extends HTMLElement {
 export interface PkColourInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The colour as #rrggbb. */
+    /** The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
+    /** Shows label as visible text above the field (linked to it), for use without a pk-field. */
+    showLabel: boolean;
     /** Help and error text, exposed as aria-description; pk-field fills it. */
     description: string;
     /** Blocks interaction; also set by a disabled fieldset. */
@@ -292,7 +294,7 @@ export interface PkComboboxElement extends HTMLElement {
     mode: "autocomplete" | "select";
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty. */
     placeholder: string;
@@ -604,7 +606,7 @@ export interface PkInputElement extends HTMLElement {
     type: "text" | "email" | "url" | "tel" | "search" | "password" | "number" | "date" | "time" | "datetime-local" | "month" | "week";
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty (ignored by a floating label). */
     placeholder: string;
@@ -775,7 +777,7 @@ export interface PkNavbarElement extends HTMLElement {
 export interface PkOtpInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The code typed so far. */
+    /** The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -897,7 +899,7 @@ export interface PkProgressElement extends HTMLElement {
 export interface PkRadioGroupElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -928,7 +930,7 @@ export interface PkRangeElement extends HTMLElement {
     max: number;
     /** Increment. */
     step: number;
-    /** Single mode: the value. */
+    /** Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: number;
     /** Dual mode: the low value. */
     valueLow: number;
@@ -951,7 +953,7 @@ export interface PkRangeElement extends HTMLElement {
 export interface PkRatingElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The rating, 0 for none. */
+    /** The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: number;
     /** Number of stars. */
     max: number;
@@ -973,7 +975,7 @@ export interface PkScrollProgressElement extends HTMLElement {
 export interface PkSelectElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -996,7 +998,7 @@ export interface PkSelectElement extends HTMLElement {
 }
 
 export interface PkSelectMenuElement extends HTMLElement {
-    /** Selected option value. */
+    /** Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Form field name. */
     name: string;
@@ -1079,6 +1081,23 @@ export interface PkSplitButtonElement extends HTMLElement {
     hide()(...args: unknown[]): unknown;
 }
 
+export interface PkSplitterElement extends HTMLElement {
+    /** How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise). */
+    orientation: "horizontal" | "vertical";
+    /** The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does. */
+    size: number;
+    /** Smallest size of the start pane, in percent (aria-valuemin). */
+    min: number;
+    /** Largest size of the start pane, in percent (aria-valuemax). */
+    max: number;
+    /** Percent moved by one arrow key press. */
+    step: number;
+    /** The separator's accessible name (aria-label). */
+    label: string;
+    /** Fixes the size: the separator no longer takes focus or moves. */
+    disabled: boolean;
+}
+
 export interface PkStackElement extends HTMLElement {
     /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space). */
     gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
@@ -1097,8 +1116,10 @@ export interface PkStatElement extends HTMLElement {
     subtext: string;
     /** Value colour. */
     tone: "neutral" | "positive" | "warning" | "critical";
-    /** Percent change, for example 12.5 or -3; shows an arrow and a signed percentage. */
+    /** The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points. */
     delta: string;
+    /** What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points. */
+    deltaUnit: "percent" | "points";
     /** Override the direction derived from delta. */
     deltaDirection: "auto" | "up" | "down" | "flat";
     /** Down is good news (costs, returns): swaps the trend colours. */
@@ -1115,10 +1136,10 @@ export interface PkStatElement extends HTMLElement {
     interactive: boolean;
     /** Direction and percent. */
     delta(current, previous)(...args: unknown[]): unknown;
-    /** A signed percentage. */
-    formatDelta(d)(...args: unknown[]): unknown;
+    /** A signed percentage, or points when unit is points. */
+    formatDelta(d, unit)(...args: unknown[]): unknown;
     /** The spoken form. */
-    deltaSpeech(d, versus)(...args: unknown[]): unknown;
+    deltaSpeech(d, versus, unit)(...args: unknown[]): unknown;
 }
 
 export interface PkStepElement extends HTMLElement {
@@ -1162,7 +1183,7 @@ export interface PkStepperElement extends HTMLElement {
 }
 
 export interface PkSwitchElement extends HTMLElement {
-    /** Whether the switch is on. */
+    /** Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     checked: boolean;
     /** Blocks interaction; also set by a disabled fieldset. */
     disabled: boolean;
@@ -1203,7 +1224,7 @@ export interface PkTabPanelElement extends HTMLElement {
 export interface PkTableElement extends HTMLElement {
     /** Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property. */
     columns: json;
-    /** Row data, one object per row. A JSON attribute or a property. */
+    /** Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>. */
     rows: json;
     /** The field that identifies a row. */
     rowKey: string;
@@ -1235,8 +1256,14 @@ export interface PkTableElement extends HTMLElement {
     filters: json;
     /** Ids of the selected rows. */
     selected: json;
-    /** Show placeholder rows and mark the table busy. */
+    /** Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row. */
+    expandable: boolean;
+    /** Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it. */
+    expanded: json;
+    /** Show a placeholder row, announce Loading and mark the table busy. */
     loading: boolean;
+    /** Text shown when there are no rows. The empty slot replaces it. */
+    emptyText: string;
     /** Each row becomes a card below 640px. */
     cards: boolean;
     /** Table caption. */
@@ -1265,16 +1292,18 @@ export interface PkTabsElement extends HTMLElement {
 export interface PkTagElement extends HTMLElement {
     /** Show the remove button. */
     removable: boolean;
-    /** Sent in the remove event; defaults to the text. */
+    /** Sent in the remove event (the identifier, not state); defaults to the text. */
     value: string;
     /** Dim the tag and disable the button. */
     disabled: boolean;
+    /** The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper. */
+    controlled: boolean;
 }
 
 export interface PkTagInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The tags, comma-joined. */
+    /** The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown in the empty field. */
     placeholder: string;
@@ -1301,12 +1330,14 @@ export interface PkTagInputElement extends HTMLElement {
 export interface PkTextareaElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty. */
     placeholder: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
+    /** Shows label as visible text above the field (linked to it), for use without a pk-field. */
+    showLabel: boolean;
     /** Help and error text, exposed as aria-description; pk-field fills it. */
     description: string;
     /** Blocks interaction; also set by a disabled fieldset. */
@@ -1458,6 +1489,39 @@ export interface PkTreeItemElement extends HTMLElement {
     select()(...args: unknown[]): unknown;
 }
 
+export interface PkUnitInputElement extends HTMLElement {
+    /** The form field name. */
+    name: string;
+    /** The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
+    value: string;
+    /** The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select. */
+    units: string;
+    /** Hint shown in the number field while it is empty. */
+    placeholder: string;
+    /** The accessible name (aria-label) of the number field; the unit select is named "<label> unit". pk-field fills it from its own label when this is empty. */
+    label: string;
+    /** Shows label as visible text above the field (linked to it), for use without a pk-field. */
+    showLabel: boolean;
+    /** Help and error text, exposed as aria-description; pk-field fills it. */
+    description: string;
+    /** Blocks interaction; also set by a disabled fieldset. */
+    disabled: boolean;
+    /** Shows the value but does not let it change (the unit select is disabled too). */
+    readonly: boolean;
+    /** The form cannot be submitted while the number is empty. */
+    required: boolean;
+    /** Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). */
+    invalid: boolean;
+    /** Lowest number (the number, whatever the unit). */
+    min: string;
+    /** Highest number. */
+    max: string;
+    /** The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by. */
+    step: string;
+    /** Moves focus to the number field. */
+    focus()(...args: unknown[]): unknown;
+}
+
 export interface PkWorkspaceElement extends HTMLElement {
     /** Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve. */
     fill: boolean;
@@ -1539,6 +1603,7 @@ declare global {
         'pk-skip-link': PkSkipLinkElement;
         'pk-spinner': PkSpinnerElement;
         'pk-split-button': PkSplitButtonElement;
+        'pk-splitter': PkSplitterElement;
         'pk-stack': PkStackElement;
         'pk-stat': PkStatElement;
         'pk-step': PkStepElement;
@@ -1560,6 +1625,7 @@ declare global {
         'pk-tooltip': PkTooltipElement;
         'pk-tree': PkTreeElement;
         'pk-tree-item': PkTreeItemElement;
+        'pk-unit-input': PkUnitInputElement;
         'pk-workspace': PkWorkspaceElement;
     }
     interface HTMLElementEventMap {
@@ -1571,14 +1637,17 @@ declare global {
         'pk-month': CustomEvent<unknown>;
         'pk-change': CustomEvent<{ checked: boolean: unknown }>;
         'pk-copy': CustomEvent<unknown>;
+        'pk-wrap-change': CustomEvent<unknown>;
         'pk-colour': CustomEvent<{ value: string: unknown }>;
         'pk-combo-select': CustomEvent<{ value: string: unknown; label: string: unknown }>;
         'pk-combo-query': CustomEvent<{ query: string: unknown }>;
+        'pk-combo-toggle': CustomEvent<unknown>;
         'pk-open': CustomEvent<unknown>;
         'pk-close': CustomEvent<unknown>;
         'pk-files': CustomEvent<{ count: number: unknown; rejectedCount: number: unknown; files: File[]: unknown; rejected:  file: File: unknown; reason: string []: unknown }>;
         'pk-invalid': CustomEvent<{ count: number: unknown; controls: Element[]: unknown; messages: string[]: unknown }>;
         'pk-valid': CustomEvent<unknown>;
+        'pk-reset': CustomEvent<unknown>;
         'pk-primary-change': CustomEvent<unknown>;
         'pk-remove': CustomEvent<unknown>;
         'pk-add': CustomEvent<unknown>;
@@ -1594,13 +1663,15 @@ declare global {
         'pk-rating-change': CustomEvent<{ value: number: unknown }>;
         'pk-split-select': CustomEvent<{ value: string: unknown; label: string: unknown }>;
         'pk-menu-toggle': CustomEvent<{ open: boolean: unknown }>;
+        'pk-resize': CustomEvent<{ size: number: unknown }>;
         'pk-activate': CustomEvent<unknown>;
         'pk-step-change': CustomEvent<unknown>;
         'pk-tab-close': CustomEvent<{ value: unknown }>;
         'pk-sort': CustomEvent<unknown>;
         'pk-filter': CustomEvent<unknown>;
         'pk-row-click': CustomEvent<unknown>;
-        'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown }>;
+        'pk-row-expand': CustomEvent<unknown>;
+        'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown; fallback?: unknown }>;
         'pk-tags-change': CustomEvent<{ value: string: unknown; tags: string[]: unknown }>;
         'pk-section-change': CustomEvent<unknown>;
         'pk-show': CustomEvent<unknown>;
@@ -1626,7 +1697,7 @@ declare global {
             'pk-checkbox': PkJsx<PkCheckboxElement, "name" | "value" | "checked" | "indeterminate" | "label" | "description" | "disabled" | "required" | "invalid" | "group" | "master" | "size">;
             'pk-cluster': PkJsx<PkClusterElement, "direction" | "gap" | "align" | "justify" | "nowrap">;
             'pk-code-block': PkJsx<PkCodeBlockElement, "label" | "lineNumbers" | "wrap" | "noCopy" | "maxHeight">;
-            'pk-colour-input': PkJsx<PkColourInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid">;
+            'pk-colour-input': PkJsx<PkColourInputElement, "name" | "value" | "label" | "showLabel" | "description" | "disabled" | "required" | "invalid">;
             'pk-combobox': PkJsx<PkComboboxElement, "mode" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "free" | "filtering" | "open">;
             'pk-command-palette': PkJsx<PkCommandPaletteElement, "open" | "placeholder" | "recentsKey" | "noShortcut" | "label">;
             'pk-context-menu': PkJsx<PkContextMenuElement, "open" | "disabled">;
@@ -1673,18 +1744,19 @@ declare global {
             'pk-skip-link': PkJsx<PkSkipLinkElement, "href">;
             'pk-spinner': PkJsx<PkSpinnerElement, "variant" | "size" | "label" | "overlay">;
             'pk-split-button': PkJsx<PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">;
+            'pk-splitter': PkJsx<PkSplitterElement, "orientation" | "size" | "min" | "max" | "step" | "label" | "disabled">;
             'pk-stack': PkJsx<PkStackElement, "gap" | "align" | "dividers">;
-            'pk-stat': PkJsx<PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">;
+            'pk-stat': PkJsx<PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaUnit" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">;
             'pk-step': PkJsx<PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">;
             'pk-stepper': PkJsx<PkStepperElement, "current" | "orientation" | "clickable" | "free" | "errors" | "label">;
             'pk-switch': PkJsx<PkSwitchElement, "checked" | "disabled" | "name" | "value" | "invalid" | "size" | "labelPosition">;
             'pk-tab': PkJsx<PkTabElement, "value" | "selected" | "disabled" | "count" | "closable" | "only">;
             'pk-tab-panel': PkJsx<PkTabPanelElement, "value" | "selected">;
-            'pk-table': PkJsx<PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "loading" | "cards" | "caption" | "label" | "maxHeight" | "flow">;
+            'pk-table': PkJsx<PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "expandable" | "expanded" | "loading" | "emptyText" | "cards" | "caption" | "label" | "maxHeight" | "flow">;
             'pk-tabs': PkJsx<PkTabsElement, "value" | "activation" | "noneActive" | "scroll">;
-            'pk-tag': PkJsx<PkTagElement, "removable" | "value" | "disabled">;
+            'pk-tag': PkJsx<PkTagElement, "removable" | "value" | "disabled" | "controlled">;
             'pk-tag-input': PkJsx<PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">;
-            'pk-textarea': PkJsx<PkTextareaElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">;
+            'pk-textarea': PkJsx<PkTextareaElement, "name" | "value" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">;
             'pk-timeline': PkJsx<PkTimelineElement, "label">;
             'pk-timeline-item': PkJsx<PkTimelineItemElement, "heading" | "time" | "status">;
             'pk-toast': PkJsx<PkToastElement, "kind" | "heading" | "message" | "duration" | "noClose">;
@@ -1694,6 +1766,7 @@ declare global {
             'pk-tooltip': PkJsx<PkTooltipElement, "text" | "placement" | "delay" | "shown" | "interactive" | "help" | "enrich" | "heading" | "label">;
             'pk-tree': PkJsx<PkTreeElement, "label" | "selection" | "value">;
             'pk-tree-item': PkJsx<PkTreeItemElement, "label" | "value" | "expanded" | "selected" | "disabled" | "expandable">;
+            'pk-unit-input': PkJsx<PkUnitInputElement, "name" | "value" | "units" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "min" | "max" | "step">;
             'pk-workspace': PkJsx<PkWorkspaceElement, "fill" | "activePane" | "asideOpen" | "navLabel" | "mainLabel" | "asideLabel">;
         }
     }

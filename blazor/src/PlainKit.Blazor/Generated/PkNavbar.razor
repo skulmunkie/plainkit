@@ -6,6 +6,7 @@
 <pk-navbar label="@Label"
            open="@Open"
            sticky="@Sticky"
+           class="@Css()"
            @attributes="Splat">@if (BrandContent is not null) {<span slot="brand">@BrandContent</span>}@ChildContent@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}</pk-navbar>
 
 @code {
@@ -30,15 +31,10 @@
     /// <summary>Hamburger toggled.</summary>
     [Parameter] public EventCallback<PkToggleEventArgs> OnToggle { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle),
-        };
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandlePkToggle);
     }
 
     private async Task HandlePkToggle(PkToggleEventArgs e)

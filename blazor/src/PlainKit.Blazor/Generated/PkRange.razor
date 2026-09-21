@@ -13,10 +13,11 @@
           label="@Label"
           disabled="@Disabled"
           output="@ShowOutput"
+          class="@Css()"
           @attributes="Splat"></pk-range>
 
 @code {
-    /// <summary>Single mode: the value.</summary>
+    /// <summary>Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public double Value { get; set; } = 0;
 
     /// <summary>Dual mode: the low value.</summary>
@@ -49,15 +50,10 @@
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<double> ValueChanged { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-range"] = EventCallback.Factory.Create<PkRangeEventArgs>(this, HandlePkRange),
-        };
+        handlers["onpk-range"] = EventCallback.Factory.Create<PkRangeEventArgs>(this, HandlePkRange);
     }
 
     private async Task HandlePkRange(PkRangeEventArgs e)

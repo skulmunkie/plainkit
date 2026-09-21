@@ -3,10 +3,9 @@
   "params": [
     {
       "name": "Images",
-      "type": "IReadOnlyList<GalleryImage>",
       "map": "prop",
       "prop": "images",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): GalleryImage"
+      "note": "Pass an IReadOnlyList<PkGalleryImage>: sent as a JSON attribute ([{ src, alt, primary, status }])."
     },
     {
       "name": "Primary",

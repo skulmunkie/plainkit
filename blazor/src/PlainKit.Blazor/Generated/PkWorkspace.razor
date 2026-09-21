@@ -9,6 +9,7 @@
               nav-label="@NavLabel"
               main-label="@MainLabel"
               aside-label="@AsideLabel"
+              class="@Css()"
               @attributes="Splat">@if (NavContent is not null) {<span slot="nav">@NavContent</span>}@ChildContent@if (AsideContent is not null) {<span slot="aside">@AsideContent</span>}</pk-workspace>
 
 @code {
@@ -45,15 +46,10 @@
     /// <summary>A tab in the phone strip was chosen. Cancelable: preventDefault keeps the previous pane.</summary>
     [Parameter] public EventCallback<PkPaneChangeEventArgs> OnPaneChange { get; set; }
 
-    private Dictionary<string, object> Splat { get; set; } = new();
-
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
-        Splat = new Dictionary<string, object>
-        {
-            ["onpk-pane-change"] = EventCallback.Factory.Create<PkPaneChangeEventArgs>(this, HandlePkPaneChange),
-        };
+        handlers["onpk-pane-change"] = EventCallback.Factory.Create<PkPaneChangeEventArgs>(this, HandlePkPaneChange);
     }
 
     private async Task HandlePkPaneChange(PkPaneChangeEventArgs e)

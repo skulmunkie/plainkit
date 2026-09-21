@@ -7,16 +7,18 @@ export function delta(current, previous, flatBelow = 0.05) {
     return { direction: Math.abs(pct) < flatBelow ? 'flat' : pct > 0 ? 'up' : 'down', pct: Math.round(pct * 10) / 10 };
 }
 
-export function formatDelta({ pct, direction }) {
-    if (pct === null) return direction === 'up' ? 'New' : '0%';
-    return `${pct > 0 ? '+' : ''}${pct}%`;
+export function formatDelta({ pct, direction }, unit = 'percent') {
+    const suffix = unit === 'points' ? ' pts' : '%';
+    if (pct === null) return direction === 'up' ? 'New' : `0${suffix}`;
+    return `${pct > 0 ? '+' : ''}${pct}${suffix}`;
 }
 
 export const isGood = (direction, invert = false) => (direction === 'flat' ? null : (direction === 'up') !== invert);
 
-export function deltaSpeech({ pct, direction }, versus = 'the previous period') {
+export function deltaSpeech({ pct, direction }, versus = 'the previous period', unit = 'percent') {
     if (pct === null) return `new, nothing to compare with ${versus}`;
-    return direction === 'flat' ? `unchanged versus ${versus}` : `${direction} ${Math.abs(pct)} percent versus ${versus}`;
+    const word = unit === 'points' ? (Math.abs(pct) === 1 ? 'point' : 'points') : 'percent';
+    return direction === 'flat' ? `unchanged versus ${versus}` : `${direction} ${Math.abs(pct)} ${word} versus ${versus}`;
 }
 
 export function sparkPoints(values, w = 100, h = 24, pad = 2) {
@@ -48,8 +50,8 @@ const behaviour = Base => class extends Base {
         if (!chip.hidden) {
             const d = { pct, direction: this.deltaDirection === 'auto' ? (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat') : this.deltaDirection };
             chip.dataset.trend = { true: 'good', false: 'bad', null: 'flat' }[String(isGood(d.direction, this.invert))];
-            chip.textContent = `${d.direction === 'up' ? '▲' : d.direction === 'down' ? '▼' : '▬'} ${formatDelta(d)}`;
-            const say = doc.createElement('span'); say.className = 'sr'; say.textContent = ` ${deltaSpeech(d, this.versus)}`; chip.append(say);
+            chip.textContent = `${d.direction === 'up' ? '▲' : d.direction === 'down' ? '▼' : '▬'} ${formatDelta(d, this.deltaUnit)}`;
+            const say = doc.createElement('span'); say.className = 'sr'; say.textContent = ` ${deltaSpeech(d, this.versus, this.deltaUnit)}`; chip.append(say);
         }
         const spark = this.part('spark');
         spark.hidden = this.values.length < 2;
@@ -62,7 +64,7 @@ const behaviour = Base => class extends Base {
 };
 export default define(class extends behaviour(PkElement) {
     static tag = "pk-stat";
-    static props = {"label":{"type":"string","default":"","reflect":false},"value":{"type":"string","default":"","reflect":false},"subtext":{"type":"string","default":"","reflect":false},"tone":{"type":"enum","default":"neutral","values":["neutral","positive","warning","critical"],"reflect":true},"delta":{"type":"string","default":"","reflect":false},"deltaDirection":{"type":"enum","default":"auto","values":["auto","up","down","flat"],"reflect":true},"invert":{"type":"boolean","default":false,"reflect":true},"versus":{"type":"string","default":"the previous period","reflect":false},"values":{"type":"json","default":[],"reflect":false},"href":{"type":"string","default":"","reflect":false},"tile":{"type":"boolean","default":false,"reflect":true},"interactive":{"type":"boolean","default":false,"reflect":true}};
+    static props = {"label":{"type":"string","default":"","reflect":false},"value":{"type":"string","default":"","reflect":false},"subtext":{"type":"string","default":"","reflect":false},"tone":{"type":"enum","default":"neutral","values":["neutral","positive","warning","critical"],"reflect":true},"delta":{"type":"string","default":"","reflect":false},"deltaUnit":{"type":"enum","default":"percent","values":["percent","points"],"reflect":true},"deltaDirection":{"type":"enum","default":"auto","values":["auto","up","down","flat"],"reflect":true},"invert":{"type":"boolean","default":false,"reflect":true},"versus":{"type":"string","default":"the previous period","reflect":false},"values":{"type":"json","default":[],"reflect":false},"href":{"type":"string","default":"","reflect":false},"tile":{"type":"boolean","default":false,"reflect":true},"interactive":{"type":"boolean","default":false,"reflect":true}};
     static delegatesFocus = false;
     static formAssociated = false;
     static template = "<div part=\"tile\"><span part=\"label\">{{label}}</span><div part=\"row\"><slot name=\"icon\"></slot><span part=\"value\">{{value}}</span><span part=\"delta\" hidden></span></div><span part=\"subtext\"><slot>{{subtext}}</slot></span><span part=\"spark\" hidden></span><a part=\"link\" data-if=\"href\"><span class=\"sr\"></span></a></div>";
