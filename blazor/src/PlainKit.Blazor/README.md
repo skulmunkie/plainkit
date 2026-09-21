@@ -58,18 +58,39 @@ app.MapRazorComponents<App>()
 
 ## Dev tools (built in)
 
-In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK:
+In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK. The page has three workspaces, and the SDK's dev tools dock (`mountDevTools`, through `PkDevTools`) over it. ``Ctrl+` `` shows and hides the dock; `/_plainkit/console` and the like open it on that tab.
 
-| Tab | What it does |
+| Workspace (the page's menu) | What it does |
 |---|---|
 | Gallery | Every control, element, layout and template with live samples |
 | Files | Browse your project's source (server-side only) |
 | Scorecard | Score pages for accessibility, layout, spacing and touch targets at every theme and width |
-| Performance | Live Core Web Vitals, frame rate, long tasks, DOM size, heap, what loaded |
-| Console | `console.*`, errors, SDK events, network, `pk-*` elements on the page, environment |
-| Logs | What the SDK and your app logged through the Plainkit logger (`PkLogs`), and the logging settings (`PkLogSettings`) |
 
-Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`, `PkLogs`, `PkLogSettings`.
+| Dock tab | What it does |
+|---|---|
+| Console | `console.*`, errors, SDK events, network, `pk-*` elements on the page, environment |
+| Logs, Logging | What the SDK and your app logged through the Plainkit logger, and its settings (level per scope, where each level goes) |
+| Performance | Live Core Web Vitals, frame rate, long tasks, DOM size, heap, what loaded |
+| Quality | The SDK's page checks (accessibility, layout, spacing, touch targets, focus) on the live page, with a score |
+| Inspector | The `pk-*` elements on the page, with the attributes that configure them |
+| Theme | The theme editor, live on the page |
+| Blazor | PlainKit.Blazor's own tab (below) |
+| Components | Pick any element and see the SDK's element inspector with a Blazor section: its component, parameters and the Razor for its example |
+
+**The Blazor tab** shows only what can be observed, nothing estimated. The circuit: its state (Opened, Connected, Disconnected, Closed), id, age, how many times the connection dropped and came back, from the framework's own circuit events (`PkCircuitState`, Blazor Server only), plus the reconnect UI events this browser saw. The runtime: host, .NET, package and JavaScript versions, whether the runtime started, whether the SDK log is forwarded to `ILogger`. JS interop: every call PlainKit components send through their bridge, counted and timed per function (`PkRuntime.Interop`), with the errors that came back; a `mount*` call's time is that tool's mount time (on Blazor Server it includes the network hop). The SDK's log buffer, counted by level with its newest warnings and errors. It does not show Blazor's render-tree timings, because nothing in the runtime layer exposes them, and it does not see calls your app makes on its own `IJSRuntime`.
+
+**The Blazor section of the inspector** (Components tab) is built from `blazor/mappings/*.json` and the generator's manifest, which the package carries inside its assembly (`PkMappingInfo`); the SDK holds no copy. For an element it shows the component (generated, hand-written or not available yet), each parameter, event and content slot with its type, the element's default and whether it is two-way, why a parameter is not generated when it is not, and the equivalent Razor (the example's attributes as parameters, enums as `ButtonVariant.Primary`, a two-way value as `@bind-Value`). The gallery's own inspector cannot show it yet: it has no hook to pass `extraSections` (see Known limits).
+
+Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`, `PkLogs`, `PkLogSettings`, `PkQuality`, `PkThemeEditor` and `PkDevTools`. JavaScript owns everything inside a tool's element (Blazor renders no children in it) and the component lets go of it when disposed.
+
+```razor
+<PkDevTools />                                       @* the dock, on any page (Ctrl+` toggles it) *@
+<PkDevTools Mode="PkDevToolsMode.Inline" Tab="quality" />   @* the same tabs filling this element *@
+<PkQuality AutoRun="true" Height="24rem" />
+<PkThemeEditor StorageKey="my-theme" Preview="false" />
+```
+
+**Known limits.** The gallery is a `<pk-gallery>` element that runs in its own frame, and the SDK's `mountGallery` takes no `extraSections`, so the Blazor section shows in the Components tab and not inside the gallery's Details drawer. Until the SDK adds a hook, `blazorInspectorSections(host)` in `wwwroot/blazor-devtools.js` is the section, ready to pass to `createElementInspector(...).show({ meta, element, extraSections })`. Also: `<pk-gallery>` resolves its `src` against the page's URL rather than the document's base, so a relative `src` misses on a routed page like `/_plainkit/gallery`; `/_plainkit` gives it an absolute address.
 
 ## Logging
 

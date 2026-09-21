@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+### Added
+
+- Added: `/_plainkit` in PlainKit.Blazor mounts the SDK's dev tools dock (`mountDevTools`) instead of its own tab strip (issue #3, part). The page keeps Gallery, Files and Scorecard as workspaces (`/_plainkit/gallery`, `/files`, `/scorecard`); Console, Logs, Logging, Performance, Quality, Inspector and Theme are the dock's tabs, and `/_plainkit/console` and the like open the dock on that tab. New components `PkDevTools` (dock or inline; `Open`/`Tab` drive the mounted tools rather than mounting again), `PkQuality` (`mountQuality`) and `PkThemeEditor` (`mountThemeEditor`), written like `PkScorecard` and `PkLogs`; new bridge functions `mountDevTools`, `mountQuality`, `mountThemeEditor` and the tool controls. Removed from the page: the Performance, Console and Logs tabs of the old strip (they are dock tabs now).
+- Added: a Blazor dock panel (`Blazor` tab, panel shape `{ id, title, mount }`, `wwwroot/blazor-devtools.js`) that shows only observed facts: the circuit's state, id, age, drops and reconnects (`PkCircuitState`, a `CircuitHandler` registered on Blazor Server only), the reconnect UI events the browser saw, host/.NET/package/JavaScript versions, every JS interop call through the PlainKit bridge counted and timed per function with its errors (`PkRuntime.Interop`, `PkInteropLog`), and the SDK log buffer by level. Blazor render timings are not shown: the runtime layer does not expose them.
+- Added: a `Components` dock tab and a Blazor section for the SDK's element inspector (issue #24): the component, its parameters, events and slots (type, element default, two-way, why a parameter is not generated) and the equivalent Razor, built from `blazor/mappings/*.json` and the generator manifest, which PlainKit.Blazor carries in its assembly (`PkMappingInfo`, embedded resources); the SDK holds no copy. It is passed as `extraSections` to `createElementInspector`. The gallery's own Details drawer cannot show it yet: `mountGallery` has no `extraSections` option (core request).
+- Added: interop tests for the tool components (mount options, remount only on change, controls, dispose, a gone circuit), the interop counts, the circuit facts and the mapping description (the test project now has 89 tests).
+
+### Fixed
+
+- Fixed: the Gallery workspace of `/_plainkit/{workspace}` framed a 404: `<pk-gallery>` resolves its `src` against the page's URL, so the relative address missed under a routed path. The page now passes an absolute address.
+
 ## [0.1.0-alpha.1] - 2026-09-21
 
 First pre-release. The API may change at any minor version while the major is 0; breaking changes are listed here.

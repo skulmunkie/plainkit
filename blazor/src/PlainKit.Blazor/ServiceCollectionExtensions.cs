@@ -17,6 +17,16 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(options);
         services.AddSingleton<PkSourceProvider>();
         services.AddScoped<IPkLog, PkLog>();
+        services.AddScoped<PkInteropLog>();
+        if (!OperatingSystem.IsBrowser()) AddCircuitState(services);
         return services.AddScoped<PkRuntime>();
+    }
+
+    // Its own method so a browser (WebAssembly) app never loads the server assembly that CircuitHandler lives in.
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static void AddCircuitState(IServiceCollection services)
+    {
+        services.AddScoped<PkCircuitState>();
+        services.AddScoped<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler>(sp => sp.GetRequiredService<PkCircuitState>());
     }
 }

@@ -28,23 +28,41 @@ public sealed class ComponentTests : TestContext
     }
 
     [Fact]
-    public void Dev_tools_page_offers_the_six_tabs_and_marks_the_current_one()
+    public void Dev_tools_page_offers_the_three_workspaces_and_marks_the_current_one()
     {
-        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "console"));
+        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
         var tabs = cut.FindAll("pk-tab");
 
-        Assert.Equal(["Gallery", "Files", "Scorecard", "Performance", "Console", "Logs"], tabs.Select(t => t.TextContent.Trim()));
-        Assert.Equal("console", cut.Find("pk-tabs").GetAttribute("value"));
+        Assert.Equal(["Gallery", "Files", "Scorecard"], tabs.Select(t => t.TextContent.Trim()));
+        Assert.Equal("scorecard", cut.Find("pk-tabs").GetAttribute("value"));
+        Assert.Single(cut.FindComponents<PkScorecard>());
     }
 
     [Fact]
-    public void Dev_tools_page_logs_tab_mounts_the_logs_viewer_and_settings()
+    public void Dev_tools_page_mounts_the_dev_tools_dock_instead_of_its_own_tool_tabs()
     {
-        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "logs"));
+        var cut = RenderComponent<PkDevToolsPage>();
+        var tools = Assert.Single(cut.FindComponents<PkDevTools>()).Instance;
 
-        Assert.Equal("logs", cut.Find("pk-tabs").GetAttribute("value"));
-        Assert.Single(cut.FindComponents<PkLogs>());
-        Assert.Single(cut.FindComponents<PkLogSettings>());
+        Assert.Equal(PkDevToolsMode.Dock, tools.Mode);
+        Assert.True(tools.Open);
+        Assert.True(tools.BlazorPanels);
+        Assert.Empty(cut.FindComponents<PkPerformance>());
+        Assert.Empty(cut.FindComponents<PkConsole>());
+        Assert.Empty(cut.FindComponents<PkLogs>());
+    }
+
+    [Theory]
+    [InlineData("console", "console", "gallery")]
+    [InlineData("blazor", "blazor", "gallery")]
+    [InlineData("scorecard", null, "scorecard")]
+    [InlineData("nonsense", null, "gallery")]
+    public void Dev_tools_page_opens_the_dock_on_a_tool_tab_and_keeps_workspaces_for_the_rest(string route, string? dockTab, string workspace)
+    {
+        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, route));
+
+        Assert.Equal(dockTab, cut.FindComponent<PkDevTools>().Instance.Tab);
+        Assert.Equal(workspace, cut.Find("pk-tabs").GetAttribute("value"));
     }
 
     [Fact]
