@@ -27,6 +27,11 @@
       "type": "string"
     },
     {
+      "name": "BrowseLabel",
+      "prop": "browseLabel",
+      "type": "string"
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"

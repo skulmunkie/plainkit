@@ -296,4 +296,17 @@ export const formCases = [
         el.required = true; el.value = ''; await t.settle(); t.ok(!el.checkValidity(), 'required needs a number');
         el.readonly = true; await t.settle(); t.ok(u.disabled);
     }],
+    ['dropzone: pick() opens the picker for a host button, and browse-label draws a real button that is the zone\'s one keyboard stop', async t => {
+        const host = t.stage('<div><pk-dropzone label="Attachments">Drop</pk-dropzone><pk-dropzone label="Photos" browse-label="Choose files" required><span slot="hint">Up to 2 MB</span>Drop</pk-dropzone><pk-dropzone><span slot="input"><input type="file"></span>Drop</pk-dropzone></div>'); await t.load(host); await t.settle();
+        const [plain, browse, slotted] = host.querySelectorAll('pk-dropzone'); const clicks = el => { const n = { count: 0 }; el.addEventListener('click', () => n.count++); return n; };
+        t.ok(plain.part('browse').hidden, 'no button unless browse-label is set'); t.eq(plain.part('control').tabIndex, 0); t.ok(!plain.part('control').hasAttribute('aria-hidden'));
+        const a = clicks(plain.part('control')); plain.pick(); t.eq(a.count, 1, 'pick() clicks the file input'); plain.disabled = true; await t.settle(); plain.pick(); t.eq(a.count, 1, 'nothing while disabled');
+        const s = clicks(slotted.querySelector('input')); slotted.pick(); t.eq(s.count, 1, 'with an input in the input slot pick() opens that one');
+        const b = browse.part('browse'), input = browse.part('control'); t.ok(!b.hidden); t.eq(b.textContent.trim(), 'Choose files'); t.eq(b.localName, 'button'); t.eq(b.getAttribute('aria-label'), 'Choose files, Photos');
+        t.eq(input.tabIndex, -1, 'the input leaves the tab order'); t.eq(input.getAttribute('aria-hidden'), 'true');
+        const c = clicks(input); b.click(); t.eq(c.count, 1, 'the button opens the picker');
+        const r = b.getBoundingClientRect(); t.ok(r.height >= 44 || innerWidth > 640, 'the button is 44px tall on a phone'); t.ok(r.width > 0 && r.top >= browse.part('zone').getBoundingClientRect().top && r.bottom <= browse.part('zone').getBoundingClientRect().bottom, 'the button is inside the zone');
+        browse.focus(); t.eq(browse.shadowRoot.activeElement, b, 'focus() goes to the button'); t.ok(!browse.checkValidity(), 'required is anchored on the button');
+        browse.disabled = true; await t.settle(); t.ok(b.disabled);
+    }],
 ];
