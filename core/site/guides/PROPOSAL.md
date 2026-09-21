@@ -1,6 +1,10 @@
 # Proposal: a docs engine for the Guides page
 
-Status: for the owner to decide. Nothing here is built; the Guides page is still the "Guides are coming" placeholder.
+Status: decided (owner decision D2: build it now, minimal, no search first) and partly built. The first slice differs from the proposal below in one way: a guide is a Markdown file
+(`content/<id>.md`, front matter `title`, `order`, `summary`) that the build converts to sanitised HTML (`tools/markdown.mjs`, `tools/guides.mjs`), instead of JSON blocks with HTML fragments, so an
+author writes plain text and the converter, not the author, decides what markup can appear. The page (`page.js`) is built from `pk-side-nav`, `pk-toc`, `pk-breadcrumb`, `pk-pager`, `pk-code-block`
+and `pk-alert`; heading anchors (gap 2) and the authoring check (gap 5, as build errors) are done. Still open: full-text search, versions, tabs for HTML and Blazor alternatives. What follows is the
+original proposal, kept for the reasoning.
 
 ## Goal
 

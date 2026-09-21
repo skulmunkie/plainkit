@@ -148,4 +148,4 @@ Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (no Guides docs site yet, no reactive template layer, no layout builder).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of four with no search yet, no reactive template layer, no layout builder).

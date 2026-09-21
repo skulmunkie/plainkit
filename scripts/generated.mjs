@@ -25,6 +25,7 @@ export const GENERATED_PATTERNS = [
     ['/core/elements/*/*.element.js', /^core\/elements\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
     ['/core/js/version.js', /^core\/js\/version\.js$/, 'core/tools/build.mjs (from core/VERSION)'],
     ['/core/site/gallery/gallery.data.js', /^core\/site\/gallery\/gallery\.data\.js$/, 'core/tools/build.mjs'],
+    ['/core/site/guides/guides.data.js', /^core\/site\/guides\/guides\.data\.js$/, 'core/tools/build.mjs (from core/site/guides/content/*.md)'],
     ['/core/site/files/snapshot.json', /^core\/site\/files\/snapshot\.json$/, 'core/tools/build.mjs'],
     ['/core/site/scorecard/api.current.json', /^core\/site\/scorecard\/api\.current\.json$/, 'core/tools/build.mjs'],
     ['/blazor/src/PlainKit.Blazor/Generated/', /^blazor\/src\/PlainKit\.Blazor\/Generated\//, 'scripts/generate-blazor.mjs'],
@@ -53,7 +54,7 @@ export function requireGenerated(rootDir = root) {
 }
 
 // Source folders and files the generators read. A generated file older than the newest of these is stale (used by bootstrap --if-missing).
-const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'blazor/mappings',
+const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'blazor/mappings',
     'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
 const SOURCE_FILES = ['core/VERSION', 'core/icons.svg', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
 const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs'];

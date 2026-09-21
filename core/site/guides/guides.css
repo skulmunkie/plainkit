@@ -1,0 +1,72 @@
+/* The Guides page: a pk-side-nav of guides, one scrolling column (a bar with the breadcrumb, then the article and its pk-toc). The elements do the work;
+   this file holds the layout and the article's own content (the converted Markdown). Tokens only. */
+.gd-shell { flex: 1; display: flex; min-height: 0; min-width: 0; }
+
+.gd-nav { --shell-nav-w: 18rem; }
+
+.gd-scroll { flex: 1; min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+.gd-bar { position: sticky; top: 0; z-index: var(--z-sticky); display: flex; align-items: center; gap: var(--space-3); min-height: var(--app-header-h); padding-inline: var(--space-4); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+
+.gd-contents { display: none; }
+
+.gd-page { display: grid; grid-template-columns: minmax(0, 46rem) 14rem; justify-content: center; gap: var(--space-8); padding: var(--space-6) var(--space-4) var(--space-12); }
+
+.gd-article { min-width: 0; grid-column: 1; grid-row: 1; }
+
+.gd-aside { grid-column: 2; grid-row: 1; }
+
+.gd-aside[hidden] { display: none; }
+
+/* The toc sticks below the bar, not under it. */
+.gd-aside pk-toc { top: calc(var(--app-header-h) + var(--space-4)); }
+
+.gd-title { margin: 0; outline: 0; }
+
+.gd-summary { margin: var(--space-2) 0 var(--space-6); color: var(--color-muted); font-size: var(--text-lg); }
+
+.gd-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--gap-card); }
+
+.gd-body > :is(h2, h3, h4) { scroll-margin-top: calc(var(--app-header-h) + var(--space-4)); }
+
+/* The permalink after a heading: empty in the markup, drawn here, shown when the heading is hovered or the link has focus. */
+.gd-body .anchor { margin-inline-start: var(--space-2); color: var(--color-muted); text-decoration: none; opacity: 0; }
+
+.gd-body .anchor::after { content: "#"; }
+
+.gd-body :is(h2, h3, h4):hover .anchor, .gd-body .anchor:focus-visible { opacity: 1; }
+
+.gd-body .anchor:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.gd-body .table-wrap { overflow-x: auto; }
+
+.gd-body .table-wrap:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.gd-body :is(th, td) { vertical-align: top; }
+
+.gd-body th { font-weight: 600; }
+
+.gd-body td code { overflow-wrap: anywhere; }
+
+.gd-body img { border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+
+.gd-body pk-code-block { display: block; }
+
+@media (max-width: 1100px) {
+    .gd-page { grid-template-columns: minmax(0, 46rem); }
+
+    .gd-aside { grid-column: 1; grid-row: 1; }
+
+    .gd-article { grid-row: 2; }
+}
+
+/* The nav is an off-canvas drawer (the element's own breakpoint): the Guides button in the bar opens it. */
+@media (max-width: 1024px) {
+    .gd-contents { display: inline-block; }
+}
+
+@media (max-width: 640px) {
+    .gd-bar { padding-inline: var(--space-3); }
+
+    .gd-page { padding-inline: var(--space-3); gap: var(--space-4); }
+}
