@@ -1,5 +1,6 @@
 :host { display: block; }
-.field { display: grid; gap: var(--gap-label-input); min-width: 0; }
+::slotted(input), ::slotted(select), ::slotted(textarea) { box-sizing: border-box; max-width: 100%; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-label-input); min-width: 0; }
 .lab { color: var(--pk-field-label, var(--color-text)); font-size: var(--text-read); font-weight: 500; cursor: default; }
 ::slotted([slot="label-action"]) { margin-inline-start: var(--space-2); vertical-align: middle; }
 .req { margin-inline-start: 0.2em; color: var(--field-error); }

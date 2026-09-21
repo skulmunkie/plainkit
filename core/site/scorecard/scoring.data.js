@@ -67,8 +67,6 @@ export const TEXT_PAIRS = [
 
 // Documented exceptions: a score that is below 100 on purpose, with the reason. Never silent; the report lists these.
 export const EXCEPTIONS = [
-    { metric: 'literalSizes', reason: 'Component CSS still carries many literal rem and px sizes that predate the spacing scale; they are being moved onto tokens as each file is touched. The share only goes down.' },
-    { metric: 'contrastFail', reason: 'Text pairs measured against the panel: the muted and accent text on the light theme sit just under 4.5:1. Changing them restyles the whole app, so it needs an owner colour decision.' },
     { metric: 'touch-target', reason: 'Dense controls (mini buttons, tree rows, tab close, crumbs) are below 44px on a phone by design; the a11y layer raises the common ones. Reported per control by the scorecard run.' },
 ];
 
