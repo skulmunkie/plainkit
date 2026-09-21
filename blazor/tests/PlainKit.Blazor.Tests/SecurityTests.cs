@@ -57,6 +57,28 @@ public sealed class SecurityTests : TestContext
         Assert.Empty(cut.FindComponents<PkDevTools>());
     }
 
+    [Fact]
+    public void Splatted_attributes_cannot_carry_an_inline_event_handler_as_text_but_delegates_and_ordinary_attributes_pass()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddPlainKit();
+        var clicks = 0;
+
+        var cut = RenderComponent<PkBadge>(p => p
+            .AddUnmatched("onclick", "alert(1)").AddUnmatched("onmouseover", "alert(2)").AddUnmatched("ONFOCUS", "alert(3)")
+            .AddUnmatched("data-order", "42").AddUnmatched("aria-label", "Buy"));
+        var el = cut.Find("pk-badge");
+
+        Assert.Null(el.GetAttribute("onclick")); Assert.Null(el.GetAttribute("onmouseover")); Assert.Null(el.GetAttribute("onfocus"));
+        Assert.Equal("42", el.GetAttribute("data-order")); Assert.Equal("Buy", el.GetAttribute("aria-label"));
+        Assert.DoesNotContain("alert(", cut.Markup);
+
+        // a real handler (a delegate) still works next to them
+        var handled = RenderComponent<PkBadge>(p => p.AddUnmatched("onclick", Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, () => clicks++)));
+        handled.Find("pk-badge").Click();
+        Assert.Equal(1, clicks);
+    }
+
     [Theory]
     [InlineData("appsettings.json")]
     [InlineData("appsettings.Production.json")]
