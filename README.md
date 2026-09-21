@@ -51,6 +51,32 @@ Try it: `node core/tools/serve.mjs` serves the gallery, theme editor and scoreca
 - **Any other agent:** the references are plain markdown, so point the agent at the files under `references/`. Start with `elements-index.md` (SDK) or `components-index.md` (Blazor); each file names the next one to open.
 - **Maintainers:** `node scripts/build-skills.mjs` regenerates them after `node core/tools/build.mjs` and `node scripts/generate-blazor.mjs`; `--check` fails when they are stale (CI runs it). Exports to other agent formats are tracked in issue #36.
 
+### Using the skills with an agent
+
+**1. Install them where the agent looks.** Claude Code reads a skill folder from `.claude/skills/` in the project (or `~/.claude/skills/` for every project) and loads a skill on its own when the task matches the skill's `description`; there is nothing to enable. Pick the way you got Plainkit:
+
+| You have | Install (from the project root) |
+|---|---|
+| The GitHub release | `gh release download v0.1.0-alpha.1 --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
+| The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
+| The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
+| A clone or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
+| Nothing local, only the internet | each file is also served at `https://skulmunkie.github.io/plainkit/dist/skills/<skill>/SKILL.md` (and `.../references/<file>.md`) |
+
+Commit the folders to the project so every agent and teammate gets them, and re-copy them when you upgrade Plainkit (they carry the version of the release they came from, in their first lines).
+
+**2. Tell the agent to use them.** For Claude Code the skill triggers by itself when you ask for UI work in a project that uses Plainkit, but it helps to say it once in the project's `CLAUDE.md`. For any other agent, put the same text in that agent's instructions file (`AGENTS.md`, or its equivalent) and point it at the markdown, which is plain and not specific to one tool:
+
+```markdown
+## UI: Plainkit
+This project builds its UI with Plainkit (`pk-*` custom elements and the PlainKit.Blazor `Pk*` components).
+Before writing or changing UI, use the `plainkit-blazor` and `plainkit-sdk` skills (in `.claude/skills/`; the files under `references/` are plain markdown, start with `components-index.md`).
+Use only the elements, parameters, slots and events those references list. If something you need is not there, say so instead of inventing it.
+Check `known-gaps.md` before assuming a component exists.
+```
+
+**3. Check that it works.** Ask the agent something the skill can answer, for example "which `pk-*` element shows a dismissible message, and what events does it fire?" It should name `pk-alert` and `pk-dismiss` from the reference rather than guess. If it does not mention the skill, confirm the folders are directly under `.claude/skills/` (each with a `SKILL.md`).
+
 ## Status
 
 Pre-release. The toolkit is here; the Blazor port follows. See `core/HANDOFF.md` for what is built and what is left.
