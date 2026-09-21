@@ -3098,7 +3098,7 @@
     },
     {
       "name": "pk-table",
-      "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.\n\nSlots: (default), toolbar, bulk, caption, empty, footer.",
+      "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.\n\nSlots: (default), toolbar, bulk, caption, cell-<rowId>-<key>, detail-<rowId>, empty, footer.",
       "attributes": [
         {
           "name": "columns",
@@ -3106,7 +3106,7 @@
         },
         {
           "name": "rows",
-          "description": "Row data, one object per row. A JSON attribute or a property."
+          "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>."
         },
         {
           "name": "row-key",
@@ -3197,9 +3197,22 @@
           "description": "Ids of the selected rows."
         },
         {
-          "name": "loading",
-          "description": "Show placeholder rows and mark the table busy.",
+          "name": "expandable",
+          "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row.",
           "valueSet": "v"
+        },
+        {
+          "name": "expanded",
+          "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it."
+        },
+        {
+          "name": "loading",
+          "description": "Show a placeholder row, announce Loading and mark the table busy.",
+          "valueSet": "v"
+        },
+        {
+          "name": "empty-text",
+          "description": "Text shown when there are no rows. The empty slot replaces it."
         },
         {
           "name": "cards",

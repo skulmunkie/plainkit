@@ -5177,7 +5177,7 @@
         },
         {
           "name": "pk-table",
-          "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
+          "description": "A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.",
           "attributes": [
             {
               "name": "columns",
@@ -5189,7 +5189,7 @@
             },
             {
               "name": "rows",
-              "description": "Row data, one object per row. A JSON attribute or a property.",
+              "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>.",
               "value": {
                 "type": "string",
                 "default": ""
@@ -5325,11 +5325,35 @@
               }
             },
             {
-              "name": "loading",
-              "description": "Show placeholder rows and mark the table busy.",
+              "name": "expandable",
+              "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row.",
               "value": {
                 "type": "boolean",
                 "default": "false"
+              }
+            },
+            {
+              "name": "expanded",
+              "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it.",
+              "value": {
+                "type": "string",
+                "default": ""
+              }
+            },
+            {
+              "name": "loading",
+              "description": "Show a placeholder row, announce Loading and mark the table busy.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "empty-text",
+              "description": "Text shown when there are no rows. The empty slot replaces it.",
+              "value": {
+                "type": "string",
+                "default": "\"No rows\""
               }
             },
             {
@@ -5391,8 +5415,16 @@
               "description": "Rich caption."
             },
             {
+              "name": "cell-<rowId>-<key>",
+              "description": "Custom content for one cell of a data-driven table: rowId is the row's rowKey value, key the column key. Replaces the cell text."
+            },
+            {
+              "name": "detail-<rowId>",
+              "description": "Detail content of one row, shown under it when the row is expanded (expandable). A row without this slot has no toggle."
+            },
+            {
               "name": "empty",
-              "description": "Empty state; an pk-empty-state fits."
+              "description": "Empty state; an pk-empty-state fits. Replaces emptyText."
             },
             {
               "name": "footer",
@@ -5415,6 +5447,10 @@
             {
               "name": "pk-row-click",
               "description": "A clickable row was activated."
+            },
+            {
+              "name": "pk-row-expand",
+              "description": "The user expanded or collapsed a row. expanded is the new state; the expanded prop already holds it."
             }
           ]
         },

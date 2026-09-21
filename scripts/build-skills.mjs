@@ -216,10 +216,7 @@ const typeText = p => p.type + (p.type === 'json' ? ' (a JSON attribute, or set 
 const detailText = d => (d === null || d === undefined ? 'none' : typeof d === 'string' ? d : '{ ' + Object.entries(d).map(([k, v]) => `${k}: ${v}`).join(', ') + ' }');
 
 /** Examples in the element meta that the samples test proves wrong (a test also fails when one of these becomes valid, so the entry gets removed). */
-export const EXAMPLE_ISSUES = [
-    { tag: 'pk-table', title: 'Empty and loading', reason: 'the source uses the attribute `empty-text`, which is not a prop of `pk-table`; put the empty state in the `empty` slot (a `pk-empty-state` fits) and use `loading` for the loading state.' },
-    { tag: 'pk-table', title: 'Expandable rows', reason: 'the source uses an `expandable` attribute and `detail-<n>` slots, which `pk-table` does not have (it has no expandable rows).' },
-];
+export const EXAMPLE_ISSUES = [];
 
 function elementSection(e) {
     const out = [`## ${code(e.tag)}`, '', `**${e.title}** (${e.group}). ${e.summary}`];
@@ -355,7 +352,6 @@ const SDK_GAPS = [
     'Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern\'s is shown in `patterns.md`, a template\'s in `templates.md`). Their data is placeholder text.',
     '`PkDialog` (`confirm`, `alert`, `prompt`) becomes a global when a `pk-dialog` has connected, and `PkToast` (`show`) when a `pk-toast-stack` has, so the page must contain one before you call them.',
     'Loading `dist/plainkit.js` as a script does not define any element by itself: the page has to call `initPlainkit()` (see `loading.md`).',
-    'Undocumented in the element API: `pk-table` per-cell slots are named `cell-<rowId>-<key>` (they are described in the `rows` prop, not listed under slots).',
 ];
 // Lines of a STANDARDS.md section that are about the toolkit's own development (its scan allow-list, budgets, module folders) are left out.
 const appFacing = text => text.split('\n').filter(l => !/security\.allow|budget|module folder|innerHTML/.test(l)).join('\n');

@@ -712,14 +712,14 @@ Example: Dashboard tile as a button
 
 ## `pk-table`
 
-**Table** (Data display). A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.
+**Table** (Data display). A data table. Two modes: hand it a raw table in the default slot (rows and cells exactly as authored) and it supplies the scroll frame, toolbar, bulk, empty and footer slots; or give it columns and rows and it renders the table itself, with sorting, filtering, selection, loading and phone cards. The data-driven mode: striped, hover, bordered, density, sticky header and first column, sortable headers, filter row, row selection with a bulk bar, loading and empty states, expandable detail rows and a card layout on a phone. Custom cell content goes in slots named cell-<rowId>-<key>; expandable rows show the slot detail-<rowId>. With manual set, the host owns sorting, filtering and paging and the element only renders and reports.
 
 **Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)
 
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `columns` | `columns` | json (a JSON attribute, or set the property) | `[]` |  | Column definitions: { key, label, type?: text\|number\|date, align?: start\|end, sortable?, hidePhone? }[]. A JSON attribute or a property. |
-| `rows` | `rows` | json (a JSON attribute, or set the property) | `[]` |  | Row data, one object per row. A JSON attribute or a property. |
+| `rows` | `rows` | json (a JSON attribute, or set the property) | `[]` |  | Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>. |
 | `row-key` | `rowKey` | string | `"id"` |  | The field that identifies a row. |
 | `striped` | `striped` | boolean | `false` |  | Alternate row tint. |
 | `hover` | `hover` | boolean | `false` |  | Tint the row under the pointer. |
@@ -735,7 +735,10 @@ Example: Dashboard tile as a button
 | `sort-dir` | `sortDir` | enum | `"ascending"` | `ascending` `descending` | Sort direction. |
 | `filters` | `filters` | json (a JSON attribute, or set the property) | `{}` |  | Filter text per column key: { [key]: text }. |
 | `selected` | `selected` | json (a JSON attribute, or set the property) | `[]` |  | Ids of the selected rows. |
-| `loading` | `loading` | boolean | `false` |  | Show placeholder rows and mark the table busy. |
+| `expandable` | `expandable` | boolean | `false` |  | Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row. |
+| `expanded` | `expanded` | json (a JSON attribute, or set the property) | `[]` |  | Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it. |
+| `loading` | `loading` | boolean | `false` |  | Show a placeholder row, announce Loading and mark the table busy. |
+| `empty-text` | `emptyText` | string | `"No rows"` |  | Text shown when there are no rows. The empty slot replaces it. |
 | `cards` | `cards` | boolean | `false` |  | Each row becomes a card below 640px. |
 | `caption` | `caption` | string | `""` |  | Table caption. |
 | `label` | `label` | string | `""` |  | Accessible name of the scrolling region. |
@@ -750,7 +753,9 @@ Example: Dashboard tile as a button
 | `toolbar` | Search, filters and buttons above the table. |
 | `bulk` | Actions shown while rows are selected. |
 | `caption` | Rich caption. |
-| `empty` | Empty state; an pk-empty-state fits. |
+| `cell-<rowId>-<key>` | Custom content for one cell of a data-driven table: rowId is the row's rowKey value, key the column key. Replaces the cell text. |
+| `detail-<rowId>` | Detail content of one row, shown under it when the row is expanded (expandable). A row without this slot has no toggle. |
+| `empty` | Empty state; an pk-empty-state fits. Replaces emptyText. |
 | `footer` | Below the table; an pk-pagination fits. |
 
 **Events** (`addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown)
@@ -761,6 +766,7 @@ Example: Dashboard tile as a button
 | `pk-filter` | `{ filters: IDictionary<string, string> }` | A filter input changed (debounced 250 ms). |
 | `pk-select` | `{ selected: IReadOnlyList<string> }` | The selection changed. |
 | `pk-row-click` | `{ id: string, row: object }` | A clickable row was activated. |
+| `pk-row-expand` | `{ id: string, index: number, expanded: bool }` | The user expanded or collapsed a row. expanded is the new state; the expanded prop already holds it. |
 
 **Methods**
 
@@ -789,7 +795,7 @@ Example: Dashboard tile as a button
 |---|---|---|
 | `--pk-table-max-height` | `none` | Height of the scrolling frame (set from maxHeight). |
 
-**Accessibility.** A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.
+**Accessibility.** A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.
 
 Example: Sortable, selectable table
 
@@ -801,9 +807,20 @@ Example: Sortable, selectable table
 </pk-table>
 ```
 
-Example "Empty and loading" is left out: the source uses the attribute `empty-text`, which is not a prop of `pk-table`; put the empty state in the `empty` slot (a `pk-empty-state` fits) and use `loading` for the loading state.
+Example: Empty and loading
 
-Example "Expandable rows" is left out: the source uses an `expandable` attribute and `detail-<n>` slots, which `pk-table` does not have (it has no expandable rows).
+```html
+<pk-table label="Empty" columns='[{"key":"sku","label":"SKU"}]' empty-text="No products yet"></pk-table>
+<pk-table label="Loading" loading columns='[{"key":"sku","label":"SKU"}]'></pk-table>
+```
+
+Example: Expandable rows
+
+```html
+<pk-table label="POs" expandable columns='[{"key":"po","label":"PO"}]' rows='[{"id":1,"po":"PO 1042"},{"id":2,"po":"PO 1043"}]'>
+  <p slot="detail-1">3 lines: Widget 1 x 20.</p>
+</pk-table>
+```
 
 ## `pk-tag`
 

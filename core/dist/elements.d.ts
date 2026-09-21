@@ -1203,7 +1203,7 @@ export interface PkTabPanelElement extends HTMLElement {
 export interface PkTableElement extends HTMLElement {
     /** Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property. */
     columns: json;
-    /** Row data, one object per row. A JSON attribute or a property. */
+    /** Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>. */
     rows: json;
     /** The field that identifies a row. */
     rowKey: string;
@@ -1235,8 +1235,14 @@ export interface PkTableElement extends HTMLElement {
     filters: json;
     /** Ids of the selected rows. */
     selected: json;
-    /** Show placeholder rows and mark the table busy. */
+    /** Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row. */
+    expandable: boolean;
+    /** Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it. */
+    expanded: json;
+    /** Show a placeholder row, announce Loading and mark the table busy. */
     loading: boolean;
+    /** Text shown when there are no rows. The empty slot replaces it. */
+    emptyText: string;
     /** Each row becomes a card below 640px. */
     cards: boolean;
     /** Table caption. */
@@ -1600,6 +1606,7 @@ declare global {
         'pk-sort': CustomEvent<unknown>;
         'pk-filter': CustomEvent<unknown>;
         'pk-row-click': CustomEvent<unknown>;
+        'pk-row-expand': CustomEvent<unknown>;
         'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown }>;
         'pk-tags-change': CustomEvent<{ value: string: unknown; tags: string[]: unknown }>;
         'pk-section-change': CustomEvent<unknown>;
@@ -1680,7 +1687,7 @@ declare global {
             'pk-switch': PkJsx<PkSwitchElement, "checked" | "disabled" | "name" | "value" | "invalid" | "size" | "labelPosition">;
             'pk-tab': PkJsx<PkTabElement, "value" | "selected" | "disabled" | "count" | "closable" | "only">;
             'pk-tab-panel': PkJsx<PkTabPanelElement, "value" | "selected">;
-            'pk-table': PkJsx<PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "loading" | "cards" | "caption" | "label" | "maxHeight" | "flow">;
+            'pk-table': PkJsx<PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "expandable" | "expanded" | "loading" | "emptyText" | "cards" | "caption" | "label" | "maxHeight" | "flow">;
             'pk-tabs': PkJsx<PkTabsElement, "value" | "activation" | "noneActive" | "scroll">;
             'pk-tag': PkJsx<PkTagElement, "removable" | "value" | "disabled">;
             'pk-tag-input': PkJsx<PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">;

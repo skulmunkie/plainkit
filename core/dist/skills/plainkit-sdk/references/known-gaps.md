@@ -13,7 +13,6 @@ Plainkit 0.1.0-alpha.1 is a pre-release. Things an agent should not assume:
 - Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern's is shown in `patterns.md`, a template's in `templates.md`). Their data is placeholder text.
 - `PkDialog` (`confirm`, `alert`, `prompt`) becomes a global when a `pk-dialog` has connected, and `PkToast` (`show`) when a `pk-toast-stack` has, so the page must contain one before you call them.
 - Loading `dist/plainkit.js` as a script does not define any element by itself: the page has to call `initPlainkit()` (see `loading.md`).
-- Undocumented in the element API: `pk-table` per-cell slots are named `cell-<rowId>-<key>` (they are described in the `rows` prop, not listed under slots).
 
 ## Rules from the standards
 
