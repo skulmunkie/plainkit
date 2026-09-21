@@ -15,7 +15,7 @@ PlainKit.Blazor 0.1.0-alpha.1 is an alpha.
 - `PkStat`: use the element `<pk-stat>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
 - `PkTable`: use the element `<pk-table>` directly in markup (raw `pk-*` tags work; see the SKILL for how they get loaded).
 
-## Wrapper-only parameters that do not exist (17)
+## Wrapper-only parameters that do not exist (16)
 
 Behaviour of the old wrappers that is not a property of the element. They are not generated; do not use them.
 
@@ -37,21 +37,11 @@ Behaviour of the old wrappers that is not a property of the element. They are no
 | `PkTooltip` | `ExternalLink` | wrapper behaviour, not a property of the element (As DocLink.) |
 | `PkTooltip` | `LoadAsync` | wrapper behaviour, not a property of the element (Loads the rich slot content on the first pk-show.) |
 | `PkTooltip` | `OnClick` | wrapper behaviour, not a property of the element (Click on the target.) |
-| `PkTooltip` | `Title` | wrapper behaviour, not a property of the element (Bold heading inside the rich content slot.) |
 
-## Parameters set through a CSS custom property (1), not generated
+## Parameters set through a CSS custom property (0), not generated
 
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `MaxWidthPx` | sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper |
 
-## Parameters whose type is not defined yet (4)
+
+## Parameters whose type is not defined yet (0)
 
 Not generated until the type exists.
-
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `Theme` | type not yet defined in PlainKit.Blazor (issue #9): ModalTheme |
-| `PkTooltip` | `Kind` | type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind |
-| `PkChart` | `Data` | type not yet defined in PlainKit.Blazor (issue #9): ChartData |
-| `PkImageGallery` | `Images` | type not yet defined in PlainKit.Blazor (issue #9): GalleryImage |

@@ -45,3 +45,18 @@ test('no real-looking email addresses (example, localhost and noreply placeholde
 test('no stale proprietary licence text: the repository is MIT', () => {
     assert.deepEqual(scan(/proprietary, part of the reposito[r]y/gi), []);
 });
+
+// Names from the application these components were extracted from. Element metadata, the Blazor mappings and the docs must use the toolkit's own
+// names (Pk prefix, the element's prop values); a type that only ever existed in that application must not come back (issue #9).
+const OLD_APP_NAMES = /\b(DataGrid\w*|ModalTheme|InfoTip[A-Z]\w*|NoticeKind|StatCardVariant|PageActions)\b/g;
+
+test('no type names from the old application in core, the Blazor package sources, mappings, tests or docs', () => {
+    const blazorFiles = walk(path.join(repo, 'blazor')).filter(f => TEXT.test(f) && !f.split(path.sep).includes('wwwroot'));
+    const hits = [];
+    for (const f of [...files, ...blazorFiles]) {
+        const rel = path.relative(repo, f).split(path.sep).join('/');
+        if (rel === 'CHANGELOG.md' || rel === 'core/site/files/snapshot.json') continue; // the snapshot is a copy of the sources this test already reads
+        fs.readFileSync(f, 'utf8').split('\n').forEach((l, i) => { for (const m of l.matchAll(OLD_APP_NAMES)) hits.push(`${rel}:${i + 1}: ${m[0]}`); });
+    }
+    assert.deepEqual(hits, []);
+});

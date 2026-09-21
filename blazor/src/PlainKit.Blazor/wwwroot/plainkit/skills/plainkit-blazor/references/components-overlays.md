@@ -66,6 +66,8 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-cont
 | `ChildContent` | `RenderFragment?` |  | default slot | Body. |
 | `FooterContent` | `RenderFragment?` |  | slot `footer` | Actions. |
 | `OnClose` | `EventCallback<PkCloseEventArgs>` |  | event `pk-close` | escape, close button or method. |
+| `MaxWidthPx` | `int` |  | attribute `max-width` | Card width in pixels before the viewport clamp; 0 keeps the size preset. |
+| `Tint` | `PkDialogTint` | `None` `Product` `Archived` | attribute `tint` | A tinted card: product (green wash) or archived (red wash). |
 
 Two-way binding: `@bind-IsOpen`.
 
@@ -83,10 +85,8 @@ When you set a named fragment (`HeaderContent`, `FooterContent`), write the body
 |---|---|
 | `CloseButtonLabel` | wrapper behaviour, not a property of the element (Text of the close button; the element draws a cross with an accessible name.) |
 | `FooterAlignEnd` | wrapper behaviour, not a property of the element (The footer is always end-aligned.) |
-| `MaxWidthPx` | sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper |
 | `OverFlyout` | wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer above any flyout.) |
 | `ShowCloseButton` | wrapper behaviour, not a property of the element (The element always shows its close button (house rule: every modal has its own Cancel or Close).) |
-| `Theme` | type not yet defined in PlainKit.Blazor (issue #9): ModalTheme |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-dialog` in the `plainkit-sdk` skill.
 
@@ -270,8 +270,11 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-popo
 | `Text` | `string?` |  | attribute `text` | The label. |
 | `TooltipContent` | `RenderFragment?` |  | slot `content` | Rich tip content in place of text. |
 | `ChildContent` | `RenderFragment?` |  | default slot | The element the tip describes. |
-| `Placement` | `InfoTipPlacement` | `Top` `Bottom` `Left` `Right` | attribute `placement` | Preferred side; flips when it does not fit. |
+| `Placement` | `PkTooltipPlacement` | `Top` `Bottom` `Left` `Right` | attribute `placement` | Preferred side; flips when it does not fit. |
 | `HoverDelay` | `int` |  | attribute `delay` | Mouse hover delay; focus is immediate. |
+| `Help` | `bool` |  | attribute `help` | Draws its own info button as the target (the default slot then holds text that follows it). |
+| `Enrich` | `bool` |  | attribute `enrich` | Underlines the wrapped value with a dotted line to show it has context. |
+| `Title` | `string?` |  | attribute `heading` | A bold heading inside the panel. |
 
 When you set a named fragment (`TooltipContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
 
@@ -281,9 +284,7 @@ When you set a named fragment (`TooltipContent`), write the body as an explicit 
 |---|---|
 | `DocLink` | wrapper behaviour, not a property of the element (Link inside the rich content slot.) |
 | `ExternalLink` | wrapper behaviour, not a property of the element (As DocLink.) |
-| `Kind` | type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind |
 | `LoadAsync` | wrapper behaviour, not a property of the element (Loads the rich slot content on the first pk-show.) |
 | `OnClick` | wrapper behaviour, not a property of the element (Click on the target.) |
-| `Title` | wrapper behaviour, not a property of the element (Bold heading inside the rich content slot.) |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-tooltip` in the `plainkit-sdk` skill.

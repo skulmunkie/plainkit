@@ -52,7 +52,7 @@ public sealed class GeneratedComponentTests : TestContext
         var cut = RenderComponent<PkAlert>();
         Assert.Equal("danger", cut.Find("pk-alert").GetAttribute("kind"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Kind, NoticeKind.Warning));
+        cut.SetParametersAndRender(p => p.Add(x => x.Kind, PkAlertKind.Warning));
         Assert.Equal("warning", cut.Find("pk-alert").GetAttribute("kind"));
     }
 

@@ -21,7 +21,7 @@
     },
     {
       "name": "Placement",
-      "type": "InfoTipPlacement",
+      "type": "PkTooltipPlacement",
       "enum": {
         "Top": "top",
         "Bottom": "bottom",
@@ -30,8 +30,7 @@
       },
       "default": "Top",
       "map": "prop",
-      "prop": "placement",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipPlacement"
+      "prop": "placement"
     },
     {
       "name": "HoverDelay",
@@ -41,17 +40,22 @@
       "prop": "delay"
     },
     {
-      "name": "Kind",
-      "type": "InfoTipKind",
-      "map": "wrapper",
-      "note": "Help renders an info button as the target; Enrich wraps ChildContent with a dotted underline.",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind"
+      "name": "Help",
+      "type": "bool",
+      "map": "prop",
+      "prop": "help"
+    },
+    {
+      "name": "Enrich",
+      "type": "bool",
+      "map": "prop",
+      "prop": "enrich"
     },
     {
       "name": "Title",
       "type": "string?",
-      "map": "wrapper",
-      "note": "Bold heading inside the rich content slot."
+      "map": "prop",
+      "prop": "heading"
     },
     {
       "name": "DocLink",

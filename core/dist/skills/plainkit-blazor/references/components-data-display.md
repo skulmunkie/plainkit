@@ -62,17 +62,10 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-badg
 | `Kind` | `string?` |  | attribute `kind` | Chart type. |
 | `Caption` | `string?` |  | attribute `caption` | Title (figcaption). |
 | `Height` | `int` |  | attribute `height` | viewBox height of bar and line charts. |
-| `Data` | `object?` |  | attribute `data` | Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }. |
-| `CaptionContent` | `RenderFragment?` |  | slot `caption` | A rich caption; overrides caption. |
+| `CaptionContent` | `RenderFragment?` |  | slot `caption` | Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }. Pass a PkChartData: { Labels, Series: [{ Name, Values }] }. It is sent as a JSON attribute (camelCase) and replaces the slotted table. [Parameter] public object? Data { get; set; } A rich caption; overrides caption. |
 | `ChildContent` | `RenderFragment?` |  | default slot | A table: the first column holds labels, each further column a series. A cell may carry data-value. |
 
 When you set a named fragment (`CaptionContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
-
-**Type not defined yet**
-
-| Parameter | Why |
-|---|---|
-| `Data` | type not yet defined in PlainKit.Blazor (issue #9): ChartData |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-chart` in the `plainkit-sdk` skill.
 
@@ -151,8 +144,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-icon
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Images` | `object?` |  | attribute `images` | The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown. |
-| `Primary` | `int` |  | attribute `primary` | The index of the primary image; -1 uses the first image flagged primary in images, or none. |
+| `Primary` | `int` |  | attribute `primary` | The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown. Pass an IReadOnlyList<PkGalleryImage>: sent as a JSON attribute ([{ src, alt, primary, status }]). [Parameter] public object? Images { get; set; } The index of the primary image; -1 uses the first image flagged primary in images, or none. |
 | `PrimaryChanged` | `EventCallback<int>` |  | two-way pair of `Primary` | Raised when Primary changes (two-way binding: `@bind-Primary`). |
 | `Columns` | `int` |  | attribute `columns` | A fixed number of equal columns (1 to 12). 0 fits as many as min allows. |
 | `Min` | `string?` |  | attribute `min` | The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0. |
@@ -172,12 +164,6 @@ Two-way binding: `@bind-Primary`.
 | `pk-add` | `PkAddEventArgs` | Files: PkFileInfo[]?, Names: string[]? |
 | `pk-primary-change` | `PkPrimaryChangeEventArgs` | Index: double?, Src: string?, Previous: double? |
 | `pk-remove` | `PkRemoveEventArgs` | Index: double?, Src: string?, Value: string? |
-
-**Type not defined yet**
-
-| Parameter | Why |
-|---|---|
-| `Images` | type not yet defined in PlainKit.Blazor (issue #9): GalleryImage |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-image-gallery` in the `plainkit-sdk` skill.
 

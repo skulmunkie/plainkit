@@ -341,9 +341,9 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
     assert.match(skill, /Blazor Server is verified\. Blazor WebAssembly is not/);
     for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat', 'PkTable']) { assert.ok(skill.includes(`\`${c}\``), c); assert.ok(gaps.includes(`\`${c}\``), c); }
-    assert.match(skill, /\b17 wrapper-only parameters\b/);
+    assert.match(skill, /\b16 wrapper-only parameters\b/);
     const wrapper = src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour'));
-    assert.equal(wrapper.length, 17);
+    assert.equal(wrapper.length, 16);
     for (const n of wrapper) assert.ok(gaps.includes(`\`${n.param}\``), n.param);
     for (const t of src.manifest.typesToDefine) assert.ok(gaps.includes(`\`${t.param}\``), t.param);
     // The parameters the SKILL.md names as missing are the ones the manifest lists as not generated.

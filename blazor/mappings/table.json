@@ -5,8 +5,7 @@
     {
       "name": "Columns",
       "prop": "columns",
-      "type": "IReadOnlyList<DataGridColumn>",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridColumn"
+      "note": "Pass an IReadOnlyList<PkTableColumn>: sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone }])."
     },
     {
       "name": "Items",
@@ -24,10 +23,10 @@
       "type": "HashSet<int>"
     },
     {
-      "name": "PhoneLayout",
+      "name": "Cards",
       "prop": "cards",
-      "type": "DataGridPhoneLayout",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridPhoneLayout"
+      "type": "bool",
+      "note": "Each row becomes a card below 640px."
     },
     {
       "name": "Loading",

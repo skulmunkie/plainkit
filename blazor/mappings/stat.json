@@ -18,10 +18,9 @@
       "type": "string?"
     },
     {
-      "name": "Variant",
+      "name": "Tone",
       "prop": "tone",
-      "type": "StatCardVariant",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): StatCardVariant"
+      "type": "PkStatTone"
     },
     {
       "name": "Href",
@@ -69,5 +68,5 @@
       "type": "bool"
     }
   ],
-  "notes": "Keeps the existing parameter names."
+  "notes": "Keeps the old parameter names except Variant, which is Tone (the element has tone, not variant)."
 }

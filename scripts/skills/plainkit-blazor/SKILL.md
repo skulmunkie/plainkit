@@ -13,7 +13,7 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 
 - **Blazor Server is verified. Blazor WebAssembly is not** (never run in a WebAssembly host; the Files dev tool is server-side only).
 - **Components that do not exist yet:** {{missing}}. Use their elements as raw markup (`<pk-card>`, `<pk-table>`, ...); see the "raw elements" workflow.
-- **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.ShowCloseButton`, `PkAlert.Boxed`, `PkTooltip.Title`), and `PkDialog.MaxWidthPx`, `PkDialog.Theme`, `PkTooltip.Kind`, `PkChart.Data` and `PkImageGallery.Images` are not generated. `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
+- **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.ShowCloseButton`, `PkAlert.Boxed`, `PkTooltip.DocLink`). The chart's `Data` and the image gallery's `Images` take the public records `PkChartData` and `PkGalleryImage` (declared as `object?`). `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
 
 ## Rules
 

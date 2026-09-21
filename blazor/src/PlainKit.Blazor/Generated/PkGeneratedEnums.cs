@@ -28,19 +28,6 @@ public enum ButtonVariant
     Plain,
 }
 
-/// <summary>The values of the PkTooltip parameter that use it. Each member is one attribute value of the element.</summary>
-public enum InfoTipPlacement
-{
-    /// <summary><c>top</c></summary>
-    Top,
-    /// <summary><c>bottom</c></summary>
-    Bottom,
-    /// <summary><c>left</c></summary>
-    Left,
-    /// <summary><c>right</c></summary>
-    Right,
-}
-
 /// <summary>The values of the PkMenuItem parameter that use it. Each member is one attribute value of the element.</summary>
 public enum MenuitemType
 {
@@ -56,8 +43,19 @@ public enum MenuitemType
     Divider,
 }
 
+/// <summary>The values of the PkPagination parameter that use it. Each member is one attribute value of the element.</summary>
+public enum PaginationMode
+{
+    /// <summary><c>numbered</c></summary>
+    Numbered,
+    /// <summary><c>simple</c></summary>
+    Simple,
+    /// <summary><c>load-more</c></summary>
+    LoadMore,
+}
+
 /// <summary>The values of the PkAlert parameter that use it. Each member is one attribute value of the element.</summary>
-public enum NoticeKind
+public enum PkAlertKind
 {
     /// <summary><c>danger</c></summary>
     Error,
@@ -69,15 +67,15 @@ public enum NoticeKind
     Success,
 }
 
-/// <summary>The values of the PkPagination parameter that use it. Each member is one attribute value of the element.</summary>
-public enum PaginationMode
+/// <summary>The values of the PkDialog parameter that use it. Each member is one attribute value of the element.</summary>
+public enum PkDialogTint
 {
-    /// <summary><c>numbered</c></summary>
-    Numbered,
-    /// <summary><c>simple</c></summary>
-    Simple,
-    /// <summary><c>load-more</c></summary>
-    LoadMore,
+    /// <summary><c>none</c></summary>
+    None,
+    /// <summary><c>product</c></summary>
+    Product,
+    /// <summary><c>archived</c></summary>
+    Archived,
 }
 
 /// <summary>The values of the PkTab parameter that use it. Each member is one attribute value of the element.</summary>
@@ -98,6 +96,19 @@ public enum PkTabsActivation
     Auto,
     /// <summary><c>manual</c></summary>
     Manual,
+}
+
+/// <summary>The values of the PkTooltip parameter that use it. Each member is one attribute value of the element.</summary>
+public enum PkTooltipPlacement
+{
+    /// <summary><c>top</c></summary>
+    Top,
+    /// <summary><c>bottom</c></summary>
+    Bottom,
+    /// <summary><c>left</c></summary>
+    Left,
+    /// <summary><c>right</c></summary>
+    Right,
 }
 
 /// <summary>The values of the PkPopover parameter that use it. Each member is one attribute value of the element.</summary>
@@ -201,15 +212,6 @@ internal static class PkGeneratedEnumAttributes
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 
-    internal static string ToAttr(this InfoTipPlacement value) => value switch
-    {
-        InfoTipPlacement.Top => "top",
-        InfoTipPlacement.Bottom => "bottom",
-        InfoTipPlacement.Left => "left",
-        InfoTipPlacement.Right => "right",
-        _ => throw new ArgumentOutOfRangeException(nameof(value)),
-    };
-
     internal static string ToAttr(this MenuitemType value) => value switch
     {
         MenuitemType.Item => "item",
@@ -220,20 +222,28 @@ internal static class PkGeneratedEnumAttributes
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 
-    internal static string ToAttr(this NoticeKind value) => value switch
-    {
-        NoticeKind.Error => "danger",
-        NoticeKind.Warning => "warning",
-        NoticeKind.Info => "info",
-        NoticeKind.Success => "success",
-        _ => throw new ArgumentOutOfRangeException(nameof(value)),
-    };
-
     internal static string ToAttr(this PaginationMode value) => value switch
     {
         PaginationMode.Numbered => "numbered",
         PaginationMode.Simple => "simple",
         PaginationMode.LoadMore => "load-more",
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    internal static string ToAttr(this PkAlertKind value) => value switch
+    {
+        PkAlertKind.Error => "danger",
+        PkAlertKind.Warning => "warning",
+        PkAlertKind.Info => "info",
+        PkAlertKind.Success => "success",
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    internal static string ToAttr(this PkDialogTint value) => value switch
+    {
+        PkDialogTint.None => "none",
+        PkDialogTint.Product => "product",
+        PkDialogTint.Archived => "archived",
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 
@@ -249,6 +259,15 @@ internal static class PkGeneratedEnumAttributes
     {
         PkTabsActivation.Auto => "auto",
         PkTabsActivation.Manual => "manual",
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
+
+    internal static string ToAttr(this PkTooltipPlacement value) => value switch
+    {
+        PkTooltipPlacement.Top => "top",
+        PkTooltipPlacement.Bottom => "bottom",
+        PkTooltipPlacement.Left => "left",
+        PkTooltipPlacement.Right => "right",
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 

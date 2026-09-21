@@ -783,6 +783,7 @@
   "js/theme-editor-logic.js:inlineEntries",
   "js/theme-editor-logic.js:isChanged",
   "js/theme-editor-logic.js:overrideCount",
+  "js/theme-editor-logic.js:readImport",
   "js/theme-editor-logic.js:visibleTokens",
   "js/theme-editor-logic.js:withEdit",
   "js/theme-editor-logic.js:withoutToken",

@@ -621,7 +621,7 @@ kbd + kbd { margin-inline-start: var(--space-1); }
 
 .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-/* Page-level styling for the raw table slotted into <pk-table> (and the DataGrid chrome around it). The table is light DOM, so shadow CSS cannot
+/* Page-level styling for the raw table slotted into <pk-table> (and the data-table chrome around it). The table is light DOM, so shadow CSS cannot
    reach its cells; these rules are keyed by the tag. The frame, toolbar slot and scrolling are in the element's shadow root. Tokens only. */
 pk-table {
     & table { inline-size: 100%; border-collapse: collapse; font-size: var(--text-base); }
@@ -642,7 +642,7 @@ pk-table {
     & :is(tfoot th, tfoot td) { font-weight: 600; }
 }
 
-/* A DataGrid: tighter cells, a per-column filter row, and the toolbar and pager chrome. */
+/* A data table: tighter cells, a per-column filter row, and the toolbar and pager chrome. */
 pk-table.dg-body {
     &::part(toolbar) { display: block; margin: 0; }
     & tbody td { padding: 0.35rem var(--space-2); font-size: var(--text-read); }

@@ -878,8 +878,8 @@
     },
     {
       "path": "js/theme-editor-logic.js",
-      "bytes": 4156,
-      "integrity": "sha384-+kBShNR76b+TeJ9cLWZeemJCbNUvfHBR60WWnSeMFPDe4vbMx3jWcGS32CKltSI/"
+      "bytes": 5863,
+      "integrity": "sha384-YqgUXaTvKrs7EakQopJSCeWyJn/ycAzp7Z6Zy5R1dPEEptog0IABum2QtBgl5G5R"
     },
     {
       "path": "js/theme.js",
@@ -923,8 +923,8 @@
     },
     {
       "path": "plainkit.css",
-      "bytes": 39178,
-      "integrity": "sha384-jeqR7ELgullVnAPvU9hCYXFujq9xt6bRPNlLahIoP3dUS0Wipu5TcEqR3KFALX7e"
+      "bytes": 39182,
+      "integrity": "sha384-KV4UdEacYPchOiSHIpeXJf79xNy8WccSrT8l+ZB/JO76ju+0Wv0y3RmCxuvILvCG"
     },
     {
       "path": "plainkit.js",
@@ -963,8 +963,8 @@
     },
     {
       "path": "skills/plainkit-blazor/SKILL.md",
-      "bytes": 8867,
-      "integrity": "sha384-EcSiJhLf3mWe2eC13mrYObaqMRYpbGbgIq7951wTQFkSEMGkHANFOvYjWgzC7ocp"
+      "bytes": 8880,
+      "integrity": "sha384-8gc8FFbFsy1y7ijWOeKPbv50UsnC1nPT7Sdkk1l2fddcYHkzshppbEe+in0KURHC"
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
@@ -973,13 +973,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-data-display.md",
-      "bytes": 18835,
-      "integrity": "sha384-1t+aGhMjzq+HWAj6V+rKvB1P80KGx4KUDQoFGbI70SBvBAUZWjyCz4HZGDpgfrQm"
+      "bytes": 18782,
+      "integrity": "sha384-yTIHsg3aboFHsAVcRDp+7JMvPQ1haafQ8vmCpJgkBWSAdaYq3PiSuTiB6Cf4LBPq"
     },
     {
       "path": "skills/plainkit-blazor/references/components-feedback.md",
-      "bytes": 9289,
-      "integrity": "sha384-o8j9KaQQgTHgQPHmKGikcX11M7BNslqINyuJI9NQXc0CkWIXJqaINxtPg2R9sXJX"
+      "bytes": 9290,
+      "integrity": "sha384-8HpvZ2kQVzFg9d14McXouZ8kDOgiWvLaGfEpx1x8GNmrYGkWvd+GrFU9BxTbkXaN"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-controls.md",
@@ -1008,8 +1008,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-overlays.md",
-      "bytes": 17335,
-      "integrity": "sha384-EVep2GR0cysjY47hJeRTatjRBz+IFJzDFsyI14dfJFaBYltqTjGexk1v7BItkADw"
+      "bytes": 17557,
+      "integrity": "sha384-0i/ZFQZIyub4P97CLgJHHmp5QtGV3n+AlfjZk7saYVSFxkH3xUotiScXFoJYb0mc"
     },
     {
       "path": "skills/plainkit-blazor/references/devtools.md",
@@ -1018,8 +1018,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/enums.md",
-      "bytes": 1781,
-      "integrity": "sha384-Sc7HtjUfKjVrVjBj0my9CTjgFHk/jNIZTBwAs6cpImYZiIfpnpjCEp7K27sFmpkK"
+      "bytes": 1847,
+      "integrity": "sha384-vP5VNSag0+Rf7FLZ5IZ9Ckz9NATERbPFIe64wPwP8msaW1mPc4mouTTbXoQhrtw3"
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
@@ -1028,8 +1028,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/known-gaps.md",
-      "bytes": 4459,
-      "integrity": "sha384-hlACAjNVB0VMSaxoBxG1C6KpI4804EXl6O10USzATxwDndk/vtBcBLVjJFniZN6o"
+      "bytes": 3730,
+      "integrity": "sha384-eBsmxWKcEjWtEomDFU0xBpbmgYAyLLIVRw3Xoqy9gJehxJUaouBqR7wZu1aK8wMy"
     },
     {
       "path": "skills/plainkit-blazor/references/logging.md",
@@ -1138,13 +1138,13 @@
     },
     {
       "path": "theme-editor/theme-editor.css",
-      "bytes": 1711,
-      "integrity": "sha384-coiYM4fSo7YQj8a++5b7C7TCk3MIbKZhnigtJPZCTHuNbO0Afju+ZRABnwC+BQbG"
+      "bytes": 1932,
+      "integrity": "sha384-qjIXoLjfP8h+rm2xFTzFob9eRvBvKascd1PFExjEQms9CLnyf94zNvCTgqdyB7eC"
     },
     {
       "path": "theme-editor/theme-editor.js",
-      "bytes": 18978,
-      "integrity": "sha384-af+YmyNqwmBbYl3/3d89vkjHoalzwQOvUZyEvaUpJxbVdIJGCUbpudD41ke0+EOA"
+      "bytes": 19052,
+      "integrity": "sha384-WNeX+vlTdiisPcCJ7vRkLnrBU42jkVp6fxS/E5+QgBDJMdePaekrSgRpKgs/6g41"
     },
     {
       "path": "theme-editor/tokens.css",

@@ -12,7 +12,7 @@ Every generated component also renders its element with the attributes you set; 
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Kind` | `NoticeKind` | `Error` `Warning` `Info` `Success` | attribute `kind` | The kind setting |
+| `Kind` | `PkAlertKind` | `Error` `Warning` `Info` `Success` | attribute `kind` | The kind setting |
 | `Title` | `string?` |  | attribute `heading` | The heading setting |
 | `Message` | `string?` |  | default slot | Message. |
 | `ChildContent` | `RenderFragment?` |  | default slot | Message. |
