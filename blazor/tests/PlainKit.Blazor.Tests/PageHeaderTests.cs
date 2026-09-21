@@ -126,4 +126,61 @@ public sealed class PageHeaderTests : TestContext
         Assert.Null(cut.Find("pk-page-header").GetAttribute("heading"));
         Assert.Equal(3, cut.Find("pk-breadcrumb").Children.Length);
     }
+
+    private IRenderedFragment RenderInShell(bool backLink, IReadOnlyList<PkCrumb> crumbs) => Render(builder =>
+    {
+        builder.OpenComponent<SectionOutlet>(0);
+        builder.AddAttribute(1, nameof(SectionOutlet.SectionName), "shell-title");
+        builder.CloseComponent();
+        builder.OpenComponent<PkPageHeader>(2);
+        builder.AddAttribute(3, nameof(PkPageHeader.ShellSection), "shell-title");
+        builder.AddAttribute(4, nameof(PkPageHeader.Crumbs), crumbs);
+        builder.AddAttribute(5, nameof(PkPageHeader.BackLink), backLink);
+        builder.CloseComponent();
+    });
+
+    [Fact]
+    public void BackLink_is_off_by_default()
+    {
+        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-button"));
+        Assert.Empty(RenderInShell(false, Trail).FindAll("pk-button"));
+    }
+
+    [Fact]
+    public void BackLink_in_a_shell_section_is_a_ghost_link_to_the_parent_crumb_before_the_title()
+    {
+        var cut = RenderInShell(true, Trail);
+        var back = cut.Find("pk-button");
+
+        Assert.Equal("/stock/orders", back.GetAttribute("href"));
+        Assert.Equal("ghost", back.GetAttribute("variant"));
+        Assert.Equal("Back to Purchase orders", back.GetAttribute("label"));
+        Assert.True(back.HasAttribute("icon"));
+        Assert.Equal("chevron-left", back.QuerySelector("pk-icon")!.GetAttribute("name"));
+        Assert.Null(back.GetAttribute("style"));
+        // before the title text, outside the header element
+        var nodes = cut.Nodes.ToList();
+        Assert.True(nodes.IndexOf(back) < nodes.IndexOf(cut.Nodes.OfType<AngleSharp.Dom.IText>().Single(n => n.Data.Trim() == "PO 1042")));
+        Assert.Single(cut.FindAll("pk-button"));
+        Assert.Empty(cut.Find("pk-page-header").QuerySelectorAll("pk-button"));
+    }
+
+    [Fact]
+    public void BackLink_without_a_shell_section_is_drawn_above_the_header()
+    {
+        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BackLink, true));
+        Assert.Equal("Back to Purchase orders", cut.Find("pk-button").GetAttribute("label"));
+        Assert.True(cut.Markup.IndexOf("<pk-button", StringComparison.Ordinal) < cut.Markup.IndexOf("<pk-page-header", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BackLink_skips_crumbs_without_an_address_and_the_current_page_and_is_absent_without_a_parent()
+    {
+        var skipped = RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Home", "/"), new PkCrumb("Section"), new PkCrumb("Record", "/section/record") }));
+        Assert.Equal("Back to Home", skipped.Find("pk-button").GetAttribute("label"));
+        Assert.Equal("/", skipped.Find("pk-button").GetAttribute("href"));
+
+        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Only", "/only") })).FindAll("pk-button"));
+        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Title, "No trail")).FindAll("pk-button"));
+    }
 }
