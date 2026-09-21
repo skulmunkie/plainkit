@@ -2,7 +2,7 @@
   "id": "notifications",
   "title": "Notifications and toasts",
   "summary": "Transient toasts for confirmations, inline notices for what needs attention, and a count badge on the bell.",
-  "built": "Toast, Alert, Button, Badge.",
+  "built": "Toast, Toast stack, Alert, Button, Badge.",
   "mobile": "Toasts stack full-width at the bottom.",
   "used": [
     "alert",
@@ -10,7 +10,7 @@
     "button",
     "cluster",
     "stack",
-    "toast"
+    "toast-stack"
   ],
   "order": 5
 }

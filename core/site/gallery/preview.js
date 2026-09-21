@@ -4,7 +4,10 @@
 // 375px device (a template is its own page; chrome.js sends ?width=phone here). Framework-free; ES module, no inline script.
 import { initPlainkit } from '../../js/plainkit.js';
 import { setTheme } from '../../js/theme.js';
-import { TEMPLATES_DIR } from './paths.js';
+import { createLogger } from '../../js/log.js';
+import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
+
+const log = createLogger('gallery-preview');
 
 const q = new URLSearchParams(location.search);
 const kind = q.get('kind');
@@ -32,7 +35,7 @@ try { data = await import('./gallery.data.js'); } catch (err) { say(`The preview
 const { PATTERNS, LAYOUTS, ELEMENTS, TEMPLATES } = data;
 
 const entry = (() => {
-    if (kind === 'patterns') { const p = PATTERNS.find(x => x.id === id); return p && { title: p.title, html: p.html }; }
+    if (kind === 'patterns') { const p = PATTERNS.find(x => x.id === id); return p && { title: p.title, html: p.html, script: p.script }; }
     if (kind === 'layouts') {
         const l = id === 'shell' ? { title: 'App shell', html: ELEMENTS.find(m => m.tag === 'pk-app-shell')?.examples[0].html } : LAYOUTS.find(x => x.id === id);
         return l && { title: l.title, html: l.html };
@@ -76,5 +79,19 @@ if (!entry) {
         // The demos are not wired to a server: forms do not submit.
         document.addEventListener('submit', e => e.preventDefault());
         initPlainkit(document);
+        if (entry.script) await runScript(entry, page);
     }
+}
+
+// A pattern's optional script (export default mount(root) -> { destroy() }) makes the sample behave like the real thing. It works on the
+// sample's own DOM only, and its listeners are removed when the page goes away.
+async function runScript(entry, page) {
+    const url = new URL(PATTERNS_DIR + entry.script, import.meta.url).href;
+    try {
+        const mount = (await import(url)).default;
+        if (typeof mount !== 'function') { log.error(`${entry.script} has no default export to mount`, { url }); return; }
+        const handle = mount(page);
+        addEventListener('pagehide', () => handle?.destroy?.(), { once: true });
+        log.debug(`${entry.script} mounted`, { url });
+    } catch (error) { log.error(`the sample script ${entry.script} failed`, error); }
 }

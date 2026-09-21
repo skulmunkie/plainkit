@@ -215,13 +215,14 @@ export const PATTERNS = [
         "id": "filter-table",
         "title": "Filter bar, table and bulk actions",
         "summary": "Filter chips and a search over a sortable table with row selection; choosing rows reveals a bulk-action bar.",
-        "built": "Table, Input, Select, Field, Tag, Badge, Button group, Pagination, Cluster.",
+        "built": "Table, Input, Select, Field, Tag, Badge, Button group, Pagination, Cluster, Empty state.",
         "mobile": "Filters wrap; the table scrolls inside its wrapper; the bulk bar stays under the header.",
         "used": [
             "badge",
             "button",
             "button-group",
             "cluster",
+            "empty-state",
             "field",
             "field-row",
             "input",
@@ -232,7 +233,8 @@ export const PATTERNS = [
             "tag"
         ],
         "order": 1,
-        "html": "<pk-table label=\"Items\" caption=\"Items\" striped hover selectable cards filterable sort=\"name\" selected='[1,2]' columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"status\",\"label\":\"Status\"},{\"key\":\"amount\",\"label\":\"Amount\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"name\":\"Item one\",\"status\":\"Active\",\"amount\":\"$12.00\"},{\"id\":2,\"name\":\"Item two\",\"status\":\"Draft\",\"amount\":\"$8.50\"},{\"id\":3,\"name\":\"Item three\",\"status\":\"Review\",\"amount\":\"$20.00\"},{\"id\":4,\"name\":\"Item four\",\"status\":\"Active\",\"amount\":\"$5.25\"}]'>\n<pk-stack slot=\"toolbar\" gap=\"sm\">\n<pk-field-row><pk-field label=\"Search\"><pk-input type=\"search\" placeholder=\"Name or SKU\"></pk-input></pk-field><pk-field label=\"Status\"><pk-select value=\"Any\"><option>Any</option><option>Active</option><option>Draft</option></pk-select></pk-field></pk-field-row>\n<pk-cluster><span class=\"muted\">Applied:</span><pk-tag removable>Status: Active</pk-tag><pk-tag removable>Price &gt; $5</pk-tag><pk-button size=\"mini\" variant=\"ghost\">Clear all</pk-button></pk-cluster>\n</pk-stack>\n<pk-button-group slot=\"bulk\" label=\"Bulk actions\"><pk-button size=\"mini\" variant=\"ghost\">Archive</pk-button><pk-button size=\"mini\" variant=\"ghost\">Export</pk-button><pk-button size=\"mini\" variant=\"warn\">Delete</pk-button></pk-button-group>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge>\n<pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n<pk-badge slot=\"cell-3-status\" variant=\"warn\">Review</pk-badge>\n<pk-badge slot=\"cell-4-status\" variant=\"ok\">Active</pk-badge>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"2\" label=\"Pages\"></pk-pagination>\n</pk-table>",
+        "html": "<pk-table label=\"Items\" caption=\"Items\" striped hover selectable cards filterable sort=\"name\" selected='[1,4]' filters='{\"status\":\"Active\"}' data-table columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"status\",\"label\":\"Status\"},{\"key\":\"amount\",\"label\":\"Amount\",\"type\":\"number\",\"sortable\":true}]' rows='[{\"id\":1,\"name\":\"Item one\",\"status\":\"Active\",\"amount\":\"$12.00\"},{\"id\":2,\"name\":\"Item two\",\"status\":\"Draft\",\"amount\":\"$8.50\"},{\"id\":3,\"name\":\"Item three\",\"status\":\"Review\",\"amount\":\"$20.00\"},{\"id\":4,\"name\":\"Item four\",\"status\":\"Active\",\"amount\":\"$5.25\"}]'>\n<pk-stack slot=\"toolbar\" gap=\"sm\">\n<pk-field-row><pk-field label=\"Search\"><pk-input type=\"search\" placeholder=\"Name or SKU\" data-field=\"name\"></pk-input></pk-field><pk-field label=\"Status\"><pk-select value=\"Active\" data-field=\"status\"><option>Any</option><option>Active</option><option>Draft</option><option>Review</option></pk-select></pk-field></pk-field-row>\n<pk-cluster data-applied><span class=\"muted\">Applied:</span><pk-tag removable data-key=\"status\">Status: Active</pk-tag><pk-button size=\"mini\" variant=\"ghost\" data-clear>Clear all</pk-button></pk-cluster>\n</pk-stack>\n<pk-button-group slot=\"bulk\" label=\"Bulk actions\"><pk-button size=\"mini\" variant=\"ghost\">Archive</pk-button><pk-button size=\"mini\" variant=\"ghost\">Export</pk-button><pk-button size=\"mini\" variant=\"warn\">Delete</pk-button></pk-button-group>\n<pk-empty-state slot=\"empty\" heading=\"No matching items\" description=\"Remove a filter to see more.\"></pk-empty-state>\n<pk-badge slot=\"cell-1-status\" variant=\"ok\">Active</pk-badge>\n<pk-badge slot=\"cell-2-status\" variant=\"muted\">Draft</pk-badge>\n<pk-badge slot=\"cell-3-status\" variant=\"warn\">Review</pk-badge>\n<pk-badge slot=\"cell-4-status\" variant=\"ok\">Active</pk-badge>\n<pk-pagination slot=\"footer\" page=\"1\" pages=\"2\" label=\"Pages\"></pk-pagination>\n</pk-table>",
+        "script": "filter-table/filter-table.js",
         "file": "samples/patterns/filter-table/filter-table.html"
     },
     {
@@ -255,7 +257,8 @@ export const PATTERNS = [
             "timeline-item"
         ],
         "order": 2,
-        "html": "<pk-grid columns=\"2\" min=\"18rem\">\n<pk-card heading=\"Items\"><pk-list-group variant=\"action\" label=\"Items\"><a href=\"#\">Item one</a><a href=\"#\" aria-current=\"true\"><strong>Item two</strong></a><a href=\"#\">Item three</a></pk-list-group></pk-card>\n<pk-card heading=\"Item two\"><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Edit</pk-button>\n<pk-tabs value=\"overview\"><pk-tab value=\"overview\">Overview</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"overview\"><pk-field-list><dt>Name</dt><dd>Item two</dd><dt>Status</dt><dd><pk-badge variant=\"muted\">Draft</pk-badge></dd></pk-field-list></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-timeline label=\"History\"><pk-timeline-item heading=\"Edited\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" status=\"done\"></pk-timeline-item></pk-timeline></pk-tab-panel>\n</pk-tabs></pk-card>\n</pk-grid>",
+        "html": "<pk-grid columns=\"2\" min=\"18rem\">\n<pk-card heading=\"Items\" data-list><pk-list-group variant=\"action\" label=\"Items\"><a href=\"#\" data-id=\"one\" data-status=\"Active\" data-variant=\"ok\" data-history=\"Published|Edited|Created\">Item one</a><a href=\"#\" aria-current=\"true\" data-id=\"two\" data-status=\"Draft\" data-variant=\"muted\" data-history=\"Edited|Created\"><strong>Item two</strong></a><a href=\"#\" data-id=\"three\" data-status=\"Review\" data-variant=\"warn\" data-history=\"Sent for review|Edited|Created\">Item three</a></pk-list-group></pk-card>\n<pk-card heading=\"Item two\" data-detail><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Edit</pk-button>\n<pk-tabs value=\"overview\" data-tabs><pk-tab value=\"overview\">Overview</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"overview\"><pk-field-list><dt>Name</dt><dd data-name>Item two</dd><dt>Status</dt><dd><pk-badge variant=\"muted\" data-status>Draft</pk-badge></dd></pk-field-list></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-timeline label=\"History\" data-history><pk-timeline-item heading=\"Edited\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" status=\"done\"></pk-timeline-item></pk-timeline></pk-tab-panel>\n</pk-tabs></pk-card>\n</pk-grid>",
+        "script": "master-detail-pattern/master-detail-pattern.js",
         "file": "samples/patterns/master-detail-pattern/master-detail-pattern.html"
     },
     {
@@ -296,14 +299,15 @@ export const PATTERNS = [
             "switch"
         ],
         "order": 4,
-        "html": "<form><pk-stack>\n<pk-card heading=\"Store\"><pk-field-row><pk-field label=\"Name\" help=\"Shown on packing slips.\"><pk-input value=\"Example store\"></pk-input></pk-field><pk-field label=\"Currency\"><pk-select value=\"USD\"><option>USD</option></pk-select></pk-field></pk-field-row></pk-card>\n<pk-card heading=\"Sync\"><pk-switch checked>Sync automatically</pk-switch></pk-card>\n<pk-accordion-item heading=\"Advanced\"><pk-field label=\"Rate limit\"><pk-range min=\"10\" max=\"120\" value=\"60\" output></pk-range></pk-field></pk-accordion-item>\n<pk-form-actions sticky><span slot=\"status\"><pk-alert kind=\"warning\" plain inline compact>Unsaved changes</pk-alert></span><pk-button type=\"button\">Save</pk-button><pk-button type=\"button\" variant=\"ghost\">Discard</pk-button></pk-form-actions>\n</pk-stack></form>",
+        "html": "<form><pk-stack>\n<pk-alert kind=\"success\" data-saved hidden>Settings saved.</pk-alert>\n<pk-card heading=\"Store\"><pk-field-row><pk-field label=\"Name\" help=\"Shown on packing slips.\"><pk-input value=\"Example store\"></pk-input></pk-field><pk-field label=\"Currency\"><pk-select value=\"USD\"><option>USD</option><option>EUR</option><option>GBP</option></pk-select></pk-field></pk-field-row></pk-card>\n<pk-card heading=\"Sync\"><pk-switch checked>Sync automatically</pk-switch></pk-card>\n<pk-accordion-item heading=\"Advanced\"><pk-field label=\"Rate limit\"><pk-range min=\"10\" max=\"120\" value=\"60\" output></pk-range></pk-field></pk-accordion-item>\n<pk-form-actions sticky data-bar><span slot=\"status\"><pk-alert kind=\"warning\" plain inline compact>Unsaved changes</pk-alert></span><pk-button type=\"button\" data-save>Save</pk-button><pk-button type=\"button\" variant=\"ghost\" data-discard>Discard</pk-button></pk-form-actions>\n</pk-stack></form>",
+        "script": "unsaved-settings/unsaved-settings.js",
         "file": "samples/patterns/unsaved-settings/unsaved-settings.html"
     },
     {
         "id": "notifications",
         "title": "Notifications and toasts",
         "summary": "Transient toasts for confirmations, inline notices for what needs attention, and a count badge on the bell.",
-        "built": "Toast, Alert, Button, Badge.",
+        "built": "Toast, Toast stack, Alert, Button, Badge.",
         "mobile": "Toasts stack full-width at the bottom.",
         "used": [
             "alert",
@@ -311,25 +315,28 @@ export const PATTERNS = [
             "button",
             "cluster",
             "stack",
-            "toast"
+            "toast-stack"
         ],
         "order": 5,
-        "html": "<pk-stack>\n<pk-cluster><pk-button variant=\"ghost\">Notifications <pk-badge count=\"3\" variant=\"danger\"></pk-badge></pk-button></pk-cluster>\n<pk-alert kind=\"success\">Item saved.</pk-alert>\n<pk-alert kind=\"warning\">Two items need a price.</pk-alert>\n<pk-stack gap=\"sm\"><pk-toast>Item archived.<pk-button slot=\"action\" size=\"mini\" variant=\"ghost\">Undo</pk-button></pk-toast><pk-toast>Export ready.<a slot=\"action\" href=\"#\">Download</a></pk-toast></pk-stack>\n</pk-stack>",
+        "html": "<pk-stack>\n<pk-cluster><pk-button variant=\"ghost\" data-bell aria-label=\"Notifications, mark all as read\">Notifications <pk-badge count=\"3\" variant=\"danger\" data-unread></pk-badge></pk-button></pk-cluster>\n<pk-alert kind=\"success\">Item saved.</pk-alert>\n<pk-alert kind=\"warning\">Two items need a price.</pk-alert>\n<pk-cluster><pk-button data-toast=\"saved\">Save item</pk-button><pk-button variant=\"ghost\" data-toast=\"archived\">Archive item</pk-button><pk-button variant=\"ghost\" data-toast=\"failed\">Export</pk-button></pk-cluster>\n<pk-toast-stack></pk-toast-stack>\n</pk-stack>",
+        "script": "notifications/notifications.js",
         "file": "samples/patterns/notifications/notifications.html"
     },
     {
         "id": "search-results",
         "title": "Search results and command palette",
         "summary": "A search field with a keyboard hint over results grouped by type, each row showing a snippet with the match marked.",
-        "built": "Input, List group, Typography (kbd, mark).",
+        "built": "Input, List group, Empty state, Typography (kbd, mark).",
         "mobile": "The field is full width; results are single-line rows with 44px targets.",
         "used": [
+            "empty-state",
             "input",
             "list-group",
             "stack"
         ],
         "order": 6,
-        "html": "<pk-stack>\n<pk-input type=\"search\" label=\"Search everything\" value=\"item\"><span slot=\"prefix\">Search</span><span slot=\"suffix\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></pk-input>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Products <span class=\"muted\">(2)</span></p><pk-list-group variant=\"action\" label=\"Products\"><button type=\"button\"><span><span class=\"muted\">1</span> <mark>Item</mark> one</span></button><button type=\"button\"><span><span class=\"muted\">2</span> <mark>Item</mark> two</span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\"><p class=\"eyebrow\">Orders <span class=\"muted\">(1)</span></p><pk-list-group variant=\"action\" label=\"Orders\"><button type=\"button\"><span><span class=\"muted\">1</span> Order for <mark>item</mark> three</span></button></pk-list-group></pk-stack>\n</pk-stack>",
+        "html": "<pk-stack>\n<pk-input type=\"search\" label=\"Search everything\" value=\"item\" data-query><span slot=\"prefix\">Search</span><span slot=\"suffix\"><kbd>Ctrl</kbd> <kbd>K</kbd></span></pk-input>\n<pk-stack gap=\"sm\" data-group><p class=\"eyebrow\">Products <span class=\"muted\" data-count>(2)</span></p><pk-list-group variant=\"action\" label=\"Products\"><button type=\"button\"><span><span class=\"muted\" data-n>1</span> <span data-label><mark>Item</mark> one</span></span></button><button type=\"button\"><span><span class=\"muted\" data-n>2</span> <span data-label><mark>Item</mark> two</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>3</span> <span data-label>Widget kit</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>4</span> <span data-label>Shipping label</span></span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\" data-group><p class=\"eyebrow\">Orders <span class=\"muted\" data-count>(1)</span></p><pk-list-group variant=\"action\" label=\"Orders\"><button type=\"button\"><span><span class=\"muted\" data-n>1</span> <span data-label>Order for <mark>item</mark> three</span></span></button><button type=\"button\" hidden><span><span class=\"muted\" data-n>2</span> <span data-label>Order 1042</span></span></button></pk-list-group></pk-stack>\n<pk-stack gap=\"sm\" data-group hidden><p class=\"eyebrow\">Customers <span class=\"muted\" data-count>(0)</span></p><pk-list-group variant=\"action\" label=\"Customers\"><button type=\"button\" hidden><span><span class=\"muted\" data-n>1</span> <span data-label>Acme Supply</span></span></button></pk-list-group></pk-stack>\n<pk-empty-state heading=\"No results\" description=\"Try a different word.\" data-empty hidden></pk-empty-state>\n</pk-stack>",
+        "script": "search-results/search-results.js",
         "file": "samples/patterns/search-results/search-results.html"
     },
     {
@@ -348,7 +355,8 @@ export const PATTERNS = [
             "stepper"
         ],
         "order": 7,
-        "html": "<pk-card heading=\"Get set up\"><span slot=\"actions\" class=\"muted\">2 of 4 done</span>\n<pk-stack>\n<pk-progress label=\"Setup progress\" value=\"50\"></pk-progress>\n<pk-stepper label=\"Setup steps\" current=\"2\"><pk-step heading=\"Create account\"></pk-step><pk-step heading=\"Add a product\"></pk-step><pk-step heading=\"Connect a channel\"></pk-step><pk-step heading=\"Invite a teammate\"></pk-step></pk-stepper>\n<pk-list-group label=\"Next steps\"><div>Connect a channel <pk-button size=\"mini\">Start</pk-button></div><div class=\"muted\">Invite a teammate</div></pk-list-group>\n</pk-stack></pk-card>",
+        "html": "<pk-card heading=\"Get set up\"><span slot=\"actions\" class=\"muted\" data-done>2 of 4 done</span>\n<pk-stack>\n<pk-progress label=\"Setup progress\" value=\"50\" data-progress></pk-progress>\n<pk-stepper label=\"Setup steps\" current=\"2\" data-stepper><pk-step heading=\"Create account\"></pk-step><pk-step heading=\"Add a product\"></pk-step><pk-step heading=\"Connect a channel\"></pk-step><pk-step heading=\"Invite a teammate\"></pk-step></pk-stepper>\n<pk-list-group label=\"Next steps\" data-next><div>Connect a channel <pk-button size=\"mini\" data-start>Start</pk-button></div><div class=\"muted\">Invite a teammate</div></pk-list-group>\n</pk-stack></pk-card>",
+        "script": "onboarding/onboarding.js",
         "file": "samples/patterns/onboarding/onboarding.html"
     },
     {
@@ -449,7 +457,7 @@ export const LAYOUTS = [
         "id": "record",
         "title": "Record page",
         "summary": "One record: chips and actions under the top bar, a tab strip and read-only fields beside editable ones.",
-        "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert.",
+        "built": "Page header (record), Badge, Tabs, Card, Field list, Field, Alert, Timeline.",
         "mobile": "Header actions wrap; the tab strip scrolls sideways; FieldList stacks label over value.",
         "used": [
             "alert",
@@ -463,10 +471,12 @@ export const LAYOUTS = [
             "stack",
             "tab",
             "tab-panel",
-            "tabs"
+            "tabs",
+            "timeline",
+            "timeline-item"
         ],
         "order": 2,
-        "html": "<pk-page-header variant=\"record\"><pk-badge variant=\"ok\">Received</pk-badge><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button></pk-page-header>\n<pk-tabs scroll value=\"details\"><pk-tab value=\"details\">Details</pk-tab><pk-tab value=\"lines\" count=\"3\">Lines</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"details\"><pk-card heading=\"Vendor\"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label=\"Notes\"><pk-input value=\"Ship together\"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"lines\"><pk-card heading=\"Lines\"><p>Three lines on this order.</p></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-card heading=\"History\"><p>No changes yet.</p></pk-card></pk-tab-panel>\n</pk-tabs>\n<pk-alert kind=\"info\">Receiving this PO creates ledger entries.</pk-alert>",
+        "html": "<pk-page-header variant=\"record\"><pk-badge variant=\"ok\">Received</pk-badge><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button></pk-page-header>\n<pk-tabs scroll value=\"details\"><pk-tab value=\"details\">Details</pk-tab><pk-tab value=\"lines\" count=\"3\">Lines</pk-tab><pk-tab value=\"history\">History</pk-tab>\n<pk-tab-panel value=\"details\"><pk-card heading=\"Vendor\"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label=\"Notes\"><pk-input value=\"Ship together\"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"lines\"><pk-card heading=\"Lines\"><p>Three lines on this order.</p></pk-card></pk-tab-panel>\n<pk-tab-panel value=\"history\"><pk-card heading=\"History\"><pk-timeline label=\"History\"><pk-timeline-item heading=\"Received\" time=\"Sep 18\" status=\"done\">All three lines checked in.</pk-timeline-item><pk-timeline-item heading=\"Shipped by vendor\" time=\"Sep 15\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Approved\" time=\"Sep 12\" status=\"done\"></pk-timeline-item><pk-timeline-item heading=\"Created\" time=\"Sep 12\" status=\"done\"></pk-timeline-item></pk-timeline></pk-card></pk-tab-panel>\n</pk-tabs>\n<pk-alert kind=\"info\">Receiving this PO creates ledger entries.</pk-alert>",
         "file": "layouts/record/record.html"
     },
     {
