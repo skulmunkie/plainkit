@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSize, formatBytes, acceptsFile, validateFiles } from './dropzone.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import behaviour, { parseSize, formatBytes, acceptsFile, validateFiles } from './dropzone.js';
 
 const file = (name, size = 100, type = '') => ({ name, size, type });
 test('parseSize reads units case-insensitively and refuses junk', () => {
@@ -30,4 +32,30 @@ test('validateFiles applies type, size and count rules and explains each rejecti
     assert.match(rejected[0].reason, /type/);
     assert.match(rejected[1].reason, /Larger than/);
     assert.match(rejected[2].reason, /Only 2 files/);
+});
+
+// A stand-in for PkElement: the input slot is a list, part() names the control, and a click is recorded.
+const make = (props = {}, slotted = []) => {
+    const clicks = []; const control = { click() { clicks.push('control'); } };
+    const el = new (behaviour(class { slotted() { return slotted; } part(n) { return n === 'control' ? control : null; } }))();
+    Object.assign(el, { disabled: false }, props);
+    return { el, clicks };
+};
+test('pick() clicks the file input, does nothing while disabled, and prefers the input in the input slot', () => {
+    const own = make(); own.el.pick(); assert.deepEqual(own.clicks, ['control']);
+    const off = make({ disabled: true }); off.el.pick(); assert.deepEqual(off.clicks, []);
+    const hit = []; const ext = { localName: 'input', click() { hit.push('slot'); } };
+    const slot = make({}, [ext]); slot.el.pick(); assert.deepEqual(hit, ['slot']); assert.deepEqual(slot.clicks, []);
+    const wrapped = make({}, [{ localName: 'span', querySelector: () => ext }]); wrapped.el.pick(); assert.deepEqual(hit, ['slot', 'slot']);
+});
+
+test('the meta documents pick(), the browse-label prop and its part, and the template draws the button only for a label', () => {
+    const read = ext => fs.readFileSync(fileURLToPath(new URL(`./dropzone.${ext}`, import.meta.url)), 'utf8');
+    const meta = JSON.parse(read('meta.json'));
+    assert.ok(meta.methods.some(m => m.name === 'pick()'));
+    assert.equal(meta.props.find(p => p.name === 'browseLabel').default, '');
+    assert.ok(meta.parts.some(p => p.name === 'browse'));
+    assert.ok(meta.examples.some(e => e.html.includes('browse-label')));
+    assert.match(read('html'), /<button part="browse"[^>]*data-if="browseLabel"/);
+    assert.match(read('css'), /@media \(pointer: coarse\)[^{]*\{ \.browse \{ min-block-size: var\(--touch-target\)/);
 });

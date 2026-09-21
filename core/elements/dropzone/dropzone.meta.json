@@ -49,6 +49,13 @@
       "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
     },
     {
+      "name": "browseLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Shows a real button with this text inside the zone (for example \"Choose files\") that opens the file picker. It becomes the zone's keyboard stop, and the file input stays only as the click target. Empty (the default) draws no button: the whole zone opens the picker."
+    },
+    {
       "name": "description",
       "type": "string",
       "default": "",
@@ -125,6 +132,10 @@
       "description": "The zone hint."
     },
     {
+      "name": "browse",
+      "description": "The button that opens the file picker (only when browse-label is set)."
+    },
+    {
       "name": "list",
       "description": "The list of files."
     },
@@ -154,6 +165,10 @@
   ],
   "methods": [
     {
+      "name": "pick()",
+      "description": "Opens the file picker, for a button of the host's own, so no hidden native input is needed. Call it from a click or key handler (the browser requires a user gesture); it does nothing while disabled. With an input in the input slot it opens that input's picker."
+    },
+    {
       "name": "clear()",
       "description": "Removes every file."
     },
@@ -162,11 +177,15 @@
       "description": "Focuses the file input."
     }
   ],
-  "a11y": "A real focusable file input covers the zone, so the keyboard opens the picker and the zone shows the focus ring; the list is a polite live region; rejections are text (with the reason), not just red; each Remove button names its file. The whole zone is the tap target on a phone.",
+  "a11y": "A real focusable file input covers the zone, so the keyboard opens the picker and the zone shows the focus ring; the list is a polite live region; rejections are text (with the reason), not just red; each Remove button names its file. The whole zone is the tap target on a phone. With browse-label, a real button is the one keyboard stop (its name is its text followed by the zone label) and the file input leaves the tab order and the accessibility tree; the button is 44px tall on a touch screen and on a phone-width page.",
   "examples": [
     {
       "title": "Drop zone",
       "html": "<pk-dropzone label=\"Files to import\" accept=\".csv,text/csv\" multiple max-size=\"5MB\" max-files=\"3\">Drop files here or click to choose<span slot=\"hint\">CSV, up to 5 MB each, 3 files at most</span></pk-dropzone>"
+    },
+    {
+      "title": "With a browse button",
+      "html": "<pk-dropzone label=\"Attachments\" browse-label=\"Choose files\" multiple max-size=\"2MB\">Drop files here<span slot=\"hint\">Or use the button. Up to 2 MB each.</span></pk-dropzone>"
     }
   ]
 }

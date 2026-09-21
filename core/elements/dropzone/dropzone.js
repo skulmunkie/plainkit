@@ -41,10 +41,15 @@ export default Base => class extends Base {
         zone.addEventListener('dragleave', () => this.toggleAttribute('dragover', false));
         zone.addEventListener('drop', e => { e.preventDefault(); this.toggleAttribute('dragover', false); this.drop(Array.from(e.dataTransfer?.files ?? [])); });
         this.part('list').addEventListener('click', e => { const b = e.target.closest?.('.rm'); if (b) this.take(this.$files.filter((_, n) => n !== Number(b.dataset.index))); });
+        this.part('browse').addEventListener('click', () => this.pick());
     }
+    // The input slot's own file input (a Blazor InputFile), if there is one.
+    external() { const slot = this.slotted('input')[0]; return slot?.localName === 'input' ? slot : slot?.querySelector('input') ?? null; }
+    // Opens the file picker, for a host's own button: like the native input it needs a user gesture. The slotted input opens its own picker when there is one.
+    pick() { if (!this.disabled) (this.external() ?? this.part('control')).click(); }
     // With an input in the input slot (a Blazor InputFile) the zone is only a drop target: dropped files go into that input and it reports them.
     drop(files) {
-        const slot = this.slotted('input')[0]; const ext = slot?.localName === 'input' ? slot : slot?.querySelector('input');
+        const ext = this.external();
         if (!ext) { this.take(files); return; }
         const dt = new DataTransfer(); for (const f of files) dt.items.add(f);
         ext.files = dt.files; ext.dispatchEvent(new Event('change', { bubbles: true }));
@@ -64,11 +69,14 @@ export default Base => class extends Base {
         this.$files ??= []; this.$rejected ??= [];
         const i = this.part('control'); const list = this.part('list'); const tpl = this.shadowRoot.querySelector('template');
         i.accept = this.accept; i.multiple = this.multiple;
+        const btn = this.part('browse'), browse = Boolean(this.browseLabel); // with a browse button it is the one tab stop, and the input is only a pointer target
+        i.tabIndex = browse ? -1 : 0; if (browse) i.setAttribute('aria-hidden', 'true'); else i.removeAttribute('aria-hidden');
+        btn.disabled = this.disabled; btn.setAttribute('aria-label', this.label ? `${this.browseLabel}, ${this.label}` : this.browseLabel);
         const row = (name, note, err, index) => { const li = tpl.content.firstElementChild.cloneNode(true); li.querySelector('.name').textContent = name; li.querySelector('.note').textContent = note; if (err) { li.classList.add('err'); li.querySelector('.rm').remove(); } else { const b = li.querySelector('.rm'); b.dataset.index = String(index); b.setAttribute('aria-label', `Remove ${name}`); } return li; };
         list.replaceChildren(...this.$files.map((f, n) => row(f.name, formatBytes(f.size), false, n)), ...this.$rejected.map(x => row(x.file.name, x.reason, true, 0)));
-        this.setValidity(this.required && this.$files.length === 0 ? { valueMissing: true } : {}, 'Choose a file.', i);
+        this.setValidity(this.required && this.$files.length === 0 ? { valueMissing: true } : {}, 'Choose a file.', browse ? btn : i);
         const fd = new FormData(); for (const f of this.$files) fd.append(this.name, f); this.setFormValue(fd);
     }
     onReset() { this.$files = []; this.$rejected = []; this.requestUpdate(); }
-    focus(o) { this.part('control').focus(o); }
+    focus(o) { this.part(this.browseLabel ? 'browse' : 'control').focus(o); }
 };
