@@ -102,6 +102,17 @@ A control that navigates is a link, not a click handler: give `pk-button` an `hr
 
 `target`, `rel` (`noopener` is the default for `_blank`) and `download` only apply with `href`. `disabled` and `busy` drop the href and report `aria-disabled`. A link still fires `click`, so a host can track it.
 
+### Icon-only button
+
+Write an icon button like any other button, with its name as the text, and add `icon`: the text is hidden visually and stays the accessible name (and the hover tooltip); only the icon is drawn. `icon-name` draws a sprite symbol for you; a `pk-icon` or an svg in the button works too. `label` overrides the text. An icon button with no name at all fails the scorecard.
+
+```html
+<pk-button icon variant="ghost" icon-name="plus">Add item</pk-button>
+<pk-button icon variant="ghost" href="/orders"><pk-icon name="chevron-left"></pk-icon>Back to Orders</pk-button>
+```
+
+`busy` swaps the icon for the spinner and keeps the name; `toggle` keeps `aria-pressed`. Inside a `pk-tooltip` the tooltip shows the name instead of the native title.
+
 ### Open a dialog
 
 ```html

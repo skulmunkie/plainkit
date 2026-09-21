@@ -8,6 +8,8 @@ export const DEFAULTS = Object.freeze({
     maxNestedScrollers: 0,      // a scroll container inside another scroll container
     literalColour: /#[0-9a-fA-F]{3,8}\b|\brgba?\(/,
     interactive: 'a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="tab"], [tabindex]:not([tabindex="-1"])',
+    // Custom elements whose control lives in a shadow root, so none of the selectors above reach it: measured and named here (a pk-button's ring is drawn inside its shadow root, so they are not focus-probed).
+    hosts: 'pk-button',
     maxFocusProbe: 40,
     minGapPx: 4,                // controls in a row or stack closer than this fail (the --gap-min token)
     minPaddingPx: 4,            // text closer than this to the edge of a bordered or filled box fails
@@ -29,6 +31,7 @@ export function accessibleName(el) {
     const doc = el.ownerDocument;
     const attr = n => (el.getAttribute(n) ?? '').trim();
     if (attr('aria-label')) return attr('aria-label');
+    if (el.localName === 'pk-button' && attr('label')) return attr('label'); // pk-button: the label prop wins over its text, as its inner button says
     const by = attr('aria-labelledby');
     if (by) { const t = by.split(/\s+/).map(id => doc.getElementById(id)?.textContent ?? '').join(' ').trim(); if (t) return t; }
     if (el.labels?.length) { const t = [...el.labels].map(l => l.textContent).join(' ').trim(); if (t) return t; }
@@ -83,7 +86,7 @@ export function collect(root, options = {}) {
     const win = doc.defaultView;
     const scope = root.querySelectorAll ? root : doc;
     const controls = [];
-    for (const el of scope.querySelectorAll(cfg.interactive)) {
+    for (const el of scope.querySelectorAll(`${cfg.interactive}, ${cfg.hosts}`)) {
         if (el.disabled || el.hidden || el.closest('[hidden]')) continue;
         // A checkbox or radio is tapped through its label, so the label is the target that counts.
         const r = (el.type === 'checkbox' || el.type === 'radio') && el.labels?.length ? el.labels[0].getBoundingClientRect() : el.getBoundingClientRect();

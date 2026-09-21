@@ -320,4 +320,49 @@ export const formCases = [
         browse.focus(); t.eq(browse.shadowRoot.activeElement, b, 'focus() goes to the button'); t.ok(!browse.checkValidity(), 'required is anchored on the button');
         browse.disabled = true; await t.settle(); t.ok(b.disabled);
     }],
+    ['button icon: the words are hidden visually and stay the accessible name; the icon is drawn; the label wins; the title mirrors the name', async t => {
+        const b = await t.mount('<pk-button icon variant="ghost" icon-name="plus">Add item</pk-button>'); await t.settle();
+        const c = b.part('control'), lbl = b.shadowRoot.querySelector('.lbl'), svg = b.part('icon');
+        const rect = lbl.getBoundingClientRect(); t.ok(rect.width === 0 && rect.height === 0, 'the text takes no room');
+        t.ok(getComputedStyle(lbl).display !== 'none' && getComputedStyle(lbl).visibility === 'visible', 'it is not display:none or visibility:hidden, so it stays in the accessibility tree');
+        t.eq(b.textContent, 'Add item', 'the name is still the slotted text'); t.ok(b.shadowRoot.querySelector('slot:not([name])').assignedNodes().length === 1, 'and it reaches the button through the default slot');
+        t.ok(!svg.hasAttribute('hidden') && svg.getBoundingClientRect().width > 0, 'the icon-name symbol is drawn'); t.ok(svg.firstChild.getAttribute('href').endsWith('icons.svg#plus'), 'from the SDK sprite');
+        t.eq(c.getAttribute('title'), 'Add item', 'the native tooltip shows the name'); t.eq(c.getAttribute('aria-description'), '', 'and is not read a second time as a description');
+        t.ok(!c.hasAttribute('aria-label'), 'no aria-label is needed');
+        t.ok(Math.abs(c.getBoundingClientRect().width - c.getBoundingClientRect().height) < 1, 'the button is square');
+        const w = c.getBoundingClientRect().width; b.textContent = 'A much longer name for the very same button'; await t.settle(); t.eq(c.getBoundingClientRect().width, w, 'no layout shift when the text changes');
+        b.label = 'Add'; await t.settle(); t.eq(c.getAttribute('aria-label'), 'Add', 'the label wins over the slotted text'); t.eq(c.getAttribute('title'), 'Add');
+        b.icon = false; await t.settle(); t.ok(!c.hasAttribute('title') && svg.getBoundingClientRect().width > 0, 'without icon there is no tooltip title and the text shows'); t.ok(lbl.getBoundingClientRect().width > 0);
+        const bare = await t.mount('<pk-button variant="ghost">Save</pk-button>'); await t.settle(); t.ok(bare.part('icon').hasAttribute('hidden'), 'no icon-name, no icon drawn'); t.eq(bare.shadowRoot.querySelector('.lbl').getBoundingClientRect().width > 0, true);
+        const tip = await t.mount('<pk-tooltip text="Add"><pk-button icon icon-name="plus">Add</pk-button></pk-tooltip>'); const inner = tip.querySelector('pk-button'); await t.settle();
+        t.ok(!inner.part('control').hasAttribute('title'), 'inside a pk-tooltip the tooltip is the pk-tooltip, not a native title');
+        const own = await t.mount('<pk-button icon icon-name="plus" title="Custom">Add</pk-button>'); t.ok(!own.part('control').hasAttribute('title'), 'a title on the host is left to the host');
+    }],
+
+    ['button icon: a link, a busy button and a toggle keep their name and behaviour; an element in the slot stays drawn', async t => {
+        const a = await t.mount('<pk-button icon variant="ghost" href="#orders"><pk-icon name="chevron-left"></pk-icon>Back to Orders</pk-button>'); await t.settle();
+        const link = a.part('control'); t.eq(link.localName, 'a'); t.eq(link.getAttribute('href'), '#orders'); t.eq(link.getAttribute('title'), 'Back to Orders');
+        t.ok(a.querySelector('pk-icon').getBoundingClientRect().width > 0, 'the pk-icon in the slot is drawn'); t.eq(link.getBoundingClientRect().width, link.getBoundingClientRect().height, 'a square link');
+        a.focus(); t.eq(a.shadowRoot.activeElement, link, 'the link takes focus'); let clicks = 0; a.addEventListener('click', e => { clicks++; e.preventDefault(); }); link.click(); t.eq(clicks, 1, 'a link click still fires click');
+        const b = await t.mount('<pk-button icon icon-name="search" busy>Search</pk-button>'); await t.settle();
+        t.ok(b.part('icon').getBoundingClientRect().width === 0 && !b.part('spinner').hidden && b.part('spinner').getBoundingClientRect().width > 0, 'the spinner replaces the icon');
+        t.eq(b.part('control').getAttribute('aria-busy'), 'true'); t.eq(b.part('control').getAttribute('title'), 'Search', 'the name stays'); let n = 0; b.addEventListener('click', () => n++); b.click(); t.eq(n, 0, 'a busy icon button ignores clicks');
+        const g = await t.mount('<pk-button icon toggle icon-name="menu" busy-text="Working">Menu</pk-button>'); let seen; g.addEventListener('pk-toggle', e => { seen = e.detail; });
+        t.eq(g.part('control').getAttribute('aria-pressed'), 'false'); g.click(); await t.settle(); t.ok(seen.pressed); t.eq(g.part('control').getAttribute('aria-pressed'), 'true', 'aria-pressed follows the toggle');
+        g.busy = true; await t.settle(); t.ok(!g.hasAttribute('has-busy-text'), 'busy-text does not replace the name of an icon button'); t.eq(g.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0);
+        const sized = {}; for (const s of ['md', 'mini', 'lg']) { const x = await t.mount(`<pk-button icon size="${s}" icon-name="plus">Add</pk-button>`); await t.settle(); const r = x.part('control').getBoundingClientRect(); sized[s] = r; t.ok(Math.abs(r.width - r.height) < 1, `${s} is square`); }
+        t.ok(sized.mini.width < sized.md.width && sized.md.width < sized.lg.width, 'the size follows size');
+    }],
+
+    ['button icon (375px): every size is a 44px target and the text takes no room', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = ['md', 'mini', 'lg'].map(s => `<pk-button icon size="${s}" icon-name="plus">Add ${s}</pk-button>`).join('') + '<pk-button icon href="#x"><pk-icon name="chevron-left"></pk-icon>Back</pk-button>';
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '200px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        const until = async fn => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await new Promise(r => setTimeout(r, 50)); } throw new Error('the buttons did not upgrade'); };
+        const buttons = await until(() => { const l = [...f.contentDocument.querySelectorAll('pk-button')]; return l.length === 4 && l.every(b => b.shadowRoot?.querySelector('[part="icon"]')) && l; });
+        await new Promise(r => setTimeout(r, 200)); t.eq(f.contentWindow.innerWidth, 375);
+        for (const b of buttons) { const r = b.part('control').getBoundingClientRect(); t.ok(r.width >= 43.5 && r.height >= 43.5, `${b.getAttribute('size') ?? 'link'} is ${r.width}x${r.height}, not under 44px`); if (!b.querySelector('pk-icon')) t.eq(b.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0, 'the text takes no room'); }
+    }],
 ];

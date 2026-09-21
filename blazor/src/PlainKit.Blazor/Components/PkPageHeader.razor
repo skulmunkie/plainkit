@@ -4,7 +4,7 @@
 
 @* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title, a pk-breadcrumb built from
    a list of crumbs (the last one is the current page) and, when ShellSection names the layout's SectionOutlet, the title in the app shell's
-   top bar. BackLink adds a back anchor to the parent crumb (a ghost pk-button link, chevron only, named "Back to <label>"). Which crumbs belong to a route is the app's business: pass the list. *@
+   top bar. BackLink adds a back anchor to the parent crumb (a ghost icon-only pk-button link: a chevron, with the text "Back to <label>" hidden visually and kept as its name). Which crumbs belong to a route is the app's business: pass the list. *@
 @if (ShellSection is not null)
 {
     <SectionContent SectionName="@ShellSection">@if (BackCrumb is not null) {@BackAnchor}@EffectiveTitle</SectionContent>
@@ -99,12 +99,13 @@
         builder.AddAttribute(1, nameof(PkButton.Variant), ButtonVariant.Ghost);
         builder.AddAttribute(2, nameof(PkButton.Href), BackCrumb!.Href);
         builder.AddAttribute(3, nameof(PkButton.Icon), true);
-        builder.AddAttribute(4, nameof(PkButton.AriaLabel), "Back to " + BackCrumb.Label);
-        builder.AddAttribute(5, nameof(PkButton.ChildContent), (RenderFragment)(inner =>
+        // Icon mode hides the text visually and keeps it as the accessible name: no separate aria-label.
+        builder.AddAttribute(4, nameof(PkButton.ChildContent), (RenderFragment)(inner =>
         {
             inner.OpenComponent<PkIcon>(0);
             inner.AddAttribute(1, nameof(PkIcon.Name), "chevron-left");
             inner.CloseComponent();
+            inner.AddContent(2, "Back to " + BackCrumb.Label);
         }));
         builder.CloseComponent();
     };
