@@ -29,7 +29,7 @@ Where you get the files, and which versions are pinned:
 |---|---|
 | `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere | pinned |
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
-| The Pages site, `https://skulmunkie.github.io/plainkit/` (gallery and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
+| The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 
 There is no CDN link by git tag: the repository does not contain `core/dist` (it is generated, see below), so a tag has nothing to serve. `dist/manifest.json` lists every file with a SRI hash. The SDK itself makes no third-party requests at run time. How releases are made is in [PUBLISHING.md](PUBLISHING.md).
 
@@ -70,7 +70,7 @@ scripts/   bootstrap.mjs runs everything below in order; publish-dist.mjs copies
 | The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
 | The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
 | A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
-| Nothing local, only the internet | each file is also served at `https://skulmunkie.github.io/plainkit/dist/skills/<skill>/SKILL.md` (and `.../references/<file>.md`) |
+| Nothing local, only the internet | each file is also served on the [Pages site](https://skulmunkie.github.io/plainkit/) at `dist/skills/<skill>/SKILL.md` (and `dist/skills/<skill>/references/<file>.md`) |
 
 Commit the folders to the project so every agent and teammate gets them, and re-copy them when you upgrade Plainkit (they carry the version of the release they came from, in their first lines).
 

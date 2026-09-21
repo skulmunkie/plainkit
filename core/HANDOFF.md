@@ -1,6 +1,6 @@
 # Hand-off: shipping the SDK's tools as modules
 
-> **Migration status (2026-09-20):** this folder was moved here from a private project as the first commit of the Plainkit repository. Done: renamed to Plainkit (`sdk-` to `pk-`, `--sdk-*` to `--pk-*`, `data-sdk-*` to `data-pk-*`, `dist/plainkit*.css|js`), MIT licence, privacy scrub of demo content and generic chip tones. Still to do: move the Blazor port (`blazor/`, Plainkit.Blazor) here once it is cleaned of app-specific content, and add its CI job and the NuGet step to `release.yml`. Paths below that say `sdk/` mean this `core/` folder.
+> **Migration status (2026-09-20):** this folder was moved here from a private project as the first commit of the Plainkit repository. Done: renamed to Plainkit (`sdk-` to `pk-`, `--sdk-*` to `--pk-*`, `data-sdk-*` to `data-pk-*`, `dist/plainkit*.css|js`), MIT licence, privacy scrub of demo content and generic chip tones. The Blazor port (`blazor/`, PlainKit.Blazor) has since moved here, with its CI and the NuGet step in `release.yml`. Paths below that say `sdk/` mean this `core/` folder.
 
 For a fresh agent picking this up cold, most likely in the SDK's own repository (the SDK is being renamed Plainkit, element prefix `sdk-` becoming `pk-`, licence MIT). Read `README.md` ("Embed the gallery", "Tool modules") and `STANDARDS.md` first; this file is the state of the work and what is left.
 
@@ -10,7 +10,7 @@ For a fresh agent picking this up cold, most likely in the SDK's own repository 
 
 The deliverable for each capability is a **JavaScript module** with a small API, `mountX(container, options)`, that a developer calls from their own project, self-contained in `dist/<name>/`. A tag (`<pk-x>` / `<pk-x>`) is optional sugar: add one only when it is a thin layer over the module (about a dozen lines of logic, like `<pk-gallery>`); otherwise skip it and say why. Keep it clean and simple. It is not a Vue or Bootstrap replacement. No new dependencies. Wrap or reuse what exists; do not rebuild.
 
-## What is built (all committed, nothing pushed)
+## What is built
 
 | Capability | Module | Element | Status |
 |---|---|---|---|
