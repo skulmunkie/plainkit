@@ -14,7 +14,7 @@
 
 .te-name { overflow-wrap: anywhere; background: none; padding: 0; }
 
-.te-row > pk-input, .te-row > pk-colour-input { min-width: 0; }
+.te-row > pk-input, .te-row > pk-colour-input, .te-row > pk-unit-input { min-width: 0; }
 
 .te-row > [data-pair] { grid-column: 3; }
 
@@ -33,7 +33,7 @@
     .te-toolbar > :first-child, .te-toolbar > :last-child { grid-column: 1 / -1; }
     .te-row { grid-template-columns: minmax(0, 1fr) auto auto; padding-inline: var(--space-2); }
     .te-name { grid-column: 1 / -1; font-size: var(--text-base); }
-    .te-row > pk-input, .te-row > pk-colour-input { grid-column: 1; }
+    .te-row > pk-input, .te-row > pk-colour-input, .te-row > pk-unit-input { grid-column: 1; }
     .te-row > [data-pair] { grid-column: 2; }
     .te-row > pk-button { grid-column: 3; }
     .te-row > pk-button { min-height: var(--touch-target); }

@@ -42,4 +42,25 @@ export const toolCases = [
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();
     }],
+    ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false });
+        const row = name => host.querySelector(`[data-token="${name}"]`);
+        await until(() => row('--space-4'), 'the token rows');
+        const unit = row('--space-4').querySelector('pk-unit-input'); await t.load(host); await t.settle();
+        t.ok(unit, 'a length token uses pk-unit-input');
+        t.eq(unit.part('control').value, '1'); t.eq(unit.part('unit').value, 'rem');
+        t.ok(row('--color-accent').querySelector('pk-colour-input') && row('--font-sans').querySelector('pk-input') && !row('--text-sm').querySelector('pk-unit-input'), 'colours, fonts and var() sizes keep their field');
+        unit.part('control').value = '1.5'; unit.part('control').dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        t.eq(editor.overrides().dark['--space-4'], '1.5rem'); t.eq(preview.style.getPropertyValue('--space-4'), '1.5rem');
+        const select = unit.part('unit'); select.value = 'px'; select.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(editor.overrides().dark['--space-4'], '1.5px', 'a unit pick is an edit');
+        row('--space-4').querySelector('pk-button').click(); await t.settle();
+        t.eq(Object.keys(editor.overrides().dark).length, 0, 'Reset clears the override');
+        const fresh = row('--space-4').querySelector('pk-unit-input'); await t.settle();
+        t.eq(fresh.value, '1rem');
+        editor.destroy();
+    }],
 ];
