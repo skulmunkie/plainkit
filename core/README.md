@@ -34,7 +34,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 
 | Path | What |
 |---|---|
-| `tokens/` | `tokens.css`: every colour, size, space and shadow, per theme |
+| `tokens/` | `tokens.css`: every colour, size, space and shadow, per theme; `breakpoints.json`: the named breakpoints (`phone` 640, `tablet` 1024, `wide` 1280) |
 | `base/` | The page layer for the light DOM: `base.css` (element baselines, spacing rhythm), `spacing.css`, `typography.css`, `table-content.css`, `utilities.css` and `a11y.css` (focus and phone rules; loads last) |
 | `js/` | Shared modules: `element.js` (the base class), `loader.js` (on-demand loading), `plainkit.js` (entry), `theme.js`, `colour.js`, `quality.js`, `scoring.js`, `audit.js`, `code-explorer/` |
 | `elements/<name>/` | The custom elements: `<name>.html` (template), `.css`, `.js` (behaviour, optional), `.meta.json` (the API); `.element.js` is generated. `registry.js` maps tag to module |
@@ -44,11 +44,21 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/<tool>/`; the site pages are thin hosts on them |
-| `tools/` | `build.mjs`, `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs`, `markdown.mjs` and `guides.mjs` (the Guides' Markdown converter and loader) |
+| `tools/` | `build.mjs`, `breakpoints.mjs` (named breakpoints resolved at build), `breakpoint-report.mjs` (what changes at each), `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs`, `markdown.mjs` and `guides.mjs` (the Guides' Markdown converter and loader) |
 | `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab, attested by `report.json`) |
 | `dist/` | Generated output (not in git; `node scripts/bootstrap.mjs` from the repository root writes it); never edit |
 
 `plainkit.css`, `elements/*/*.element.js`, `site/gallery/gallery.data.js`, `site/guides/guides.data.js`, `site/files/snapshot.json`, `site/scorecard/api.current.json`, `js/version.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`, and none of them is in git. On a fresh clone (and after switching branches or editing sources) run `node scripts/bootstrap.mjs` from the repository root: it runs the build, then the Blazor wrapper generator, the skills generator and the package copy (about 4 seconds). `node tools/serve.mjs` runs it by itself when the files are missing. The pinned release is the GitHub release `dist` zip, or NuGet; there is no CDN link by git tag, because a tag does not carry `dist`.
+
+## Responsive design and breakpoints
+
+The SDK is desktop-first and responds at three named widths, one source, `tokens/breakpoints.json`: `phone` 640, `tablet` 1024, `wide` 1280 (a rule applies at that width and below). CSS custom properties cannot be used inside `@media`, so the names are resolved when the SDK is built.
+
+- **Element CSS** (`elements/<name>/<name>.css`) writes the name: `@media (--phone)` is `(max-width: 640px)`, `@media (--above-phone)` is `(min-width: 641px)`, and a name combines like any feature (`(--phone) and (orientation: portrait)`, `(pointer: coarse), (--phone)`, `(--above-phone) and (--tablet)` for a band). `tools/breakpoints.mjs` replaces them in the generated module; an unknown name fails the build.
+- **CSS the site loads unbuilt** (`tokens/`, `base/`, `site/`, `modules/`, `samples/`) cannot use names, so it writes the literal width, and `tests/breakpoints.test.mjs` fails when that width is not a named one (or one above it).
+- **Scripts** never repeat a width: `js/breakpoints.js` (`mediaBelow('phone')`, `mediaAbove`, `breakpoint(name)`) reads `--pk-bp-phone`, `--pk-bp-tablet` and `--pk-bp-wide`, which `plainkit.css` defines on `:root`; without them it uses the default and logs one debug line.
+- **The analysis:** `node core/tools/breakpoint-report.mjs` (or `--json`) lists, per breakpoint, the elements, selectors and properties that change there; the build writes it to `dist/breakpoints.report.json`.
+- **Different widths** need a rebuild (edit `breakpoints.json`, run `node scripts/bootstrap.mjs`); a prebuilt `dist` has the default set. The guide "Responsive design and breakpoints" is the user-facing version.
 
 ## Add a guide
 

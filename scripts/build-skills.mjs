@@ -20,6 +20,7 @@ import { pkName, kebab } from './generate-blazor.mjs';
 import { loadSamples, build } from '../core/tools/build.mjs';
 import { MODULES } from '../core/tools/modules-dist.mjs';
 import { parseTokenBlocks } from '../core/js/theme.js';
+import { loadBreakpoints } from '../core/tools/breakpoints.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const root = path.resolve(here, '..');
@@ -193,6 +194,7 @@ export function collect() {
         modules: [...modules, gallery],
         // A pattern that ships a script: its source, with the SDK import paths as they are in an app (a copy of dist at ./plainkit/).
         samples: { templates, patterns: samples.patterns.map(p => (p.script ? { ...p, scriptSource: read(path.join(core, 'samples', 'patterns', p.script)).replace(/from '(?:\.\.\/){3}js\//g, "from './plainkit/js/").trim() } : p)), layouts: samples.layouts },
+        breakpoints: loadBreakpoints(), breakpointReport: readJson(dist('breakpoints.report.json')),
         tokens: parseTokenBlocks(tokenCss), tokenCount: [...tokenCss.matchAll(/(--[a-z0-9-]+)\s*:/g)].length,
         logHeader: headerComment(read(dist('js/log.js'))),
         invokersHeader: headerComment(read(dist('js/invokers.js'))),
@@ -329,7 +331,18 @@ function themingMd(src) {
     const used = new Set(groups.flatMap(([, re]) => names.filter(n => re.test(n))));
     const other = names.filter(n => !used.has(n)).sort();
     out.push('## Other tokens', '', 'Element and layout tokens (chart, code viewer, control heights, field states, ...). Names only; the values are in `dist/plainkit.css`.', '', other.map(code).join(' '), '');
+    out.push(...breakpointsMd(src));
     return out.join('\n');
+}
+
+// The named breakpoints, from tokens/breakpoints.json and the build's analysis (dist/breakpoints.report.json), so the numbers here are the shipped ones.
+function breakpointsMd(src) {
+    const rows = src.breakpoints.map(b => { const r = src.breakpointReport.byBreakpoint[b.name]; return [code(b.name), `${b.width}px`, code(`(max-width: ${b.width}px)`), code(`(min-width: ${b.width + 1}px)`), code(`--pk-bp-${b.name}`), `${r.elementCount} element${r.elementCount === 1 ? '' : 's'}, ${r.ruleCount} rule${r.ruleCount === 1 ? '' : 's'}`]; });
+    return ['## Breakpoints', '',
+        'The page and the elements respond at named widths, desktop-first: a rule for a breakpoint applies at that width **and below**. Custom properties cannot be used inside `@media`, so the widths are resolved when the SDK is built (`core/tokens/breakpoints.json`); a prebuilt `dist` has these values, and other widths need a rebuild. The elements already respond on their own: do not restyle them at these widths.', '',
+        table(['Name', 'Width', 'At or below', 'Above', 'Custom property', 'What changes there'], rows), '',
+        'The SDK\'s own element CSS writes these as `(--phone)` and `(--above-phone)`, which its build resolves; that syntax works only inside the SDK, not in your stylesheet.', '',
+        `In **your own** stylesheet write the literal query with the same width (${src.breakpoints.map(b => code(`(max-width: ${b.width}px)`)).join(', ')}); a variable does not work in \`@media\`. In a script read the width from the page, never repeat the number: ${code("import { mediaBelow } from './plainkit/js/breakpoints.js'")} then ${code("mediaBelow('phone').matches")} (also ${code('mediaAbove(name)')}, ${code('breakpoint(name)')} for the number, ${code('belowQuery(name)')} and ${code('aboveQuery(name)')} for the query text). What each breakpoint changes, element by element, is in \`dist/breakpoints.report.json\`.`, ''];
 }
 
 function loadingMd(src) {
@@ -351,7 +364,7 @@ const SDK_GAPS = [
     'Class-based components are gone. The old `.btn`, `.card`, `.modal-*`, `.notice`, `.dg-*` and similar CSS classes no longer exist; every component is a `pk-*` element (the page layer, `plainkit.css`, holds tokens, base styles, spacing, typography, table content and utilities).',
     'No inline `style` attributes, `<style>` elements, inline event handlers or inline scripts: the toolkit is built for `script-src \'self\'; style-src \'self\'`. Use props, `::part()` and CSS custom properties from a stylesheet, and scripts from files.',
     'Use only elements that exist (see `elements-index.md`). If a component you need is missing, say so instead of building a one-off; the missing-components list is tracked as an issue in the repository.',
-    'The Guides (the Guides page of the site, from Markdown in core/site/guides/content) are a first set of four: getting started with the SDK and with Blazor, theming and tokens, logging. There is no search yet, so the references in this skill remain the full documentation.',
+    'The Guides (the Guides page of the site, from Markdown in core/site/guides/content) are a first set of five: getting started with the SDK and with Blazor, theming and tokens, responsive design and breakpoints, logging. There is no search yet, so the references in this skill remain the full documentation.',
     'The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are not built. Behaviour is plain: props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively.',
     'The layout builder (`mountLayoutBuilder`, `dist/layout-builder/`) moves elements by keyboard and buttons only: pointer drag and drop, the iframe device preview, reusable blocks, the dev tools dock entry and the Blazor `PkLayoutBuilder` wrapper are not built yet.',
     'Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern\'s is shown in `patterns.md`, a template\'s in `templates.md`). Their data is placeholder text.',
@@ -571,6 +584,7 @@ export function generate(src = collect()) {
             version: src.version, stamp: stampLine(src), elementCount: String(src.api.length),
             references: isSdk ? [listRefs(skill, describe).split('\n').filter(l => !/references\/elements-(?!index)/.test(l)).join('\n'), sdkGroupFiles].join('\n') : [listRefs(skill, bzDescribe).split('\n').filter(l => !/references\/components-(?!index)/.test(l)).join('\n'), bzGroupFiles].join('\n'),
             missing: src.manifest.skipped.filter(s => !s.handWritten).map(s => '`' + s.component + '`').join(', ') || 'none (every element has a component)',
+            breakpoints: src.breakpoints.map(b => `\`${b.name}\` ${b.width}`).join(', '),
             wrapperCount: String(src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour')).length),
         });
         out.set(`${skill}/SKILL.md`, text.replace(/\n*$/, '\n'));

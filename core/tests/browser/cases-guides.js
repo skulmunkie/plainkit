@@ -30,7 +30,7 @@ const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort(
 export const guidesCases = [
     ['guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem', async t => {
         const p = await open(t, '#/getting-started');
-        t.eq(p.items.length, 4, 'one nav item per guide');
+        t.eq(p.items.length, 5, 'one nav item per guide');
         t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started', 'the open guide is current');
         t.ok(shown(p.nav), 'the nav is a column, not a hidden drawer');
         t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
@@ -130,7 +130,7 @@ export const guidesCases = [
     ['guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning', async t => {
         const list = await open(t, '#/', { toc: false });
         const cards = [...list.$('gd-body').querySelectorAll('pk-card')];
-        t.eq(cards.length, 4); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/theming,#/logging');
+        t.eq(cards.length, 5); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/theming,#/responsive-design,#/logging');
         t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-aside').hidden, true, 'no toc on the list');
         const gone = await open(t, '#/no-such-guide', { toc: false });
         t.eq(gone.$('gd-title').textContent, 'Guide not found');

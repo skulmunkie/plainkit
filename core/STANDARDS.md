@@ -13,6 +13,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 
 - Tokens only: no literal colours in component or element CSS, and sizes come from the space and text scales. Two themes (`data-theme="dark|light"`) and two densities (`data-density`) are token sets, never separate stylesheets.
 - The page layer, `dist/plainkit.css` (`tokens/` plus `base/`: base, spacing, typography, table-content, utilities, a11y, in that cascade order), has a 10 KB gzip budget. A tool's own CSS belongs in its module folder and is loaded by the module.
+- **Use the named breakpoints, never a literal.** The widths are `tokens/breakpoints.json` (`phone` 640, `tablet` 1024, `wide` 1280; desktop-first, so a rule applies at that width and below). Element CSS writes `@media (--phone)` (or `(--above-phone)`); the build resolves it. CSS the site serves unbuilt (tokens, base, site, modules, samples) cannot use names and writes the named width literally. Scripts use `js/breakpoints.js` (`mediaBelow('phone')`), never `matchMedia('(max-width: 640px)')`. `tests/breakpoints.test.mjs` fails on a literal in element CSS, an unnamed width elsewhere and a literal in a `matchMedia`. A new width is a new name in the json file, not a new number in a rule.
 - Use only components that exist in core. If something is missing, list it as a gap rather than building a one-off.
 
 ## Modules
