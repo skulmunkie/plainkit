@@ -1,5 +1,0 @@
----
-type: added
-issue: 124
----
-The theme editor has a Custom SDK tab that exports what a consumer chose, entirely in the browser: theme only (a small zip with `plainkit-theme.css` to load after `plainkit.css`, the settings and a README, no SDK file changed), breakpoints only, or both. Breakpoints are the widths of `phone`, `tablet` and `wide` (whole pixels, 320 to 2560, ascending, 64 apart) with a live table of the elements and properties that change at each; the export is the prebuilt `dist` re-resolved with those widths (and the theme baked into `plainkit.css` and `plainkit.min.css`), a manifest with recomputed SRI hashes, `plainkit.custom.json` (paste it back into the tab to re-import) and a README, as a store-only zip. With the shipped widths and no theme the files are byte-identical to the shipped ones. The resolver, validation and manifest text are one dependency-free module (`js/custom-sdk-logic.js`) shared with the build; the zip writer is `js/zip-store.js`; `mountThemeEditor` takes `sdk: false` and `dist`.
