@@ -5,14 +5,15 @@
   "slots": "nav rail, tab strip, pane, docked inspector",
   "used": [
     "button",
-    "code-explorer",
-    "extras",
     "field-list",
-    "flyout",
-    "form-field",
-    "spacing",
+    "input",
+    "stack",
+    "tab",
+    "tab-panel",
     "tabs",
-    "utilities",
+    "toolbar",
+    "tree",
+    "tree-item",
     "workspace"
   ],
   "order": 2

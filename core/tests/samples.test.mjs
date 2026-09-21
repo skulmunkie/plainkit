@@ -1,26 +1,24 @@
-// Samples and layers: every sample sits in its own folder with a meta file whose component list is true, and the top level is the
+// Samples and layers: every sample sits in its own folder with a meta file whose element list is true, and the top level is the
 // documented set of layers.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSamples, SAMPLE_GROUPS, loadComponents } from '../tools/build.mjs';
-import { classOwners, usedComponents, elementFolders } from '../tools/usage.mjs';
+import { loadSamples, SAMPLE_GROUPS } from '../tools/build.mjs';
+import { usedElements, elementFolders } from '../tools/usage.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
-const owners = classOwners(root);
 const elementNames = elementFolders(root);
-const componentNames = new Set([...loadComponents().map(c => c.name), ...elementNames]);
 
 test('the top level holds only the documented layers and entry files', () => {
-    const allowed = new Set(['tokens', 'base', 'elements', 'components', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'README.md', 'LICENSE', 'package.json', 'HANDOFF.md', 'index.html', 'icons.svg', 'plainkit.css']);
+    const allowed = new Set(['tokens', 'base', 'elements', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'README.md', 'LICENSE', 'package.json', 'HANDOFF.md', 'STANDARDS.md', 'index.html', 'icons.svg', 'plainkit.css']);
     const extra = fs.readdirSync(root).filter(n => !allowed.has(n));
-    assert.deepEqual(extra, [], 'a new top-level entry needs a place in the layer list (README and Standards/Plainkit.md)');
+    assert.deepEqual(extra, [], 'a new top-level entry needs a place in the layer list (README and STANDARDS.md)');
 });
 
-test('every sample is a folder with html and meta, and its meta names the components its markup uses', () => {
+test('every sample is a folder with html and meta, and its meta names the elements its markup uses', () => {
     const problems = [];
     for (const [group, dir] of SAMPLE_GROUPS) {
         const base = path.join(root, dir);
@@ -31,8 +29,8 @@ test('every sample is a folder with html and meta, and its meta names the compon
             const markup = ['html', 'js'].map(e => (fs.existsSync(path.join(base, id, `${id}.${e}`)) ? read(`${dir}/${id}/${id}.${e}`) : '')).join('\n');
             if (meta.id !== id) problems.push(`${dir}/${id}: meta.id is ${meta.id}`);
             for (const k of ['title', 'summary', 'used', 'order']) if (meta[k] === undefined) problems.push(`${dir}/${id}: meta lacks ${k}`);
-            for (const u of meta.used ?? []) if (!componentNames.has(u)) problems.push(`${dir}/${id}: unknown component ${u}`);
-            const actual = usedComponents(markup, owners, elementNames);
+            for (const u of meta.used ?? []) if (!elementNames.has(u)) problems.push(`${dir}/${id}: unknown element ${u}`);
+            const actual = usedElements(markup, elementNames);
             if (JSON.stringify(actual) !== JSON.stringify(meta.used)) problems.push(`${dir}/${id}: used should be ${JSON.stringify(actual)}`);
         }
     }

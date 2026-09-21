@@ -1,0 +1,94 @@
+{
+  "tag": "pk-grid",
+  "title": "Grid",
+  "group": "Layout",
+  "summary": "Equal-width responsive columns: as many columns of at least min as fit, one column on a phone.",
+  "props": [
+    {
+      "name": "min",
+      "type": "string",
+      "default": "16rem",
+      "reflect": true,
+      "description": "Minimum column width as a CSS length (for example 12rem or 200px). Columns are equal width and never narrower than this, so the grid drops to one column when the container is narrower than two."
+    },
+    {
+      "name": "columns",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min."
+    },
+    {
+      "name": "gap",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "reflect": true,
+      "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The items to lay out."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-grid-min",
+      "description": "The column minimum; set by the min prop.",
+      "default": "16rem"
+    },
+    {
+      "name": "--pk-grid-columns",
+      "description": "The column cap; set by the columns prop.",
+      "default": "unset (no cap)"
+    }
+  ],
+  "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
+  "blazor": {
+    "component": "PkGrid",
+    "params": [
+      {
+        "name": "Min",
+        "prop": "min",
+        "type": "string"
+      },
+      {
+        "name": "Columns",
+        "prop": "columns",
+        "type": "int"
+      },
+      {
+        "name": "Gap",
+        "prop": "gap",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Auto columns",
+      "html": "<pk-grid min=\"10rem\"><pk-card heading=\"One\">A</pk-card><pk-card heading=\"Two\">B</pk-card><pk-card heading=\"Three\">C</pk-card><pk-card heading=\"Four\">D</pk-card></pk-grid>"
+    },
+    {
+      "title": "At most three columns",
+      "html": "<pk-grid columns=\"3\" min=\"8rem\" gap=\"lg\"><pk-card heading=\"A\">1</pk-card><pk-card heading=\"B\">2</pk-card><pk-card heading=\"C\">3</pk-card><pk-card heading=\"D\">4</pk-card></pk-grid>"
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "methods": []
+}

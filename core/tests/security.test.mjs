@@ -32,9 +32,9 @@ test('no markup anywhere carries an inline style, so the whole site runs under a
     assert.deepEqual(inline.map(f => `${f.file}:${f.line}`), []);
 });
 
-test('the gallery data (html fragments, snippets and pattern markup) carries no style attribute or style element', async () => {
-    const { CONTROLS, PATTERNS, LAYOUTS } = await import('../site/gallery/gallery.data.js');
-    const text = JSON.stringify([CONTROLS, PATTERNS, LAYOUTS]);
+test('the gallery data (element examples and pattern and layout markup) carries no style attribute or style element', async () => {
+    const { ELEMENTS, PATTERNS, LAYOUTS } = await import('../site/gallery/gallery.data.js');
+    const text = JSON.stringify([ELEMENTS, PATTERNS, LAYOUTS]);
     assert.doesNotMatch(text, /\sstyle\s*=|<style[\s>]/);
 });
 

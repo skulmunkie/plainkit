@@ -82,7 +82,7 @@
   ],
   "a11y": "The text is the accessible name; put a noun in the slot (\"4 unread\") when the count alone is ambiguous. Dot mode never relies on colour alone: the label states the status.",
   "blazor": {
-    "component": "Badge",
+    "component": "PkBadge",
     "params": [
       {
         "name": "Variant",

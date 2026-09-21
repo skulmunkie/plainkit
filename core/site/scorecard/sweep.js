@@ -1,9 +1,9 @@
-// Size sweep: every gallery view, every template and every control sample at 320, 375, 640, 1024, 1280 and 1920px in both themes,
+// Size sweep: every gallery view, every template and every element example at 320, 375, 640, 1024, 1280 and 1920px in both themes,
 // measuring horizontal overflow, controls under 44px on a phone, nested scrollers, text under 14px and the number of h1 elements.
 // Runs in the scorecard page (needs a visible tab: it uses real layout). Results can be POSTed to tools/serve.mjs --write-reports,
 // which stores them in scorecard/sweep-report.json. Framework-free; ES module.
 
-import { CONTROLS, KINDS, LAYOUTS, PATTERNS, TEMPLATES, ELEMENTS } from '../gallery/gallery.data.js';
+import { LAYOUTS, PATTERNS, TEMPLATES, ELEMENTS } from '../gallery/gallery.data.js';
 import { sampleDoc } from '../gallery/frame.js';
 import { TEXT_TIERS, TARGET_EXCEPTIONS } from './scoring.data.js';
 
@@ -14,15 +14,12 @@ export const WIDTHS = [320, 375, 640, 1024, 1280, 1920];
 export const THEMES = ['dark', 'light'];
 const FOUNDATIONS = ['colours', 'typography', 'spacing', 'radii-shadows', 'breakpoints', 'utilities', 'icons', 'tokens'];
 const TEMPLATE_FILES = TEMPLATES.map(x => x.file.replace('samples/templates/', ''));
-const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 
 export function routes() {
-    const kinds = KINDS.filter(k => k !== 'Page templates');
     return [
-        '#/foundations', ...FOUNDATIONS.map(f => `#/foundations/${f}`), '#/controls', ...kinds.map(k => `#/controls/${slug(k)}`),
-        ...CONTROLS.filter(c => c.kind !== 'Page templates').map(c => `#/controls/${slug(c.kind)}/${c.id}`),
+        '#/foundations', ...FOUNDATIONS.map(f => `#/foundations/${f}`),
         '#/overview', '#/samples', '#/samples/templates', ...TEMPLATES.map(x => `#/samples/templates/${x.id}`), '#/samples/patterns', ...PATTERNS.map(p => `#/samples/patterns/${p.id}`),
-        '#/samples/layouts', '#/samples/layouts/shell', '#/samples/layouts/responsive', ...LAYOUTS.map(l => `#/samples/layouts/${l.id}`), '#/samples/blocks', '#/elements', ...ELEMENTS.map(m => `#/elements/${m.tag}`),
+        '#/samples/layouts', '#/samples/layouts/shell', '#/samples/layouts/responsive', ...LAYOUTS.map(l => `#/samples/layouts/${l.id}`), '#/elements', ...ELEMENTS.map(m => `#/elements/${m.tag}`),
     ];
 }
 
@@ -88,7 +85,7 @@ export async function sweep({ kinds = ['views', 'templates', 'samples'], widths 
     const add = (item, run) => { for (const theme of themes) for (const width of widths) jobs.push(async () => { try { const m = await run(width, theme); results.push({ item, width, theme, ...m }); } catch (e) { results.push({ item, width, theme, error: String(e), overflow: 0, smallTargets: 0, nestedScrollers: 0, smallText: 0, h1: null }); } }); };
     if (kinds.includes('views')) for (const r of routes()) add(`gallery ${r}`, async (w, theme) => { const f = await frame(new URL(`../gallery/index.html?theme=${theme}${r}`, import.meta.url).href, w); try { return measure(f.contentDocument, w); } finally { f.remove(); } });
     if (kinds.includes('templates')) for (const t of TEMPLATE_FILES) for (const nav of ['side', 'top']) add(`template ${t} (${nav} nav)`, async (w, theme) => { const f = await frame(new URL(`../../samples/templates/${t}?nav=${nav}&theme=${theme}`, import.meta.url).href, w); try { return measure(f.contentDocument, w); } finally { f.remove(); } });
-    if (kinds.includes('samples')) for (const c of CONTROLS) c.samples.forEach((s, i) => add(`sample ${c.id}#${i + 1}`, async (w, theme) => { const f = await frame(null, w, sampleDoc(s.html, { theme, script: s.script })); try { return measure(f.contentDocument, w, { checkH1: false }); } finally { f.remove(); } }));
+    if (kinds.includes('samples')) for (const m of ELEMENTS) m.examples.forEach((x, i) => add(`sample ${m.tag}#${i + 1}`, async (w, theme) => { const f = await frame(null, w, sampleDoc(x.html, { theme })); try { return measure(f.contentDocument, w, { checkH1: false }); } finally { f.remove(); } }));
     await pool(jobs, size, progress);
     const bad = r => r.error || r.overflow > 0 || r.smallTargets > 0 || r.nestedScrollers > 0 || r.smallText > 0 || (r.h1 !== null && r.h1 !== 1 && !r.item.startsWith('template auth') && !r.item.startsWith('gallery #/foundations/icons'));
     return { checked: results.length, failures: results.filter(bad), results };

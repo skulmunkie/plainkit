@@ -36,7 +36,7 @@
   "methods": [],
   "a11y": "Plain layout with no role of its own.",
   "blazor": {
-    "component": "FieldRow",
+    "component": "PkFieldRow",
     "params": [
       {
         "name": "Align",

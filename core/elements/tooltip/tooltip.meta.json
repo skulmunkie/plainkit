@@ -140,7 +140,7 @@
   "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
   "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
   "blazor": {
-    "component": "InfoTip",
+    "component": "PkTooltip",
     "params": [
       {
         "name": "Text",
@@ -221,7 +221,7 @@
   "examples": [
     {
       "title": "Tooltip on hover, focus and long press",
-      "html": "<div class=\"cluster cluster--horizontal\"><pk-tooltip text=\"Saves the draft without publishing\"><button type=\"button\" class=\"btn-ghost\">Save draft</button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><button type=\"button\" class=\"btn-ghost\">Right</button></pk-tooltip></div>"
+      "html": "<pk-cluster><pk-tooltip text=\"Saves the draft without publishing\"><pk-button variant=\"ghost\">Save draft</pk-button></pk-tooltip><pk-tooltip text=\"Opens to the right\" placement=\"right\"><pk-button variant=\"ghost\">Right</pk-button></pk-tooltip></pk-cluster>"
     }
   ]
 }

@@ -1,0 +1,100 @@
+{
+  "tag": "pk-stack",
+  "title": "Stack",
+  "group": "Layout",
+  "summary": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.",
+  "props": [
+    {
+      "name": "gap",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "reflect": true,
+      "description": "Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space)."
+    },
+    {
+      "name": "align",
+      "type": "enum",
+      "default": "stretch",
+      "values": [
+        "stretch",
+        "start",
+        "center",
+        "end"
+      ],
+      "reflect": true,
+      "description": "Cross-axis alignment: stretch fills the width, the others size each child to its content."
+    },
+    {
+      "name": "dividers",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draw a rule between children."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The items to lay out."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-stack-gap",
+      "description": "Overrides the gap prop with any length.",
+      "default": "the gap token"
+    },
+    {
+      "name": "--pk-stack-divider",
+      "description": "Colour of the dividers.",
+      "default": "var(--color-border)"
+    }
+  ],
+  "a11y": "A plain layout box with no role; the rules from dividers are decorative borders, not separators, so add pk-divider where a separator should be announced.",
+  "blazor": {
+    "component": "PkStack",
+    "params": [
+      {
+        "name": "Gap",
+        "prop": "gap",
+        "type": "string"
+      },
+      {
+        "name": "Align",
+        "prop": "align",
+        "type": "string"
+      },
+      {
+        "name": "Dividers",
+        "prop": "dividers",
+        "type": "bool"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "Even rhythm",
+      "html": "<pk-stack gap=\"md\"><p>First paragraph.</p><p>Second paragraph.</p><p>Third paragraph.</p></pk-stack>"
+    },
+    {
+      "title": "With dividers",
+      "html": "<pk-stack gap=\"sm\" dividers><div>Profile</div><div>Billing</div><div>Notifications</div></pk-stack>"
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "methods": []
+}

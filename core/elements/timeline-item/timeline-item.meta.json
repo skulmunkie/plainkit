@@ -77,7 +77,7 @@
   "methods": [],
   "a11y": "role=listitem through ElementInternals; the time uses a real time element with a datetime attribute.",
   "blazor": {
-    "component": "TimelineItem",
+    "component": "PkTimelineItem",
     "params": [
       {
         "name": "Heading",

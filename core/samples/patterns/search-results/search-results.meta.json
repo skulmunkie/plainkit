@@ -2,13 +2,12 @@
   "id": "search-results",
   "title": "Search results and command palette",
   "summary": "A search field with a keyboard hint over results grouped by type, each row showing a snippet with the match marked.",
-  "built": "Input group, kbd, Code search results, Empty state.",
+  "built": "Input, List group, Typography (kbd, mark).",
   "mobile": "The field is full width; results are single-line rows with 44px targets.",
   "used": [
-    "code-explorer",
-    "extras",
-    "flyout",
-    "spacing"
+    "input",
+    "list-group",
+    "stack"
   ],
   "order": 6
 }

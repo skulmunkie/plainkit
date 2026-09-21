@@ -119,7 +119,7 @@
   ],
   "a11y": "The body is a labelled, focusable region so a keyboard can scroll it; the copy result is announced in a polite status region; line numbers are CSS-generated and not selectable. Lines are set as text, never parsed as HTML.",
   "blazor": {
-    "component": "CodeBlock",
+    "component": "PkCodeBlock",
     "params": [
       {
         "name": "Label",

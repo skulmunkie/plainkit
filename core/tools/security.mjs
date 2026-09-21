@@ -63,7 +63,7 @@ export function scan(opts = {}) {
             if (hits.length > allowed) hits.slice(allowed).forEach(line => findings.push({ severity: 'medium', rule: 'html-sink-not-allow-listed', file: r, line, message: `innerHTML-style sink ${hits.length} > allowed ${allowed}; document its source in tools/security.allow.json or use textContent/DOM APIs` }));
             ls.forEach((l, i) => { if (/\bcreateElement\(\s*['"]script['"]\s*\)|\.src\s*=\s*['"`]?http/.test(l) && !allow.dynamicScript.includes(r)) findings.push({ severity: 'high', rule: 'dynamic-script-injection', file: r, line: i + 1, message: 'creates a script element dynamically' }); });
         }
-        if (/\.html$/.test(r) && !r.startsWith('components/') && !r.startsWith('dist/')) {
+        if (/\.html$/.test(r) && !r.startsWith('dist/')) {
             const inline = [...text.matchAll(/<script(?![^>]*\ssrc=)[^>]*>/g)];
             for (const m of inline) findings.push({ severity: 'low', rule: 'csp-inline-script', file: r, line: text.slice(0, m.index).split('\n').length, message: 'inline script: needs script-src \'unsafe-inline\' or a nonce; move it to a .js file for a strict CSP' });
             for (const m of text.matchAll(/<style[\s>]/g)) findings.push({ severity: 'high', rule: 'csp-inline-style', file: r, line: text.slice(0, m.index).split('\n').length, message: 'inline <style> block' });
@@ -94,7 +94,7 @@ const ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 export const bySeverity = f => f.reduce((o, x) => ({ ...o, [x.severity]: (o[x.severity] ?? 0) + 1 }), { critical: 0, high: 0, medium: 0, low: 0 });
 export const worstFirst = f => [...f].sort((a, b) => ORDER[a.severity] - ORDER[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);
 
-export { unsafeRegex } from '../js/code-explorer/providers.js';
+export { unsafeRegex } from '../modules/code-explorer/providers.js';
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const findings = worstFirst(scan());

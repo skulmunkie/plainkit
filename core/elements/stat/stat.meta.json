@@ -178,7 +178,7 @@
   ],
   "a11y": "The change is text (an arrow glyph and a sign) and has a spoken form (\"up 12.5 percent versus last month\"), so colour is never the only signal. A tile with href holds one link named by the label and value, so there is a single tab stop. An interactive tile is a role=button overlay reachable by keyboard.",
   "blazor": {
-    "component": "StatCard",
+    "component": "PkStat",
     "existing": true,
     "params": [
       {

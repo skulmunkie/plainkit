@@ -22,3 +22,7 @@ Thumbs.db
 ## Local scratch
 scratch*/
 *.log
+
+## GitHub Pages build output, and Claude Code local state
+_site/
+.claude/

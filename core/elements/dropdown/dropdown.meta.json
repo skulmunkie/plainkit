@@ -92,7 +92,7 @@
   "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
   "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
   "blazor": {
-    "component": "DropdownMenu",
+    "component": "PkDropdown",
     "params": [
       {
         "name": "Open",
@@ -162,7 +162,7 @@
   "examples": [
     {
       "title": "Menu with a header, checkable items and a submenu",
-      "html": "<pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Actions</button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
+      "html": "<pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">Actions</pk-button><pk-menu-item type=\"header\">Order</pk-menu-item><pk-menu-item>Edit</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Show archived</pk-menu-item><pk-menu-item type=\"divider\"></pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></pk-dropdown>"
     }
   ]
 }

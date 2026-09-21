@@ -60,7 +60,7 @@
   "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
   "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
   "blazor": {
-    "component": "ContextMenu",
+    "component": "PkContextMenu",
     "params": [
       {
         "name": "Open",
@@ -99,7 +99,7 @@
   "examples": [
     {
       "title": "Right-click, long-press or Shift+F10",
-      "html": "<pk-context-menu><div class=\"card\"><p>Right-click here.</p></div><pk-menu-item slot=\"menu\">Rename</pk-menu-item><pk-menu-item slot=\"menu\">Duplicate</pk-menu-item><pk-menu-item slot=\"menu\" danger>Delete</pk-menu-item></pk-context-menu>"
+      "html": "<pk-context-menu><pk-card><p>Right-click here.</p></pk-card><pk-menu-item slot=\"menu\">Rename</pk-menu-item><pk-menu-item slot=\"menu\">Duplicate</pk-menu-item><pk-menu-item slot=\"menu\" danger>Delete</pk-menu-item></pk-context-menu>"
     }
   ]
 }

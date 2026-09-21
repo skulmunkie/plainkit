@@ -4,16 +4,15 @@
   "summary": "What a region shows with no data, on failure and while loading.",
   "slots": "empty state, error notice with remedy, skeleton",
   "used": [
+    "alert",
     "button",
     "card",
+    "cluster",
     "empty-state",
-    "extras",
-    "flyout",
-    "loading",
-    "notice",
-    "remedy",
-    "shell",
-    "spacing"
+    "grid",
+    "skeleton",
+    "spinner",
+    "stack"
   ],
   "order": 8
 }

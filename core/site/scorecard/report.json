@@ -1,36 +1,36 @@
 {
-  "generated": "2026-09-20T01:30:48.599Z",
+  "generated": "2026-09-21T00:32:08.551Z",
   "metrics": {
-    "cssKb": 78.3,
-    "jsKb": 70,
+    "cssKb": 26.4,
+    "jsKb": 25.8,
     "literalColours": 0,
-    "literalSizes": 0.19,
+    "literalSizes": 0.12,
     "contrastFail": 2
   },
   "perFile": [
     {
       "name": "tokens/tokens.css",
-      "bytes": 12059,
-      "rules": 18,
+      "bytes": 11438,
+      "rules": 19,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "base/base.css",
-      "bytes": 3573,
+      "bytes": 3570,
       "rules": 20,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
-      "name": "components/utilities/utilities.css",
+      "name": "base/utilities.css",
       "bytes": 6012,
       "rules": 120,
       "literalColours": 0,
       "literalSizes": 82
     },
     {
-      "name": "components/spacing/spacing.css",
+      "name": "base/spacing.css",
       "bytes": 4647,
       "rules": 108,
       "literalColours": 0,
@@ -38,190 +38,498 @@
     },
     {
       "name": "base/a11y.css",
-      "bytes": 1370,
+      "bytes": 1367,
       "rules": 5,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
-      "name": "elements/alert/alert.css",
-      "bytes": 2518,
-      "rules": 24,
+      "name": "elements/accordion/accordion.css",
+      "bytes": 362,
+      "rules": 4,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
+      "name": "elements/accordion-item/accordion-item.css",
+      "bytes": 1231,
+      "rules": 13,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/alert/alert.css",
+      "bytes": 3187,
+      "rules": 32,
+      "literalColours": 0,
+      "literalSizes": 2
+    },
+    {
       "name": "elements/app-shell/app-shell.css",
-      "bytes": 1847,
+      "bytes": 1846,
       "rules": 11,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/avatar/avatar.css",
+      "bytes": 1690,
+      "rules": 14,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/avatar-group/avatar-group.css",
+      "bytes": 712,
+      "rules": 4,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/back-to-top/back-to-top.css",
-      "bytes": 943,
+      "bytes": 942,
       "rules": 6,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/badge/badge.css",
+      "bytes": 1467,
+      "rules": 8,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/breadcrumb/breadcrumb.css",
-      "bytes": 1675,
+      "bytes": 1674,
       "rules": 20,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/button/button.css",
-      "bytes": 1848,
-      "rules": 13,
+      "bytes": 3385,
+      "rules": 31,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/button-group/button-group.css",
+      "bytes": 1014,
+      "rules": 14,
+      "literalColours": 0,
+      "literalSizes": 2
+    },
+    {
+      "name": "elements/calendar/calendar.css",
+      "bytes": 2214,
+      "rules": 20,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/card/card.css",
-      "bytes": 702,
-      "rules": 6,
+      "bytes": 2136,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/chart/chart.css",
+      "bytes": 2334,
+      "rules": 28,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/checkbox/checkbox.css",
+      "bytes": 1562,
+      "rules": 16,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/cluster/cluster.css",
+      "bytes": 912,
+      "rules": 16,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/code-block/code-block.css",
+      "bytes": 2216,
+      "rules": 16,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/colour-input/colour-input.css",
+      "bytes": 1372,
+      "rules": 14,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/combobox/combobox.css",
+      "bytes": 3544,
+      "rules": 34,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/command-palette/command-palette.css",
-      "bytes": 2723,
+      "bytes": 2721,
       "rules": 22,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
       "name": "elements/context-menu/context-menu.css",
-      "bytes": 736,
+      "bytes": 735,
       "rules": 3,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
       "name": "elements/dialog/dialog.css",
-      "bytes": 2741,
-      "rules": 27,
-      "literalColours": 0,
-      "literalSizes": 1
-    },
-    {
-      "name": "elements/drawer/drawer.css",
-      "bytes": 3349,
+      "bytes": 3101,
       "rules": 29,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
+      "name": "elements/divider/divider.css",
+      "bytes": 703,
+      "rules": 6,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/drawer/drawer.css",
+      "bytes": 4005,
+      "rules": 33,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
       "name": "elements/dropdown/dropdown.css",
-      "bytes": 1330,
+      "bytes": 1328,
       "rules": 9,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
-      "name": "elements/lightbox/lightbox.css",
-      "bytes": 2771,
-      "rules": 26,
+      "name": "elements/dropzone/dropzone.css",
+      "bytes": 2275,
+      "rules": 22,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
-      "name": "elements/loading-overlay/loading-overlay.css",
-      "bytes": 1035,
+      "name": "elements/empty-state/empty-state.css",
+      "bytes": 960,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/field/field.css",
+      "bytes": 1522,
+      "rules": 22,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/field-list/field-list.css",
+      "bytes": 1206,
+      "rules": 13,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/field-row/field-row.css",
+      "bytes": 480,
+      "rules": 7,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/form/form.css",
+      "bytes": 465,
+      "rules": 5,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/form-actions/form-actions.css",
+      "bytes": 831,
       "rules": 10,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/form-section/form-section.css",
+      "bytes": 641,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/gallery/gallery.css",
+      "bytes": 136,
+      "rules": 2,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/grid/grid.css",
+      "bytes": 765,
+      "rules": 8,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/hint/hint.css",
+      "bytes": 1011,
+      "rules": 7,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/icon/icon.css",
+      "bytes": 558,
+      "rules": 5,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/image-gallery/image-gallery.css",
+      "bytes": 2392,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/input/input.css",
+      "bytes": 3671,
+      "rules": 40,
+      "literalColours": 0,
+      "literalSizes": 2
+    },
+    {
+      "name": "elements/lightbox/lightbox.css",
+      "bytes": 2770,
+      "rules": 26,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/list-group/list-group.css",
+      "bytes": 1299,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/loading-overlay/loading-overlay.css",
+      "bytes": 1034,
+      "rules": 10,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/local-time/local-time.css",
+      "bytes": 88,
+      "rules": 2,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/media/media.css",
+      "bytes": 808,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/menu-item/menu-item.css",
-      "bytes": 2656,
+      "bytes": 2655,
       "rules": 27,
       "literalColours": 0,
       "literalSizes": 2
     },
     {
       "name": "elements/nav-item/nav-item.css",
-      "bytes": 2528,
+      "bytes": 2527,
       "rules": 25,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
       "name": "elements/navbar/navbar.css",
-      "bytes": 2269,
+      "bytes": 2268,
       "rules": 19,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/otp-input/otp-input.css",
+      "bytes": 1073,
+      "rules": 11,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/page-header/page-header.css",
+      "bytes": 1730,
+      "rules": 17,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/pager/pager.css",
-      "bytes": 1153,
+      "bytes": 1152,
       "rules": 12,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/pagination/pagination.css",
+      "bytes": 1970,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/popover/popover.css",
-      "bytes": 2202,
+      "bytes": 2199,
       "rules": 20,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
+      "name": "elements/progress/progress.css",
+      "bytes": 2194,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/radio-group/radio-group.css",
+      "bytes": 2363,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/range/range.css",
+      "bytes": 2550,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/rating/rating.css",
+      "bytes": 1062,
+      "rules": 15,
+      "literalColours": 0,
+      "literalSizes": 3
+    },
+    {
       "name": "elements/scroll-progress/scroll-progress.css",
-      "bytes": 514,
+      "bytes": 511,
       "rules": 5,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/select/select.css",
-      "bytes": 2218,
+      "bytes": 2154,
+      "rules": 23,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/select-menu/select-menu.css",
+      "bytes": 2222,
       "rules": 17,
       "literalColours": 0,
       "literalSizes": 2
     },
     {
       "name": "elements/side-nav/side-nav.css",
-      "bytes": 2999,
+      "bytes": 2998,
       "rules": 25,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/skeleton/skeleton.css",
+      "bytes": 937,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/skip-link/skip-link.css",
-      "bytes": 777,
+      "bytes": 776,
       "rules": 3,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
+      "name": "elements/spinner/spinner.css",
+      "bytes": 2284,
+      "rules": 25,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/split-button/split-button.css",
+      "bytes": 2410,
+      "rules": 18,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/stack/stack.css",
+      "bytes": 706,
+      "rules": 11,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/stat/stat.css",
+      "bytes": 2121,
+      "rules": 21,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/step/step.css",
-      "bytes": 2845,
+      "bytes": 2839,
       "rules": 27,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
       "name": "elements/stepper/stepper.css",
-      "bytes": 302,
+      "bytes": 300,
       "rules": 3,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/switch/switch.css",
-      "bytes": 1144,
-      "rules": 12,
+      "bytes": 1688,
+      "rules": 18,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/tab/tab.css",
-      "bytes": 634,
-      "rules": 7,
+      "bytes": 1056,
+      "rules": 13,
       "literalColours": 0,
       "literalSizes": 0
     },
@@ -233,45 +541,115 @@
       "literalSizes": 0
     },
     {
+      "name": "elements/table/table.css",
+      "bytes": 4428,
+      "rules": 45,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/tabs/tabs.css",
-      "bytes": 174,
-      "rules": 2,
+      "bytes": 875,
+      "rules": 8,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tag/tag.css",
+      "bytes": 1031,
+      "rules": 7,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tag-input/tag-input.css",
+      "bytes": 2632,
+      "rules": 25,
+      "literalColours": 0,
+      "literalSizes": 1
+    },
+    {
+      "name": "elements/textarea/textarea.css",
+      "bytes": 1850,
+      "rules": 20,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/timeline/timeline.css",
+      "bytes": 26,
+      "rules": 1,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/timeline-item/timeline-item.css",
+      "bytes": 1218,
+      "rules": 12,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/toast/toast.css",
-      "bytes": 2464,
+      "bytes": 2456,
       "rules": 23,
       "literalColours": 0,
       "literalSizes": 1
     },
     {
       "name": "elements/toast-stack/toast-stack.css",
-      "bytes": 1302,
+      "bytes": 1301,
       "rules": 7,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
       "name": "elements/toc/toc.css",
-      "bytes": 1222,
+      "bytes": 1221,
       "rules": 11,
       "literalColours": 0,
       "literalSizes": 0
     },
     {
+      "name": "elements/toolbar/toolbar.css",
+      "bytes": 998,
+      "rules": 9,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
       "name": "elements/tooltip/tooltip.css",
-      "bytes": 703,
-      "rules": 3,
+      "bytes": 1722,
+      "rules": 14,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tree/tree.css",
+      "bytes": 26,
+      "rules": 1,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/tree-item/tree-item.css",
+      "bytes": 1225,
+      "rules": 13,
+      "literalColours": 0,
+      "literalSizes": 0
+    },
+    {
+      "name": "elements/workspace/workspace.css",
+      "bytes": 3799,
+      "rules": 29,
       "literalColours": 0,
       "literalSizes": 0
     }
   ],
   "scores": {
-    "overall": 87,
+    "overall": 91,
     "categories": {
-      "performance": 91,
+      "performance": 100,
       "scale": null,
       "look": 84,
       "accessibility": null

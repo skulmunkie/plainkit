@@ -1,0 +1,58 @@
+# Publishing
+
+Plainkit has no build step and no runtime dependencies, so "publishing" mostly means putting `core/dist` where people can reach it. Each
+way in is a workflow in `.github/workflows/`.
+
+| What | Workflow | Runs on | Where it goes |
+|---|---|---|---|
+| The gallery and tools site, and `dist/` as a URL prefix (always the latest `main`) | `pages.yml` | every push to `main` | `https://skulmunkie.github.io/plainkit/` |
+| `PlainKit.Blazor` (NuGet), a GitHub release carrying `dist` zipped, its integrity manifest and the `.nupkg` | `release.yml` | a tag such as `v0.1.0` | nuget.org, GitHub Releases |
+| `plainkit` on npm (optional) | `release.yml` | a tag, only when the secret `NPM_TOKEN` exists | npmjs.com |
+| Tests and the "package copy is current" check | `ci.yml` | every push and pull request | (checks only) |
+
+## How people get the SDK
+
+| Way | Version | Notes |
+|---|---|---|
+| Link from the Pages site: `https://skulmunkie.github.io/plainkit/dist/plainkit.min.css` (modules, elements and the gallery sit next to it) | latest `main` | Pages serves one deployment, so it is "latest", not pinned |
+| jsDelivr from a git tag: `https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@v0.1.0/core/dist/plainkit.min.css` | pinned to the tag | nothing to publish: jsDelivr serves any tag of a public GitHub repository |
+| Download `plainkit-dist-<version>.zip` from the GitHub release and copy it anywhere | pinned | `manifest.json` (attached too) lists every file with an SRI hash |
+| `dotnet add package PlainKit.Blazor` | pinned | the package carries `dist` as static web assets |
+| `npm install plainkit` | pinned | only if an npm token is configured (below); not needed for any of the above |
+
+## One-time setup: GitHub Pages
+
+1. Repository **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+2. Push to `main`. `pages.yml` builds `_site/` with `node scripts/build-pages.mjs` and deploys it.
+
+Every page uses relative paths, so the site works under `/plainkit/` and under any other prefix. To check a build locally:
+`node scripts/build-pages.mjs _site`, then serve `_site` under a path (a static server that mounts it at `/plainkit/`).
+
+## One-time setup: NuGet (Trusted Publishing, no API key)
+
+NuGet.org issues a one-hour key to a workflow it trusts, so no key is stored in GitHub.
+
+1. On nuget.org: your username > **Trusted Publishing** > add a policy:
+   - **Repository Owner:** `skulmunkie`
+   - **Repository:** `plainkit`
+   - **Workflow File:** `release.yml` (the file name only, no path)
+   - **Environment:** leave empty (this workflow does not use one)
+   - **Policy owner:** you, or an organisation you belong to. A policy covers the packages that owner publishes; scope it to `PlainKit.*` if the form offers a package pattern, and allow publishing new packages so the first release can create the package id.
+2. In the GitHub repository: **Settings > Secrets and variables > Actions**, add `NUGET_USER` = your nuget.org **username** (profile name, not your email).
+3. Tag a release: `git tag v0.1.0 && git push origin v0.1.0`.
+
+A private repository's policy is only temporarily active (7 days) until the first successful publish; a public repository is fine.
+
+## Optional: npm
+
+Not needed for Pages, releases, jsDelivr or NuGet. To also publish `plainkit` to npm, add the repository secret `NPM_TOKEN` (an npm
+automation token). The step in `release.yml` runs only when that secret exists, so there is nothing to change in the workflow to turn it
+on or off. It publishes `core/` with provenance.
+
+## Before making changes public
+
+The repository is public. Keep it clean:
+
+- `core/tests/privacy.test.mjs` fails on internal tracker references, personal absolute paths, real-looking email addresses and stale licence text; it scans the generated `dist` and the Files snapshot too.
+- `.claude/` is Claude Code local state and is git-ignored; do not commit it.
+- Package metadata (`Directory.Build.props`, `core/package.json`) names `github.com/skulmunkie/plainkit` as the owner and URL.

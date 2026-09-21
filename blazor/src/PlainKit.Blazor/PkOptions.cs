@@ -1,0 +1,20 @@
+namespace PlainKit.Blazor;
+
+/// <summary>Settings for PlainKit.Blazor, passed to <c>AddPlainKit</c>.</summary>
+public sealed class PkOptions
+{
+    /// <summary>
+    /// Whether the dev tools page (<c>/_plainkit</c>) is served. Null, the default, means only when the app runs in the
+    /// Development environment; set true or false to decide explicitly.
+    /// </summary>
+    public bool? DevTools { get; set; }
+
+    /// <summary>The folder the dev tools' Files tab browses. Null means the app's content root. Server-side rendering only.</summary>
+    public string? SourceRoot { get; set; }
+
+    /// <summary>Skips a folder (relative path, forward slashes) when the Files tab is built. Return true to skip.</summary>
+    public Func<string, bool>? SourceExclude { get; set; }
+
+    /// <summary>What the dev tools' Scorecard tab scores. Null means the toolkit's own page templates.</summary>
+    public IReadOnlyList<PkScoreTarget>? ScoreTargets { get; set; }
+}

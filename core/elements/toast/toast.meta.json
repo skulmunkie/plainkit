@@ -107,7 +107,7 @@
   "a11y": "role=status for info and success, role=alert for warning and danger; the timer pauses on hover and focus; a toast with an action lasts 8s by default.",
   "mobile": "Full width minus the gutter; the dismiss and action buttons are 44px; respects the device safe area.",
   "blazor": {
-    "component": "Toast",
+    "component": "PkToast",
     "params": [
       {
         "name": "Kind",
@@ -174,7 +174,7 @@
   "examples": [
     {
       "title": "Kinds",
-      "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<button type=\"button\" slot=\"action\" class=\"btn-mini btn-ghost\">Undo</button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
+      "html": "<div class=\"stack\"><pk-toast kind=\"info\" heading=\"Heads up\">Import started.</pk-toast><pk-toast kind=\"success\">Draft saved.<pk-button slot=\"action\" variant=\"ghost\" size=\"mini\">Undo</pk-button></pk-toast><pk-toast kind=\"warning\" heading=\"Low stock\">Three left.</pk-toast><pk-toast kind=\"danger\" heading=\"Failed\">Sync error.</pk-toast></div>"
     }
   ]
 }

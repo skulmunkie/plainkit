@@ -4,19 +4,19 @@
   "summary": "A filtered, paged list beside a record, with create, edit and delete-confirm dialogs.",
   "slots": "filters, list, pagination, detail, create/edit form, delete confirm",
   "used": [
+    "badge",
     "button",
     "card",
-    "chip",
     "cluster",
-    "extras",
+    "dialog",
+    "field",
     "field-list",
-    "form-field",
-    "modal",
-    "shell",
-    "spacing",
-    "table-content",
-    "utilities",
-    "workspace"
+    "grid",
+    "input",
+    "pagination",
+    "select",
+    "stack",
+    "table"
   ],
   "order": 3
 }

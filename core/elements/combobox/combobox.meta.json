@@ -201,7 +201,7 @@
   ],
   "a11y": "ARIA 1.2 combobox: role=combobox, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input or button); Arrow keys open and move, Home and End jump (select mode), Enter picks, Escape closes, Tab closes, letters jump in select mode. The chosen option carries aria-selected and a check mark. Options are 44px tall on a phone; the list opens upward when there is no room below.",
   "blazor": {
-    "component": "SearchableCombo",
+    "component": "PkCombobox",
     "params": [
       {
         "name": "Value",

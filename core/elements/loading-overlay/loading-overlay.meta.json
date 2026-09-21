@@ -56,7 +56,7 @@
   "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
   "mobile": "The label wraps; the spinner is 28px.",
   "blazor": {
-    "component": "LoadingOverlay",
+    "component": "PkLoadingOverlay",
     "params": [
       {
         "name": "Busy",
@@ -90,7 +90,7 @@
   "examples": [
     {
       "title": "Busy region",
-      "html": "<pk-loading-overlay busy label=\"Loading orders…\"><div class=\"card\"><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></div></pk-loading-overlay>"
+      "html": "<pk-loading-overlay busy label=\"Loading orders…\"><pk-card><p>Order list goes here.</p><p class=\"muted\">It is covered and inert while busy.</p></pk-card></pk-loading-overlay>"
     }
   ]
 }

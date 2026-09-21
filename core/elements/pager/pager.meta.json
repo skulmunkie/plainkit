@@ -50,7 +50,7 @@
   "a11y": "A nav landmark; links carry rel=\"prev\" and rel=\"next\" when the author sets them, and say where they go.",
   "mobile": "Stacks: the note on top, previous and next as full-width 44px buttons.",
   "blazor": {
-    "component": "Pager",
+    "component": "PkPager",
     "params": [
       {
         "name": "Label",

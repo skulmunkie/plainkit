@@ -140,7 +140,7 @@
   ],
   "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels.",
   "blazor": {
-    "component": "Calendar",
+    "component": "PkCalendar",
     "params": [
       {
         "name": "Value",

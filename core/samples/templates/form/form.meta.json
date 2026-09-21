@@ -6,12 +6,14 @@
   "used": [
     "button",
     "card",
-    "cluster",
-    "extras",
-    "flyout",
-    "form-field",
-    "shell",
-    "spacing"
+    "field",
+    "form-actions",
+    "grid",
+    "input",
+    "range",
+    "select",
+    "stack",
+    "switch"
   ],
   "order": 5
 }

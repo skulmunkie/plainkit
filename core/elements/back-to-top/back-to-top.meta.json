@@ -55,7 +55,7 @@
   "a11y": "A real button with a text label; after scrolling, focus moves to the top of the scroller so keyboard users are not left at the bottom.",
   "mobile": "44px tall; clears the device safe area.",
   "blazor": {
-    "component": "BackToTop",
+    "component": "PkBackToTop",
     "params": [
       {
         "name": "For",

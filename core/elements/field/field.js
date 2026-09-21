@@ -14,8 +14,9 @@ export default Base => class extends Base {
         if (this.$init) return;
         this.$init = true;
         this.watchSlot('', () => this.wire());
+        this.watchSlot('label-action', () => this.count());
         this.addEventListener('input', () => this.count());
-        this.part('label').addEventListener('click', () => this.control()?.focus());
+        this.part('label').addEventListener('click', e => { if (!e.composedPath().some(n => n.getAttribute?.('slot') === 'label-action')) this.control()?.focus(); });
     }
     control() { return this.slotted().find(e => e.localName.startsWith('pk-') || ['input', 'select', 'textarea'].includes(e.localName)) ?? null; }
     updated() { this.wire(); }
@@ -37,7 +38,7 @@ export default Base => class extends Base {
         if (!c || !(this.max > 0)) n.textContent = '';
         else { const length = String(c.value ?? '').length; n.textContent = counterText(length, this.max); n.dataset.state = counterState(length, this.max); }
         const helpOn = Boolean(this.help) || this.slotted('help').length > 0;
-        this.part('label').hidden = !this.label && this.slotted('label').length === 0;
+        this.part('label').hidden = !this.label && this.slotted('label').length === 0 && this.slotted('label-action').length === 0;
         this.part('help').hidden = !helpOn;
         this.part('foot').hidden = !helpOn && !this.error && !this.warning && n.textContent === '';
     }

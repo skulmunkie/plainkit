@@ -278,14 +278,15 @@ test('buildTree nests folders, counts files and lines, and filters', () => {
     assert.deepEqual([...buildTree(files, 'D.JS').children.keys()], ['a']);
 });
 
-test('the gallery data file loads and every control has the documented fields', async () => {
+test('the gallery data file loads and every element and sample has the documented fields', async () => {
     const mod = await import('../site/gallery/gallery.data.js');
-    assert.ok(mod.CONTROLS.length > 40);
-    for (const c of mod.CONTROLS) {
-        for (const f of ['id', 'name', 'kind', 'purpose', 'mobile', 'snippet']) assert.ok(c[f], `${c.id ?? '?'} has no ${f}`);
-        assert.ok(mod.KINDS.includes(c.kind), `${c.id}: unknown kind ${c.kind}`);
-        if (c.api) for (const k of ['props', 'slots', 'events']) assert.ok(Array.isArray(c.api[k]), `${c.id}: api.${k} must be an array`);
-        else assert.ok(c.samples.length > 0 && c.samples.every(s => s.title && s.html), `${c.id} samples`);
+    assert.ok(mod.ELEMENTS.length > 40);
+    assert.equal(mod.CONTROLS, undefined, 'the class-based controls are gone');
+    for (const m of mod.ELEMENTS) {
+        for (const f of ['tag', 'title', 'summary', 'group']) assert.ok(m[f], m.tag + ' has no ' + f);
+        assert.ok(m.examples.length > 0 && m.examples.every(x => x.title && x.html), m.tag + ' examples');
+        for (const k of ['props', 'slots', 'events']) assert.ok(Array.isArray(m[k]), m.tag + ': ' + k + ' must be an array');
     }
-    assert.equal(new Set(mod.CONTROLS.map(c => c.id)).size, mod.CONTROLS.length);
+    assert.equal(new Set(mod.ELEMENTS.map(m => m.tag)).size, mod.ELEMENTS.length);
+    for (const list of [mod.TEMPLATES, mod.PATTERNS, mod.LAYOUTS]) for (const x of list) assert.ok(x.id && x.title && x.summary, x.id + ': id, title and summary');
 });

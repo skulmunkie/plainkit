@@ -67,7 +67,7 @@
   "methods": [],
   "a11y": "The remove control is a real button named \"Remove <label>\"; it is 44px on a phone.",
   "blazor": {
-    "component": "Tag",
+    "component": "PkTag",
     "params": [
       {
         "name": "Removable",

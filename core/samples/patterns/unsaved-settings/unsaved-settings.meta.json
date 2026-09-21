@@ -2,18 +2,21 @@
   "id": "unsaved-settings",
   "title": "Settings with unsaved changes",
   "summary": "A sectioned form with a sticky save bar that says there are unsaved changes and offers Discard.",
-  "built": "Card, FormField, Switch, Notice, Button.",
+  "built": "Card, Field, Input, Select, Switch, Range, Accordion item, Form actions, Alert, Button.",
   "mobile": "The save bar sticks to the bottom; buttons stay 44px.",
   "used": [
+    "accordion-item",
+    "alert",
     "button",
     "card",
-    "cluster",
-    "extras",
-    "form-field",
-    "maint-section",
-    "notice",
-    "spacing",
-    "utilities"
+    "field",
+    "field-row",
+    "form-actions",
+    "input",
+    "range",
+    "select",
+    "stack",
+    "switch"
   ],
   "order": 4
 }

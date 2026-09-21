@@ -164,7 +164,7 @@
   ],
   "a11y": "A real focusable file input covers the zone, so the keyboard opens the picker and the zone shows the focus ring; the list is a polite live region; rejections are text (with the reason), not just red; each Remove button names its file. The whole zone is the tap target on a phone.",
   "blazor": {
-    "component": "FileUploadForm",
+    "component": "PkDropzone",
     "params": [
       {
         "name": "Accept",

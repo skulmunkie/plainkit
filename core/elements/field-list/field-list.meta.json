@@ -89,7 +89,7 @@
   "methods": [],
   "a11y": "A real description list: slotted dt and dd are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
   "blazor": {
-    "component": "FieldList",
+    "component": "PkFieldList",
     "existing": true,
     "params": [
       {

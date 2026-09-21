@@ -1,8 +1,11 @@
 name: Release
 
-# Push a tag such as v0.1.0 to publish the npm package (plainkit) and a GitHub release carrying core/dist as a zip.
-# Repository secret needed: NPM_TOKEN (an npm automation token). The NuGet package (Plainkit.Blazor) is added when the Blazor
-# port moves here (it needs a NUGET_API_KEY secret scoped to that package).
+# Push a tag such as v0.1.0 to publish the NuGet package (PlainKit.Blazor) and a GitHub release carrying core/dist as a zip, its integrity
+# manifest and the .nupkg. The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
+# Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
+# Pinned CDN use needs nothing published: https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@<tag>/core/dist/...
+# NuGet uses Trusted Publishing (OIDC): no API key is stored. A policy on nuget.org trusts this repository and this workflow file
+# (release.yml); the NuGet/login step below swaps GitHub's short-lived token for a one-hour NuGet key just before the push.
 on:
   push:
     tags: ['v*']
@@ -14,6 +17,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      # A secret cannot be tested in an if: expression, so it is copied to an env var the step can test.
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +33,12 @@ jobs:
 
       - name: Tests
         run: |
-          node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+          node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
           node core/tools/build.mjs
           git diff --exit-code -- core/dist
 
-      - name: Publish to npm
+      - name: Publish to npm (only when NPM_TOKEN is set)
+        if: env.NPM_TOKEN != ''
         working-directory: core
         run: |
           npm version "$VERSION" --no-git-tag-version --allow-same-version
@@ -39,11 +46,34 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Test and pack PlainKit.Blazor
+        run: |
+          node scripts/publish-dist.mjs --check
+          dotnet test PlainKit.slnx --configuration Release
+          dotnet pack blazor/src/PlainKit.Blazor --configuration Release -p:Version="$VERSION" -o nupkg
+
+      # Requested right before the push: the key it returns lasts one hour.
+      - name: NuGet login (OIDC to a temporary API key)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push PlainKit.Blazor to NuGet
+        run: dotnet nuget push "nupkg/PlainKit.Blazor.$VERSION.nupkg" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
       - name: Zip dist for the release
         run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip .
 
       - name: GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: plainkit-dist-${{ env.VERSION }}.zip
+          files: |
+            plainkit-dist-${{ env.VERSION }}.zip
+            nupkg/PlainKit.Blazor.${{ env.VERSION }}.nupkg
+            core/dist/manifest.json
           generate_release_notes: true

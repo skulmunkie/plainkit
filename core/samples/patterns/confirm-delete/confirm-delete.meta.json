@@ -2,14 +2,14 @@
   "id": "confirm-delete",
   "title": "Confirm before delete",
   "summary": "A destructive action asks first: the modal names what will be lost and offers Cancel; the backdrop never dismisses it.",
-  "built": "Button, Modal, Notice.",
+  "built": "Button, Dialog, Alert, Card, Stack.",
   "mobile": "The modal fills the screen; both buttons are full-size targets.",
   "used": [
+    "alert",
     "button",
     "card",
-    "modal",
-    "notice",
-    "spacing"
+    "dialog",
+    "stack"
   ],
   "order": 3
 }

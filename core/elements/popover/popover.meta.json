@@ -163,7 +163,7 @@
   "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
   "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
   "blazor": {
-    "component": "Popover",
+    "component": "PkPopover",
     "params": [
       {
         "name": "Open",
@@ -284,11 +284,11 @@
   "examples": [
     {
       "title": "Popover on click",
-      "html": "<pk-popover heading=\"Order 1042\"><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Details</button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
+      "html": "<pk-popover heading=\"Order 1042\"><pk-button slot=\"trigger\" variant=\"ghost\">Details</pk-button>Placed Sep 12, three lines, shipping to Portland.</pk-popover>"
     },
     {
       "title": "Confirmation popover",
-      "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><button type=\"button\" slot=\"trigger\" class=\"btn-warn\">Delete line</button></pk-popover>"
+      "html": "<pk-popover variant=\"confirm\" heading=\"Delete this line?\" message=\"It cannot be undone.\" confirm-label=\"Delete\" danger><pk-button slot=\"trigger\" variant=\"warn\">Delete line</pk-button></pk-popover>"
     }
   ]
 }

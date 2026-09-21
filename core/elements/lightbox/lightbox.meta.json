@@ -100,7 +100,7 @@
   "a11y": "Native dialog with a label; the image has alt text from the item; the counter is a polite status; arrow keys and swipe navigate, Escape closes.",
   "mobile": "Previous and next sit at the bottom corners as 44px buttons; swipe left or right to change images.",
   "blazor": {
-    "component": "Lightbox",
+    "component": "PkLightbox",
     "params": [
       {
         "name": "Index",
@@ -152,7 +152,7 @@
   "examples": [
     {
       "title": "Lightbox trigger",
-      "html": "<pk-lightbox label=\"Product images\"><button type=\"button\" class=\"btn-ghost\">Open the gallery</button></pk-lightbox>"
+      "html": "<pk-lightbox label=\"Product images\"><pk-button variant=\"ghost\">Open the gallery</pk-button></pk-lightbox>"
     }
   ]
 }

@@ -83,7 +83,7 @@
   "methods": [],
   "a11y": "The host is role=status with a text label read by screen readers. Motion stops under prefers-reduced-motion.",
   "blazor": {
-    "component": "Spinner",
+    "component": "PkSpinner",
     "params": [
       {
         "name": "Variant",

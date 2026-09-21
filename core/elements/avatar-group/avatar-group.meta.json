@@ -47,7 +47,7 @@
   ],
   "a11y": "role=group with a label; the +N tile is text, so the count of hidden people is available without seeing them.",
   "blazor": {
-    "component": "AvatarGroup",
+    "component": "PkAvatarGroup",
     "params": [
       {
         "name": "Max",

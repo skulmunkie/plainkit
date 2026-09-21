@@ -59,7 +59,7 @@
   "methods": [],
   "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
   "blazor": {
-    "component": "ButtonGroup",
+    "component": "PkButtonGroup",
     "params": [
       {
         "name": "Orientation",

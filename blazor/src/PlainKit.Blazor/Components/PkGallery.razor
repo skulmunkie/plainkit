@@ -1,0 +1,43 @@
+@inject PkRuntime Runtime
+
+@* The toolkit's gallery inside a page: every control, element, layout and template with live samples. It runs in its own frame. *@
+<pk-gallery kind="@Kind.Attr()" group="@Group" control="@Control" theme="@Theme.Attr()" width="@Width.Attr()"
+            filter="@Filter" chrome="@Chrome.Attr()" height="@(Height > 0 ? Height.ToString() : null)" src="@Src"
+            @attributes="AdditionalAttributes"></pk-gallery>
+
+@code {
+    /// <summary>What to show. <see cref="PkGalleryKind.All"/> shows the controls when a group or control is named, otherwise everything.</summary>
+    [Parameter] public PkGalleryKind Kind { get; set; }
+
+    /// <summary>One control group by name ("Forms &amp; inputs") or slug.</summary>
+    [Parameter] public string? Group { get; set; }
+
+    /// <summary>One control, element or sample id, or a comma separated list ("button,input").</summary>
+    [Parameter] public string? Control { get; set; }
+
+    /// <summary>The theme of the gallery and its samples.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Render samples at desktop width or in a 375px phone frame.</summary>
+    [Parameter] public PkWidth Width { get; set; }
+
+    /// <summary>Search text: only controls whose name (or group) contains it are shown.</summary>
+    [Parameter] public string? Filter { get; set; }
+
+    /// <summary><see cref="PkChrome.None"/> (the default) is content only, sized to fit; <see cref="PkChrome.Full"/> adds the nav, toolbar and inspector.</summary>
+    [Parameter] public PkChrome Chrome { get; set; }
+
+    /// <summary>A fixed height in pixels; 0 fits the content (chrome none) or uses the default (chrome full).</summary>
+    [Parameter] public int Height { get; set; }
+
+    /// <summary>The address of the gallery's embed page. Defaults to the one shipped with PlainKit.Blazor.</summary>
+    [Parameter] public string? Src { get; set; } = PkAssets.GalleryEmbed;
+
+    /// <summary>Extra attributes for the element.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await Runtime.EnsureInitializedAsync();
+    }
+}

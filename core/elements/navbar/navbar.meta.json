@@ -80,7 +80,7 @@
   "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
   "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
   "blazor": {
-    "component": "Navbar",
+    "component": "PkNavbar",
     "params": [
       {
         "name": "Label",
@@ -132,11 +132,11 @@
   "examples": [
     {
       "title": "Navbar with a menu and actions",
-      "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">Orders</a><pk-dropdown><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">More</button><pk-menu-item href=\"#\">Customers</pk-menu-item><pk-menu-item href=\"#\">Reports</pk-menu-item></pk-dropdown><button type=\"button\" slot=\"actions\" class=\"btn-mini btn-ghost\">Account</button></pk-navbar>"
+      "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">Orders</a><pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">More</pk-button><pk-menu-item href=\"#\">Customers</pk-menu-item><pk-menu-item href=\"#\">Reports</pk-menu-item></pk-dropdown><pk-button slot=\"actions\" variant=\"ghost\" size=\"mini\">Account</pk-button></pk-navbar>"
     },
     {
       "title": "Navbar with a mega menu",
-      "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><pk-dropdown mega><button type=\"button\" slot=\"trigger\" class=\"btn-ghost\">Products</button><pk-menu-item type=\"header\">Catalog</pk-menu-item><pk-menu-item href=\"#\">All products</pk-menu-item><pk-menu-item href=\"#\">Drafts</pk-menu-item><pk-menu-item type=\"header\">Stock</pk-menu-item><pk-menu-item href=\"#\">Receiving</pk-menu-item><pk-menu-item href=\"#\">Adjustments</pk-menu-item></pk-dropdown><a href=\"#\">Orders</a></pk-navbar>"
+      "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><pk-dropdown mega><pk-button slot=\"trigger\" variant=\"ghost\">Products</pk-button><pk-menu-item type=\"header\">Catalog</pk-menu-item><pk-menu-item href=\"#\">All products</pk-menu-item><pk-menu-item href=\"#\">Drafts</pk-menu-item><pk-menu-item type=\"header\">Stock</pk-menu-item><pk-menu-item href=\"#\">Receiving</pk-menu-item><pk-menu-item href=\"#\">Adjustments</pk-menu-item></pk-dropdown><a href=\"#\">Orders</a></pk-navbar>"
     }
   ]
 }

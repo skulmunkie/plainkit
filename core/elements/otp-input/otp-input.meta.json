@@ -154,7 +154,7 @@
   ],
   "a11y": "A role=group named by label; every cell is named \"Digit n of N\"; the first has one-time-code autocomplete so the OS can fill an SMS code; arrow keys, Home and End move between cells; numeric cells open the numeric keypad. Cells are 44px wide on a phone.",
   "blazor": {
-    "component": "OtpInput",
+    "component": "PkOtpInput",
     "params": [
       {
         "name": "Value",

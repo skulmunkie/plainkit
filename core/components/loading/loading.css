@@ -1,4 +1,0 @@
-/* The "still fetching" line (Loading control). A polite live region. */
-.loading {
-    color: var(--color-muted);
-}

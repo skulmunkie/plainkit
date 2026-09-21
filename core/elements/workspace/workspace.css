@@ -1,0 +1,40 @@
+/* pk-workspace: a nav pane, a main pane and an optional docked aside. Each pane scrolls on its own. On a phone one pane shows at a time and a tab strip switches it. */
+:host { display: block; inline-size: 100%; min-inline-size: 0; block-size: var(--pk-workspace-height, calc(100dvh - 20rem)); min-block-size: 26rem; }
+:host([fill]) { flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+
+[part="root"] { --_nav-w: var(--pk-workspace-nav-w, 17.5rem); --_aside-w: var(--pk-workspace-aside-w, var(--inspector-w)); position: relative; display: grid; grid-template-columns: var(--_nav-w) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); block-size: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-panel); color: var(--color-text); overflow: hidden; }
+:host([fill]) [part="root"] { border: 0; border-radius: 0; }
+[part="root"][data-aside] { grid-template-columns: var(--_nav-w) minmax(0, 1fr) var(--_aside-w); }
+[part="root"]:not([data-nav]) { grid-template-columns: minmax(0, 1fr); }
+[part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr) var(--_aside-w); }
+
+[part="nav"], [part="main"], [part="aside"] { min-inline-size: 0; min-block-size: 0; overflow: auto; overscroll-behavior: contain; padding: var(--pk-workspace-pad, var(--pad-panel)); }
+[part="nav"] { border-inline-end: 1px solid var(--color-border); }
+[part="aside"] { border-inline-start: 1px solid var(--color-border); background: var(--color-panel); }
+[part="root"]:not([data-nav]) > [part="nav"], [part="root"]:not([data-aside]) > [part="aside"] { display: none; }
+
+[part="strip"] { display: none; align-items: stretch; gap: var(--space-1); padding-inline: var(--space-2); border-bottom: 1px solid var(--color-border); background: var(--color-panel); overflow-x: auto; scrollbar-width: none; }
+[part="strip"]::-webkit-scrollbar { display: none; }
+[part="tab"] { flex: none; font: inherit; font-size: var(--text-read); color: var(--color-muted); background: transparent; border: 0; border-bottom: 2px solid transparent; padding: var(--space-2) var(--space-4); min-block-size: var(--touch-target); cursor: pointer; touch-action: manipulation; white-space: nowrap; }
+[part="tab"]:hover { color: var(--color-text); }
+[part="tab"][aria-selected="true"] { color: var(--color-text); border-bottom-color: var(--color-accent); }
+[part="tab"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+
+/* A narrower screen: a slimmer nav column. */
+@media (max-width: 1280px) { [part="root"] { --_nav-w: var(--pk-workspace-nav-w, 13.75rem); } }
+
+/* A tablet: the aside floats over the main pane's edge instead of taking a column. */
+@media (max-width: 1024px) {
+    [part="root"][data-aside] { grid-template-columns: var(--_nav-w) minmax(0, 1fr); }
+    [part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr); }
+    [part="aside"] { position: absolute; inset-block: 0; inset-inline-end: 0; inline-size: min(var(--_aside-w), 85%); z-index: 1; box-shadow: var(--shadow-flyout); }
+}
+
+/* A phone: one pane at a time, switched by the strip. */
+@media (max-width: 640px) {
+    [part="root"], [part="root"][data-aside], [part="root"]:not([data-nav]), [part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    [part="strip"] { display: flex; }
+    [part="strip"][hidden] { display: none; }
+    [part="root"] > [part="nav"], [part="root"] > [part="main"], [part="root"] > [part="aside"] { display: none; position: static; inline-size: auto; border: 0; box-shadow: none; }
+    [part="root"][data-pane="nav"] > [part="nav"], [part="root"][data-pane="main"] > [part="main"], [part="root"][data-pane="aside"] > [part="aside"] { display: block; }
+}

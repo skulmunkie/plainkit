@@ -115,7 +115,7 @@
   "a11y": "The stepper gives it role listitem and the descriptive label; state is also in aria-current and aria-disabled.",
   "mobile": "Only the active step keeps its text in a horizontal stepper.",
   "blazor": {
-    "component": "Step",
+    "component": "PkStep",
     "params": [
       {
         "name": "Heading",

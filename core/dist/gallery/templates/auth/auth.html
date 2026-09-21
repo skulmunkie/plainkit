@@ -6,19 +6,20 @@
 <meta name="description" content="SDK template: Auth">
 <title>Sign in - SDK template</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
+<link rel="stylesheet" href="auth.css">
 </head>
 <body>
-<div class="shell shell--center">
-  <main class="card stack">
-    <h1>Sign in</h1>
-    <label class="ff"><span>Email</span><input type="text" autocomplete="username"></label>
-    <label class="ff"><span>Password</span><input type="password" autocomplete="current-password"></label>
-    <label class="chk"><input type="checkbox"><span>Keep me signed in</span></label>
-    <button class="btn-primary" type="button">Sign in</button>
-    <p class="muted"><a href="../page/page.html">Back to the templates</a></p>
+  <main class="u-w-full u-mw-24r u-p-1r-1p25r">
+    <pk-card heading="Sign in" level="1">
+      <pk-stack>
+        <pk-field label="Email"><pk-input autocomplete="username"></pk-input></pk-field>
+        <pk-field label="Password"><pk-input type="password" reveal autocomplete="current-password"></pk-input></pk-field>
+        <pk-checkbox>Keep me signed in</pk-checkbox>
+        <pk-button block>Sign in</pk-button>
+        <p class="muted"><a href="../page/page.html">Back to the templates</a></p>
+      </pk-stack>
+    </pk-card>
   </main>
-</div>
 <script type="module" src="auth.js"></script>
 
 </body>

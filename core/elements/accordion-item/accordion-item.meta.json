@@ -75,7 +75,7 @@
   "methods": [],
   "a11y": "Native details and summary semantics with a 44px header; the chevron is decorative. The animation is skipped under prefers-reduced-motion.",
   "blazor": {
-    "component": "AccordionItem",
+    "component": "PkAccordionItem",
     "params": [
       {
         "name": "Heading",

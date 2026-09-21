@@ -1,0 +1,87 @@
+{
+  "tag": "pk-icon",
+  "title": "Icon",
+  "group": "Media",
+  "summary": "A symbol from the SDK sprite, drawn in the surrounding text colour and size. The sprite is found next to the element module, so it works wherever dist is copied.",
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The symbol id in the sprite (search, settings, orders, ...)."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "reflect": true,
+      "description": "md is 1.25em and follows the text; sm, lg and xl are fixed steps of the space scale."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name. Without it the icon is decorative and hidden from assistive technology."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "svg",
+      "description": "The svg element."
+    },
+    {
+      "name": "use",
+      "description": "The use element that points into the sprite."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-icon-size",
+      "description": "Width and height, overriding size.",
+      "default": "the size step"
+    }
+  ],
+  "methods": [],
+  "a11y": "With a label the host is role img with that name; without one it is aria-hidden, so put the meaning in the surrounding text (a button label) and leave the icon decorative. The stroke follows currentColor, so it meets the contrast of its text. Give an icon-only button a 44px target.",
+  "blazor": {
+    "component": "PkIcon",
+    "params": [
+      {
+        "name": "Name",
+        "prop": "name",
+        "type": "string"
+      },
+      {
+        "name": "Size",
+        "prop": "size",
+        "type": "string"
+      },
+      {
+        "name": "Label",
+        "prop": "label",
+        "type": "string"
+      }
+    ],
+    "notes": "Replaces Icon. Class-based icons used a relative sprite path; pk-icon resolves the sprite from its own module URL."
+  },
+  "examples": [
+    {
+      "title": "Follows text colour and size",
+      "html": "<p><pk-icon name=\"search\"></pk-icon> Search &nbsp; <pk-icon name=\"settings\" label=\"Settings\"></pk-icon> &nbsp; <pk-icon name=\"orders\" size=\"xl\"></pk-icon></p>"
+    },
+    {
+      "title": "Size steps",
+      "html": "<pk-icon name=\"search\" size=\"sm\"></pk-icon> <pk-icon name=\"search\"></pk-icon> <pk-icon name=\"search\" size=\"lg\"></pk-icon> <pk-icon name=\"search\" size=\"xl\"></pk-icon>"
+    }
+  ]
+}

@@ -142,7 +142,7 @@
   ],
   "a11y": "A native select in the shadow root: keyboard, type-to-select and the platform picker are the browser's own. Named by label, described by description.",
   "blazor": {
-    "component": "SelectField",
+    "component": "PkSelect",
     "params": [
       {
         "name": "Value",

@@ -6,12 +6,11 @@
 <meta name="description" content="SDK template: Master and detail">
 <title>Master and detail - SDK template</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
 <main id="content">
-<div class="split"><section class="card"><div class="card-header"><h2>Master list</h2></div><ul class="list-group"><li><a href="#">Item one</a></li><li><a href="#" aria-current="true"><strong>Item two</strong></a></li><li><a href="#">Item three</a></li></ul></section>
-<section class="card"><div class="card-header"><h2>Detail</h2></div><pk-field-list><dt>Name</dt><dd>Item one</dd><dt>Status</dt><dd>Active</dd><dt>Created</dt><dd>Sep 12</dd><dt>Amount</dt><dd>$12.00</dd></pk-field-list><div class="tabs" role="tablist" data-pk-tabs="toggle"><button class="tab active" role="tab" aria-selected="true" tabindex="0">Overview</button><button class="tab" role="tab" aria-selected="false" tabindex="-1">History</button></div><ul class="timeline"><li>Created</li><li>Updated</li></ul></section></div>
+<pk-grid columns="2" min="20rem"><pk-card heading="Master list"><pk-list-group variant="action" label="Master list"><a href="#">Item one</a><a href="#" aria-current="true"><strong>Item two</strong></a><a href="#">Item three</a></pk-list-group></pk-card>
+<pk-card heading="Detail"><pk-tabs value="overview"><pk-tab value="overview">Overview</pk-tab><pk-tab value="history">History</pk-tab><pk-tab-panel value="overview"><pk-field-list><dt>Name</dt><dd>Item one</dd><dt>Status</dt><dd>Active</dd><dt>Created</dt><dd>Sep 12</dd><dt>Amount</dt><dd>$12.00</dd></pk-field-list></pk-tab-panel><pk-tab-panel value="history"><pk-timeline label="History"><pk-timeline-item heading="Created" status="done"></pk-timeline-item><pk-timeline-item heading="Updated" status="active"></pk-timeline-item></pk-timeline></pk-tab-panel></pk-tabs></pk-card></pk-grid>
 </main>
 <script type="module" src="master-detail.js"></script>
 

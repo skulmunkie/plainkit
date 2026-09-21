@@ -6,14 +6,15 @@
 <meta name="description" content="SDK template: Form and settings">
 <title>Form and settings - SDK template</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
 <main id="content">
-<form class="stack">
-<section class="card"><div class="card-header"><h2>Section one</h2></div><div class="form-grid"><label class="ff"><span>Name <span class="ff-required" aria-hidden="true">*</span></span><input type="text" value="Example"><span class="field-help">Help text sits below the input.</span></label><label class="ff"><span>Email</span><input type="text" class="is-invalid" value="not-an-email"><span class="field-error">Enter a valid email address.</span></label><label class="ff"><span>Choice</span><select><option>One</option></select></label></div></section>
-<section class="card"><div class="card-header"><h2>Section two</h2></div><div class="stack-sm"><label class="switch"><input type="checkbox" checked><span>Option enabled</span></label><label class="ff"><span>Amount</span><input type="range" min="0" max="100" value="40"></label></div></section>
-<div class="sticky-header form-savebar"><div class="cluster cluster--horizontal cluster--gap-sm cluster--align-center cluster--justify-start"><button class="btn-primary">Save</button><button class="btn-ghost" type="button">Cancel</button><span class="muted">Unsaved changes</span></div></div>
+<form>
+<pk-stack>
+<pk-card heading="Section one"><pk-grid min="16rem"><pk-field label="Name" required help="Help text sits below the input."><pk-input value="Example"></pk-input></pk-field><pk-field label="Email" error="Enter a valid email address."><pk-input value="not-an-email"></pk-input></pk-field><pk-field label="Choice"><pk-select><option>One</option></pk-select></pk-field></pk-grid></pk-card>
+<pk-card heading="Section two"><pk-stack gap="sm"><pk-switch checked>Option enabled</pk-switch><pk-range label="Amount" min="0" max="100" value="40" output></pk-range></pk-stack></pk-card>
+<pk-form-actions sticky><pk-button type="submit">Save</pk-button><pk-button variant="ghost">Cancel</pk-button><span slot="status" class="muted">Unsaved changes</span></pk-form-actions>
+</pk-stack>
 </form>
 </main>
 <script type="module" src="form.js"></script>

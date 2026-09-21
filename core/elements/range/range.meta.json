@@ -161,7 +161,7 @@
   ],
   "a11y": "Native range inputs: arrow keys, Home, End and Page keys; each thumb of a dual slider is named \"<label> minimum\" and \"<label> maximum\". The 44px phone hit area comes from the taller wrapper. A form receives one entry (single) or two entries under the same name (dual).",
   "blazor": {
-    "component": "RangeSlider",
+    "component": "PkRange",
     "params": [
       {
         "name": "Value",

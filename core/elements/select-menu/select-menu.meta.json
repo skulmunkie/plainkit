@@ -96,7 +96,7 @@
   "a11y": "The trigger is a combobox with aria-haspopup=listbox and aria-expanded; the list is role=listbox with option children and aria-activedescendant; arrows, Home, End, typeahead, Enter, Escape.",
   "mobile": "The list is at least 44px per row and opens under the trigger, flipping above when there is no room.",
   "blazor": {
-    "component": "SelectMenu",
+    "component": "PkSelectMenu",
     "params": [
       {
         "name": "Value",

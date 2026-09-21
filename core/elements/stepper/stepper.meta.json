@@ -91,7 +91,7 @@
   "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
   "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
   "blazor": {
-    "component": "Stepper",
+    "component": "PkStepper",
     "params": [
       {
         "name": "Current",
@@ -161,11 +161,11 @@
   "examples": [
     {
       "title": "Horizontal stepper (clickable, linear)",
-      "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step title=\"Basics\" description=\"Name and type\"></pk-step><pk-step title=\"Pricing\" description=\"Cost and price\"></pk-step><pk-step title=\"Images\"></pk-step><pk-step title=\"Review\"></pk-step></pk-stepper>"
+      "html": "<pk-stepper label=\"Create product\" current=\"1\" clickable><pk-step heading=\"Basics\" description=\"Name and type\"></pk-step><pk-step heading=\"Pricing\" description=\"Cost and price\"></pk-step><pk-step heading=\"Images\"></pk-step><pk-step heading=\"Review\"></pk-step></pk-stepper>"
     },
     {
       "title": "Vertical stepper with an error",
-      "html": "<pk-stepper label=\"Import\" current=\"2\" orientation=\"vertical\" errors=\"0\"><pk-step title=\"Upload\" description=\"File rejected\"></pk-step><pk-step title=\"Map columns\"></pk-step><pk-step title=\"Review\"></pk-step><pk-step title=\"Finish\"></pk-step></pk-stepper>"
+      "html": "<pk-stepper label=\"Import\" current=\"2\" orientation=\"vertical\" errors=\"0\"><pk-step heading=\"Upload\" description=\"File rejected\"></pk-step><pk-step heading=\"Map columns\"></pk-step><pk-step heading=\"Review\"></pk-step><pk-step heading=\"Finish\"></pk-step></pk-stepper>"
     }
   ]
 }

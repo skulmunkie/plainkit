@@ -1,0 +1,55 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's dev console: console output, errors, SDK events, network, the pk-* elements on the page and the environment. *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>The tab shown first: console, events, network, elements or environment.</summary>
+    [Parameter] public string Tab { get; set; } = "console";
+
+    /// <summary>Entries kept.</summary>
+    [Parameter] public int Max { get; set; } = 500;
+
+    /// <summary>The feeds to record: console, errors, events, network. Null records all.</summary>
+    [Parameter] public IReadOnlyList<string>? Capture { get; set; }
+
+    /// <summary>The theme of the console itself.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill".</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = $"{Tab}|{Max}|{string.Join(',', Capture ?? [])}|{Theme}|{Height}";
+        if (key == _mounted) return;
+        _mounted = key;
+        await _bridge.InvokeVoidAsync("mountConsole", _host, new { tab = Tab, max = Max, capture = Capture, theme = Theme.Attr(), height = Height });
+    }
+
+    /// <summary>Adds a line to the console from server code. level: debug, log, info, warn or error.</summary>
+    public async Task LogAsync(string level, string text)
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("log", _host, level, text);
+    }
+
+    /// <summary>Empties the console.</summary>
+    public async Task ClearAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("clear", _host);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

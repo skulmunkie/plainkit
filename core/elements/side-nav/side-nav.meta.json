@@ -127,7 +127,7 @@
   "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
   "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",
   "blazor": {
-    "component": "NavMenu",
+    "component": "PkSideNav",
     "params": [
       {
         "name": "Label",
@@ -196,7 +196,7 @@
   "examples": [
     {
       "title": "Side nav with a branch, filter and icon rail",
-      "html": "<div class=\"shell shell--fill\"><pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav></div>"
+      "html": "<pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav>"
     }
   ]
 }

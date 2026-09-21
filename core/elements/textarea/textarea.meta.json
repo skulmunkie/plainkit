@@ -184,7 +184,7 @@
   ],
   "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
   "blazor": {
-    "component": "TextArea",
+    "component": "PkTextarea",
     "params": [
       {
         "name": "Value",

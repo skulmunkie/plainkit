@@ -1,0 +1,5 @@
+/* Performance monitor chrome. Everything inside is SDK components; this only paints a mounted monitor that carries its own theme. */
+
+.pf-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }
+
+.pf-module > * + * { margin-top: var(--space-3); }

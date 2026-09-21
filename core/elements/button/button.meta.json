@@ -192,7 +192,7 @@
   ],
   "a11y": "A native button lives in the shadow root, so it is focusable, activates on Enter and Space and exposes the button role. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus. Focus ring and the 44px phone target are built in.",
   "blazor": {
-    "component": "Button",
+    "component": "PkButton",
     "params": [
       {
         "name": "Variant",

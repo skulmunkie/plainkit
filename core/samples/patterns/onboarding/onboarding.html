@@ -1,1 +1,6 @@
-<section class="card stack"><div class="card-header"><h2>Get set up</h2><span class="muted">2 of 4 done</span></div><div class="progress" role="progressbar" aria-label="Setup progress" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"><span></span></div><ol class="stepper"><li class="done">Create account</li><li class="done">Add a product</li><li class="active">Connect a channel</li><li>Invite a teammate</li></ol><ul class="list-group"><li>Connect a channel <button class="btn-mini btn-primary u-ml-auto">Start</button></li><li class="muted">Invite a teammate</li></ul></section>
+<pk-card heading="Get set up"><span slot="actions" class="muted">2 of 4 done</span>
+<pk-stack>
+<pk-progress label="Setup progress" value="50"></pk-progress>
+<pk-stepper label="Setup steps" current="2"><pk-step heading="Create account"></pk-step><pk-step heading="Add a product"></pk-step><pk-step heading="Connect a channel"></pk-step><pk-step heading="Invite a teammate"></pk-step></pk-stepper>
+<pk-list-group label="Next steps"><div>Connect a channel <pk-button size="mini">Start</pk-button></div><div class="muted">Invite a teammate</div></pk-list-group>
+</pk-stack></pk-card>

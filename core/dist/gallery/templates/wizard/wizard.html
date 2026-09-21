@@ -6,13 +6,14 @@
 <meta name="description" content="SDK template: Wizard">
 <title>Wizard - SDK template</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
 <main id="content">
-<ol class="stepper"><li class="done">Step one</li><li class="active">Step two</li><li>Review</li></ol>
-<section class="card"><div class="card-header"><h2>Step two</h2></div><div class="form-grid"><label class="ff"><span>Field</span><input type="text" value="Value"></label><label class="ff"><span>Other field</span><input type="text"></label></div></section>
-<div class="toolbar"><div class="toolbar-actions"><button class="btn-ghost">Back</button><button class="btn-primary">Next</button></div></div>
+<pk-stack>
+<pk-stepper label="Wizard" current="1" clickable><pk-step heading="Step one"></pk-step><pk-step heading="Step two"></pk-step><pk-step heading="Review"></pk-step></pk-stepper>
+<pk-card id="step-card" heading="Step two"><pk-grid min="16rem"><pk-field label="Field"><pk-input value="Value"></pk-input></pk-field><pk-field label="Other field"><pk-input></pk-input></pk-field></pk-grid></pk-card>
+<pk-toolbar><pk-button id="back" slot="actions" variant="ghost">Back</pk-button><pk-button id="next" slot="actions">Next</pk-button></pk-toolbar>
+</pk-stack>
 </main>
 <script type="module" src="wizard.js"></script>
 

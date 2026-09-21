@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/blazor/" />
+  <Folder Name="/blazor/samples/">
+    <Project Path="blazor/samples/PlainKit.Playground/PlainKit.Playground.csproj" />
+  </Folder>
+  <Folder Name="/blazor/src/">
+    <Project Path="blazor/src/PlainKit.Blazor/PlainKit.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/blazor/tests/">
+    <Project Path="blazor/tests/PlainKit.Blazor.Tests/PlainKit.Blazor.Tests.csproj" />
+  </Folder>
+</Solution>

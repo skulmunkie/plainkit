@@ -11,7 +11,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# The Blazor port (blazor/, Plainkit.Blazor) moves here after the toolkit; its job is added when it lands.
+# core: the vanilla toolkit. blazor: PlainKit.Blazor, which serves a copy of core/dist (scripts/publish-dist.mjs).
 jobs:
   core:
     name: Toolkit (node)
@@ -24,10 +24,31 @@ jobs:
           node-version: '22'
 
       - name: Node tests
-        run: node --test "core/tests/*.test.mjs" "core/components/*/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+        run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
 
       # The build is deterministic and dist is committed, so a rebuild must change nothing.
       - name: Rebuild and check dist is current
         run: |
           node core/tools/build.mjs
           git diff --exit-code -- core/dist
+
+  blazor:
+    name: Blazor (dotnet)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # The package serves a byte-for-byte copy of core/dist; it must be current.
+      - name: Package copy of the toolkit is current
+        run: node scripts/publish-dist.mjs --check
+
+      - name: Build and test
+        run: dotnet test PlainKit.slnx --configuration Release

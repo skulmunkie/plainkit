@@ -13,6 +13,46 @@
 
 .gx-notice-file { margin: var(--space-4); }
 
+/* Top bar: a pk-navbar. Brand, search, settings menu and hamburger stay on ONE row at tablet and phone widths (the navbar's parts are reordered
+   here), and the page links fold into a panel that overlays the content instead of pushing it down. The theme switch sits in the settings menu. */
+.site > pk-navbar { position: relative; z-index: var(--z-sticky); }
+
+/* Links in the light DOM answer to the page's link rules before the navbar's own, so the brand and page links are settled here. */
+.site pk-navbar > a { color: inherit; text-decoration: none; }
+
+.site pk-navbar > a[aria-current="page"] { color: var(--color-link); }
+
+/* The search field: inline on a desktop bar, a button on a phone that opens it as a full-width row over the bar. */
+.site-search { display: flex; align-items: center; gap: var(--space-1); }
+
+.site-search-field { width: 14rem; }
+
+.site-search-toggle, .site-search-close { display: none; }
+
+@media (max-width: 1024px) {
+    .site pk-navbar::part(nav) { position: relative; flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-3); }
+
+    .site pk-navbar::part(actions) { order: 2; margin-inline-start: auto; gap: var(--space-1); }
+
+    .site pk-navbar::part(toggle) { order: 3; margin-inline-start: 0; }
+
+    .site pk-navbar::part(links) { order: 4; position: absolute; top: 100%; left: 0; right: 0; z-index: var(--z-sticky); padding: var(--space-2) var(--space-3); background: var(--color-panel); border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-card); max-height: calc(100dvh - var(--app-header-h)); overflow-y: auto; }
+
+    .site pk-navbar[open]::part(links) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); }
+}
+
 @media (max-width: 640px) {
     .site-scroll { padding: var(--space-3); }
+
+    .site-search-field { display: none; }
+
+    .site-search-toggle { display: inline-block; }
+
+    .site-search[data-open] { position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-sticky); height: var(--app-header-h); padding-inline: var(--space-3); background: var(--color-panel); }
+
+    .site-search[data-open] .site-search-field { display: block; flex: 1 1 auto; min-width: 0; width: auto; }
+
+    .site-search[data-open] .site-search-toggle { display: none; }
+
+    .site-search[data-open] .site-search-close { display: inline-block; }
 }

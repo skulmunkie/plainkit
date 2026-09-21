@@ -1,7 +1,0 @@
-/* Reference-page layout only; not part of the SDK. */
-body { height: auto; padding: 1rem; max-width: 72rem; margin: 0 auto; }
-.ref-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; margin: 0.75rem 0 2rem; }
-.ref-pane { background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; min-width: 0; }
-.ref-pane > h4 { margin: 0 0 0.75rem; font-size: var(--text-sm); color: var(--color-muted); font-weight: 400; }
-h2 { margin: 1.5rem 0 0; font-size: 1.1rem; }
-code { font-size: 0.85em; }

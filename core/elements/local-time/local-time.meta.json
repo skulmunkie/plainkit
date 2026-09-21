@@ -1,0 +1,125 @@
+{
+  "tag": "pk-local-time",
+  "title": "Local time",
+  "group": "Data display",
+  "summary": "A UTC instant written in the reader's own locale and time zone, as a date, a time, both, or relative to now (3 hours ago). Keeps a real time element inside, so the machine value stays readable.",
+  "props": [
+    {
+      "name": "datetime",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The instant: an ISO 8601 string (2026-09-19T14:30:00Z). A date-only value is a calendar day and is never shifted by the time zone."
+    },
+    {
+      "name": "format",
+      "type": "enum",
+      "default": "datetime",
+      "values": [
+        "datetime",
+        "date",
+        "time",
+        "relative"
+      ],
+      "reflect": true,
+      "description": "What to show. relative reads 3 hours ago and refreshes every 30 seconds while connected; its title holds the full date."
+    },
+    {
+      "name": "length",
+      "type": "enum",
+      "default": "medium",
+      "values": [
+        "short",
+        "medium",
+        "long"
+      ],
+      "reflect": true,
+      "description": "How much of the date to spell out (9/19/26, Sep 19, 2026, September 19, 2026)."
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A BCP 47 tag such as de-DE; empty uses the reader's browser locale."
+    },
+    {
+      "name": "timeZone",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "An IANA zone such as Europe/Berlin; empty uses the reader's own zone."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Fallback text, shown only while the datetime is empty or not a date."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "time",
+      "description": "The inner time element (its datetime attribute is the machine value)."
+    },
+    {
+      "name": "text",
+      "description": "The formatted text."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [
+    {
+      "name": "formatLocal(value, options)",
+      "description": "The pure formatter the element uses: format, length, locale, timeZone and now."
+    }
+  ],
+  "a11y": "The text is inside a real time element carrying the datetime, so assistive technology and search see the exact instant. Relative text is not live-announced; the title holds the full date for pointer users. Prefer date or datetime where the exact moment matters.",
+  "blazor": {
+    "component": "PkLocalTime",
+    "params": [
+      {
+        "name": "Value",
+        "prop": "datetime",
+        "type": "string"
+      },
+      {
+        "name": "Format",
+        "prop": "format",
+        "type": "string"
+      },
+      {
+        "name": "Length",
+        "prop": "length",
+        "type": "string"
+      },
+      {
+        "name": "Locale",
+        "prop": "locale",
+        "type": "string"
+      },
+      {
+        "name": "TimeZone",
+        "prop": "timeZone",
+        "type": "string"
+      },
+      {
+        "name": "ChildContent",
+        "slot": "",
+        "type": "RenderFragment"
+      }
+    ],
+    "notes": "Replaces LocalDateTime; pass the UTC value as an ISO 8601 string (DateTime.ToString(\"o\")). Format DateOnly maps to format=\"date\"."
+  },
+  "examples": [
+    {
+      "title": "Date, time and both",
+      "html": "<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\"></pk-local-time></p>\n<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\" format=\"date\" length=\"long\"></pk-local-time> at <pk-local-time datetime=\"2026-09-19T14:30:00Z\" format=\"time\"></pk-local-time></p>"
+    },
+    {
+      "title": "Relative and another locale",
+      "html": "<p>Updated <pk-local-time datetime=\"2026-01-01T00:00:00Z\" format=\"relative\"></pk-local-time></p>\n<p><pk-local-time datetime=\"2026-09-19T14:30:00Z\" locale=\"de-DE\" time-zone=\"Europe/Berlin\"></pk-local-time></p>"
+    }
+  ]
+}

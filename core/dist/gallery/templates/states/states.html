@@ -6,13 +6,12 @@
 <meta name="description" content="SDK template: Empty, error and loading">
 <title>Empty, error and loading - SDK template</title>
 <link rel="stylesheet" href="../../../plainkit.css">
-<link rel="stylesheet" href="../../../plainkit-compat.css">
 </head>
 <body>
 <main id="content">
-<div class="grid"><section class="card"><div class="empty-state"><p class="empty-state-title">Nothing here yet</p><p class="empty-state-description">Say what is missing and what to do.</p><div class="empty-state-actions"><button class="btn-primary">Add one</button></div></div></section>
-<section class="card"><div class="notice notice--boxed"><strong class="notice-title">Something failed.</strong>Explain it and offer a way out.</div><div class="remedy"><div class="remedy-body">Two items are queued.</div><div class="remedy-actions"><button class="btn-mini btn-primary">Retry now</button></div></div></section>
-<section class="card stack-sm" aria-busy="true"><p class="muted loading" role="status">Loading…</p><span class="skeleton"></span><span class="skeleton"></span></section></div>
+<pk-grid min="14rem"><pk-card><pk-empty-state heading="Nothing here yet" description="Say what is missing and what to do."><pk-button slot="actions">Add one</pk-button></pk-empty-state></pk-card>
+<pk-card><pk-stack><pk-alert kind="danger" heading="Something failed.">Explain it and offer a way out.</pk-alert><pk-alert kind="warning" compact>Two items are queued.<pk-button slot="action" size="mini">Retry now</pk-button></pk-alert></pk-stack></pk-card>
+<pk-card aria-busy="true"><pk-stack gap="sm"><pk-cluster gap="sm"><pk-spinner size="sm" label="Loading"></pk-spinner><span class="muted" role="status">Loading…</span></pk-cluster><pk-skeleton></pk-skeleton><pk-skeleton></pk-skeleton></pk-stack></pk-card></pk-grid>
 </main>
 <script type="module" src="states.js"></script>
 

@@ -25,7 +25,7 @@
   "methods": [],
   "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
   "blazor": {
-    "component": "Gallery",
+    "component": "PkGallery",
     "params": [
       { "name": "Kind", "prop": "kind" },
       { "name": "Group", "prop": "group" },

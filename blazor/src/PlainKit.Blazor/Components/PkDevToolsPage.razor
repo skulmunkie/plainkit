@@ -1,0 +1,87 @@
+@page "/_plainkit"
+@page "/_plainkit/{Tab}"
+@using Microsoft.Extensions.Hosting
+@inject PkOptions Options
+@inject PkSourceProvider Source
+@inject NavigationManager Nav
+@inject IServiceProvider Services
+@inject PkRuntime Runtime
+
+@* The toolkit's own dev tools, in your app: gallery, files, scorecard, performance and console, all built from the SDK.
+   Served at /_plainkit in Development (see PkOptions.DevTools). *@
+<PkStyles />
+@if (!Enabled)
+{
+    <pk-empty-state heading="Dev tools are off" description="Set DevTools = true in AddPlainKit to serve them outside Development."></pk-empty-state>
+}
+else
+{
+    <pk-tabs value="@Current" aria-label="Dev tools">
+        @foreach (var (key, label) in Tabs)
+        {
+            <pk-tab value="@key" @onclick="() => Go(key)">@label</pk-tab>
+        }
+    </pk-tabs>
+
+    @* Performance and the console stay mounted so they keep watching while another tab is open; the rest mount when shown. *@
+    <div hidden="@(Current != "performance")"><PkPerformance /></div>
+    <div hidden="@(Current != "console")"><PkConsole /></div>
+
+    @if (Current == "gallery")
+    {
+        <PkGallery Chrome="PkChrome.Full" Height="760" />
+    }
+    else if (Current == "files")
+    {
+        @if (_snapshot is null)
+        {
+            <pk-empty-state heading="No source to browse" description="The Files tab reads a folder on the server, so it is not available in a browser-only app. Set SourceRoot in AddPlainKit, or run server side."></pk-empty-state>
+        }
+        else
+        {
+            <p class="muted">@_snapshot.Files.Count files under the app's source root.</p>
+            <PkCodeExplorer Snapshot="_snapshot" Height="42rem" />
+        }
+    }
+    else if (Current == "scorecard")
+    {
+        <PkScorecard Targets="Targets" HistoryKey="plainkit-devtools-scorecard" Height="42rem" />
+    }
+}
+
+@code {
+    private static readonly (string Key, string Label)[] Tabs =
+    [
+        ("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard"), ("performance", "Performance"), ("console", "Console"),
+    ];
+
+    private PkSnapshot? _snapshot;
+    private string? _loadedFor;
+
+    /// <summary>The tab shown: gallery, files, scorecard, performance or console.</summary>
+    [Parameter] public string? Tab { get; set; }
+
+    private string Current => Tabs.Any(t => t.Key == Tab) ? Tab! : "gallery";
+
+    private bool Enabled => Options.DevTools ?? Services.GetService(typeof(IHostEnvironment)) is IHostEnvironment { EnvironmentName: "Development" };
+
+    private IReadOnlyList<PkScoreTarget> Targets => Options.ScoreTargets ??
+    [
+        .. new[] { "crud", "dashboard", "form", "auth", "wizard", "master-detail" }
+            .Select(id => PkScoreTarget.Page($"{PkAssets.Root}gallery/templates/{id}/{id}.html", $"Template: {id}")),
+    ];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await Runtime.EnsureInitializedAsync();
+    }
+
+    private void Go(string key) => Nav.NavigateTo($"/_plainkit/{key}");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Enabled || Current != "files" || _loadedFor == "files") return;
+        _snapshot = await Source.GetAsync();
+        _loadedFor = "files";
+    }
+}

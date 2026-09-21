@@ -1,0 +1,16 @@
+:host { --_g: var(--space-2); display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--pk-cluster-gap, var(--_g)); }
+:host([hidden]) { display: none; }
+:host([gap="none"]) { --_g: 0px; }
+:host([gap="xs"]) { --_g: var(--space-1); }
+:host([gap="md"]) { --_g: var(--space-4); }
+:host([gap="lg"]) { --_g: var(--space-6); }
+:host([gap="xl"]) { --_g: var(--space-8); }
+:host([direction="vertical"]) { flex-direction: column; flex-wrap: nowrap; }
+:host([nowrap]) { flex-wrap: nowrap; }
+:host([align="start"]) { align-items: flex-start; }
+:host([align="end"]) { align-items: flex-end; }
+:host([align="stretch"]) { align-items: stretch; }
+:host([align="baseline"]) { align-items: baseline; }
+:host([justify="center"]) { justify-content: center; }
+:host([justify="end"]) { justify-content: flex-end; }
+:host([justify="between"]) { justify-content: space-between; }

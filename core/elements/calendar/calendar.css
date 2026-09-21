@@ -15,3 +15,4 @@ td { padding: 0; text-align: center; }
 .day:disabled { opacity: 0.4; cursor: default; }
 .day:focus-visible, [part="prev"]:focus-visible, [part="next"]:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
 @media (min-width: 641px) { :host { --_c: var(--pk-calendar-cell, var(--space-8)); } }
+@media (max-width: 640px) { :host { padding-inline: 0; } }

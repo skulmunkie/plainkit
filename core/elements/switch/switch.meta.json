@@ -120,7 +120,7 @@
   "methods": [],
   "a11y": "An inner button with role=switch and aria-checked, named by the label slot. Space and Enter toggle it. In a form it contributes name=value while checked, resets to its initial state with the form, and is disabled by a disabled fieldset. Use it only for settings that take effect at once; a value that needs Save is a checkbox.",
   "blazor": {
-    "component": "Switch",
+    "component": "PkSwitch",
     "params": [
       {
         "name": "Checked",
