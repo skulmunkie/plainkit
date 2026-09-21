@@ -3,7 +3,8 @@ import { PkElement, define } from '../js/element.js';
 import { place, onOutside, unplace } from '../js/positioning.js';
 
 const behaviour = Base => class extends Base {
-    connected() {
+    connected() { this.setup(); if (this.flyout) this.layer(); }
+    setup() {
         if (this.$w) return;
         this.$w = true;
         this.shadowRoot.addEventListener('click', e => { if (!this.href && e.target.closest?.('[part="link"]')) this.branch(); });
@@ -11,7 +12,7 @@ const behaviour = Base => class extends Base {
         this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && this.rail && !this.href && !this.flyout && this.children.length) this.flyout = true; });
         this.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && this.flyout) this.$t = setTimeout(() => { if (!this.matches(':hover')) this.flyout = false; }, 250); });
     }
-    disconnected() { this.$o?.(); clearTimeout(this.$t); }
+    disconnected() { this.$o?.(); this.$o = null; clearTimeout(this.$t); }
     changed(name) { if (name === 'flyout') this.layer(); }
     get row() { return this.shadowRoot.querySelector('[part="link"]'); }
     focusRow() { this.row?.focus({ preventScroll: true }); }

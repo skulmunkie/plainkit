@@ -31,10 +31,12 @@ export default Base => class extends Base {
         if (!this.$w) { this.$w = true; this.$f = () => { if (!this.$q) { this.$q = requestAnimationFrame(() => { this.$q = 0; this.spy(); }); } }; }
         this.refresh();
         if (!this.$h?.length) this.$r = setTimeout(() => this.refresh(), 300);
-        (this.scrollerEl ?? window).addEventListener('scroll', this.$f, { passive: true }); window.addEventListener('resize', this.$f);
+        this.bind();
     }
-    disconnected() { clearTimeout(this.$r); (this.scrollerEl ?? window).removeEventListener('scroll', this.$f); window.removeEventListener('resize', this.$f); }
-    changed(name) { if (name === 'for' || name === 'levels') this.refresh(); }
+    disconnected() { clearTimeout(this.$r); cancelAnimationFrame(this.$q); this.$q = 0; this.unbind(); }
+    bind() { (this.$sc = this.scrollerEl ?? window).addEventListener('scroll', this.$f, { passive: true }); window.addEventListener('resize', this.$f); }
+    unbind() { this.$sc?.removeEventListener('scroll', this.$f); this.$sc = null; window.removeEventListener('resize', this.$f); }
+    changed(name) { if (name === 'for' || name === 'levels') this.refresh(); else if (name === 'scroller' && this.$sc) { this.unbind(); this.bind(); } }
     get scrollerEl() { return this.scroller ? document.querySelector(this.scroller) : null; }
     refresh() {
         const target = this.for ? document.querySelector(this.for) : null;

@@ -38,7 +38,7 @@ export default Base => class extends Base {
         this.shadowRoot.querySelector('slot').hidden = text !== '';
         // Relative text is only true for a moment: keep it fresh while connected; other formats need no timer.
         const timer = this.format === 'relative' && text !== '';
-        if (timer && !this.$t) this.$t = setInterval(() => this.requestUpdate(), 30000);
+        if (timer && !this.$t && this.isConnected) this.$t = setInterval(() => this.requestUpdate(), 30000);
         else if (!timer && this.$t) { clearInterval(this.$t); this.$t = 0; }
         // The inner time carries the full date as a title for a relative reading; the datetime attribute stays the machine value.
         const full = text && this.format === 'relative' ? formatLocal(this.datetime, { format: 'datetime', length: 'long', locale: this.locale, timeZone: this.timeZone }) : '';

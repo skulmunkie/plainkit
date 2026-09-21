@@ -24,7 +24,9 @@ export function paneKey(key, available, current) {
 }
 
 const behaviour = Base => class extends Base {
-    connected() {
+    connected() { this.setup(); this.$mq?.addEventListener('change', this.$mqf); }
+    disconnected() { this.$mq?.removeEventListener('change', this.$mqf); }
+    setup() {
         if (this.$w) return;
         this.$w = true;
         const strip = this.part('strip');
@@ -36,7 +38,7 @@ const behaviour = Base => class extends Base {
         });
         this.watchSlot('nav', () => this.requestUpdate());
         this.watchSlot('aside', () => this.requestUpdate());
-        if (typeof matchMedia === 'function') { this.$mq = matchMedia('(max-width: 640px)'); this.$mq.addEventListener('change', () => this.requestUpdate()); }
+        if (typeof matchMedia === 'function') { this.$mq = matchMedia('(max-width: 640px)'); this.$mqf = () => this.requestUpdate(); }
     }
     get effective() { return resolvePane(this.activePane, this.$avail ?? ['main']); }
     choose(pane, focus = false) {

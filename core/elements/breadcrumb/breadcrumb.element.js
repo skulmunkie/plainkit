@@ -20,10 +20,12 @@ const behaviour = Base => class extends Base {
             this.$w = true;
             this.watchSlot('', () => this.fold());
             this.part('more').addEventListener('click', () => { this.$open = true; this.part('more').setAttribute('aria-expanded', 'true'); this.fold(); this.emit('pk-expand', null); });
-            this.$mq = globalThis.matchMedia('(max-width: 640px)'); this.$mq.addEventListener('change', () => this.fold());
+            this.$mq = globalThis.matchMedia('(max-width: 640px)'); this.$fold = () => this.fold();
         }
+        this.$mq.addEventListener('change', this.$fold);
         this.fold();
     }
+    disconnected() { this.$mq?.removeEventListener('change', this.$fold); }
     changed(name) { if (name === 'max') this.fold(); }
     fold() {
         const crumbs = this.slotted();

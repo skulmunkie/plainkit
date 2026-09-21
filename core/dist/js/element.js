@@ -100,7 +100,7 @@ export class PkElement extends HTMLElement {
     emit(name, detail, init = {}) { return this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true, ...init })); }
 
     slotted(name = '') { return this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])')?.assignedElements({ flatten: true }) ?? []; }
-    watchSlot(name, fn) { const s = this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])'); s?.addEventListener('slotchange', fn); return s; }
+    watchSlot(name, fn) { const s = this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])'), w = this.$ws ??= new Set(); if (s && !w.has(name)) { w.add(name); s.addEventListener('slotchange', fn); } return s; }
     part(name) { return this.shadowRoot.querySelector(`[part~="${name}"]`); }
     aria(map) { if (this.internals) Object.assign(this.internals, map); }
 

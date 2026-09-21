@@ -5,6 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+### Added
+
+- Added: the ownership and reactivity contract (`core/STANDARDS.md`, "Ownership and reactivity", and the matching "How binding works" section of the PlainKit.Blazor README): the host owns attributes and light-DOM children, the element owns its shadow tree, two-way values follow a commit event, subscriptions outside an element's subtree are added in `connected()` and removed in `disconnected()`, and the reactive core stays "attributes and properties in, one microtask-batched render, events out". Enforced by `core/tests/ownership.test.mjs` (a source guard for document, window, matchMedia, interval and observer subscriptions, plus a fake-DOM reconnect check) and `core/tests/element-surface.test.mjs` (the `PkElement` surface, its lifecycle hooks and the `{{ }}` / `data-if` syntax are frozen).
+
+### Fixed
+
+- Fixed: `pk-select`, `pk-radio-group` and `pk-combobox` wired their inner listeners again every time they were moved in the DOM, so a change event fired twice after a reconnect; they now wire once.
+- Fixed: `pk-breadcrumb`, `pk-side-nav` and `pk-workspace` never removed their `matchMedia` listener, which kept a removed element alive; it is now removed in `disconnected()`. `pk-toc` removes its scroll listener from the element it was added to (also when `scroller` changes) and cancels its pending frame.
+- Fixed: `pk-split-button`, `pk-nav-item` and `pk-context-menu` lost their outside-click dismissal when re-attached while open; `pk-local-time` no longer starts its refresh timer on a detached element; the code explorer no longer keeps a change-feed subscription that resolves after it was disconnected.
+- Fixed: `PkElement.watchSlot` adds one `slotchange` listener per slot however often `connected()` runs (tabs, cards, avatar groups and others stacked one per move).
+- Fixed: PlainKit.Blazor's mount components (`PkLogs`, `PkScorecard`, `PkConsole`, `PkPerformance`, `PkCodeExplorer`, `PkLogSettings`) leaked a running tool when they were disposed while its module was still loading; the bridge now drops a mount that is no longer current.
+
 ## [0.1.0-alpha.1] - 2026-09-21
 
 First pre-release. The API may change at any minor version while the major is 0; breaking changes are listed here.

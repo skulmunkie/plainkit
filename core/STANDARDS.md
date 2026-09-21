@@ -47,6 +47,28 @@ Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`
 
 `data-open="#id"`, `data-toggle="#id"` and `data-close` (`js/invokers.js`) open, toggle and close a `pk-dialog`, `pk-drawer` or `pk-popover`. The three elements install the one delegated listener themselves the first time one connects (`initInvokers(this.ownerDocument)` in `connected()`), so a page that only uses an overlay needs no script and a page without one pays nothing; `initPlainkit()` calls the same idempotent function. A new overlay element calls `initInvokers` from `connected()` and is added to `OVERLAYS` in `js/invokers.js`. Mistakes (an empty, invalid or unmatched selector, a stray `data-close`) are logged by the `invokers` scope.
 
+## Ownership and reactivity
+
+Plainkit is a vanilla toolkit with exactly one owner of reactivity at any point: the host (a page, or Blazor) owns what an element is given, the element owns what it draws. There is no reactive system to learn and nothing to garbage-collect by hand. `tests/ownership.test.mjs` and `tests/element-surface.test.mjs` enforce rules 5 and 8 to 10.
+
+1. **Who owns what.** The host owns the element's attributes and its light-DOM children (the markup between the tags, slotted content, `<option>` children). The element owns its shadow tree and its internal state.
+2. **Attributes.** An element writes attributes on itself only for props declared with `reflect` in its meta, and lists them there. State for assistive technology goes through `aria()` (ElementInternals), not attributes. The one other exception is a child that assigns itself to a parent's slot (`pk-tab`, `pk-tab-panel`): the parent's meta marks that slot `selfAssigned`.
+3. **Light-DOM children.** An element never adds, removes, reorders or rewrites children the host may render. It may read them, and it may create nodes it owns itself: shadow-tree parts, or an element it makes and fills for the caller (`PkToast.show` into a `pk-toast-stack` nobody else renders). A write to a child's attribute or property (a role, an `aria-*`, a `selected` flag) is a coupling between the two elements: keep it to what the pair's meta documents and never to a host-rendered element's own props.
+4. **Two-way values.** While the user interacts, the element owns the value; after the commit event, the host owns it. Every two-way prop (`value`, `open`, `checked`, `selected`, `current`, `expanded`, `page` and the like) has a commit event named in its meta, raised when the user commits a change (a keystroke only when the event says so), carrying the new value in its detail. The element never changes such a prop on its own without that event, and never raises it for a change the host made.
+5. **Subscriptions outside the element's subtree.** A listener on `document`, `window` or a `MediaQueryList`, a listener on a scroller the host named, a timer that repeats, an observer of a node the element does not own: the garbage collector cannot free these, so `connected()` adds them and `disconnected()` removes them (the module's `destroy()` for a tool). `connected()` runs again when the element is moved, so it must be idempotent: the same function reference, guarded one-time wiring (`if (!this.$w)`), and no timer started for a detached element. A listener on the element itself, its shadow root or its parts needs nothing: it goes with the element.
+6. **No GC machinery.** No `WeakRef`, no finalization, no registry of instances, no reference counting. If a subscription needs one of these, it should not exist.
+7. **No hidden reactivity.** No signals, effects, computed values, dependency tracking, proxies over props or virtual DOM. State that another element reads is a prop and an event.
+8. **The reactive core.** Attributes and properties in, one microtask-batched `render()`, events out. `requestUpdate()` is the only scheduler.
+9. **The template engine** stays limited to `{{ prop }}` / `{{ prop|str }}` interpolation and the `data-if` / `data-if-not` attributes. Anything richer overrides `render()`.
+10. **The base class does not grow.** `PkElement` calls exactly these hooks on an element: `connected`, `disconnected`, `changed`, `updated`, `onReset`, `onRestore`. A new hook, method or binding feature is a design decision: change this section and `tests/element-surface.test.mjs` together.
+
+### Blazor
+
+11. **Attributes down, events up.** A component renders its parameters as attributes and turns the element's commit event into a parameter callback (`@bind-Value` listens for the change, not for every keystroke).
+12. **No JS interop per render.** The generated components and `PkElementBase` make one call, `EnsureInitialized` on the first render, plus explicit methods a caller invokes. A parameter change is a changed attribute, never a call.
+13. **Mount components own a container Blazor never diffs.** `PkLogs`, `PkScorecard`, `PkGallery` and the other tools render one empty `<div @ref>` and give it to JavaScript; Blazor never renders children inside it. They mount once and again only when a parameter that changes the tool changes.
+14. **The JS side is disposed.** A mount component implements `IAsyncDisposable` and calls `destroy` on the container; the bridge also drops a mount that was still loading when the component went away.
+
 ## Files
 
 - Every file under `core/` is CRLF (`.gitattributes`), the build emits CRLF and tests compare bytes. Never rewrite a whole file with a tool that strips carriage returns.

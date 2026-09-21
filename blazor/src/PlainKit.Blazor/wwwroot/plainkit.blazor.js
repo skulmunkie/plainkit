@@ -1,6 +1,25 @@
 // The thin bridge between Blazor and the toolkit's tool modules. Everything else is the toolkit itself, served next to this file
 // under ./plainkit/. Mounted tools are kept by their container element so a component can drive or destroy them later.
 const mounted = new Map();
+// The mount that is current for a container. A dispose (destroy) or a newer mount makes an older one, still waiting on its import, give up
+// instead of leaving a tool running in a container that is gone.
+const current = new WeakMap();
+
+async function mountTool(container, load, name, options) {
+    const token = {};
+    current.set(container, token);
+    unmount(container);
+    const module = await load();
+    if (current.get(container) !== token) return;
+    const handle = await module[name](container, options);
+    if (current.get(container) !== token) { handle?.destroy?.(); return; }
+    mounted.set(container, handle);
+}
+
+function unmount(container) {
+    mounted.get(container)?.destroy?.();
+    mounted.delete(container);
+}
 
 // Wires the pk-* elements and behaviours for the current document (idempotent).
 export async function init() {
@@ -8,50 +27,26 @@ export async function init() {
     initPlainkit();
 }
 
-export async function mountCodeExplorer(container, options) {
-    const { mountCodeExplorer } = await import('./plainkit/code-explorer/code-explorer.js');
-    destroy(container);
-    mounted.set(container, await mountCodeExplorer(container, options));
-}
+export const mountCodeExplorer = (container, options) => mountTool(container, () => import('./plainkit/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
 
-export async function mountScorecard(container, options) {
-    const { mountScorecard } = await import('./plainkit/scorecard/scorecard.js');
-    destroy(container);
-    mounted.set(container, await mountScorecard(container, options));
-}
+export const mountScorecard = (container, options) => mountTool(container, () => import('./plainkit/scorecard/scorecard.js'), 'mountScorecard', options);
 
 export const openFile = (container, path, line) => mounted.get(container)?.openFile?.(path, { line });
 export const search = (container, query) => mounted.get(container)?.search?.(query);
 export const run = container => mounted.get(container)?.run?.();
 
 export function destroy(container) {
-    mounted.get(container)?.destroy?.();
-    mounted.delete(container);
+    current.delete(container);
+    unmount(container);
 }
 
-export async function mountPerformance(container, options) {
-    const { mountPerformance } = await import('./plainkit/performance/performance.js');
-    destroy(container);
-    mounted.set(container, await mountPerformance(container, options));
-}
+export const mountPerformance = (container, options) => mountTool(container, () => import('./plainkit/performance/performance.js'), 'mountPerformance', options);
 
-export async function mountConsole(container, options) {
-    const { mountConsole } = await import('./plainkit/console/console.js');
-    destroy(container);
-    mounted.set(container, await mountConsole(container, options));
-}
+export const mountConsole = (container, options) => mountTool(container, () => import('./plainkit/console/console.js'), 'mountConsole', options);
 
-export async function mountLogs(container, options) {
-    const { mountLogs } = await import('./plainkit/logs/logs.js');
-    destroy(container);
-    mounted.set(container, await mountLogs(container, options));
-}
+export const mountLogs = (container, options) => mountTool(container, () => import('./plainkit/logs/logs.js'), 'mountLogs', options);
 
-export async function mountLogSettings(container, options) {
-    const { mountLogSettings } = await import('./plainkit/log-settings/log-settings.js');
-    destroy(container);
-    mounted.set(container, await mountLogSettings(container, options));
-}
+export const mountLogSettings = (container, options) => mountTool(container, () => import('./plainkit/log-settings/log-settings.js'), 'mountLogSettings', options);
 
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {

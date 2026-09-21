@@ -19,9 +19,10 @@ const behaviour = Base => class extends Base {
             this.addEventListener('pk-toggle', () => this.save());
             this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) this.request('escape'); });
             this.watchSlot('', () => this.sync());
-            this.$mq = globalThis.matchMedia('(max-width: 1024px)'); this.$mq.addEventListener('change', () => this.sync());
+            this.$mq = globalThis.matchMedia('(max-width: 1024px)'); this.$sync = () => this.sync();
             this.restore(); customElements.whenDefined('pk-nav-item').then(() => this.sync());
         }
+        this.$mq.addEventListener('change', this.$sync);
         this.sync();
     }
     changed(name) { if (name === 'collapsed') { this.sync(); this.save(); } else if (name === 'open' && this.isConnected) this.drawer(); }
@@ -39,7 +40,7 @@ const behaviour = Base => class extends Base {
         if (this.open) { this.$from = document.activeElement; rowsOf(this).find(i => !i.hidden && !i.disabled)?.focusRow(); this.emit('pk-open', {}); }
         else { this.$from?.focus?.({ preventScroll: true }); this.$from = null; }
     }
-    disconnected() { this.$from = null; }
+    disconnected() { this.$from = null; this.$mq?.removeEventListener('change', this.$sync); }
     save() {
         if (!this.persist) return;
         try { localStorage.setItem(this.persist, serializeNav(items(this).filter(i => i.expanded).map(idOf), this.collapsed)); } catch (error) { this.log.debug('storage blocked: the expanded state is not saved', error); }

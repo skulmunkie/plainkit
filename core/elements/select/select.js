@@ -15,7 +15,6 @@ export default Base => class extends Base {
         s.addEventListener('input', () => this.dispatchEvent(new Event('input', { bubbles: true, composed: true })));
         this.$opts = true;
     }
-    disconnected() { this.$obs?.disconnect(); this.$init = false; }
     updated() {
         const s = this.part('control');
         s.multiple = this.multiple;
