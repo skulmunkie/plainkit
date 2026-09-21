@@ -162,7 +162,7 @@ and turns them into `pk-tabs` under 720px.
 | --- | --- | --- |
 | 1 | This document. | done |
 | 2 | Phase 1, no UI: `js/layout-model.js` (model, validation, `toHtml`/`fromHtml`, ids, operations, history) and its tests. | done |
-| 3 | Phase 2, smallest useful UI in `modules/layout-builder/`: palette from `api.json` with search, inert canvas, selection (click, arrows, tree), structure tree, properties form and element inspector, toolbar and keyboard operations (move, duplicate, wrap, delete, undo, redo), panes become tabs on a phone (`pk-workspace`), HTML export tab, `onchange`, `onsave`, `exporters`; shipped as `dist/layout-builder/` with a page on the SDK site (`site/layout-builder/`). | done |
+| 3 | Phase 2, smallest useful UI in `modules/layout-builder/`: palette from `api.json` with search, inert canvas, selection (click, arrows, tree), structure tree, properties form and element inspector, toolbar and keyboard operations (move, duplicate, wrap, delete, undo, redo), panes become tabs on a phone (`pk-workspace`), HTML export tab, `onchange`, `onsave`, `exporters`; shipped as `dist/modules/layout-builder/` with a page on the SDK site (`site/layout-builder/`). | done |
 | 4 | Not built yet: pointer drag-and-drop (a `pk-sortable` element, its own issue and commit), the iframe device preview, the blocks UI (`blocks`, `onblock`), `draftKey`, the dev-tools dock entry, the Blazor wrapper `PkLayoutBuilder` and its Razor exporter. | later |
 
 Each step leaves `main` releasable, is tested, and updates the docs and changelog in the same pull request.

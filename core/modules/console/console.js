@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
@@ -41,7 +41,7 @@ const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([],
 async function eventNames(win, given) {
     if (given?.length) return given;
     try {
-        const res = await win.fetch(new URL('../elements/api.json', import.meta.url));
+        const res = await win.fetch(runtimeUrl('../../dist/elements/api.json', import.meta.url));
         if (res.ok) return [...new Set((await res.json()).flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
     } catch { /* no api.json next to this module */ }
     return FALLBACK_EVENTS;

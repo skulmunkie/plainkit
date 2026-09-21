@@ -128,10 +128,10 @@ Write an icon button like any other button, with its name as the text, and add `
 
 ### Wire the dev tools
 
-Add the dock to an existing app (Ctrl+` toggles it; tabs: Console, Logs, Logging, Performance, Quality, Inspector, Theme). Do it in development only.
+Add the dock to an existing app (Ctrl+` toggles it; tabs: Console, Logs, Logging, Performance, Quality, Inspector, Theme). Do it in development only. The tools are their own unit, the modules (`plainkit-modules-<version>.zip`, or `dist/modules/` in the NuGet package): unzip it into the runtime `dist` folder so it lands at `plainkit/modules/`, and the runtime zip alone (the elements) never carries a tool. Hosting the modules apart from the runtime is documented in `references/tools.md`.
 
 ```js
-import { mountDevTools } from './plainkit/devtools/devtools.js';
+import { mountDevTools } from './plainkit/modules/devtools/devtools.js';
 
 if (location.hostname === 'localhost') {
     const tools = await mountDevTools(null, { mode: 'dock', size: 'medium' });
@@ -146,7 +146,7 @@ Options, the handle, custom panels and every other tool (`mountLogs`, `mountScor
 Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
 
 ```js
-import { mountLayoutBuilder } from './plainkit/layout-builder/layout-builder.js';
+import { mountLayoutBuilder } from './plainkit/modules/layout-builder/layout-builder.js';
 
 const builder = await mountLayoutBuilder(document.getElementById('editor'), {
     html: startingMarkup,   // or model: a saved document
@@ -178,7 +178,7 @@ The elements already respond at the named breakpoints ({{breakpoints}} px, deskt
 A consumer's theme and breakpoint widths are two independent choices, both made in the theme editor's **Custom SDK** tab (`mountThemeEditor(el)`; the Theme page of the site has it). Do not hand-edit `dist` to change a width: the tab does it with checked transforms.
 
 1. **Only colours and styles (the common case):** tick Theme, untick Breakpoints, export. The zip is `plainkit-theme.css` (load it after `plainkit.css`: `<link rel="stylesheet" href="plainkit-theme.css">`), `plainkit.custom.json` and a `README.md`; no SDK file changes. Blazor: put the file in `wwwroot` and link it after the PlainKit stylesheet in `App.razor` or `_Host.cshtml`. The Download plainkit-theme.css button gives just the stylesheet.
-2. **Different breakpoint widths:** tick Breakpoints (whole px 320 to 2560, ascending, at least 64 apart; `phone`, `tablet`, `wide` keep their names). The table shows which elements and properties change at each and which viewport widths flip. The export is a zip of `dist/` with every `@media` width, `--pk-bp-*` and the report rewritten and `manifest.json` recomputed (size and SHA-384 per file), plus `plainkit.custom.json` and a `README.md` naming the version and the settings. Tick Theme as well and the theme is also baked into `plainkit.css` and `plainkit.min.css`.
+2. **Different breakpoint widths:** tick Breakpoints (whole px 320 to 2560, ascending, at least 64 apart; `phone`, `tablet`, `wide` keep their names). The table shows which elements and properties change at each and which viewport widths flip. The export is a zip of `dist/` with every `@media` width, `--pk-bp-*` and the report rewritten and `manifest.json` recomputed (size and SHA-384 per file), (with `dist/modules/` too when the modules are deployed next to the runtime; each unit has its own recomputed manifest), plus `plainkit.custom.json` and a `README.md` naming the version and the settings. Tick Theme as well and the theme is also baked into `plainkit.css` and `plainkit.min.css`.
 3. **Change it again later:** paste `plainkit.custom.json` into the tab's Import box.
 4. Use the exported `dist/` wherever the release `dist` is used and keep scripts on `js/breakpoints.js` (it reads `--pk-bp-*`), never a literal width. It all runs in the browser with same-origin reads of the shipped files, each checked against its release hash; nothing leaves the page. A Blazor exporter is not built yet: `PkThemeEditor` shows the same tab, and its theme-only zip is the way to ship a theme in a Blazor app.
 

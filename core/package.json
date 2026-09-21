@@ -7,6 +7,6 @@
   "homepage": "https://github.com/skulmunkie/plainkit",
   "repository": { "type": "git", "url": "git+https://github.com/skulmunkie/plainkit.git", "directory": "core" },
   "keywords": ["ui", "design-system", "web-components", "custom-elements", "css", "no-dependencies"],
-  "files": ["dist", "LICENSE", "README.md"],
+  "files": ["dist", "!dist/modules", "LICENSE", "README.md"],
   "sideEffects": false
 }

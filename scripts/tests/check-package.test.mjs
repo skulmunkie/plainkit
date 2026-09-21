@@ -7,7 +7,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { checkPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
 
-const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json',
+const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
     'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md'];
 const nuspec = v => `<package><metadata><id>PlainKit.Blazor</id><version>${v}</version></metadata></package>`;
 const input = (over = {}) => ({ entries: GOOD, nuspec: nuspec('1.2.3-alpha.1'), fileName: 'PlainKit.Blazor.1.2.3-alpha.1.nupkg', version: '1.2.3-alpha.1', ...over });
@@ -29,9 +29,15 @@ test('a frameworkReference in the nuspec is refused (a Blazor WebAssembly app ca
 });
 
 test('missing pieces are named', () => {
-    const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|plainkit-blazor\/SKILL|manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
+    const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|plainkit-blazor\/SKILL|^staticwebassets\/plainkit\/manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
     assert.equal(p.filter(x => x.startsWith('missing')).length, 3);
     assert.ok(p.some(x => /assembly/.test(x)) && p.some(x => /plainkit-blazor skill/.test(x)) && p.some(x => /static web assets/.test(x)));
+});
+
+test('the modules unit is required: its manifest and the tools the Blazor wrappers import', () => {
+    const p = checkPackage(input({ entries: GOOD.filter(e => !e.includes('/modules/')) }));
+    assert.equal(p.length, 6);
+    assert.ok(p.every(x => /^missing .*modules/.test(x)) && p.some(x => /devtools module/.test(x)) && p.some(x => /modules unit manifest/.test(x)));
 });
 
 test('the version is stamped: nuspec and file name must equal core/VERSION', () => {

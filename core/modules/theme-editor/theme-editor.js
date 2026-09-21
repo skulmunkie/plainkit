@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
 import { createLogger } from '../../js/log.js';
@@ -91,7 +91,7 @@ export async function mountThemeEditor(container, options = {}) {
     const showPreview = options.preview !== false;
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
 
-    const tokensUrl = new URL(options.tokens ?? TOKENS, import.meta.url).href;
+    const tokensUrl = runtimeUrl(options.tokens ?? TOKENS, import.meta.url);
     const res = await fetch(tokensUrl);
     if (!res.ok) throw new Error(`${tokensUrl}: ${res.status}`);
     const tokens = parseTokenBlocks(await res.text());

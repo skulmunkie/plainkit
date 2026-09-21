@@ -169,7 +169,7 @@ export function collect() {
     const enums = [...csEnums(cs('PkEnums.cs')), ...csEnums(cs('PkLogging.cs'))];
     const dist = f => path.join(core, 'dist', f);
     const modules = Object.keys(MODULES).map(name => {
-        const file = dist(`${name}/${name}.js`);
+        const file = dist(`modules/${name}/${name}.js`);
         const text = read(file);
         return { name, header: headerComment(text), mount: /^export\s+async\s+function\s+(mount\w+)/m.exec(text)?.[1] ?? null };
     });
@@ -288,12 +288,12 @@ function patternsMd(src, kind) {
 }
 
 function toolsMd(src) {
-    const out = ['# Tool modules', '', stamp(src, 'the header comments of dist/<tool>/<tool>.js'), '',
-        'Each tool is a module in `dist/<tool>/<tool>.js` with one entry point, `mountX(container, options)`, that returns a handle (with `destroy()` at least). The module adds `plainkit.css` to the document if it is missing and loads the elements it needs, so a page needs no other setup. The text under each heading is the module\'s own documentation, verbatim.',
-        '', table(['Tool', 'Import', 'Entry point'], src.modules.map(m => [m.name, code(`dist/${m.name}/${m.name}.js`), m.mount ? code(m.mount) : ''])), ''];
+    const out = ['# Tool modules', '', stamp(src, 'the header comments of dist/modules/<tool>/<tool>.js'), '',
+        'The tools are the modules unit, separate from the runtime: each is a module in `dist/modules/<tool>/<tool>.js` (its own zip, `plainkit-modules-<version>.zip`, and its own manifest, `dist/modules/manifest.json`; the runtime `dist/` holds no tool). Keep the unit at `dist/modules/` next to the runtime, or host it apart and name the runtime once (`<meta name="plainkit-runtime" content="https://host/plainkit/">` plus an import map for the `../../js/*.js` imports; see core/README.md). Each tool has one entry point, `mountX(container, options)`, that returns a handle (with `destroy()` at least). The module adds `plainkit.css` to the document if it is missing and loads the elements it needs, so a page needs no other setup. The text under each heading is the module\'s own documentation, verbatim.',
+        '', table(['Tool', 'Import', 'Entry point'], src.modules.map(m => [m.name, code(`dist/modules/${m.name}/${m.name}.js`), m.mount ? code(m.mount) : ''])), ''];
     for (const m of src.modules) out.push(`## ${m.name}`, '', fence('text', m.header), '');
     out.push('## element inspector', '', 'File `dist/js/element-inspector.js`, entry point `createElementInspector(container)`.', '', fence('text', src.inspectorHeader), '');
-    out.push('## The code explorer element', '', 'The code explorer is also a custom element, `<pk-code-explorer>`, defined by `dist/code-explorer/element.js` (events `pk-code-explorer-open` and `pk-code-explorer-error`, height hook `--pk-code-explorer-height`). `mountCodeExplorer` creates it for you.', '');
+    out.push('## The code explorer element', '', 'The code explorer is also a custom element, `<pk-code-explorer>`, defined by `dist/modules/code-explorer/element.js` (events `pk-code-explorer-open` and `pk-code-explorer-error`, height hook `--pk-code-explorer-height`). `mountCodeExplorer` creates it for you.', '');
     return out.join('\n');
 }
 
@@ -349,7 +349,7 @@ function loadingMd(src) {
     // The table from PUBLISHING.md; "below" (a later section of that file) is named.
     const rows = section(src.publishing, 'How people get the SDK').replace('(below)', '(see PUBLISHING.md)');
     return ['# Loading Plainkit', '', stamp(src, 'PUBLISHING.md, dist/js/plainkit.js and dist/js/loader.js'), '',
-        `This bundle is for Plainkit ${src.version}. Pinned versions come from the GitHub release zip (\`plainkit-dist-${src.version}.zip\`) or the NuGet package; the Pages site is the latest \`main\` and is not pinned.`, '',
+        `This bundle is for Plainkit ${src.version}. Pinned versions come from the GitHub release zips (\`plainkit-dist-${src.version}.zip\` is the runtime; \`plainkit-modules-${src.version}.zip\` is the dev tools, unzipped into the same folder, so it lands at \`dist/modules/\`) or the NuGet package (both units); the Pages site is the latest \`main\` and is not pinned.`, '',
         '## Ways to get it', '', rows, '',
         '## Wire a page', '', 'Link one stylesheet and start the elements from a script file (an inline script is blocked under a strict CSP). `plainkit/` below is wherever you copied or serve `dist`. Importing the entry module is not enough: `initPlainkit()` must be called (a `<script src="plainkit/plainkit.js">` alone defines no element).', '',
         fence('html', '<link rel="stylesheet" href="plainkit/plainkit.min.css">\n<script type="module" src="app.js"></script>\n<pk-alert kind="info" heading="It works">No framework, no build.</pk-alert>'), '',
@@ -357,7 +357,7 @@ function loadingMd(src) {
         'The entry module `dist/js/plainkit.js` (also reachable as `dist/plainkit.js`), verbatim:', '', fence('text', src.entryHeader), '',
         `Exports of the entry module: ${src.entryExports.map(code).join(', ')}.`, '',
         '## How elements load', '', `\`initPlainkit(root = document)\` installs the declarative openers, imports the modules of the \`pk-*\` tags found under \`root\` (each element is its own module, \`dist/elements/<name>.js\`, mapped by \`dist/elements/registry.js\`) and watches for tags added later. A tag that is not in the registry (usually a typo) is logged as a warning by the \`loader\` scope and stays inert. Exports of \`dist/js/loader.js\`: ${src.loaderExports.map(code).join(', ')}.`, '',
-        '`dist/manifest.json` lists every file with its size and SRI hash; the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
+        '`dist/manifest.json` lists every file of the runtime with its size and SRI hash (`dist/modules/manifest.json` does the same for the modules unit); the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
 }
 
 const SDK_GAPS = [
@@ -366,7 +366,7 @@ const SDK_GAPS = [
     'Use only elements that exist (see `elements-index.md`). If a component you need is missing, say so instead of building a one-off; the missing-components list is tracked as an issue in the repository.',
     'The Guides (the Guides page of the site, from Markdown in core/site/guides/content) are a first set of five: getting started with the SDK and with Blazor, theming and tokens, responsive design and breakpoints, logging. There is no search yet, so the references in this skill remain the full documentation.',
     'The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are not built. Behaviour is plain: props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively.',
-    'The layout builder (`mountLayoutBuilder`, `dist/layout-builder/`) moves elements by keyboard and buttons only: pointer drag and drop, the iframe device preview, reusable blocks, the dev tools dock entry and the Blazor `PkLayoutBuilder` wrapper are not built yet.',
+    'The layout builder (`mountLayoutBuilder`, `dist/modules/layout-builder/`) moves elements by keyboard and buttons only: pointer drag and drop, the iframe device preview, reusable blocks, the dev tools dock entry and the Blazor `PkLayoutBuilder` wrapper are not built yet.',
     'Sample layouts are markup only. A sample pattern or template that needs behaviour ships a script of its own (a pattern\'s is shown in `patterns.md`, a template\'s in `templates.md`). Their data is placeholder text.',
     '`PkDialog` (`confirm`, `alert`, `prompt`) becomes a global when a `pk-dialog` has connected, and `PkToast` (`show`) when a `pk-toast-stack` has, so the page must contain one before you call them.',
     'Loading `dist/plainkit.js` as a script does not define any element by itself: the page has to call `initPlainkit()` (see `loading.md`).',
