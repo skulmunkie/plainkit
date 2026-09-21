@@ -14996,7 +14996,7 @@
               "type": {
                 "text": "CustomEvent"
               },
-              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on. detail: { value, previous }"
+              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it. detail: { value, previous, fallback? }"
             }
           ],
           "slots": [

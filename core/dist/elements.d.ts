@@ -1612,7 +1612,7 @@ declare global {
         'pk-filter': CustomEvent<unknown>;
         'pk-row-click': CustomEvent<unknown>;
         'pk-row-expand': CustomEvent<unknown>;
-        'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown }>;
+        'pk-tab-change': CustomEvent<{ value: unknown; previous: unknown; fallback?: unknown }>;
         'pk-tags-change': CustomEvent<{ value: string: unknown; tags: string[]: unknown }>;
         'pk-section-change': CustomEvent<unknown>;
         'pk-show': CustomEvent<unknown>;

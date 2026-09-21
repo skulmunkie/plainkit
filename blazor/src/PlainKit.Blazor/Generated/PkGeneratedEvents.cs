@@ -295,6 +295,9 @@ public class PkTabChangeEventArgs : EventArgs
 
     /// <summary>The <c>previous</c> field of the detail (<c>string</c>).</summary>
     public string? Previous { get; set; }
+
+    /// <summary>The <c>fallback</c> field of the detail (<c>bool</c>).</summary>
+    public bool? Fallback { get; set; }
 }
 
 /// <summary>The detail of <c>pk-tab-close</c>, raised by PkTab. A field is set only when the element sends it.</summary>

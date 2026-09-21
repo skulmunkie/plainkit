@@ -304,14 +304,14 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-tab-
 | `Activation` | `PkTabsActivation?` | `Auto` `Manual` | attribute `activation` | auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space. |
 | `NoneActive` | `bool` |  | attribute `none-active` | No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs. |
 | `Scroll` | `bool` |  | attribute `scroll` | One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows. |
-| `OnChange` | `EventCallback<PkTabChangeEventArgs>` |  | event `pk-tab-change` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on. |
+| `OnChange` | `EventCallback<PkTabChangeEventArgs>` |  | event `pk-tab-change` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it. |
 | `TrailingContent` | `RenderFragment?` |  | slot `trailing` | The content. The pk-tab and pk-tab-panel children assign themselves to the tab and panel slots; ChildContent holds them. [Parameter] public RenderFragment? ChildContent { get; set; } Content inside the strip after the last tab: a hint, links or buttons. |
 
 **Event args**
 
 | Event | Args class | Fields |
 |---|---|---|
-| `pk-tab-change` | `PkTabChangeEventArgs` | Value: string?, Previous: string? |
+| `pk-tab-change` | `PkTabChangeEventArgs` | Value: string?, Previous: string?, Fallback: bool? |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-tabs` in the `plainkit-sdk` skill.
 

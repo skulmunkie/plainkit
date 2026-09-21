@@ -23,7 +23,7 @@
     /// <summary>One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows.</summary>
     [Parameter] public bool Scroll { get; set; }
 
-    /// <summary>A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on.</summary>
+    /// <summary>A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it.</summary>
     [Parameter] public EventCallback<PkTabChangeEventArgs> OnChange { get; set; }
 
     /// <summary>The content.</summary>

@@ -35,7 +35,7 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 | `pk-select` | `PkSelectEventArgs` | `PkCalendar` `PkCommandPalette` `PkContextMenu` `PkDropdown` `PkMenuItem` `PkTree` `PkTreeItem` | Value: string?, Item: JsonElement?, Checked: bool?, Id: string? |
 | `pk-split-select` | `PkSplitSelectEventArgs` | `PkSplitButton` | Value: string?, Label: string? |
 | `pk-step-change` | `PkStepChangeEventArgs` | `PkStepper` | Index: double?, Previous: double? |
-| `pk-tab-change` | `PkTabChangeEventArgs` | `PkTabs` | Value: string?, Previous: string? |
+| `pk-tab-change` | `PkTabChangeEventArgs` | `PkTabs` | Value: string?, Previous: string?, Fallback: bool? |
 | `pk-tab-close` | `PkTabCloseEventArgs` | `PkTab` | Value: string? |
 | `pk-tags-change` | `PkTagsChangeEventArgs` | `PkTagInput` | Value: string? |
 | `pk-toggle` | `PkToggleEventArgs` | `PkAccordionItem` `PkHint` `PkNavItem` `PkNavbar` `PkTree` `PkTreeItem` | Open: bool?, Expanded: bool?, Id: string? |

@@ -151,6 +151,6 @@ test('generated editor artefacts (manifest, VS Code data, web-types, typings) ar
     const wt = JSON.parse(made['web-types.json']);
     assert.equal(wt.contributions.html.elements.length, metas.length);
     for (const m of metas) { assert.ok(made['elements.d.ts'].includes(`'${m.tag}': `)); assert.ok(made['elements.vue.d.ts'].includes(`'${m.tag}': `)); }
-    assert.match(made['elements.d.ts'], /'pk-tab-change': CustomEvent<\{ value: unknown; previous: unknown \}>/);
+    assert.match(made['elements.d.ts'], /'pk-tab-change': CustomEvent<\{ value: unknown; previous: unknown; fallback\?: unknown \}>/);
     assert.doesNotMatch(made['elements.d.ts'], /'change': CustomEvent/, 'native event names keep their DOM typing');
 });

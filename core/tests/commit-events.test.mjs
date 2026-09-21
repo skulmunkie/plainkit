@@ -26,12 +26,12 @@ test('pk-tabs: a value that falls back to the first enabled tab raises pk-tab-ch
     const el = await make('tabs', { value: '', noneActive: false, scroll: false, slotted: n => (n === 'tab' ? tabs : []) });
     el.sync();
     assert.equal(el.value, 'b');
-    assert.deepEqual(el.events, [{ name: 'pk-tab-change', detail: { value: 'b', previous: '' }, cancelable: false }]);
+    assert.deepEqual(el.events, [{ name: 'pk-tab-change', detail: { value: 'b', previous: '', fallback: true }, cancelable: false }]);
     el.sync(); // settled: nothing to say
     el.value = 'c'; el.sync(); // the host chose a valid tab: not the element's change
     assert.equal(el.events.length, 1);
     el.value = 'a'; el.sync(); // a disabled tab is not a valid value: back to the first enabled one
-    assert.deepEqual(el.events.at(-1), { name: 'pk-tab-change', detail: { value: 'b', previous: 'a' }, cancelable: false });
+    assert.deepEqual(el.events.at(-1), { name: 'pk-tab-change', detail: { value: 'b', previous: 'a', fallback: true }, cancelable: false });
     const none = await make('tabs', { value: '', noneActive: true, scroll: false, slotted: n => (n === 'tab' ? tabs : []) });
     none.sync();
     assert.equal(none.events.length, 0, 'noneActive shows no tab, so there is no fallback to announce');

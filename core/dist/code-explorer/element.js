@@ -120,7 +120,7 @@ export class CodeExplorerElement extends Base {
         tree.addEventListener('pk-select', e => this.#onTreeSelect(e));
         tree.addEventListener('pk-toggle', e => this.#onTreeToggle(e));
         const tabs = $('[data-ce-tabs]');
-        tabs.addEventListener('pk-tab-change', e => { this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
+        tabs.addEventListener('pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
         tabs.addEventListener('pk-tab-close', e => this.#closeTab(e.detail.value));
         tabs.addEventListener('keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
         $('[data-ce-pane]').addEventListener('click', e => this.#onPaneClick(e));

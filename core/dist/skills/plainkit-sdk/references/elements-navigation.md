@@ -619,7 +619,7 @@ Example: Two panels
 
 | Event | Detail | Description |
 |---|---|---|
-| `pk-tab-change` | `{ value, previous }` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on. |
+| `pk-tab-change` | `{ value, previous, fallback? }` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on; that one carries fallback: true, so a host that only reacts to a choice the user made can skip it. |
 
 **CSS parts** (`::part(name)`)
 
