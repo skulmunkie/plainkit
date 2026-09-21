@@ -45,6 +45,24 @@ export const workspaceCases = [
         t.ok(!shown(a), 'closing the aside removes its column'); t.ok(shown(n) && shown(m));
     }],
 
+    ['workspace (375px, routed list and detail): the host sets the panes from the route, the tab carries the record name, the open row is marked and a tap on the list tab can be vetoed', async t => {
+        const html = '<pk-workspace main-label="Things" aside-label="Thing"><pk-table label="Things" clickable columns=\'[{"key":"name","label":"Name"}]\' rows=\'[{"id":"1","name":"Blue"},{"id":"2","name":"Red"}]\'></pk-table><div slot="aside">Record</div></pk-workspace>';
+        const { doc, win } = await frame(t, html, 375);
+        await until(() => win.customElements.get('pk-table'), 'pk-table to be defined in the frame');
+        const ws = doc.querySelector('pk-workspace'); const table = doc.querySelector('pk-table');
+        const route = id => { ws.asideOpen = id !== null; ws.activePane = id !== null ? 'aside' : 'main'; ws.asideLabel = id === null ? 'Thing' : table.rows.find(r => r.id === id).name; table.currentRow = id ?? ''; };
+        const rowOf = id => table.shadowRoot.querySelector(`tbody tr[data-id="${id}"]`);
+        t.ok(!shown(tab(ws, 'aside')), 'no record: no record tab'); t.ok(shown(pane(ws, 'main')));
+        route('2'); await t.settle();
+        t.ok(shown(pane(ws, 'aside')) && !shown(pane(ws, 'main')), 'the record is its own pane on a phone'); t.eq(tab(ws, 'aside').textContent.trim(), 'Red', 'the tab names the record');
+        t.eq(pane(ws, 'aside').getAttribute('aria-labelledby'), 'tab-aside'); t.eq(rowOf('2').getAttribute('aria-current'), 'true'); t.ok(!rowOf('1').hasAttribute('aria-current'));
+        // A host that owns active-pane vetoes the tab and changes its own state instead; the event fires first and nothing moved yet.
+        const seen = []; ws.addEventListener('pk-pane-change', e => { seen.push(e.detail); e.preventDefault(); route(null); });
+        tab(ws, 'main').click(); await t.settle();
+        t.eq(JSON.stringify(seen), JSON.stringify([{ pane: 'main', previous: 'aside' }])); t.ok(shown(pane(ws, 'main')) && !shown(tab(ws, 'aside')), 'the route closed the record'); t.eq(table.shadowRoot.querySelectorAll('tr[aria-current]').length, 0);
+        t.eq(ws.activePane, 'main');
+    }],
+
     ['workspace (375px): one pane at a time, the strip switches it, pk-pane-change reports it and can be cancelled', async t => {
         const { doc, win } = await frame(t, WS, 375);
         const ws = doc.querySelector('pk-workspace');

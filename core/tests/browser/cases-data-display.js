@@ -74,6 +74,16 @@ export const dataDisplayCases = [
         t.ok(getComputedStyle(m.part('more')).display !== 'none'); t.eq(getComputedStyle(m.part('pages')).display, 'none'); m.part('more').click(); t.eq(more, 1);
     }],
 
+    ['table: current-row marks the open record with aria-current and a tint, follows the host, and the element never changes it', async t => {
+        const el = await t.mount(`<pk-table label="P" clickable current-row="2" columns='${cols}' rows='${rows}'></pk-table>`);
+        const row = id => el.shadowRoot.querySelector(`tbody tr[data-id="${id}"]`);
+        t.eq(row('2').getAttribute('aria-current'), 'true'); t.ok(!row('1').hasAttribute('aria-current'), 'only the current row is marked');
+        t.ok(getComputedStyle(row('2')).backgroundColor !== getComputedStyle(row('1')).backgroundColor, 'and tinted');
+        row('3').querySelector('td').click(); await t.settle(); t.eq(el.currentRow, '2', 'a click reports pk-row-click; the host decides what is current');
+        el.currentRow = '3'; await t.settle(); t.eq(row('3').getAttribute('aria-current'), 'true'); t.ok(!row('2').hasAttribute('aria-current'));
+        el.currentRow = ''; await t.settle(); t.eq(el.shadowRoot.querySelectorAll('tr[aria-current]').length, 0, 'empty marks no row');
+    }],
+
     ['table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order', async t => {
         const el = await t.mount(`<pk-table label="P" columns='${cols}' rows='${rows}'></pk-table>`);
         t.eq(bodyIds(el).join(), '1,2,3'); t.eq(el.shadowRoot.querySelector('th[data-key="sku"]').getAttribute('aria-sort'), 'none');

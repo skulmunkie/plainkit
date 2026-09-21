@@ -22,6 +22,7 @@
           expanded="@PkAttr.Json(Expanded)"
           selectable="@Selectable"
           clickable="@Clickable"
+          current-row="@CurrentRow"
           filterable="@Filterable"
           expandable="@Expandable"
           loading="@Loading"
@@ -91,8 +92,11 @@
     /// <summary>A checkbox column with select-all.</summary>
     [Parameter] public bool Selectable { get; set; }
 
-    /// <summary>Rows are activatable: they show a pointer and raise <see cref="OnRowClick"/>. A mouse or touch click only; the row itself is not a keyboard stop, so put a button or link in a cell for keyboard users.</summary>
+    /// <summary>Rows are activatable: they show a pointer and raise <see cref="OnRowClick"/>. Each row is a keyboard stop (Enter or Space activates it).</summary>
     [Parameter] public bool Clickable { get; set; }
+
+    /// <summary>The id of the row whose record is open in a detail pane: it is tinted and marked <c>aria-current</c>. Set it from the route; the table never changes it (there is no event for it).</summary>
+    [Parameter] public string? CurrentRow { get; set; }
 
     /// <summary>A filter input under each header.</summary>
     [Parameter] public bool Filterable { get; set; }

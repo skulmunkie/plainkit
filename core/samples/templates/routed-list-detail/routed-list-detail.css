@@ -1,0 +1,4 @@
+/* Routed list and detail: the back arrow is for the phone, where the record is its own pane; the close cross is for wider screens, where the record docks beside the list. */
+@media (min-width: 641px) { #detail-back { display: none; } }
+
+@media (max-width: 640px) { #detail-close { display: none; } }

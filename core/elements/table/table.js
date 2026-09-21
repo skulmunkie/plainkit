@@ -61,7 +61,7 @@ export default Base => class extends Base {
         const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: cols.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : rows.flatMap((row, i) => {
             const id = String(row[this.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
             pick.checked = sel.has(id);
-            const tr = h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': this.clickable },
+            const tr = h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
                 ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
             return x ? x.rows(this, tr, id, i, cols.length + lead, h) : [tr];

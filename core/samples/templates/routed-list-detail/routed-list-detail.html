@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SDK template: Routed list and detail">
+<title>Routed list and detail - SDK template</title>
+<link rel="stylesheet" href="../../../plainkit.css">
+<link rel="stylesheet" href="routed-list-detail.css">
+</head>
+<body>
+<pk-workspace id="content" fill main-label="Things" aside-label="Thing">
+  <pk-stack gap="sm">
+    <pk-toolbar heading="Things"><pk-button slot="actions" id="new-thing" size="mini">New thing</pk-button></pk-toolbar>
+    <pk-table id="things" label="Things" clickable hover row-key="id" columns='[{"key":"name","label":"Name"},{"key":"status","label":"Status"},{"key":"updated","label":"Updated","hidePhone":true}]' rows='[{"id":"1","name":"Blue widget","status":"Active","updated":"Sep 12"},{"id":"2","name":"Red widget","status":"Draft","updated":"Sep 14"},{"id":"3","name":"Green gadget","status":"Active","updated":"Sep 15"},{"id":"4","name":"Grey gadget","status":"Archived","updated":"Sep 2"}]'></pk-table>
+  </pk-stack>
+  <pk-stack slot="aside" id="detail" gap="sm">
+    <pk-toolbar id="detail-head" heading="Thing">
+      <pk-button slot="actions" id="detail-back" size="mini" variant="ghost">&larr; Things</pk-button>
+      <pk-button slot="actions" id="detail-close" size="mini" variant="ghost" icon label="Close the record">&#10005;</pk-button>
+    </pk-toolbar>
+    <pk-form summary>
+      <form id="detail-form">
+        <pk-stack gap="sm">
+          <pk-field label="Name" required><pk-input name="name" required></pk-input></pk-field>
+          <pk-field label="Status"><pk-select name="status"><option>Active</option><option>Draft</option><option>Archived</option></pk-select></pk-field>
+          <pk-form-actions><pk-button type="button" id="detail-cancel" variant="plain">Cancel</pk-button><pk-button type="submit">Save</pk-button></pk-form-actions>
+        </pk-stack>
+      </form>
+    </pk-form>
+  </pk-stack>
+</pk-workspace>
+<script type="module" src="routed-list-detail.js"></script>
+
+</body>
+</html>

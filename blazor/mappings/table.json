@@ -60,6 +60,12 @@
       "type": "bool"
     },
     {
+      "name": "CurrentRow",
+      "prop": "currentRow",
+      "type": "string",
+      "note": "The id of the row whose record is open in a detail pane: it is tinted and gets aria-current. Set it from the route; the table never changes it."
+    },
+    {
       "name": "Filterable",
       "prop": "filterable",
       "type": "bool"

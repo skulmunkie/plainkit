@@ -145,3 +145,12 @@ test('Enter and Space on the row itself activate a clickable row; keys on contro
     assert.equal(X.activates({ key: 'a', target: row }, { clickable: true }), false);
     assert.equal(X.activates({ key: 'Enter', target: row }, { clickable: false }), false);
 });
+
+test('currentRow marks one row with aria-current and a tint and is a host-set string', async () => {
+    const { readFileSync } = await import('node:fs');
+    const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
+    const p = meta.props.find(x => x.name === 'currentRow');
+    assert.deepEqual([p.type, p.default, p.reflect], ['string', '', true]);
+    assert.match(readFileSync(new URL('./table.js', import.meta.url), 'utf8'), /'aria-current': this\.currentRow && this\.currentRow === id \? 'true' : null/);
+    assert.match(readFileSync(new URL('./table.css', import.meta.url), 'utf8'), /tr\[aria-current\]/);
+});

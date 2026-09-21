@@ -19,6 +19,7 @@
          Clickable="OnRowClick.HasDelegate"
          OnRowClick="HandleRowClickAsync"
          Hover="OnRowClick.HasDelegate"
+         CurrentRow="@CurrentRow"
          Loading="_loading"
          EmptyText="@(_state.Search is null ? EmptyText : NoResultsText)"
          EmptyContent="@(_error || EmptyContent is not null ? EmptyFragment : null)"
@@ -120,7 +121,10 @@
     /// <summary>A row was activated: a click on the row, or Enter on the link in its first column. The item is the one that row shows; navigate to its detail here. Setting it makes the rows clickable.</summary>
     [Parameter] public EventCallback<TItem> OnRowClick { get; set; }
 
-    /// <summary>The id (see <see cref="IdOf"/>) of the row that is open elsewhere, for a master and detail layout. Its first cell is marked: bold, with <c>aria-current</c>.</summary>
+    /// <summary>The id (<see cref="IdOf"/>) of the row whose record is open in a detail pane: it is tinted and marked <c>aria-current</c>. Set it from the route; the list never changes it.</summary>
+    [Parameter] public string? CurrentRow { get; set; }
+
+    /// <summary>The id (see <see cref="IdOf"/>) of the row that is open elsewhere, for a master and detail layout. Its first cell is marked: bold, with <c>aria-current</c>. Prefer <see cref="CurrentRow"/>, which marks the whole row.</summary>
     [Parameter] public string? CurrentId { get; set; }
 
     /// <summary>Extra toolbar content, after the search box and before the add button.</summary>

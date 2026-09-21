@@ -5,7 +5,7 @@
   "group": "Layout & structure",
   "props": [
     { "name": "fill", "type": "boolean", "default": false, "reflect": true, "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve." },
-    { "name": "activePane", "type": "enum", "default": "main", "values": ["nav", "main", "aside"], "reflect": true, "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane." },
+    { "name": "activePane", "type": "enum", "default": "main", "values": ["nav", "main", "aside"], "reflect": true, "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane. A tab tap raises a cancelable pk-pane-change first and the element changes the pane itself only when it is not cancelled; a host that owns the pane from a route calls preventDefault() and changes the route instead (see the routed-list-detail template)." },
     { "name": "asideOpen", "type": "boolean", "default": false, "reflect": true, "description": "Show the aside: a docked column on a wide screen, a panel over the main pane on a tablet and its own pane on a phone." },
     { "name": "navLabel", "type": "string", "default": "Contents", "reflect": true, "description": "The nav pane's accessible name and its tab on a phone." },
     { "name": "mainLabel", "type": "string", "default": "Content", "reflect": true, "description": "The main pane's accessible name and its tab on a phone." },
