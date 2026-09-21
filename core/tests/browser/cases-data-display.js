@@ -317,4 +317,31 @@ export const dataDisplayCases = [
         t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
         t.ok(doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector shows the live markup of the element page');
     }],
+    ['log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised', async t => {
+        const el = await t.mount('<pk-log label="Build output" max="50" style="--pk-log-height: 8rem">Nothing yet.</pk-log>');
+        const sc = el.part('scroller'); const rowsIn = () => el.part('list').children.length; const seen = [];
+        t.eq(sc.getAttribute('role'), 'log'); t.eq(sc.getAttribute('aria-label'), 'Build output'); t.eq(sc.tabIndex, 0); t.eq(sc.getAttribute('aria-live'), 'polite');
+        t.ok(!el.part('empty').hidden, 'the empty text shows while there are no rows'); t.ok(el.part('resume').hidden);
+        el.addEventListener('pk-pause', e => seen.push(e.detail.paused));
+        el.append({ level: 'error', text: 'Build failed', time: '12:00:01' }, 'plain'); await t.settle();
+        t.eq(rowsIn(), 2); t.ok(el.part('empty').hidden);
+        const first = el.part('list').firstElementChild; t.eq(first.classList.contains("error"), true); t.eq(first.querySelector('.lvl').textContent, 'error'); t.eq(first.querySelector('.time').textContent, '12:00:01'); t.eq(first.querySelector('.msg').textContent, 'Build failed');
+        t.ok(getComputedStyle(first).fontFamily.includes('mono'), 'monospace rows');
+        for (let i = 0; i < 80; i++) el.append(`line ${i}`);
+        await t.settle();
+        t.eq(rowsIn(), 50, 'the cap drops the oldest rows'); t.eq(el.part('list').lastElementChild.textContent, 'line 79');
+        t.ok(sc.scrollHeight > sc.clientHeight, 'the rows overflow'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'it sticks to the bottom');
+        const kept = el.part('list').firstElementChild;
+        el.append('more'); await t.settle(); t.ok(kept.isConnected === false, 'an old row went'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'still at the bottom');
+        sc.scrollTop = 0; await until(() => el.paused, 'the log to pause');
+        t.ok(el.paused && seen.join() === 'true', 'scrolling up pauses and says so once'); t.ok(!el.part('resume').hidden, 'the resume button shows');
+        const top = sc.scrollTop; el.append('while paused'); await t.settle();
+        t.ok(el.part('list').lastElementChild.textContent === 'while paused' && Math.abs(sc.scrollTop - top) < 2, 'new rows arrive without moving the view');
+        const r = el.part('resume'); r.click(); await t.settle(); await t.settle();
+        t.ok(!el.paused && !el.hasAttribute('paused') && r.hidden, 'the button resumes'); t.eq(seen.join(), 'true,false'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'and jumps to the newest row');
+        el.paused = true; await t.settle(); t.eq(seen.length, 2, 'a host change raises nothing'); el.paused = false; await t.settle(); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4);
+        el.rows = ['x', { text: 'y', level: 'warn' }]; await t.settle(); t.eq(rowsIn(), 2, 'rows replaces the rows'); el.live = 'off'; await t.settle(); t.eq(sc.getAttribute('aria-live'), 'off');
+        el.clear(); await t.settle(); t.eq(rowsIn(), 0);
+        el.paused = true; await t.settle(); const b = el.part('resume').getBoundingClientRect(); t.ok(b.height >= 44 || innerWidth > 640, 'the resume button is 44px tall on a phone'); t.ok(b.width > 0);
+    }],
 ];

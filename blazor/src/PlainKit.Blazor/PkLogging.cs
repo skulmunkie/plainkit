@@ -114,7 +114,7 @@ public interface IPkLog
     ValueTask ConfigureAsync(PkLoggingOptions settings);
 }
 
-internal sealed class PkLog(PkRuntime runtime) : IPkLog
+internal sealed class PkLogWriter(PkRuntime runtime) : IPkLog
 {
     public async ValueTask WriteAsync(PkLogLevel level, string scope, string message, string? detail = null)
     {

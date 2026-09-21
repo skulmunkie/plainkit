@@ -1,0 +1,57 @@
+{
+  "component": "PkLog",
+  "params": [
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "Log",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Max",
+      "type": "int",
+      "default": 1000,
+      "map": "prop",
+      "prop": "max"
+    },
+    {
+      "name": "Rows",
+      "type": "IReadOnlyList<string>?",
+      "map": "prop",
+      "prop": "rows",
+      "note": "Strings only. To stream rows, or to give a level and time, call the element's append() from script (the generated components do not expose element methods)."
+    },
+    {
+      "name": "Paused",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "paused",
+      "bind": {
+        "event": "pk-pause",
+        "value": "detail.paused"
+      }
+    },
+    {
+      "name": "Live",
+      "type": "string",
+      "default": "polite",
+      "map": "prop",
+      "prop": "live"
+    },
+    {
+      "name": "ResumeLabel",
+      "type": "string",
+      "default": "Jump to latest",
+      "map": "prop",
+      "prop": "resumeLabel"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}
