@@ -1,0 +1,85 @@
+{
+  "component": "PkDrawer",
+  "params": [
+    {
+      "name": "IsOpen",
+      "type": "bool",
+      "map": "prop",
+      "prop": "open",
+      "bind": {
+        "event": "pk-close",
+        "value": false
+      }
+    },
+    {
+      "name": "Title",
+      "type": "string?",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "FooterContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "footer"
+    },
+    {
+      "name": "ActionsContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "actions"
+    },
+    {
+      "name": "OnClose",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-close",
+      "cancelable": true
+    },
+    {
+      "name": "Persistent",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "persistent"
+    },
+    {
+      "name": "Wide",
+      "type": "bool",
+      "map": "prop",
+      "prop": "wide"
+    },
+    {
+      "name": "Backdrop",
+      "type": "bool",
+      "default": true,
+      "map": "wrapper",
+      "note": "A docked, backdrop-less inspector is the element's docked prop."
+    },
+    {
+      "name": "IsLoading",
+      "type": "bool",
+      "map": "wrapper",
+      "note": "Wrap the body in pk-loading-overlay busy."
+    },
+    {
+      "name": "PhoneCards",
+      "type": "bool",
+      "default": true,
+      "map": "wrapper",
+      "note": "Compat class only."
+    },
+    {
+      "name": "Docked",
+      "type": "bool",
+      "map": "prop",
+      "prop": "docked"
+    }
+  ]
+}

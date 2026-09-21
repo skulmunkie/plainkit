@@ -44,39 +44,6 @@
   ],
   "a11y": "A labelled region; each toast announces itself with its own role.",
   "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
-  "blazor": {
-    "component": "PkToastStack",
-    "params": [
-      {
-        "name": "Position",
-        "type": "ToaststackPosition",
-        "default": "bottom-end",
-        "map": "prop",
-        "prop": "position",
-        "enum": {
-          "TopStart": "top-start",
-          "Top": "top",
-          "TopEnd": "top-end",
-          "BottomStart": "bottom-start",
-          "Bottom": "bottom",
-          "BottomEnd": "bottom-end"
-        }
-      },
-      {
-        "name": "Max",
-        "type": "int",
-        "default": 3,
-        "map": "prop",
-        "prop": "max"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Stack at a position",

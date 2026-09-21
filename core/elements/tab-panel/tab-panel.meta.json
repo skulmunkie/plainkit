@@ -30,19 +30,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "Exposes role=tabpanel; pk-tabs sets aria-labelledby to its tab.",
-  "blazor": {
-    "component": "PkTabPanel",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value"
-      },
-      {
-        "name": "ChildContent",
-        "slot": ""
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Two panels",

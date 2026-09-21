@@ -1,0 +1,51 @@
+{
+  "component": "PkTagInput",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Separators",
+      "prop": "separators",
+      "type": "string"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "int"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-tags-change",
+    "key": "value",
+    "type": "string"
+  }
+}

@@ -55,38 +55,6 @@
   "methods": [],
   "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
   "mobile": "The label wraps; the spinner is 28px.",
-  "blazor": {
-    "component": "PkLoadingOverlay",
-    "params": [
-      {
-        "name": "Busy",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "busy"
-      },
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "Fullscreen",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "fullscreen"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Busy region",

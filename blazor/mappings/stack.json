@@ -1,0 +1,25 @@
+{
+  "component": "PkStack",
+  "params": [
+    {
+      "name": "Gap",
+      "prop": "gap",
+      "type": "string"
+    },
+    {
+      "name": "Align",
+      "prop": "align",
+      "type": "string"
+    },
+    {
+      "name": "Dividers",
+      "prop": "dividers",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

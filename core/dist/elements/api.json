@@ -31,26 +31,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "Each item is a native details and summary, so Enter and Space toggle it and find-in-page opens matches. The accordion only coordinates the items.",
-    "blazor": {
-      "component": "PkAccordion",
-      "params": [
-        {
-          "name": "Exclusive",
-          "prop": "exclusive",
-          "type": "bool"
-        },
-        {
-          "name": "Flush",
-          "prop": "flush",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Exclusive",
@@ -134,41 +114,6 @@
     ],
     "methods": [],
     "a11y": "Native details and summary semantics with a 44px header; the chevron is decorative. The animation is skipped under prefers-reduced-motion.",
-    "blazor": {
-      "component": "PkAccordionItem",
-      "params": [
-        {
-          "name": "Heading",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Open",
-          "prop": "open",
-          "type": "bool"
-        },
-        {
-          "name": "OpenChanged",
-          "event": "pk-toggle",
-          "type": "EventCallback<bool>"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "HeadingContent",
-          "slot": "heading",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "IconContent",
-          "slot": "icon",
-          "type": "RenderFragment?"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Open by default",
@@ -300,85 +245,6 @@
     ],
     "a11y": "role=alert for warning and danger, role=status for info and success, applied to the host; the dismiss button is labelled; colour is never the only signal (icon and heading).",
     "mobile": "Actions wrap onto their own line; the dismiss button is 44px.",
-    "blazor": {
-      "component": "PkAlert",
-      "params": [
-        {
-          "name": "Kind",
-          "type": "NoticeKind",
-          "enum": {
-            "Error": "danger",
-            "Warning": "warning",
-            "Info": "info",
-            "Success": "success"
-          },
-          "default": "Error",
-          "map": "prop",
-          "prop": "kind"
-        },
-        {
-          "name": "Title",
-          "type": "string?",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "Message",
-          "type": "string?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "Dismissible",
-          "type": "bool",
-          "map": "prop",
-          "prop": "dismissible"
-        },
-        {
-          "name": "OnDismiss",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-dismiss",
-          "cancelable": true
-        },
-        {
-          "name": "Boxed",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "The alert element is always boxed; it has no unboxed variant."
-        },
-        {
-          "name": "Inline",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "Alert is a block; it has no inline variant."
-        },
-        {
-          "name": "Compact",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "Compat class only."
-        },
-        {
-          "name": "ExtraClass",
-          "type": "string",
-          "map": "wrapper",
-          "note": "Passed to the host element class attribute."
-        },
-        {
-          "name": "AdditionalAttributes",
-          "type": "Dictionary<string, object>?",
-          "map": "wrapper",
-          "note": "Splatted onto the host element."
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Kinds",
@@ -453,58 +319,6 @@
     "methods": [],
     "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
     "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
-    "blazor": {
-      "component": "PkAppShell",
-      "params": [
-        {
-          "name": "SidebarContent",
-          "type": "RenderFragment",
-          "map": "slot",
-          "slot": "nav"
-        },
-        {
-          "name": "HeaderContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "header"
-        },
-        {
-          "name": "BodyContent",
-          "type": "RenderFragment",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "FooterContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "footer"
-        },
-        {
-          "name": "ShowErrorOverlay",
-          "type": "bool",
-          "default": true,
-          "map": "wrapper",
-          "note": "The Blazor error UI stays in the wrapper."
-        },
-        {
-          "name": "ErrorOverlayMessage",
-          "type": "string",
-          "map": "wrapper",
-          "note": "As ShowErrorOverlay."
-        },
-        {
-          "name": "NavOpen",
-          "type": "bool",
-          "map": "prop",
-          "prop": "navOpen",
-          "bind": {
-            "event": "pk-nav-toggle",
-            "value": "detail.open"
-          }
-        }
-      ]
-    },
     "examples": [
       {
         "title": "App shell with a sticky footer",
@@ -620,41 +434,6 @@
       }
     ],
     "a11y": "role=img with the name (and status) as its label; the image itself has an empty alt because the host already names it.",
-    "blazor": {
-      "component": "PkAvatar",
-      "params": [
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Src",
-          "prop": "src",
-          "type": "string"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Shape",
-          "prop": "shape",
-          "type": "string"
-        },
-        {
-          "name": "Status",
-          "prop": "status",
-          "type": "string"
-        },
-        {
-          "name": "Colour",
-          "prop": "colour",
-          "type": "string"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Sizes and status",
@@ -710,26 +489,6 @@
       }
     ],
     "a11y": "role=group with a label; the +N tile is text, so the count of hidden people is available without seeing them.",
-    "blazor": {
-      "component": "PkAvatarGroup",
-      "params": [
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "double"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Overflow",
@@ -793,45 +552,6 @@
     "methods": [],
     "a11y": "A real button with a text label; after scrolling, focus moves to the top of the scroller so keyboard users are not left at the bottom.",
     "mobile": "44px tall; clears the device safe area.",
-    "blazor": {
-      "component": "PkBackToTop",
-      "params": [
-        {
-          "name": "For",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "for"
-        },
-        {
-          "name": "Threshold",
-          "type": "int",
-          "default": 400,
-          "map": "prop",
-          "prop": "threshold"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Back to top",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Visible",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "visible"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Back to top",
@@ -922,37 +642,6 @@
       }
     ],
     "a11y": "The text is the accessible name; put a noun in the slot (\"4 unread\") when the count alone is ambiguous. Dot mode never relies on colour alone: the label states the status.",
-    "blazor": {
-      "component": "PkBadge",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Count",
-          "prop": "count",
-          "type": "string"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "double"
-        },
-        {
-          "name": "Dot",
-          "prop": "dot",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "notes": "New component. Record status keeps using Chip and StatusChip."
-    },
     "examples": [
       {
         "title": "Variants",
@@ -1024,37 +713,6 @@
     "methods": [],
     "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded.",
     "mobile": "More than three crumbs fold the middle ones; links and the fold button are 44px tall.",
-    "blazor": {
-      "component": "PkBreadcrumb",
-      "params": [
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Breadcrumb",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Max",
-          "type": "int",
-          "default": 4,
-          "map": "prop",
-          "prop": "max"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnExpand",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-expand"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Breadcrumb",
@@ -1255,86 +913,6 @@
       }
     ],
     "a11y": "A native button lives in the shadow root, so it is focusable, activates on Enter and Space and exposes the button role. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus. Focus ring and the 44px phone target are built in.",
-    "blazor": {
-      "component": "PkButton",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "ButtonVariant"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "ButtonSize"
-        },
-        {
-          "name": "Type",
-          "prop": "type",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Busy",
-          "prop": "busy",
-          "type": "bool"
-        },
-        {
-          "name": "BusyText",
-          "prop": "busyText",
-          "type": "string"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Block",
-          "prop": "block",
-          "type": "bool"
-        },
-        {
-          "name": "Icon",
-          "prop": "icon",
-          "type": "bool"
-        },
-        {
-          "name": "Toggle",
-          "prop": "toggle",
-          "type": "bool"
-        },
-        {
-          "name": "Pressed",
-          "prop": "pressed",
-          "type": "bool"
-        },
-        {
-          "name": "OnClick",
-          "event": "click",
-          "type": "MouseEventArgs"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "StartContent",
-          "slot": "start",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "EndContent",
-          "slot": "end",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Variants",
@@ -1414,36 +992,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
-    "blazor": {
-      "component": "PkButtonGroup",
-      "params": [
-        {
-          "name": "Orientation",
-          "prop": "orientation",
-          "type": "string"
-        },
-        {
-          "name": "Fill",
-          "prop": "fill",
-          "type": "bool"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Mode",
-          "prop": "mode",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Group and single choice",
@@ -1592,67 +1140,6 @@
       }
     ],
     "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels.",
-    "blazor": {
-      "component": "PkCalendar",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "DateOnly?"
-        },
-        {
-          "name": "ValueChanged",
-          "event": "pk-select",
-          "type": "EventCallback<DateOnly?>"
-        },
-        {
-          "name": "Month",
-          "prop": "month",
-          "type": "DateOnly?"
-        },
-        {
-          "name": "Min",
-          "prop": "min",
-          "type": "DateOnly?"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "DateOnly?"
-        },
-        {
-          "name": "WeekStart",
-          "prop": "weekStart",
-          "type": "int"
-        },
-        {
-          "name": "Locale",
-          "prop": "locale",
-          "type": "string?"
-        },
-        {
-          "name": "Marks",
-          "prop": "marks",
-          "type": "IReadOnlyList<DateOnly>"
-        },
-        {
-          "name": "ReadOnly",
-          "prop": "readonly",
-          "type": "bool"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "OnMonthChanged",
-          "event": "pk-month",
-          "type": "EventCallback<MonthEventArgs>"
-        }
-      ],
-      "notes": "Bind with @bind-Value; dates convert to and from ISO strings."
-    },
     "examples": [
       {
         "title": "Selected day with marks",
@@ -1805,67 +1292,6 @@
     ],
     "methods": [],
     "a11y": "The title is exposed as a heading whose level you choose with level, so the card fits the page outline wherever it sits. With href the card holds one link named by the heading, so there is a single tab stop and no nested interactive content.",
-    "blazor": {
-      "component": "PkCard",
-      "params": [
-        {
-          "name": "Heading",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Level",
-          "prop": "level",
-          "type": "int"
-        },
-        {
-          "name": "Tone",
-          "prop": "tone",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "ActionsContent",
-          "slot": "actions",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "FooterContent",
-          "slot": "footer",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Orientation",
-          "prop": "orientation",
-          "type": "string"
-        },
-        {
-          "name": "Flush",
-          "prop": "flush",
-          "type": "bool"
-        },
-        {
-          "name": "Href",
-          "prop": "href",
-          "type": "string?"
-        },
-        {
-          "name": "MediaContent",
-          "slot": "media",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Fill",
-          "prop": "fill"
-        }
-      ],
-      "existing": true,
-      "notes": "Keeps the existing PkCard parameters (Title maps to heading)."
-    },
     "examples": [
       {
         "title": "Titled card with an action",
@@ -1987,42 +1413,6 @@
       }
     ],
     "a11y": "The svg is role=img with a generated text alternative listing the values; the source table stays in a details for exact numbers. Series colours are the chart tokens and every multi-series chart has a legend, so colour is not the only key.",
-    "blazor": {
-      "component": "PkChart",
-      "params": [
-        {
-          "name": "Kind",
-          "prop": "kind",
-          "type": "string"
-        },
-        {
-          "name": "Caption",
-          "prop": "caption",
-          "type": "string"
-        },
-        {
-          "name": "Height",
-          "prop": "height",
-          "type": "int"
-        },
-        {
-          "name": "Data",
-          "prop": "data",
-          "type": "ChartData"
-        },
-        {
-          "name": "CaptionContent",
-          "slot": "caption",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        }
-      ],
-      "notes": "ChartData is { Labels, Series: [{ Name, Values }] }."
-    },
     "examples": [
       {
         "title": "Bar from a table",
@@ -2209,67 +1599,6 @@
       }
     ],
     "a11y": "A native checkbox inside its label, so it is named by its text and toggled by Space; indeterminate is announced as mixed; invalid sets aria-invalid and a red border. Rows are 44px tall on a phone.",
-    "blazor": {
-      "component": "PkCheckbox",
-      "params": [
-        {
-          "name": "Checked",
-          "prop": "checked",
-          "type": "bool"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Indeterminate",
-          "prop": "indeterminate",
-          "type": "bool"
-        },
-        {
-          "name": "Group",
-          "prop": "group",
-          "type": "string"
-        },
-        {
-          "name": "Master",
-          "prop": "master",
-          "type": "string"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        }
-      ],
-      "model": {
-        "prop": "checked",
-        "event": "pk-change",
-        "key": "checked",
-        "type": "bool"
-      }
-    },
     "examples": [
       {
         "title": "States",
@@ -2362,41 +1691,6 @@
       }
     ],
     "a11y": "A plain layout box with no role and no focus behaviour; keep the DOM order the reading order.",
-    "blazor": {
-      "component": "PkCluster",
-      "params": [
-        {
-          "name": "Direction",
-          "prop": "direction",
-          "type": "string"
-        },
-        {
-          "name": "Gap",
-          "prop": "gap",
-          "type": "string"
-        },
-        {
-          "name": "Align",
-          "prop": "align",
-          "type": "string"
-        },
-        {
-          "name": "Justify",
-          "prop": "justify",
-          "type": "string"
-        },
-        {
-          "name": "NoWrap",
-          "prop": "nowrap",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Wrapping row",
@@ -2535,47 +1829,6 @@
       }
     ],
     "a11y": "The body is a labelled, focusable region so a keyboard can scroll it; the copy result is announced in a polite status region; line numbers are CSS-generated and not selectable. Lines are set as text, never parsed as HTML.",
-    "blazor": {
-      "component": "PkCodeBlock",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "LineNumbers",
-          "prop": "lineNumbers",
-          "type": "bool"
-        },
-        {
-          "name": "Wrap",
-          "prop": "wrap",
-          "type": "bool"
-        },
-        {
-          "name": "NoCopy",
-          "prop": "noCopy",
-          "type": "bool"
-        },
-        {
-          "name": "MaxHeight",
-          "prop": "maxHeight",
-          "type": "string"
-        },
-        {
-          "name": "OnCopy",
-          "event": "pk-copy",
-          "type": "EventCallback<CopyEventArgs>"
-        },
-        {
-          "name": "ChildContent",
-          "text": "",
-          "type": "string"
-        }
-      ],
-      "notes": "The code is passed as ChildContent text (a string), not markup."
-    },
     "examples": [
       {
         "title": "With line numbers",
@@ -2700,42 +1953,6 @@
       }
     ],
     "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
-    "blazor": {
-      "component": "PkColourInput",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-colour",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Picker and hex",
@@ -2945,77 +2162,6 @@
       }
     ],
     "a11y": "ARIA 1.2 combobox: role=combobox, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input or button); Arrow keys open and move, Home and End jump (select mode), Enter picks, Escape closes, Tab closes, letters jump in select mode. The chosen option carries aria-selected and a check mark. Options are 44px tall on a phone; the list opens upward when there is no room below.",
-    "blazor": {
-      "component": "PkCombobox",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Placeholder",
-          "prop": "placeholder",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Mode",
-          "prop": "mode",
-          "type": "string"
-        },
-        {
-          "name": "Free",
-          "prop": "free",
-          "type": "bool"
-        },
-        {
-          "name": "Filtering",
-          "prop": "filtering",
-          "type": "string"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "OnSearchInput",
-          "event": "pk-combo-query",
-          "type": "{ query: string }"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "EmptyContent",
-          "slot": "empty",
-          "type": "RenderFragment"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-combo-select",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Autocomplete",
@@ -3132,52 +2278,6 @@
     ],
     "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled.",
     "mobile": "Full width at the top of the screen; rows are 44px; the list is the only scroller.",
-    "blazor": {
-      "component": "PkCommandPalette",
-      "params": [
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open"
-        },
-        {
-          "name": "Placeholder",
-          "type": "string",
-          "default": "Type a command or search…",
-          "map": "prop",
-          "prop": "placeholder"
-        },
-        {
-          "name": "RecentsKey",
-          "type": "string",
-          "default": "pk-palette-recents",
-          "map": "prop",
-          "prop": "recentsKey"
-        },
-        {
-          "name": "NoShortcut",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "noShortcut"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Command palette",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "OnSelect",
-          "type": "EventCallback<CommandPaletteSelectEventArgs>",
-          "map": "event",
-          "event": "pk-select"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Command palette",
@@ -3246,43 +2346,6 @@
     ],
     "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
     "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
-    "blazor": {
-      "component": "PkContextMenu",
-      "params": [
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open"
-        },
-        {
-          "name": "Disabled",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "disabled"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "MenuContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "menu"
-        },
-        {
-          "name": "OnSelect",
-          "type": "EventCallback<ContextMenuSelectEventArgs>",
-          "map": "event",
-          "event": "pk-select"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Right-click, long-press or Shift+F10",
@@ -3450,89 +2513,6 @@
     ],
     "a11y": "Native <dialog>: focus is trapped and returned by the browser, the page behind is inert, Escape closes; labelled by its heading. A destructive confirm focuses Cancel.",
     "mobile": "Full screen below 640px with the header and footer pinned and only the body scrolling.",
-    "blazor": {
-      "component": "PkDialog",
-      "params": [
-        {
-          "name": "IsOpen",
-          "type": "bool",
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "Title",
-          "type": "string?",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "HeaderContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "header"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "FooterContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "footer"
-        },
-        {
-          "name": "OnClose",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-close",
-          "cancelable": true
-        },
-        {
-          "name": "ShowCloseButton",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "The element always shows its close button (house rule: every modal has its own Cancel or Close)."
-        },
-        {
-          "name": "CloseButtonLabel",
-          "type": "string",
-          "map": "wrapper",
-          "note": "Text of the close button; the element draws a cross with an accessible name."
-        },
-        {
-          "name": "FooterAlignEnd",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "The footer is always end-aligned."
-        },
-        {
-          "name": "MaxWidthPx",
-          "type": "int",
-          "map": "cssProperty",
-          "cssProperty": "--pk-dialog-w",
-          "format": "{0}px"
-        },
-        {
-          "name": "OverFlyout",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "Not needed: a native dialog is in the top layer above any flyout."
-        },
-        {
-          "name": "Theme",
-          "type": "ModalTheme",
-          "map": "wrapper",
-          "note": "The element has no product or archived tint."
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Dialog with a footer",
@@ -3603,31 +2583,6 @@
     ],
     "methods": [],
     "a11y": "role=separator (with aria-orientation) unless decorative is set.",
-    "blazor": {
-      "component": "PkDivider",
-      "params": [
-        {
-          "name": "Vertical",
-          "prop": "vertical",
-          "type": "bool"
-        },
-        {
-          "name": "LabelPosition",
-          "prop": "labelPosition",
-          "type": "string"
-        },
-        {
-          "name": "Decorative",
-          "prop": "decorative",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Labelled",
@@ -3790,91 +2745,6 @@
     ],
     "a11y": "A native modal dialog with an accessible name; focus returns to the opener on close; Escape and the backdrop close it (set persistent to keep the backdrop inert).",
     "mobile": "Left and right drawers are at most 90vw wide; the bottom sheet takes at most 85% of the height; swipe toward the edge it came from to close.",
-    "blazor": {
-      "component": "PkDrawer",
-      "params": [
-        {
-          "name": "IsOpen",
-          "type": "bool",
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "Title",
-          "type": "string?",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "FooterContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "footer"
-        },
-        {
-          "name": "ActionsContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "actions"
-        },
-        {
-          "name": "OnClose",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-close",
-          "cancelable": true
-        },
-        {
-          "name": "Persistent",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "persistent"
-        },
-        {
-          "name": "Wide",
-          "type": "bool",
-          "map": "prop",
-          "prop": "wide"
-        },
-        {
-          "name": "Backdrop",
-          "type": "bool",
-          "default": true,
-          "map": "wrapper",
-          "note": "A docked, backdrop-less inspector is the element's docked prop."
-        },
-        {
-          "name": "IsLoading",
-          "type": "bool",
-          "map": "wrapper",
-          "note": "Wrap the body in pk-loading-overlay busy."
-        },
-        {
-          "name": "PhoneCards",
-          "type": "bool",
-          "default": true,
-          "map": "wrapper",
-          "note": "Compat class only."
-        },
-        {
-          "name": "Docked",
-          "type": "bool",
-          "map": "prop",
-          "prop": "docked"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Drawer from the right",
@@ -3975,74 +2845,6 @@
     ],
     "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
     "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
-    "blazor": {
-      "component": "PkDropdown",
-      "params": [
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "Placement",
-          "type": "string",
-          "default": "bottom-start",
-          "map": "prop",
-          "prop": "placement"
-        },
-        {
-          "name": "KeepOpen",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "keepOpen"
-        },
-        {
-          "name": "Mega",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "mega"
-        },
-        {
-          "name": "TriggerContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "trigger"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnSelect",
-          "type": "EventCallback<DropdownSelectEventArgs>",
-          "map": "event",
-          "event": "pk-select"
-        },
-        {
-          "name": "OnOpen",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-open"
-        },
-        {
-          "name": "OnClose",
-          "type": "EventCallback<DropdownCloseEventArgs>",
-          "map": "event",
-          "event": "pk-close",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Menu with a header, checkable items and a submenu",
@@ -4215,56 +3017,6 @@
       }
     ],
     "a11y": "A real focusable file input covers the zone, so the keyboard opens the picker and the zone shows the focus ring; the list is a polite live region; rejections are text (with the reason), not just red; each Remove button names its file. The whole zone is the tap target on a phone.",
-    "blazor": {
-      "component": "PkDropzone",
-      "params": [
-        {
-          "name": "Accept",
-          "prop": "accept",
-          "type": "string"
-        },
-        {
-          "name": "Multiple",
-          "prop": "multiple",
-          "type": "bool"
-        },
-        {
-          "name": "MaxFileSizeBytes",
-          "prop": "maxSize",
-          "type": "string"
-        },
-        {
-          "name": "MaxFiles",
-          "prop": "maxFiles",
-          "type": "int"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "OnFiles",
-          "event": "pk-files",
-          "type": "{ files: File[], rejected: { file: File, reason: string }[] }"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "HintContent",
-          "slot": "hint",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Drop zone",
@@ -4370,48 +3122,6 @@
     ],
     "methods": [],
     "a11y": "Plain text with a heading whose level you choose. Actions are real buttons and links. Set announce when it replaces content after a search or filter so the change is announced politely.",
-    "blazor": {
-      "component": "PkEmptyState",
-      "existing": true,
-      "params": [
-        {
-          "name": "Title",
-          "prop": "heading",
-          "type": "string?"
-        },
-        {
-          "name": "Description",
-          "prop": "description",
-          "type": "string?"
-        },
-        {
-          "name": "Tone",
-          "prop": "tone",
-          "type": "string"
-        },
-        {
-          "name": "TitleContent",
-          "slot": "heading",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "DescriptionContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "IconContent",
-          "slot": "icon",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "ActionContent",
-          "slot": "actions",
-          "type": "RenderFragment?"
-        }
-      ],
-      "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot."
-    },
     "examples": [
       {
         "title": "With an action",
@@ -4563,66 +3273,6 @@
     ],
     "methods": [],
     "a11y": "The label click focuses the control. Ids cannot cross shadow roots, so the field sets label, description (help plus error), invalid, warning and required on an pk-* control, or aria-label and aria-description on a native one. Messages are polite live regions that are empty until used; the star is aria-hidden because required is set on the control.",
-    "blazor": {
-      "component": "PkField",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Hint",
-          "prop": "help",
-          "type": "string"
-        },
-        {
-          "name": "Error",
-          "prop": "error",
-          "type": "string"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "MaxLength",
-          "prop": "max",
-          "type": "int"
-        },
-        {
-          "name": "Layout",
-          "prop": "layout",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "LabelExtra",
-          "slot": "label",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "LabelAction",
-          "slot": "label-action",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "HintContent",
-          "slot": "help",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Help, required and counter",
@@ -4728,38 +3378,6 @@
     ],
     "methods": [],
     "a11y": "A real description list: slotted dt and dd are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
-    "blazor": {
-      "component": "PkFieldList",
-      "existing": true,
-      "params": [
-        {
-          "name": "Title",
-          "prop": "heading",
-          "type": "string?"
-        },
-        {
-          "name": "Layout",
-          "prop": "layout",
-          "type": "string"
-        },
-        {
-          "name": "Dividers",
-          "prop": "dividers",
-          "type": "bool"
-        },
-        {
-          "name": "Dense",
-          "prop": "dense",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        }
-      ],
-      "notes": "Keeps Title (heading) and ChildContent. The Field component keeps emitting a dt and dd pair (Label, Value, LabelTip, When, SkipEmpty), so pages need no change."
-    },
     "examples": [
       {
         "title": "Product fields",
@@ -4814,21 +3432,6 @@
     ],
     "methods": [],
     "a11y": "Plain layout with no role of its own.",
-    "blazor": {
-      "component": "PkFieldRow",
-      "params": [
-        {
-          "name": "Align",
-          "prop": "align",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Two fields",
@@ -4923,41 +3526,6 @@
       }
     ],
     "a11y": "Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
-    "blazor": {
-      "component": "PkForm",
-      "params": [
-        {
-          "name": "Validate",
-          "prop": "validate",
-          "type": "string"
-        },
-        {
-          "name": "ShowValid",
-          "prop": "showValid",
-          "type": "bool"
-        },
-        {
-          "name": "Summary",
-          "prop": "summary",
-          "type": "bool"
-        },
-        {
-          "name": "OnInvalid",
-          "event": "pk-invalid",
-          "type": "{ controls: Element[], messages: string[] }"
-        },
-        {
-          "name": "OnValid",
-          "event": "pk-valid",
-          "type": "null"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Validated form with summary",
@@ -5021,31 +3589,6 @@
     ],
     "methods": [],
     "a11y": "Plain layout; the status text is not a live region (use a Notice for announcements). On a phone the buttons of a sticky bar share the width.",
-    "blazor": {
-      "component": "PkFormActions",
-      "params": [
-        {
-          "name": "Sticky",
-          "prop": "sticky",
-          "type": "bool"
-        },
-        {
-          "name": "Align",
-          "prop": "align",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "StatusContent",
-          "slot": "status",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "End-aligned",
@@ -5120,26 +3663,6 @@
     ],
     "methods": [],
     "a11y": "The heading is a real h2 so the section is navigable by heading; the fields keep their own labels.",
-    "blazor": {
-      "component": "PkFormSection",
-      "params": [
-        {
-          "name": "Title",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Description",
-          "prop": "description",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Two sections",
@@ -5247,48 +3770,6 @@
     ],
     "methods": [],
     "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
-    "blazor": {
-      "component": "PkGallery",
-      "params": [
-        {
-          "name": "Kind",
-          "prop": "kind"
-        },
-        {
-          "name": "Group",
-          "prop": "group"
-        },
-        {
-          "name": "Control",
-          "prop": "control"
-        },
-        {
-          "name": "Theme",
-          "prop": "theme"
-        },
-        {
-          "name": "Width",
-          "prop": "width"
-        },
-        {
-          "name": "Filter",
-          "prop": "filter"
-        },
-        {
-          "name": "Chrome",
-          "prop": "chrome"
-        },
-        {
-          "name": "Height",
-          "prop": "height"
-        },
-        {
-          "name": "Src",
-          "prop": "src"
-        }
-      ],
-      "notes": "New component, no Blazor equivalent. Needs the SDK dist folder served with the app so embed.html is reachable."
-    },
     "examples": [
       {
         "title": "Every form control, phone width, light theme",
@@ -5359,31 +3840,6 @@
       }
     ],
     "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
-    "blazor": {
-      "component": "PkGrid",
-      "params": [
-        {
-          "name": "Min",
-          "prop": "min",
-          "type": "string"
-        },
-        {
-          "name": "Columns",
-          "prop": "columns",
-          "type": "int"
-        },
-        {
-          "name": "Gap",
-          "prop": "gap",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Auto columns",
@@ -5469,36 +3925,6 @@
     ],
     "methods": [],
     "a11y": "A real button with aria-expanded and aria-controls; the panel is a note region. It works by touch and keyboard, unlike a hover tooltip, and the panel never clips.",
-    "blazor": {
-      "component": "PkHint",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Open",
-          "prop": "open",
-          "type": "bool"
-        },
-        {
-          "name": "Tone",
-          "prop": "tone",
-          "type": "string"
-        },
-        {
-          "name": "OpenChanged",
-          "event": "pk-toggle",
-          "type": "EventCallback<bool>"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Landed cost",
@@ -5561,27 +3987,6 @@
     ],
     "methods": [],
     "a11y": "With a label the host is role img with that name; without one it is aria-hidden, so put the meaning in the surrounding text (a button label) and leave the icon decorative. The stroke follows currentColor, so it meets the contrast of its text. Give an icon-only button a 44px target.",
-    "blazor": {
-      "component": "PkIcon",
-      "params": [
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        }
-      ],
-      "notes": "Replaces Icon. Class-based icons used a relative sprite path; pk-icon resolves the sprite from its own module URL."
-    },
     "examples": [
       {
         "title": "Follows text colour and size",
@@ -5754,83 +4159,6 @@
     ],
     "a11y": "The grid is a list. Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
     "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons and the add tile are 44px high, and there is no hover step.",
-    "blazor": {
-      "component": "PkImageGallery",
-      "params": [
-        {
-          "name": "Images",
-          "type": "IReadOnlyList<GalleryImage>",
-          "map": "prop",
-          "prop": "images"
-        },
-        {
-          "name": "Primary",
-          "type": "int",
-          "default": -1,
-          "map": "prop",
-          "prop": "primary",
-          "bind": {
-            "event": "pk-primary-change",
-            "value": "detail.index"
-          }
-        },
-        {
-          "name": "Columns",
-          "type": "int",
-          "default": 0,
-          "map": "prop",
-          "prop": "columns"
-        },
-        {
-          "name": "Min",
-          "type": "string",
-          "default": "6.25rem",
-          "map": "prop",
-          "prop": "min"
-        },
-        {
-          "name": "Editable",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "editable"
-        },
-        {
-          "name": "AddLabel",
-          "type": "string",
-          "default": "Add image",
-          "map": "prop",
-          "prop": "addLabel"
-        },
-        {
-          "name": "Accept",
-          "type": "string",
-          "default": "image/*",
-          "map": "prop",
-          "prop": "accept"
-        },
-        {
-          "name": "OnPrimaryChange",
-          "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>",
-          "map": "event",
-          "event": "pk-primary-change",
-          "cancelable": true
-        },
-        {
-          "name": "OnRemove",
-          "type": "EventCallback<ImageGalleryRemoveEventArgs>",
-          "map": "event",
-          "event": "pk-remove",
-          "cancelable": true
-        },
-        {
-          "name": "OnAdd",
-          "type": "EventCallback<ImageGalleryAddEventArgs>",
-          "map": "event",
-          "event": "pk-add"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Thumbnails with a primary image and an add tile",
@@ -6191,147 +4519,6 @@
       }
     ],
     "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone.",
-    "blazor": {
-      "component": "PkInput",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Type",
-          "prop": "type",
-          "type": "string"
-        },
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Placeholder",
-          "prop": "placeholder",
-          "type": "string"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ReadOnly",
-          "prop": "readonly",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Min",
-          "prop": "min",
-          "type": "string"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "string"
-        },
-        {
-          "name": "Step",
-          "prop": "step",
-          "type": "string"
-        },
-        {
-          "name": "MaxLength",
-          "prop": "maxlength",
-          "type": "string"
-        },
-        {
-          "name": "Pattern",
-          "prop": "pattern",
-          "type": "string"
-        },
-        {
-          "name": "AutoComplete",
-          "prop": "autocomplete",
-          "type": "string"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Clearable",
-          "prop": "clearable",
-          "type": "bool"
-        },
-        {
-          "name": "Revealable",
-          "prop": "reveal",
-          "type": "bool"
-        },
-        {
-          "name": "Stepper",
-          "prop": "stepper",
-          "type": "bool"
-        },
-        {
-          "name": "Format",
-          "prop": "format",
-          "type": "string"
-        },
-        {
-          "name": "Currency",
-          "prop": "currency",
-          "type": "string"
-        },
-        {
-          "name": "Floating",
-          "prop": "floating",
-          "type": "bool"
-        },
-        {
-          "name": "DebounceMs",
-          "prop": "debounce",
-          "type": "int"
-        },
-        {
-          "name": "OnSearch",
-          "event": "pk-search",
-          "type": "{ value: string }"
-        },
-        {
-          "name": "PrefixContent",
-          "slot": "prefix",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "SuffixContent",
-          "slot": "suffix",
-          "type": "RenderFragment"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-value-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Text, states and sizes",
@@ -6452,56 +4639,6 @@
     ],
     "a11y": "Native dialog with a label; the image has alt text from the item; the counter is a polite status; arrow keys and swipe navigate, Escape closes.",
     "mobile": "Previous and next sit at the bottom corners as 44px buttons; swipe left or right to change images.",
-    "blazor": {
-      "component": "PkLightbox",
-      "params": [
-        {
-          "name": "Index",
-          "type": "int",
-          "default": 0,
-          "map": "prop",
-          "prop": "index"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Image viewer",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnChange",
-          "type": "EventCallback<LightboxChangeEventArgs>",
-          "map": "event",
-          "event": "pk-change",
-          "cancelable": true
-        },
-        {
-          "name": "OnClose",
-          "type": "EventCallback<LightboxCloseEventArgs>",
-          "map": "event",
-          "event": "pk-close",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Lightbox trigger",
@@ -6553,31 +4690,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "The host is role=list and each row gets role=listitem unless it already has a role. Rows are native links, buttons or labels, so keyboard and names come from them. The current row uses aria-current. Actionable rows are at least 44px tall.",
-    "blazor": {
-      "component": "PkListGroup",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Checklist",
-          "prop": "checklist",
-          "type": "bool"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Actionable with badges",
@@ -6646,38 +4758,6 @@
     "methods": [],
     "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
     "mobile": "The label wraps; the spinner is 28px.",
-    "blazor": {
-      "component": "PkLoadingOverlay",
-      "params": [
-        {
-          "name": "Busy",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "busy"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Fullscreen",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "fullscreen"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Busy region",
@@ -6763,42 +4843,6 @@
       }
     ],
     "a11y": "The text is inside a real time element carrying the datetime, so assistive technology and search see the exact instant. Relative text is not live-announced; the title holds the full date for pointer users. Prefer date or datetime where the exact moment matters.",
-    "blazor": {
-      "component": "PkLocalTime",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "datetime",
-          "type": "string"
-        },
-        {
-          "name": "Format",
-          "prop": "format",
-          "type": "string"
-        },
-        {
-          "name": "Length",
-          "prop": "length",
-          "type": "string"
-        },
-        {
-          "name": "Locale",
-          "prop": "locale",
-          "type": "string"
-        },
-        {
-          "name": "TimeZone",
-          "prop": "timeZone",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "notes": "Replaces LocalDateTime; pass the UTC value as an ISO 8601 string (DateTime.ToString(\"o\")). Format DateOnly maps to format=\"date\"."
-    },
     "examples": [
       {
         "title": "Date, time and both",
@@ -6901,51 +4945,6 @@
     ],
     "methods": [],
     "a11y": "A real figure with a figcaption; slotted images keep their author-written alt text. Lightbox mode makes the box a focusable button (Enter and Space) named \"Enlarge\". The ratio reserves space so a late image never shifts the layout.",
-    "blazor": {
-      "component": "PkMedia",
-      "params": [
-        {
-          "name": "Ratio",
-          "prop": "ratio",
-          "type": "string"
-        },
-        {
-          "name": "Fit",
-          "prop": "fit",
-          "type": "string"
-        },
-        {
-          "name": "Caption",
-          "prop": "caption",
-          "type": "string"
-        },
-        {
-          "name": "Lightbox",
-          "prop": "lightbox",
-          "type": "bool"
-        },
-        {
-          "name": "Square",
-          "prop": "square",
-          "type": "bool"
-        },
-        {
-          "name": "OnOpen",
-          "event": "pk-open",
-          "type": "EventCallback<OpenEventArgs>"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "CaptionContent",
-          "slot": "caption",
-          "type": "RenderFragment?"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Captioned 4:3",
@@ -7067,101 +5066,6 @@
     "methods": [],
     "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props.",
     "mobile": "44px tall on a phone; the submenu chevron points down and the submenu opens inline.",
-    "blazor": {
-      "component": "PkMenuItem",
-      "params": [
-        {
-          "name": "Type",
-          "type": "MenuitemType",
-          "default": "item",
-          "map": "prop",
-          "prop": "type",
-          "enum": {
-            "Item": "item",
-            "Checkbox": "checkbox",
-            "Radio": "radio",
-            "Header": "header",
-            "Divider": "divider"
-          }
-        },
-        {
-          "name": "Checked",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "checked",
-          "bind": {
-            "event": "pk-select",
-            "value": "detail.checked"
-          }
-        },
-        {
-          "name": "Disabled",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "disabled"
-        },
-        {
-          "name": "Danger",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "danger"
-        },
-        {
-          "name": "Value",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "value"
-        },
-        {
-          "name": "Href",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "href"
-        },
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "PrefixContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "prefix"
-        },
-        {
-          "name": "SuffixContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "suffix"
-        },
-        {
-          "name": "SubmenuContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "submenu"
-        },
-        {
-          "name": "OnSelect",
-          "type": "EventCallback<MenuItemSelectEventArgs>",
-          "map": "event",
-          "event": "pk-select"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Item types",
@@ -7275,87 +5179,6 @@
     "methods": [],
     "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
     "mobile": "44px tall.",
-    "blazor": {
-      "component": "PkNavItem",
-      "params": [
-        {
-          "name": "Href",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "href"
-        },
-        {
-          "name": "Current",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "current"
-        },
-        {
-          "name": "Disabled",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "disabled"
-        },
-        {
-          "name": "Expanded",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "expanded",
-          "bind": {
-            "event": "pk-toggle",
-            "value": "detail.expanded"
-          }
-        },
-        {
-          "name": "Rail",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "rail"
-        },
-        {
-          "name": "Flyout",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "flyout"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "IconContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "icon"
-        },
-        {
-          "name": "BadgeContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "badge"
-        },
-        {
-          "name": "ChildrenContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "children"
-        },
-        {
-          "name": "OnToggle",
-          "type": "EventCallback<NavItemToggleEventArgs>",
-          "map": "event",
-          "event": "pk-toggle"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Row states",
@@ -7444,56 +5267,6 @@
     "methods": [],
     "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
     "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
-    "blazor": {
-      "component": "PkNavbar",
-      "params": [
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Main",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open"
-        },
-        {
-          "name": "Sticky",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "sticky"
-        },
-        {
-          "name": "BrandContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "brand"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "ActionsContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "actions"
-        },
-        {
-          "name": "OnToggle",
-          "type": "EventCallback<NavbarToggleEventArgs>",
-          "map": "event",
-          "event": "pk-toggle"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Navbar with a menu and actions",
@@ -7660,57 +5433,6 @@
       }
     ],
     "a11y": "A role=group named by label; every cell is named \"Digit n of N\"; the first has one-time-code autocomplete so the OS can fill an SMS code; arrow keys, Home and End move between cells; numeric cells open the numeric keypad. Cells are 44px wide on a phone.",
-    "blazor": {
-      "component": "PkOtpInput",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Length",
-          "prop": "length",
-          "type": "int"
-        },
-        {
-          "name": "Type",
-          "prop": "type",
-          "type": "string"
-        },
-        {
-          "name": "SeparatorAt",
-          "prop": "separatorAt",
-          "type": "int"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "OnComplete",
-          "event": "pk-otp-complete",
-          "type": "{ value: string }"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-otp-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Six digits with a dash",
@@ -7814,46 +5536,6 @@
     ],
     "methods": [],
     "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark.",
-    "blazor": {
-      "component": "PkPageHeader",
-      "params": [
-        {
-          "name": "Heading",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Level",
-          "prop": "level",
-          "type": "int"
-        },
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "BreadcrumbContent",
-          "slot": "breadcrumb",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "ActionsContent",
-          "slot": "actions",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "MetaContent",
-          "slot": "meta",
-          "type": "RenderFragment?"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Page: crumbs, title and actions",
@@ -7920,36 +5602,6 @@
     "methods": [],
     "a11y": "A nav landmark; links carry rel=\"prev\" and rel=\"next\" when the author sets them, and say where they go.",
     "mobile": "Stacks: the note on top, previous and next as full-width 44px buttons.",
-    "blazor": {
-      "component": "PkPager",
-      "params": [
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Page navigation",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "PrevContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "prev"
-        },
-        {
-          "name": "NextContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "next"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Previous and next page",
@@ -8145,82 +5797,6 @@
       }
     ],
     "a11y": "A nav landmark with a label; the current page has aria-current=page and every number button has a name (\"Page 3\"); previous and next are disabled at the ends; the ellipsis is decorative. Buttons are 44px on a phone.",
-    "blazor": {
-      "component": "PkPagination",
-      "params": [
-        {
-          "name": "Page",
-          "prop": "page",
-          "type": "int"
-        },
-        {
-          "name": "Pages",
-          "prop": "pages",
-          "type": "int"
-        },
-        {
-          "name": "Total",
-          "prop": "total",
-          "type": "int"
-        },
-        {
-          "name": "PageSize",
-          "prop": "pageSize",
-          "type": "int"
-        },
-        {
-          "name": "PageSizeOptions",
-          "prop": "sizes",
-          "type": "int[]"
-        },
-        {
-          "name": "Siblings",
-          "prop": "siblings",
-          "type": "int"
-        },
-        {
-          "name": "Boundary",
-          "prop": "boundary",
-          "type": "int"
-        },
-        {
-          "name": "Mode",
-          "prop": "mode",
-          "type": "PaginationMode"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Loading",
-          "prop": "loading",
-          "type": "bool"
-        },
-        {
-          "name": "PageChanged",
-          "event": "pk-page",
-          "type": "EventCallback<int>"
-        },
-        {
-          "name": "PageSizeChanged",
-          "event": "pk-page-size",
-          "type": "EventCallback<int>"
-        },
-        {
-          "name": "OnLoadMore",
-          "event": "pk-load-more",
-          "type": "EventCallback"
-        },
-        {
-          "name": "Edges",
-          "prop": "edges",
-          "type": "bool"
-        }
-      ],
-      "notes": "Two-way binding: @bind-Page and @bind-PageSize. PkTable uses this element for its footer. The element's page is one-based: a data source that counts pages from zero must add or subtract one."
-    },
     "examples": [
       {
         "title": "Numbered with summary and page size",
@@ -8396,125 +5972,6 @@
     ],
     "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
     "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
-    "blazor": {
-      "component": "PkPopover",
-      "params": [
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "Placement",
-          "type": "string",
-          "default": "bottom-start",
-          "map": "prop",
-          "prop": "placement"
-        },
-        {
-          "name": "Trigger",
-          "type": "PopoverTrigger",
-          "default": "click",
-          "map": "prop",
-          "prop": "trigger",
-          "enum": {
-            "Click": "click",
-            "Hover": "hover",
-            "Manual": "manual"
-          }
-        },
-        {
-          "name": "Heading",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Variant",
-          "type": "PopoverVariant",
-          "default": "default",
-          "map": "prop",
-          "prop": "variant",
-          "enum": {
-            "Default": "default",
-            "Confirm": "confirm"
-          }
-        },
-        {
-          "name": "Message",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "message"
-        },
-        {
-          "name": "ConfirmLabel",
-          "type": "string",
-          "default": "Confirm",
-          "map": "prop",
-          "prop": "confirmLabel"
-        },
-        {
-          "name": "CancelLabel",
-          "type": "string",
-          "default": "Cancel",
-          "map": "prop",
-          "prop": "cancelLabel"
-        },
-        {
-          "name": "Danger",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "danger"
-        },
-        {
-          "name": "TriggerContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "trigger"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnOpen",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-open"
-        },
-        {
-          "name": "OnClose",
-          "type": "EventCallback<PopoverCloseEventArgs>",
-          "map": "event",
-          "event": "pk-close",
-          "cancelable": true
-        },
-        {
-          "name": "OnConfirm",
-          "type": "EventCallback",
-          "map": "event",
-          "event": "pk-confirm"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Popover on click",
@@ -8646,56 +6103,6 @@
     ],
     "methods": [],
     "a11y": "Built on the native progress element, so its role, value and range are exposed without extra ARIA; the label names it (aria-labelledby). Always give it a label. Indeterminate when no value applies.",
-    "blazor": {
-      "component": "PkProgress",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "double"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "double"
-        },
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Striped",
-          "prop": "striped",
-          "type": "bool"
-        },
-        {
-          "name": "Indeterminate",
-          "prop": "indeterminate",
-          "type": "bool"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "ShowValue",
-          "prop": "showValue",
-          "type": "bool"
-        },
-        {
-          "name": "LevelThresholds",
-          "prop": "levelThresholds",
-          "type": "string"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Labelled",
@@ -8857,67 +6264,6 @@
       }
     ],
     "a11y": "role=radiogroup named by label; each option is a native radio in one tab stop with arrow-key movement; the segmented variant hides the radio visually but keeps it focusable and shows the focus ring on the segment. Options are 44px tall on a phone.",
-    "blazor": {
-      "component": "PkRadioGroup",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Direction",
-          "prop": "direction",
-          "type": "string"
-        },
-        {
-          "name": "Fill",
-          "prop": "fill",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-value-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Radios",
@@ -9091,67 +6437,6 @@
       }
     ],
     "a11y": "Native range inputs: arrow keys, Home, End and Page keys; each thumb of a dual slider is named \"<label> minimum\" and \"<label> maximum\". The 44px phone hit area comes from the taller wrapper. A form receives one entry (single) or two entries under the same name (dual).",
-    "blazor": {
-      "component": "PkRange",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "double"
-        },
-        {
-          "name": "ValueLow",
-          "prop": "valueLow",
-          "type": "double"
-        },
-        {
-          "name": "ValueHigh",
-          "prop": "valueHigh",
-          "type": "double"
-        },
-        {
-          "name": "Min",
-          "prop": "min",
-          "type": "double"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "double"
-        },
-        {
-          "name": "Step",
-          "prop": "step",
-          "type": "double"
-        },
-        {
-          "name": "Dual",
-          "prop": "dual",
-          "type": "bool"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ShowOutput",
-          "prop": "output",
-          "type": "bool"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-range",
-        "key": "value",
-        "type": "number"
-      }
-    },
     "examples": [
       {
         "title": "Single and dual",
@@ -9255,42 +6540,6 @@
       }
     ],
     "a11y": "An input rating is a radio group: each star is named \"3 stars\", arrow keys change the value and focus is visible. The read-only form is role=img with \"4 out of 5 stars\". Stars are 44px on a phone.",
-    "blazor": {
-      "component": "PkRating",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "int"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "int"
-        },
-        {
-          "name": "ReadOnly",
-          "prop": "readonly",
-          "type": "bool"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-rating-change",
-        "key": "value",
-        "type": "number"
-      }
-    },
     "examples": [
       {
         "title": "Input and display",
@@ -9330,18 +6579,6 @@
     "methods": [],
     "a11y": "Decorative (aria-hidden); the scroll position is already available to assistive tech.",
     "mobile": "3px bar; ignores the safe-area inset because it sits at the top edge of the content.",
-    "blazor": {
-      "component": "PkScrollProgress",
-      "params": [
-        {
-          "name": "For",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "for"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Reading progress bar",
@@ -9492,52 +6729,6 @@
       }
     ],
     "a11y": "A native select in the shadow root: keyboard, type-to-select and the platform picker are the browser's own. Named by label, described by description.",
-    "blazor": {
-      "component": "PkSelect",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Multiple",
-          "prop": "multiple",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-value-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Select and multiple",
@@ -9642,70 +6833,6 @@
     ],
     "a11y": "The trigger is a combobox with aria-haspopup=listbox and aria-expanded; the list is role=listbox with option children and aria-activedescendant; arrows, Home, End, typeahead, Enter, Escape.",
     "mobile": "The list is at least 44px per row and opens under the trigger, flipping above when there is no room.",
-    "blazor": {
-      "component": "PkSelectMenu",
-      "params": [
-        {
-          "name": "Value",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "value",
-          "bind": {
-            "event": "pk-change",
-            "value": "detail.value"
-          }
-        },
-        {
-          "name": "Name",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "name"
-        },
-        {
-          "name": "Placeholder",
-          "type": "string",
-          "default": "Select…",
-          "map": "prop",
-          "prop": "placeholder"
-        },
-        {
-          "name": "Open",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "open"
-        },
-        {
-          "name": "Disabled",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "disabled"
-        },
-        {
-          "name": "Required",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "required"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnChange",
-          "type": "EventCallback<SelectChangeEventArgs>",
-          "map": "event",
-          "event": "pk-change",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Select menu",
@@ -9842,73 +6969,6 @@
     ],
     "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
     "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",
-    "blazor": {
-      "component": "PkSideNav",
-      "params": [
-        {
-          "name": "Label",
-          "type": "string",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "Collapsed",
-          "type": "bool",
-          "map": "prop",
-          "prop": "collapsed",
-          "bind": {
-            "event": "pk-nav-toggle",
-            "value": "detail.collapsed"
-          }
-        },
-        {
-          "name": "Open",
-          "type": "bool",
-          "map": "prop",
-          "prop": "open",
-          "bind": {
-            "event": "pk-close",
-            "value": false
-          }
-        },
-        {
-          "name": "Filterable",
-          "type": "bool",
-          "map": "prop",
-          "prop": "filterable"
-        },
-        {
-          "name": "Persist",
-          "type": "string?",
-          "map": "prop",
-          "prop": "persist"
-        },
-        {
-          "name": "BrandContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "brand"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "FooterContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "footer"
-        },
-        {
-          "name": "OnToggle",
-          "type": "EventCallback<bool>",
-          "map": "event",
-          "event": "pk-nav-toggle"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Side nav with a branch, filter and icon rail",
@@ -9983,32 +7043,6 @@
     ],
     "methods": [],
     "a11y": "Decorative. Wrap a loading region in aria-busy=\"true\" and let one skeleton carry the label so a single status is announced. The pulse stops under prefers-reduced-motion.",
-    "blazor": {
-      "component": "PkSkeleton",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Lines",
-          "prop": "lines",
-          "type": "double"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        }
-      ],
-      "notes": "New component. Pair with the existing Loading text line where a status message is wanted."
-    },
     "examples": [
       {
         "title": "Paragraph and avatar",
@@ -10051,24 +7085,6 @@
     "methods": [],
     "a11y": "Target must be a fragment on the same page; the element makes the target focusable so focus really moves.",
     "mobile": "Shown with a 44px target when focused by a keyboard or switch device.",
-    "blazor": {
-      "component": "PkSkipLink",
-      "params": [
-        {
-          "name": "Href",
-          "type": "string",
-          "default": "#main",
-          "map": "prop",
-          "prop": "href"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Skip link (Tab to reveal it)",
@@ -10160,32 +7176,6 @@
     ],
     "methods": [],
     "a11y": "The host is role=status with a text label read by screen readers. Motion stops under prefers-reduced-motion.",
-    "blazor": {
-      "component": "PkSpinner",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Overlay",
-          "prop": "overlay",
-          "type": "bool"
-        }
-      ],
-      "notes": "New component; the text-only Loading component is unchanged."
-    },
     "examples": [
       {
         "title": "Sizes",
@@ -10336,56 +7326,6 @@
       }
     ],
     "a11y": "The caret is a labelled menu button (aria-haspopup=\"menu\", aria-expanded); the items get role=menuitem; ArrowDown/ArrowUp on the caret open the menu on the first/last item, arrows, Home and End move, Escape closes and returns focus to the caret, Tab closes, and a click outside closes. The menu opens upward when there is no room below.",
-    "blazor": {
-      "component": "PkSplitButton",
-      "params": [
-        {
-          "name": "Variant",
-          "prop": "variant",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ToggleLabel",
-          "prop": "toggleLabel",
-          "type": "string"
-        },
-        {
-          "name": "Open",
-          "prop": "open",
-          "type": "bool"
-        },
-        {
-          "name": "MenuAlign",
-          "prop": "menuAlign",
-          "type": "string"
-        },
-        {
-          "name": "OnClick",
-          "event": "click",
-          "type": "MouseEventArgs"
-        },
-        {
-          "name": "OnSelect",
-          "event": "pk-split-select",
-          "type": "{ value: string, label: string }"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "MenuContent",
-          "slot": "menu",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Primary and ghost",
@@ -10454,31 +7394,6 @@
       }
     ],
     "a11y": "A plain layout box with no role; the rules from dividers are decorative borders, not separators, so add pk-divider where a separator should be announced.",
-    "blazor": {
-      "component": "PkStack",
-      "params": [
-        {
-          "name": "Gap",
-          "prop": "gap",
-          "type": "string"
-        },
-        {
-          "name": "Align",
-          "prop": "align",
-          "type": "string"
-        },
-        {
-          "name": "Dividers",
-          "prop": "dividers",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Even rhythm",
@@ -10672,78 +7587,6 @@
       }
     ],
     "a11y": "The change is text (an arrow glyph and a sign) and has a spoken form (\"up 12.5 percent versus last month\"), so colour is never the only signal. A tile with href holds one link named by the label and value, so there is a single tab stop. An interactive tile is a role=button overlay reachable by keyboard.",
-    "blazor": {
-      "component": "PkStat",
-      "existing": true,
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Subtext",
-          "prop": "subtext",
-          "type": "string?"
-        },
-        {
-          "name": "Variant",
-          "prop": "tone",
-          "type": "StatCardVariant"
-        },
-        {
-          "name": "Href",
-          "prop": "href",
-          "type": "string?"
-        },
-        {
-          "name": "Delta",
-          "prop": "delta",
-          "type": "string?"
-        },
-        {
-          "name": "Invert",
-          "prop": "invert",
-          "type": "bool"
-        },
-        {
-          "name": "Series",
-          "prop": "values",
-          "type": "IReadOnlyList<double>"
-        },
-        {
-          "name": "SubtextContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "IconContent",
-          "slot": "icon",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "OnClick",
-          "event": "pk-activate",
-          "type": "EventCallback"
-        },
-        {
-          "name": "Tile",
-          "prop": "tile",
-          "type": "bool"
-        },
-        {
-          "name": "Interactive",
-          "prop": "interactive",
-          "type": "bool"
-        }
-      ],
-      "notes": "Keeps the existing parameter names."
-    },
     "examples": [
       {
         "title": "Tones",
@@ -10875,89 +7718,6 @@
     "methods": [],
     "a11y": "The stepper gives it role listitem and the descriptive label; state is also in aria-current and aria-disabled.",
     "mobile": "Only the active step keeps its text in a horizontal stepper.",
-    "blazor": {
-      "component": "PkStep",
-      "params": [
-        {
-          "name": "Heading",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "Description",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "description"
-        },
-        {
-          "name": "State",
-          "type": "StepState",
-          "default": "todo",
-          "map": "prop",
-          "prop": "state",
-          "enum": {
-            "Todo": "todo",
-            "Active": "active",
-            "Done": "done",
-            "Error": "error"
-          }
-        },
-        {
-          "name": "Index",
-          "type": "int",
-          "default": 0,
-          "map": "prop",
-          "prop": "index"
-        },
-        {
-          "name": "Disabled",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "disabled"
-        },
-        {
-          "name": "Last",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "last"
-        },
-        {
-          "name": "Clickable",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "clickable"
-        },
-        {
-          "name": "Orientation",
-          "type": "StepOrientation",
-          "default": "horizontal",
-          "map": "prop",
-          "prop": "orientation",
-          "enum": {
-            "Horizontal": "horizontal",
-            "Vertical": "vertical"
-          }
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "DescriptionContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "description"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Step states",
@@ -11057,74 +7817,6 @@
     ],
     "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
     "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
-    "blazor": {
-      "component": "PkStepper",
-      "params": [
-        {
-          "name": "Current",
-          "type": "int",
-          "default": 0,
-          "map": "prop",
-          "prop": "current",
-          "bind": {
-            "event": "pk-step-change",
-            "value": "detail.index"
-          }
-        },
-        {
-          "name": "Orientation",
-          "type": "StepperOrientation",
-          "default": "horizontal",
-          "map": "prop",
-          "prop": "orientation",
-          "enum": {
-            "Horizontal": "horizontal",
-            "Vertical": "vertical"
-          }
-        },
-        {
-          "name": "Clickable",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "clickable"
-        },
-        {
-          "name": "Free",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "free"
-        },
-        {
-          "name": "Errors",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "errors"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "Progress",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "OnStepChange",
-          "type": "EventCallback<StepperStepChangeEventArgs>",
-          "map": "event",
-          "event": "pk-step-change",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Horizontal stepper (clickable, linear)",
@@ -11257,62 +7949,6 @@
     ],
     "methods": [],
     "a11y": "An inner button with role=switch and aria-checked, named by the label slot. Space and Enter toggle it. In a form it contributes name=value while checked, resets to its initial state with the form, and is disabled by a disabled fieldset. Use it only for settings that take effect at once; a value that needs Save is a checkbox.",
-    "blazor": {
-      "component": "PkSwitch",
-      "params": [
-        {
-          "name": "Checked",
-          "prop": "checked",
-          "type": "bool"
-        },
-        {
-          "name": "CheckedChanged",
-          "event": "pk-change",
-          "type": "{ checked: boolean }"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Size",
-          "prop": "size",
-          "type": "string"
-        },
-        {
-          "name": "LabelPosition",
-          "prop": "labelPosition",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "model": {
-        "prop": "checked",
-        "event": "pk-change",
-        "key": "checked",
-        "type": "bool"
-      }
-    },
     "examples": [
       {
         "title": "In a form",
@@ -11417,39 +8053,6 @@
     ],
     "methods": [],
     "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is outside the tab order (tabindex -1) and labelled; keyboard users close a tab from the page's own command.",
-    "blazor": {
-      "component": "PkTab",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled"
-        },
-        {
-          "name": "Count",
-          "prop": "count"
-        },
-        {
-          "name": "Closable",
-          "prop": "closable"
-        },
-        {
-          "name": "Only",
-          "prop": "only"
-        },
-        {
-          "name": "OnClose",
-          "event": "pk-tab-close"
-        },
-        {
-          "name": "ChildContent",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Inside pk-tabs",
@@ -11489,19 +8092,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "Exposes role=tabpanel; pk-tabs sets aria-labelledby to its tab.",
-    "blazor": {
-      "component": "PkTabPanel",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value"
-        },
-        {
-          "name": "ChildContent",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Two panels",
@@ -11804,88 +8394,6 @@
       }
     ],
     "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
-    "blazor": {
-      "component": "PkTable",
-      "existing": true,
-      "params": [
-        {
-          "name": "Columns",
-          "prop": "columns",
-          "type": "IReadOnlyList<DataGridColumn>"
-        },
-        {
-          "name": "Items",
-          "prop": "rows",
-          "type": "IReadOnlyList<TItem>"
-        },
-        {
-          "name": "EnableSelection",
-          "prop": "selectable",
-          "type": "bool"
-        },
-        {
-          "name": "SelectedKeys",
-          "prop": "selected",
-          "type": "HashSet<int>"
-        },
-        {
-          "name": "PhoneLayout",
-          "prop": "cards",
-          "type": "DataGridPhoneLayout"
-        },
-        {
-          "name": "Loading",
-          "prop": "loading",
-          "type": "bool"
-        },
-        {
-          "name": "HeaderActionsTemplate",
-          "slot": "toolbar",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "FilterTemplate",
-          "slot": "toolbar",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "FooterTemplate",
-          "slot": "footer",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "BulkTemplate",
-          "slot": "bulk",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "RowTemplate",
-          "slot": "cell-<rowId>-<key>",
-          "type": "RenderFragment<TItem>"
-        },
-        {
-          "name": "OnRowClick",
-          "event": "pk-row-click",
-          "type": "EventCallback<TItem>"
-        },
-        {
-          "name": "OnSelectionChanged",
-          "event": "pk-select",
-          "type": "EventCallback"
-        },
-        {
-          "name": "OnSort",
-          "event": "pk-sort",
-          "type": "EventCallback<SortEventArgs>"
-        },
-        {
-          "name": "OnFilter",
-          "event": "pk-filter",
-          "type": "EventCallback<FilterEventArgs>"
-        }
-      ],
-      "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. The Blazor EmptyText fills the empty slot."
-    },
     "examples": [
       {
         "title": "Sortable, selectable table",
@@ -11988,39 +8496,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
-    "blazor": {
-      "component": "PkTabs",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value"
-        },
-        {
-          "name": "Activation",
-          "prop": "activation"
-        },
-        {
-          "name": "NoneActive",
-          "prop": "noneActive"
-        },
-        {
-          "name": "Scroll",
-          "prop": "scroll"
-        },
-        {
-          "name": "OnChange",
-          "event": "pk-tab-change"
-        },
-        {
-          "name": "ChildContent",
-          "slot": ""
-        },
-        {
-          "name": "TrailingContent",
-          "slot": "trailing"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Tabs with panels",
@@ -12100,36 +8575,6 @@
     ],
     "methods": [],
     "a11y": "The remove control is a real button named \"Remove <label>\"; it is 44px on a phone.",
-    "blazor": {
-      "component": "PkTag",
-      "params": [
-        {
-          "name": "Removable",
-          "prop": "removable",
-          "type": "bool"
-        },
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "OnRemove",
-          "event": "pk-remove",
-          "type": "EventCallback<RemoveEventArgs>"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Removable",
@@ -12299,57 +8744,6 @@
       }
     ],
     "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag.",
-    "blazor": {
-      "component": "PkTagInput",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Placeholder",
-          "prop": "placeholder",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Separators",
-          "prop": "separators",
-          "type": "string"
-        },
-        {
-          "name": "Max",
-          "prop": "max",
-          "type": "int"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-tags-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Tags",
@@ -12542,77 +8936,6 @@
       }
     ],
     "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
-    "blazor": {
-      "component": "PkTextarea",
-      "params": [
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Name",
-          "prop": "name",
-          "type": "string"
-        },
-        {
-          "name": "Placeholder",
-          "prop": "placeholder",
-          "type": "string"
-        },
-        {
-          "name": "AriaLabel",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ReadOnly",
-          "prop": "readonly",
-          "type": "bool"
-        },
-        {
-          "name": "Required",
-          "prop": "required",
-          "type": "bool"
-        },
-        {
-          "name": "IsInvalid",
-          "prop": "invalid",
-          "type": "bool"
-        },
-        {
-          "name": "Rows",
-          "prop": "rows",
-          "type": "int"
-        },
-        {
-          "name": "MaxLength",
-          "prop": "maxlength",
-          "type": "string"
-        },
-        {
-          "name": "AutoGrow",
-          "prop": "autogrow",
-          "type": "bool"
-        },
-        {
-          "name": "MaxHeight",
-          "prop": "maxHeight",
-          "type": "int"
-        }
-      ],
-      "model": {
-        "prop": "value",
-        "event": "pk-value-change",
-        "key": "value",
-        "type": "string"
-      }
-    },
     "examples": [
       {
         "title": "Fixed and auto-grow",
@@ -12645,21 +8968,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "The host is role=list; each pk-timeline-item is a listitem with a real time element. State is also given in words in the heading when it matters, never by the marker colour alone.",
-    "blazor": {
-      "component": "PkTimeline",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Order history",
@@ -12745,41 +9053,6 @@
     "cssProperties": [],
     "methods": [],
     "a11y": "role=listitem through ElementInternals; the time uses a real time element with a datetime attribute.",
-    "blazor": {
-      "component": "PkTimelineItem",
-      "params": [
-        {
-          "name": "Heading",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Time",
-          "prop": "time",
-          "type": "string"
-        },
-        {
-          "name": "Status",
-          "prop": "status",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "HeadingContent",
-          "slot": "heading",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "TimeContent",
-          "slot": "time",
-          "type": "RenderFragment"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Statuses",
@@ -12895,71 +9168,6 @@
     ],
     "a11y": "role=status for info and success, role=alert for warning and danger; the timer pauses on hover and focus; a toast with an action lasts 8s by default.",
     "mobile": "Full width minus the gutter; the dismiss and action buttons are 44px; respects the device safe area.",
-    "blazor": {
-      "component": "PkToast",
-      "params": [
-        {
-          "name": "Kind",
-          "type": "ToastKind",
-          "default": "info",
-          "map": "prop",
-          "prop": "kind",
-          "enum": {
-            "Info": "info",
-            "Success": "success",
-            "Warning": "warning",
-            "Danger": "danger"
-          }
-        },
-        {
-          "name": "Heading",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "Message",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "message"
-        },
-        {
-          "name": "Duration",
-          "type": "int",
-          "default": -1,
-          "map": "prop",
-          "prop": "duration"
-        },
-        {
-          "name": "NoClose",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "noClose"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "ActionContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "action"
-        },
-        {
-          "name": "OnDismiss",
-          "type": "EventCallback<ToastDismissEventArgs>",
-          "map": "event",
-          "event": "pk-dismiss",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Kinds",
@@ -13013,39 +9221,6 @@
     ],
     "a11y": "A labelled region; each toast announces itself with its own role.",
     "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
-    "blazor": {
-      "component": "PkToastStack",
-      "params": [
-        {
-          "name": "Position",
-          "type": "ToaststackPosition",
-          "default": "bottom-end",
-          "map": "prop",
-          "prop": "position",
-          "enum": {
-            "TopStart": "top-start",
-            "Top": "top",
-            "TopEnd": "top-end",
-            "BottomStart": "bottom-start",
-            "Bottom": "bottom",
-            "BottomEnd": "bottom-end"
-          }
-        },
-        {
-          "name": "Max",
-          "type": "int",
-          "default": 3,
-          "map": "prop",
-          "prop": "max"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Stack at a position",
@@ -13135,59 +9310,6 @@
     ],
     "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
     "mobile": "Not sticky below 1024px; links are 44px tall.",
-    "blazor": {
-      "component": "PkToc",
-      "params": [
-        {
-          "name": "For",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "for"
-        },
-        {
-          "name": "Levels",
-          "type": "string",
-          "default": "h2,h3",
-          "map": "prop",
-          "prop": "levels"
-        },
-        {
-          "name": "Offset",
-          "type": "int",
-          "default": 80,
-          "map": "prop",
-          "prop": "offset"
-        },
-        {
-          "name": "Scroller",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "scroller"
-        },
-        {
-          "name": "Heading",
-          "type": "string",
-          "default": "",
-          "map": "prop",
-          "prop": "heading"
-        },
-        {
-          "name": "Label",
-          "type": "string",
-          "default": "On this page",
-          "map": "prop",
-          "prop": "label"
-        },
-        {
-          "name": "OnSectionChange",
-          "type": "EventCallback<TocSectionChangeEventArgs>",
-          "map": "event",
-          "event": "pk-section-change"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "On this page",
@@ -13258,31 +9380,6 @@
     ],
     "methods": [],
     "a11y": "A plain group of controls, not an ARIA toolbar (which would need arrow-key roving): every action is a normal tab stop in reading order. The title is text, not a heading; use pk-page-header when the outline needs one.",
-    "blazor": {
-      "component": "PkToolbar",
-      "params": [
-        {
-          "name": "Heading",
-          "prop": "heading",
-          "type": "string"
-        },
-        {
-          "name": "Note",
-          "prop": "note",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "ActionsContent",
-          "slot": "actions",
-          "type": "RenderFragment?"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Title, note and actions",
@@ -13435,85 +9532,6 @@
     ],
     "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
     "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
-    "blazor": {
-      "component": "PkTooltip",
-      "params": [
-        {
-          "name": "Text",
-          "type": "string?",
-          "map": "prop",
-          "prop": "text"
-        },
-        {
-          "name": "TooltipContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "content"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "Placement",
-          "type": "InfoTipPlacement",
-          "enum": {
-            "Top": "top",
-            "Bottom": "bottom",
-            "Left": "left",
-            "Right": "right"
-          },
-          "default": "Top",
-          "map": "prop",
-          "prop": "placement"
-        },
-        {
-          "name": "HoverDelay",
-          "type": "int",
-          "default": 200,
-          "map": "prop",
-          "prop": "delay"
-        },
-        {
-          "name": "Kind",
-          "type": "InfoTipKind",
-          "map": "wrapper",
-          "note": "Help renders an info button as the target; Enrich wraps ChildContent with a dotted underline."
-        },
-        {
-          "name": "Title",
-          "type": "string?",
-          "map": "wrapper",
-          "note": "Bold heading inside the rich content slot."
-        },
-        {
-          "name": "DocLink",
-          "type": "string?",
-          "map": "wrapper",
-          "note": "Link inside the rich content slot."
-        },
-        {
-          "name": "ExternalLink",
-          "type": "string?",
-          "map": "wrapper",
-          "note": "As DocLink."
-        },
-        {
-          "name": "LoadAsync",
-          "type": "Func<CancellationToken, Task<RenderFragment?>>?",
-          "map": "wrapper",
-          "note": "Loads the rich slot content on the first pk-show."
-        },
-        {
-          "name": "OnClick",
-          "type": "EventCallback",
-          "map": "wrapper",
-          "note": "Click on the target."
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Tooltip on hover, focus and long press",
@@ -13595,42 +9613,6 @@
       }
     ],
     "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
-    "blazor": {
-      "component": "PkTree",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Selection",
-          "prop": "selection",
-          "type": "string"
-        },
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "ValueChanged",
-          "event": "pk-select",
-          "type": "EventCallback<string>"
-        },
-        {
-          "name": "OnToggle",
-          "event": "pk-toggle",
-          "type": "EventCallback<ToggleEventArgs>"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        }
-      ],
-      "notes": "Bind with @bind-Value."
-    },
     "examples": [
       {
         "title": "Categories",
@@ -13761,66 +9743,6 @@
       }
     ],
     "a11y": "Roles, levels, set sizes and states are set through ElementInternals by the tree. The host is the roving tab stop and shows a focus ring on the row, which is 44px tall on a phone.",
-    "blazor": {
-      "component": "PkTreeItem",
-      "params": [
-        {
-          "name": "Label",
-          "prop": "label",
-          "type": "string"
-        },
-        {
-          "name": "Value",
-          "prop": "value",
-          "type": "string"
-        },
-        {
-          "name": "Expanded",
-          "prop": "expanded",
-          "type": "bool"
-        },
-        {
-          "name": "Selected",
-          "prop": "selected",
-          "type": "bool"
-        },
-        {
-          "name": "Disabled",
-          "prop": "disabled",
-          "type": "bool"
-        },
-        {
-          "name": "Expandable",
-          "prop": "expandable",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "slot": "",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "LabelContent",
-          "slot": "label",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "IconContent",
-          "slot": "icon",
-          "type": "RenderFragment"
-        },
-        {
-          "name": "OnSelect",
-          "event": "pk-select",
-          "type": "EventCallback<SelectEventArgs>"
-        },
-        {
-          "name": "OnToggle",
-          "event": "pk-toggle",
-          "type": "EventCallback<ToggleEventArgs>"
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Leaf and branch",
@@ -13957,82 +9879,6 @@
     "methods": [],
     "a11y": "Each pane is a labelled region (the aside a complementary landmark) and scrolls on its own, so it is reachable by keyboard. On a phone the strip is a tablist with a roving tabindex: Left and Right (or Up and Down), Home and End move between tabs and select them; each pane becomes a tabpanel labelled by its tab. Tabs are 44px high. Hidden panes are display:none, so they are out of the tab order and the accessibility tree.",
     "mobile": "Below 640px one pane shows at a time; the strip appears above it and slides sideways if it must. On a tablet the aside floats over the edge of the main pane instead of taking a column.",
-    "blazor": {
-      "component": "PkWorkspace",
-      "params": [
-        {
-          "name": "Fill",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "fill"
-        },
-        {
-          "name": "ActivePane",
-          "type": "string",
-          "default": "main",
-          "map": "prop",
-          "prop": "activePane",
-          "bind": {
-            "event": "pk-pane-change",
-            "value": "detail.pane"
-          }
-        },
-        {
-          "name": "AsideOpen",
-          "type": "bool",
-          "default": false,
-          "map": "prop",
-          "prop": "asideOpen"
-        },
-        {
-          "name": "NavLabel",
-          "type": "string",
-          "default": "Contents",
-          "map": "prop",
-          "prop": "navLabel"
-        },
-        {
-          "name": "MainLabel",
-          "type": "string",
-          "default": "Content",
-          "map": "prop",
-          "prop": "mainLabel"
-        },
-        {
-          "name": "AsideLabel",
-          "type": "string",
-          "default": "Details",
-          "map": "prop",
-          "prop": "asideLabel"
-        },
-        {
-          "name": "NavContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "nav"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment",
-          "map": "slot",
-          "slot": ""
-        },
-        {
-          "name": "AsideContent",
-          "type": "RenderFragment?",
-          "map": "slot",
-          "slot": "aside"
-        },
-        {
-          "name": "OnPaneChange",
-          "type": "EventCallback<WorkspacePaneChangeEventArgs>",
-          "map": "event",
-          "event": "pk-pane-change",
-          "cancelable": true
-        }
-      ]
-    },
     "examples": [
       {
         "title": "Nav and main",

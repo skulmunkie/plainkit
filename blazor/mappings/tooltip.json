@@ -1,0 +1,81 @@
+{
+  "component": "PkTooltip",
+  "params": [
+    {
+      "name": "Text",
+      "type": "string?",
+      "map": "prop",
+      "prop": "text"
+    },
+    {
+      "name": "TooltipContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "content"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "Placement",
+      "type": "InfoTipPlacement",
+      "enum": {
+        "Top": "top",
+        "Bottom": "bottom",
+        "Left": "left",
+        "Right": "right"
+      },
+      "default": "Top",
+      "map": "prop",
+      "prop": "placement",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipPlacement"
+    },
+    {
+      "name": "HoverDelay",
+      "type": "int",
+      "default": 200,
+      "map": "prop",
+      "prop": "delay"
+    },
+    {
+      "name": "Kind",
+      "type": "InfoTipKind",
+      "map": "wrapper",
+      "note": "Help renders an info button as the target; Enrich wraps ChildContent with a dotted underline.",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind"
+    },
+    {
+      "name": "Title",
+      "type": "string?",
+      "map": "wrapper",
+      "note": "Bold heading inside the rich content slot."
+    },
+    {
+      "name": "DocLink",
+      "type": "string?",
+      "map": "wrapper",
+      "note": "Link inside the rich content slot."
+    },
+    {
+      "name": "ExternalLink",
+      "type": "string?",
+      "map": "wrapper",
+      "note": "As DocLink."
+    },
+    {
+      "name": "LoadAsync",
+      "type": "Func<CancellationToken, Task<RenderFragment?>>?",
+      "map": "wrapper",
+      "note": "Loads the rich slot content on the first pk-show."
+    },
+    {
+      "name": "OnClick",
+      "type": "EventCallback",
+      "map": "wrapper",
+      "note": "Click on the target."
+    }
+  ]
+}

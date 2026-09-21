@@ -24,6 +24,10 @@
 //
 // Framework-free; `fetch` and `EventSource` are injectable so the contract can be tested without a browser.
 
+import { createLogger } from '../../js/log.js';
+
+const log = createLogger('code-explorer');
+
 export const NO_CAPABILITIES = Object.freeze({ search: false, outline: false, references: false, live: false });
 
 const WORD = /[A-Za-z0-9_$]/;
@@ -118,7 +122,7 @@ export class ApiProvider {
 
     static async connect(base, options = {}) {
         const p = new ApiProvider(base, options);
-        try { p.capabilities = { ...NO_CAPABILITIES, ...(await p.#get('capabilities')) }; } catch { /* list + read only */ }
+        try { p.capabilities = { ...NO_CAPABILITIES, ...(await p.#get('capabilities')) }; } catch (error) { log.debug('the server has no capabilities endpoint: list and read only', error); }
         return p;
     }
 
@@ -160,12 +164,12 @@ export class FeedProvider {
                 try {
                     const text = JSON.stringify(await (await this.fetch(this.feedUrl)).json());
                     if (text !== last) { if (last) cb({ type: 'changed' }); last = text; }
-                } catch { /* try again next tick */ }
+                } catch (error) { log.debug('the change feed could not be read: trying again next tick', error); }
             }, this.interval);
             return () => clearInterval(timer);
         }
         const es = new this.ES(this.feedUrl);
-        es.onmessage = e => { try { cb(JSON.parse(e.data)); } catch { cb({ type: 'changed' }); } };
+        es.onmessage = e => { try { cb(JSON.parse(e.data)); } catch (error) { log.debug('a change event was not JSON: treating it as a change', error); cb({ type: 'changed' }); } };
         return () => es.close();
     }
 }

@@ -152,6 +152,9 @@ outputs.set('console', consoleOutput);
 
 const levelFor = scope => RANK[config.scopes[scope] ?? config.level];
 
+// Whether an entry at this level for this scope would be emitted (not merely buffered): guards debug lines whose message is costly to build.
+export const isLogEnabled = (level, scope) => RANK[level] >= levelFor(scope);
+
 // Records an entry, hands it to the sinks and, when its level is at or above the one for its scope, sends it to its routed outputs.
 export function log(level, scope, message, detail) {
     if (!EMITTING.includes(level)) return null;

@@ -1,0 +1,15 @@
+{
+  "component": "PkFieldRow",
+  "params": [
+    {
+      "name": "Align",
+      "prop": "align",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

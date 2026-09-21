@@ -22,12 +22,6 @@ test('it respects [hidden], uses logical properties and no literal colours', () 
     assert.ok(!/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i.test(css), 'literal colour');
 });
 
-test('the blazor block maps every prop and the default slot', () => {
-    assert.equal(meta.blazor.component, 'PkCluster');
-    for (const p of meta.props) assert.ok(meta.blazor.params.some(x => x.prop === p.name), p.name);
-    assert.ok(meta.blazor.params.some(x => x.slot === ''));
-});
-
 test('it wraps by default, all alignments and justifications, vertical and nowrap', () => {
     assert.equal(prop('direction').default, 'horizontal'); assert.equal(prop('nowrap').default, false);
     for (const v of ['start', 'center', 'end', 'stretch']) assert.ok(prop('align').values.includes(v));

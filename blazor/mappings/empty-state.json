@@ -1,0 +1,42 @@
+{
+  "component": "PkEmptyState",
+  "existing": true,
+  "params": [
+    {
+      "name": "Title",
+      "prop": "heading",
+      "type": "string?"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string?"
+    },
+    {
+      "name": "Tone",
+      "prop": "tone",
+      "type": "string"
+    },
+    {
+      "name": "TitleContent",
+      "slot": "heading",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "DescriptionContent",
+      "slot": "",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "IconContent",
+      "slot": "icon",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "ActionContent",
+      "slot": "actions",
+      "type": "RenderFragment?"
+    }
+  ],
+  "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot."
+}

@@ -89,51 +89,6 @@
   ],
   "methods": [],
   "a11y": "A real figure with a figcaption; slotted images keep their author-written alt text. Lightbox mode makes the box a focusable button (Enter and Space) named \"Enlarge\". The ratio reserves space so a late image never shifts the layout.",
-  "blazor": {
-    "component": "PkMedia",
-    "params": [
-      {
-        "name": "Ratio",
-        "prop": "ratio",
-        "type": "string"
-      },
-      {
-        "name": "Fit",
-        "prop": "fit",
-        "type": "string"
-      },
-      {
-        "name": "Caption",
-        "prop": "caption",
-        "type": "string"
-      },
-      {
-        "name": "Lightbox",
-        "prop": "lightbox",
-        "type": "bool"
-      },
-      {
-        "name": "Square",
-        "prop": "square",
-        "type": "bool"
-      },
-      {
-        "name": "OnOpen",
-        "event": "pk-open",
-        "type": "EventCallback<OpenEventArgs>"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "CaptionContent",
-        "slot": "caption",
-        "type": "RenderFragment?"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Captioned 4:3",

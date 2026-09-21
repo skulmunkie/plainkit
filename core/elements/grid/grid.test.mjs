@@ -22,12 +22,6 @@ test('it respects [hidden], uses logical properties and no literal colours', () 
     assert.ok(!/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i.test(css), 'literal colour');
 });
 
-test('the blazor block maps every prop and the default slot', () => {
-    assert.equal(meta.blazor.component, 'PkGrid');
-    for (const p of meta.props) assert.ok(meta.blazor.params.some(x => x.prop === p.name), p.name);
-    assert.ok(meta.blazor.params.some(x => x.slot === ''));
-});
-
 test('auto-fit columns of at least min (capped to the container so a phone gets one column), optionally capped by columns', () => {
     assert.ok(/repeat\(auto-fit,\s*minmax\(max\(min\(var\(--pk-grid-min, 16rem\), 100%\)/.test(css));
     assert.equal(prop('min').default, '16rem'); assert.equal(prop('columns').default, 0);

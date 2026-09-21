@@ -11,7 +11,6 @@
 //   cssProperties[] { name (--pk-...), description, default? }
 //   methods[]       { name, description }
 //   a11y            keyboard and ARIA notes
-//   blazor          { component, params: [{ name, prop | slot | event }] }
 //   examples[]      { title, html }   usage snippets shown in the gallery: <pk-*> markup, never a style attribute
 
 export const PROP_TYPES = ['string', 'boolean', 'number', 'enum', 'json'];
@@ -28,7 +27,6 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     need(/^pk-[a-z][a-z0-9-]*$/.test(meta.tag ?? ''), 'tag must look like pk-name');
     for (const k of ['title', 'summary', 'group', 'a11y']) need(isText(meta[k]), `${k} is required`);
     for (const k of ['props', 'slots', 'events', 'parts', 'cssProperties', 'methods', 'examples']) need(Array.isArray(meta[k]), `${k} must be an array (empty when there is none)`);
-    need(meta.blazor && isText(meta.blazor.component) && Array.isArray(meta.blazor.params), 'blazor { component, params } is required');
     if (p.length) return p;
 
     const names = new Set();

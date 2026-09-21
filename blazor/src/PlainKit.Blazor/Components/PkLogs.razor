@@ -1,0 +1,64 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's logs viewer: what the SDK and the app logged through the Plainkit logger, filtered by level, scope and text, with each entry's detail. *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>The minimum level shown first: debug, info, warn or error.</summary>
+    [Parameter] public string Level { get; set; } = "debug";
+
+    /// <summary>Scopes selected first. Null shows every scope.</summary>
+    [Parameter] public IReadOnlyList<string>? Scopes { get; set; }
+
+    /// <summary>Entries kept.</summary>
+    [Parameter] public int Max { get; set; } = 1000;
+
+    /// <summary>"newest" (newest entry first) or "oldest".</summary>
+    [Parameter] public string Order { get; set; } = "newest";
+
+    /// <summary>The theme of the viewer itself.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill".</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = $"{Level}|{string.Join(',', Scopes ?? [])}|{Max}|{Order}|{Theme}|{Height}";
+        if (key == _mounted) return;
+        _mounted = key;
+        await _bridge.InvokeVoidAsync("mountLogs", _host, new { level = Level, scopes = Scopes, max = Max, order = Order, theme = Theme.Attr(), height = Height });
+    }
+
+    /// <summary>Freezes what is drawn (entries keep arriving and show on resume).</summary>
+    public async Task PauseAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("pause", _host);
+    }
+
+    /// <summary>Draws everything received while paused.</summary>
+    public async Task ResumeAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("resume", _host);
+    }
+
+    /// <summary>Empties the viewer and the logger's recent-entries buffer.</summary>
+    public async Task ClearAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("clear", _host);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

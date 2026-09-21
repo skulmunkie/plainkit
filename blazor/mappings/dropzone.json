@@ -1,0 +1,50 @@
+{
+  "component": "PkDropzone",
+  "params": [
+    {
+      "name": "Accept",
+      "prop": "accept",
+      "type": "string"
+    },
+    {
+      "name": "Multiple",
+      "prop": "multiple",
+      "type": "bool"
+    },
+    {
+      "name": "MaxFileSizeBytes",
+      "prop": "maxSize",
+      "type": "string"
+    },
+    {
+      "name": "MaxFiles",
+      "prop": "maxFiles",
+      "type": "int"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "OnFiles",
+      "event": "pk-files",
+      "type": "{ files: File[], rejected: { file: File, reason: string }[] }"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "HintContent",
+      "slot": "hint",
+      "type": "RenderFragment"
+    }
+  ]
+}

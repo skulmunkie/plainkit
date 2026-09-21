@@ -1,0 +1,60 @@
+{
+  "component": "PkField",
+  "params": [
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Hint",
+      "prop": "help",
+      "type": "string"
+    },
+    {
+      "name": "Error",
+      "prop": "error",
+      "type": "string"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "MaxLength",
+      "prop": "max",
+      "type": "int"
+    },
+    {
+      "name": "Layout",
+      "prop": "layout",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "LabelExtra",
+      "slot": "label",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "LabelAction",
+      "slot": "label-action",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "HintContent",
+      "slot": "help",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    }
+  ]
+}

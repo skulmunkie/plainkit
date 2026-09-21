@@ -1,6 +1,7 @@
-// The settings page: theme, gallery text size and sample width. Values live in localStorage through the shared settings helper.
+// The settings page: theme, gallery text size and sample width, and logging. Values live in localStorage through the shared settings helper (logging keeps its own saved configuration, js/log.js).
 import { mountShell, readSetting, writeSetting } from '../shell.js';
 import { setTheme, currentTheme } from '../../js/theme.js';
+import { mountLogSettings } from '../../modules/log-settings/log-settings.js';
 
 mountShell({ page: 'settings', title: null });
 const root = document.documentElement;
@@ -21,3 +22,4 @@ $('pk-button-group').addEventListener('pk-toggle', e => {
 document.addEventListener('site-theme', paint);
 $('#set-scale').addEventListener('pk-value-change', e => writeSetting('pk-gallery-scale', e.detail.value));
 $('#set-width').addEventListener('pk-value-change', e => writeSetting('pk-gallery-width', e.detail.value));
+mountLogSettings($('#set-logging'), {});

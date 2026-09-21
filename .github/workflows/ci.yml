@@ -24,7 +24,7 @@ jobs:
           node-version: '22'
 
       - name: Node tests
-        run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
+        run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
 
       # One version for the SDK and PlainKit.Blazor (core/VERSION): every place it is stamped must agree.
       - name: Version is consistent

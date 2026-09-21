@@ -1,0 +1,26 @@
+{
+  "component": "PkSkeleton",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "Lines",
+      "prop": "lines",
+      "type": "double"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    }
+  ],
+  "notes": "New component. Pair with the existing Loading text line where a status message is wanted."
+}

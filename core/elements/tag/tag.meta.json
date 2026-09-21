@@ -66,36 +66,6 @@
   ],
   "methods": [],
   "a11y": "The remove control is a real button named \"Remove <label>\"; it is 44px on a phone.",
-  "blazor": {
-    "component": "PkTag",
-    "params": [
-      {
-        "name": "Removable",
-        "prop": "removable",
-        "type": "bool"
-      },
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "OnRemove",
-        "event": "pk-remove",
-        "type": "EventCallback<RemoveEventArgs>"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Removable",

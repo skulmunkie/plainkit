@@ -16,7 +16,12 @@ export const sheetFor = css => { let s = sheets.get(css); if (!s) { s = new CSSS
 export const RESET = ':host{display:inline-block}:host([hidden]){display:none}*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}';
 
 import { kebab, camel, coerce, parseBindings, bindValue } from './element-core.js';
+import { createLogger, isLogEnabled } from './log.js';
 export { kebab, camel, coerce, parseBindings, bindValue };
+
+// One logger per tag (scope = the tag name), so a warning says which element spoke.
+const loggers = new Map();
+const loggerFor = tag => loggers.get(tag) ?? loggers.set(tag, createLogger(tag)).get(tag);
 
 export class PkElement extends HTMLElement {
     static props = {};
@@ -32,7 +37,7 @@ export class PkElement extends HTMLElement {
         this.internals = this.attachInternals?.();
         for (const [n, d] of Object.entries(c.props)) {
             this.$[n] = d.default;
-            if (Object.hasOwn(this, n)) { const v = this[n]; delete this[n]; this.$[n] = coerce(d, v); }
+            if (Object.hasOwn(this, n)) { const v = this[n]; delete this[n]; this.$[n] = this.coerceProp(n, d, v); }
         }
         const root = this.shadowRoot ?? this.attachShadow({ mode: 'open', delegatesFocus: c.delegatesFocus });
         root.adoptedStyleSheets = [sheetFor(RESET), sheetFor(c.css)];
@@ -49,13 +54,30 @@ export class PkElement extends HTMLElement {
         }
     }
 
-    connectedCallback() { this.update(); this.connected?.(); }
+    // The element's logger (scope: its tag), and a warning that is said once per element and key, so a loop or a re-render does not flood.
+    get log() { return loggerFor(this.constructor.tag); }
+    warnOnce(key, message, detail) {
+        const seen = this.$warned ??= new Set();
+        if (!seen.has(key)) { seen.add(key); this.log.warn(message, detail); }
+    }
+    // A lifecycle line at debug; the level check keeps it (and its formatting) free at the default level.
+    debug(message, detail) { if (isLogEnabled('debug', this.constructor.tag)) this.log.debug(message, detail); }
+    // coerce() for one prop: an unusable value falls back to the default and says so (once per prop).
+    coerceProp(name, def, raw, fromAttr = false) {
+        return coerce(def, raw, fromAttr, (problem, fallback) => this.warnOnce(`prop:${name}`, `${name}=${JSON.stringify(raw)} ${problem}: using ${JSON.stringify(fallback)}`, { prop: name, value: raw, fallback }));
+    }
+
+    connectedCallback() {
+        this.debug('connected');
+        this.update(); this.connected?.();
+    }
     disconnectedCallback() { this.disconnected?.(); }
 
     attributeChangedCallback(attr, _old, val) {
         const name = camel(attr); const d = this.constructor.props[name];
         if (!d || this.$r === name) return;
-        this.$[name] = coerce(d, val, true);
+        this.$[name] = this.coerceProp(name, d, val, true);
+        this.debug(`${name} changed`, this.$[name]);
         this.changed?.(name, this.$[name]); this.requestUpdate();
     }
 
@@ -101,14 +123,14 @@ export function define(cls) {
         Object.defineProperty(cls.prototype, name, {
             get() { return this.$[name]; },
             set(v) {
-                const n = coerce(def, v);
+                const n = this.coerceProp(name, def, v);
                 if (n === this.$[name]) return;
                 this.$[name] = n;
                 if (def.reflect) { this.$r = name; if (def.type === 'boolean') this.toggleAttribute(kebab(name), n); else this.setAttribute(kebab(name), String(n)); this.$r = null; }
-                this.changed?.(name, n); this.requestUpdate();
+                this.debug(`${name} changed`, n); this.changed?.(name, n); this.requestUpdate();
             },
         });
     }
-    if (!customElements.get(cls.tag)) customElements.define(cls.tag, cls);
+    if (!customElements.get(cls.tag)) { customElements.define(cls.tag, cls); if (isLogEnabled('debug', cls.tag)) loggerFor(cls.tag).debug('defined'); }
     return cls;
 }

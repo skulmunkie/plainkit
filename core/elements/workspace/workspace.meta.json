@@ -36,21 +36,6 @@
   "methods": [],
   "a11y": "Each pane is a labelled region (the aside a complementary landmark) and scrolls on its own, so it is reachable by keyboard. On a phone the strip is a tablist with a roving tabindex: Left and Right (or Up and Down), Home and End move between tabs and select them; each pane becomes a tabpanel labelled by its tab. Tabs are 44px high. Hidden panes are display:none, so they are out of the tab order and the accessibility tree.",
   "mobile": "Below 640px one pane shows at a time; the strip appears above it and slides sideways if it must. On a tablet the aside floats over the edge of the main pane instead of taking a column.",
-  "blazor": {
-    "component": "PkWorkspace",
-    "params": [
-      { "name": "Fill", "type": "bool", "default": false, "map": "prop", "prop": "fill" },
-      { "name": "ActivePane", "type": "string", "default": "main", "map": "prop", "prop": "activePane", "bind": { "event": "pk-pane-change", "value": "detail.pane" } },
-      { "name": "AsideOpen", "type": "bool", "default": false, "map": "prop", "prop": "asideOpen" },
-      { "name": "NavLabel", "type": "string", "default": "Contents", "map": "prop", "prop": "navLabel" },
-      { "name": "MainLabel", "type": "string", "default": "Content", "map": "prop", "prop": "mainLabel" },
-      { "name": "AsideLabel", "type": "string", "default": "Details", "map": "prop", "prop": "asideLabel" },
-      { "name": "NavContent", "type": "RenderFragment?", "map": "slot", "slot": "nav" },
-      { "name": "ChildContent", "type": "RenderFragment", "map": "slot", "slot": "" },
-      { "name": "AsideContent", "type": "RenderFragment?", "map": "slot", "slot": "aside" },
-      { "name": "OnPaneChange", "type": "EventCallback<WorkspacePaneChangeEventArgs>", "map": "event", "event": "pk-pane-change", "cancelable": true }
-    ]
-  },
   "examples": [
     {
       "title": "Nav and main",

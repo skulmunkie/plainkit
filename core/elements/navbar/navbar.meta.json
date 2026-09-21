@@ -79,56 +79,6 @@
   "methods": [],
   "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
   "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
-  "blazor": {
-    "component": "PkNavbar",
-    "params": [
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "Main",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "Open",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "open"
-      },
-      {
-        "name": "Sticky",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "sticky"
-      },
-      {
-        "name": "BrandContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "brand"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      },
-      {
-        "name": "ActionsContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "actions"
-      },
-      {
-        "name": "OnToggle",
-        "type": "EventCallback<NavbarToggleEventArgs>",
-        "map": "event",
-        "event": "pk-toggle"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Navbar with a menu and actions",

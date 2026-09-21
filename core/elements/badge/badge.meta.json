@@ -81,37 +81,6 @@
     }
   ],
   "a11y": "The text is the accessible name; put a noun in the slot (\"4 unread\") when the count alone is ambiguous. Dot mode never relies on colour alone: the label states the status.",
-  "blazor": {
-    "component": "PkBadge",
-    "params": [
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "Count",
-        "prop": "count",
-        "type": "string"
-      },
-      {
-        "name": "Max",
-        "prop": "max",
-        "type": "double"
-      },
-      {
-        "name": "Dot",
-        "prop": "dot",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ],
-    "notes": "New component. Record status keeps using Chip and StatusChip."
-  },
   "examples": [
     {
       "title": "Variants",

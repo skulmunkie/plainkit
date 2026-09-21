@@ -1,0 +1,56 @@
+{
+  "component": "PkSwitch",
+  "params": [
+    {
+      "name": "Checked",
+      "prop": "checked",
+      "type": "bool"
+    },
+    {
+      "name": "CheckedChanged",
+      "event": "pk-change",
+      "type": "{ checked: boolean }"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "LabelPosition",
+      "prop": "labelPosition",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ],
+  "model": {
+    "prop": "checked",
+    "event": "pk-change",
+    "key": "checked",
+    "type": "bool"
+  }
+}

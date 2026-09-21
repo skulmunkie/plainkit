@@ -19,7 +19,9 @@ The deliverable for each capability is a **JavaScript module** with a small API,
 | Scorecard | `mountScorecard(container, options)` in `modules/scorecard/scorecard.js` (+ `scorecard.css`), shipped as `dist/scorecard/` | none: a run is an action, not markup | done |
 | Performance monitor | `mountPerformance(container, options)` in `modules/performance/` (+ `js/perf-logic.js`) | none | done |
 | Dev console | `mountConsole(container, options)` in `modules/console/` (+ `js/console-logic.js`) | none | done |
-| Dev tools | `mountDevTools(container, options)` in `modules/devtools/`: dock (Ctrl+`) or inline; panels are `{ id, title, mount }` | none | done (Console, Performance, Quality, Inspector, Theme tabs); an Elements tab is left |
+| Logs viewer | `mountLogs(container, options)` in `modules/logs/` (+ `js/log-view-logic.js`), shipped as `dist/logs/` | none | done; row detail is a pane under the table (pk-table has no expandable rows), newest first stands in for auto-scroll |
+| Logging settings | `mountLogSettings(container, options)` in `modules/log-settings/` (+ `js/log-settings-logic.js`), shipped as `dist/log-settings/`; also the Settings page's Logging section and the dev tools' Logging tab | none | done |
+| Dev tools | `mountDevTools(container, options)` in `modules/devtools/`: dock (Ctrl+`) or inline; panels are `{ id, title, mount }` | none | done (Console, Logs, Logging, Performance, Quality, Inspector, Theme tabs); an Elements tab is left |
 | Theme editor | `mountThemeEditor(container, options)` in `modules/theme-editor/` (+ `js/theme-editor-logic.js`), shipped as `dist/theme-editor/` (with its own `tokens.css`) | none: an editor with an export method is an app, not markup | done |
 
 ### Gallery
@@ -55,7 +57,7 @@ Tests for all of the above: `tests/mount-modules.test.mjs`, `tests/scorecard-mod
 
 - Rename the prefix `sdk-` to `pk-` (elements, tags in docs and browser cases, `pk-gallery-height` message type, `PkElement`, storage keys such as `pk-site-theme`, `pk-theme-overrides`, `pk-scorecard-history`, `pk-gallery-*`); the API-surface baseline (`site/scorecard/api.baseline.json`) will need a deliberate reset because the surface test only lets it grow.
 - Privacy scan of demo content before going public: samples, gallery data, `site/files/snapshot.json` (the SDK's own source, 2.9 MB), reports under `site/scorecard/`, guides, and any product or vendor names in sample text.
-- The app-side publish step (a script that builds `dist/`, mirrors it into the app and regenerates the Blazor wrappers from `dist/elements/api.json`) belongs to the app repo after the move; `tests/carveout.test.mjs` already proves the folder stands alone.
+- The app-side publish step (a script that builds `dist/`, mirrors it into the app and regenerates the Blazor wrappers from `dist/elements/api.json`) belongs to the app repo after the move (the per-element Blazor mapping is no longer in the element metas: it lives in `blazor/mappings/`, see issue #26); `tests/carveout.test.mjs` already proves the folder stands alone.
 
 ## Housekeeping gotchas (each has bitten)
 

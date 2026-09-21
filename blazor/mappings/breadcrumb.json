@@ -1,0 +1,31 @@
+{
+  "component": "PkBreadcrumb",
+  "params": [
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "Breadcrumb",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Max",
+      "type": "int",
+      "default": 4,
+      "map": "prop",
+      "prop": "max"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnExpand",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-expand"
+    }
+  ]
+}

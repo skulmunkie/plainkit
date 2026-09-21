@@ -1,0 +1,39 @@
+{
+  "component": "PkBackToTop",
+  "params": [
+    {
+      "name": "For",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "for"
+    },
+    {
+      "name": "Threshold",
+      "type": "int",
+      "default": 400,
+      "map": "prop",
+      "prop": "threshold"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "Back to top",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Visible",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "visible"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}

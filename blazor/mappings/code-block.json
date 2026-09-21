@@ -1,0 +1,41 @@
+{
+  "component": "PkCodeBlock",
+  "params": [
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "LineNumbers",
+      "prop": "lineNumbers",
+      "type": "bool"
+    },
+    {
+      "name": "Wrap",
+      "prop": "wrap",
+      "type": "bool"
+    },
+    {
+      "name": "NoCopy",
+      "prop": "noCopy",
+      "type": "bool"
+    },
+    {
+      "name": "MaxHeight",
+      "prop": "maxHeight",
+      "type": "string"
+    },
+    {
+      "name": "OnCopy",
+      "event": "pk-copy",
+      "type": "EventCallback<CopyEventArgs>"
+    },
+    {
+      "name": "ChildContent",
+      "text": "",
+      "type": "string"
+    }
+  ],
+  "notes": "The code is passed as ChildContent text (a string), not markup."
+}

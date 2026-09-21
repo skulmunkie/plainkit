@@ -1,0 +1,119 @@
+{
+  "component": "PkPopover",
+  "params": [
+    {
+      "name": "Open",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "open",
+      "bind": {
+        "event": "pk-close",
+        "value": false
+      }
+    },
+    {
+      "name": "Placement",
+      "type": "string",
+      "default": "bottom-start",
+      "map": "prop",
+      "prop": "placement"
+    },
+    {
+      "name": "Trigger",
+      "type": "PopoverTrigger",
+      "default": "click",
+      "map": "prop",
+      "prop": "trigger",
+      "enum": {
+        "Click": "click",
+        "Hover": "hover",
+        "Manual": "manual"
+      }
+    },
+    {
+      "name": "Heading",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Variant",
+      "type": "PopoverVariant",
+      "default": "default",
+      "map": "prop",
+      "prop": "variant",
+      "enum": {
+        "Default": "default",
+        "Confirm": "confirm"
+      }
+    },
+    {
+      "name": "Message",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "message"
+    },
+    {
+      "name": "ConfirmLabel",
+      "type": "string",
+      "default": "Confirm",
+      "map": "prop",
+      "prop": "confirmLabel"
+    },
+    {
+      "name": "CancelLabel",
+      "type": "string",
+      "default": "Cancel",
+      "map": "prop",
+      "prop": "cancelLabel"
+    },
+    {
+      "name": "Danger",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "danger"
+    },
+    {
+      "name": "TriggerContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "trigger"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnOpen",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-open"
+    },
+    {
+      "name": "OnClose",
+      "type": "EventCallback<PopoverCloseEventArgs>",
+      "map": "event",
+      "event": "pk-close",
+      "cancelable": true
+    },
+    {
+      "name": "OnConfirm",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-confirm"
+    }
+  ]
+}

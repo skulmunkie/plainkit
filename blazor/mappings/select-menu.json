@@ -1,0 +1,64 @@
+{
+  "component": "PkSelectMenu",
+  "params": [
+    {
+      "name": "Value",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "value",
+      "bind": {
+        "event": "pk-change",
+        "value": "detail.value"
+      }
+    },
+    {
+      "name": "Name",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "name"
+    },
+    {
+      "name": "Placeholder",
+      "type": "string",
+      "default": "Select…",
+      "map": "prop",
+      "prop": "placeholder"
+    },
+    {
+      "name": "Open",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "open"
+    },
+    {
+      "name": "Disabled",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "disabled"
+    },
+    {
+      "name": "Required",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "required"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnChange",
+      "type": "EventCallback<SelectChangeEventArgs>",
+      "map": "event",
+      "event": "pk-change",
+      "cancelable": true
+    }
+  ]
+}

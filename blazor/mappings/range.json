@@ -1,0 +1,61 @@
+{
+  "component": "PkRange",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "double"
+    },
+    {
+      "name": "ValueLow",
+      "prop": "valueLow",
+      "type": "double"
+    },
+    {
+      "name": "ValueHigh",
+      "prop": "valueHigh",
+      "type": "double"
+    },
+    {
+      "name": "Min",
+      "prop": "min",
+      "type": "double"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "double"
+    },
+    {
+      "name": "Step",
+      "prop": "step",
+      "type": "double"
+    },
+    {
+      "name": "Dual",
+      "prop": "dual",
+      "type": "bool"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ShowOutput",
+      "prop": "output",
+      "type": "bool"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-range",
+    "key": "value",
+    "type": "number"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "component": "PkLocalTime",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "datetime",
+      "type": "string"
+    },
+    {
+      "name": "Format",
+      "prop": "format",
+      "type": "string"
+    },
+    {
+      "name": "Length",
+      "prop": "length",
+      "type": "string"
+    },
+    {
+      "name": "Locale",
+      "prop": "locale",
+      "type": "string"
+    },
+    {
+      "name": "TimeZone",
+      "prop": "timeZone",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ],
+  "notes": "Replaces LocalDateTime; pass the UTC value as an ISO 8601 string (DateTime.ToString(\"o\")). Format DateOnly maps to format=\"date\"."
+}

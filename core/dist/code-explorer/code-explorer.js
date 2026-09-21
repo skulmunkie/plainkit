@@ -11,11 +11,15 @@
 import './element.js';
 import { SnapshotProvider } from './providers.js';
 import { ensureStyles, styleUrls, loadJson } from '../js/mount-support.js';
+import { createLogger } from '../js/log.js';
+
+const log = createLogger('code-explorer');
 
 const STYLES = ['../plainkit.css'];
 
 export async function mountCodeExplorer(container, options = {}) {
     const { snapshot, provider, file, line, search, theme, height } = options;
+    log.debug('mounted', { module: 'code-explorer', options: Object.keys(options) });
     if (!snapshot && !provider) throw new Error('mountCodeExplorer needs a snapshot (a URL or an object) or a provider');
     await ensureStyles(styleUrls(STYLES, import.meta.url), container.ownerDocument);
     const source = provider ?? new SnapshotProvider(await loadJson(snapshot));

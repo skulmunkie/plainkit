@@ -30,7 +30,8 @@ const behaviour = Base => class extends Base {
         r.addEventListener('input', e => this.input(e));
         for (const s of ['', 'toolbar', 'bulk', 'empty', 'footer']) this.watchSlot(s, () => this.requestUpdate());
     }
-    get view() { return this.manual ? this.rows : sortRows(filterRows(this.rows, this.filters), this.columns.find(c => c.key === this.sort), this.sortDir); }
+    list(n) { const v = this[n]; return Array.isArray(v) ? v : (this.warnOnce(n, n + ' is not an array'), []); }
+    get view() { return this.manual ? this.list('rows') : sortRows(filterRows(this.list('rows'), this.filters), this.list('columns').find(c => c.key === this.sort), this.sortDir); }
     ids() { return this.view.map((r, i) => String(r[this.rowKey] ?? i)); }
     pick(ids) { this.selected = ids; this.emit('pk-select', { selected: ids }); }
     sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key; this.sortDir = direction; } }
@@ -52,7 +53,7 @@ const behaviour = Base => class extends Base {
         this.part('toolbar').hidden = this.slotted('toolbar').length === 0;
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        const cols = this.columns, rows = this.view, sel = new Set(this.selected.map(String));
+        const cols = this.list('columns'), rows = this.view, sel = new Set(this.selected.map(String));
         const lead = Number(this.selectable);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
         tb.setAttribute('aria-busy', String(this.loading));

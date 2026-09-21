@@ -96,48 +96,6 @@
   ],
   "methods": [],
   "a11y": "Plain text with a heading whose level you choose. Actions are real buttons and links. Set announce when it replaces content after a search or filter so the change is announced politely.",
-  "blazor": {
-    "component": "PkEmptyState",
-    "existing": true,
-    "params": [
-      {
-        "name": "Title",
-        "prop": "heading",
-        "type": "string?"
-      },
-      {
-        "name": "Description",
-        "prop": "description",
-        "type": "string?"
-      },
-      {
-        "name": "Tone",
-        "prop": "tone",
-        "type": "string"
-      },
-      {
-        "name": "TitleContent",
-        "slot": "heading",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "DescriptionContent",
-        "slot": "",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "IconContent",
-        "slot": "icon",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "ActionContent",
-        "slot": "actions",
-        "type": "RenderFragment?"
-      }
-    ],
-    "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot."
-  },
   "examples": [
     {
       "title": "With an action",

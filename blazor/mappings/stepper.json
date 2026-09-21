@@ -1,0 +1,68 @@
+{
+  "component": "PkStepper",
+  "params": [
+    {
+      "name": "Current",
+      "type": "int",
+      "default": 0,
+      "map": "prop",
+      "prop": "current",
+      "bind": {
+        "event": "pk-step-change",
+        "value": "detail.index"
+      }
+    },
+    {
+      "name": "Orientation",
+      "type": "StepperOrientation",
+      "default": "horizontal",
+      "map": "prop",
+      "prop": "orientation",
+      "enum": {
+        "Horizontal": "horizontal",
+        "Vertical": "vertical"
+      }
+    },
+    {
+      "name": "Clickable",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "clickable"
+    },
+    {
+      "name": "Free",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "free"
+    },
+    {
+      "name": "Errors",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "errors"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "Progress",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnStepChange",
+      "type": "EventCallback<StepperStepChangeEventArgs>",
+      "map": "event",
+      "event": "pk-step-change",
+      "cancelable": true
+    }
+  ]
+}

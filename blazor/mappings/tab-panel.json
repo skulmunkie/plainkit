@@ -1,0 +1,13 @@
+{
+  "component": "PkTabPanel",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value"
+    },
+    {
+      "name": "ChildContent",
+      "slot": ""
+    }
+  ]
+}

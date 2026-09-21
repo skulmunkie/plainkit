@@ -1,0 +1,50 @@
+{
+  "component": "PkSplitButton",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ToggleLabel",
+      "prop": "toggleLabel",
+      "type": "string"
+    },
+    {
+      "name": "Open",
+      "prop": "open",
+      "type": "bool"
+    },
+    {
+      "name": "MenuAlign",
+      "prop": "menuAlign",
+      "type": "string"
+    },
+    {
+      "name": "OnClick",
+      "event": "click",
+      "type": "MouseEventArgs"
+    },
+    {
+      "name": "OnSelect",
+      "event": "pk-split-select",
+      "type": "{ value: string, label: string }"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "MenuContent",
+      "slot": "menu",
+      "type": "RenderFragment"
+    }
+  ]
+}

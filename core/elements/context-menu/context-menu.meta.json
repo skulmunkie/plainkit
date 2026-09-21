@@ -59,43 +59,6 @@
   ],
   "a11y": "The menu is role=menu and takes focus on open; the region is not made focusable, so the keyboard route is the region’s own focusable content plus Shift+F10 or the Menu key.",
   "mobile": "Long press (500ms) opens it; items are 44px tall; it shifts to stay on screen.",
-  "blazor": {
-    "component": "PkContextMenu",
-    "params": [
-      {
-        "name": "Open",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "open"
-      },
-      {
-        "name": "Disabled",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "disabled"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      },
-      {
-        "name": "MenuContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "menu"
-      },
-      {
-        "name": "OnSelect",
-        "type": "EventCallback<ContextMenuSelectEventArgs>",
-        "map": "event",
-        "event": "pk-select"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Right-click, long-press or Shift+F10",

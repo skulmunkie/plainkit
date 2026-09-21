@@ -58,36 +58,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
-  "blazor": {
-    "component": "PkButtonGroup",
-    "params": [
-      {
-        "name": "Orientation",
-        "prop": "orientation",
-        "type": "string"
-      },
-      {
-        "name": "Fill",
-        "prop": "fill",
-        "type": "bool"
-      },
-      {
-        "name": "AriaLabel",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Mode",
-        "prop": "mode",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Group and single choice",

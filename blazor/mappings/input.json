@@ -1,0 +1,141 @@
+{
+  "component": "PkInput",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Type",
+      "prop": "type",
+      "type": "string"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Min",
+      "prop": "min",
+      "type": "string"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "string"
+    },
+    {
+      "name": "Step",
+      "prop": "step",
+      "type": "string"
+    },
+    {
+      "name": "MaxLength",
+      "prop": "maxlength",
+      "type": "string"
+    },
+    {
+      "name": "Pattern",
+      "prop": "pattern",
+      "type": "string"
+    },
+    {
+      "name": "AutoComplete",
+      "prop": "autocomplete",
+      "type": "string"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Clearable",
+      "prop": "clearable",
+      "type": "bool"
+    },
+    {
+      "name": "Revealable",
+      "prop": "reveal",
+      "type": "bool"
+    },
+    {
+      "name": "Stepper",
+      "prop": "stepper",
+      "type": "bool"
+    },
+    {
+      "name": "Format",
+      "prop": "format",
+      "type": "string"
+    },
+    {
+      "name": "Currency",
+      "prop": "currency",
+      "type": "string"
+    },
+    {
+      "name": "Floating",
+      "prop": "floating",
+      "type": "bool"
+    },
+    {
+      "name": "DebounceMs",
+      "prop": "debounce",
+      "type": "int"
+    },
+    {
+      "name": "OnSearch",
+      "event": "pk-search",
+      "type": "{ value: string }"
+    },
+    {
+      "name": "PrefixContent",
+      "slot": "prefix",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "SuffixContent",
+      "slot": "suffix",
+      "type": "RenderFragment"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-value-change",
+    "key": "value",
+    "type": "string"
+  }
+}

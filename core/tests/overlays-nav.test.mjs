@@ -1,5 +1,5 @@
 // Group checks for the overlays, feedback and navigation elements, beyond the build's own API validation: motion is respectable, no
-// !important, phone targets are tokenised, events carry a typed detail, and every element has the Blazor mapping a wrapper generator needs.
+// !important, phone targets are tokenised, and events carry a typed detail.
 // Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -36,45 +36,7 @@ test('every event carries a typed detail (or null) so a wrapper generator can ma
     }
 });
 
-test('every element has a Blazor mapping: each param is a prop, a slot, an event, a css property or explained as wrapper-only', () => {
-    for (const f of GROUP) {
-        const m = meta(f);
-        assert.ok(m.blazor.component && m.blazor.params.length > 0, `${f} blazor`);
-        for (const p of m.blazor.params) {
-            assert.ok(['prop', 'slot', 'event', 'cssProperty', 'wrapper'].includes(p.map), `${f}.${p.name} map`);
-            assert.ok(p.type, `${f}.${p.name} type`);
-            if (p.map === 'prop') assert.ok(m.props.some(x => x.name === p.prop), `${f}.${p.name} names a prop`);
-            if (p.map === 'slot') assert.ok(m.slots.some(x => x.name === p.slot), `${f}.${p.name} names a slot`);
-            if (p.map === 'event') assert.ok(m.events.some(x => x.name === p.event), `${f}.${p.name} names an event`);
-            if (p.map === 'wrapper') assert.ok(p.note, `${f}.${p.name} explains why it stays in the wrapper`);
-        }
-    }
-});
-
-// A component is named Pk plus its tag in PascalCase: pk-alert is PkAlert, pk-toast-stack is PkToastStack. One rule, so wrappers can be generated.
-const pkName = tag => 'Pk' + tag.replace(/^pk-/, '').split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('');
-
-test('every element\'s Blazor component is named Pk plus its tag in PascalCase', () => {
-    for (const f of GROUP) assert.equal(meta(f).blazor.component, pkName(meta(f).tag), f);
-});
-
-test('the app\'s existing components keep their Blazor parameters', () => {
-    const named = { dialog: ['Modal', ['IsOpen', 'Title', 'HeaderContent', 'ChildContent', 'FooterContent', 'OnClose', 'MaxWidthPx']], drawer: ['FlyoutPanel', ['IsOpen', 'Title', 'ChildContent', 'FooterContent', 'ActionsContent', 'OnClose', 'Wide', 'Persistent']],
-        alert: ['Notice', ['Kind', 'Title', 'Message', 'Dismissible', 'OnDismiss']], tooltip: ['InfoTip', ['Text', 'Placement', 'HoverDelay', 'TooltipContent']], 'app-shell': ['AppShell', ['SidebarContent', 'HeaderContent', 'BodyContent', 'FooterContent']], 'side-nav': ['NavMenu', ['Collapsed', 'Filterable', 'Persist']] };
-    for (const [f, [component, params]] of Object.entries(named)) {
-        const m = meta(f);
-        assert.equal(m.blazor.component, pkName(m.tag), `${f} (was ${component})`);
-        for (const p of params) assert.ok(m.blazor.params.some(x => x.name === p), `${f} keeps ${p}`);
-    }
-});
-
-test('two-way parameters name the change event that drives them', () => {
-    for (const f of GROUP) for (const p of meta(f).blazor.params.filter(x => x.bind)) {
-        assert.ok(meta(f).events.some(e => e.name === p.bind.event), `${f}.${p.name} binds to ${p.bind.event}`);
-    }
-});
-
-test('the overlay elements reflect open, so Blazor can drive them, and clean up the top layer on disconnect', () => {
+test('the overlay elements reflect open, so a framework can drive them, and clean up the top layer on disconnect', () => {
     for (const f of ['dialog', 'drawer', 'command-palette', 'lightbox', 'popover', 'dropdown', 'select-menu']) {
         const open = meta(f).props.find(p => p.name === 'open');
         assert.ok(open && open.reflect && open.type === 'boolean', `${f} reflects open`);

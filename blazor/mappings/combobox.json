@@ -1,0 +1,71 @@
+{
+  "component": "PkCombobox",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Mode",
+      "prop": "mode",
+      "type": "string"
+    },
+    {
+      "name": "Free",
+      "prop": "free",
+      "type": "bool"
+    },
+    {
+      "name": "Filtering",
+      "prop": "filtering",
+      "type": "string"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "OnSearchInput",
+      "event": "pk-combo-query",
+      "type": "{ query: string }"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "EmptyContent",
+      "slot": "empty",
+      "type": "RenderFragment"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-combo-select",
+    "key": "value",
+    "type": "string"
+  }
+}

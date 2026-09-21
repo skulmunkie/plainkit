@@ -1,0 +1,25 @@
+{
+  "component": "PkFormActions",
+  "params": [
+    {
+      "name": "Sticky",
+      "prop": "sticky",
+      "type": "bool"
+    },
+    {
+      "name": "Align",
+      "prop": "align",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "StatusContent",
+      "slot": "status",
+      "type": "RenderFragment"
+    }
+  ]
+}

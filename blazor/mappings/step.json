@@ -1,0 +1,83 @@
+{
+  "component": "PkStep",
+  "params": [
+    {
+      "name": "Heading",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "Description",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "description"
+    },
+    {
+      "name": "State",
+      "type": "StepState",
+      "default": "todo",
+      "map": "prop",
+      "prop": "state",
+      "enum": {
+        "Todo": "todo",
+        "Active": "active",
+        "Done": "done",
+        "Error": "error"
+      }
+    },
+    {
+      "name": "Index",
+      "type": "int",
+      "default": 0,
+      "map": "prop",
+      "prop": "index"
+    },
+    {
+      "name": "Disabled",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "disabled"
+    },
+    {
+      "name": "Last",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "last"
+    },
+    {
+      "name": "Clickable",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "clickable"
+    },
+    {
+      "name": "Orientation",
+      "type": "StepOrientation",
+      "default": "horizontal",
+      "map": "prop",
+      "prop": "orientation",
+      "enum": {
+        "Horizontal": "horizontal",
+        "Vertical": "vertical"
+      }
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "DescriptionContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "description"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "component": "PkTextarea",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Rows",
+      "prop": "rows",
+      "type": "int"
+    },
+    {
+      "name": "MaxLength",
+      "prop": "maxlength",
+      "type": "string"
+    },
+    {
+      "name": "AutoGrow",
+      "prop": "autogrow",
+      "type": "bool"
+    },
+    {
+      "name": "MaxHeight",
+      "prop": "maxHeight",
+      "type": "int"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-value-change",
+    "key": "value",
+    "type": "string"
+  }
+}

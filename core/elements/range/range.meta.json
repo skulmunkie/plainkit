@@ -160,67 +160,6 @@
     }
   ],
   "a11y": "Native range inputs: arrow keys, Home, End and Page keys; each thumb of a dual slider is named \"<label> minimum\" and \"<label> maximum\". The 44px phone hit area comes from the taller wrapper. A form receives one entry (single) or two entries under the same name (dual).",
-  "blazor": {
-    "component": "PkRange",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "double"
-      },
-      {
-        "name": "ValueLow",
-        "prop": "valueLow",
-        "type": "double"
-      },
-      {
-        "name": "ValueHigh",
-        "prop": "valueHigh",
-        "type": "double"
-      },
-      {
-        "name": "Min",
-        "prop": "min",
-        "type": "double"
-      },
-      {
-        "name": "Max",
-        "prop": "max",
-        "type": "double"
-      },
-      {
-        "name": "Step",
-        "prop": "step",
-        "type": "double"
-      },
-      {
-        "name": "Dual",
-        "prop": "dual",
-        "type": "bool"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "ShowOutput",
-        "prop": "output",
-        "type": "bool"
-      }
-    ],
-    "model": {
-      "prop": "value",
-      "event": "pk-range",
-      "key": "value",
-      "type": "number"
-    }
-  },
   "examples": [
     {
       "title": "Single and dual",

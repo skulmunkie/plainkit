@@ -144,67 +144,6 @@
     }
   ],
   "a11y": "role=radiogroup named by label; each option is a native radio in one tab stop with arrow-key movement; the segmented variant hides the radio visually but keeps it focusable and shows the focus ring on the segment. Options are 44px tall on a phone.",
-  "blazor": {
-    "component": "PkRadioGroup",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "Name",
-        "prop": "name",
-        "type": "string"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "Required",
-        "prop": "required",
-        "type": "bool"
-      },
-      {
-        "name": "IsInvalid",
-        "prop": "invalid",
-        "type": "bool"
-      },
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "Direction",
-        "prop": "direction",
-        "type": "string"
-      },
-      {
-        "name": "Fill",
-        "prop": "fill",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ],
-    "model": {
-      "prop": "value",
-      "event": "pk-value-change",
-      "key": "value",
-      "type": "string"
-    }
-  },
   "examples": [
     {
       "title": "Radios",

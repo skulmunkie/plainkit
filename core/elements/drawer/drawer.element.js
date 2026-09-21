@@ -45,9 +45,10 @@ const behaviour = Base => class extends Base {
             dlg.addEventListener('pointercancel', () => this.reset());
         }
         syncDialog(this, dlg);
+        if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel');
     }
     disconnected() { const d = this.part('panel'); if (d.open) d.close(); }
-    changed(name) { if (name === 'open') syncDialog(this, this.part('panel')); }
+    changed(name) { if (name === 'open') { syncDialog(this, this.part('panel')); if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel'); } }
     show() { this.open = true; }
     hide() { if (requestClose(this, 'method')) this.open = false; }
     down(e) { if (e.pointerType === 'mouse' || e.target.closest('[part="body"]')?.scrollTop > 0) return; this.$g = { x: e.clientX, y: e.clientY, t: performance.now(), on: false }; }

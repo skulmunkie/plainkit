@@ -1,0 +1,30 @@
+{
+  "component": "PkHint",
+  "params": [
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Open",
+      "prop": "open",
+      "type": "bool"
+    },
+    {
+      "name": "Tone",
+      "prop": "tone",
+      "type": "string"
+    },
+    {
+      "name": "OpenChanged",
+      "event": "pk-toggle",
+      "type": "EventCallback<bool>"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "component": "PkLoadingOverlay",
+  "params": [
+    {
+      "name": "Busy",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "busy"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Fullscreen",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "fullscreen"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}

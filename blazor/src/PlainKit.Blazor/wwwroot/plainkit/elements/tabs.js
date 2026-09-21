@@ -21,6 +21,7 @@ const behaviour = Base => class extends Base {
     sync() {
         const tabs = this.tabs;
         if (!tabs.length) return;
+        if (this.value && !tabs.some(t => t.value === this.value)) this.warnOnce(`value:${this.value}`, `value="${this.value}" matches no <pk-tab value>: falling back to the first enabled tab`, { value: this.value, tabs: tabs.map(t => t.value) });
         if (!this.noneActive && !tabs.some(t => t.value === this.value && !t.disabled)) this.value = (tabs.find(t => !t.disabled) ?? tabs[0]).value;
         for (const t of tabs) {
             t.id ||= 'pk-tab-' + (++ids.n);

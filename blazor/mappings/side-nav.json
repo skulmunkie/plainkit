@@ -1,0 +1,67 @@
+{
+  "component": "PkSideNav",
+  "params": [
+    {
+      "name": "Label",
+      "type": "string",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "Collapsed",
+      "type": "bool",
+      "map": "prop",
+      "prop": "collapsed",
+      "bind": {
+        "event": "pk-nav-toggle",
+        "value": "detail.collapsed"
+      }
+    },
+    {
+      "name": "Open",
+      "type": "bool",
+      "map": "prop",
+      "prop": "open",
+      "bind": {
+        "event": "pk-close",
+        "value": false
+      }
+    },
+    {
+      "name": "Filterable",
+      "type": "bool",
+      "map": "prop",
+      "prop": "filterable"
+    },
+    {
+      "name": "Persist",
+      "type": "string?",
+      "map": "prop",
+      "prop": "persist"
+    },
+    {
+      "name": "BrandContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "brand"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "FooterContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "footer"
+    },
+    {
+      "name": "OnToggle",
+      "type": "EventCallback<bool>",
+      "map": "event",
+      "event": "pk-nav-toggle"
+    }
+  ]
+}

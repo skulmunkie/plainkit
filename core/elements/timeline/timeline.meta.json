@@ -23,21 +23,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "The host is role=list; each pk-timeline-item is a listitem with a real time element. State is also given in words in the heading when it matters, never by the marker colour alone.",
-  "blazor": {
-    "component": "PkTimeline",
-    "params": [
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Order history",

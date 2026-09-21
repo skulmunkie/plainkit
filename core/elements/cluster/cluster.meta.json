@@ -79,41 +79,6 @@
     }
   ],
   "a11y": "A plain layout box with no role and no focus behaviour; keep the DOM order the reading order.",
-  "blazor": {
-    "component": "PkCluster",
-    "params": [
-      {
-        "name": "Direction",
-        "prop": "direction",
-        "type": "string"
-      },
-      {
-        "name": "Gap",
-        "prop": "gap",
-        "type": "string"
-      },
-      {
-        "name": "Align",
-        "prop": "align",
-        "type": "string"
-      },
-      {
-        "name": "Justify",
-        "prop": "justify",
-        "type": "string"
-      },
-      {
-        "name": "NoWrap",
-        "prop": "nowrap",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Wrapping row",

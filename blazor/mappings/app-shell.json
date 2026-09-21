@@ -1,0 +1,52 @@
+{
+  "component": "PkAppShell",
+  "params": [
+    {
+      "name": "SidebarContent",
+      "type": "RenderFragment",
+      "map": "slot",
+      "slot": "nav"
+    },
+    {
+      "name": "HeaderContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "header"
+    },
+    {
+      "name": "BodyContent",
+      "type": "RenderFragment",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "FooterContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "footer"
+    },
+    {
+      "name": "ShowErrorOverlay",
+      "type": "bool",
+      "default": true,
+      "map": "wrapper",
+      "note": "The Blazor error UI stays in the wrapper."
+    },
+    {
+      "name": "ErrorOverlayMessage",
+      "type": "string",
+      "map": "wrapper",
+      "note": "As ShowErrorOverlay."
+    },
+    {
+      "name": "NavOpen",
+      "type": "bool",
+      "map": "prop",
+      "prop": "navOpen",
+      "bind": {
+        "event": "pk-nav-toggle",
+        "value": "detail.open"
+      }
+    }
+  ]
+}
