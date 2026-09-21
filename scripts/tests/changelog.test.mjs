@@ -38,6 +38,8 @@ test('isDocsOnly / checkPr', () => {
     assert.ok(checkPr([{ status: 'M', path: 'CONTRIBUTING.md' }]).ok);
     assert.ok(!checkPr([{ status: 'M', path: 'core/js/log.js' }]).ok);
     assert.ok(checkPr([{ status: 'M', path: 'core/js/log.js' }], { PK_NO_CHANGELOG: '1' }).ok);
+    // a release pull request changes core/VERSION and compiles (deletes) the fragments: it needs none of its own
+    assert.ok(checkPr([{ status: 'M', path: 'core/VERSION' }, { status: 'D', path: 'changelog/unreleased/1-a.md' }, { status: 'M', path: 'CHANGELOG.md' }, { status: 'M', path: 'core/js/version.js' }]).ok);
     assert.ok(checkPr([{ status: 'M', path: 'core/js/log.js' }, { status: 'A', path: 'changelog/unreleased/12-x.md' }]).ok);
     assert.ok(!checkPr([{ status: 'M', path: 'core/js/log.js' }, { status: 'M', path: 'changelog/unreleased/12-x.md' }]).ok, 'editing an old fragment does not count');
     assert.ok(!checkPr([{ status: 'M', path: 'core/js/log.js' }, { status: 'A', path: 'changelog/unreleased/.gitkeep' }]).ok);
