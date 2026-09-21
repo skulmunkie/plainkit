@@ -88,6 +88,7 @@ export const formCases = [
         let submitted = 0; let invalid = 0; host.addEventListener('submit', e => { if (!e.defaultPrevented) submitted++; e.preventDefault(); }); sf.addEventListener('pk-invalid', () => invalid++);
         f.requestSubmit(); await t.settle();
         t.eq(invalid, 1); t.eq(name.error, 'Enter a name.'); t.ok(mail.error.length > 0, 'native message is the fallback'); t.ok(!sf.part('summary').hidden); t.eq(sf.part('summary-list').children.length, 2);
+        t.eq(sf.part('summary-list').children[0].textContent, 'Name: Enter a name.', 'each summary item names its field'); t.ok(sf.part('summary-list').children[1].textContent.startsWith('Email: '), 'the native message keeps its field name in front');
         const first = host.querySelector('pk-input'); t.ok(document.activeElement === first || first.shadowRoot.activeElement, 'focus moves to the first invalid control');
         await type(t, name.querySelector('pk-input').part('control'), 'Ann'); t.eq(name.error, '', 'a shown error clears as soon as it is fixed');
         await type(t, mail.querySelector('pk-input').part('control'), ['a', 'b.co'].join('@')); f.requestSubmit(); await t.settle();

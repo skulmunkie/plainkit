@@ -10,7 +10,13 @@ export function messageFor(control) {
     for (const [flag, key] of KEYS) if (v[flag]) return control.getAttribute(`data-msg-${key}`) ?? fallback;
     return fallback;
 }
-export const checkable = c => c.internals?.willValidate ?? c.willValidate ?? true ? !c.disabled && c.type !== 'hidden' && c.type !== 'submit' && c.type !== 'button' && c.type !== 'reset' && c.localName !== 'fieldset' && c.localName !== 'pk-button' : false;
+// The name a summary item starts with: the enclosing pk-field's label, else the control's label / aria-label / label attribute, else its name or id, else its tag and position (so two anonymous controls never read the same).
+export function nameFor(control, index = 0) {
+    const text = v => (typeof v === 'string' ? v.trim() : '');
+    const at = k => text(control.getAttribute?.(k));
+    return text(control.closest?.('pk-field')?.label) || text(control.label) || at('aria-label') || at('label') || text(control.name) || at('name') || at('id') || `${control.localName ?? 'field'} ${index + 1}`;
+}
+export const checkable =c => c.internals?.willValidate ?? c.willValidate ?? true ? !c.disabled && c.type !== 'hidden' && c.type !== 'submit' && c.type !== 'button' && c.type !== 'reset' && c.localName !== 'fieldset' && c.localName !== 'pk-button' : false;
 // Whether a check should run for this event: mode is blur (after leaving, and on submit), input (while typing) or submit (only on submit); a field already showing an error re-checks as you type.
 export const shouldCheck = (mode, event, showing) => (event === 'input' && (mode === 'input' || showing)) || (event === 'blur' && mode !== 'submit');
 
@@ -54,9 +60,9 @@ export default Base => class extends Base {
         const box = this.part('summary'); const list = this.part('summary-list');
         list.replaceChildren();
         box.hidden = !this.summary || invalid.length === 0;
-        for (const c of invalid) {
+        for (const [i, c] of invalid.entries()) {
             const li = document.createElement('li'); const a = document.createElement('a');
-            a.textContent = messageFor(c); a.setAttribute('role', 'link'); a.tabIndex = 0;
+            a.textContent = `${nameFor(c, i)}: ${messageFor(c)}`; a.setAttribute('role', 'link'); a.tabIndex = 0;
             a.addEventListener('click', () => c.focus());
             a.addEventListener('keydown', ev => { if (ev.key === 'Enter') c.focus(); });
             li.append(a); list.append(li);
