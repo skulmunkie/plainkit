@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
         configure?.Invoke(options);
         services.AddSingleton(options);
         services.AddSingleton<PkSourceProvider>();
-        services.AddScoped<IPkLog, PkLog>();
+        services.AddScoped<IPkLog, PkLogWriter>();
         services.AddScoped<PkInteropLog>();
         if (!OperatingSystem.IsBrowser()) AddCircuitState(services);
         return services.AddScoped<PkRuntime>();

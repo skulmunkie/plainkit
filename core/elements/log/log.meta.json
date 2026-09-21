@@ -1,0 +1,136 @@
+{
+  "tag": "pk-log",
+  "title": "Log",
+  "group": "Data display",
+  "summary": "A streaming log viewer: monospace rows in a scroller that sticks to the newest row until the user scrolls up, with a button to jump back, and a cap that drops the oldest rows. Rows are appended from script without redrawing the ones already there.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Log",
+      "reflect": false,
+      "description": "The log's accessible name (aria-label)."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 1000,
+      "reflect": false,
+      "description": "Most rows kept: once there are more, the oldest are removed. 0 keeps every row."
+    },
+    {
+      "name": "rows",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Replaces every row at once with an array of strings or { text, level, time } objects (level is debug, info, warn or error; time is text, a Date or milliseconds). For a fixed list or a Blazor page; a stream should use append(), which draws only the new rows."
+    },
+    {
+      "name": "paused",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "commit": "pk-pause",
+      "description": "True while auto-scroll is paused because the user scrolled up; new rows are still added but the view stays where it is. Scrolling back to the bottom or pressing the resume button clears it. The element owns it while the user scrolls; after pk-pause the host does. Setting it to false jumps to the newest row, setting it to true stops following."
+    },
+    {
+      "name": "live",
+      "type": "enum",
+      "default": "polite",
+      "values": [
+        "polite",
+        "off"
+      ],
+      "reflect": false,
+      "description": "Whether a screen reader announces new rows (aria-live). Use off for a fast stream; the rows stay readable by moving through the log."
+    },
+    {
+      "name": "resumeLabel",
+      "type": "string",
+      "default": "Jump to latest",
+      "reflect": false,
+      "description": "Text of the button shown while auto-scroll is paused."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Text shown while the log has no rows (default: No entries yet.)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-pause",
+      "detail": "{ paused: boolean }",
+      "detailProps": {
+        "paused": "boolean"
+      },
+      "description": "The user paused auto-scroll by scrolling up, or resumed it by scrolling to the bottom or pressing the resume button. Never raised for a change the host made; not cancelable."
+    }
+  ],
+  "parts": [
+    {
+      "name": "root",
+      "description": "The bordered frame."
+    },
+    {
+      "name": "scroller",
+      "description": "The role=log scroll area; it takes focus so the keyboard can scroll it."
+    },
+    {
+      "name": "empty",
+      "description": "The text shown while there are no rows."
+    },
+    {
+      "name": "list",
+      "description": "The rows."
+    },
+    {
+      "name": "row",
+      "description": "One log row (dynamic); its level is a class (debug, info, warn or error)."
+    },
+    {
+      "name": "resume",
+      "description": "The jump-to-latest button, shown while paused."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-log-height",
+      "description": "Height of the scroll area.",
+      "default": "20rem"
+    },
+    {
+      "name": "--pk-log-bg",
+      "description": "Background.",
+      "default": "var(--cv-bg)"
+    },
+    {
+      "name": "--pk-log-fg",
+      "description": "Text colour.",
+      "default": "var(--cv-text)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "append(...rows)",
+      "description": "Adds rows at the end (strings or { text, level, time }). A burst of calls is drawn as one insertion; the existing rows are not touched, the oldest go past max, and the view stays at the bottom unless paused."
+    },
+    {
+      "name": "clear()",
+      "description": "Removes every row."
+    }
+  ],
+  "a11y": "The scroll area is role=log (a polite live region, aria-live=off on request) with an accessible name, and it is focusable so the keyboard can scroll it. A level is written as a word on the row, and a warning or error also gets a coloured edge, so it is never colour alone. The resume button is a real button that appears only while paused.",
+  "mobile": "The rows wrap. The resume button is 44px tall on a touch screen and on a phone-width page.",
+  "examples": [
+    {
+      "title": "Rows with levels",
+      "html": "<pk-log label=\"Build output\" rows='[{\"time\":\"12:00:01\",\"level\":\"info\",\"text\":\"Compiling 48 elements\"},{\"time\":\"12:00:02\",\"level\":\"warn\",\"text\":\"pk-table is near its size budget\"},{\"time\":\"12:00:03\",\"level\":\"error\",\"text\":\"Test failed: dropzone.pick\"},\"Plain text rows work too\"]'></pk-log>"
+    },
+    {
+      "title": "Empty, with its own text",
+      "html": "<pk-log label=\"Server log\">Waiting for the first line.</pk-log>"
+    }
+  ]
+}
