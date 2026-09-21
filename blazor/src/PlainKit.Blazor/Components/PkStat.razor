@@ -3,7 +3,7 @@
 @inherits PkElementBase
 
 @* Hand-written (blazor/mappings/stat.json marks it "existing"): a headline number over <pk-stat>. The pk-activate event reaches OnClick through
-   AddEventHandlers (Blazor cannot name a hyphenated event in markup); it is registered by PlainKit.Blazor.lib.module.js. *@
+   AddEventHandlers (the component builds the handler itself); it is registered by PlainKit.Blazor.lib.module.js and mapped by EventHandlers, so raw <pk-stat @onpk-activate> works too. *@
 <pk-stat label="@Label"
          value="@Value"
          subtext="@Subtext"

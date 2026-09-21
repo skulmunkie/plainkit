@@ -191,11 +191,10 @@ public sealed class BlazorPanelTests : TestContext
     }
 
     [Fact]
-    public void Components_that_do_not_exist_yet_say_so_and_hand_written_ones_say_that()
+    public void Hand_written_components_say_that()
     {
         var table = PkMappingInfo.Describe("pk-table")!;
-        Assert.Equal("not available", table.Status);
-        Assert.Contains("existing", table.Note);
+        Assert.Equal("hand-written", table.Status);   // the last element without a component, hand-written now (Components/PkTable.razor)
         Assert.Equal("hand-written", PkMappingInfo.Describe("pk-card")!.Status);
 
         Assert.Equal("hand-written", PkMappingInfo.Describe("pk-gallery")!.Status);

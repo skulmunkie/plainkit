@@ -104,6 +104,32 @@ const inferMap = p => p.map ?? (p.prop !== undefined ? 'prop' : p.slot !== undef
 
 function enumFrom(name, pairs, owner) { return { name, members: pairs.map(([n, v]) => ({ name: n, value: v })), owners: [owner] }; }
 
+/** The model of one element event (a name, the Blazor attribute, the args type and its fields); native events (click) are marked. */
+export function eventModel(api) {
+    const name = api.name;
+    if (isNative(api)) {
+        const args = api.detail === 'native MouseEvent' ? 'MouseEventArgs' : 'EventArgs';
+        return { name, attr: 'on' + name.replace(/-/g, ''), native: true, args, fields: [], cancelable: api.cancelable === true, description: api.description };
+    }
+    const fields = detailFields(api).map(([n, t]) => ({ key: n, cs: fieldType(t), prop: memberName(n), type: t }));
+    return { name, attr: 'on' + name, native: false, args: fields.length ? argsName(name) : 'EventArgs', fields, cancelable: api.cancelable === true, description: api.description };
+}
+
+/** Record an event's name and args type in the shared registry (the [EventHandler] classes and the browser-side registration come from it). */
+export function noteEventInto(reg, ev, owner) {
+    if (ev.native) return;
+    reg.eventNames.add(ev.name);
+    if (!ev.fields.length) return;
+    const cur = reg.events.get(ev.args) ?? { name: ev.name, args: ev.args, fields: new Map(), owners: [] };
+    for (const f of ev.fields) {
+        const have = cur.fields.get(f.prop);
+        if (have && have.cs !== f.cs) throw new Error(`${ev.name}: field "${f.key}" is ${have.cs} on one element and ${f.cs} on ${owner}; the shared ${ev.args} cannot hold both`);
+        if (!have) cur.fields.set(f.prop, { ...f, description: null });
+    }
+    if (!cur.owners.includes(owner)) cur.owners.push(owner);
+    reg.events.set(ev.args, cur);
+}
+
 /**
  * Model one element: the parameters, the attributes, the slots, the event handlers. Pure: the shared enum and event-args registries are
  * passed in and filled. Returns { component, tag, params[], attrs[], slots[], handlers[], todo[], notGenerated[] }.
@@ -121,27 +147,9 @@ export function modelElement(el, mapping, reg) {
 
     const eventInfo = name => {
         const api = el.events.find(e => e.name === name);
-        if (!api) return null;
-        if (isNative(api)) {
-            const args = api.detail === 'native MouseEvent' ? 'MouseEventArgs' : 'EventArgs';
-            return { name, attr: 'on' + name.replace(/-/g, ''), native: true, args, fields: [], cancelable: api.cancelable === true, description: api.description };
-        }
-        const fields = detailFields(api).map(([n, t]) => ({ key: n, cs: fieldType(t), prop: memberName(n), type: t }));
-        return { name, attr: 'on' + name, native: false, args: fields.length ? argsName(name) : 'EventArgs', fields, cancelable: api.cancelable === true, description: api.description };
+        return api ? eventModel(api) : null;
     };
-    const noteEvent = (ev, owner) => {
-        if (ev.native) return;
-        reg.eventNames.add(ev.name);
-        if (!ev.fields.length) return;
-        const cur = reg.events.get(ev.args) ?? { name: ev.name, args: ev.args, fields: new Map(), owners: [] };
-        for (const f of ev.fields) {
-            const have = cur.fields.get(f.prop);
-            if (have && have.cs !== f.cs) throw new Error(`${ev.name}: field "${f.key}" is ${have.cs} on one element and ${f.cs} on ${owner}; the shared ${ev.args} cannot hold both`);
-            if (!have) cur.fields.set(f.prop, { ...f, description: null });
-        }
-        if (!cur.owners.includes(owner)) cur.owners.push(owner);
-        reg.events.set(ev.args, cur);
-    };
+    const noteEvent = (ev, owner) => noteEventInto(reg, ev, owner);
 
     // The enum a parameter uses: the mapping's named enum (values from `enum`), or the API prop's values under the mapping's type name.
     const enumType = (typeName, pairs, owner) => {
@@ -414,18 +422,19 @@ export function renderEvents(events, names) {
         [...e.fields.values()].forEach((f, i) => { if (i) L.push(''); L.push(`    /// <summary>The <c>${esc(f.key)}</c> field of the detail (<c>${esc(f.type)}</c>).</summary>`, `    public ${f.cs} ${f.prop} { get; set; }`); });
         L.push('}', '');
     }
-    L.push('/// <summary>Registers the custom events of the elements with Blazor so <c>@onpk-...</c> reaches a component; the browser side is <c>PlainKit.Blazor.lib.module.js</c>.</summary>');
+    L.push('/// <summary>Registers every pk-* custom event of every element with Blazor (an <c>[EventHandler]</c> each), so <c>@onpk-...</c> works on a component and on a raw element such as <c>&lt;pk-table @onpk-sort="..."&gt;</c>; the browser side is <c>PlainKit.Blazor.lib.module.js</c>.</summary>');
     const argsOf = new Map(list.map(e => [e.name, e.args]));
     for (const n of [...names].sort()) L.push(`[EventHandler(${lit('on' + n)}, typeof(${argsOf.get(n) ?? 'EventArgs'}), enableStopPropagation: true, enablePreventDefault: true)]`);
-    L.push('public static class PkEventHandlers', '{', '}');
+    L.push('// The Razor compiler only discovers [EventHandler] attributes on a class named exactly EventHandlers (import the namespace: @using PlainKit.Blazor).', 'public static class EventHandlers', '{', '}');
     return L.join('\n') + '\n';
 }
 
 export function renderModule(names) {
     const list = [...names].sort();
     return `// Generated by ${GENERATOR} from the element API and blazor/mappings. Do not edit.
-// A Razor class library initializer: Blazor loads it by name and calls it once it has started. It registers each pk-* custom event the
-// generated components listen for (@onpk-...), so Blazor listens for it and hands the component the event's detail as a plain object.
+// A Razor class library initializer: Blazor loads it by name and calls it once it has started. It registers every pk-* custom event of every
+// element (not only the ones a component listens for), so @onpk-... works in raw markup too (<pk-table @onpk-sort="...">): Blazor listens for the
+// event and hands the handler its detail as a plain object. EventHandlers (PkGeneratedEvents.cs; the Razor compiler only finds a class NAMED EventHandlers) maps each one to its PkXxxEventArgs type.
 const events = [
 ${list.map(n => `    '${n}',`).join('\n')}
 ];
@@ -484,6 +493,9 @@ export function generate(api, mappings, handWritten = new Set()) {
         todo.push(...m.todo);
         notGenerated.push(...m.notGenerated);
     }
+    // Every pk-* event of every element is registered and mapped, not only the ones a component listens for: raw markup such as
+    // <pk-table @onpk-sort="..."> needs the [EventHandler] class and the browser-side registration too (issue #49).
+    for (const el of api) for (const e of el.events ?? []) if (e.name.startsWith('pk-')) noteEventInto(reg, eventModel(e), pkName(el.tag));
     const extra = [...api].filter(e => !(e.tag.replace(/^pk-/, '') in mappings));
     if (extra.length) throw new Error(`elements without a mapping: ${extra.map(e => e.tag).join(', ')}`);
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));

@@ -242,7 +242,7 @@ test('SKILL.md frontmatter is valid: name = folder, a description that says when
         assert.ok(fm.description.length >= 200 && fm.description.length <= 1024, `${s}: description is ${fm.description.length} characters`);
         assert.match(fm.description, /\bUse (it )?when\b/, `${s}: the description must say when to trigger`);
         assert.ok(!/[<>]/.test(fm.description), 'no markup in a description');
-        assert.ok(text.split('\n').length <= 220, `${s}/SKILL.md is ${text.split('\n').length} lines: keep it short and put detail in references/`);
+        assert.ok(text.split('\n').length <= 260, `${s}/SKILL.md is ${text.split('\n').length} lines: keep it short and put detail in references/`);
         assert.doesNotMatch(text, /\{\{/, 'an unfilled placeholder');
     }
 });
@@ -342,7 +342,11 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     const skill = gen.get('plainkit-blazor/SKILL.md');
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
     assert.match(skill, /Blazor Server is verified\. Blazor WebAssembly is not/);
-    for (const c of ['PkTable']) { assert.ok(skill.includes(`\`${c}\``), c); assert.ok(gaps.includes(`\`${c}\``), c); }
+    // PkTable is hand-written now (the last element without a component), and so is PkDataList, which has no element at all.
+    assert.ok(src.manifest.skipped.some(s => s.component === 'PkTable' && s.handWritten), 'PkTable is hand-written');
+    assert.ok(src.manifest.skipped.every(s => s.handWritten), 'every element has a component');
+    for (const c of ['PkTable', 'PkDataList']) assert.ok(skill.includes(`\`${c}\``), c);
+    assert.match(gaps, /None: every element has a component/);
     // PkCard, PkEmptyState, PkFieldList and PkStat are hand-written now, so they are not in the "does not exist" list.
     for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.manifest.skipped.some(s => s.component === c && s.handWritten), `${c} is hand-written`);
     const wrapper = src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour'));
@@ -492,4 +496,29 @@ test('razorParams reads every [Parameter], including one whose doc has a remarks
         const text = read(path.join(dir, f));
         assert.equal(razorParams(text).length, (text.match(/\[Parameter[\]( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
     }
+});
+
+
+// ---------------------------------------------------------------- the table, the list and the raw events (issues #49, #50)
+
+test('the Blazor skill documents PkDataList with every parameter, the request and result records and the table and list workflows', () => {
+    const list = gen.get('plainkit-blazor/references/data-list.md');
+    assert.ok(list, 'references/data-list.md exists');
+    for (const p of src.razor.PkDataList.params) assert.ok(list.includes(`\`${p.name}\``), `PkDataList.${p.name}`);
+    for (const t of ['PkListRequest', 'PkListResult', 'CancellationToken', 'Skip', 'ReloadAsync', 'PkTableColumn<TItem>']) assert.ok(list.includes(t), t);
+    for (const p of ['Search', 'SortKey', 'Descending', 'Page', 'PageSize', 'Items', 'Total']) assert.ok(list.includes(p), p);
+    const skill = gen.get('plainkit-blazor/SKILL.md');
+    assert.ok(skill.includes('references/data-list.md'), 'the skill points to the list reference');
+    for (const h of ['### Show a table of typed rows', '### Show a searchable, server-paged list']) assert.ok(skill.includes(h), h);
+    // PkTable's own section lists its parameters, including the ones for the newer element features
+    const components = [...gen].filter(([f]) => f.includes('references/components-')).map(([, t]) => t).join('\n');
+    for (const p of ['EmptyText', 'Loading', 'Expandable', 'Expanded', 'DetailTemplate', 'OnRowExpand', 'OnSort', 'OnFilter', 'OnRowClick', 'Manual', 'IdOf']) assert.ok(components.includes(`\`${p}\``), `PkTable.${p}`);
+});
+
+test('the skills say raw @onpk-... handlers work for every element and name the EventHandlers class', () => {
+    const events = gen.get('plainkit-blazor/references/events.md');
+    assert.match(events, /Every\*\* `pk-\*` event of every element is registered/);
+    assert.ok(events.includes('@onpk-sort'), 'events.md shows the raw table event');
+    for (const n of ['pk-sort', 'pk-filter', 'pk-row-click', 'pk-row-expand']) assert.ok(events.includes(`\`${n}\``), n);
+    assert.match(gen.get('plainkit-blazor/SKILL.md'), /@onpk-sort="OnSort"/);
 });

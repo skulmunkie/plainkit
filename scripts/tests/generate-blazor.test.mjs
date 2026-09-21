@@ -211,14 +211,29 @@ test('invert: a bool parameter is sent as the negation of its prop, still a plai
     assert.match(razor, /\[Parameter\] public bool Boxed \{ get; set; \} = true;/);
 });
 
-test('a hand-written component still gets its pk-* events registered', () => {
+test('every pk-* event of every element is registered and mapped, whether or not a component listens for it (issue #49)', () => {
     const m = { component: 'PkDemo', existing: true, params: [{ name: 'OnClose', event: 'pk-close', type: 'EventCallback' }] };
     const r = run(m, new Set(['PkDemo']));
     assert.match(r.files.get('PkGeneratedEvents.cs'), /\[EventHandler\("onpk-close", typeof\(PkCloseEventArgs\)/);
     assert.match(r.moduleText, /'pk-close',/);
     assert.equal(r.files.has('PkDemo.razor'), false);
-    // a skipped component that is not hand-written registers nothing
-    assert.doesNotMatch(run(m).files.get('PkGeneratedEvents.cs'), /onpk-close/);
+    // a skipped component that is not hand-written registers them too: raw <pk-demo @onpk-close=...> markup needs the [EventHandler] class
+    assert.match(run(m).files.get('PkGeneratedEvents.cs'), /\[EventHandler\("onpk-close", typeof\(PkCloseEventArgs\)/);
+    assert.match(run(m).moduleText, /'pk-close',/);
+    // a component with no event parameter still registers the element's events
+    assert.match(run({ component: 'PkDemo', params: [{ name: 'Label', prop: 'label', type: 'string' }] }).files.get('PkGeneratedEvents.cs'), /onpk-close/);
+});
+
+test('the real manifest: every pk-* event has an [EventHandler] class and a browser-side registration (raw <pk-table @onpk-sort> works)', () => {
+    const api = JSON.parse(fs.readFileSync(path.join(root, 'core', 'dist', 'elements', 'api.json'), 'utf8'));
+    const names = [...new Set(api.flatMap(e => (e.events ?? []).map(v => v.name)).filter(n => n.startsWith('pk-')))];
+    const events = real.files.get('PkGeneratedEvents.cs');
+    for (const n of names) {
+        assert.ok(events.includes('[EventHandler("on' + n + '"'), n + ' has an [EventHandler]');
+        assert.ok(real.moduleText.includes("'" + n + "',"), n + ' is registered in the module');
+    }
+    for (const n of ['pk-sort', 'pk-filter', 'pk-row-click', 'pk-row-expand']) assert.ok(names.includes(n), n);
+    assert.match(events, /\[EventHandler\("onpk-sort", typeof\(PkSortEventArgs\)/);
 });
 
 test('text: "" is the element text content', () => {

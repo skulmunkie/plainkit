@@ -1,0 +1,271 @@
+@namespace PlainKit.Blazor
+@typeparam TItem
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@implements IDisposable
+
+@* Hand-written, no element of its own: a searchable, sortable, server-paged list over PkTable in manual mode, PkInput (type search) in the
+   toolbar and PkPagination in the footer. The component owns the list state (search, sort, page, page size, total: PkListState) and asks
+   Load for one page at a time. Attributes down, events up: the search box debounces itself (PkInput DebounceMs, the element's own timer), so the
+   component runs no timers and no JavaScript. *@
+<PkTable TItem="TItem"
+         Columns="_columns"
+         Items="_items"
+         IdOf="IdOf"
+         Manual="true"
+         Sort="@_state.SortKey"
+         SortDirection="@(_state.Descending ? PkSortDirection.Descending : PkSortDirection.Ascending)"
+         OnSort="HandleSortAsync"
+         Clickable="OnRowClick.HasDelegate"
+         OnRowClick="HandleRowClickAsync"
+         Hover="OnRowClick.HasDelegate"
+         Loading="_loading"
+         EmptyText="@(_state.Search is null ? EmptyText : NoResultsText)"
+         EmptyContent="@(_error || EmptyContent is not null ? EmptyFragment : null)"
+         Cards="Cards"
+         Striped="Striped"
+         Density="Density"
+         MaxHeight="MaxHeight"
+         StickyHeader="StickyHeader"
+         Label="@(Label ?? "List")"
+         Caption="@Caption"
+         @attributes="AdditionalAttributes">
+    <ToolbarContent>
+        @if (Searchable)
+        {
+            <PkInput Type="search" Clearable="true" DebounceMs="SearchDebounceMs" Placeholder="@SearchPlaceholder" AriaLabel="@(SearchLabel ?? SearchPlaceholder ?? "Search")" OnSearch="HandleSearchAsync" />
+        }
+        @ToolbarContent
+        @if (!string.IsNullOrEmpty(AddLabel))
+        {
+            <PkButton Variant="ButtonVariant.Primary" OnClick="HandleAddAsync">@AddLabel</PkButton>
+        }
+    </ToolbarContent>
+    <FooterContent>
+        @if (_state.Total > 0)
+        {
+            <PkPagination Page="_state.Page" Total="_state.Total" PageSize="_state.PageSize" PageSizeOptions="PageSizeOptions" Label="@(PagerLabel ?? "List pages")" PageChanged="HandlePageAsync" PageSizeChanged="HandlePageSizeAsync" />
+        }
+    </FooterContent>
+</PkTable>
+
+@code {
+    private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
+
+    private PkListState _state = default!;
+    private IReadOnlyList<TItem> _items = [];
+    private IReadOnlyList<PkTableColumn<TItem>> _columns = [];
+    private bool _loading = true;
+    private bool _error;
+    private int _sequence;
+    private CancellationTokenSource? _cancel;
+
+    /// <summary>Attributes that match no parameter (<c>id</c>, <c>data-*</c>, <c>aria-*</c>, <c>class</c>) go on the table element.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called on first render, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that is replaced by a newer one has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
+    [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
+
+    /// <summary>The columns. The first one is the row's identity: on a phone it stays (a column with <c>HidePhone</c> is dropped), and it carries the current-row marker and, when <see cref="OnRowClick"/> is set, the keyboard-reachable link.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PkTableColumn<TItem>> Columns { get; set; } = [];
+
+    /// <summary>The id of an item: names the row for click, current-row and the cell slots. Ids must not contain a double quote.</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> IdOf { get; set; } = default!;
+
+    /// <summary>The page size to start with (initial only; the user changes it in the pager). Default 25.</summary>
+    [Parameter] public int PageSize { get; set; } = 25;
+
+    /// <summary>The page sizes the pager offers. Default 10, 25, 50, 100; an empty array hides the choice.</summary>
+    [Parameter] public int[]? PageSizeOptions { get; set; } = [10, 25, 50, 100];
+
+    /// <summary>The key of the column to sort by first (initial only). Null loads the default order.</summary>
+    [Parameter] public string? SortKey { get; set; }
+
+    /// <summary>Sort <see cref="SortKey"/> descending first (initial only).</summary>
+    [Parameter] public bool Descending { get; set; }
+
+    /// <summary>Show the search box in the toolbar. Default true.</summary>
+    [Parameter] public bool Searchable { get; set; } = true;
+
+    /// <summary>The placeholder of the search box.</summary>
+    [Parameter] public string? SearchPlaceholder { get; set; }
+
+    /// <summary>The accessible name of the search box; defaults to the placeholder, then "Search".</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    /// <summary>Milliseconds to wait after the last keystroke before searching (the search box's own debounce; Enter and clear search at once). Default 300.</summary>
+    [Parameter] public int SearchDebounceMs { get; set; } = 300;
+
+    /// <summary>The text shown when the list is empty and there is no search.</summary>
+    [Parameter] public string EmptyText { get; set; } = "Nothing to show.";
+
+    /// <summary>The text shown when a search matched nothing.</summary>
+    [Parameter] public string NoResultsText { get; set; } = "Nothing matches your search.";
+
+    /// <summary>Your own empty state (for example a <c>PkEmptyState</c>), shown instead of the text when the list is empty.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>The text of the failed-load message. The list shows it with a Retry button when <c>Load</c> throws.</summary>
+    [Parameter] public string LoadErrorText { get; set; } = "The list could not be loaded.";
+
+    /// <summary>Raised when <c>Load</c> throws (not for a cancelled request), so you can log it.</summary>
+    [Parameter] public EventCallback<Exception> OnLoadError { get; set; }
+
+    /// <summary>The label of the primary action button in the toolbar (for example "+ Add customer"). Empty shows no button.</summary>
+    [Parameter] public string? AddLabel { get; set; }
+
+    /// <summary>The primary action button was pressed.</summary>
+    [Parameter] public EventCallback OnAdd { get; set; }
+
+    /// <summary>A row was activated: a click on the row, or Enter on the link in its first column. The item is the one that row shows; navigate to its detail here. Setting it makes the rows clickable.</summary>
+    [Parameter] public EventCallback<TItem> OnRowClick { get; set; }
+
+    /// <summary>The id (see <see cref="IdOf"/>) of the row that is open elsewhere, for a master and detail layout. Its first cell is marked: bold, with <c>aria-current</c>.</summary>
+    [Parameter] public string? CurrentId { get; set; }
+
+    /// <summary>Extra toolbar content, after the search box and before the add button.</summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    /// <summary>Each row becomes a card below 640px, columns marked <c>HidePhone</c> dropped. Default true.</summary>
+    [Parameter] public bool Cards { get; set; } = true;
+
+    /// <summary>Alternate row tint.</summary>
+    [Parameter] public bool Striped { get; set; }
+
+    /// <summary>The cell padding step; null leaves the element's default.</summary>
+    [Parameter] public PkTableDensity? Density { get; set; }
+
+    /// <summary>Bounds the table's height (a CSS length); with <see cref="StickyHeader"/> the header stays while the rows scroll.</summary>
+    [Parameter] public string? MaxHeight { get; set; }
+
+    /// <summary>Pin the header row (needs <see cref="MaxHeight"/>).</summary>
+    [Parameter] public bool StickyHeader { get; set; }
+
+    /// <summary>The accessible name of the table. Default "List"; give each list its own.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The accessible name of the pager. Default "List pages".</summary>
+    [Parameter] public string? PagerLabel { get; set; }
+
+    /// <summary>The table caption, as text.</summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>Loads the current page again (search, sort and page stay), for example after the host saved something. Safe to call from any thread.</summary>
+    public Task ReloadAsync() => InvokeAsync(LoadAsync);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _state = new PkListState(PageSize, SortKey, Descending);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _columns = Identity(Columns);
+    }
+
+    /// <inheritdoc />
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _sequence++;
+        _cancel?.Cancel();
+        _cancel?.Dispose();
+    }
+
+    // The columns as the table gets them: the first one wraps its cell so the current row is marked and, when rows can be opened, so there is a
+    // link to Tab to (the element's rows are not keyboard stops; a click on an anchor is left to the anchor, so it is not raised twice).
+    private IReadOnlyList<PkTableColumn<TItem>> Identity(IReadOnlyList<PkTableColumn<TItem>> columns)
+    {
+        if (columns.Count == 0 || (CurrentId is null && !OnRowClick.HasDelegate)) return columns;
+        var first = columns[0];
+        var wrapped = first with { Cell = IdentityCell(first) };
+        return [wrapped, .. columns.Skip(1)];
+    }
+
+    private bool IsCurrent(TItem item) => CurrentId is not null && IdOf(item) == CurrentId;
+
+    private string? TextOf(PkTableColumn<TItem> column, TItem item) =>
+        column.Text?.Invoke(item) ?? (JsonSerializer.SerializeToNode(item, Web) as JsonObject)?[column.Key]?.ToString();
+
+    private RenderFragment Body(PkTableColumn<TItem> column, TItem item) => builder =>
+    {
+        var current = IsCurrent(item);
+        if (current) builder.OpenElement(0, "strong");
+        if (column.Cell is { } cell) builder.AddContent(1, cell(item));
+        else builder.AddContent(2, TextOf(column, item));
+        if (current) builder.CloseElement();
+    };
+
+    private RenderFragment<TItem> IdentityCell(PkTableColumn<TItem> column) => item =>
+        @<span aria-current="@(IsCurrent(item) ? "true" : null)">@if (OnRowClick.HasDelegate) {<a href="#" @onclick="() => OnRowClick.InvokeAsync(item)" @onclick:preventDefault>@Body(column, item)</a>} else {@Body(column, item)}</span>;
+
+    private RenderFragment EmptyFragment => @<text>@if (_error) {<PkAlert Kind="PkAlertKind.Error" Title="@LoadErrorText"><PkButton Size="ButtonSize.Mini" OnClick="ReloadAsync">Retry</PkButton></PkAlert>} else {@EmptyContent}</text>;
+
+    private Task HandleAddAsync() => OnAdd.InvokeAsync();
+
+    private async Task HandleRowClickAsync(PkTableRowClickArgs<TItem> args) => await OnRowClick.InvokeAsync(args.Item);
+
+    private async Task HandleSearchAsync(PkSearchEventArgs e)
+    {
+        if (_state.SetSearch(e.Value)) await LoadAsync();
+    }
+
+    private async Task HandleSortAsync(PkSortEventArgs e)
+    {
+        if (_state.SetSort(e.Key, e.Direction == "descending")) await LoadAsync();
+    }
+
+    private async Task HandlePageAsync(int page)
+    {
+        if (_state.SetPage(page)) await LoadAsync();
+    }
+
+    private async Task HandlePageSizeAsync(int size)
+    {
+        if (_state.SetPageSize(size)) await LoadAsync();
+    }
+
+    // One load at a time is the one that counts: a newer request cancels the older one (its token) and the older result is dropped when it
+    // arrives. A total that no longer reaches the current page moves the state to the last page and loads that (at most twice more).
+    private async Task LoadAsync()
+    {
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            _cancel?.Cancel();
+            var cancel = _cancel = new CancellationTokenSource();
+            var sequence = ++_sequence;
+            _loading = true;
+            _error = false;
+            StateHasChanged();
+            try
+            {
+                var result = await Load(_state.ToRequest(cancel.Token));
+                if (sequence != _sequence) return;
+                _items = result.Items;
+                if (_state.SetTotal(result.Total)) continue;
+                _loading = false;
+                StateHasChanged();
+                return;
+            }
+            catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                if (sequence != _sequence) return;
+                _items = [];
+                _error = true;
+                _loading = false;
+                StateHasChanged();
+                await OnLoadError.InvokeAsync(ex);
+                return;
+            }
+        }
+        _loading = false;
+    }
+}
