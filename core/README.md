@@ -185,6 +185,16 @@ By hand, the same thing:
 
 **In CI.** The suite is not a required check: it takes minutes and reads layout, so a slow or differently configured runner would make a required check flaky, and the attestation already guards the sources cheaply. The runners have a Chrome preinstalled, and the script needs no npm dependency, so `.github/workflows/ci.yml` has a `browser` job that runs it on demand (Actions, Run workflow) and uploads `report.json`; it is not part of push or pull request runs. It has not been proven on a runner yet: promote it to a required check only after a few clean runs there.
 
+### The scorecard analysis in one command
+
+`node scripts/scorecard-sweep.mjs` runs the whole analysis headless (Node 22 or newer, no browser package; an installed Chrome, Chromium or Edge, found like `scripts/attest-browser.mjs` does, and `PK_CHROME` overrides). It starts the SDK server, drives the site over the DevTools protocol, then stops the server and browser and deletes the temporary profile. Three stages, all by default (`--only sweep,quality,pages`):
+
+- **sweep**: every gallery view, template and element example at 320, 375, 640, 1024, 1280 and 1920 px in both themes (`site/scorecard/sweep.js`): overflow, phone controls under 44 px, nested scrollers, text under the size tiers, level-1 headings. About 25 minutes.
+- **quality**: the scorecard run itself (the host page's own options): every element example through the SDK quality checks (`js/quality.js`) at each scoring width and theme, plus the measured performance and scale metrics and the scores. About 2 to 4 minutes (`--concurrency 2` renders fewer frames at once on a slow machine).
+- **pages**: every gallery route in a real tab at 375 and 1280 px: the quality checks on the live page, first and largest paint, layout shift and long tasks (the performance monitor's measures against the limits in `js/perf-logic.js`), layout and style-recalculation counts, and what the dev console shows (console errors, uncaught exceptions, failed requests).
+
+It writes `sweep.json`, `quality.json`, `pages.json` and `summary.md` (worst first) to `scratch/scorecard/` (git ignores it) and prints the summary. The exit code is 0 when nothing failed, 1 when the analysis found failures and 2 when the run could not finish. `site/scorecard/sweep-report.json` is tracked and only holds failures, so it is rewritten only with `--write-report` (a full sweep), keeping its notes; commit it only when the run is clean or its failures are the ones the change accepts.
+
 ## Add an element
 
 1. Create `elements/<name>/` (the tag is `pk-<name>`).

@@ -23,6 +23,14 @@ export function routes() {
     ];
 }
 
+// Level-1 headings in a document: h1 elements and role="heading" aria-level="1", inside shadow trees too (pk-page-header draws its title there).
+export function countH1(root) {
+    let n = 0;
+    const walk = scope => { for (const el of scope.querySelectorAll('*')) { if (el.localName === 'h1' || (el.getAttribute('role') === 'heading' && el.getAttribute('aria-level') === '1')) n++; if (el.shadowRoot) walk(el.shadowRoot); } };
+    walk(root);
+    return n;
+}
+
 const INTERACTIVE = 'a[href], button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea, summary, [role="tab"]';
 
 // Measures one document at a viewport width. `phone` turns on the touch-target check. Pure over the DOM it is given.
@@ -51,7 +59,7 @@ export function measure(doc, width, { checkH1 = true } = {}) {
         else if (px < TEXT_TIERS.readingPx - 0.5 && !el.closest(TEXT_TIERS.metaSelectors)) out.readingSmall++;
     }
     out.smallText = out.metaTooSmall + out.readingSmall;
-    if (checkH1) out.h1 = doc.querySelectorAll('h1').length;
+    if (checkH1) out.h1 = countH1(doc);
     return out;
 }
 
@@ -68,7 +76,7 @@ function frame(src, width, doc) {
             stable = n > 3 && n === last ? stable + 1 : 0; last = n;
             // Styles must be applied before anything is measured: every stylesheet link loaded (a half-styled frame reads as small targets and text).
             const styled = !!d && [...d.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet);
-            const ready = styled && (src ? !!d?.querySelector('h1') : true);
+            const ready = styled && (src ? !!d && countH1(d) > 0 : true);
             if ((ready && stable >= (src ? 5 : 3)) || Date.now() - started > 8000) { clearInterval(timer); resolve(f); }
         }, 120);
     });

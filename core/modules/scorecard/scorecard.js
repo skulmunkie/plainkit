@@ -41,7 +41,7 @@ import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, pain
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./scorecard.css'];
 
-export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120 });
+export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120, defineMs: 3000 });
 export const SECTIONS = Object.freeze(['ranked', 'performance', 'size', 'api', 'sweep', 'security', 'history']);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -68,14 +68,26 @@ const docFor = (frame, { theme, width }, base) => {
     return `<!doctype html><html lang="en" data-theme="${theme}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${sheets}</head><body>${frame.html}</body></html>`;
 };
 
-// A frame laid out off-screen at an exact width, resolved once loaded and settled; the caller measures it and removes it.
+// The custom element names (anything with a hyphen) used in a document: the ones the frame has to define before its layout means anything.
+export const customTags = doc => [...new Set([...(doc?.querySelectorAll?.('*') ?? [])].map(el => el.localName).filter(name => name.includes('-')))];
+
+// Resolves once every custom element in the frame is defined, or after `ms` (a tag that is never registered must not stall a run).
+// Elements are loaded on demand after the frame's load event; an element with no text (an avatar, a progress bar, a spinner) has no size until
+// it is defined, so a fixed settle time reads it as an empty preview when the machine is busy.
+export function whenDefined(frame, ms = DEFAULTS.defineMs) {
+    const win = frame.contentWindow; const tags = customTags(frame.contentDocument);
+    if (!win?.customElements || !tags.length) return Promise.resolve();
+    return Promise.race([Promise.all(tags.map(t => win.customElements.whenDefined(t))), new Promise(r => setTimeout(r, ms))]);
+}
+
+// A frame laid out off-screen at an exact width, resolved once loaded, its elements defined and settled; the caller measures it and removes it.
 export function openFrame(host, frame, { theme = 'dark', width = 1280, settleMs = DEFAULTS.settleMs, base = import.meta.url } = {}) {
     return new Promise(resolve => {
         const f = host.ownerDocument.createElement('iframe');
         f.style.cssText = `position:absolute;left:0;top:0;width:${width}px;height:700px;border:0`;
         f.addEventListener('load', () => {
             if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch (error) { log.debug('could not set the theme in a frame from another origin', error); }
-            setTimeout(() => resolve(f), settleMs);
+            whenDefined(f).then(() => setTimeout(() => resolve(f), settleMs));
         }, { once: true });
         if (frame.url) f.src = frame.url; else f.srcdoc = docFor(frame, { theme, width }, base);
         host.append(f);

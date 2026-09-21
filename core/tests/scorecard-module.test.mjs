@@ -1,7 +1,7 @@
 // The scorecard module's pure parts: target shapes, the checks filter, the ranked table, and a run against frames the browser cannot read.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeTargets, keepChecks, rankedTable, tone, fmtDelta, runTargets, mountScorecard } from '../modules/scorecard/scorecard.js';
+import { normalizeTargets, keepChecks, rankedTable, tone, fmtDelta, runTargets, mountScorecard, customTags, whenDefined } from '../modules/scorecard/scorecard.js';
 
 test('targets are normalized from every accepted shape; ones with nothing to render are dropped', () => {
     const t = normalizeTargets(['/a.html', { name: 'Card', html: '<p>x</p>' }, { name: 'Doc', srcdoc: '<p>' }, { name: 'Both', samples: ['/x', { html: '' }] }, {}, null, { name: 'Empty' }]);
@@ -65,4 +65,27 @@ test('sections are validated; the run sections need targets and the others do no
     await assert.rejects(mountScorecard({}, { targets: ['/a'], sections: ['ranked', 'nope'] }), /unknown section "nope"/);
     await assert.rejects(mountScorecard({}, { sections: ['performance'] }), /needs targets/);
     await assert.rejects(mountScorecard({}, { sections: ['security'] }), error => !/needs targets/.test(error.message), 'a data-only section asks for no targets');
+});
+
+// Elements load on demand after the frame's load event, and an element with no text has no size until it is defined: a run that measures at
+// once reads it as an empty preview (seen in a headless run, where eight frames load at a time). The frame waits for its own tags first.
+const fakeFrame = (localNames, defined) => ({
+    contentDocument: { querySelectorAll: () => localNames.map(localName => ({ localName })) },
+    contentWindow: { customElements: { whenDefined: tag => (defined.has(tag) ? Promise.resolve() : new Promise(() => {})) } },
+});
+
+test('customTags lists each custom element name once and ignores plain tags', () => {
+    assert.deepEqual(customTags(fakeFrame(['div', 'pk-avatar', 'pk-avatar', 'pk-progress', 'span'], new Set()).contentDocument), ['pk-avatar', 'pk-progress']);
+    assert.deepEqual(customTags(null), []);
+});
+
+test('whenDefined waits for every custom element, gives up after the limit, and is immediate with none or with no window', async () => {
+    const t0 = Date.now();
+    await whenDefined(fakeFrame(['pk-avatar', 'pk-progress'], new Set(['pk-avatar', 'pk-progress'])), 5000);
+    assert.ok(Date.now() - t0 < 1000, 'all defined: resolves at once');
+    const t1 = Date.now();
+    await whenDefined(fakeFrame(['pk-avatar', 'pk-never'], new Set(['pk-avatar'])), 60);
+    assert.ok(Date.now() - t1 >= 50 && Date.now() - t1 < 1000, 'an undefined tag waits only for the limit');
+    await whenDefined(fakeFrame(['div'], new Set()), 5000);
+    await whenDefined({ contentDocument: null, contentWindow: null }, 5000);
 });
