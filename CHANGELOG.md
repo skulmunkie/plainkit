@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+### Breaking
+
+- Changed (breaking): the code explorer element is now `<pk-code-explorer>` (was `<code-explorer>`), its events `pk-code-explorer-open` and `pk-code-explorer-error` (were `code-explorer-open` and `code-explorer-error`) and its height hook `--pk-code-explorer-height` (was `--code-explorer-height`), following the `pk-` naming rule (issue #12). There is no alias for the old tag. `mountCodeExplorer`, the module name and the JS exports are unchanged; `PkCodeExplorer` in Blazor is unaffected.
+
 - Fixed: PlainKit.Blazor no longer throws out of the request pipeline when `IPkLog` (or a component) touches JavaScript while a page is prerendered; `PkRuntime.DisposeAsync` now ignores the "JavaScript interop calls cannot be issued at this time" error of a prerender scope. Found by driving the Playground in a real browser.
 - Added: the `/_plainkit` dev tools page in PlainKit.Blazor has a Logs tab (`PkLogs` and `PkLogSettings`), as the logging documentation said it did; the Playground has a `/generated` page that exercises the generated components (binds, dialog, events, an enum, `IPkLog`) with the `ILogger` forwarder on.
 
