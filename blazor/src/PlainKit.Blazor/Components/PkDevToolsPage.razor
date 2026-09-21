@@ -7,8 +7,9 @@
 @inject IServiceProvider Services
 @inject PkRuntime Runtime
 
-@* The toolkit's own dev tools, in your app: gallery, files, scorecard, performance and console, all built from the SDK.
-   Served at /_plainkit in Development (see PkOptions.DevTools). *@
+@* The toolkit's own dev tools, in your app, all built from the SDK. Served at /_plainkit in Development (see PkOptions.DevTools).
+   The workspaces (gallery, files, scorecard) are the page. The tools (console, logs, logging, performance, quality, inspector, theme, and PlainKit.Blazor's
+   own blazor and components tabs) are the SDK's dev tools dock, mounted by PkDevTools: /_plainkit/console and the like open the dock on that tab. *@
 <PkStyles />
 @if (!Enabled)
 {
@@ -16,26 +17,26 @@
 }
 else
 {
-    <pk-tabs value="@Current" aria-label="Dev tools">
-        @foreach (var (key, label) in Tabs)
+    <pk-tabs value="@Workspace" aria-label="Workspaces">
+        @foreach (var (key, label) in Workspaces)
         {
             <pk-tab value="@key" @onclick="() => Go(key)">@label</pk-tab>
         }
     </pk-tabs>
 
-    @* Performance and the console stay mounted so they keep watching while another tab is open; the rest mount when shown. *@
-    <div hidden="@(Current != "performance")"><PkPerformance /></div>
-    <div hidden="@(Current != "console")"><PkConsole /></div>
+    <PkDevTools Tab="@ToolTab" Open="true" />
 
-    @if (Current == "gallery")
+    @if (Workspace == "gallery")
     {
-        <PkGallery Chrome="PkChrome.Full" Height="760" />
+        @* The gallery element resolves its frame's address against the page's URL, not the document's base, so under /_plainkit/{workspace} a relative address
+           would miss: give it an absolute one. *@
+        <PkGallery Chrome="PkChrome.Full" Height="760" Src="@Nav.ToAbsoluteUri(PkAssets.GalleryEmbed).ToString()" />
     }
-    else if (Current == "files")
+    else if (Workspace == "files")
     {
         @if (_snapshot is null)
         {
-            <pk-empty-state heading="No source to browse" description="The Files tab reads a folder on the server, so it is not available in a browser-only app. Set SourceRoot in AddPlainKit, or run server side."></pk-empty-state>
+            <pk-empty-state heading="No source to browse" description="The Files workspace reads a folder on the server, so it is not available in a browser-only app. Set SourceRoot in AddPlainKit, or run server side."></pk-empty-state>
         }
         else
         {
@@ -43,30 +44,27 @@ else
             <PkCodeExplorer Snapshot="_snapshot" Height="42rem" />
         }
     }
-    else if (Current == "logs")
-    {
-        <PkLogs Height="26rem" />
-        <PkLogSettings Height="30rem" />
-    }
-    else if (Current == "scorecard")
+    else if (Workspace == "scorecard")
     {
         <PkScorecard Targets="Targets" HistoryKey="plainkit-devtools-scorecard" Height="42rem" />
     }
 }
 
 @code {
-    private static readonly (string Key, string Label)[] Tabs =
-    [
-        ("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard"), ("performance", "Performance"), ("console", "Console"), ("logs", "Logs"),
-    ];
+    private static readonly (string Key, string Label)[] Workspaces = [("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard")];
+
+    // The dock's tabs: the SDK's, then the two PlainKit.Blazor adds.
+    private static readonly string[] Tools = ["console", "logs", "logging", "performance", "quality", "inspector", "theme", "blazor", "blazor-components"];
 
     private PkSnapshot? _snapshot;
     private string? _loadedFor;
 
-    /// <summary>The tab shown: gallery, files, scorecard, performance, console or logs.</summary>
+    /// <summary>A workspace (gallery, files or scorecard), or the id of a dock tab to open (console, logs, logging, performance, quality, inspector, theme, blazor, blazor-components).</summary>
     [Parameter] public string? Tab { get; set; }
 
-    private string Current => Tabs.Any(t => t.Key == Tab) ? Tab! : "gallery";
+    private string Workspace => Workspaces.Any(t => t.Key == Tab) ? Tab! : "gallery";
+
+    private string? ToolTab => Tools.Contains(Tab) ? Tab : null;
 
     private bool Enabled => Options.DevTools ?? Services.GetService(typeof(IHostEnvironment)) is IHostEnvironment { EnvironmentName: "Development" };
 
@@ -85,7 +83,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!Enabled || Current != "files" || _loadedFor == "files") return;
+        if (!Enabled || Workspace != "files" || _loadedFor == "files") return;
         _snapshot = await Source.GetAsync();
         _loadedFor = "files";
     }

@@ -48,6 +48,37 @@ export const mountLogs = (container, options) => mountTool(container, () => impo
 
 export const mountLogSettings = (container, options) => mountTool(container, () => import('./plainkit/log-settings/log-settings.js'), 'mountLogSettings', options);
 
+export async function mountQuality(container, options) {
+    const { mountQuality } = await import('./plainkit/quality/quality.js');
+    destroy(container);
+    mounted.set(container, await mountQuality(container, options));
+}
+
+export async function mountThemeEditor(container, options) {
+    const { mountThemeEditor } = await import('./plainkit/theme-editor/theme-editor.js');
+    destroy(container);
+    mounted.set(container, await mountThemeEditor(container, options));
+}
+
+// The dev tools: a dock on the page (the container is only the component's marker; the dock is JS's, appended to the body) or inline in the container.
+// host is a DotNetObjectReference of PkDevToolsHost: when given, the Blazor panels (blazor-devtools.js) are added to the tabs.
+export async function mountDevTools(container, options, host) {
+    const { mountDevTools } = await import('./plainkit/devtools/devtools.js');
+    destroy(container);
+    const panels = host ? (await import('./blazor-devtools.js')).blazorPanels(host) : [];
+    // a null option means "not set" (.NET sends null for it): leave it out so the module's own default applies
+    const { mode, ...rest } = Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null));
+    mounted.set(container, await mountDevTools(mode === 'inline' ? container : null, { mode, ...rest, panels }));
+}
+
+export const openTools = container => mounted.get(container)?.open?.();
+export const closeTools = container => mounted.get(container)?.close?.();
+export const toggleTools = container => mounted.get(container)?.toggle?.();
+export const selectTool = (container, id) => mounted.get(container)?.select?.(id);
+export const toolsOpen = container => mounted.get(container)?.isOpen?.() ?? false;
+export const exportTheme = container => mounted.get(container)?.export?.() ?? null;
+export const setThemeMode = (container, name) => mounted.get(container)?.setTheme?.(name);
+
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {
     return (await import('./plainkit/js/version.js')).PK_VERSION;
