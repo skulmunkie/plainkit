@@ -30,7 +30,7 @@
       "source": "The element class's static template: markup authored in elements/<name>/<name>.html and inlined by the build, parsed once into a template element."
     },
     "samples/templates/chrome.js": {
-      "count": 4,
+      "count": 3,
       "source": "Static example-page chrome from constants; page title and crumbs come from the page's own script."
     }
   },
