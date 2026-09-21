@@ -7,7 +7,7 @@
 
 @* Hand-written (blazor/mappings/table.json marks it "existing"): a typed data table over <pk-table>.
    Attributes down: the columns and the rows are JSON attributes (camelCase), rebuilt when the parameters are set, never per render and never
-   through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
+   through JavaScript. They are rebuilt only when Items (reference or count), Columns or IdOf changed (or Refresh() is called). Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
    PlainKit.Blazor.lib.module.js). Cell templates, the detail template and the slots are ordinary Blazor children of the element (the element
    reads them, it never rewrites them): a cell template is a <span slot="cell-<id>-<key>"> per row, so a change of rows re-renders them together
    with the rows attribute. *@
@@ -61,6 +61,11 @@
     private List<Row> _items = [];
     private List<PkTableColumn<TItem>> _cells = [];
     private readonly Dictionary<string, TItem> _byId = new();
+    private bool _built; // the rows and columns above were built once
+    private IReadOnlyList<TItem>? _builtItems;
+    private int _builtCount;
+    private Func<TItem, string>? _builtIdOf;
+    private PkTableColumn<TItem>[] _builtColumns = [];
 
     [Inject] private IPkLog Log { get; set; } = default!;
 
@@ -197,8 +202,41 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        // The columns and the rows are serialised only when what they are made of changed: the Items list (its reference and its count), the Columns (compared by value, so a
+        // new array with the same columns is no change), IdOf. A parent that re-renders for another reason costs nothing here (5,000 rows: 8.9 MB allocated per parameter set before).
+        // An item changed inside the same list is not seen: pass a new list, or call Refresh().
         var columns = Columns ?? [];
         var items = Items ?? [];
+        if (_built && ReferenceEquals(_builtItems, items) && _builtCount == items.Count && _builtIdOf == IdOf && SameColumns(columns)) return;
+        Rebuild(columns, items);
+    }
+
+    /// <summary>Serialises the rows again from <see cref="Items"/> as they are now and re-renders. Call it after changing an item, or adding or removing items, inside the list that <see cref="Items"/> already holds (a new list needs nothing: it is picked up when the parameters are set).</summary>
+    public void Refresh()
+    {
+        Rebuild(Columns ?? [], Items ?? []);
+        StateHasChanged();
+    }
+
+    private bool SameColumns(IReadOnlyList<PkTableColumn<TItem>> columns)
+    {
+        if (columns.Count != _builtColumns.Length) return false;
+        for (var i = 0; i < _builtColumns.Length; i++)
+            if (!_builtColumns[i].Equals(columns[i])) return false;
+        return true;
+    }
+
+    /// <summary>How many times the rows were serialised (a test reads it).</summary>
+    internal int RebuildCount { get; private set; }
+
+    private void Rebuild(IReadOnlyList<PkTableColumn<TItem>> columns, IReadOnlyList<TItem> items)
+    {
+        RebuildCount++;
+        _built = true;
+        _builtItems = items;
+        _builtCount = items.Count;
+        _builtIdOf = IdOf;
+        _builtColumns = columns.ToArray();
         _cells = columns.Where(c => c.Cell is not null).ToList();
         _columns = PkAttr.Json(columns.Select(c => c.ToColumn()).ToList())!;
 
