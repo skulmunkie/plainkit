@@ -136,6 +136,43 @@ export const toolCases = [
         window.localStorage.removeItem(key);
         editor.destroy();
     }],
+    ['theme editor module: undo and redo walk every change, the Changes tab lists edits against the stylesheet, and resets work per edit and per group', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false });
+        await until(() => host.querySelector('.te-changes'), 'the changes tab'); await t.load(host); await t.settle();
+        const button = label => [...host.querySelectorAll('pk-button')].find(b => b.textContent.trim() === label);
+        const summary = () => host.querySelector('.te-summary').textContent;
+        t.eq(summary(), 'No changes'); t.ok(button('Undo').hasAttribute('disabled') && button('Redo').hasAttribute('disabled'), 'nothing to undo yet');
+        editor.applyPreset('compact'); editor.applyBrand('#e11d74'); await t.settle();
+        t.ok(/^\d+ changes$/.test(summary()) && button('Undo') && !button('Undo').hasAttribute('disabled'), 'changes are counted and Undo is on');
+        const count = Object.keys(editor.overrides().shared).length;
+        t.ok(editor.undo(), 'undo returns true'); await t.settle();
+        t.eq(Object.keys(editor.overrides().dark).length, 0, 'the brand palette is undone');
+        t.eq(Object.keys(editor.overrides().shared).length, count, 'the preset before it is kept');
+        t.ok(!button('Redo').hasAttribute('disabled')); t.ok(editor.redo() && Object.keys(editor.overrides().dark).length > 8, 'redo brings it back');
+        button('Undo').click(); await t.settle();
+        t.eq(Object.keys(editor.overrides().dark).length, 0, 'the Undo button works');
+        editor.undo(); editor.undo(); t.ok(!editor.undo(), 'undo at the start returns false');
+        // typing in one field is one step
+        const row = host.querySelector('[data-token="--color-accent"]'); await t.settle();
+        const field = row.querySelector('pk-colour-input').part('control');
+        for (const v of ['#111111', '#222222', '#333333']) { field.value = v; field.dispatchEvent(new Event('input', { bubbles: true, composed: true })); }
+        await t.settle();
+        t.eq(editor.overrides().dark['--color-accent'], '#333333'); t.eq(summary(), '1 change');
+        editor.undo(); t.eq(editor.overrides().dark['--color-accent'], undefined, 'three keystrokes are one undo step');
+        editor.redo(); await t.settle();
+        const changes = () => [...host.querySelectorAll('.te-change')].map(c => c.dataset.change);
+        t.eq(changes().join(), 'dark --color-accent');
+        t.ok(/#333333/.test(host.querySelector('.te-change').textContent) && /#4e93e3/.test(host.querySelector('.te-change').textContent), 'the diff shows the stylesheet value and the new one');
+        editor.applyBrand('#0d9488'); await t.settle();
+        t.ok(changes().length > 8 && host.querySelector('[data-reset-group="color"]'), 'the palette lists many edits, grouped');
+        host.querySelector('[data-reset-group="color"]').click(); await t.settle();
+        t.ok(changes().every(c => !c.includes('--color-')), 'Reset group clears every colour token');
+        editor.reset(); await t.settle(); t.eq(summary(), 'No changes'); t.ok(editor.undo(), 'Reset all is itself undoable');
+        editor.destroy();
+    }],
     ['theme editor module: blocked storage is logged and saved themes still work until the page closes', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
