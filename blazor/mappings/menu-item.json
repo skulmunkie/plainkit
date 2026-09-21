@@ -59,7 +59,11 @@
       "type": "bool",
       "default": false,
       "map": "prop",
-      "prop": "open"
+      "prop": "open",
+      "bind": {
+        "event": "pk-submenu-toggle",
+        "value": "detail.open"
+      }
     },
     {
       "name": "Description",

@@ -10,7 +10,7 @@ export default Base => class extends Base {
             this.$w = true; this.$s = { buffer: '', at: 0 };
             this.addEventListener('click', e => { if (e.target.closest('pk-menu-item') === this) this.activate(); });
             this.addEventListener('keydown', e => this.key(e));
-            this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest('pk-menu-item') === this && !this.disabled) { this.focus({ preventScroll: true }); if (this.hasAttribute('has-submenu')) this.open = true; } });
+            this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest('pk-menu-item') === this && !this.disabled) { this.focus({ preventScroll: true }); if (this.hasAttribute('has-submenu')) this.setOpen(true); } });
             this.watchSlot('submenu', () => this.toggleAttribute('has-submenu', this.slotted('submenu').length > 0));
             this.watchSlot('description', () => this.describe());
             this.addEventListener('focus', () => this.describe());
@@ -29,6 +29,8 @@ export default Base => class extends Base {
         this.part('description').hidden = !text;
         this.aria({ ariaDescription: text || null });
     }
+    // The one way the item opens or closes its submenu itself: it says so, so a host that mirrors `open` hears it.
+    setOpen(open) { if (this.open !== open) this.emit('pk-submenu-toggle', { open: this.open = open }, { cancelable: false }); }
     layer() {
         const sub = this.part('submenu');
         if (!sub) return;
@@ -37,7 +39,7 @@ export default Base => class extends Base {
     }
     activate() {
         if (this.disabled || this.type === 'header' || this.type === 'divider') return;
-        if (this.hasAttribute('has-submenu')) { this.open = true; subRows(this)[0]?.focus({ preventScroll: true }); return; }
+        if (this.hasAttribute('has-submenu')) { this.setOpen(true); subRows(this)[0]?.focus({ preventScroll: true }); return; }
         const checked = checkedAfter(ROLE[this.type], this.checked);
         if (this.type === 'radio') { for (const r of this.parentElement?.children ?? []) if (r.localName === 'pk-menu-item' && r.type === 'radio') r.checked = r === this; }
         else if (this.type === 'checkbox') this.checked = checked;
@@ -47,7 +49,7 @@ export default Base => class extends Base {
     key(e) {
         if (e.target.closest('pk-menu-item') !== this) {
             // A key inside the submenu: move among its rows, Left / Escape return to this row.
-            if (e.key === 'ArrowLeft' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.open = false; this.focus({ preventScroll: true }); return; }
+            if (e.key === 'ArrowLeft' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setOpen(false); this.focus({ preventScroll: true }); return; }
             moveFocus(e, subRows(this), this.$s);
             if (e.defaultPrevented) e.stopPropagation();
             return;

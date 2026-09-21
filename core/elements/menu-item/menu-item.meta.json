@@ -59,7 +59,8 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "A submenu is open."
+      "commit": "pk-submenu-toggle",
+      "description": "A submenu is open. The item opens and closes it itself (pointer, Enter, Space or Right opens; Left or Escape inside it closes) and raises pk-submenu-toggle; a change the host makes raises nothing."
     },
     {
       "name": "description",
@@ -100,6 +101,14 @@
         "checked": "boolean"
       },
       "description": "Chosen (bubbles to the dropdown)."
+    },
+    {
+      "name": "pk-submenu-toggle",
+      "detail": {
+        "open": "boolean"
+      },
+      "description": "The item opened or closed its submenu itself (pointer, keys); open already has the new value. Not raised for a change the host made.",
+      "cancelable": false
     }
   ],
   "parts": [
