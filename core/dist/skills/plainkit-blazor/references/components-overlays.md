@@ -69,7 +69,9 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-cont
 | `ChildContent` | `RenderFragment?` |  | default slot | Body. |
 | `FooterContent` | `RenderFragment?` |  | slot `footer` | Actions. |
 | `OnClose` | `EventCallback<PkCloseEventArgs>` |  | event `pk-close` | escape, close button or method. |
-| `ShowCloseButton` | `bool` |  | attribute `hide-close` |  |
+| `ShowCloseButton` | `bool` |  | attribute `hide-close` | Hide the header close button (the dialog offers its own Cancel in the footer). False hides the header close button (the opposite of hideClose); give the dialog its own Cancel or Close. |
+| `MaxWidthPx` | `int` |  | attribute `max-width` | Card width in pixels before the viewport clamp; 0 keeps the size preset. |
+| `Tint` | `PkDialogTint` | `None` `Product` `Archived` | attribute `tint` | A tinted card: product (green wash) or archived (red wash). |
 
 Two-way binding: `@bind-IsOpen`.
 
@@ -87,9 +89,7 @@ When you set a named fragment (`HeaderContent`, `FooterContent`), write the body
 |---|---|
 | `CloseButtonLabel` | wrapper behaviour, not a property of the element (The element has no prop for the close button text; it draws a cross with a fixed accessible name (hideClose, mapped as ShowCloseButton, removes it).) |
 | `FooterAlignEnd` | wrapper behaviour, not a property of the element (The footer is always end-aligned; there is nothing to switch.) |
-| `MaxWidthPx` | sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper |
 | `OverFlyout` | wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer, above any flyout.) |
-| `Theme` | type not yet defined in PlainKit.Blazor (issue #9): ModalTheme |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-dialog` in the `plainkit-sdk` skill.
 
@@ -274,8 +274,10 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-popo
 | `TooltipContent` | `RenderFragment?` |  | slot `content` | Rich tip content in place of text. |
 | `LinksContent` | `RenderFragment?` |  | slot `links` | Links shown under the panel text (a doc link, a more link). |
 | `ChildContent` | `RenderFragment?` |  | default slot | The element the tip describes. |
-| `Placement` | `InfoTipPlacement` | `Top` `Bottom` `Left` `Right` | attribute `placement` | Preferred side; flips when it does not fit. |
+| `Placement` | `PkTooltipPlacement` | `Top` `Bottom` `Left` `Right` | attribute `placement` | Preferred side; flips when it does not fit. |
 | `HoverDelay` | `int` |  | attribute `delay` | Mouse hover delay; focus is immediate. |
+| `Help` | `bool` |  | attribute `help` | Draws its own info button as the target (the default slot then holds text that follows it). |
+| `Enrich` | `bool` |  | attribute `enrich` | Underlines the wrapped value with a dotted line to show it has context. |
 | `Title` | `string?` |  | attribute `heading` | A bold heading inside the panel. |
 
 When you set a named fragment (`TooltipContent`, `LinksContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
@@ -286,7 +288,6 @@ When you set a named fragment (`TooltipContent`, `LinksContent`), write the body
 |---|---|
 | `DocLink` | wrapper behaviour, not a property of the element (The element has no link props: links are your own anchors in the links slot (LinksContent), where you choose the text and target.) |
 | `ExternalLink` | wrapper behaviour, not a property of the element (As DocLink.) |
-| `Kind` | type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind |
 | `LoadAsync` | wrapper behaviour, not a property of the element (Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler.) |
 | `OnClick` | wrapper behaviour, not a property of the element (The element has no click event; put a click handler on the element you wrap.) |
 

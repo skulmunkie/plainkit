@@ -6,6 +6,8 @@
 <pk-tooltip text="@Text"
             placement="@(Placement.ToAttr())"
             delay="@PkAttr.Num(HoverDelay)"
+            help="@Help"
+            enrich="@Enrich"
             heading="@Title"
             class="@Css()"
             @attributes="Splat">@if (TooltipContent is not null) {<span slot="content">@TooltipContent</span>}@if (LinksContent is not null) {<span slot="links">@LinksContent</span>}@ChildContent</pk-tooltip>
@@ -24,10 +26,16 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Preferred side; flips when it does not fit.</summary>
-    [Parameter] public InfoTipPlacement Placement { get; set; } = InfoTipPlacement.Top;
+    [Parameter] public PkTooltipPlacement Placement { get; set; } = PkTooltipPlacement.Top;
 
     /// <summary>Mouse hover delay; focus is immediate.</summary>
     [Parameter] public int HoverDelay { get; set; } = 200;
+
+    /// <summary>Draws its own info button as the target (the default slot then holds text that follows it).</summary>
+    [Parameter] public bool Help { get; set; }
+
+    /// <summary>Underlines the wrapped value with a dotted line to show it has context.</summary>
+    [Parameter] public bool Enrich { get; set; }
 
     /// <summary>A bold heading inside the panel.</summary>
     [Parameter] public string? Title { get; set; }

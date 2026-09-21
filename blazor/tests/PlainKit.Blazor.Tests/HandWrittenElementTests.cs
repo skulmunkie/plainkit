@@ -110,7 +110,7 @@ public sealed class HandWrittenElementTests : TestContext
             .Add(x => x.Label, "Revenue")
             .Add(x => x.Value, "$1.2k")
             .Add(x => x.Subtext, "this week")
-            .Add(x => x.Variant, StatCardVariant.Positive)
+            .Add(x => x.Tone, PkStatTone.Positive)
             .Add(x => x.Delta, "4.5")
             .Add(x => x.Invert, true)
             .Add(x => x.Series, new List<double> { 1, 2.5, 3 })

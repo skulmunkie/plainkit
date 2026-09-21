@@ -918,8 +918,8 @@
     },
     {
       "path": "js/theme-editor-logic.js",
-      "bytes": 4156,
-      "integrity": "sha384-+kBShNR76b+TeJ9cLWZeemJCbNUvfHBR60WWnSeMFPDe4vbMx3jWcGS32CKltSI/"
+      "bytes": 5863,
+      "integrity": "sha384-YqgUXaTvKrs7EakQopJSCeWyJn/ycAzp7Z6Zy5R1dPEEptog0IABum2QtBgl5G5R"
     },
     {
       "path": "js/theme.js",
@@ -963,8 +963,8 @@
     },
     {
       "path": "plainkit.css",
-      "bytes": 39178,
-      "integrity": "sha384-jeqR7ELgullVnAPvU9hCYXFujq9xt6bRPNlLahIoP3dUS0Wipu5TcEqR3KFALX7e"
+      "bytes": 39182,
+      "integrity": "sha384-KV4UdEacYPchOiSHIpeXJf79xNy8WccSrT8l+ZB/JO76ju+0Wv0y3RmCxuvILvCG"
     },
     {
       "path": "plainkit.js",
@@ -1003,8 +1003,8 @@
     },
     {
       "path": "skills/plainkit-blazor/SKILL.md",
-      "bytes": 8864,
-      "integrity": "sha384-mNZUkwAgCY0+aDzFiXMsXLeFTcecWLapMcRiKANrb/vh9i2GoxLVw4YLhN33ZHVq"
+      "bytes": 8875,
+      "integrity": "sha384-n5SDPJaAmdfbGHp1Qg4GYArV6uXm0gN11eFIieh5IJJMM/bDsKO7l3HVBXZUKok6"
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
@@ -1013,13 +1013,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-data-display.md",
-      "bytes": 21613,
-      "integrity": "sha384-zrDLZR7fkAN1uekOPcEytFfgPUw77sTgv2Kb/p8fKeWEUWztWuSaGqR23RLLGb2q"
+      "bytes": 21831,
+      "integrity": "sha384-DQyCoEos0+Y/JDPLGKr17vqpFdah6l4CCatAF2Z5tSu83TsaihTp9P3pKz3NWllJ"
     },
     {
       "path": "skills/plainkit-blazor/references/components-feedback.md",
-      "bytes": 10077,
-      "integrity": "sha384-XZXm/hyWCJcKMZp2R06tGf2xsv3ZuPnGkZrNHe+PkTRbXo0SqsstSB8ML8efqfJu"
+      "bytes": 10073,
+      "integrity": "sha384-8u/DD8uDqV0LR91OEYK1JInNWLUfewdKldtlLoblObOjRikZFVdBjRa3Xe/XrdN2"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-controls.md",
@@ -1043,13 +1043,13 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-navigation.md",
-      "bytes": 23156,
-      "integrity": "sha384-6b0NnuV5w4+ebp4esvBatCk9TY8W1WcYgo4hCUGkUtnpSH+jiVcEwZTCTXBqmWuy"
+      "bytes": 23328,
+      "integrity": "sha384-Lv2cVV1QWU9X3mCmw50SN8ytRGcTZRFN6RACONu47nHV3gYdY7bOqhGwdOxUndM/"
     },
     {
       "path": "skills/plainkit-blazor/references/components-overlays.md",
-      "bytes": 18472,
-      "integrity": "sha384-+Q49kzeUoJvkYQIm9Zo2LF6q9zrKz2rThaLdPRRRo9c6Unu8GMaVKqppjp0ICudF"
+      "bytes": 18902,
+      "integrity": "sha384-c423yk0CYvQZ0R4pjpy0abGwx4FPbtysJmhjJyd1otlDu2aDcpvTdr4vkIbItrgI"
     },
     {
       "path": "skills/plainkit-blazor/references/devtools.md",
@@ -1058,8 +1058,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/enums.md",
-      "bytes": 1937,
-      "integrity": "sha384-9O6yBQESM8boxONZNHbaKF17vG4zUDgQZAyKP8kHZTF0Lx5xaK6mmaHlvaZsqIdU"
+      "bytes": 1998,
+      "integrity": "sha384-PMoKXbBYmIgL0mWd/m9NRTh/yxKUTTTja4OV50CD08ny6tesE9RwHEzDYLrFQj9z"
     },
     {
       "path": "skills/plainkit-blazor/references/events.md",
@@ -1068,8 +1068,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/known-gaps.md",
-      "bytes": 4038,
-      "integrity": "sha384-9sixxNyONED177Chdh61fWQE4efU5PO23zROd6dnkps7+qpx/W+VYY/6qBx9HKMV"
+      "bytes": 3432,
+      "integrity": "sha384-+GxdIkQ+cyiztzxA75SbYET+foo1pLfISAjY33ULXDALHihbPLhFNpCSNk3/4fnV"
     },
     {
       "path": "skills/plainkit-blazor/references/logging.md",
@@ -1178,13 +1178,13 @@
     },
     {
       "path": "theme-editor/theme-editor.css",
-      "bytes": 1711,
-      "integrity": "sha384-coiYM4fSo7YQj8a++5b7C7TCk3MIbKZhnigtJPZCTHuNbO0Afju+ZRABnwC+BQbG"
+      "bytes": 1932,
+      "integrity": "sha384-qjIXoLjfP8h+rm2xFTzFob9eRvBvKascd1PFExjEQms9CLnyf94zNvCTgqdyB7eC"
     },
     {
       "path": "theme-editor/theme-editor.js",
-      "bytes": 18978,
-      "integrity": "sha384-af+YmyNqwmBbYl3/3d89vkjHoalzwQOvUZyEvaUpJxbVdIJGCUbpudD41ke0+EOA"
+      "bytes": 19052,
+      "integrity": "sha384-WNeX+vlTdiisPcCJ7vRkLnrBU42jkVp6fxS/E5+QgBDJMdePaekrSgRpKgs/6g41"
     },
     {
       "path": "theme-editor/tokens.css",

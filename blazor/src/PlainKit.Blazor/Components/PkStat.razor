@@ -7,7 +7,7 @@
 <pk-stat label="@Label"
          value="@Value"
          subtext="@Subtext"
-         tone="@Variant.Attr()"
+         tone="@Tone.Attr()"
          delta="@Delta"
          invert="@Invert"
          values="@PkAttr.Json(Series)"
@@ -27,8 +27,8 @@
     /// <summary>A line of text under the value.</summary>
     [Parameter] public string? Subtext { get; set; }
 
-    /// <summary>The colour of the value. <see cref="StatCardVariant.Neutral"/> is the element's default and leaves the attribute off.</summary>
-    [Parameter] public StatCardVariant Variant { get; set; }
+    /// <summary>The colour of the value. <see cref="PkStatTone.Neutral"/> is the element's default and leaves the attribute off.</summary>
+    [Parameter] public PkStatTone Tone { get; set; }
 
     /// <summary>Makes the whole tile one link to this address.</summary>
     [Parameter] public string? Href { get; set; }

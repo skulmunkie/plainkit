@@ -6,6 +6,8 @@
 <pk-dialog open="@IsOpen"
            heading="@Title"
            hide-close="@(!ShowCloseButton)"
+           max-width="@PkAttr.Num(MaxWidthPx)"
+           tint="@(Tint.ToAttr())"
            class="@Css()"
            @attributes="Splat">@if (HeaderContent is not null) {<span slot="header">@HeaderContent</span>}@ChildContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-dialog>
 
@@ -34,6 +36,12 @@
     /// <summary>Hide the header close button (the dialog offers its own Cancel in the footer).</summary>
     /// <remarks>False hides the header close button (the opposite of hideClose); give the dialog its own Cancel or Close.</remarks>
     [Parameter] public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>Card width in pixels before the viewport clamp; 0 keeps the size preset.</summary>
+    [Parameter] public int MaxWidthPx { get; set; } = 0;
+
+    /// <summary>A tinted card: product (green wash) or archived (red wash).</summary>
+    [Parameter] public PkDialogTint Tint { get; set; } = PkDialogTint.None;
 
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers)

@@ -96,8 +96,10 @@ export function csMembers(text, typeName) {
 export function razorParams(text) {
     const src = lf(text);
     const out = [];
-    const re = /(?:\/\/\/ <summary>([\s\S]*?)<\/summary>\s*\n\s*)?\[Parameter[^\]]*\]\s*public\s+(.+?)\s+(\w+)\s*\{\s*get;\s*set;\s*\}(?:\s*=\s*([^;]+);)?/g;
-    for (const m of src.matchAll(re)) out.push({ name: m[3], type: m[2].trim(), default: m[4]?.trim() ?? null, doc: m[1] ? cleanDoc(m[1]) : '' });
+    // A parameter's doc is its <summary>, then an optional <remarks> line. A summary may not run past its own closing tag, or it swallows the
+    // parameter before it (a parameter with a <remarks> line used to vanish and hand its text to the next one).
+    const re = /(?:\/\/\/ <summary>((?:(?!<\/summary>)[\s\S])*)<\/summary>\s*\n(?:\s*\/\/\/ <remarks>((?:(?!<\/remarks>)[\s\S])*)<\/remarks>\s*\n)?\s*)?\[Parameter[^\]]*\]\s*public\s+(.+?)\s+(\w+)\s*\{\s*get;\s*set;\s*\}(?:\s*=\s*([^;]+);)?/g;
+    for (const m of src.matchAll(re)) out.push({ name: m[4], type: m[3].trim(), default: m[5]?.trim() ?? null, doc: [m[1], m[2]].filter(Boolean).map(cleanDoc).join(' ') });
     return out;
 }
 

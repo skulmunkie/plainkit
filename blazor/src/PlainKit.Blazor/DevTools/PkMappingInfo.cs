@@ -74,6 +74,8 @@ public static class PkMappingInfo
         {
             var name = Str(p, "name")!;
             var type = (Str(p, "type") ?? "string").TrimEnd('?');
+            // An untyped mapping takes its type from the element prop; the component is the truth, and a JSON prop is generated as object.
+            if (Str(p, "type") is null && typeof(PkMappingInfo).Assembly.GetType($"PlainKit.Blazor.{component}")?.GetProperty(name)?.PropertyType == typeof(object)) type = "object";
             var prop = Str(p, "prop");
             var reason = Find(manifest, "notGenerated", e => Str(e, "component") == component && Str(e, "param") == name) is { } ng ? Str(ng, "reason") : null;
             // A type the repository does not define yet (issue #9) is generated as object.

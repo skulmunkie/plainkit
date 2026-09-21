@@ -10,12 +10,13 @@ A parameter whose element prop has a fixed set of values is an enum; each member
 |---|---|---|
 | `ButtonSize` | `Md` `Mini` `Lg` | `PkButton` |
 | `ButtonVariant` | `Primary` `Ghost` `Warn` `Secondary` `Plain` | `PkButton` |
-| `InfoTipPlacement` | `Top` `Bottom` `Left` `Right` | `PkTooltip` |
 | `MenuitemType` | `Item` `Checkbox` `Radio` `Header` `Divider` | `PkMenuItem` |
-| `NoticeKind` | `Error` `Warning` `Info` `Success` | `PkAlert` |
 | `PaginationMode` | `Numbered` `Simple` `LoadMore` | `PkPagination` |
+| `PkAlertKind` | `Error` `Warning` `Info` `Success` | `PkAlert` |
+| `PkDialogTint` | `None` `Product` `Archived` | `PkDialog` |
 | `PkTabOnly` | `All` `Phone` `Desktop` | `PkTab` |
 | `PkTabsActivation` | `Auto` `Manual` | `PkTabs` |
+| `PkTooltipPlacement` | `Top` `Bottom` `Left` `Right` | `PkTooltip` |
 | `PopoverTrigger` | `Click` `Hover` `Manual` | `PkPopover` |
 | `PopoverVariant` | `Default` `Confirm` | `PkPopover` |
 | `StepOrientation` | `Horizontal` `Vertical` | `PkStep` |
@@ -31,7 +32,7 @@ A parameter whose element prop has a fixed set of values is an enum; each member
 | `PkTheme` | `Auto` `Dark` `Light` |
 | `PkWidth` | `Desktop` `Phone` |
 | `PkChrome` | `None` `Full` |
-| `StatCardVariant` | `Neutral` `Positive` `Warning` `Critical` |
+| `PkStatTone` | `Neutral` `Positive` `Warning` `Critical` |
 | `PkGalleryKind` | `All` `Foundations` `Controls` `Elements` `Layouts` `Templates` |
 | `PkDevToolsMode` | `Dock` `Inline` |
 | `PkDevToolsSize` | `Medium` `Small` `Large` |

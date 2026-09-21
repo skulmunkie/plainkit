@@ -30,19 +30,10 @@ Behaviour of the old wrappers that is not a property of the element. They are no
 | `PkTooltip` | `LoadAsync` | wrapper behaviour, not a property of the element (Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler.) |
 | `PkTooltip` | `OnClick` | wrapper behaviour, not a property of the element (The element has no click event; put a click handler on the element you wrap.) |
 
-## Parameters set through a CSS custom property (1), not generated
+## Parameters set through a CSS custom property (0), not generated
 
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `MaxWidthPx` | sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper |
 
-## Parameters whose type is not defined yet (4)
+
+## Parameters whose type is not defined yet (0)
 
 Not generated until the type exists.
-
-| Component | Parameter | Why |
-|---|---|---|
-| `PkDialog` | `Theme` | type not yet defined in PlainKit.Blazor (issue #9): ModalTheme |
-| `PkTooltip` | `Kind` | type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind |
-| `PkChart` | `Data` | type not yet defined in PlainKit.Blazor (issue #9): ChartData |
-| `PkImageGallery` | `Images` | type not yet defined in PlainKit.Blazor (issue #9): GalleryImage |

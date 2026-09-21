@@ -62,17 +62,11 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-badg
 | `Kind` | `string?` |  | attribute `kind` | Chart type. |
 | `Caption` | `string?` |  | attribute `caption` | Title (figcaption). |
 | `Height` | `int` |  | attribute `height` | viewBox height of bar and line charts. |
-| `Data` | `object?` |  | attribute `data` | Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }. |
+| `Data` | `object?` |  | attribute `data` | Data as a property instead of a table: { labels: string[], series: { name, values: number[] }[] }. Pass a PkChartData: { Labels, Series: [{ Name, Values }] }. It is sent as a JSON attribute (camelCase) and replaces the slotted table. |
 | `CaptionContent` | `RenderFragment?` |  | slot `caption` | A rich caption; overrides caption. |
 | `ChildContent` | `RenderFragment?` |  | default slot | A table: the first column holds labels, each further column a series. A cell may carry data-value. |
 
 When you set a named fragment (`CaptionContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
-
-**Type not defined yet**
-
-| Parameter | Why |
-|---|---|
-| `Data` | type not yet defined in PlainKit.Blazor (issue #9): ChartData |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-chart` in the `plainkit-sdk` skill.
 
@@ -165,7 +159,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-icon
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Images` | `object?` |  | attribute `images` | The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown. |
+| `Images` | `object?` |  | attribute `images` | The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown. Pass an IReadOnlyList<PkGalleryImage>: sent as a JSON attribute ([{ src, alt, primary, status }]). |
 | `Primary` | `int` |  | attribute `primary` | The index of the primary image; -1 uses the first image flagged primary in images, or none. |
 | `PrimaryChanged` | `EventCallback<int>` |  | two-way pair of `Primary` | Raised when Primary changes (two-way binding: `@bind-Primary`). |
 | `Columns` | `int` |  | attribute `columns` | A fixed number of equal columns (1 to 12). 0 fits as many as min allows. |
@@ -186,12 +180,6 @@ Two-way binding: `@bind-Primary`.
 | `pk-add` | `PkAddEventArgs` | Files: PkFileInfo[]?, Names: string[]? |
 | `pk-primary-change` | `PkPrimaryChangeEventArgs` | Index: double?, Src: string?, Previous: double? |
 | `pk-remove` | `PkRemoveEventArgs` | Index: double?, Src: string?, Value: string? |
-
-**Type not defined yet**
-
-| Parameter | Why |
-|---|---|
-| `Images` | type not yet defined in PlainKit.Blazor (issue #9): GalleryImage |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-image-gallery` in the `plainkit-sdk` skill.
 
@@ -240,7 +228,8 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-loca
 | `Caption` | `string?` |  | attribute `caption` | Figure caption. |
 | `Lightbox` | `bool` |  | attribute `lightbox` | The box becomes a button that fires pk-open. |
 | `Square` | `bool` |  | attribute `square` | Square corners. |
-| `ChildContent` | `RenderFragment?` |  | default slot | A lightbox request. Cancel if you handle it yourself. The event can be cancelled in the browser (preventDefault); a callback cannot cancel it. [Parameter] public EventCallback<PkOpenEventArgs> OnOpen { get; set; } An img, picture, video or svg. |
+| `OnOpen` | `EventCallback<PkOpenEventArgs>` |  | event `pk-open` | A lightbox request. Cancel if you handle it yourself. The event can be cancelled in the browser (preventDefault); a callback cannot cancel it. |
+| `ChildContent` | `RenderFragment?` |  | default slot | An img, picture, video or svg. |
 | `CaptionContent` | `RenderFragment?` |  | slot `caption` | A rich caption; overrides caption. |
 
 When you set a named fragment (`CaptionContent`), write the body as an explicit `<ChildContent>` tag too: Razor does not allow an implicit body next to a named fragment.
@@ -266,7 +255,7 @@ Hand-written component (not generated).
 | `Label` | `string?` |  | attribute `label` | What the number measures. |
 | `Value` | `string?` |  | attribute `value` | The headline value, as text (format it yourself). |
 | `Subtext` | `string?` |  | attribute `subtext` | A line of text under the value. |
-| `Variant` | `StatCardVariant` | `Neutral` `Positive` `Warning` `Critical` | attribute `tone` | The colour of the value. Neutral is the element's default and leaves the attribute off. |
+| `Tone` | `PkStatTone` | `Neutral` `Positive` `Warning` `Critical` | attribute `tone` | The colour of the value. Neutral is the element's default and leaves the attribute off. |
 | `Href` | `string?` |  | attribute `href` | Makes the whole tile one link to this address. |
 | `Delta` | `string?` |  | attribute `delta` | The percent change, for example `12.5` or `-3`; the element draws the arrow and the signed percentage. |
 | `Invert` | `bool` |  | attribute `invert` | Down is good news (costs, returns): swaps the trend colours. |
@@ -304,7 +293,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-stat
 | `Disabled` | `bool` |  | attribute `disabled` | Dim the tag and disable the button. |
 | `Controlled` | `bool` |  | attribute `controlled` | The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper. |
 | `ChildContent` | `RenderFragment?` |  | default slot | The label. |
-| `OnRemove` | `EventCallback<PkRemoveEventArgs>` |  | event `pk-remove` |  |
+| `OnRemove` | `EventCallback<PkRemoveEventArgs>` |  | event `pk-remove` | The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it. The event can be cancelled in the browser (preventDefault); a callback cannot cancel it. |
 
 **Event args**
 

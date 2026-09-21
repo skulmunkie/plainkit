@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseTokenBlocks } from '../js/theme.js';
 import { build } from '../tools/build.mjs';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries } from '../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
 
@@ -60,6 +60,31 @@ test('an element target receives shared overrides under the theme own, and only 
     const o = { shared: { '--color-accent': '#111111', '--radius-md': '4px' }, dark: { '--color-accent': '#222222', 'BAD': 'x' }, light: { '--color-accent': '#333333', '--x-y': 'url(evil)' } };
     assert.deepEqual(inlineEntries(o, 'dark'), { '--color-accent': '#222222', '--radius-md': '4px' });
     assert.deepEqual(inlineEntries(o, 'light'), { '--color-accent': '#333333', '--radius-md': '4px' });
+});
+
+test('importing text that is neither JSON nor CSS is an error, so the caller keeps the overrides', () => {
+    for (const text of ['hello world', 'not { json', '{ broken', '[1,2]', '   ', '{"foo":1}', 'p { color: red; }', ':root { }', '{"shared":{"BAD":"x","--a-b":"url(evil)"}}'])
+        assert.ok(readImport(text).error, `${JSON.stringify(text)} is refused`);
+    assert.equal(readImport('hello').overrides, undefined);
+});
+
+test('importing JSON or an override CSS block returns the sanitised overrides', () => {
+    const json = readImport('{"shared":{"--radius-md":"4px"},"dark":{"--color-accent":"#111111"},"light":{}}');
+    assert.deepEqual(json.overrides, { shared: { '--radius-md': '4px' }, dark: { '--color-accent': '#111111' }, light: {} });
+    const css = readImport(':root, [data-theme="dark"] { --color-accent: #222222; }\n[data-theme="light"] { --color-accent: #333333; }');
+    assert.deepEqual(css.overrides, { shared: {}, dark: { '--color-accent': '#222222' }, light: { '--color-accent': '#333333' } });
+});
+
+test('an explicit empty JSON section list is the way to clear the overrides', () => {
+    assert.deepEqual(readImport('{"shared":{},"dark":{},"light":{}}').overrides, emptyOverrides());
+});
+
+test('the theme editor module reports a refused import through the alert and the logger at warn, and only then replaces the overrides', () => {
+    const src = fs.readFileSync(new URL('../modules/theme-editor/theme-editor.js', import.meta.url), 'utf8');
+    const body = src.slice(src.indexOf('function importText'), src.indexOf('// ---- events'));
+    assert.match(body, /readImport\(text\)/);
+    assert.ok(body.indexOf('log.warn') < body.indexOf('state.overrides ='), 'the refusal returns before the overrides are replaced');
+    assert.match(body, /note\('error', read\.error\); return;/);
 });
 
 test('dist/theme-editor ships its own token stylesheet and the module reads it from its own folder', () => {

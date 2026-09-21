@@ -31,10 +31,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - Changed: every Blazor component takes the attributes it has no parameter for (`id`, `data-*`, `aria-*`, `class`, ...) and puts them on its element, so `<PkButton id="x" data-test="y" aria-label="z">` works instead of throwing; a `class` is merged with the component's own (`ExtraClass` on the components that list it). `AdditionalAttributes` now lives once in `PkElementBase` (issue #44).
 - Changed: the generated components build their `pk-*` event-handler dictionary once (`AddEventHandlers`, called by `PkElementBase`) instead of on every parameter change; a parameter change allocates only when the caller passed extra attributes.
 
+- Added: PlainKit.Blazor types for structured parameters (issue #9): `PkChartData` / `PkChartSeries` (`PkChart.Data`), `PkGalleryImage` (`PkImageGallery.Images`) and `PkTableColumn` with `PkTableColumnType` / `PkTableColumnAlign` (the table's `columns`), each sent as a camelCase JSON attribute; bUnit tests in `TypedParameterTests`. The generator emits these parameters as `object?` (it types a JSON parameter only for simple values), so the mappings carry a note naming the type instead of a `todo`; no mapping has a `todo` marker left.
+- Added: `readImport` in `js/theme-editor-logic.js` and a test that `core/tests/privacy.test.mjs` fails on type names from the application the components were extracted from, in `core/` and in the Blazor sources, mappings, tests and README.
+
+### Changed
+
+- Changed: Blazor mappings use the element's real props instead of app-era types: `PkAlert.Kind` is `PkAlertKind`, `PkTooltip.Placement` is `PkTooltipPlacement`, `PkDialog` gets `Tint` (`PkDialogTint`, the element's `tint`) and `MaxWidthPx` (the element's `maxWidth`), `PkTooltip` gets `Help` and `Enrich` (booleans) and `Title` (`heading`), and the unbuilt `PkStat` and `PkTable` mappings name `Tone` (`PkStatTone`) and `Cards` (bool). Breaking for code using the earlier alpha's `NoticeKind` or `InfoTipPlacement` enums.
+- Changed: the dock's Theme tab keeps room under its last row so the dev tools launcher does not cover a control (checked at 375px, dark and light).
+
 ### Fixed
 
 - Fixed: `pk-tooltip` and `pk-tag` no longer write into nodes a host such as Blazor renders (ownership audit, rule 3): the tooltip adds no light-DOM node, and a `controlled` tag leaves its removal to the host.
 - Fixed: `pk-combobox`, `pk-command-palette` and `pk-code-block` opened, closed or toggled a two-way prop without raising an event (see Added). `pk-combobox` also drops a stale search text after choosing an option.
+- Fixed: the theme editor's Import reported "Imported" and cleared every override for text that was neither JSON nor CSS (or held no usable token); it now shows an error in its alert, logs a warning through the SDK logger and leaves the overrides untouched. An explicit `{"shared":{},"dark":{},"light":{}}` still clears.
 - Fixed: `pk-select`, `pk-radio-group` and `pk-combobox` wired their inner listeners again every time they were moved in the DOM, so a change event fired twice after a reconnect; they now wire once.
 - Fixed: `pk-breadcrumb`, `pk-side-nav` and `pk-workspace` never removed their `matchMedia` listener, which kept a removed element alive; it is now removed in `disconnected()`. `pk-toc` removes its scroll listener from the element it was added to (also when `scroller` changes) and cancels its pending frame.
 - Fixed: `pk-split-button`, `pk-nav-item` and `pk-context-menu` lost their outside-click dismissal when re-attached while open; `pk-local-time` no longer starts its refresh timer on a detached element; the code explorer no longer keeps a change-feed subscription that resolves after it was disconnected.

@@ -344,9 +344,8 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     for (const c of ['PkTable']) { assert.ok(skill.includes(`\`${c}\``), c); assert.ok(gaps.includes(`\`${c}\``), c); }
     // PkCard, PkEmptyState, PkFieldList and PkStat are hand-written now, so they are not in the "does not exist" list.
     for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.manifest.skipped.some(s => s.component === c && s.handWritten), `${c} is hand-written`);
-    assert.match(skill, /\b12 wrapper-only parameters\b/);
     const wrapper = src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour'));
-    assert.equal(wrapper.length, 12);
+    assert.match(skill, new RegExp(String.raw`\b${wrapper.length} wrapper-only parameters\b`));
     for (const n of wrapper) assert.ok(gaps.includes(`\`${n.param}\``), n.param);
     for (const t of src.manifest.typesToDefine) assert.ok(gaps.includes(`\`${t.param}\``), t.param);
     // The parameters the SKILL.md names as missing are the ones the manifest lists as not generated.
@@ -467,4 +466,24 @@ test('the parsers read the C# and JavaScript sources', () => {
     assert.equal(csMembers('public sealed class C\n{\n    /// <summary>Does <c>x</c>.</summary>\n    public int X { get; set; }\n}\n', 'C')[0].doc, 'Does `x`.');
     assert.equal(headerComment('// one\n// two\ncode();\n// no'), 'one\ntwo');
     assert.ok(csEventArgs(read(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated', 'PkGeneratedEvents.cs'))).length > 20);
+});
+
+test('razorParams reads every [Parameter], including one whose doc has a remarks line, and never hands its text to the next', () => {
+    const src = [
+        '    /// <summary>Hide it.</summary>',
+        '    /// <remarks>False hides it.</remarks>',
+        '    [Parameter] public bool Show { get; set; } = true;',
+        '',
+        '    /// <summary>Card width.</summary>',
+        '    [Parameter] public int Width { get; set; } = 0;',
+        '',
+        '    [Parameter] public string? Bare { get; set; }',
+    ].join('\n');
+    assert.deepEqual(razorParams(src).map(p => [p.name, p.doc]), [['Show', 'Hide it. False hides it.'], ['Width', 'Card width.'], ['Bare', '']]);
+    // and against the real components: no [Parameter] goes missing from the parsed list
+    const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
+    for (const f of fs.readdirSync(dir).filter(n => n.endsWith('.razor'))) {
+        const text = read(path.join(dir, f));
+        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\]( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
+    }
 });

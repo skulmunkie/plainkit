@@ -147,18 +147,6 @@
       ]
     },
     {
-      "name": "InfoTipPlacement",
-      "members": [
-        "Top",
-        "Bottom",
-        "Left",
-        "Right"
-      ],
-      "usedBy": [
-        "PkTooltip"
-      ]
-    },
-    {
       "name": "MenuitemType",
       "members": [
         "Item",
@@ -172,7 +160,18 @@
       ]
     },
     {
-      "name": "NoticeKind",
+      "name": "PaginationMode",
+      "members": [
+        "Numbered",
+        "Simple",
+        "LoadMore"
+      ],
+      "usedBy": [
+        "PkPagination"
+      ]
+    },
+    {
+      "name": "PkAlertKind",
       "members": [
         "Error",
         "Warning",
@@ -184,14 +183,14 @@
       ]
     },
     {
-      "name": "PaginationMode",
+      "name": "PkDialogTint",
       "members": [
-        "Numbered",
-        "Simple",
-        "LoadMore"
+        "None",
+        "Product",
+        "Archived"
       ],
       "usedBy": [
-        "PkPagination"
+        "PkDialog"
       ]
     },
     {
@@ -213,6 +212,18 @@
       ],
       "usedBy": [
         "PkTabs"
+      ]
+    },
+    {
+      "name": "PkTooltipPlacement",
+      "members": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "usedBy": [
+        "PkTooltip"
       ]
     },
     {
@@ -337,18 +348,7 @@
     "pk-value-change",
     "pk-wrap-change"
   ],
-  "typesToDefine": [
-    {
-      "component": "PkChart",
-      "param": "Data",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ChartData"
-    },
-    {
-      "component": "PkImageGallery",
-      "param": "Images",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): GalleryImage"
-    }
-  ],
+  "typesToDefine": [],
   "notGenerated": [
     {
       "component": "PkAppShell",
@@ -372,18 +372,8 @@
     },
     {
       "component": "PkDialog",
-      "param": "MaxWidthPx",
-      "reason": "sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper"
-    },
-    {
-      "component": "PkDialog",
       "param": "OverFlyout",
       "reason": "wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer, above any flyout.)"
-    },
-    {
-      "component": "PkDialog",
-      "param": "Theme",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ModalTheme"
     },
     {
       "component": "PkDrawer",
@@ -409,11 +399,6 @@
       "component": "PkTooltip",
       "param": "ExternalLink",
       "reason": "wrapper behaviour, not a property of the element (As DocLink.)"
-    },
-    {
-      "component": "PkTooltip",
-      "param": "Kind",
-      "reason": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind"
     },
     {
       "component": "PkTooltip",

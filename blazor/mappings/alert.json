@@ -3,7 +3,7 @@
   "params": [
     {
       "name": "Kind",
-      "type": "NoticeKind",
+      "type": "PkAlertKind",
       "enum": {
         "Error": "danger",
         "Warning": "warning",
@@ -12,8 +12,7 @@
       },
       "default": "Error",
       "map": "prop",
-      "prop": "kind",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): NoticeKind"
+      "prop": "kind"
     },
     {
       "name": "Title",

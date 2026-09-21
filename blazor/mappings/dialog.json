@@ -65,9 +65,8 @@
     {
       "name": "MaxWidthPx",
       "type": "int",
-      "map": "cssProperty",
-      "cssProperty": "--pk-dialog-w",
-      "format": "{0}px"
+      "map": "prop",
+      "prop": "maxWidth"
     },
     {
       "name": "OverFlyout",
@@ -76,11 +75,16 @@
       "note": "Not needed: a native dialog is in the top layer, above any flyout."
     },
     {
-      "name": "Theme",
-      "type": "ModalTheme",
-      "map": "wrapper",
-      "note": "The element has no product or archived tint.",
-      "todo": "type not yet defined in PlainKit.Blazor (issue #9): ModalTheme"
+      "name": "Tint",
+      "type": "PkDialogTint",
+      "map": "prop",
+      "prop": "tint",
+      "enum": {
+        "None": "none",
+        "Product": "product",
+        "Archived": "archived"
+      },
+      "default": "None"
     }
   ]
 }

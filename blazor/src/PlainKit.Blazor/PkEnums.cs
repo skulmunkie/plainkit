@@ -30,7 +30,7 @@ public enum PkChrome
 }
 
 /// <summary>The colour of a <see cref="PkStat"/> value. <see cref="Neutral"/> is the element's default.</summary>
-public enum StatCardVariant
+public enum PkStatTone
 {
     /// <summary>The default colour.</summary>
     Neutral,

@@ -11,8 +11,8 @@ This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
 - **Not verified:** Blazor WebAssembly. It has not been run in a WebAssembly host, so treat it as untested there (the Files tool is server-side only by design).
 - **Not yet available as a component (1):** `PkTable` (the data grid), whose API is being reworked first. Its element works as plain `<pk-table>` markup. `PkCard`, `PkEmptyState`, `PkFieldList` and `PkStat` are hand-written in `Components/` and available.
-- **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` is not available either: it needs an inline style, which the CSP blocks, and a per-render interop call would break the ownership rules. Set the `--pk-dialog-w` custom property in your stylesheet instead (`pk-dialog#my-dialog { --pk-dialog-w: 48rem; }`).
-- **Parameters with a type not defined yet (4, issue #9):** `PkChart.Data` and `PkImageGallery.Images` (not generated), `PkDialog.Theme` and `PkTooltip.Kind` (not generated).
+- **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
+- **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
 
 The full list is in [`Generated/generated.manifest.json`](Generated/generated.manifest.json) (a repository file, not part of the package) and `node scripts/generate-blazor.mjs --list`.
 
@@ -26,14 +26,26 @@ How each SDK element becomes a component (its `Pk` name, parameters, slots and e
 
 | The element has | The component gets |
 |---|---|
-| a prop | a `[Parameter]` sent as an attribute: `bool` is present or absent, numbers use the invariant culture, dates are ISO strings, structures are JSON. A prop with a fixed set of values is an enum (`ButtonVariant`, `NoticeKind`, ...); a null enum or a nullable number is left off, so the element's own default applies |
+| a prop | a `[Parameter]` sent as an attribute: `bool` is present or absent, numbers use the invariant culture, dates are ISO strings, structures are JSON. A prop with a fixed set of values is an enum (`ButtonVariant`, `PkAlertKind`, ...); a null enum or a nullable number is left off, so the element's own default applies |
 | a slot | a `RenderFragment` (`ChildContent` for the default slot; a named slot is rendered as `<span slot="name">`) |
 | an event | an `EventCallback`, or `EventCallback<PkXxxEventArgs>` when the event carries a detail (`pk-value-change` gives `PkValueChangeEventArgs`); `click` gives `MouseEventArgs` |
 | a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen` (a `...Changed` callback next to it) |
 
 A component takes its listed parameters, and every other attribute (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, so `<PkButton id="save" data-test="x" aria-label="Save">` works. A `class` is added to the component's own classes (the components that list `ExtraClass` combine both). An inline `style` is blocked by the CSP: use a class. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own.
 
-What is not generated is listed in [`Generated/generated.manifest.json`](Generated/generated.manifest.json): components whose mapping says `existing` (`PkGallery`, `PkCard`, `PkEmptyState`, `PkFieldList` and `PkStat` are hand-written in `Components/`; `PkTable` is not in this package yet), parameters that need a type this repository does not define yet (issue #9), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+What is not generated is listed in [`Generated/generated.manifest.json`](Generated/generated.manifest.json): components whose mapping says `existing` (`PkGallery` is hand-written in `Components/`; `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable` are not in this package yet), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+
+## Types for structured parameters
+
+An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The generator types a JSON parameter only when it holds simple values, so these parameters are declared `object?`: pass the record (or a list of them) and it is serialised for you.
+
+| Parameter | Pass | Sent as |
+|---|---|---|
+| `PkChart.Data` | `PkChartData { Labels, Series = [PkChartSeries { Name, Values }] }` | `data="{&quot;labels&quot;:[...],&quot;series&quot;:[{&quot;name&quot;:...,&quot;values&quot;:[...]}]}"` |
+| `PkImageGallery.Images` | `IReadOnlyList<PkGalleryImage>` (`Src`, `Alt`, `Primary`, `Status`) | `images="[{&quot;src&quot;:...,&quot;alt&quot;:...}]"` |
+| the table's columns | `IReadOnlyList<PkTableColumn>` (`Key`, `Label`, `Type`, `Align`, `Sortable`, `HidePhone`) | `columns="[{&quot;key&quot;:...,&quot;label&quot;:...}]"`; the enums serialise as the element's values (`number`, `end`) |
+
+Fields left at their default are left out of the JSON. Two former parameters became plain element props: `PkDialog.Tint` (`PkDialogTint`: none, product, archived) and the tooltip's `Help` and `Enrich` (booleans) replace the old theme and kind enums. `PkTooltip.Placement` is `PkTooltipPlacement`.
 
 ## Set up
 

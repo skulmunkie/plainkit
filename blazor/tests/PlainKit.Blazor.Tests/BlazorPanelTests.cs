@@ -186,7 +186,7 @@ public sealed class BlazorPanelTests : TestContext
     {
         var info = PkMappingInfo.Describe("pk-alert", attributes: Attrs(("kind", "danger")), text: "Oops")!;
 
-        Assert.Equal("<PkAlert Kind=\"NoticeKind.Error\">Oops</PkAlert>", info.Markup);
+        Assert.Equal("<PkAlert Kind=\"PkAlertKind.Error\">Oops</PkAlert>", info.Markup);
         Assert.Contains(info.Parameters, p => p is { Name: "Dismissible", Default: null });
     }
 

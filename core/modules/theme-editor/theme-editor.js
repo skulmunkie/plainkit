@@ -14,8 +14,8 @@
 // Returns { export(), overrides(), setTheme(name), reset(), destroy() }. The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
-import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, parseOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries } from '../../js/theme-editor-logic.js';
+import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -232,8 +232,9 @@ export async function mountThemeEditor(container, options = {}) {
     }
 
     function importText(text) {
-        const parsed = parseOverrides(text);
-        if (!parsed) { note('error', 'Not JSON and not an override CSS block.'); return; }
+        const read = readImport(text);
+        if (read.error) { log.warn(`import refused, the overrides are unchanged: ${read.error}`); note('error', read.error); return; }
+        const parsed = read.overrides;
         state.overrides = { shared: parsed.shared, dark: parsed.dark, light: parsed.light };
         note('success', 'Imported.');
         apply(); paintList(); paintPairs();

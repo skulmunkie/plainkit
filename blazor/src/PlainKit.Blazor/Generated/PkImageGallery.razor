@@ -15,6 +15,7 @@
 
 @code {
     /// <summary>The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown.</summary>
+    /// <remarks>Pass an IReadOnlyList&lt;PkGalleryImage&gt;: sent as a JSON attribute ([{ src, alt, primary, status }]).</remarks>
     [Parameter] public object? Images { get; set; }
 
     /// <summary>The index of the primary image; -1 uses the first image flagged primary in images, or none.</summary>

@@ -33,14 +33,14 @@
 
     @* Unmatched attributes (id, data-*, aria-*, class) go on the element; the hand-written PkCard, PkEmptyState, PkFieldList and PkStat. *@
     <PkButton id="pass-button" data-test="y" aria-label="Passthrough" class="mine" Variant="ButtonVariant.Secondary">Passthrough</PkButton>
-    <PkAlert id="pass-alert" ExtraClass="extra" class="mine" Kind="NoticeKind.Info" Boxed="false" Compact="true">A plain, compact alert</PkAlert>
+    <PkAlert id="pass-alert" ExtraClass="extra" class="mine" Kind="PkAlertKind.Info" Boxed="false" Compact="true">A plain, compact alert</PkAlert>
 
     <PkCard id="card" Heading="A card" Level="3">
         <ChildContent>Card body</ChildContent>
         <ActionsContent><PkButton>Edit</PkButton></ActionsContent>
         <FooterContent>Card footer</FooterContent>
     </PkCard>
-    <PkStat id="stat" Label="Revenue" Value="$1.2k" Delta="4.5" Variant="StatCardVariant.Positive" Series="@(new double[] { 1, 3, 2, 5 })" Interactive="true" OnClick="OnStat" />
+    <PkStat id="stat" Label="Revenue" Value="$1.2k" Delta="4.5" Tone="PkStatTone.Positive" Series="@(new double[] { 1, 3, 2, 5 })" Interactive="true" OnClick="OnStat" />
     <p>Stat clicks: <code id="out-stat">@_stats</code></p>
     <PkFieldList id="fields" Title="Details" Dividers="true">
         <dt>Name</dt><dd>Ada</dd>
