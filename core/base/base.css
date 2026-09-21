@@ -71,8 +71,7 @@ a:not([class]):hover {
     display: none !important;
 }
 
-/* Base rhythm. Every rule is wrapped in :where() so it has ZERO specificity: it gives raw content sensible spacing by default and
-   any component or page rule that sets its own margin simply wins. Roles come from tokens.css (--gap-heading, --space-*). */
+/* Base rhythm: every rule is in :where() (zero specificity), so any component or page margin wins. Roles: tokens.css (--gap-heading, --space-*). */
 
 :where(h1, h2, h3, h4, h5, h6) {
     margin-block: 0 var(--gap-heading);
