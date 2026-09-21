@@ -316,4 +316,4 @@
 :root { --ctl-h: 2.5rem; }
 :root,
 [data-theme="dark"] { color-scheme: dark; --field-error: var(--color-notice-error); --field-warn: var(--stat-card-warning-fg); --field-ok: var(--stat-card-positive-fg); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
-[data-theme="light"] { color-scheme: light; --field-error: #b91c1c; --color-notice-error: var(--field-error); --field-warn: #92400e; --field-ok: #15803d; --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }}
+[data-theme="light"] { color-scheme: light; --field-error: #b91c1c; --color-notice-error: var(--field-error); --field-warn: #92400e; --field-ok: #15803d; --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
