@@ -100,6 +100,8 @@ export function checkPr(changed, env = {}) {
     if (env.PK_NO_CHANGELOG) return { ok: true, reason: 'PK_NO_CHANGELOG is set (label no-changelog)' };
     const code = changed.filter(c => !isDocsOnly(c.path));
     if (!code.length) return { ok: true, reason: 'docs-only change' };
+    // A release pull request (core/VERSION changed) compiles the fragments into CHANGELOG.md, so it has none of its own by design.
+    if (changed.some(c => c.path === 'core/VERSION')) return { ok: true, reason: 'release pull request (core/VERSION changed): it compiles the fragments' };
     const added = changed.some(c => c.status.startsWith('A') && c.path.startsWith(FRAGMENT_DIR + '/') && !c.path.endsWith('.gitkeep'));
     if (added) return { ok: true, reason: 'adds a fragment' };
     return { ok: false, reason: `changes ${code.length} file(s) outside the docs-only paths (first: ${code[0].path}) and adds no fragment in ${FRAGMENT_DIR}/. Run: node scripts/changelog.mjs new <type> <slug> --issue N, or label the pull request no-changelog with the reason.` };
