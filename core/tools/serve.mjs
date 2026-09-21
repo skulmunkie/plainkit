@@ -26,10 +26,27 @@ const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 const baseArg = process.argv.find(a => a.startsWith('--base='));
 const base = baseArg ? '/' + baseArg.slice(7).replace(/^\/+|\/+$/g, '') : '';
 const writeReports = process.argv.includes('--write-reports');
+// A development server: it listens on the loopback address only (--host=0.0.0.0 to reach it from a phone on the same network) and answers only requests whose Host
+// header names this machine, so a web page on another site cannot reach it through the visitor's browser (DNS rebinding).
+const hostArg = process.argv.find(a => a.startsWith('--host='));
+const host = hostArg ? hostArg.slice(7) : '127.0.0.1';
+const localHost = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+
+// The file a URL path names, or null when it would leave the SDK folder: the path is resolved and must stay inside root (a sibling folder that merely starts with
+// the same characters, such as core-old, is outside), and a backslash or NUL is refused before the file system sees it.
+function fileFor(pathname) {
+    if (/[\\\0]/.test(pathname)) return null;
+    const file = path.resolve(root, '.' + pathname);
+    const relative = path.relative(root, file);
+    return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative)) ? file : null;
+}
 
 http.createServer((req, res) => {
+    if (!hostArg && !localHost.test(req.headers.host ?? '')) { res.writeHead(403).end('forbidden host'); return; }
     // Dev only: --write-reports lets the scorecard page store its sweep results next to the other reports.
     if (writeReports && req.method === 'POST' && req.url.startsWith('/__report')) {
+        // Same origin only: a form or fetch from another site carries its own Origin and must not write into the repository.
+        if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) { res.writeHead(403).end('cross-origin'); return; }
         let body = '';
         req.on('data', c => { body += c; if (body.length > 5_000_000) req.destroy(); });
         req.on('end', () => {
@@ -50,16 +67,17 @@ http.createServer((req, res) => {
         });
         return;
     }
-    let pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    let pathname;
+    try { pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400).end('bad request'); return; }
     if (base) {
         if (pathname !== base && !pathname.startsWith(base + '/')) { res.writeHead(404).end('not found'); return; }
         pathname = pathname.slice(base.length) || '/';
     }
-    let file = path.join(root, pathname);
-    if (!file.startsWith(root)) { res.writeHead(403).end(); return; }
+    let file = fileFor(pathname);
+    if (!file) { res.writeHead(403).end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, data) => {
         if (err) { res.writeHead(404).end('not found'); return; }
         res.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store', ...(csp ? { 'content-security-policy': csp } : {}) }).end(data);
     });
-}).listen(port, () => console.log(`SDK site on http://localhost:${port}/`));
+}).listen(port, host, () => console.log(`SDK site on http://${host === '127.0.0.1' ? 'localhost' : host}:${port}/`));
