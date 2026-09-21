@@ -1,0 +1,174 @@
+---
+name: plainkit-blazor
+description: Build Blazor apps with PlainKit.Blazor, the Razor components (PkButton, PkInput, PkDialog, PkToast, PkField, PkTabs and more) over the Plainkit pk-* elements. Use it when a project references the PlainKit.Blazor package, uses Pk* components, AddPlainKit, PkOptions, IPkLog or the /_plainkit dev tools page, or the user wants Plainkit UI in Blazor: pages, forms, dialogs, toasts, dev tools, logging and ILogger forwarding. Look components, parameters, enums and events up in the references instead of guessing. Alpha: Blazor Server is verified, WebAssembly is not. For plain HTML use the plainkit-sdk skill.
+---
+
+# PlainKit.Blazor
+
+{{stamp}}
+
+PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so nothing else is installed and nothing comes from a CDN. Targets .NET 10. A component is `Pk` plus the tag in PascalCase: `pk-alert` is `<PkAlert>`.
+
+## Status (alpha)
+
+- **Blazor Server is verified. Blazor WebAssembly is not** (never run in a WebAssembly host; the Files dev tool is server-side only).
+- **Components that do not exist yet:** {{missing}}. Use their elements as raw markup (`<pk-card>`, `<pk-table>`, ...); see the "raw elements" workflow.
+- **{{wrapperCount}} wrapper-only parameters do not exist** (for example `PkDialog.ShowCloseButton`, `PkAlert.Boxed`, `PkTooltip.Title`), and `PkDialog.MaxWidthPx`, `PkDialog.Theme`, `PkTooltip.Kind`, `PkChart.Data` and `PkImageGallery.Images` are not generated. `references/known-gaps.md` has the full list; do not use a parameter that is not in `references/components-*.md`.
+
+## Rules
+
+- Use only components and parameters listed in the references. Find a component in `references/components-index.md`, then open the file it names. Do not invent parameters.
+- A generated component takes only its listed parameters. An attribute that is not one (`class`, `style`, ...) throws when the component renders; only a component that lists `ExtraClass` (such as `PkAlert`) takes a class. Put classes on a wrapping element.
+- A prop with a fixed set of values is an enum (`ButtonVariant.Primary`); a null enum leaves the element's default. Values are in `references/enums.md`.
+- Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`. Events are `EventCallback` or `EventCallback<PkXxxEventArgs>` (`references/events.md`).
+- Named slots are `RenderFragment` parameters (`FooterContent`). When you use one, write the body as an explicit `<ChildContent>` too.
+- No inline styles or scripts: the toolkit is built for a strict CSP.
+
+## References (open on demand)
+
+{{references}}
+
+For an element's parts, CSS custom properties, methods and accessibility notes, open the same tag in the `plainkit-sdk` skill.
+
+## Workflows
+
+### Set up
+
+```csharp
+// Program.cs
+using PlainKit.Blazor;
+
+builder.Services.AddPlainKit();
+
+app.MapRazorComponents<App>()
+   .AddInteractiveServerRenderMode()
+   .AddPlainKitDevTools();          // optional: makes the /_plainkit dev tools page routable
+```
+
+```razor
+@* MainLayout.razor (or App.razor), after its directive lines: the stylesheet, once *@
+<PkStyles />
+```
+
+Add `@using PlainKit.Blazor` to `_Imports.razor` so the `Pk*` components resolve. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
+
+### Add a page (a bound input, a list and a toast)
+
+```razor
+@page "/tasks"
+@inject IPkLog PkLog
+
+<PkStack>
+    <PkPageHeader Heading="Tasks" Level="1" />
+    <PkField Label="New task">
+        <PkInput @bind-Value="_title" Placeholder="What needs doing?" />
+    </PkField>
+    <PkButton Variant="ButtonVariant.Primary" OnClick="Add">Add</PkButton>
+    <PkListGroup Label="Tasks">
+        @foreach (var task in _tasks)
+        {
+            <div>@task</div>
+        }
+    </PkListGroup>
+</PkStack>
+
+<PkToastStack Position="ToaststackPosition.BottomEnd">
+    @if (_toast is not null)
+    {
+        <PkToast Kind="ToastKind.Success" OnDismiss="@(() => _toast = null)">@_toast</PkToast>
+    }
+</PkToastStack>
+
+@code {
+    private string? _title;
+    private string? _toast;
+    private readonly List<string> _tasks = [];
+
+    private async Task Add()
+    {
+        if (string.IsNullOrWhiteSpace(_title)) return;
+        _tasks.Add(_title);
+        _toast = $"Added {_title}";
+        await PkLog.WriteAsync(PkLogLevel.Info, "tasks", "task added", _title);
+        _title = null;
+    }
+}
+```
+
+### Add a form
+
+`PkForm` shows the browser's validation in each field and a summary; `OnValid` fires when a submit passes (`OnInvalid` when it is stopped).
+
+```razor
+<PkForm Summary OnValid="Save">
+    <form @onsubmit:preventDefault>
+        <PkField Label="Business name" Required>
+            <PkInput @bind-Value="_name" Name="name" Required />
+        </PkField>
+        <PkFormActions Align="end">
+            <PkButton Type="submit" Variant="ButtonVariant.Primary">Save</PkButton>
+        </PkFormActions>
+    </form>
+</PkForm>
+
+@code {
+    private string? _name;
+
+    private void Save() => Console.WriteLine($"Saved {_name}");
+}
+```
+
+### Open a dialog from C#
+
+```razor
+<PkButton OnClick="@(() => _open = true)">Open</PkButton>
+<PkDialog @bind-IsOpen="_open" Title="Discard changes?">
+    <ChildContent><p>This cannot be undone.</p></ChildContent>
+    <FooterContent><PkButton OnClick="@(() => _open = false)">Close</PkButton></FooterContent>
+</PkDialog>
+
+@code {
+    private bool _open;
+}
+```
+
+### Use an element that has no component (raw elements)
+
+Raw `pk-*` markup works in Razor with the SDK's props as attributes (`references/` of the `plainkit-sdk` skill). The elements load once a `Pk*` component has rendered on the page (any one: the runtime initialises on the first render); on a page with only raw tags, initialise it yourself:
+
+```razor
+@inject PkRuntime Runtime
+
+<pk-card heading="Orders">
+    <pk-table label="Orders" columns="@Columns" rows="@Rows"></pk-table>
+</pk-card>
+
+@code {
+    private const string Columns = "[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"status\",\"label\":\"Status\"}]";
+    private const string Rows = "[{\"id\":1,\"name\":\"Widget\",\"status\":\"Active\"},{\"id\":2,\"name\":\"Gadget\",\"status\":\"Draft\"}]";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await Runtime.EnsureInitializedAsync();
+    }
+}
+```
+
+### Turn on ILogger forwarding and the SDK log
+
+```csharp
+builder.Services.AddPlainKit(o =>
+{
+    o.Logging.Level = PkLogLevel.Info;                      // the SDK's global level
+    o.Logging.ForwardToILogger = true;                      // SDK entries also go to ILogger (off by default)
+    o.Logging.ForwardMinimumLevel = PkLogLevel.Warn;        // the forwarder's own filter
+    o.Logging.ForwardScopes.Add("pk-*");                    // empty means every scope
+    o.Logging.Routes[PkLogLevel.Error] = ["console", "toast"];
+});
+```
+
+Forwarded entries use the category `PlainKit.<scope>`. Inject `IPkLog` to write your own entries into the browser-side SDK log (they are not echoed back to `ILogger`); show both with `<PkLogs />`. Details: `references/logging.md`.
+
+### Wire the dev tools
+
+In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`.

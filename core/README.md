@@ -60,7 +60,10 @@ Plain HTML, no build step:
 
 ```html
 <link rel="stylesheet" href="dist/plainkit.css">
-<script type="module" src="dist/plainkit.js"></script>
+<script type="module">
+  import { initPlainkit } from './dist/plainkit.js';
+  initPlainkit();
+</script>
 <pk-card heading="Shipping"><pk-button slot="actions" variant="primary">Edit</pk-button>Body</pk-card>
 ```
 

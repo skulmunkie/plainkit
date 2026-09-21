@@ -58,8 +58,9 @@ Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`
 `core/` (the `plainkit` npm package) and `blazor/` (the `PlainKit.Blazor` NuGet package) are versioned and released together. The Blazor package serves a byte-for-byte copy of `core/dist`. After any change to `core/`:
 
 1. `node core/tools/build.mjs`
-2. `node scripts/publish-dist.mjs` (copies `core/dist` into the package; `--check` is what CI runs)
-3. Update the Blazor wrappers and the element's `blazor/mappings/<name>.json` when an element's API changed, and run both test suites (`node --test "scripts/tests/*.test.mjs"` is the mapping check).
+2. `node scripts/generate-blazor.mjs`, then `node scripts/build-skills.mjs` (the agent skills in `core/dist/skills`, generated from the API, the mappings and the samples; it refreshes the manifest)
+3. `node scripts/publish-dist.mjs` (copies `core/dist` into the package; `--check` is what CI runs)
+4. Update the Blazor wrappers and the element's `blazor/mappings/<name>.json` when an element's API changed, and run both test suites (`node --test "scripts/tests/*.test.mjs"` is the mapping check).
 
 A change that lands in only one of the two is incomplete.
 
