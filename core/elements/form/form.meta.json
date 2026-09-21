@@ -29,7 +29,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows a summary of the problems with links to the fields."
+      "description": "Shows a summary of the problems with links to the fields; each item starts with its field's name (\"Code: Please fill out this field.\")."
     }
   ],
   "slots": [
@@ -89,7 +89,7 @@
       "description": "Checks every control now; returns true when all are valid."
     }
   ],
-  "a11y": "Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
+  "a11y": "Each summary item starts with the name of its field (the pk-field label, else the control's aria-label or label, else its name or id, else its tag and position), so it reads \"Code: Please fill out this field.\" and a screen reader user hears which field has the problem; the link still moves focus to the control. Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
   "examples": [
     {
       "title": "Validated form with summary",

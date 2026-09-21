@@ -1,6 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { messageFor, shouldCheck } from './form.js';
+import { messageFor, nameFor, shouldCheck } from './form.js';
+
+const named = (o = {}, field = null) => ({ localName: 'pk-input', getAttribute: k => o.attrs?.[k] ?? null, closest: sel => (sel === 'pk-field' ? field : null), label: o.label, name: o.name });
+test('nameFor prefers the pk-field label, then the control label, aria-label, label attribute, name and id', () => {
+    assert.equal(nameFor(named({ label: 'Own' }, { label: ' Code ' })), 'Code');
+    assert.equal(nameFor(named({ label: 'Own' })), 'Own');
+    assert.equal(nameFor(named({ attrs: { 'aria-label': 'Aria', label: 'Attr' } })), 'Aria');
+    assert.equal(nameFor(named({ attrs: { label: 'Attr' } })), 'Attr');
+    assert.equal(nameFor(named({ name: 'code', attrs: { id: 'x' } })), 'code');
+    assert.equal(nameFor(named({ attrs: { id: 'x' } })), 'x');
+});
+test('nameFor falls back to the tag and position so anonymous controls never read the same', () => {
+    assert.equal(nameFor(named(), 0), 'pk-input 1');
+    assert.notEqual(nameFor(named(), 0), nameFor(named(), 1));
+    assert.equal(nameFor(named({}, { label: '' }), 2), 'pk-input 3');
+});
 
 const control = (validity, attrs = {}, message = 'Native.') => ({ validity: { valid: !Object.values(validity).some(Boolean), ...validity }, validationMessage: message, getAttribute: k => attrs[k] ?? null });
 
