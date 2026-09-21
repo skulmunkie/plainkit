@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+- Alpha status of PlainKit.Blazor: Blazor Server is verified in a live host; Blazor WebAssembly is not verified. Not yet available as components: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat`, `PkTable` (data grid). Not generated: 17 wrapper-only parameters (`PkAlert` `Boxed`, `Compact`, `Inline`; `PkAppShell` `ErrorOverlayMessage`, `ShowErrorOverlay`; `PkDialog` `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`, `ShowCloseButton`; `PkDrawer` `Backdrop`, `IsLoading`, `PhoneCards`; `PkTooltip` `DocLink`, `ExternalLink`, `LoadAsync`, `OnClick`, `Title`) plus `PkDialog.MaxWidthPx` (a CSS custom property), and 4 parameters whose app-era type is not defined (issue #9): `PkChart.Data`, `PkImageGallery.Images`, `PkDialog.Theme`, `PkTooltip.Kind`. See the "Alpha status" section of the package README.
+- Fixed: the NuGet package no longer contains `Generated/generated.manifest.json` (it was packed as `content/` and `contentFiles/` and copied into consumers' projects); `scripts/tests/blazor-package.test.mjs` guards it.
+- Fixed: every public enum and member in PlainKit.Blazor (`PkTheme`, `PkWidth`, `PkChrome`, `PkGalleryKind`, `PkLogLevel`) has an XML doc comment, so the build has no CS1591 warnings.
+- Changed: the gallery's Guides page says "Coming soon" (a `pk-badge` above the empty state); the docs engine is undecided (issue #6).
+
 - Fixed: PlainKit.Blazor no longer throws out of the request pipeline when `IPkLog` (or a component) touches JavaScript while a page is prerendered; `PkRuntime.DisposeAsync` now ignores the "JavaScript interop calls cannot be issued at this time" error of a prerender scope. Found by driving the Playground in a real browser.
 - Added: the `/_plainkit` dev tools page in PlainKit.Blazor has a Logs tab (`PkLogs` and `PkLogSettings`), as the logging documentation said it did; the Playground has a `/generated` page that exercises the generated components (binds, dialog, events, an enum, `IPkLog`) with the `ILogger` forwarder on.
 

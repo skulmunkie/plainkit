@@ -4,7 +4,19 @@ using Microsoft.JSInterop;
 namespace PlainKit.Blazor;
 
 /// <summary>The levels of the SDK logger, lowest first. <see cref="Silent"/> emits nothing.</summary>
-public enum PkLogLevel { Debug, Info, Warn, Error, Silent }
+public enum PkLogLevel
+{
+    /// <summary>Detail for diagnosing: lifecycle and prop changes.</summary>
+    Debug,
+    /// <summary>Normal events worth noting.</summary>
+    Info,
+    /// <summary>Something unexpected that the toolkit worked around.</summary>
+    Warn,
+    /// <summary>Something failed.</summary>
+    Error,
+    /// <summary>Emit nothing.</summary>
+    Silent,
+}
 
 /// <summary>Logging settings for the SDK logger (<c>js/log.js</c>) and the bridge that forwards its entries to <see cref="ILogger"/>. Set on <see cref="PkOptions.Logging"/>.</summary>
 public sealed class PkLoggingOptions
