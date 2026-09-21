@@ -2,6 +2,7 @@
 // compares it) but must not be packed (it would land in content/ and contentFiles/ and be copied into consumers' projects).
 // A real `dotnet pack` is too slow for this suite; the manual check is in CONTRIBUTING.md.
 // Run: node --test scripts/tests/*.test.mjs
+import '../../core/tests/needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

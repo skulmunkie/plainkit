@@ -3,9 +3,19 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The site imports generated files (element modules, gallery data, dist/), which are not in git: generate them on a fresh clone. In the repository that is
+// node scripts/bootstrap.mjs (every generator); a copy of core/ alone (no scripts/ next to it) runs its own build, so this file stays self-contained.
+if (!['plainkit.css', 'dist/manifest.json', 'site/gallery/gallery.data.js', 'elements/registry.js'].every(f => fs.existsSync(path.join(root, f)))) {
+    const bootstrap = path.resolve(root, '..', 'scripts', 'bootstrap.mjs');
+    const script = fs.existsSync(bootstrap) ? bootstrap : path.join(root, 'tools', 'build.mjs');
+    console.log(`generated files are missing: running node ${path.relative(process.cwd(), script) || script} ...`);
+    const r = spawnSync(process.execPath, [script, ...(script === bootstrap ? ['--quiet'] : [])], { stdio: 'inherit' });
+    if (r.status !== 0) { console.error('generating the site failed'); process.exit(r.status ?? 1); }
+}
 const port = Number(process.argv.find(a => /^\d+$/.test(a))) || 5310;
 // --csp (alias --csp=strict) serves script-src 'self' and style-src 'self': no inline scripts, no inline styles, no style elements. The scanner
 // (tools/security.mjs) and tests/security.test.mjs enforce it in source, and the carve-out test serves the whole site under it.

@@ -36,7 +36,7 @@ export function publish(from = source, to = target) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    if (!fs.existsSync(source)) { console.error('core/dist does not exist: run node core/tools/build.mjs first'); process.exit(2); }
+    if (!fs.existsSync(source)) { console.error('core/dist does not exist: run node scripts/bootstrap.mjs first'); process.exit(2); }
     if (process.argv.includes('--check')) {
         const d = differences();
         if (d.length) { console.error(`blazor/src/PlainKit.Blazor/wwwroot/plainkit is out of date (${d.length} differences); run node scripts/publish-dist.mjs\n${d.slice(0, 10).join('\n')}`); process.exit(1); }

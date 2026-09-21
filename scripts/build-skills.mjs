@@ -330,10 +330,10 @@ function themingMd(src) {
 }
 
 function loadingMd(src) {
-    // The table from PUBLISHING.md; the example tag becomes this release's tag, and "below" (a later section of that file) is named.
-    const rows = section(src.publishing, 'How people get the SDK').replace(/@v\d+\.\d+\.\d+[^/]*\//g, `@v${src.version}/`).replace('(below)', '(see PUBLISHING.md)');
+    // The table from PUBLISHING.md; "below" (a later section of that file) is named.
+    const rows = section(src.publishing, 'How people get the SDK').replace('(below)', '(see PUBLISHING.md)');
     return ['# Loading Plainkit', '', stamp(src, 'PUBLISHING.md, dist/js/plainkit.js and dist/js/loader.js'), '',
-        `This bundle is for Plainkit ${src.version}. A pinned CDN link uses the tag \`v${src.version}\`.`, '',
+        `This bundle is for Plainkit ${src.version}. Pinned versions come from the GitHub release zip (\`plainkit-dist-${src.version}.zip\`) or the NuGet package; the Pages site is the latest \`main\` and is not pinned.`, '',
         '## Ways to get it', '', rows, '',
         '## Wire a page', '', 'Link one stylesheet and start the elements from a script file (an inline script is blocked under a strict CSP). `plainkit/` below is wherever you copied or serve `dist`. Importing the entry module is not enough: `initPlainkit()` must be called (a `<script src="plainkit/plainkit.js">` alone defines no element).', '',
         fence('html', '<link rel="stylesheet" href="plainkit/plainkit.min.css">\n<script type="module" src="app.js"></script>\n<pk-alert kind="info" heading="It works">No framework, no build.</pk-alert>'), '',

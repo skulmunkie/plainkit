@@ -1,5 +1,6 @@
 // blazor-devtools.js (PlainKit.Blazor's own dev tools panels): the pure parts, and that the panels have the shape mountDevTools takes.
 // The .NET side (what the panels read) is tested in blazor/tests. Run: node --test scripts/tests/*.test.mjs
+import '../../core/tests/needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

@@ -1,5 +1,6 @@
 // The parts of the element model that need no DOM: prop coercion, template bindings, the loader plan, the API schema and its guards, the
 // build output, the size budget. The DOM behaviour is in tests/browser/ (run in a tab; elements-attest.test.mjs fails if it is stale).
+import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -112,8 +113,10 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
     assert.ok(!out.has('dist/plainkit-compat.css') && ![...out.keys()].some(f => f.startsWith('dist/components/')), 'the class-based layer is gone');
 });
 
-test('generated element files on disk are the build output (run node tools/build.mjs)', () => {
+test('generated element files on disk are the build output, and the build is deterministic (run node scripts/bootstrap.mjs)', () => {
     const { out } = build({ write: false });
+    const again = build({ write: false }).out;
+    for (const el of elements) assert.equal(again.get(`elements/${el.name}/${el.name}.element.js`), out.get(`elements/${el.name}/${el.name}.element.js`), `${el.name}: two builds differ`);
     for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `elements/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
 });
 
@@ -140,7 +143,7 @@ test('generated editor artefacts (manifest, VS Code data, web-types, typings) ar
     const metas = elements.map(e => e.meta);
     const made = allManifests(metas);
     const { out } = build({ write: false });
-    for (const [name, text] of Object.entries(made)) assert.equal(out.get(`dist/${name}`), text.replace(/\r?\n/g, '\r\n'), `dist/${name} is stale: run node tools/build.mjs`);
+    for (const [name, text] of Object.entries(made)) assert.equal(out.get(`dist/${name}`), text.replace(/\r?\n/g, '\r\n'), `dist/${name} is stale: run node scripts/bootstrap.mjs`);
     const cem = JSON.parse(made['custom-elements.json']);
     assert.deepEqual(cem.modules.map(m => m.declarations[0].tagName).sort(), metas.map(m => m.tag).sort());
     const button = cem.modules.find(m => m.declarations[0].tagName === 'pk-button').declarations[0];

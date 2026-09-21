@@ -532,7 +532,7 @@ export function differences(out) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    if (!fs.existsSync(paths.api)) { console.error('core/dist/elements/api.json does not exist: run node core/tools/build.mjs first'); process.exit(2); }
+    if (!fs.existsSync(paths.api)) { console.error('core/dist/elements/api.json does not exist: run node scripts/bootstrap.mjs first'); process.exit(2); }
     let result;
     try { result = load(); } catch (e) { console.error(`generate-blazor: ${e.message}`); process.exit(2); }
     const out = outputs(result);

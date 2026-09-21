@@ -2,6 +2,7 @@
 // verified against the sources of truth: the SDK samples parse as HTML and use only real pk-* tags, props, slots and enum values from api.json;
 // the JavaScript samples parse and import only real exports with real options; the Razor and C# samples use only real Pk* components, parameters,
 // enums and options from the generated components and the C# sources.
+import '../../core/tests/needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -201,8 +202,8 @@ export function checkJs(code) {
 
 // ---------------------------------------------------------------- the bundle
 
-test('the bundle on disk is current: what build-skills.mjs generates, byte for byte (CRLF)', () => {
-    assert.deepEqual(differences(gen), [], 'run node core/tools/build.mjs, node scripts/generate-blazor.mjs and then node scripts/build-skills.mjs');
+test('the bundle on disk is what build-skills.mjs generates, byte for byte (CRLF); run node scripts/bootstrap.mjs when it fails', () => {
+    assert.deepEqual(differences(gen), [], 'run node scripts/bootstrap.mjs');
 });
 
 test('the output is byte-deterministic', () => {
@@ -280,7 +281,7 @@ test('the package copy of dist carries the skills as static web assets (wwwroot)
     assert.doesNotMatch(csproj, /skills/i);
     assert.doesNotMatch(csproj, /<Content Include/);
     const copy = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'plainkit', 'skills');
-    assert.deepEqual([...diskFiles(copy).keys()].sort(), [...gen.keys()].sort(), 'run node scripts/publish-dist.mjs');
+    assert.deepEqual([...diskFiles(copy).keys()].sort(), [...gen.keys()].sort(), 'run node scripts/bootstrap.mjs');
 });
 
 test('node scripts/build-skills.mjs --check passes on a current bundle', () => {
@@ -369,9 +370,14 @@ test('the SDK skill covers templates, patterns, layouts, tools, logging, openers
     for (const term of ['?pk-log=', 'data-pk-log', 'PkLog', 'registerLogOutput', 'warn']) assert.ok(f('logging').includes(term), term);
     for (const term of ['data-open', 'data-toggle', 'data-close']) assert.ok(f('openers').includes(term), term);
     for (const term of ['data-theme', 'data-density', '--color-accent', '--space-4']) assert.ok(f('theming').includes(term), term);
-    for (const term of ['initPlainkit', 'observeElements', 'loadElements', 'manifest.json', 'jsdelivr']) assert.ok(f('loading').toLowerCase().includes(term.toLowerCase()), term);
+    for (const term of ['initPlainkit', 'observeElements', 'loadElements', 'manifest.json', 'plainkit-dist']) assert.ok(f('loading').toLowerCase().includes(term.toLowerCase()), term);
     for (const n of src.entryExports) assert.ok(f('loading').includes(`\`${n}\``), n);
     for (const t of src.tokens.dark ? Object.keys(src.tokens.dark).filter(n => /^--(color|space|radius)-/.test(n)) : []) assert.ok(f('theming').includes(`\`${t}\``), t);
+});
+
+test('no skill advertises a CDN link by git tag (the tag does not carry dist); pinned versions are the release zip and the NuGet package', () => {
+    for (const [f, text] of gen) assert.doesNotMatch(text, /jsdelivr/i, `${f} mentions jsDelivr`);
+    assert.match(gen.get('plainkit-sdk/references/loading.md'), /GitHub release zip/);
 });
 
 // ---------------------------------------------------------------- the code samples
