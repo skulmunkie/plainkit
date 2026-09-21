@@ -17,4 +17,7 @@ public sealed class PkOptions
 
     /// <summary>What the dev tools' Scorecard tab scores. Null means the toolkit's own page templates.</summary>
     public IReadOnlyList<PkScoreTarget>? ScoreTargets { get; set; }
+
+    /// <summary>The SDK logger's settings and the ILogger bridge: level, per-scope levels, routes, and whether SDK entries also go to <see cref="Microsoft.Extensions.Logging.ILogger"/>.</summary>
+    public PkLoggingOptions Logging { get; } = new();
 }

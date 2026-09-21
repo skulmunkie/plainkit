@@ -1,5 +1,6 @@
 {
   "component": "PkGallery",
+  "existing": true,
   "params": [
     {
       "name": "Kind",

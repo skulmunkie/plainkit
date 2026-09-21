@@ -177,6 +177,14 @@
                 "type": "boolean",
                 "default": "false"
               }
+            },
+            {
+              "name": "flush",
+              "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay).",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
             }
           ],
           "slots": [
@@ -768,7 +776,7 @@
             },
             {
               "name": "flush",
-              "description": "No padding around the content, for a table or an edge-to-edge body.",
+              "description": "No padding around the body, for a table or an edge-to-edge body; the heading row keeps its padding.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -1440,7 +1448,7 @@
         },
         {
           "name": "pk-dialog",
-          "description": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+          "description": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
           "attributes": [
             {
               "name": "open",
@@ -1587,7 +1595,7 @@
         },
         {
           "name": "pk-drawer",
-          "description": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+          "description": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
           "attributes": [
             {
               "name": "open",
@@ -2301,7 +2309,7 @@
             },
             {
               "name": "chrome",
-              "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector.",
+              "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup).",
               "value": {
                 "type": "string",
                 "default": "\"none\""
@@ -2349,6 +2357,14 @@
               "value": {
                 "type": "number",
                 "default": "0"
+              }
+            },
+            {
+              "name": "ratio",
+              "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks.",
+              "value": {
+                "type": "string",
+                "default": "\"\""
               }
             },
             {
@@ -2593,6 +2609,14 @@
               "value": {
                 "type": "string",
                 "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
               }
             },
             {
@@ -3241,6 +3265,14 @@
                 "type": "boolean",
                 "default": "false"
               }
+            },
+            {
+              "name": "group",
+              "description": "A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
             }
           ],
           "slots": [
@@ -3627,7 +3659,7 @@
         },
         {
           "name": "pk-popover",
-          "description": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+          "description": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
           "attributes": [
             {
               "name": "open",
@@ -3818,6 +3850,14 @@
             {
               "name": "show-value",
               "description": "Append the percentage next to the label.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "inline",
+              "description": "Puts the label before the bar and the value after it on one line, instead of a row above the bar.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -4375,7 +4415,7 @@
             },
             {
               "name": "default",
-              "description": "pk-nav-item children."
+              "description": "pk-nav-item children; a pk-nav-item with the group attribute is a group title."
             },
             {
               "name": "footer",
@@ -5073,7 +5113,7 @@
             },
             {
               "name": "closable",
-              "description": "Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab.",
+              "description": "Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab.",
               "value": {
                 "type": "boolean",
                 "default": "false"

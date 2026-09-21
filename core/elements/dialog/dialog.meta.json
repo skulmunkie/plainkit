@@ -1,7 +1,7 @@
 {
   "tag": "pk-dialog",
   "title": "Dialog",
-  "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+  "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
   "group": "Overlays",
   "props": [
     {

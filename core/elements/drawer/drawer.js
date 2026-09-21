@@ -1,3 +1,4 @@
+import { initInvokers } from '../../js/invokers.js';
 import { syncDialog, wireDialog, requestClose } from '../../js/menu-logic.js';
 
 // Drawer logic: which way it slides and when a swipe closes it. Pure, so it can be tested without a DOM.
@@ -39,6 +40,7 @@ export function swipeOutcome(side, dx, dy, elapsedMs, size) {
 // pk-drawer: a panel on a native modal <dialog>, pinned to an edge, closed by Escape, the backdrop (unless persistent), the close button or a swipe.
 export default Base => class extends Base {
     connected() {
+        initInvokers(this.ownerDocument); // data-open / data-toggle / data-close work on a page that never calls initPlainkit (once per document)
         const dlg = this.part('panel');
         if (!this.$w) {
             this.$w = true;

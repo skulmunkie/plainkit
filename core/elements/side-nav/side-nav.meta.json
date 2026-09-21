@@ -47,7 +47,7 @@
     },
     {
       "name": "",
-      "description": "pk-nav-item children."
+      "description": "pk-nav-item children; a pk-nav-item with the group attribute is a group title."
     },
     {
       "name": "footer",

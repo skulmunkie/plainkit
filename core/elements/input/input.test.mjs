@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { flagsOf, parseMoney, formatMoney, moneyProblem, stepValue } from './input.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 test('flagsOf copies every ValidityState-like flag', () => {
     const f = flagsOf({ valueMissing: true, tooLong: false });
@@ -42,4 +44,17 @@ test('stepValue steps, rounds float noise, clamps and treats empty as zero', () 
     assert.equal(stepValue(1, 5, -1, 0, 10), 0);
     assert.equal(stepValue(NaN, 1, 1), 1);
     assert.equal(stepValue(3, 0, 1), 4);
+});
+const read = ext => fs.readFileSync(fileURLToPath(new URL(`./input.${ext}`, import.meta.url)), 'utf8');
+const meta = JSON.parse(read('meta.json'));
+const prop = name => meta.props.find(p => p.name === name);
+
+// Issue #21: the label was aria-only; showLabel renders it as visible text linked to the control.
+test('showLabel renders a label element for the control, off by default and not shown with a floating label', () => {
+    assert.equal(prop('showLabel').type, 'boolean'); assert.equal(prop('showLabel').default, false);
+    const html = read('html'); const css = read('css');
+    assert.match(html, /<label part="label" for="c">\{\{label\}\}<\/label>/);
+    assert.match(html, /<input part="control" id="c" /);
+    assert.ok(meta.parts.some(p => p.name === 'label'), 'the label part is documented');
+    assert.ok(css.includes(':host([show-label]:not([floating])) label { display: block; }'));
 });

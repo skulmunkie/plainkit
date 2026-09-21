@@ -2,6 +2,8 @@
 :host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
 :host([warning]) { --_bd: var(--field-warn); }
 :host([valid]) { --_bd: var(--field-ok); }
+label { display: none; margin-block-end: var(--space-1); }
+:host([show-label]:not([floating])) label { display: block; }
 .box { position: relative; display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--pk-control-bg, var(--color-input)); border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); transition: border-color 0.15s; }
 :host(:is([invalid], [aria-invalid="true"])) .box, :host([warning]) .box, :host([valid]) .box { box-shadow: inset 0 0 0 1px var(--_bd); }
 :host(:not([disabled], [readonly])) .box:hover { border-color: var(--color-muted); }
@@ -10,9 +12,8 @@
 :host([readonly]) .box { background: var(--color-surface-alt); }
 :host([size="sm"]) .box { min-height: calc(var(--ctl-h) * 0.8); }
 :host([size="lg"]) .box { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-4); }
-input, textarea, select { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
+input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
 ::placeholder { color: var(--color-muted); opacity: 1; }
-@media (max-width: 640px) { .box { min-height: var(--touch-target); } input, textarea, select { font-size: 16px; } }
 .ico, .cur, .clear, .reveal, .step { display: none; flex: none; }
 .ico, .ib svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .ico { color: var(--color-muted); }
@@ -26,12 +27,12 @@ input, textarea, select { flex: 1; align-self: stretch; min-width: 0; padding: v
 :host([reveal][type="password"]) .reveal { display: grid; }
 :host([stepper]) .step { display: grid; }
 :host([stepper]) input { text-align: center; appearance: textfield; }
-:host([stepper]) input::-webkit-inner-spin-button, :host([stepper]) input::-webkit-outer-spin-button { margin: 0; appearance: none; }
+:host([stepper]) input::-webkit-inner-spin-button { margin: 0; appearance: none; }
 :host([format="money"]) input { text-align: end; font-variant-numeric: tabular-nums; }
 ::slotted([slot="prefix"]), ::slotted([slot="suffix"]) { color: var(--field-muted); white-space: nowrap; }
-.fl { position: absolute; inset-inline: var(--space-3); top: 0; bottom: 0; display: none; align-items: center; overflow: hidden; color: var(--field-muted); font-size: var(--text-read); text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.fl { position: absolute; inset: 0 var(--space-3); display: none; align-items: center; overflow: hidden; color: var(--field-muted); font-size: var(--text-read); text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
 :host([floating]) .fl { display: flex; }
 :host([floating]) .box { min-height: calc(var(--ctl-h) * 1.35); }
 :host([floating]) input { padding: 1.15rem 0 0.2rem; }
 :host([floating]) .box:focus-within .fl, :host([floating][has-value]) .fl { bottom: auto; top: var(--space-1); align-items: flex-start; font-size: var(--text-meta); }
-@media (max-width: 640px) { .ib { width: var(--touch-target); height: var(--touch-target); } }
+@media (max-width: 640px) { .box { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }

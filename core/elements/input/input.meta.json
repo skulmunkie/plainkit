@@ -56,6 +56,13 @@
       "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
     },
     {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label."
+    },
+    {
       "name": "description",
       "type": "string",
       "default": "",
@@ -291,6 +298,10 @@
       "description": "The bordered field that holds the control and its add-ons."
     },
     {
+      "name": "label",
+      "description": "The visible label shown by showLabel."
+    },
+    {
       "name": "control",
       "description": "The inner input element."
     },
@@ -359,6 +370,10 @@
     {
       "title": "Search, password and floating label",
       "html": "<pk-input type=\"search\" label=\"Search products\" placeholder=\"Search products\" clearable debounce=\"250\"></pk-input>\n<pk-input type=\"password\" label=\"Password\" reveal autohide=\"15\" autocomplete=\"current-password\"></pk-input>\n<pk-input label=\"Product title\" floating></pk-input>"
+    },
+    {
+      "title": "Visible label",
+      "html": "<pk-input label=\"Email\" show-label type=\"email\"></pk-input>"
     },
     {
       "title": "Date and time",

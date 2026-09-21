@@ -3,6 +3,8 @@ export { filterNav, splitMatch, treeKey, serializeNav, parseNav, railFlyoutPlace
 
 // pk-side-nav: icon rail, filter, arrow-key tree navigation, persisted state, and an off-canvas drawer on small screens.
 const items = nav => [...nav.querySelectorAll('pk-nav-item')];
+// Rows the user can reach: group titles (pk-nav-item group) are static text, so they never take focus and the filter leaves them out.
+export const rowsOf = nav => items(nav).filter(i => !i.group);
 const labelOf = i => [...i.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() || i.textContent.trim();
 const idOf = i => `${i.parentElement?.closest?.('pk-nav-item') ? labelOf(i.parentElement) + '/' : ''}${labelOf(i)}`;
 
@@ -34,7 +36,7 @@ export default Base => class extends Base {
         this.part('collapse').setAttribute('aria-label', this.collapsed ? 'Expand the menu' : 'Collapse the menu');
     }
     drawer() {
-        if (this.open) { this.$from = document.activeElement; items(this).find(i => !i.hidden && !i.disabled)?.focusRow(); this.emit('pk-open', {}); }
+        if (this.open) { this.$from = document.activeElement; rowsOf(this).find(i => !i.hidden && !i.disabled)?.focusRow(); this.emit('pk-open', {}); }
         else { this.$from?.focus?.({ preventScroll: true }); this.$from = null; }
     }
     disconnected() { this.$from = null; }
@@ -52,7 +54,8 @@ export default Base => class extends Base {
         if (text) for (const i of items(this)) if (i.querySelector('pk-nav-item')) i.expanded = open.has(idOf(i));
     }
     filter(q) {
-        const all = items(this); const entries = all.map(i => ({ id: idOf(i), label: labelOf(i), parent: i.parentElement?.closest?.('pk-nav-item') ? idOf(i.parentElement) : null }));
+        const all = rowsOf(this); for (const g of items(this).filter(i => i.group)) g.hidden = Boolean(q.trim());
+        const entries = all.map(i => ({ id: idOf(i), label: labelOf(i), parent: i.parentElement?.closest?.('pk-nav-item') ? idOf(i.parentElement) : null }));
         if (!this.$saved && q.trim()) this.$saved = new Map(all.map(i => [i, i.expanded]));
         const r = filterNav(entries, q);
         all.forEach((i, k) => { i.hidden = !r.visible.has(entries[k].id); if (q.trim() && r.open.has(entries[k].id)) i.expanded = true; });
@@ -60,7 +63,7 @@ export default Base => class extends Base {
         this.part('scroll').setAttribute('aria-label', q.trim() ? `${r.matches.size} matches` : '');
     }
     rows() {
-        return items(this).filter(i => !i.hidden && !i.disabled && (() => { for (let p = i.parentElement?.closest?.('pk-nav-item'); p; p = p.parentElement?.closest?.('pk-nav-item')) if (!p.expanded) return false; return true; })());
+        return rowsOf(this).filter(i => !i.hidden && !i.disabled && (() => { for (let p = i.parentElement?.closest?.('pk-nav-item'); p; p = p.parentElement?.closest?.('pk-nav-item')) if (!p.expanded) return false; return true; })());
     }
     key(e) {
         const row = e.target.closest?.('pk-nav-item'); if (!row || e.target.closest('input')) return;

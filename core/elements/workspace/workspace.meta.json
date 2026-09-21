@@ -31,7 +31,10 @@
     { "name": "--pk-workspace-height", "description": "Height when fill is not set.", "default": "calc(100dvh - 20rem)" },
     { "name": "--pk-workspace-nav-w", "description": "Width of the nav column on a wide screen.", "default": "17.5rem" },
     { "name": "--pk-workspace-aside-w", "description": "Width of the aside.", "default": "var(--inspector-w)" },
-    { "name": "--pk-workspace-pad", "description": "Padding inside each pane.", "default": "var(--pad-panel)" }
+    { "name": "--pk-workspace-pad", "description": "Padding inside each pane (the default of the three below).", "default": "var(--pad-panel)" },
+    { "name": "--pk-workspace-nav-pad", "description": "Padding inside the nav pane; 0 for a pane that fills itself.", "default": "var(--pk-workspace-pad)" },
+    { "name": "--pk-workspace-main-pad", "description": "Padding inside the main pane.", "default": "var(--pk-workspace-pad)" },
+    { "name": "--pk-workspace-aside-pad", "description": "Padding inside the aside pane.", "default": "var(--pk-workspace-pad)" }
   ],
   "methods": [],
   "a11y": "Each pane is a labelled region (the aside a complementary landmark) and scrolls on its own, so it is reachable by keyboard. On a phone the strip is a tablist with a roving tabindex: Left and Right (or Up and Down), Home and End move between tabs and select them; each pane becomes a tabpanel labelled by its tab. Tabs are 44px high. Hidden panes are display:none, so they are out of the tab order and the accessibility tree.",

@@ -14,6 +14,7 @@ import { contrast, grade } from '../../js/colour.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { initPlainkit } from '../../js/plainkit.js';
 import { renderElement } from './elements-view.js';
+import { createElementInspector } from '../../js/element-inspector.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -319,8 +320,9 @@ function viewFoundation(id) {
     } finally { dark.remove(); light.remove(); }
 }
 
-// The docked inspector's content, { title, html }, or null to hide its toggle. No view fills it since the controls went; the chrome stays for a view that needs it.
-let inspector = null;
+// What the docked inspector shows: { meta, element } for the element page that is open (element is its playground's live element), or null.
+let inspecting = null;
+let inspector = null; // the element inspector (js/element-inspector.js), created with the chrome
 
 // ---- views ---------------------------------------------------------------------------------------------------------------
 function overviewHtml() {
@@ -377,7 +379,7 @@ function samplesView(out, put, a, b) {
 }
 
 function view() {
-    inspector = null; stage = null;
+    inspecting = null; stage = null;
     full = fullPage();
     if (full) return fullView(full);
     const { section: sec, a, b } = route();
@@ -399,7 +401,7 @@ function view() {
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {
         const meta = ELEMENTS.find(m => m.tag === a);
-        if (meta) { out.append(renderElement(meta)); return out; }
+        if (meta) { out.append(renderElement(meta, { onLive: element => { inspecting = { meta, element }; }, onChange: () => inspector?.refresh() })); return out; }
         return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <span class="muted">${g.items.length}</span></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
@@ -425,12 +427,14 @@ const phone = () => matchMedia('(max-width: 640px)').matches;
 function renderInspector() {
     const box = $('#gx-inspector'); const toggle = $('#gx-inspect');
     if (!box) return;
-    toggle.hidden = !inspector;
-    if (!inspector) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').classList.remove('gx-view--inspecting'); return; }
-    box.setAttribute('heading', `${inspector.title}: markup`);
-    $('#gx-inspector-body').innerHTML = inspector.html;
+    // A full-page sample owns the whole area; every other view has the Details drawer: an element page fills it, the rest show its empty state.
+    toggle.hidden = Boolean(full);
+    if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').classList.remove('gx-view--inspecting'); return; }
+    box.setAttribute('heading', inspecting ? `${inspecting.meta.title}: details` : 'Inspector');
+    inspector ??= createElementInspector($('#gx-inspector-body'));
+    inspector.show(inspecting && { meta: inspecting.meta, element: inspecting.element });
     const stored = readSetting('pk-gallery-inspector');
-    const open = stored === null ? !phone() : stored === '1';
+    const open = stored === null ? Boolean(inspecting) && !phone() : stored === '1';
     setInspector(open, false);
 }
 

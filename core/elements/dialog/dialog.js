@@ -1,3 +1,4 @@
+import { initInvokers } from '../../js/invokers.js';
 import { syncDialog, wireDialog, requestClose } from '../../js/menu-logic.js';
 
 // Dialog logic: the confirm, alert and prompt patterns' decisions. Pure, so it can be tested without a DOM.
@@ -67,6 +68,7 @@ export default Base => class extends Base {
     static alert(o) { return ask('alert', o); }
     static prompt(o) { return ask('prompt', o); }
     connected() {
+        initInvokers(this.ownerDocument); // data-open / data-toggle / data-close work on a page that never calls initPlainkit (once per document)
         const dlg = this.part('dialog');
         if (!this.$w) { this.$w = true; wireDialog(this, dlg); globalThis.PkDialog ??= this.constructor; }
         syncDialog(this, dlg);

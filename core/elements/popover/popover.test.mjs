@@ -35,3 +35,9 @@ test('the stylesheet is token-only and respects reduced motion', () => {
     assert.match(css, /prefers-reduced-motion/);
 });
 
+
+test('popover: connecting it installs the declarative openers (data-open, data-toggle, data-close) on its document, once', () => {
+    const src = fs.readFileSync(new URL('./popover.js', import.meta.url), 'utf8');
+    assert.match(src, /import \{ initInvokers \} from '\.\.\/\.\.\/js\/invokers\.js'/);
+    assert.match(src, /connected\(\) \{\s*initInvokers\(this\.ownerDocument\)/, 'connected() installs them; initInvokers is idempotent per root');
+});

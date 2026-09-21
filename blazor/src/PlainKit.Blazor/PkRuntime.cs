@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 namespace PlainKit.Blazor;
@@ -5,15 +6,37 @@ namespace PlainKit.Blazor;
 /// <summary>
 /// Loads the toolkit's JavaScript on demand. Register with <c>services.AddPlainKit()</c>; components call it, an app rarely does.
 /// </summary>
-public sealed class PkRuntime(IJSRuntime js) : IAsyncDisposable
+public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerFactory? loggerFactory = null) : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> _bridge = new(() => js.InvokeAsync<IJSObjectReference>("import", PkAssets.Bridge).AsTask());
+    private readonly PkOptions _options = options ?? new PkOptions();
     private Task? _init;
+    private Task? _logging;
+    private DotNetObjectReference<PkLogForwarder>? _forwarder;
 
     /// <summary>Wires the <c>pk-*</c> elements and behaviours for the page once, however many components ask.</summary>
     public Task EnsureInitializedAsync() => _init ??= InitAsync();
 
-    private async Task InitAsync() => await (await _bridge.Value).InvokeVoidAsync("init");
+    private async Task InitAsync()
+    {
+        await EnsureLoggingAsync();
+        await (await _bridge.Value).InvokeVoidAsync("init");
+    }
+
+    /// <summary>Applies <see cref="PkOptions.Logging"/> to the SDK logger and starts the <see cref="ILogger"/> forwarder, once.</summary>
+    internal Task EnsureLoggingAsync() => _logging ??= LoggingAsync();
+
+    private async Task LoggingAsync()
+    {
+        var bridge = await _bridge.Value;
+        var logging = _options.Logging;
+        if (PkLogMapping.ToConfig(logging) is { } config) await bridge.InvokeVoidAsync("configureLogging", config);
+        if (logging.ForwardToILogger && loggerFactory is not null)
+        {
+            _forwarder = DotNetObjectReference.Create(new PkLogForwarder(loggerFactory, logging));
+            await bridge.InvokeVoidAsync("startLogForwarding", _forwarder, PkLogMapping.Name(logging.ForwardMinimumLevel));
+        }
+    }
 
     internal async ValueTask<IJSObjectReference> BridgeAsync() => await _bridge.Value;
 
@@ -24,7 +47,17 @@ public sealed class PkRuntime(IJSRuntime js) : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         if (!_bridge.IsValueCreated) return;
-        try { await (await _bridge.Value).DisposeAsync(); }
+        try
+        {
+            var bridge = await _bridge.Value;
+            if (_forwarder is not null) await bridge.InvokeVoidAsync("stopLogForwarding");
+            await bridge.DisposeAsync();
+        }
         catch (JSDisconnectedException) { /* the circuit is gone; nothing to release */ }
+        finally
+        {
+            _forwarder?.Dispose();
+            _forwarder = null;
+        }
     }
 }

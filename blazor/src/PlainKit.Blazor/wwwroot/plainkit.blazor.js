@@ -66,3 +66,40 @@ export const resume = container => { const m = mounted.get(container); return (m
 export const sendTest = container => mounted.get(container)?.test?.();
 export const save = container => { mounted.get(container)?.save?.(); };
 export const reset = container => mounted.get(container)?.reset?.();
+
+// Logging. configureLogging applies the app's settings to the SDK logger; writeLog is how .NET writes into it (IPkLog); the forwarder is a
+// sink that hands entries to a .NET object, which writes them to ILogger.
+let stopForwarding = null;
+let writingFromDotNet = false; // log() runs the sinks synchronously, so this flag marks entries that came from .NET and must not go back
+
+export async function configureLogging(config) {
+    (await import('./plainkit/js/log.js')).configureLogging(config);
+}
+
+export async function writeLog(level, scope, message, detail) {
+    const { log } = await import('./plainkit/js/log.js');
+    writingFromDotNet = true;
+    try { log(level, scope, message, detail ?? undefined); } finally { writingFromDotNet = false; }
+}
+
+const detailText = detail => {
+    if (detail === undefined || detail === null) return null;
+    let text;
+    try { text = detail instanceof Error ? (detail.stack || String(detail)) : typeof detail === 'string' ? detail : JSON.stringify(detail); } catch { text = String(detail); }
+    return text === undefined ? null : text.length > 4000 ? text.slice(0, 4000) + '...' : text;
+};
+
+export async function startLogForwarding(target, minLevel) {
+    const { addLogSink, LEVELS } = await import('./plainkit/js/log.js');
+    stopLogForwarding();
+    const min = Math.max(0, LEVELS.indexOf(minLevel));
+    stopForwarding = addLogSink(entry => {
+        if (writingFromDotNet || LEVELS.indexOf(entry.level) < min) return;
+        target.invokeMethodAsync('Forward', entry.level, entry.scope, entry.message, detailText(entry.detail)).catch(() => { /* the circuit is gone: nobody to forward to */ });
+    });
+}
+
+export function stopLogForwarding() {
+    stopForwarding?.();
+    stopForwarding = null;
+}

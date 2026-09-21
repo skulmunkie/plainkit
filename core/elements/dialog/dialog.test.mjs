@@ -42,3 +42,9 @@ test('the template is a native dialog with a close control and no backdrop handl
     assert.ok(!/\sstyle=|\son\w+=/.test(html));
 });
 
+
+test('dialog: connecting it installs the declarative openers (data-open, data-toggle, data-close) on its document, once', () => {
+    const src = fs.readFileSync(new URL('./dialog.js', import.meta.url), 'utf8');
+    assert.match(src, /import \{ initInvokers \} from '\.\.\/\.\.\/js\/invokers\.js'/);
+    assert.match(src, /connected\(\) \{\s*initInvokers\(this\.ownerDocument\)/, 'connected() installs them; initInvokers is idempotent per root');
+});

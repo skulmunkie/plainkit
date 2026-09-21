@@ -3,6 +3,8 @@
 // rendered live, and the API tables. Built with DOM APIs; the only markup parsed is the element's own examples from its meta. The page
 // itself is made of pk-* elements (page header, cards, accordions, tables, fields, code blocks).
 
+import { cleanMarkup } from '../../js/element-inspector-logic.js';
+
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) { if (v === false || v === null || v === undefined) continue; if (k === 'class') el.className = v; else el.setAttribute(k, v === true ? '' : v); }
@@ -29,7 +31,9 @@ function table(label, cols, rows) {
 
 const show = v => (v === '' ? '""' : String(v));
 
-export function renderElement(meta) {
+// options.onLive(element) hands the playground's live element to the caller (the gallery's inspector shows it); options.onChange() runs after
+// every change of its markup.
+export function renderElement(meta, options = {}) {
     const page = h('pk-stack', { class: 'gx-page' });
     page.append(h('pk-page-header', { class: 'gx-head', level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
 
@@ -42,7 +46,8 @@ export function renderElement(meta) {
     for (const sib of [...(live.parentElement?.children ?? [])]) if (sib !== live && sib.localName === meta.tag) sib.remove();
     const controls = h('pk-grid', { class: 'gx-el-controls', min: '9rem', gap: 'sm' });
     const snippet = codeBlock('Markup');
-    const refresh = () => { snippet.textContent = live.outerHTML.replace(/\s(data-[\w-]+="[^"]*")/g, '').replace(/\shidden(="")?(?=[\s>])/g, ''); };
+    const refresh = () => { snippet.textContent = cleanMarkup(live.outerHTML); options.onChange?.(); };
+    options.onLive?.(live);
 
     // A control starts from the attribute the example carries, else the declared default: read from the markup, so it does not depend on the element being upgraded yet.
     const initial = d => { const a = d.name.replace(/[A-Z]/g, c => '-' + c.toLowerCase()); return d.type === 'boolean' ? live.hasAttribute(a) : live.hasAttribute(a) ? live.getAttribute(a) : d.default; };
@@ -73,7 +78,7 @@ export function renderElement(meta) {
     const theming = h('pk-stack', { gap: 'sm' });
     for (const c of meta.cssProperties) {
         const input = h('pk-input', { placeholder: c.default ?? '' });
-        input.addEventListener('input', () => { if (input.value) live.style.setProperty(c.name, input.value); else live.style.removeProperty(c.name); });
+        input.addEventListener('input', () => { if (input.value) live.style.setProperty(c.name, input.value); else live.style.removeProperty(c.name); refresh(); });
         theming.append(h('pk-field', { label: c.name }, input));
     }
     page.append(section('Playground',

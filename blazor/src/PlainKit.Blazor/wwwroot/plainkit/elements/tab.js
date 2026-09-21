@@ -6,13 +6,13 @@ const behaviour = Base => class extends Base {
         if (!this.$x) { this.$x = true; this.part('close').addEventListener('click', e => { e.stopPropagation(); this.emit('pk-tab-close', { value: this.value }); }); }
         this.updated();
     }
-    updated() { this.aria({ role: 'tab', ariaSelected: String(this.selected), ariaDisabled: this.disabled ? 'true' : null }); }
+    updated() { this.part('close').tabIndex = this.selected ? 0 : -1; this.aria({ role: 'tab', ariaSelected: String(this.selected), ariaDisabled: this.disabled ? 'true' : null }); }
 };
 export default define(class extends behaviour(PkElement) {
     static tag = "pk-tab";
     static props = {"value":{"type":"string","default":"","reflect":true},"selected":{"type":"boolean","default":false,"reflect":true},"disabled":{"type":"boolean","default":false,"reflect":true},"count":{"type":"string","default":"","reflect":false},"closable":{"type":"boolean","default":false,"reflect":true},"only":{"type":"enum","default":"all","values":["all","phone","desktop"],"reflect":true}};
     static delegatesFocus = false;
     static formAssociated = false;
-    static template = "<span part=\"label\"><slot></slot></span><span part=\"count\" data-if=\"count\">({{count}})</span><button part=\"close\" type=\"button\" tabindex=\"-1\" aria-label=\"Close tab\" data-if=\"closable\">&#x2715;</button>";
+    static template = "<span part=\"label\"><slot></slot></span><span part=\"count\" data-if=\"count\">({{count}})</span><button part=\"close\" type=\"button\" aria-label=\"Close tab\" data-if=\"closable\">&#x2715;</button>";
     static css = ":host{display: inline-flex;align-items: center;gap: var(--space-1);padding: var(--space-2) var(--space-4);border-bottom: 2px solid transparent;color: var(--pk-tab-fg,var(--color-muted));font-size: var(--text-read);cursor: pointer;touch-action: manipulation;user-select: none}:host(:hover){color: var(--color-text)}:host([selected]){color: var(--color-text);border-bottom-color: var(--color-accent)}:host([disabled]){opacity: 0.45;cursor: not-allowed}:host(:focus-visible){outline: var(--focus-ring);outline-offset: -2px}:host([only=\"phone\"]){display: none}[part=\"count\"]{color: var(--color-muted)}[part=\"close\"]{font: inherit;font-size: var(--text-sm);color: var(--color-muted);background: transparent;border: 0;padding: 0 0.35rem;margin-left: -0.25rem;cursor: pointer}[part=\"close\"]:hover{color: var(--color-text)}@media (max-width: 640px){:host{min-height: var(--touch-target)}:host([only=\"phone\"]){display: inline-flex}:host([only=\"desktop\"]){display: none}}";
 });

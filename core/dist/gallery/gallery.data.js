@@ -799,6 +799,13 @@ export const ELEMENTS = [
                 "default": false,
                 "reflect": true,
                 "description": "Drawer state, mirrors the side nav."
+            },
+            {
+                "name": "flush",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay)."
             }
         ],
         "slots": [
@@ -1729,7 +1736,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "No padding around the content, for a table or an edge-to-edge body."
+                "description": "No padding around the body, for a table or an edge-to-edge body; the heading row keeps its padding."
             },
             {
                 "name": "href",
@@ -2887,7 +2894,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-dialog",
         "title": "Dialog",
-        "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+        "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {
@@ -3128,7 +3135,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-drawer",
         "title": "Drawer",
-        "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+        "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {
@@ -4267,7 +4274,7 @@ export const ELEMENTS = [
                     "full"
                 ],
                 "reflect": true,
-                "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector."
+                "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup)."
             },
             {
                 "name": "height",
@@ -4337,6 +4344,13 @@ export const ELEMENTS = [
                 "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min."
             },
             {
+                "name": "ratio",
+                "type": "string",
+                "default": "",
+                "reflect": true,
+                "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks."
+            },
+            {
                 "name": "gap",
                 "type": "enum",
                 "default": "md",
@@ -4368,6 +4382,11 @@ export const ELEMENTS = [
                 "name": "--pk-grid-columns",
                 "description": "The column cap; set by the columns prop.",
                 "default": "unset (no cap)"
+            },
+            {
+                "name": "--pk-grid-ratio",
+                "description": "The explicit column list; set by the ratio prop.",
+                "default": "unset (auto-fit columns)"
             }
         ],
         "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
@@ -4375,6 +4394,10 @@ export const ELEMENTS = [
             {
                 "title": "Auto columns",
                 "html": "<pk-grid min=\"10rem\"><pk-card heading=\"One\">A</pk-card><pk-card heading=\"Two\">B</pk-card><pk-card heading=\"Three\">C</pk-card><pk-card heading=\"Four\">D</pk-card></pk-grid>"
+            },
+            {
+                "title": "A 2:1 split",
+                "html": "<pk-grid ratio=\"2:1\"><pk-card heading=\"Main\">Wide</pk-card><pk-card heading=\"Side\">Narrow</pk-card></pk-grid>"
             },
             {
                 "title": "At most three columns",
@@ -4759,6 +4782,13 @@ export const ELEMENTS = [
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label."
+            },
+            {
                 "name": "description",
                 "type": "string",
                 "default": "",
@@ -4994,6 +5024,10 @@ export const ELEMENTS = [
                 "description": "The bordered field that holds the control and its add-ons."
             },
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "control",
                 "description": "The inner input element."
             },
@@ -5062,6 +5096,10 @@ export const ELEMENTS = [
             {
                 "title": "Search, password and floating label",
                 "html": "<pk-input type=\"search\" label=\"Search products\" placeholder=\"Search products\" clearable debounce=\"250\"></pk-input>\n<pk-input type=\"password\" label=\"Password\" reveal autohide=\"15\" autocomplete=\"current-password\"></pk-input>\n<pk-input label=\"Product title\" floating></pk-input>"
+            },
+            {
+                "title": "Visible label",
+                "html": "<pk-input label=\"Email\" show-label type=\"email\"></pk-input>"
             },
             {
                 "title": "Date and time",
@@ -5651,6 +5689,13 @@ export const ELEMENTS = [
                 "default": false,
                 "reflect": true,
                 "description": "In the icon rail, the branch is open as a flyout beside the rail."
+            },
+            {
+                "name": "group",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider."
             }
         ],
         "slots": [
@@ -5708,12 +5753,12 @@ export const ELEMENTS = [
         ],
         "cssProperties": [],
         "methods": [],
-        "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
+        "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys. A group title is plain text (role presentation), not in the tab order.",
         "mobile": "44px tall.",
         "examples": [
             {
                 "title": "Row states",
-                "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item></div>"
+                "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item><pk-nav-item group>Group title</pk-nav-item><pk-nav-item href=\"#\">Under the title</pk-nav-item></div>"
             }
         ]
     },
@@ -6342,7 +6387,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-popover",
         "title": "Popover",
-        "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+        "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {
@@ -6588,6 +6633,13 @@ export const ELEMENTS = [
                 "description": "Append the percentage next to the label."
             },
             {
+                "name": "inline",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Puts the label before the bar and the value after it on one line, instead of a row above the bar."
+            },
+            {
                 "name": "levelThresholds",
                 "type": "string",
                 "default": "",
@@ -6642,6 +6694,10 @@ export const ELEMENTS = [
             {
                 "title": "Auto colour and striped",
                 "html": "<pk-progress label=\"Disk\" value=\"82\" level-thresholds=\"70,90\"></pk-progress>\n<pk-progress label=\"Upload\" value=\"45\" striped variant=\"ok\"></pk-progress>"
+            },
+            {
+                "title": "Inline label",
+                "html": "<pk-progress label=\"Storage\" value=\"40\" show-value inline></pk-progress>"
             },
             {
                 "title": "Indeterminate",
@@ -7421,7 +7477,7 @@ export const ELEMENTS = [
             },
             {
                 "name": "",
-                "description": "pk-nav-item children."
+                "description": "pk-nav-item children; a pk-nav-item with the group attribute is a group title."
             },
             {
                 "name": "footer",
@@ -8530,7 +8586,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab."
+                "description": "Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab."
             },
             {
                 "name": "only",
@@ -8583,7 +8639,7 @@ export const ELEMENTS = [
             }
         ],
         "methods": [],
-        "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is outside the tab order (tabindex -1) and labelled; keyboard users close a tab from the page's own command.",
+        "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is labelled and reachable with Tab from the selected tab (the other tabs' buttons stay out of the tab order, like the tabs themselves); Enter or Space closes.",
         "examples": [
             {
                 "title": "Inside pk-tabs",
@@ -10403,8 +10459,23 @@ export const ELEMENTS = [
             },
             {
                 "name": "--pk-workspace-pad",
-                "description": "Padding inside each pane.",
+                "description": "Padding inside each pane (the default of the three below).",
                 "default": "var(--pad-panel)"
+            },
+            {
+                "name": "--pk-workspace-nav-pad",
+                "description": "Padding inside the nav pane; 0 for a pane that fills itself.",
+                "default": "var(--pk-workspace-pad)"
+            },
+            {
+                "name": "--pk-workspace-main-pad",
+                "description": "Padding inside the main pane.",
+                "default": "var(--pk-workspace-pad)"
+            },
+            {
+                "name": "--pk-workspace-aside-pad",
+                "description": "Padding inside the aside pane.",
+                "default": "var(--pk-workspace-pad)"
             }
         ],
         "methods": [],

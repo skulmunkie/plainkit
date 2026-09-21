@@ -245,5 +245,6 @@ export const dataDisplayCases = [
         t.eq([...doc.querySelectorAll('#gx-nav pk-nav-item[slot][href]')].map(a => a.textContent.trim()).join(), 'Button');
         t.ok(doc.querySelector('.gx-bar'), 'the toolbar is there');
         t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
+        t.ok(doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector shows the live markup of the element page');
     }],
 ];

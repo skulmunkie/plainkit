@@ -21,9 +21,9 @@ closed by a merged pull request.
 A change is done when, on its pull request:
 
 - `node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"` passes (the last glob checks `blazor/mappings` against the element metas), and `dotnet test PlainKit.slnx` passes.
-- `node core/tools/build.mjs` has been run, so `core/dist` is current, and `node scripts/publish-dist.mjs` has copied it into the Blazor package (CI checks both).
+- `node core/tools/build.mjs` has been run, so `core/dist` is current, and `node scripts/publish-dist.mjs` has copied it into the Blazor package (CI checks both). `node scripts/generate-blazor.mjs` has regenerated the `Pk*` wrappers in `blazor/src/PlainKit.Blazor/Generated/` from `dist/elements/api.json` and `blazor/mappings` (CI runs it with `--check`).
 - If an element source or a browser case changed, the in-browser suite was re-run so `core/tests/browser/report.json` is current (`node core/tools/serve.mjs 5341 --write-reports`, open `/tests/browser/` in a visible tab at desktop size, wait for "report saved").
-- SDK and Blazor changes ship together: an element change updates its mapping in `blazor/mappings/<name>.json` (the SDK's element meta knows nothing about Blazor) and, once generated, its wrapper.
+- SDK and Blazor changes ship together: an element change updates its mapping in `blazor/mappings/<name>.json` (the SDK's element meta knows nothing about Blazor) and its generated wrapper (`node scripts/generate-blazor.mjs`; never edit `Generated/` by hand).
 - It uses only components that exist in `core`; a missing component is recorded in the "components the SDK lacks" issue instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 

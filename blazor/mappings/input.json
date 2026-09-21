@@ -112,6 +112,11 @@
       "type": "bool"
     },
     {
+      "name": "ShowLabel",
+      "prop": "showLabel",
+      "type": "bool"
+    },
+    {
       "name": "DebounceMs",
       "prop": "debounce",
       "type": "int"

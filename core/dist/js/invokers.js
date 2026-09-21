@@ -5,7 +5,8 @@
 //
 // data-open="<selector>" calls show() on the first element the selector matches (pk-dialog, pk-drawer, pk-popover); data-toggle="<selector>"
 // calls toggle() (pk-popover) and data-close hides the dialog, drawer or popover the control sits in. One delegated listener per root,
-// installed by initPlainkit(); the pure resolution is exported for tests.
+// installed by initPlainkit() and, on demand, the first time a pk-dialog, pk-drawer or pk-popover connects (so a page that only
+// uses the elements gets the openers too); initInvokers is idempotent per root. The pure resolution is exported for tests.
 
 import { createLogger } from './log.js';
 
