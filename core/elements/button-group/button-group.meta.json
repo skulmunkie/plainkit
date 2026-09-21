@@ -2,7 +2,7 @@
   "tag": "pk-button-group",
   "title": "Button group",
   "group": "Actions",
-  "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+  "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
   "props": [
     {
       "name": "orientation",
@@ -57,8 +57,12 @@
   ],
   "cssProperties": [],
   "methods": [],
-  "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
+  "a11y": "role=group with an aria-label (a group of toggle buttons, not a radiogroup: each keeps its own tab stop and Space or Enter presses it). In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height. A segmented control: give each toggle button a value and listen for pk-toggle on the group (it bubbles); the choice is the event whose detail.pressed is true, and pressing the pressed button again also raises pk-toggle with pressed false, which the group immediately undoes, so ignore that one.",
   "examples": [
+    {
+      "title": "Segmented control (Dark and Light)",
+      "html": "<pk-button-group label=\"Theme\" mode=\"single\"><pk-button toggle pressed value=\"dark\" variant=\"ghost\">Dark</pk-button><pk-button toggle value=\"light\" variant=\"ghost\">Light</pk-button></pk-button-group>"
+    },
     {
       "title": "Group and single choice",
       "html": "<pk-button-group label=\"View\"><pk-button variant=\"ghost\">Day</pk-button><pk-button variant=\"ghost\">Week</pk-button><pk-button variant=\"ghost\">Month</pk-button></pk-button-group>\n<pk-button-group label=\"Density\" mode=\"single\"><pk-button toggle pressed variant=\"ghost\">Compact</pk-button><pk-button toggle variant=\"ghost\">Comfortable</pk-button></pk-button-group>"

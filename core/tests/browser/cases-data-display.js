@@ -121,6 +121,12 @@ export const dataDisplayCases = [
         const n = await t.mount('<pk-stat label="Open" value="3"></pk-stat>'); t.ok(n.part('delta').hidden); t.ok(n.part('link').hidden);
     }],
 
+    ['stat: delta-unit points reads +4 pts and is spoken as points; the default stays percent', async t => {
+        const s = await t.mount('<pk-stat label="Score" value="87" delta="4" delta-unit="points" versus="last run"></pk-stat>');
+        t.ok(s.part('delta').textContent.includes('+4 pts')); t.ok(!s.part('delta').textContent.includes('%')); t.ok(s.part('delta').querySelector('.sr').textContent.includes('up 4 points versus last run'));
+        s.deltaUnit = 'percent'; await t.settle(); t.ok(s.part('delta').textContent.includes('+4%'));
+    }],
+
     ['empty-state: hides what is not given, exposes the heading level, and announces when asked', async t => {
         const e = await t.mount('<pk-empty-state heading="Nothing" level="2" announce></pk-empty-state>');
         t.ok(!e.part('heading').hidden); t.eq(e.part('heading').getAttribute('aria-level'), '2'); t.ok(e.part('description').hidden); t.eq(e.internals.role, 'status');

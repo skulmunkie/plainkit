@@ -21,7 +21,7 @@ declare module 'vue' {
         'pk-checkbox': DefineComponent<Partial<Pick<E.PkCheckboxElement, "name" | "value" | "checked" | "indeterminate" | "label" | "description" | "disabled" | "required" | "invalid" | "group" | "master" | "size">>>;
         'pk-cluster': DefineComponent<Partial<Pick<E.PkClusterElement, "direction" | "gap" | "align" | "justify" | "nowrap">>>;
         'pk-code-block': DefineComponent<Partial<Pick<E.PkCodeBlockElement, "label" | "lineNumbers" | "wrap" | "noCopy" | "maxHeight">>>;
-        'pk-colour-input': DefineComponent<Partial<Pick<E.PkColourInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid">>>;
+        'pk-colour-input': DefineComponent<Partial<Pick<E.PkColourInputElement, "name" | "value" | "label" | "showLabel" | "description" | "disabled" | "required" | "invalid">>>;
         'pk-combobox': DefineComponent<Partial<Pick<E.PkComboboxElement, "mode" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "free" | "filtering" | "open">>>;
         'pk-command-palette': DefineComponent<Partial<Pick<E.PkCommandPaletteElement, "open" | "placeholder" | "recentsKey" | "noShortcut" | "label">>>;
         'pk-context-menu': DefineComponent<Partial<Pick<E.PkContextMenuElement, "open" | "disabled">>>;
@@ -69,7 +69,7 @@ declare module 'vue' {
         'pk-spinner': DefineComponent<Partial<Pick<E.PkSpinnerElement, "variant" | "size" | "label" | "overlay">>>;
         'pk-split-button': DefineComponent<Partial<Pick<E.PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">>>;
         'pk-stack': DefineComponent<Partial<Pick<E.PkStackElement, "gap" | "align" | "dividers">>>;
-        'pk-stat': DefineComponent<Partial<Pick<E.PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">>>;
+        'pk-stat': DefineComponent<Partial<Pick<E.PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaUnit" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">>>;
         'pk-step': DefineComponent<Partial<Pick<E.PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">>>;
         'pk-stepper': DefineComponent<Partial<Pick<E.PkStepperElement, "current" | "orientation" | "clickable" | "free" | "errors" | "label">>>;
         'pk-switch': DefineComponent<Partial<Pick<E.PkSwitchElement, "checked" | "disabled" | "name" | "value" | "invalid" | "size" | "labelPosition">>>;
@@ -79,7 +79,7 @@ declare module 'vue' {
         'pk-tabs': DefineComponent<Partial<Pick<E.PkTabsElement, "value" | "activation" | "noneActive" | "scroll">>>;
         'pk-tag': DefineComponent<Partial<Pick<E.PkTagElement, "removable" | "value" | "disabled">>>;
         'pk-tag-input': DefineComponent<Partial<Pick<E.PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">>>;
-        'pk-textarea': DefineComponent<Partial<Pick<E.PkTextareaElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">>>;
+        'pk-textarea': DefineComponent<Partial<Pick<E.PkTextareaElement, "name" | "value" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">>>;
         'pk-timeline': DefineComponent<Partial<Pick<E.PkTimelineElement, "label">>>;
         'pk-timeline-item': DefineComponent<Partial<Pick<E.PkTimelineItemElement, "heading" | "time" | "status">>>;
         'pk-toast': DefineComponent<Partial<Pick<E.PkToastElement, "kind" | "heading" | "message" | "duration" | "noClose">>>;

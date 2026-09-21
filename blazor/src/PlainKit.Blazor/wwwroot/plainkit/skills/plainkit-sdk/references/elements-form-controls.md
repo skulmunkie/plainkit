@@ -163,6 +163,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `name` | `name` | string | `""` |  | The form field name. |
 | `value` | `value` | string | `""` |  | The colour as #rrggbb. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
 | `required` | `required` | boolean | `false` |  | The form cannot be submitted while the value is empty. |
@@ -186,6 +187,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 | Part | Description |
 |---|---|
+| `label` | The visible label shown by showLabel. |
 | `box` | The row of swatch and hex field. |
 | `swatch` | The native colour picker. |
 | `control` | The hex text field. |
@@ -199,6 +201,12 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `--pk-control-radius` | `var(--radius-sm)` | Corner radius. |
 
 **Accessibility.** Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.
+
+Example: Visible label
+
+```html
+<pk-colour-input label="Accent colour" show-label value="#4a90e2"></pk-colour-input>
+```
 
 Example: Picker and hex
 
@@ -998,6 +1006,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `value` | `value` | string | `""` |  | The current value; what the form submits. |
 | `placeholder` | `placeholder` | string | `""` |  | Hint shown while empty. |
 | `label` | `label` | string | `""` |  | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
 | `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
 | `readonly` | `readonly` | boolean | `false` |  | The value can be read but not edited. |
@@ -1030,6 +1039,7 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 
 | Part | Description |
 |---|---|
+| `label` | The visible label shown by showLabel. |
 | `box` | The bordered field. |
 | `control` | The inner textarea. |
 
@@ -1043,6 +1053,12 @@ It is form-associated (takes part in a `<form>` by its `name`) and delegates foc
 | `--pk-textarea-max-height` | `none` | Cap on the auto-grow height (set from max-height). |
 
 **Accessibility.** A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.
+
+Example: Visible label
+
+```html
+<pk-textarea label="Notes" show-label rows="3"></pk-textarea>
+```
 
 Example: Fixed and auto-grow
 

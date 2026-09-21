@@ -1,5 +1,7 @@
 :host { display: inline-block; --_bd: var(--pk-control-border, var(--color-input-border)); }
 :host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
+label { display: none; margin-block-end: var(--space-1); }
+:host([show-label]) label { display: block; }
 .wrap { display: flex; align-items: center; gap: var(--space-2); }
 .sw { flex: none; width: var(--ctl-h); height: var(--ctl-h); padding: 0; border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); background: none; cursor: pointer; }
 .sw::-webkit-color-swatch-wrapper { padding: 2px; }

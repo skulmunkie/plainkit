@@ -170,6 +170,14 @@ export const formCases = [
         await type(t, hex, 'zz'); t.ok(!el.checkValidity()); t.eq(hex.getAttribute('aria-invalid'), 'true'); t.eq(new FormData(host.firstElementChild).get('c'), '#112233', 'the last good colour is submitted');
     }],
 
+    ['textarea and colour-input: show-label shows a visible label linked to the control, hidden by default', async t => {
+        for (const tag of ['pk-textarea', 'pk-colour-input']) {
+            const el = await t.mount('<' + tag + ' label="Notes"></' + tag + '>'); await t.settle();
+            const l = el.part('label'); t.eq(getComputedStyle(l).display, 'none', tag + ' label hidden by default');
+            el.showLabel = true; await t.settle(); t.ok(el.hasAttribute('show-label')); t.ok(getComputedStyle(l).display !== 'none'); t.eq(l.textContent, 'Notes'); t.eq(l.htmlFor, 'c'); t.eq(el.shadowRoot.getElementById('c'), el.part('control'));
+        }
+    }],
+
     ['dropzone: accepted files are listed and submitted, rejected ones get a reason, Remove drops a file', async t => {
         const host = t.stage('<form><pk-dropzone name="f" label="Files" accept=".csv" multiple max-size="1KB" max-files="2">Drop</pk-dropzone></form>'); await t.load(host); await t.settle();
         const el = host.querySelector('pk-dropzone'); const input = el.part('control');
@@ -193,6 +201,12 @@ export const formCases = [
     ['button-group: single mode keeps exactly one toggle pressed', async t => {
         const g = await t.mount('<pk-button-group mode="single" label="Density"><pk-button toggle pressed>A</pk-button><pk-button toggle>B</pk-button></pk-button-group>'); await t.load(g);
         const [a, b] = g.querySelectorAll('pk-button'); b.click(); await t.settle(); t.ok(b.pressed && !a.pressed); b.click(); await t.settle(); t.ok(b.pressed, 'the pressed one cannot be released'); t.eq(g.part('group').getAttribute('role'), 'group');
+    }],
+
+    ['button-group: single mode works as a segmented control (value per button, pk-toggle bubbles to the group)', async t => {
+        const g = await t.mount('<pk-button-group mode="single" label="Theme"><pk-button toggle pressed value="dark">Dark</pk-button><pk-button toggle value="light">Light</pk-button></pk-button-group>'); await t.load(g);
+        const [d, l] = g.querySelectorAll('pk-button'); const seen = []; g.addEventListener('pk-toggle', e => { if (e.detail.pressed) seen.push(e.detail.value); });
+        l.click(); await t.settle(); t.eq(seen.join(), 'light'); t.ok(l.pressed && !d.pressed); t.eq(d.part('control').getAttribute('aria-pressed'), 'false'); t.eq(l.part('control').getAttribute('aria-pressed'), 'true');
     }],
 
     ['split-button: the caret opens the menu, arrows and Escape work, choosing reports and closes', async t => {

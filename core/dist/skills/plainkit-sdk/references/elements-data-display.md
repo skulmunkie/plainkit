@@ -639,7 +639,8 @@ Example: Captioned 4:3
 | `value` | `value` | string | `""` |  | The headline number, already formatted. |
 | `subtext` | `subtext` | string | `""` |  | A line under the value. |
 | `tone` | `tone` | enum | `"neutral"` | `neutral` `positive` `warning` `critical` | Value colour. |
-| `delta` | `delta` | string | `""` |  | Percent change, for example 12.5 or -3; shows an arrow and a signed percentage. |
+| `delta` | `delta` | string | `""` |  | The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points. |
+| `delta-unit` | `deltaUnit` | enum | `"percent"` | `percent` `points` | What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points. |
 | `delta-direction` | `deltaDirection` | enum | `"auto"` | `auto` `up` `down` `flat` | Override the direction derived from delta. |
 | `invert` | `invert` | boolean | `false` |  | Down is good news (costs, returns): swaps the trend colours. |
 | `versus` | `versus` | string | `"the previous period"` |  | What the change compares with, spoken to assistive technology. |
@@ -666,8 +667,8 @@ Example: Captioned 4:3
 | Method | Description |
 |---|---|
 | `delta(current, previous)` | Direction and percent. |
-| `formatDelta(d)` | A signed percentage. |
-| `deltaSpeech(d, versus)` | The spoken form. |
+| `formatDelta(d, unit)` | A signed percentage, or points when unit is points. |
+| `deltaSpeech(d, versus, unit)` | The spoken form. |
 
 **CSS parts** (`::part(name)`)
 
@@ -702,6 +703,12 @@ Example: Change and trend
 ```html
 <pk-stat label="Sales, September" value="$18,420" delta="12.5" versus="last month" values='[12,15,14,17,18]'></pk-stat>
 <pk-stat label="Return rate" value="2.1%" delta="-0.4" invert></pk-stat>
+```
+
+Example: Change in points
+
+```html
+<pk-stat label="Quality score" value="87" delta="4" delta-unit="points" versus="last run"></pk-stat>
 ```
 
 Example: Dashboard tile as a button

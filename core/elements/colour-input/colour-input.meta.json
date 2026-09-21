@@ -28,6 +28,13 @@
       "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
     },
     {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+    },
+    {
       "name": "description",
       "type": "string",
       "default": "",
@@ -79,6 +86,10 @@
   ],
   "parts": [
     {
+      "name": "label",
+      "description": "The visible label shown by showLabel."
+    },
+    {
       "name": "box",
       "description": "The row of swatch and hex field."
     },
@@ -116,6 +127,10 @@
   ],
   "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
   "examples": [
+    {
+      "title": "Visible label",
+      "html": "<pk-colour-input label=\"Accent colour\" show-label value=\"#4a90e2\"></pk-colour-input>"
+    },
     {
       "title": "Picker and hex",
       "html": "<pk-colour-input label=\"Accent colour\" value=\"#4a90e2\"></pk-colour-input>"

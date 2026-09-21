@@ -35,6 +35,13 @@
       "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
     },
     {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+    },
+    {
       "name": "description",
       "type": "string",
       "default": "",
@@ -142,6 +149,10 @@
   ],
   "parts": [
     {
+      "name": "label",
+      "description": "The visible label shown by showLabel."
+    },
+    {
       "name": "box",
       "description": "The bordered field."
     },
@@ -184,6 +195,10 @@
   ],
   "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
   "examples": [
+    {
+      "title": "Visible label",
+      "html": "<pk-textarea label=\"Notes\" show-label rows=\"3\"></pk-textarea>"
+    },
     {
       "title": "Fixed and auto-grow",
       "html": "<pk-textarea label=\"Notes\" rows=\"3\" value=\"Fixed height, resizable.\"></pk-textarea>\n<pk-textarea label=\"Description\" autogrow max-height=\"160\" value=\"Grows as you type, up to 160px.\"></pk-textarea>"

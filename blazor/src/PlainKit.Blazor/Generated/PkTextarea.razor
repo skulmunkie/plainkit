@@ -13,6 +13,7 @@
              invalid="@IsInvalid"
              rows="@PkAttr.Num(Rows)"
              maxlength="@MaxLength"
+             show-label="@ShowLabel"
              autogrow="@AutoGrow"
              max-height="@PkAttr.Num(MaxHeight)"
              @attributes="Splat"></pk-textarea>
@@ -47,6 +48,9 @@
 
     /// <summary>Maximum text length.</summary>
     [Parameter] public string? MaxLength { get; set; }
+
+    /// <summary>Shows label as visible text above the field (linked to it), for use without a pk-field.</summary>
+    [Parameter] public bool ShowLabel { get; set; }
 
     /// <summary>Grows with the content instead of scrolling.</summary>
     [Parameter] public bool AutoGrow { get; set; }

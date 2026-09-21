@@ -77,6 +77,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-chec
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
 | `IsInvalid` | `bool` |  | attribute `invalid` | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
+| `ShowLabel` | `bool` |  | attribute `show-label` | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `AriaLabel` | `string?` |  | attribute `label` | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `ValueChanged` | `EventCallback<string?>` |  | two-way pair of `Value` | Raised when Value changes (two-way binding: `@bind-Value`). |
 
@@ -444,6 +445,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-tag-
 | `IsInvalid` | `bool` |  | attribute `invalid` | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
 | `Rows` | `int` |  | attribute `rows` | Visible rows of a fixed-height textarea. |
 | `MaxLength` | `string?` |  | attribute `maxlength` | Maximum text length. |
+| `ShowLabel` | `bool` |  | attribute `show-label` | Shows label as visible text above the field (linked to it), for use without a pk-field. |
 | `AutoGrow` | `bool` |  | attribute `autogrow` | Grows with the content instead of scrolling. |
 | `MaxHeight` | `int` |  | attribute `max-height` | Auto-grow cap in pixels; 0 means no cap and the box scrolls beyond it otherwise. |
 | `ValueChanged` | `EventCallback<string?>` |  | two-way pair of `Value` | Raised when Value changes (two-way binding: `@bind-Value`). |

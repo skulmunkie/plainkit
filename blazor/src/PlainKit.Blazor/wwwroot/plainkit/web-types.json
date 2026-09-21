@@ -589,7 +589,7 @@
         },
         {
           "name": "pk-button-group",
-          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
           "attributes": [
             {
               "name": "orientation",
@@ -1166,6 +1166,14 @@
               "value": {
                 "type": "string",
                 "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
               }
             },
             {
@@ -4740,11 +4748,23 @@
             },
             {
               "name": "delta",
-              "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage.",
+              "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points.",
               "value": {
                 "type": "string",
                 "default": "\"\""
               }
+            },
+            {
+              "name": "delta-unit",
+              "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points.",
+              "value": {
+                "type": "string",
+                "default": "\"percent\""
+              },
+              "values": [
+                "percent",
+                "points"
+              ]
             },
             {
               "name": "delta-direction",
@@ -5665,6 +5685,14 @@
               "value": {
                 "type": "string",
                 "default": "\"\""
+              }
+            },
+            {
+              "name": "show-label",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
               }
             },
             {

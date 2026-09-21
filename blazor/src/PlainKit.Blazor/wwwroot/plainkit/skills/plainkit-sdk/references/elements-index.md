@@ -16,7 +16,7 @@
 | `pk-badge` | Data display | A count or short label in a pill, or a status dot with a label; counts cap at a maximum (99+). | `elements-data-display.md` |
 | `pk-breadcrumb` | Navigation | The path to the current page as a trail of links with chevrons; the middle collapses behind a "..." button when the trail is long, sooner on a phone. | `elements-navigation.md` |
 | `pk-button` | Actions | A button in five variants and three sizes, with busy, icon-only and toggle forms. | `elements-actions.md` |
-| `pk-button-group` | Actions | Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice. | `elements-actions.md` |
+| `pk-button-group` | Actions | Buttons fused into one bar, horizontal, vertical or full width; with mode="single" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a… | `elements-actions.md` |
 | `pk-calendar` | Forms | A small month grid to pick or show a date, with marks, minimum and maximum, and full keyboard control. | `elements-form-controls.md` |
 | `pk-card` | Containers | A titled panel with optional media, header actions and footer. | `elements-layout.md` |
 | `pk-chart` | Data display | Bar, line, donut, stacked-bar and sparkline charts in pure SVG, drawn from a slotted data table (which stays as the accessible fallback) or from a data property. | `elements-data-display.md` |

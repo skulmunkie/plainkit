@@ -1592,7 +1592,7 @@
           "name": "PkButtonGroupElement",
           "tagName": "pk-button-group",
           "customElement": true,
-          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+          "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
           "superclass": {
             "name": "PkElement",
             "module": "js/element.js"
@@ -3171,6 +3171,15 @@
               "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+              "name": "show-label",
+              "fieldName": "showLabel",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
               "name": "description",
               "fieldName": "description",
               "type": {
@@ -3239,6 +3248,17 @@
               "default": "\"\"",
               "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
               "attribute": "label",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "showLabel",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "attribute": "show-label",
               "reflects": true
             },
             {
@@ -3316,6 +3336,10 @@
           ],
           "slots": [],
           "cssParts": [
+            {
+              "name": "label",
+              "description": "The visible label shown by showLabel."
+            },
             {
               "name": "box",
               "description": "The row of swatch and hex field."
@@ -12949,7 +12973,16 @@
                 "text": "string"
               },
               "default": "\"\"",
-              "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+              "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+            },
+            {
+              "name": "delta-unit",
+              "fieldName": "deltaUnit",
+              "type": {
+                "text": "\"percent\" | \"points\""
+              },
+              "default": "\"percent\"",
+              "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points."
             },
             {
               "name": "delta-direction",
@@ -13067,9 +13100,20 @@
                 "text": "string"
               },
               "default": "\"\"",
-              "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage.",
+              "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points.",
               "attribute": "delta",
               "reflects": false
+            },
+            {
+              "kind": "field",
+              "name": "deltaUnit",
+              "type": {
+                "text": "\"percent\" | \"points\""
+              },
+              "default": "\"percent\"",
+              "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points.",
+              "attribute": "delta-unit",
+              "reflects": true
             },
             {
               "kind": "field",
@@ -13155,12 +13199,12 @@
             },
             {
               "kind": "method",
-              "name": "formatDelta(d)",
-              "description": "A signed percentage."
+              "name": "formatDelta(d, unit)",
+              "description": "A signed percentage, or points when unit is points."
             },
             {
               "kind": "method",
-              "name": "deltaSpeech(d, versus)",
+              "name": "deltaSpeech(d, versus, unit)",
               "description": "The spoken form."
             }
           ],
@@ -15400,6 +15444,15 @@
               "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+              "name": "show-label",
+              "fieldName": "showLabel",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
               "name": "description",
               "fieldName": "description",
               "type": {
@@ -15551,6 +15604,17 @@
               "default": "\"\"",
               "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty.",
               "attribute": "label",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "showLabel",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+              "attribute": "show-label",
               "reflects": true
             },
             {
@@ -15721,6 +15785,10 @@
           ],
           "slots": [],
           "cssParts": [
+            {
+              "name": "label",
+              "description": "The visible label shown by showLabel."
+            },
             {
               "name": "box",
               "description": "The bordered field."

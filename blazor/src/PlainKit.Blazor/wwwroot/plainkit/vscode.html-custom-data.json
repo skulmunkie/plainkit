@@ -359,7 +359,7 @@
     },
     {
       "name": "pk-button-group",
-      "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.\n\nSlots: (default).",
+      "description": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).\n\nSlots: (default).",
       "attributes": [
         {
           "name": "orientation",
@@ -735,6 +735,11 @@
         {
           "name": "label",
           "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
         },
         {
           "name": "description",
@@ -2826,7 +2831,19 @@
         },
         {
           "name": "delta",
-          "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+          "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+        },
+        {
+          "name": "delta-unit",
+          "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points.",
+          "values": [
+            {
+              "name": "percent"
+            },
+            {
+              "name": "points"
+            }
+          ]
         },
         {
           "name": "delta-direction",
@@ -3350,6 +3367,11 @@
         {
           "name": "label",
           "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
         },
         {
           "name": "description",

@@ -1474,7 +1474,7 @@ export const ELEMENTS = [
         "tag": "pk-button-group",
         "title": "Button group",
         "group": "Actions",
-        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice.",
+        "summary": "Buttons fused into one bar, horizontal, vertical or full width; with mode=\"single\" its toggle buttons behave as one choice, which makes it the SDK's segmented control (a Dark/Light switch, a view or density picker).",
         "props": [
             {
                 "name": "orientation",
@@ -1529,8 +1529,12 @@ export const ELEMENTS = [
         ],
         "cssProperties": [],
         "methods": [],
-        "a11y": "role=group with an aria-label. In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height.",
+        "a11y": "role=group with an aria-label (a group of toggle buttons, not a radiogroup: each keeps its own tab stop and Space or Enter presses it). In single mode the pressed state lives in each button's aria-pressed and the group keeps exactly one pressed. Buttons keep their 44px phone height. A segmented control: give each toggle button a value and listen for pk-toggle on the group (it bubbles); the choice is the event whose detail.pressed is true, and pressing the pressed button again also raises pk-toggle with pressed false, which the group immediately undoes, so ignore that one.",
         "examples": [
+            {
+                "title": "Segmented control (Dark and Light)",
+                "html": "<pk-button-group label=\"Theme\" mode=\"single\"><pk-button toggle pressed value=\"dark\" variant=\"ghost\">Dark</pk-button><pk-button toggle value=\"light\" variant=\"ghost\">Light</pk-button></pk-button-group>"
+            },
             {
                 "title": "Group and single choice",
                 "html": "<pk-button-group label=\"View\"><pk-button variant=\"ghost\">Day</pk-button><pk-button variant=\"ghost\">Week</pk-button><pk-button variant=\"ghost\">Month</pk-button></pk-button-group>\n<pk-button-group label=\"Density\" mode=\"single\"><pk-button toggle pressed variant=\"ghost\">Compact</pk-button><pk-button toggle variant=\"ghost\">Comfortable</pk-button></pk-button-group>"
@@ -2404,6 +2408,13 @@ export const ELEMENTS = [
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
                 "name": "description",
                 "type": "string",
                 "default": "",
@@ -2455,6 +2466,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The row of swatch and hex field."
             },
@@ -2492,6 +2507,10 @@ export const ELEMENTS = [
         ],
         "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
         "examples": [
+            {
+                "title": "Visible label",
+                "html": "<pk-colour-input label=\"Accent colour\" show-label value=\"#4a90e2\"></pk-colour-input>"
+            },
             {
                 "title": "Picker and hex",
                 "html": "<pk-colour-input label=\"Accent colour\" value=\"#4a90e2\"></pk-colour-input>"
@@ -8040,7 +8059,18 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "Percent change, for example 12.5 or -3; shows an arrow and a signed percentage."
+                "description": "The change, for example 12.5 or -3; shows an arrow and a signed number, a percentage unless deltaUnit says points."
+            },
+            {
+                "name": "deltaUnit",
+                "type": "enum",
+                "default": "percent",
+                "values": [
+                    "percent",
+                    "points"
+                ],
+                "reflect": true,
+                "description": "What delta measures: percent shows +12.5%, points shows +4 pts (a score or rate that moved by an absolute amount) and is spoken as points."
             },
             {
                 "name": "deltaDirection",
@@ -8165,11 +8195,11 @@ export const ELEMENTS = [
                 "description": "Direction and percent."
             },
             {
-                "name": "formatDelta(d)",
-                "description": "A signed percentage."
+                "name": "formatDelta(d, unit)",
+                "description": "A signed percentage, or points when unit is points."
             },
             {
-                "name": "deltaSpeech(d, versus)",
+                "name": "deltaSpeech(d, versus, unit)",
                 "description": "The spoken form."
             }
         ],
@@ -8182,6 +8212,10 @@ export const ELEMENTS = [
             {
                 "title": "Change and trend",
                 "html": "<pk-stat label=\"Sales, September\" value=\"$18,420\" delta=\"12.5\" versus=\"last month\" values='[12,15,14,17,18]'></pk-stat>\n<pk-stat label=\"Return rate\" value=\"2.1%\" delta=\"-0.4\" invert></pk-stat>"
+            },
+            {
+                "title": "Change in points",
+                "html": "<pk-stat label=\"Quality score\" value=\"87\" delta=\"4\" delta-unit=\"points\" versus=\"last run\"></pk-stat>"
             },
             {
                 "title": "Dashboard tile as a button",
@@ -9375,6 +9409,13 @@ export const ELEMENTS = [
                 "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
             },
             {
+                "name": "showLabel",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+            },
+            {
                 "name": "description",
                 "type": "string",
                 "default": "",
@@ -9482,6 +9523,10 @@ export const ELEMENTS = [
         ],
         "parts": [
             {
+                "name": "label",
+                "description": "The visible label shown by showLabel."
+            },
+            {
                 "name": "box",
                 "description": "The bordered field."
             },
@@ -9524,6 +9569,10 @@ export const ELEMENTS = [
         ],
         "a11y": "A native textarea in the shadow root, named by label and described by description; invalid sets aria-invalid. Auto-grow never traps scrolling: a capped box scrolls internally.",
         "examples": [
+            {
+                "title": "Visible label",
+                "html": "<pk-textarea label=\"Notes\" show-label rows=\"3\"></pk-textarea>"
+            },
             {
                 "title": "Fixed and auto-grow",
                 "html": "<pk-textarea label=\"Notes\" rows=\"3\" value=\"Fixed height, resizable.\"></pk-textarea>\n<pk-textarea label=\"Description\" autogrow max-height=\"160\" value=\"Grows as you type, up to 160px.\"></pk-textarea>"

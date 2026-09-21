@@ -43,8 +43,8 @@
     },
     {
       "path": "custom-elements.json",
-      "bytes": 562787,
-      "integrity": "sha384-PVHGfWJn/ocJZSU7olvP7ryPCfRXVHrIAg+UMewAofs1bZ5/ex82bDiUv5h/XP0L"
+      "bytes": 565653,
+      "integrity": "sha384-UNEdhwszA0Eh845VKgvlJ/s5ne4H2x3jsz8iwwm8NIkKTc4WEIBG/kG1yBJRBB3m"
     },
     {
       "path": "devtools/devtools.css",
@@ -63,13 +63,13 @@
     },
     {
       "path": "elements.d.ts",
-      "bytes": 76445,
-      "integrity": "sha384-CSLo8gihJ84Pw0Fn0C0MG7B6hxum2VVwqzDdx1CxoUfx0SJ9L12VGCz5iA18E4qN"
+      "bytes": 77004,
+      "integrity": "sha384-QCG/z4ZFkpOeCu7hsc3X7VsvLg/yPea/JVJA4Xym6J0HtXk4nF5WuWsYVMFwc8GP"
     },
     {
       "path": "elements.vue.d.ts",
-      "bytes": 12774,
-      "integrity": "sha384-N+lV2PInmyT4rc0lKg5rlgwWsHj690APFKGSRjudIjyM/iBFXif08srMZzYgJ59T"
+      "bytes": 12816,
+      "integrity": "sha384-4rNutmVMYEHFFWAVnZw25QE0pPp1A0Q53VLGh5U8RuYYvnH/cJReCi89uw/wgrz6"
     },
     {
       "path": "elements/accordion-item.js",
@@ -88,8 +88,8 @@
     },
     {
       "path": "elements/api.json",
-      "bytes": 308148,
-      "integrity": "sha384-XEEFbU3oDSExRVUvzlGfdjQEFv7ZYlZJPXZ4DC9hcyLfuXwK+ci8uSSh1ejhwzBM"
+      "bytes": 310589,
+      "integrity": "sha384-5PwPoTAScdTlnpl2jcbDmkuKydXrY/pqQSRH8C/XE3Ttqu1GJJTqE3wRVWsZ3Cuy"
     },
     {
       "path": "elements/app-shell.js",
@@ -163,8 +163,8 @@
     },
     {
       "path": "elements/colour-input.js",
-      "bytes": 4508,
-      "integrity": "sha384-y7KcOdkvrHBUPMYFjbfXVVs5+jf+jr6gAk6VaCvt1j8lx5aFotAGCdCIuQggnspM"
+      "bytes": 4722,
+      "integrity": "sha384-sUCidKu1W/Gm4ZuK/eXXjYb1J+nT7kt2U39q9RYb3gaHI0GQljUGOwukYZufyiR6"
     },
     {
       "path": "elements/combobox.js",
@@ -408,8 +408,8 @@
     },
     {
       "path": "elements/stat.js",
-      "bytes": 7194,
-      "integrity": "sha384-o+7RoFLf7l+WRqBM9sz5m4qHnd6kiG6PVyMrwOc19AaPXqWWOir+9Jh1D2FCqoRg"
+      "bytes": 7519,
+      "integrity": "sha384-QmXjZJzfqMrdX5Ph/Kbm5y/0nYzanaZZJoXtPT9BgLLplhqAgpNJqVTJsoThpD+0"
     },
     {
       "path": "elements/step.js",
@@ -458,8 +458,8 @@
     },
     {
       "path": "elements/textarea.js",
-      "bytes": 5082,
-      "integrity": "sha384-OXjt/NiRkVWYRBvpBoVcnUaYaAxMWJG/tqQPsaTVhCzjUxDb5xmGn+ND+peroK13"
+      "bytes": 5296,
+      "integrity": "sha384-JToRb2APPLvKgn4tMwn0HIi2hTBTDG2VkB0YoaHmJhA4Xca6zsFDBHbfr04v7Rdy"
     },
     {
       "path": "elements/timeline-item.js",
@@ -553,8 +553,8 @@
     },
     {
       "path": "gallery/gallery.data.js",
-      "bytes": 414227,
-      "integrity": "sha384-do2j78RhC1jQtnxAkDmtyPy1mHKwxarHP7uGLmM/fvD8KgCoHgs3/S/UneeTPoPl"
+      "bytes": 417028,
+      "integrity": "sha384-CmFb9fkJS/mt7Nv6uxQPNe74CW4aVRXQn2Ikh1oO0+Eg3gGq+fVN7AVbADGhvlvx"
     },
     {
       "path": "gallery/gallery.js",
@@ -968,8 +968,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-actions.md",
-      "bytes": 5271,
-      "integrity": "sha384-HvT8e6W8l5hOB/nt2P/XAlKPvC7LDkWK2rmgwF/LS7aAicw/jYqL8/HWvAaVOzOT"
+      "bytes": 5363,
+      "integrity": "sha384-ysMTV7TGImKirMnwzIGPiydr4gZtIm1EFok6GZQR+FUkYx/8IHpAdOHDHLNAkvty"
     },
     {
       "path": "skills/plainkit-blazor/references/components-data-display.md",
@@ -983,8 +983,8 @@
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-controls.md",
-      "bytes": 28388,
-      "integrity": "sha384-lGTTDeVgtwy6AJ82hLjyr3Y9rIaQfe641RZuySIaCihvjHCEjhK4Z14YDU7EbwfB"
+      "bytes": 28676,
+      "integrity": "sha384-f7y7BZvwnxU8d2nonFG0EihogwmzbdYPN/CVWLhM246nlO/8KzEv7IfiMrngNYwG"
     },
     {
       "path": "skills/plainkit-blazor/references/components-form-layout.md",
@@ -1048,13 +1048,13 @@
     },
     {
       "path": "skills/plainkit-sdk/references/elements-actions.md",
-      "bytes": 9701,
-      "integrity": "sha384-9mjJD8FSKucfVWm50qc0e/6SW7hcpWAOL1NlIEIauy2f+TKi5echKdsHj2JpVPB0"
+      "bytes": 10457,
+      "integrity": "sha384-I/g9Ydhj0cQ3B6TRGI5MpNEMqwNrrj5fWoBHWMgJbop6blFMKqgbes+gAk1Yie9e"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-data-display.md",
-      "bytes": 43734,
-      "integrity": "sha384-MNrMg403tiqB8Ai5r2M+9mZiMGZQPs+Cx8yNZ748gvjA7UwYH2oy96ZmKRQj6wpg"
+      "bytes": 44174,
+      "integrity": "sha384-eE2pf1SqRZWJhuZA/6U2ISzyzxyuU4JfmPXICquKVmkNnU+jUWJZnmX51Nzlj7Se"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-feedback.md",
@@ -1063,8 +1063,8 @@
     },
     {
       "path": "skills/plainkit-sdk/references/elements-form-controls.md",
-      "bytes": 53863,
-      "integrity": "sha384-3S3Z4ljjvI4HvE8ZcT3hu1EpttuIQFY+AsqVilflyso0Ku1EpwA/IpcmIYczuGyD"
+      "bytes": 54492,
+      "integrity": "sha384-lEUEsciHdTp6iRaaYJPQWOFPCIzi3Rd2RuvBoo9ofRjTyTtfhq4shMBOdNi3urNh"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-form-layout.md",
@@ -1073,8 +1073,8 @@
     },
     {
       "path": "skills/plainkit-sdk/references/elements-index.md",
-      "bytes": 15554,
-      "integrity": "sha384-tdqdcqAnWU8pPftC/GZ0FJwtNSL372HEub/0CHsFnqMQaVdVb1IZ6gQcLuYhgNUe"
+      "bytes": 15603,
+      "integrity": "sha384-TKYBcbtxDLgpDiDvTfJKw4Rj+JXT6MXCorTO/9w/IZ6+OPixnNV9rg29TadzhIZF"
     },
     {
       "path": "skills/plainkit-sdk/references/elements-layout.md",
@@ -1153,13 +1153,13 @@
     },
     {
       "path": "vscode.html-custom-data.json",
-      "bytes": 117584,
-      "integrity": "sha384-VLaVT4LY+zg8XF7H+ySzbLlkyWj837OYjwQJgQmbYoaeAt+fUmvymxWPkQT9pYmn"
+      "bytes": 118497,
+      "integrity": "sha384-USSLFIgM1WERcekKJ9kaXwm8HMmM5boL4CEpx+Z+JJ9YBHgAoqSw0Rcv0bObAYxS"
     },
     {
       "path": "web-types.json",
-      "bytes": 211558,
-      "integrity": "sha384-/sKMf72GquTbws2SqRw7tyVLUqJ+5qjpuae3HXc7hIyWIrzk+GSLtCuGEBt5OoUn"
+      "bytes": 212752,
+      "integrity": "sha384-OwxMJdz1lEktYOdYJmg71Yn8EMVGhq81OUgRJmQ3DpRHNxhU/U88VgQxGrzLLNaZ"
     }
   ]
 }
