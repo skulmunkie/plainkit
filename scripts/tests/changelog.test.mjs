@@ -36,6 +36,9 @@ test('isDocsOnly / checkPr', () => {
     for (const p of ['README.md', 'core/README.md', '.github/pull_request_template.md', 'changelog/unreleased/1-a.md', 'changelog/README.md', 'core/tests/browser/report.json']) assert.ok(isDocsOnly(p), p);
     for (const p of ['core/elements/pk-tabs/pk-tabs.js', '.github/workflows/ci.yml', 'scripts/changelog.mjs']) assert.ok(!isDocsOnly(p), p);
     assert.ok(checkPr([{ status: 'M', path: 'CONTRIBUTING.md' }]).ok);
+    // a change to tests alone has no visible effect: no fragment (a test next to a source change still needs the source's fragment)
+    assert.ok(checkPr([{ status: 'A', path: 'core/elements/tabs/tabs.test.mjs' }, { status: 'M', path: 'core/tests/browser/cases.js' }, { status: 'A', path: 'blazor/tests/PlainKit.Blazor.Tests/X.cs' }, { status: 'M', path: 'scripts/tests/verify.test.mjs' }]).ok);
+    assert.ok(!checkPr([{ status: 'A', path: 'core/elements/tabs/tabs.test.mjs' }, { status: 'M', path: 'core/elements/tabs/tabs.js' }]).ok);
     assert.ok(!checkPr([{ status: 'M', path: 'core/js/log.js' }]).ok);
     assert.ok(checkPr([{ status: 'M', path: 'core/js/log.js' }], { PK_NO_CHANGELOG: '1' }).ok);
     // a release pull request changes core/VERSION and compiles (deletes) the fragments: it needs none of its own

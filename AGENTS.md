@@ -94,7 +94,7 @@ Still committed, because they are release artefacts and not build output: `core/
 ## Changelog fragments
 
 Do not edit `CHANGELOG.md`. Add one file per change: `node scripts/changelog.mjs new <added|changed|fixed|removed|breaking|notes> <slug> --issue N`,
-then write the entry (format: `changelog/README.md`). A pull request that changes only docs (`*.md`, `changelog/**`) needs none; a change with no
+then write the entry (format: `changelog/README.md`). A pull request that changes only docs (`*.md`, `changelog/**`) or only tests (`*.test.mjs`, `core/tests/`, `scripts/tests/`, `blazor/tests/`) needs none; a change with no
 visible effect (tooling, refactor) uses the label `no-changelog` and says why in the description. The release pull request compiles the fragments.
 
 ## Rules that are easy to break
