@@ -54,10 +54,17 @@ export async function mountQuality(container, options) {
     mounted.set(container, await mountQuality(container, options));
 }
 
-export async function mountThemeEditor(container, options) {
+// host (optional) is a DotNetObjectReference of PkThemeEditorHost: each change of the theme is reported to it with the exported CSS, a moment after typing stops.
+// A null option means "not set" (.NET sends null for it): it is left out so the module's own default applies.
+export async function mountThemeEditor(container, options, host) {
     const { mountThemeEditor } = await import('./plainkit/theme-editor/theme-editor.js');
     destroy(container);
-    mounted.set(container, await mountThemeEditor(container, options));
+    let timer = 0;
+    let armed = false;   // the editor reports its starting state while it mounts: only later changes are the user's
+    const send = host ? ({ css }) => { if (!armed) return; clearTimeout(timer); timer = setTimeout(() => host.invokeMethodAsync('OnChange', css), 250); } : undefined;
+    const editor = await mountThemeEditor(container, { ...Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null)), onchange: send });
+    armed = true;
+    mounted.set(container, { ...editor, destroy() { clearTimeout(timer); editor.destroy(); } });
 }
 
 // The dev tools: a dock on the page (the container is only the component's marker; the dock is JS's, appended to the body) or inline in the container.

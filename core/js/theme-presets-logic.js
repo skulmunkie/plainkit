@@ -8,7 +8,7 @@
 // Every override name and value passes the SDK's rules (js/theme.js); the saved list is sanitised on the way in, capped, and never trusted as HTML.
 
 import { sanitizeOverrides, sanitizeDict } from './theme.js';
-import { emptyOverrides } from './theme-editor-logic.js';
+import { emptyOverrides, readImport } from './theme-editor-logic.js';
 
 export const MAX_SAVED = 30;
 export const MAX_NAME = 40;
@@ -103,3 +103,26 @@ export function renameTheme(list, from, toText) {
 }
 
 export const deleteTheme = (list, name) => list.filter(t => t.name !== name);
+
+// Presets an app supplies: [{ name, description?, theme }], theme being the JSON { shared, dark, light } or an override CSS block (text) or the overrides object.
+// Returns { presets: [{ id, name, description, overrides }], problems: [sentence] }: the id is the name; a bad, duplicate or built-in-named entry is left out with a sentence.
+export function readCustomPresets(list) {
+    const presets = [];
+    const problems = [];
+    for (const item of Array.isArray(list) ? list : []) {
+        const name = cleanName(item?.name);
+        if (!name) { problems.push(`A preset needs a name of 1 to ${MAX_NAME} characters (letters, digits, spaces and _ . , ' ( ) -).`); continue; }
+        if (PRESETS.some(p => same(p.id, name)) || presets.some(p => same(p.id, name))) { problems.push(`The preset name "${name}" is already taken.`); continue; }
+        const read = readOverridesInput(item.theme);
+        if (read.error) { problems.push(`The preset "${name}" was left out: ${read.error}`); continue; }
+        presets.push({ id: name, name, description: typeof item.description === 'string' ? item.description.slice(0, 200) : 'Supplied by the app.', overrides: read.overrides });
+    }
+    return { presets, problems };
+}
+
+// The overrides in text (JSON or CSS, read like an import) or in an object: { overrides } or { error }. Text that holds nothing usable is an error.
+export function readOverridesInput(input) {
+    if (input !== null && typeof input === 'object') return { overrides: sanitizeOverrides(input) };
+    const read = readImport(String(input ?? ''));
+    return read.error ? { error: read.error } : { overrides: read.overrides };
+}
