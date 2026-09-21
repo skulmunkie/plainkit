@@ -92,6 +92,9 @@
   ],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect." }
+  ],
   "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot. The back link is a real link (keyboard reachable, 44px target, focus ring) named by back-label; the arrow is aria-hidden. Put the page's h1 in the title slot so there is exactly one page heading; do not repeat it in the body.",
   "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar. The back link keeps a 44px target and a long title is truncated to one line.",
   "examples": [

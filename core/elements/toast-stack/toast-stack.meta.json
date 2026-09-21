@@ -42,6 +42,9 @@
       "description": "See the description"
     }
   ],
+  "writes": [
+    { "target": "the pk-toast children", "attributes": ["hidden"], "why": "Toasts past max are hidden until an earlier one is dismissed, and the visible ones are started (their timer). Kept when the element disconnects." }
+  ],
   "a11y": "A labelled region; each toast announces itself with its own role.",
   "mobile": "Spans the width on a phone (top or bottom); respects env(safe-area-inset-*).",
   "examples": [

@@ -29,6 +29,9 @@
   "parts": [],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "the accordion items", "attributes": ["open"], "why": "With exclusive, opening one item closes the others. The items raise pk-toggle for it. Not undone on disconnect." }
+  ],
   "a11y": "Each item is a native details and summary, so Enter and Space toggle it and find-in-page opens matches. The accordion only coordinates the items.",
   "examples": [
     {

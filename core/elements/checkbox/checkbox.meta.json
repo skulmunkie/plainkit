@@ -173,6 +173,9 @@
       "description": "Focuses the box."
     }
   ],
+  "writes": [
+    { "target": "the other pk-checkbox elements of the same group in the document", "attributes": ["checked","indeterminate"], "why": "A master checkbox (master=\"name\") sets every enabled member (group=\"name\") on change, and a member re-syncs the master from the members. Only with the group attributes. Not undone on disconnect." }
+  ],
   "a11y": "A native checkbox inside its label, so it is named by its text and toggled by Space; indeterminate is announced as mixed; invalid sets aria-invalid and a red border. Rows are 44px tall on a phone.",
   "examples": [
     {

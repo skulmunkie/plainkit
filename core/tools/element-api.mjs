@@ -11,6 +11,8 @@
 //   parts[]         { name, description }      ::part(name) is the styling hook
 //   cssProperties[] { name (--pk-...), description, default? }
 //   methods[]       { name, description }
+//   writes[]        optional { target, attributes[], why }: what the element writes to nodes it does not own (light-DOM children, a trigger, a heading elsewhere):
+//                   the attribute or property names (an ElementInternals call is 'aria()'), and why, including whether it is undone; core/tests/ownership.test.mjs holds the source to it
 //   a11y            keyboard and ARIA notes
 //   examples[]      { title, html }   usage snippets shown in the gallery: <pk-*> markup, never a style attribute
 
@@ -54,6 +56,8 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
         }
     }
     for (const d of meta.props) if ('commit' in d) { const named = [].concat(d.commit); need(named.length > 0 && named.every(n => typeof n === 'string' && meta.events.some(e => e.name === n)), `prop "${d.name}" commit must name events declared in events[] (${JSON.stringify(d.commit)})`); }
+    need(meta.writes === undefined || Array.isArray(meta.writes), 'writes must be an array when present');
+    for (const w of Array.isArray(meta.writes) ? meta.writes : []) need(isText(w.target) && Array.isArray(w.attributes) && w.attributes.length > 0 && w.attributes.every(isText) && isText(w.why), `each writes entry needs a target, attributes[] and a why (${JSON.stringify(w.target)})`);
     for (const e of meta.events) need('detail' in e, `event "${e.name}" needs a detail (null when there is none)`);
     for (const c of meta.cssProperties) need(CSS_PROP.test(c.name), `css property "${c.name}" must start with --pk-`);
 

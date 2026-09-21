@@ -126,6 +126,9 @@
   ],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "sibling pk-menu-item elements of type radio", "attributes": ["checked"], "why": "Choosing a radio item unchecks its radio siblings (the group is the parent). Not undone on disconnect. The description text is the item own accessible description through its ElementInternals (aria(), not an attribute on another node)." }
+  ],
   "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props. The description (attribute or slot) is hidden from the name and is the item's accessible description, set as aria-description through ElementInternals (an aria-describedby id cannot cross the shadow root) and refreshed when the slot or attribute changes and when the item takes focus; it is not part of typeahead or of the value pk-select reports.",
   "mobile": "44px tall on a phone; a description wraps onto more lines instead of being truncated, so keep it to one short sentence; the submenu chevron points down and the submenu opens inline.",
   "examples": [

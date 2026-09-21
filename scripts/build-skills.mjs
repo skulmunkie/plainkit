@@ -231,6 +231,7 @@ function elementSection(e) {
     if (e.methods.length) out.push('', '**Methods**', '', table(['Method', 'Description'], e.methods.map(m => [code(m.name), m.description])));
     if (e.parts.length) out.push('', '**CSS parts** (`::part(name)`)', '', table(['Part', 'Description'], e.parts.map(p => [code(p.name), p.description])));
     if (e.cssProperties.length) out.push('', '**CSS custom properties** (set on the element or a parent, from a stylesheet)', '', table(['Property', 'Default', 'Description'], e.cssProperties.map(c => [code(c.name), c.default ? code(c.default) : '', c.description])));
+    if (e.writes?.length) out.push('', '**Writes to host nodes** (attributes and props this element sets on nodes it does not own)', '', table(['Target', 'Writes', 'Why'], e.writes.map(w => [w.target, w.attributes.map(code).join(', '), w.why])));
     out.push('', `**Accessibility.** ${e.a11y}`);
     for (const x of e.examples) {
         const issue = EXAMPLE_ISSUES.find(i => i.tag === e.tag && i.title === x.title);

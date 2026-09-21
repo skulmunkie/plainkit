@@ -367,3 +367,95 @@ test('the elements that change a two-way prop themselves raise its commit event 
     assert.match(src('command-palette'), /emit\('pk-close', \{ reason: 'select' \}/, 'pk-command-palette: choosing a command raises pk-close');
     assert.match(src('code-block'), /this\.wrap = !this\.wrap; this\.emit\('pk-wrap-change'/, 'pk-code-block: the wrap toggle raises pk-wrap-change');
 });
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// Rule 3: writes to nodes an element does not own are declared in the meta (`writes`)
+// ---------------------------------------------------------------------------------------------------------------------------------
+// A conservative static check, not a proof: it finds `x.setAttribute('name'`, `.removeAttribute`, `.toggleAttribute`, `.dataset.x =`, `.aria(` and an
+// assignment of one of the props below (`x.hidden = `, `x.tabIndex = `, ...) whose receiver is not the element itself, its shadow tree or a node the
+// file creates. The attribute or prop must then be named in an `attributes` list of the element's `writes`. Receivers it cannot classify (a shadow node
+// reached through a helper) go in ALLOWED_WRITES with the reason.
+
+const WRITE_PROPS = 'hidden|tabIndex|id|role|slot|selected|expanded|open|checked|indeterminate|rail|flyout|error|invalid|valid|warning|required|description|label|state|index|last|clickable|orientation|disabled';
+const OWN_RHS = /^(?:this\.part\(|this\.shadowRoot|(?:this\.)?(?:ownerDocument|document|doc)\.createElement|make\(|el\(|h\(|button\(|[\w.$]*cloneNode|tpl\b)/;
+
+export function writesOf(source) {
+    const text = strip(source);
+    const own = new Set();
+    const decl = [...text.matchAll(/\b(?:const|let|var)\s+([\w$]+)\s*=\s*([^;\n]*)/g), ...text.matchAll(/,\s*([\w$]+)\s*=\s*([^;\n]*)/g)];
+    for (let pass = 0; pass < 2; pass++) for (const m of decl) { const rhs = m[2].trim(); if (OWN_RHS.test(rhs) || [...own].some(o => rhs.startsWith(`${o}.`))) own.add(m[1]); }
+    const chain = String.raw`([\w$]+(?:\??\.[\w$]+|\([^()]*\)|\[\d+\])*)`;
+    const found = [];
+    const add = (receiver, attr) => {
+        const root = /^[\w$]+/.exec(receiver)[0], rest = receiver.slice(root.length);
+        const mine = /^(?:\.dataset|\.style)?$/.test(rest) && (root === 'this' || own.has(root)) || (root === 'this' && /^\.(?:part\(|shadowRoot)/.test(rest));
+        if (!mine) found.push({ receiver, attr: attr.toLowerCase() });
+    };
+    const quote = '[\'"`]';
+    for (const m of text.matchAll(new RegExp(`${chain}\\??\\.(?:setAttribute|removeAttribute|toggleAttribute)\\(\\s*(${quote})([^'"\`]*)\\2`, 'g'))) add(m[1], m[3]);
+    for (const m of text.matchAll(new RegExp(`${chain}\\??\\.(${WRITE_PROPS})\\s*(?:\\|\\|)?=(?!=)`, 'g'))) if (!m[1].endsWith('.dataset')) add(m[1], m[2]);
+    for (const m of text.matchAll(new RegExp(`${chain}\\.dataset\\.([\\w$]+)\\s*=(?!=)`, 'g'))) add(m[1], `data-${m[2]}`);
+    for (const m of text.matchAll(new RegExp(`${chain}\\??\\.aria\\(`, 'g'))) add(m[1], 'aria()');
+    return found;
+}
+
+// Receivers the check cannot classify, per source: { receiver: why it is not a node the host owns }.
+const OWN_SHADOW = 'a node in the element\'s own shadow tree (or one it builds for it)';
+const ALLOWED_WRITES = {
+    'elements/chart/chart.js': { li: 'a legend item the chart builds itself, inside its shadow tree' },
+    'elements/combobox/combobox.js': { 'this.ctl()': OWN_SHADOW + ': ctl() returns the shadow trigger or control', o: 'an option of the popup the element renders in its shadow tree', c: OWN_SHADOW + ' (the control or the trigger)' },
+    'elements/command-palette/command-palette.js': { e: 'a node the el() helper creates', r: 'a row of the list the element renders in its shadow tree' },
+    'elements/dialog/dialog.js': { input: 'the field of the prompt dialog the helper creates itself', error: 'the error line of the prompt dialog the helper creates itself' },
+    'elements/dropzone/dropzone.js': { b: 'the remove button of a row the element renders in its shadow tree' },
+    'elements/image-gallery/image-gallery.js': { make: 'a button inside a tile the element renders in its shadow tree', remove: 'a button inside a tile the element renders in its shadow tree' },
+    'elements/nav-item/nav-item.js': { row: 'the row (the anchor) in the element\'s own shadow tree' },
+    'elements/pagination/pagination.js': { more: OWN_SHADOW },
+    'elements/select/select.js': { o: 'an option of the native select in the element\'s shadow tree' },
+    'elements/select-menu/select-menu.js': { o: 'an option of the list the element renders in its shadow tree' },
+    'elements/tag-input/tag-input.js': { "p.querySelector('.px')": 'the remove button of a chip the element renders in its shadow tree' },
+    'elements/toast-stack/toast-stack.js': { stack: 'a pk-toast-stack the show() helper creates for the caller (rule 3: an element it makes and fills for the caller)' },
+    'elements/toc/toc.js': { 'x.a': 'the link of an entry the element renders in its shadow tree' },
+};
+
+const declaredWrites = meta => new Set((meta.writes ?? []).flatMap(w => w.attributes).map(a => a.trim().split(/\s+/)[0].toLowerCase()));
+
+test('every write to a node the element does not own is declared in its meta writes (or allow-listed with a reason)', () => {
+    const problems = []; const used = new Set(); const metas = readMeta();
+    for (const s of sources().filter(x => x.kind === 'element')) {
+        const el = s.file.split('/')[1]; const declared = declaredWrites(metas[el] ?? {});
+        for (const w of writesOf(s.source)) {
+            if (ALLOWED_WRITES[s.file]?.[w.receiver]) { used.add(`${s.file}|${w.receiver}`); continue; }
+            if (!declared.has(w.attr)) problems.push(`${s.file}: writes ${w.attr} on ${w.receiver} but ${el}.meta.json writes does not list it`);
+        }
+    }
+    assert.deepEqual([...new Set(problems)], [], `\n${[...new Set(problems)].join('\n')}\n\nAn element that writes an attribute or prop on a node it does not own (a light-DOM child, a trigger, a heading elsewhere) declares it in "writes": [{ target, attributes, why }] in its meta; ${SECTION}, rule 3. A receiver that is really the element's own shadow node goes in ALLOWED_WRITES with the reason.`);
+    const stale = [];
+    for (const [file, rs] of Object.entries(ALLOWED_WRITES)) for (const r of Object.keys(rs)) if (!used.has(`${file}|${r}`)) stale.push(`${file} (${r})`);
+    assert.deepEqual(stale, [], `these ALLOWED_WRITES entries no longer match a write: remove them\n${stale.join('\n')}`);
+});
+
+test('every declared writes entry is well formed and names an attribute the source really writes', () => {
+    const problems = []; const metas = readMeta();
+    for (const s of sources().filter(x => x.kind === 'element')) {
+        const el = s.file.split('/')[1]; const meta = metas[el];
+        if (!meta?.writes) continue;
+        const seen = new Set(writesOf(s.source).map(w => w.attr));
+        for (const w of meta.writes) for (const a of w.attributes) if (!seen.has(a.trim().split(/\s+/)[0].toLowerCase()) && !ALLOWED_DECLARED[`${el}.${a}`]) problems.push(`${el}: writes lists "${a}" (${w.target}) but the source does not write it`);
+    }
+    assert.deepEqual(problems, [], `\n${problems.join('\n')}\n\nA writes entry lists what the source really writes; remove the name, or (a write the check cannot see, such as a computed name) add it to ALLOWED_DECLARED with the reason.`);
+});
+
+// Declared writes the static check cannot see.
+const ALLOWED_DECLARED = {
+    'toast-stack.hidden': 'the receiver t is also a local of another function in the file, so the check treats every t as a node it made',
+    'field.warning': 'set through flag(c, name, on) with a computed property name',
+    'field.invalid': 'set through flag(c, name, on) with a computed property name',
+};
+
+test('the writes guard itself flags what it should and passes what it should', () => {
+    const bad = `export default Base => class extends Base { updated() { for (const c of this.slotted()) { c.setAttribute('role', 'x'); c.hidden = true; } this.slotted()[0].aria({ role: 'y' }); } }`;
+    assert.deepEqual(writesOf(bad).map(w => w.attr).sort(), ['aria()', 'hidden', 'role']);
+    const fine = `export default Base => class extends Base { updated() { this.setAttribute('a', ''); this.part('x').hidden = true; const r = this.shadowRoot; r.setAttribute('b', ''); const e = document.createElement('i'); e.setAttribute('c', ''); e.dataset.d = ''; this.dataset.z = ''; } }`;
+    assert.deepEqual(writesOf(fine), []);
+    assert.deepEqual(writesOf(`x.t.setAttribute('aria-current', 'page'); delete y.dataset.k; if (a.hidden === b) {}`).map(w => w.attr), ['aria-current']);
+});

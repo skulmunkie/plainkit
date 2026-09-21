@@ -90,6 +90,9 @@
       "description": "Closes it"
     }
   ],
+  "writes": [
+    { "target": "the slotted trigger", "attributes": ["aria-haspopup","aria-expanded"], "why": "aria-haspopup=menu and aria-expanded (true or false, as the open state) describe the popup the trigger controls; refreshed on every open change and when the trigger is replaced. Kept when the element disconnects." }
+  ],
   "a11y": "Trigger has aria-haspopup=menu and aria-expanded; the menu is role=menu; items are menuitem, menuitemcheckbox or menuitemradio; focus moves to the first item on keyboard open and returns to the trigger on close.",
   "mobile": "Items are 44px tall; submenus open inline under their item instead of beside it; the menu shifts to stay on screen.",
   "examples": [

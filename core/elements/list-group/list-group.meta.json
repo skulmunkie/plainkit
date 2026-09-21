@@ -41,6 +41,9 @@
   "parts": [],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "the slotted rows", "attributes": ["role"], "why": "A row without a role gets role=listitem so the list has the items the host role=list expects; a role the host set is left alone. Not removed. Kept when the element disconnects." }
+  ],
   "a11y": "The host is role=list and each row gets role=listitem unless it already has a role. Rows are native links, buttons or labels, so keyboard and names come from them. The current row uses aria-current. Actionable rows are at least 44px tall.",
   "examples": [
     {

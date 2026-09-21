@@ -78,6 +78,9 @@
       "description": "Re-reads the headings"
     }
   ],
+  "writes": [
+    { "target": "the headings elsewhere in the document that the for selector matches", "attributes": ["id"], "why": "A heading without an id gets a slug of its text, so the link and the scroll spy have something to point at. Only ever added, never changed or removed. Kept when the element disconnects." }
+  ],
   "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
   "mobile": "Not sticky below 1024px; links are 44px tall.",
   "examples": [

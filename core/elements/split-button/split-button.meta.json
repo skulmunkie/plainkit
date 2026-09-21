@@ -137,6 +137,9 @@
       "description": "Closes the menu."
     }
   ],
+  "writes": [
+    { "target": "the slotted menu items", "attributes": ["role"], "why": "Every item slotted into menu gets role=menuitem (overwriting any other) so the menu has the semantics its keyboard handling assumes. Not removed. Kept when the element disconnects." }
+  ],
   "a11y": "The caret is a labelled menu button (aria-haspopup=\"menu\", aria-expanded); the items get role=menuitem; ArrowDown/ArrowUp on the caret open the menu on the first/last item, arrows, Home and End move, Escape closes and returns focus to the caret, Tab closes, and a click outside closes. The menu opens upward when there is no room below.",
   "examples": [
     {
