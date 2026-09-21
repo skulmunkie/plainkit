@@ -86,6 +86,20 @@ test('the package build records its repository and commit (SourceLink) and is de
     assert.match(props, /<RepositoryUrl>https:\/\/github\.com\/skulmunkie\/plainkit<\/RepositoryUrl>/);
 });
 
+test('the Blazor bridge scripts (outside the scanner\'s core/ root) hold the same line: no eval, no markup sinks beyond the documented one, no dynamic import path, no third-party address', () => {
+    const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot');
+    const scripts = fs.readdirSync(dir).filter(f => f.endsWith('.js'));
+    assert.deepEqual(scripts.filter(f => f !== 'PlainKit.Blazor.lib.module.js').sort(), ['blazor-devtools.js', 'plainkit.blazor.js']); // the lib.module is generated (checked with the others below)
+    const sinkBudget = { 'blazor-devtools.js': 1 }; // exampleElement: a template element parses the element's own example markup (inert, never attached)
+    for (const f of scripts) {
+        const text = read(`blazor/src/PlainKit.Blazor/wwwroot/${f}`);
+        assert.doesNotMatch(text, /\beval\s*\(|new\s+Function\s*\(|document\.write|setTimeout\(\s*['"`]/, `${f} runs code from text`);
+        assert.equal((text.match(/\b(innerHTML|outerHTML|insertAdjacentHTML)\b/g) ?? []).length, sinkBudget[f] ?? 0, `${f} markup sinks`);
+        for (const m of text.matchAll(/\bimport\(\s*([^)]*)\)/g)) assert.match(m[1].trim(), /^(['"`])\.\/[\w./-]+\1$/, `${f}: import() takes a fixed relative path, found ${m[1]}`);
+        assert.doesNotMatch(text, /https?:\/\/(?!localhost)/, `${f} names a third-party address`);
+    }
+});
+
 test('Dependabot watches the GitHub Actions and the NuGet packages', () => {
     const d = read('.github/dependabot.yml');
     assert.match(d, /package-ecosystem: github-actions\n\s+directory: \//);
