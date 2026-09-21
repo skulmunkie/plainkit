@@ -2,7 +2,7 @@
   "tag": "pk-button",
   "title": "Button",
   "group": "Actions",
-  "summary": "A button in five variants and three sizes, with busy, icon-only and toggle forms. type=\"submit\" and \"reset\" act on the surrounding form, as a native button does.",
+  "summary": "A button in five variants and three sizes, with busy, icon-only and toggle forms. type=\"submit\" and \"reset\" act on the surrounding form, as a native button does. With href it renders a real link that looks like a button.",
   "delegatesFocus": true,
   "formAssociated": true,
   "props": [
@@ -45,11 +45,39 @@
       "description": "What a click does inside a form: nothing, submit it, or reset it."
     },
     {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Makes the button a link: the control is an <a> that navigates natively (middle and ctrl-click, the status-bar URL). Every variant, size, icon and busy style still applies. A link ignores type, toggle and pressed."
+    },
+    {
+      "name": "target",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Where a link opens (for example _blank). Only with href."
+    },
+    {
+      "name": "rel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The link relation. Defaults to noopener when target is _blank. Only with href."
+    },
+    {
+      "name": "download",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Downloads the target instead of opening it, under the file name given (the bare attribute keeps the name from the URL). Only with href."
+    },
+    {
       "name": "disabled",
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Blocks interaction and dims the control. Also set by a disabled fieldset."
+      "description": "Blocks interaction and dims the control. Also set by a disabled fieldset. A disabled link loses its href and reports aria-disabled."
     },
     {
       "name": "label",
@@ -63,7 +91,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows a spinner and ignores clicks without disabling the button, so focus stays put."
+      "description": "Shows a spinner and ignores clicks without disabling the button, so focus stays put. A busy link loses its href, reports aria-disabled and stays focusable."
     },
     {
       "name": "busyText",
@@ -127,7 +155,7 @@
     {
       "name": "click",
       "detail": "native MouseEvent",
-      "description": "A click (not fired while disabled or busy)."
+      "description": "A click (not fired while disabled or busy). A link fires it too, so a host can track the navigation; preventDefault stops the navigation."
     },
     {
       "name": "pk-toggle",
@@ -142,7 +170,7 @@
   "parts": [
     {
       "name": "control",
-      "description": "The inner button element."
+      "description": "The inner button element, or the anchor when href is set."
     },
     {
       "name": "spinner",
@@ -188,10 +216,10 @@
   "methods": [
     {
       "name": "focus()",
-      "description": "Focuses the inner button."
+      "description": "Focuses the inner button or link."
     }
   ],
-  "a11y": "A native button lives in the shadow root, so it is focusable, activates on Enter and Space and exposes the button role. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus. Focus ring and the 44px phone target are built in.",
+  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in.",
   "examples": [
     {
       "title": "Variants",
@@ -208,6 +236,10 @@
     {
       "title": "Submits a form",
       "html": "<form>\n  <input name=\"q\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
+    },
+    {
+      "title": "A link that looks like a button",
+      "html": "<pk-button href=\"/reports\">Open reports</pk-button>\n<pk-button href=\"https://example.com/help\" target=\"_blank\" rel=\"noopener\" variant=\"secondary\">Help</pk-button>\n<pk-button href=\"/export.csv\" download=\"export.csv\" variant=\"ghost\">Download</pk-button>\n<pk-button href=\"/reports\" disabled>Unavailable</pk-button>"
     }
   ]
 }

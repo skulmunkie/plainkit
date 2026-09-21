@@ -47,6 +47,24 @@ public sealed class GeneratedComponentTests : TestContext
     }
 
     [Fact]
+    public async Task A_link_button_sends_href_target_rel_and_download_and_still_raises_click()
+    {
+        MouseEventArgs? got = null;
+        var cut = RenderComponent<PkButton>(p => p
+            .Add(x => x.Href, "/reports").Add(x => x.Target, "_blank").Add(x => x.Rel, "noopener").Add(x => x.Download, "r.csv")
+            .Add(x => x.OnClick, EventCallback.Factory.Create<MouseEventArgs>(this, e => got = e)));
+        var el = cut.Find("pk-button");
+
+        Assert.Equal("/reports", el.GetAttribute("href"));
+        Assert.Equal("_blank", el.GetAttribute("target"));
+        Assert.Equal("noopener", el.GetAttribute("rel"));
+        Assert.Equal("r.csv", el.GetAttribute("download"));
+        await el.ClickAsync(new MouseEventArgs { Button = 0, Detail = 1 });
+        Assert.NotNull(got);
+        Assert.Null(RenderComponent<PkButton>().Find("pk-button").GetAttribute("href"));
+    }
+
+    [Fact]
     public void An_enum_with_a_default_always_sends_it()
     {
         var cut = RenderComponent<PkAlert>();
