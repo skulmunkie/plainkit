@@ -40,7 +40,6 @@ const behaviour = Base => class extends Base {
         });
         this.addEventListener('keydown', e => this.keys(e));
     }
-    disconnected() { this.$obs?.disconnect(); this.$init = false; }
     ops() { return [...this.part('popup').querySelectorAll('.op')]; }
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
     ctl() { return this.mode === 'select' ? this.part('trigger') : this.part('control'); }

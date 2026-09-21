@@ -144,7 +144,7 @@ export class CodeExplorerElement extends Base {
             this.querySelector('[data-ce-searchbox]').hidden = !caps.search;
             this.querySelector('[data-ce-search]').hidden = !caps.search;
             await this.#reload();
-            if (caps.live && this.#provider.subscribe) this.#unsubscribe = this.#provider.subscribe(ev => this.#onFeed(ev));
+            if (this.isConnected && caps.live && this.#provider.subscribe) { this.#unsubscribe?.(); this.#unsubscribe = this.#provider.subscribe(ev => this.#onFeed(ev)); }
             const initial = this.getAttribute('initial');
             if (initial) await this.openFile(initial, { line: Number(this.getAttribute('initial-line')) || undefined });
             const query = this.getAttribute('search');

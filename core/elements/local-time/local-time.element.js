@@ -33,7 +33,7 @@ const behaviour = Base => class extends Base {
         this.part('text').textContent = text;
         this.shadowRoot.querySelector('slot').hidden = text !== '';
         const timer = this.format === 'relative' && text !== '';
-        if (timer && !this.$t) this.$t = setInterval(() => this.requestUpdate(), 30000);
+        if (timer && !this.$t && this.isConnected) this.$t = setInterval(() => this.requestUpdate(), 30000);
         else if (!timer && this.$t) { clearInterval(this.$t); this.$t = 0; }
         const full = text && this.format === 'relative' ? formatLocal(this.datetime, { format: 'datetime', length: 'long', locale: this.locale, timeZone: this.timeZone }) : '';
         if (full) this.part('time').title = full; else this.part('time').removeAttribute('title');

@@ -4,7 +4,9 @@ import { moveFocus } from '../../js/menu-logic.js';
 // pk-context-menu: a menu opened at the pointer (right click), at the focused element (Shift+F10 or the Menu key), or by a 500ms touch press.
 const rows = el => el.slotted('menu').filter(i => i.localName === 'pk-menu-item' && !i.disabled && !['header', 'divider'].includes(i.type));
 export default Base => class extends Base {
-    connected() {
+    connected() { this.setup(); if (this.open && !this.$o) this.arm(); }
+    arm() { this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside')); }
+    setup() {
         if (!this.$w) {
             this.$w = true; this.$s = { buffer: '', at: 0 };
             this.addEventListener('contextmenu', e => { if (this.disabled || e.target.closest('[slot="menu"]')) return; e.preventDefault(); this.showAt(e.clientX, e.clientY, false); });
@@ -25,7 +27,7 @@ export default Base => class extends Base {
         const menu = this.part('menu');
         place({ x, y }, menu, { placement: 'bottom-start', offset: 0 });
         this.stop();
-        this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside'));
+        this.arm();
         if (focusFirst) rows(this)[0]?.focus({ preventScroll: true });
         this.emit('pk-open', { x, y });
     }

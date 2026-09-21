@@ -18,7 +18,6 @@ export default Base => class extends Base {
         });
         this.$opts = true;
     }
-    disconnected() { this.$obs?.disconnect(); this.$init = false; }
     updated() {
         this.$uid ??= `rg${++serial}`;
         const g = this.part('group');

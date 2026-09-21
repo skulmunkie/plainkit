@@ -14,7 +14,8 @@ export function nextMenuIndex(current, count, key) {
 export const placementFor = (spaceBelow, spaceAbove, menuHeight) => (spaceBelow < menuHeight && spaceAbove > spaceBelow ? 'top' : 'bottom');
 
 export default Base => class extends Base {
-    connected() {
+    connected() { this.setup(); if (this.open) document.addEventListener('click', this.$out, true); }
+    setup() {
         if (this.$init) return;
         this.$init = true;
         this.part('toggle').addEventListener('click', () => { this.open = !this.open; });

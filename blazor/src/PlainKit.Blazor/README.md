@@ -56,6 +56,15 @@ app.MapRazorComponents<App>()
 <PkStyles />
 ```
 
+## How binding works
+
+The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivity"):
+
+- **Attributes down.** A parameter is written as an attribute of the element when it changes. No JavaScript runs for it: there is no interop per render or per parameter change. The only calls are the one-time `EnsureInitialized` on the first render and the methods you call yourself.
+- **Events up.** A two-way parameter (`@bind-Value`) commits on the element's own change event (`pk-value-change`, `pk-change`, `pk-tab-change`, ...), which fires when the user commits a change, not on every keystroke. Until then the element owns the value; after the callback runs, your component owns it. Re-render with the value you were given and nothing fights it.
+- **Your markup stays yours.** An element does not add, remove or reorder the children you render (the `<option>` items of a combobox, the tabs of a `PkTabs`). It draws inside its own shadow tree.
+- **Tools own a container.** `PkLogs`, `PkScorecard`, `PkConsole`, `PkPerformance`, `PkCodeExplorer` and `PkLogSettings` render an empty `<div>` and hand it to JavaScript; do not put your own children in it. They mount when first rendered, mount again only when a parameter that changes the tool changes, and are destroyed when the component is disposed.
+
 ## Dev tools (built in)
 
 In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK:
