@@ -77,7 +77,7 @@ public static class PkAssets
     internal const string Bridge = "./_content/PlainKit.Blazor/plainkit.blazor.js";
 
     /// <summary>
-    /// The Plainkit release this package is (SemVer, for example <c>0.1.0-alpha.1</c>). The SDK and this package always share one version, taken
+    /// The Plainkit release this package is (SemVer with a pre-release part while the SDK is in alpha, such as <c>MAJOR.MINOR.PATCH-alpha.N</c>). The SDK and this package always share one version, taken
     /// from <c>core/VERSION</c>; <see cref="PkRuntime.GetSdkVersionAsync"/> asks the JavaScript assets the package serves for theirs.
     /// </summary>
     public static string Version { get; } =

@@ -129,7 +129,7 @@ export function checkRazor(source) {
             const c = src.razor[comp];
             if (!c) { problems.push(`unknown component <${comp}>`); }
             else {
-                const names = new Set(c.params.map(p => p.name));
+                const names = new Set([...c.params.map(p => p.name), ...(c.typeParams ?? [])]);   // a generic component takes its @typeparam as an attribute (TItem="Order")
                 for (const [attr, value] of t.attrs) {
                     if (/^@(ref|key|attributes|rendermode)$/.test(attr)) continue;
                     const bind = /^@bind-(\w+)(?::(?:event|after|get|set|format))?$/.exec(attr);

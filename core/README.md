@@ -28,7 +28,7 @@ node tools/serve.mjs 5310 --csp    # script-src 'self' (no inline scripts)
 ```
 
 Open `/` for the site: gallery (every element, layout, template and pattern), theme editor, scorecard, files, guides (Spacing is a gallery foundation, `#/foundations/spacing`). The pages use only
-relative paths, so the folder can be served under any prefix (`/sdk/1.0.0/`).
+relative paths, so the folder can be served under any prefix (`/sdk/<version>/`).
 
 ## Layout
 

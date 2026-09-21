@@ -4,11 +4,9 @@ Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the d
 
 The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
 
-**Building this repository:** the generated components (`Generated/`) and the package copy of the toolkit (`wwwroot/plainkit/`) are not in git. On a fresh clone run `node scripts/bootstrap.mjs` from the repository root (Node only, about 4 seconds) before `dotnet build` or `dotnet test PlainKit.slnx`; without it the build stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root". Consumers of the NuGet package are not affected: the package already contains everything.
-
 ## Alpha status
 
-This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
+This package is a pre-release. What it covers and what it does not:
 
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
 - **Not verified:** Blazor WebAssembly. It has not been run in a WebAssembly host, so treat it as untested there (the Files tool is server-side only by design).
@@ -16,7 +14,7 @@ This is a pre-release (`0.1.0-alpha.1`). What it covers and what it does not:
 - **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
 - **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
 
-The full list is in `Generated/generated.manifest.json`, which `node scripts/bootstrap.mjs` writes in a clone (it is generated and not in git).
+The full list is in `references/known-gaps.md` of the `plainkit-blazor` skill (see "Agent skills" below).
 
 ## Element components (generated)
 
@@ -25,9 +23,18 @@ Every element has a component, named `Pk` plus the tag in PascalCase, so `pk-ale
 | The element has | The component gets |
 |---|---|
 | a prop | a `[Parameter]` sent as an attribute: `bool` is present or absent, numbers use the invariant culture, dates are ISO strings, structures are JSON. A prop with a fixed set of values is an enum (`ButtonVariant`, `PkAlertKind`, ...); a null enum or a nullable number is left off, so the element's own default applies |
-| a slot | a `RenderFragment` (`ChildContent` for the default slot; a named slot is rendered as `<span slot="name">`) |
+| a slot | a `RenderFragment` (`ChildContent` for the default slot; a named slot is rendered as `<span slot="name">`). Body markup next to a named slot needs an explicit `<ChildContent>`, see below |
 | an event | an `EventCallback`, or `EventCallback<PkXxxEventArgs>` when the event carries a detail (`pk-value-change` gives `PkValueChangeEventArgs`); `click` gives `MouseEventArgs` |
 | a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, `@bind-Open` (a `...Changed` callback next to it) |
+
+**Body next to a named slot.** As soon as you use a named slot such as `FooterContent`, Razor no longer treats the rest of the markup as `ChildContent`: write it inside an explicit `<ChildContent>` element (without it the compiler stops with RZ9996, "Unrecognized child content inside component"):
+
+```razor
+<PkDialog @bind-IsOpen="_open" Title="Discard changes?">
+    <ChildContent><p>This cannot be undone.</p></ChildContent>
+    <FooterContent><PkButton OnClick="@(() => _open = false)">Close</PkButton></FooterContent>
+</PkDialog>
+```
 
 A component takes its listed parameters, and every other attribute (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, so `<PkButton id="save" data-test="x" aria-label="Save">` works. A `class` is added to the component's own classes (the components that list `ExtraClass` combine both). An inline `style` is blocked by the CSP: use a class. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own (see "Events on raw elements").
 
@@ -51,12 +58,13 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 `PkTable<TItem>` is a typed table over `pk-table`; `PkDataList<TItem>` is a searchable, sortable, server-paged list built on it.
 
 ```razor
-<PkTable Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
+<PkTable TItem="Order" Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
          @bind-Sort="_sort" @bind-SortDirection="_dir" OnSort="Reload" OnRowClick="Open">
     <FooterContent><PkPagination Page="_page" Total="_total" PageChanged="GoTo" Label="Order pages" /></FooterContent>
 </PkTable>
 ```
 
+- **Write `TItem` when a handler is a method group.** Razor infers `TItem` from `Items` and `Columns`, but not through an `EventCallback<PkTableRowClickArgs<TItem>>`: `OnRowClick="Open"` with `Open` a method fails to compile (CS1503, "cannot convert from method group") unless you write `TItem="Order"` on the component, as above. The same holds for `PkDataList` (`<PkDataList TItem="Customer" ... OnRowClick="Open">`).
 - **Columns** are `PkTableColumn<TItem>` records: `Key`, `Label`, `Type`, `Align`, `Sortable`, `HidePhone`, and what fills the cell: `Text` (a `Func<TItem, string?>`, sent in the row under `Key`) or `Cell` (a `RenderFragment<TItem>` rendered into the element's `cell-<id>-<key>` slot). The JSON is camelCase, as `PkTableColumn` shows.
 - **Rows** are `Items`, serialised camelCase, with the row key `id` from `IdOf` (the row index when there is none). Give `IdOf` whenever the order can change.
 - **Manual** (server-driven) mode: the table shows `Items` exactly as given and reports `OnSort` (`PkSortEventArgs`, `Key` and `Direction`), `OnFilter` and, from the footer, the pager's page events; you load the matching rows. `Sort`, `SortDirection`, `Filters`, `Selected` and `Expanded` are two-way (`@bind-Sort`): while the user interacts the element owns the value, after the event you own it. `OnRowClick` gives a `PkTableRowClickArgs<TItem>` (`Id`, `Item`); `OnRowExpand` and `DetailTemplate` (rendered into `detail-<id>` slots, with `Expandable`) follow the element.
@@ -64,7 +72,7 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 - **Slots**: `ToolbarContent` (in a `pk-cluster`), `BulkContent`, `CaptionContent`, `EmptyContent`, `FooterContent` (put a `PkPagination` here); `EmptyText`, `Loading`, `Cards`, `Striped`, `Hover`, `Bordered`, `Density`, `StickyHeader`, `StickyColumn`, `MaxHeight`, `Label`, `Caption`, `Flow`, `Selectable`, `Clickable`, `Filterable` are the element's own props.
 
 ```razor
-<PkDataList Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
+<PkDataList TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
             SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentId="@_openId" />
 
 @code {
@@ -82,11 +90,11 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 The table marks the open record with `CurrentRow` (the id of the row: it is tinted, gets an accent bar and `aria-current`). You set it, for example from the route; the table never changes it and raises no event for it. `PkDataList` passes it through (`CurrentRow`); its older `CurrentId`, which bolds the first cell, still works. The routed list and detail page (list in the main pane, the record in the aside of a `PkWorkspace`) is the `routed-list-detail` template; the `plainkit-blazor` skill has the page skeleton.
 Rows are keyboard stops, a third click on a sortable header clears the sort, and a `HidePhone` column is hidden in the `cards` layout too.
 
-What is not generated is listed in `Generated/generated.manifest.json` (written by `node scripts/bootstrap.mjs`, not in git): components whose mapping says `existing` (hand-written in `Components/`: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkGallery`, `PkPageHeader`, `PkStat`, `PkTable`; `PkStyles` and `PkDataList` have no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkGallery`, `PkPageHeader`, `PkStat`, `PkTable`; `PkStyles` and `PkDataList` have no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
 
 ## Types for structured parameters
 
-An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The parameter is declared with that type (`PkChart.Data` is a `PkChartData?`, `PkImageGallery.Images` an `IReadOnlyList<PkGalleryImage>?`), so the compiler checks what you pass; the value is serialised for you. The generator uses the type a mapping names for a JSON prop when the package declares it, and lists a JSON prop that has no type in `generated.manifest.json` (`typesToDefine`); today none is left.
+An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The parameter is declared with that type (`PkChart.Data` is a `PkChartData?`, `PkImageGallery.Images` an `IReadOnlyList<PkGalleryImage>?`), so the compiler checks what you pass; the value is serialised for you.
 
 | Parameter | Pass | Sent as |
 |---|---|---|
@@ -108,7 +116,7 @@ builder.Services.AddPlainKit();
 
 app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode()
-   .AddPlainKitDevTools();          // optional: serves the dev tools page
+   .AddPlainKitDevTools();          // optional: only for the /_plainkit dev tools page (see "Dev tools")
 ```
 
 ```razor
@@ -123,13 +131,33 @@ app.MapRazorComponents<App>()
 ```
 
 ```razor
-@* Routes.razor: only the dev tools page needs this. Add the AdditionalAssemblies attribute to the Router you already have and keep the rest of it. *@
+@* Routes.razor: needed only for the /_plainkit dev tools page (skip it, and AddPlainKitDevTools above, if you do not use it). Add the AdditionalAssemblies attribute to the Router you already have and keep the rest of it. *@
 <Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PkAssets).Assembly }">
     ...
 </Router>
 ```
 
 **Render mode.** The components need an interactive render mode for `OnClick` and binding to work: put `@rendermode InteractiveServer` on the page, or set a global render mode (`<Routes @rendermode="InteractiveServer" />` in `App.razor`). Without one they render, but nothing responds.
+
+### The skills, the references and the most-used parameters
+
+The package carries two agent skills, `plainkit-blazor` and `plainkit-sdk`, and their `references/` folders hold every component with its parameters, enums and events. **Start with `references/components-index.md`** (in the `plainkit-blazor` skill): it lists every component and names the file with its parameters. Copy the skills into your project once (see "Agent skills" below for every source):
+
+```bash
+# the NuGet cache folder: dotnet nuget locals global-packages -l
+cp -r ~/.nuget/packages/plainkit.blazor/<version>/staticwebassets/plainkit/skills/* .claude/skills/
+```
+
+The most-used parameters (the full lists are in the references):
+
+| Component | Parameters |
+|---|---|
+| `PkCard` | `Heading` (the title), `Level` (heading level), `Tone`, `Href`, `ChildContent`, `FooterContent` |
+| `PkEmptyState` | `Title`, `Description`, `ActionContent` |
+| `PkStat` | `Label`, `Value`, `Delta`, `DeltaUnit`, `Subtext`, `Tone` |
+| `PkAlert` | `Kind` (`PkAlertKind`), `Title`, `Message`, `Dismissible`, `OnDismiss`, `Inline`, `Compact` |
+| `PkTooltip` | `Text`, `Placement` (`PkTooltipPlacement`), `Help`, `LinksContent`, `ChildContent` |
+| `PkMenuItem` | `Value`, `Href`, `Disabled`, `Danger`, `Checked`, `OnSelect`, `SubmenuContent` |
 
 ### Where the stylesheet goes
 
@@ -159,7 +187,7 @@ app.MapRazorComponents<App>()
 A page has one `<h1>`, in one place: the header's title, or the app shell's title slot. To put it in the shell's top bar, give the layout a `SectionOutlet` in the `title` slot of `pk-app-shell` and name it in `ShellSection`; the header then writes the title there and does not draw it a second time (it still draws the breadcrumb, the suffix and the actions):
 
 ```razor
-@* MainLayout.razor: the shell's title slot holds the one h1 (pk-app-shell's title slot and its back-href / back-label are new in the SDK) *@
+@* MainLayout.razor: the shell's title slot holds the one h1 (the shell's title slot, back-href and back-label) *@
 <pk-app-shell back-href="@_parentHref" back-label="@_parentLabel">
     <h1 slot="title"><SectionOutlet SectionName="shell-title" /></h1>
     ...
@@ -169,7 +197,7 @@ A page has one `<h1>`, in one place: the header's title, or the app shell's titl
 <PkPageHeader ShellSection="shell-title" Crumbs="@_crumbs" />
 ```
 
-The header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). Until `PkAppShell` gets `TitleContent`, `BackHref` and `BackLabel` parameters (the mapping follows the SDK), use the `pk-app-shell` element directly, as above.
+The header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). `PkAppShell` has `TitleContent`, `BackHref` and `BackLabel` parameters too; the example uses the element directly so the `h1` sits in the `title` slot itself (a `TitleContent` fragment is wrapped in a `<span slot="title">`).
 
 ## How binding works
 
@@ -199,7 +227,7 @@ The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivit
 
 ## Dev tools (built in)
 
-In the Development environment, `/_plainkit` serves the toolkit's own tools, all built from the SDK. The page renders inside your app's own layout (it is a routable component like any other, so your `MainLayout` and stylesheets apply), and it is served only in Development unless you turn it on (below). It has three workspaces, and the SDK's dev tools dock (`mountDevTools`, through `PkDevTools`) over it. ``Ctrl+` `` shows and hides the dock; `/_plainkit/console` and the like open it on that tab.
+In the Development environment, `/_plainkit` serves the toolkit's own tools (this needs `.AddPlainKitDevTools()` and the `AdditionalAssemblies` line of "Set up"; nothing else in the package does, and the page itself is optional), all built from the SDK. The page renders inside your app's own layout (it is a routable component like any other, so your `MainLayout` and stylesheets apply), and it is served only in Development unless you turn it on (below). It has three workspaces, and the SDK's dev tools dock (`mountDevTools`, through `PkDevTools`) over it. ``Ctrl+` `` shows and hides the dock; `/_plainkit/console` and the like open it on that tab.
 
 | Workspace (the page's menu) | What it does |
 |---|---|
@@ -272,7 +300,7 @@ The package serves two skills for developer agents (Claude Code and others) as s
 
 | You have | Install (from the project root) |
 |---|---|
-| The GitHub release | `gh release download v0.1.0-alpha.1 --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
+| The GitHub release | `gh release list --repo skulmunkie/plainkit` shows the versions, then `gh release download <tag> --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` (for example the newest tag), then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
 | The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
 | The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
 | A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |

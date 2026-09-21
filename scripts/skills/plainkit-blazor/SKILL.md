@@ -43,7 +43,7 @@ builder.Services.AddPlainKit();
 
 app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode()
-   .AddPlainKitDevTools();          // optional: makes the /_plainkit dev tools page routable
+   .AddPlainKitDevTools();          // optional: only for the /_plainkit dev tools page
 ```
 
 ```razor
@@ -51,7 +51,7 @@ app.MapRazorComponents<App>()
 <PkStyles />
 ```
 
-`PkStyles` writes a plain in-place `<link>` (with a `?v=` content hash; `Minified`, `Versioned="false"`; `InHead="true"` is the old HeadContent behaviour, which lands after the app's stylesheets). In a layout it lands in the body, after the head links. `CssVersioned`, `CssMin` and `Versioned(path)` on `PkAssets` are for a direct `<link>`. Add `@using PlainKit.Blazor` (and `using PlainKit.Blazor;` in `Program.cs`) so the `Pk*` components resolve, and an interactive render mode (`@rendermode InteractiveServer` or a global one) for `OnClick` and binding. Only for the dev tools page, add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`.
+`PkStyles` writes a plain in-place `<link>` (with a `?v=` content hash; `Minified`, `Versioned="false"`; `InHead="true"` is the old HeadContent behaviour, which lands after the app's stylesheets). In a layout it lands in the body, after the head links. `CssVersioned`, `CssMin` and `Versioned(path)` on `PkAssets` are for a direct `<link>`. Add `@using PlainKit.Blazor` (and `using PlainKit.Blazor;` in `Program.cs`) so the `Pk*` components resolve, and an interactive render mode (`@rendermode InteractiveServer` or a global one) for `OnClick` and binding. Only for the `/_plainkit` dev tools page (together with `.AddPlainKitDevTools()` above; skip both otherwise), add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`. Next, open `references/components-index.md` to find a component and its parameters.
 
 ### Add a page (a bound input, a list and a toast)
 
@@ -153,10 +153,10 @@ app.MapRazorComponents<App>()
 
 ### Show a table of typed rows (`PkTable`)
 
-`PkTable<TItem>` takes typed columns and items. A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`. `CurrentRow` marks the row whose record is open elsewhere (tinted, `aria-current`; set it from the route, the table never changes it); the routed list and detail page with a `PkWorkspace` is the `routed-list-detail` template in the `plainkit-sdk` skill.
+`PkTable<TItem>` takes typed columns and items. Write `TItem="Order"` on the component whenever a handler such as `OnRowClick` is a method group: Razor infers `TItem` from `Items` and `Columns` but not through `EventCallback<PkTableRowClickArgs<TItem>>`, so without it the build fails with CS1503 (the same for `PkDataList`). A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`. `CurrentRow` marks the row whose record is open elsewhere (tinted, `aria-current`; set it from the route, the table never changes it); the routed list and detail page with a `PkWorkspace` is the `routed-list-detail` template in the `plainkit-sdk` skill.
 
 ```razor
-<PkTable Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
+<PkTable TItem="Order" Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
          @bind-Sort="_sort" @bind-SortDirection="_dir" OnSort="Reload" OnRowClick="Open" />
 
 @code {
@@ -177,7 +177,7 @@ app.MapRazorComponents<App>()
 `PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time; a new search, sort or page size goes back to page 1, a superseded request is cancelled (pass `request.CancellationToken` to the database), a total that shrinks below the current page settles on the last page, `ReloadAsync()` reloads. Every parameter: `references/data-list.md`.
 
 ```razor
-<PkDataList @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
+<PkDataList TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
             SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentId="@_openId" />
 
 @code {

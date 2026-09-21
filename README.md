@@ -66,7 +66,7 @@ scripts/   bootstrap.mjs runs everything below in order; publish-dist.mjs copies
 
 | You have | Install (from the project root) |
 |---|---|
-| The GitHub release | `gh release download v0.1.0-alpha.1 --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
+| The GitHub release | `gh release list --repo skulmunkie/plainkit` shows the versions, then `gh release download <tag> --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` (for example the newest tag), then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
 | The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
 | The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
 | A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
