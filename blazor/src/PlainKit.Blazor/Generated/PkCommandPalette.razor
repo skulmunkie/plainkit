@@ -27,13 +27,31 @@
     /// <summary>Accessible name of the dialog.</summary>
     [Parameter] public string? Label { get; set; } = "Command palette";
 
+    /// <summary>It opened (the shortcut, show(), or open set by the host).</summary>
+    [Parameter] public EventCallback OnOpen { get; set; }
+
+    /// <summary>A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason "select", already closed). Cancelable except for "select": preventDefault keeps it open.</summary>
+    [Parameter] public EventCallback<PkCloseEventArgs> OnClose { get; set; }
+
     /// <summary>A command was chosen; navigates to href when it has one and the event is not cancelled.</summary>
     [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
 
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
+        handlers["onpk-open"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkOpen);
+        handlers["onpk-close"] = EventCallback.Factory.Create<PkCloseEventArgs>(this, HandlePkClose);
         handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandlePkSelect);
+    }
+
+    private async Task HandlePkOpen(EventArgs e)
+    {
+        await OnOpen.InvokeAsync();
+    }
+
+    private async Task HandlePkClose(PkCloseEventArgs e)
+    {
+        await OnClose.InvokeAsync(e);
     }
 
     private async Task HandlePkSelect(PkSelectEventArgs e)

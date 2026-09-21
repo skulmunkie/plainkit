@@ -8967,6 +8967,7 @@ export const ELEMENTS = [
                 "type": "json",
                 "default": [],
                 "reflect": false,
+                "commit": "pk-row-expand",
                 "description": "Ids of the expanded rows. The user changes it and pk-row-expand reports each change; after that the host owns it."
             },
             {
