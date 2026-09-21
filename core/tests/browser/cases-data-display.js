@@ -4,6 +4,9 @@ const cols = '[{"key":"sku","label":"SKU","sortable":true},{"key":"price","label
 const rows = '[{"id":1,"sku":"B","price":"$10"},{"id":2,"sku":"A","price":"$2"},{"id":3,"sku":"C","price":"$5"}]';
 const bodyIds = el => [...el.shadowRoot.querySelectorAll('tbody tr')].map(r => r.dataset.id);
 
+const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
+const key = (el, k) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+
 export const dataDisplayCases = [
     ['skeleton: text variant sets the line count, circle and block take a size, the label is for assistive tech', async t => {
         const s = await t.mount('<pk-skeleton variant="text" lines="5"></pk-skeleton>');
@@ -111,6 +114,55 @@ export const dataDisplayCases = [
         const el = await t.mount(`<pk-table filterable columns='${cols}' rows='${rows}'><b slot="cell-1-sku">custom</b></pk-table>`);
         t.ok(el.shadowRoot.querySelector('tbody tr[data-id="1"] slot[name="cell-1-sku"]'), 'cell slot rendered');
         el.filters = { sku: 'a' }; await t.settle(); t.eq(bodyIds(el).join(), '2');
+    }],
+
+    ['table: one click on a select checkbox raises pk-select once (change and input both fire)', async t => {
+        const el = await t.mount(`<pk-table selectable columns='${cols}' rows='${rows}'></pk-table>`);
+        const got = []; el.addEventListener('pk-select', e => got.push(e.detail.selected.join()));
+        const seen = []; for (const n of ['change', 'input']) el.shadowRoot.addEventListener(n, e => { if (e.target.matches('[data-select]')) seen.push(n); });
+        el.shadowRoot.querySelector('[data-select="2"]').click(); await t.settle();
+        t.eq(seen.sort().join(), 'change,input', 'the browser raised both events'); t.eq(got.join('|'), '2', 'one pk-select');
+        el.shadowRoot.querySelector('[data-select-all]').click(); await t.settle(); t.eq(got.join('|'), '2|1,2,3', 'select all: one more');
+    }],
+
+    ['table: the same header cycles ascending, descending, cleared; pk-sort reports a null key, also in manual mode', async t => {
+        const th = el => el.shadowRoot.querySelector('th[data-key="sku"]');
+        const el = await t.mount(`<pk-table columns='${cols}' rows='${rows}'></pk-table>`);
+        const seen = []; el.addEventListener('pk-sort', e => seen.push(`${e.detail.key}/${e.detail.direction}`));
+        for (const want of ['2,1,3', '3,1,2', '1,2,3']) { th(el).querySelector('button').click(); await t.settle(); t.eq(bodyIds(el).join(), want); }
+        t.eq(seen.join(), 'sku/ascending,sku/descending,null/null'); t.eq(th(el).getAttribute('aria-sort'), 'none'); t.eq(el.sort, '');
+        th(el).querySelector('button').click(); await t.settle(); t.eq(th(el).getAttribute('aria-sort'), 'ascending', 'the cycle starts again');
+        const m = await t.mount(`<pk-table manual columns='${cols}' rows='${rows}'></pk-table>`); const got = [];
+        m.addEventListener('pk-sort', e => got.push(String(e.detail.key)));
+        for (let i = 0; i < 3; i++) { th(m).querySelector('button').click(); await t.settle(); }
+        t.eq(got.join(), 'sku,sku,null'); t.eq(th(m).getAttribute('aria-sort'), 'none'); t.eq(bodyIds(m).join(), '1,2,3');
+    }],
+
+    ['table: clickable rows are tab stops and Enter or Space on the row raises pk-row-click; controls inside the row do not', async t => {
+        const el = await t.mount(`<pk-table clickable selectable columns='${cols}' rows='${rows}'></pk-table>`);
+        const trs = await until(() => { const r = [...el.shadowRoot.querySelectorAll('tbody tr')]; return r.length === 3 && r.every(x => x.tabIndex === 0) && r; }, 'focusable rows');
+        const got = []; el.addEventListener('pk-row-click', e => got.push(e.detail.id));
+        trs[1].focus(); t.eq(el.shadowRoot.activeElement, trs[1], 'a row can take focus');
+        key(trs[1], 'Enter'); key(trs[2], ' '); key(trs[0], 'a'); t.eq(got.join(), '2,3', 'Enter and Space, nothing for other keys');
+        const box = trs[0].querySelector('input'); box.focus(); key(box, 'Enter'); box.click(); await t.settle(); t.eq(got.join(), '2,3', 'the checkbox keeps its keys and clicks');
+        const plain = await t.mount(`<pk-table columns='${cols}' rows='${rows}'></pk-table>`); await t.settle();
+        t.ok([...plain.shadowRoot.querySelectorAll('tbody tr')].every(x => !x.hasAttribute('tabindex')), 'a table that is not clickable adds no tab stops');
+    }],
+
+    ['table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"note","label":"Note","hidePhone":true}]' rows='[{"id":1,"sku":"A","note":"n1"}]'></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '320px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const el = await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+            const tb = f.contentDocument.querySelector('pk-table'), w = f.contentWindow;
+            const shown = q => { const c = tb.shadowRoot.querySelector(q); return w.getComputedStyle(c).display !== 'none'; };
+            return { td: shown('tbody td[data-hide-phone]'), other: shown('tbody td:not([data-hide-phone])'), w: w.innerWidth };
+        };
+        const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
+        const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
 
     ['stat: shows the change with an arrow, sign, colour and spoken form; an href makes one link; a sparkline draws', async t => {

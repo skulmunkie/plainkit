@@ -1,6 +1,6 @@
 // <pk-table> behaviour. The sorting and filtering it applies to the rows is in js/table-data.js (the same exports are kept here).
 
-import { sortKey, sortRows, filterRows } from '../../js/table-data.js';
+import { sortKey, sortRows, filterRows, nextSort } from '../../js/table-data.js';
 export { sortKey, sortRows, filterRows };
 
 // h('td', { 'data-x': 1 }, 'text' | node ...) builds an element; null, undefined and false attributes are skipped.
@@ -21,20 +21,21 @@ export default Base => class extends Base {
     get view() { return this.manual ? this.list('rows') : sortRows(filterRows(this.list('rows'), this.filters), this.list('columns').find(c => c.key === this.sort), this.sortDir); }
     ids() { return this.view.map((r, i) => String(r[this.rowKey] ?? i)); }
     pick(ids) { this.selected = ids; this.emit('pk-select', { selected: ids }); }
-    sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key; this.sortDir = direction; } }
+    sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key ?? ''; this.sortDir = direction ?? 'ascending'; } }
 
     click(e) {
         const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tbody tr[data-id]');
         if (this.$m?.click(this, e)) return;
         // The whole checkbox cell is the tap area: a click on the cell (not on the box) toggles the box.
         if (t.matches('[data-check]')) t.firstChild.click();
-        else if (th && t.closest('button')) this.sortBy(th.dataset.key, th.dataset.key === this.sort && this.sortDir === 'ascending' ? 'descending' : 'ascending');
+        else if (th && t.closest('button')) this.sortBy(...nextSort(this.sort, this.sortDir, th.dataset.key));
         else if (tr && this.clickable && !t.closest('input,button,a,select,label')) this.emit('pk-row-click', { id: tr.dataset.id, row: this.view[this.ids().indexOf(tr.dataset.id)] });
     }
     input(e) {
         const t = e.target, d = t.dataset;
-        if ('selectAll' in d) this.pick(t.checked ? this.ids() : []);
-        else if ('select' in d) { const on = new Set(this.selected.map(String)); on[t.checked ? 'add' : 'delete'](d.select); this.pick(this.ids().filter(x => on.has(x))); }
+        // A checkbox raises both change and input: the selection follows change only, so one click is one pk-select.
+        if ('selectAll' in d && e.type === 'change') this.pick(t.checked ? this.ids() : []);
+        else if ('select' in d && e.type === 'change') { const on = new Set(this.selected.map(String)); on[t.checked ? 'add' : 'delete'](d.select); this.pick(this.ids().filter(x => on.has(x))); }
         else if ('filter' in d && e.type === 'input') { clearTimeout(this.$t); this.$t = setTimeout(() => { const filters = { ...this.filters, [d.filter]: t.value }; if (this.emit('pk-filter', { filters })) this.filters = filters; }, 250); }
     }
 
@@ -44,7 +45,7 @@ export default Base => class extends Base {
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
         const cols = this.list('columns'), rows = this.view, sel = new Set(this.selected.map(String));
-        if (this.expandable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
+        if (this.expandable || this.clickable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
         tb.setAttribute('aria-busy', String(this.loading));
@@ -66,7 +67,7 @@ export default Base => class extends Base {
             return x ? x.rows(this, tr, id, i, cols.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
-        if (x) x.after(this);
+        this.$m?.after(this);
         this.part('empty').hidden = this.loading || rows.length > 0;
         this.part('bulk').hidden = sel.size === 0; this.part('bulk-count').textContent = `${sel.size} selected`;
     }

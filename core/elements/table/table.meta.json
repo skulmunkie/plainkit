@@ -9,7 +9,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property."
+      "description": "Column definitions: { key, label, type?: text|number|date, align?: start|end, sortable?, hidePhone? }[]. A JSON attribute or a property. type decides how the column sorts and filters, not how a value is shown: cells always show the row value as given, as text, and the element does no formatting, locale or time zone handling, so the host sends the display string it wants (\"$1,204.50\", \"7 Jan 2026\"). number sorts numerically and reads through currency symbols and grouping (\"$1,204.50\" is 1204.5; text that holds no number sorts first) and aligns to the end unless align says otherwise. date sorts chronologically by Date.parse of the value, so use ISO 8601 (a date-only value such as 2026-01-07 is read as UTC midnight, a value with an offset keeps it; text that does not parse sorts first). text sorts alphabetically with numeric collation, ignoring case. hidePhone hides the column below 640px, in the cards layout too."
     },
     {
       "name": "rows",
@@ -84,7 +84,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Rows are activatable: they show a pointer and fire pk-row-click."
+      "description": "Rows are activatable: they show a pointer, take the keyboard (each row is a tab stop; Enter or Space on the row) and fire pk-row-click."
     },
     {
       "name": "filterable",
@@ -105,7 +105,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Key of the column being sorted."
+      "description": "Key of the column being sorted; empty when the rows are in their natural order."
     },
     {
       "name": "sortDir",
@@ -204,7 +204,7 @@
     },
     {
       "name": "toolbar",
-      "description": "Search, filters and buttons above the table."
+      "description": "Search, filters and buttons above the table, laid out in a wrapping row. Give the item that should sit at the far end (an action button beside a search box) the attribute data-end: it and the items after it move to the end of the row."
     },
     {
       "name": "bulk",
@@ -240,7 +240,7 @@
         "key": "string",
         "direction": "string"
       },
-      "description": "A sortable header was activated. Cancel to keep the current sort.",
+      "description": "A sortable header was activated. Each activation of the same header cycles ascending, descending, then cleared: a cleared sort reports key and direction null and the rows return to their natural order (a manual table reports it too, and the host restores its own order). Cancel to keep the current sort.",
       "cancelable": true
     },
     {
@@ -265,7 +265,7 @@
         "id": "string",
         "row": "object"
       },
-      "description": "A clickable row was activated.",
+      "description": "A clickable row was activated by a click, or by Enter or Space while the row itself has focus. A click or key on a checkbox, button, link or select inside the row does not raise it.",
       "cancelable": false
     },
     {
@@ -331,10 +331,10 @@
   "methods": [
     {
       "name": "sortBy(key, direction)",
-      "description": "Sort programmatically."
+      "description": "Sort programmatically. sortBy(null) clears the sort."
     }
   ],
-  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
+  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
   "examples": [
     {
       "title": "Sortable, selectable table",
