@@ -153,6 +153,18 @@ public sealed class LoggingBridgeTests : TestContext
     }
 
     [Fact]
+    public async Task Dispose_does_not_throw_when_the_scope_was_a_prerender_or_the_circuit_is_gone()
+    {
+        // Seen in a real host: an IPkLog call while prerendering, then the request scope disposing PkRuntime, which threw
+        // "JavaScript interop calls cannot be issued at this time" out of the request pipeline.
+        var (runtime, bridge) = Runtime(o => o.Logging.ForwardToILogger = true);
+        await runtime.EnsureInitializedAsync();
+        bridge.SetupVoid("stopLogForwarding").SetException(new InvalidOperationException("JavaScript interop calls cannot be issued at this time."));
+
+        await runtime.DisposeAsync();
+    }
+
+    [Fact]
     public async Task IPkLog_writes_into_the_sdk_log_and_configures_it()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;

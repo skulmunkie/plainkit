@@ -10,6 +10,9 @@ builder.Services.AddPlainKit(o =>
 {
     o.SourceRoot = FindRepoRoot();
     o.SourceExclude = dir => dir == "blazor/src/PlainKit.Blazor/wwwroot/plainkit";
+    o.Logging.Level = PkLogLevel.Info;            // the /generated page checks that SDK entries reach ILogger
+    o.Logging.ForwardToILogger = true;
+    o.Logging.ForwardMinimumLevel = PkLogLevel.Info;
 });
 
 var app = builder.Build();

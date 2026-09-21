@@ -55,8 +55,9 @@ In the Development environment, `/_plainkit` serves the toolkit's own tools, all
 | Scorecard | Score pages for accessibility, layout, spacing and touch targets at every theme and width |
 | Performance | Live Core Web Vitals, frame rate, long tasks, DOM size, heap, what loaded |
 | Console | `console.*`, errors, SDK events, network, `pk-*` elements on the page, environment |
+| Logs | What the SDK and your app logged through the Plainkit logger (`PkLogs`), and the logging settings (`PkLogSettings`) |
 
-Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`.
+Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`, `PkLogs`, `PkLogSettings`.
 
 ## Logging
 

@@ -28,13 +28,23 @@ public sealed class ComponentTests : TestContext
     }
 
     [Fact]
-    public void Dev_tools_page_offers_the_five_tabs_and_marks_the_current_one()
+    public void Dev_tools_page_offers_the_six_tabs_and_marks_the_current_one()
     {
         var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "console"));
         var tabs = cut.FindAll("pk-tab");
 
-        Assert.Equal(["Gallery", "Files", "Scorecard", "Performance", "Console"], tabs.Select(t => t.TextContent.Trim()));
+        Assert.Equal(["Gallery", "Files", "Scorecard", "Performance", "Console", "Logs"], tabs.Select(t => t.TextContent.Trim()));
         Assert.Equal("console", cut.Find("pk-tabs").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void Dev_tools_page_logs_tab_mounts_the_logs_viewer_and_settings()
+    {
+        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "logs"));
+
+        Assert.Equal("logs", cut.Find("pk-tabs").GetAttribute("value"));
+        Assert.Single(cut.FindComponents<PkLogs>());
+        Assert.Single(cut.FindComponents<PkLogSettings>());
     }
 
     [Fact]
