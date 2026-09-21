@@ -229,14 +229,12 @@ jobs:
         with:
           node-version: '22'
 
+      # No NuGet cache here: PlainKit.Blazor has no package references, so nothing is restored into ~/.nuget/packages, and setup-dotnet's cache
+      # post-step fails ("Cache folder path ... doesn't exist on disk") when that folder is never created. The test project (the dotnet job) has packages.
       - uses: actions/setup-dotnet@v4
         if: steps.gate.outputs.run == 'true'
         with:
           global-json-file: global.json
-          cache: true
-          cache-dependency-path: |
-            Directory.Packages.props
-            **/*.csproj
 
       - name: Bootstrap, pack, check the package (node scripts/verify.mjs --only pack)
         id: verify
