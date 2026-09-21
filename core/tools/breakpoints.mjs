@@ -17,49 +17,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties } from '../js/custom-sdk-logic.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const BREAKPOINTS_FILE = path.join(here, '..', 'tokens', 'breakpoints.json');
 
-/** Validates a name -> width object: names are lowercase letters and digits (no hyphen, so `above-` is unambiguous), widths are integers, ascending. Returns [{ name, width }]. */
-export function parseBreakpoints(obj) {
-    const entries = Object.entries(obj ?? {});
-    if (!entries.length) throw new Error('breakpoints: at least one breakpoint is required');
-    let last = 0;
-    return entries.map(([name, width]) => {
-        if (!/^[a-z][a-z0-9]*$/.test(name)) throw new Error(`breakpoints: "${name}" is not a valid name (lowercase letters and digits, starting with a letter)`);
-        if (!Number.isInteger(width) || width <= last) throw new Error(`breakpoints: "${name}" is ${width}; widths are integer px and must ascend (after ${last})`);
-        last = width;
-        return { name, width };
-    });
-}
+// The transform itself is js/custom-sdk-logic.js (pure, so the theme editor's export applies the same code in the browser); this file adds only the file read.
+export { parseBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties };
 
 export const loadBreakpoints = (file = BREAKPOINTS_FILE) => parseBreakpoints(JSON.parse(fs.readFileSync(file, 'utf8')));
-
-/** name -> the media condition it stands for: `phone` -> (max-width: 640px), `above-phone` -> (min-width: 641px). */
-export function conditionMap(bps) {
-    const map = new Map();
-    for (const { name, width } of bps) { map.set(name, `(max-width: ${width}px)`); map.set(`above-${name}`, `(min-width: ${width + 1}px)`); }
-    return map;
-}
-
-// A comment, or the condition of an @media rule (up to its block).
-const SCAN = /\/\*[\s\S]*?\*\/|(@media)([^{;]*)\{/g;
-
-/** Replaces every `(--name)` inside an @media condition with its query; whitespace is kept. `file` only names the source in the error. */
-export function resolveCustomMedia(css, bps, file = 'css') {
-    const map = conditionMap(bps);
-    return css.replace(SCAN, (whole, at, cond, offset) => {
-        if (!at) return whole;
-        const line = css.slice(0, offset).split('\n').length;
-        const resolved = cond.replace(/\(\s*--([A-Za-z0-9-]+)\s*\)/g, (_m, name) => {
-            const q = map.get(name);
-            if (!q) throw new Error(`${file}:${line}: unknown breakpoint "--${name}" in @media; known: ${[...map.keys()].map(k => `--${k}`).join(', ')} (tokens/breakpoints.json)`);
-            return q;
-        });
-        return `@media${resolved}{`;
-    });
-}
-
-/** The widths as custom properties, one rule: `:root{--pk-bp-phone:640px;...}` (compact; the page layer is size-budgeted). */
-export const breakpointProperties = bps => `:root{${bps.map(b => `--pk-bp-${b.name}:${b.width}px`).join(';')}}`;

@@ -14,7 +14,7 @@ export const MODULES = {
     devtools: { files: ['devtools.js', 'panels.js', 'devtools.css'] },
     quality: { files: ['quality.js'] },
     'layout-builder': { files: ['layout-builder.js', 'layout-builder.css'] },
-    'theme-editor': { files: ['theme-editor.js', 'theme-editor.css'], tokens: true },
+    'theme-editor': { files: ['theme-editor.js', 'sdk-tab.js', 'theme-editor.css'], tokens: true },
 };
 
 const DIST_STYLES = "['../plainkit.css']";
@@ -27,7 +27,9 @@ export function modulesDist(read, root) {
         for (const f of files) {
             const text = read(path.join(root, 'modules', name, f));
             if (!/\.js$/.test(f)) { out.set(`${name}/${f}`, text); continue; }
-            const dist = relocate(text).replace("'../tokens/tokens.css'", "'./tokens.css'");
+            // The source tree keeps the built files in core/dist/; in the release layout the module sits inside dist/, so they are one folder up.
+            const dist = relocate(text.replace("'../../dist/'", "'../'")).replace("'../tokens/tokens.css'", "'./tokens.css'");
+            if (text.includes("'../../dist/'") && !dist.includes("DIST = '../'")) throw new Error(`${name}/${f}: DIST did not relocate`);
             if (/const STYLES = /.test(text) && !dist.includes(`const STYLES = ${DIST_STYLES}`)) throw new Error(`${name}/${f}: STYLES did not relocate`);
             out.set(`${name}/${f}`, dist);
         }
