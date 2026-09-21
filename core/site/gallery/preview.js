@@ -4,10 +4,8 @@
 // 375px device (a template is its own page; chrome.js sends ?width=phone here). Framework-free; ES module, no inline script.
 import { initPlainkit } from '../../js/plainkit.js';
 import { setTheme } from '../../js/theme.js';
-import { createLogger } from '../../js/log.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
-
-const log = createLogger('gallery-preview');
+import { mountPattern } from './pattern-mount.js';
 
 const q = new URLSearchParams(location.search);
 const kind = q.get('kind');
@@ -86,12 +84,6 @@ if (!entry) {
 // A pattern's optional script (export default mount(root) -> { destroy() }) makes the sample behave like the real thing. It works on the
 // sample's own DOM only, and its listeners are removed when the page goes away.
 async function runScript(entry, page) {
-    const url = new URL(PATTERNS_DIR + entry.script, import.meta.url).href;
-    try {
-        const mount = (await import(url)).default;
-        if (typeof mount !== 'function') { log.error(`${entry.script} has no default export to mount`, { url }); return; }
-        const handle = mount(page);
-        addEventListener('pagehide', () => handle?.destroy?.(), { once: true });
-        log.debug(`${entry.script} mounted`, { url });
-    } catch (error) { log.error(`the sample script ${entry.script} failed`, error); }
+    const handle = await mountPattern(page, new URL(PATTERNS_DIR + entry.script, import.meta.url).href, entry.script);
+    addEventListener('pagehide', () => handle.destroy(), { once: true });
 }
