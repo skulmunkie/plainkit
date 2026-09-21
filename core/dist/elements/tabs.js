@@ -22,7 +22,7 @@ const behaviour = Base => class extends Base {
         const tabs = this.tabs;
         if (!tabs.length) return;
         if (this.value && !tabs.some(t => t.value === this.value)) this.warnOnce(`value:${this.value}`, `value="${this.value}" matches no <pk-tab value>: falling back to the first enabled tab`, { value: this.value, tabs: tabs.map(t => t.value) });
-        if (!this.noneActive && !tabs.some(t => t.value === this.value && !t.disabled)) this.value = (tabs.find(t => !t.disabled) ?? tabs[0]).value;
+        if (!this.noneActive && !tabs.some(t => t.value === this.value && !t.disabled)) { const previous = this.value; this.value = (tabs.find(t => !t.disabled) ?? tabs[0]).value; if (this.value !== previous) this.emit('pk-tab-change', { value: this.value, previous }, { cancelable: false }); }
         for (const t of tabs) {
             t.id ||= 'pk-tab-' + (++ids.n);
             const on = !this.noneActive && t.value === this.value;

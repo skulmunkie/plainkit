@@ -31,7 +31,7 @@ export default Base => class extends Base {
         this.$m.observe(this, { childList: true, characterData: true, subtree: true });
         if (this.$c) return;
         this.$c = async e => {
-            if (e.target.closest('[part="wrap"]')) { this.wrap = !this.wrap; return; }
+            if (e.target.closest('[part="wrap"]')) { this.wrap = !this.wrap; this.emit('pk-wrap-change', { wrap: this.wrap }, { cancelable: false }); return; }
             if (!e.target.closest('[part="copy"]')) return;
             const ok = await copyText(dedent(this.textContent));
             this.part('status').textContent = ok ? 'Copied' : 'Copy failed';

@@ -77,7 +77,7 @@ declare module 'vue' {
         'pk-tab-panel': DefineComponent<Partial<Pick<E.PkTabPanelElement, "value" | "selected">>>;
         'pk-table': DefineComponent<Partial<Pick<E.PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "loading" | "cards" | "caption" | "label" | "maxHeight" | "flow">>>;
         'pk-tabs': DefineComponent<Partial<Pick<E.PkTabsElement, "value" | "activation" | "noneActive" | "scroll">>>;
-        'pk-tag': DefineComponent<Partial<Pick<E.PkTagElement, "removable" | "value" | "disabled">>>;
+        'pk-tag': DefineComponent<Partial<Pick<E.PkTagElement, "removable" | "value" | "disabled" | "controlled">>>;
         'pk-tag-input': DefineComponent<Partial<Pick<E.PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">>>;
         'pk-textarea': DefineComponent<Partial<Pick<E.PkTextareaElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">>>;
         'pk-timeline': DefineComponent<Partial<Pick<E.PkTimelineElement, "label">>>;

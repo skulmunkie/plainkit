@@ -9,6 +9,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": ["pk-open","pk-close"],
       "description": "Whether it is shown"
     },
     {
@@ -48,6 +49,18 @@
         "item": "object"
       },
       "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+    },
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "It opened (the shortcut, show(), or open set by the host)."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason \"select\", already closed). Cancelable except for \"select\": preventDefault keeps it open."
     }
   ],
   "parts": [

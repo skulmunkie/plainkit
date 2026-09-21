@@ -43,7 +43,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-cale
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Checked` | `bool` |  | attribute `checked` | Whether the box is checked. |
+| `Checked` | `bool` |  | attribute `checked` | Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
 | `IsInvalid` | `bool` |  | attribute `invalid` | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
@@ -73,7 +73,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-chec
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The colour as #rrggbb. |
+| `Value` | `string?` |  | attribute `value` | The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
 | `IsInvalid` | `bool` |  | attribute `invalid` | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
@@ -98,7 +98,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-colo
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. |
+| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Placeholder` | `string?` |  | attribute `placeholder` | Hint shown while empty. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
@@ -110,6 +110,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-colo
 | `OnSearchInput` | `EventCallback<PkComboQueryEventArgs>` |  | event `pk-combo-query` | The user typed: the text so far, so a host can fetch more options (with filtering="off" it also replaces the client filter). |
 | `ChildContent` | `RenderFragment?` |  | default slot | option elements (value, disabled and text). |
 | `EmptyContent` | `RenderFragment?` |  | slot `empty` | The message shown when nothing matches. |
+| `OnToggle` | `EventCallback<PkComboToggleEventArgs>` |  | event `pk-combo-toggle` | The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made. |
 | `ValueChanged` | `EventCallback<string?>` |  | two-way pair of `Value` | Raised when Value changes (two-way binding: `@bind-Value`). |
 
 Two-way binding: `@bind-Value`.
@@ -122,6 +123,7 @@ When you set a named fragment (`EmptyContent`), write the body as an explicit `<
 |---|---|---|
 | `pk-combo-query` | `PkComboQueryEventArgs` | Query: string? |
 | `pk-combo-select` | `PkComboSelectEventArgs` | Value: string?, Label: string? |
+| `pk-combo-toggle` | `PkComboToggleEventArgs` | Open: bool? |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-combobox` in the `plainkit-sdk` skill.
 
@@ -161,7 +163,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-drop
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. |
+| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Type` | `string?` |  | attribute `type` | The kind of value. Date and time types open the platform picker. |
 | `Name` | `string?` |  | attribute `name` | The form field name. |
 | `Placeholder` | `string?` |  | attribute `placeholder` | Hint shown while empty (ignored by a floating label). |
@@ -209,7 +211,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-inpu
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The code typed so far. |
+| `Value` | `string?` |  | attribute `value` | The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Length` | `int` |  | attribute `length` | Number of cells. |
 | `Type` | `string?` |  | attribute `type` | The alphabet: digits, letters and digits, or anything. |
 | `SeparatorAt` | `int` |  | attribute `separator-at` | Puts a dash after this many cells (0 for none). |
@@ -238,7 +240,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-otp-
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. |
+| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Name` | `string?` |  | attribute `name` | The form field name. |
 | `Label` | `string?` |  | attribute `label` | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
@@ -268,7 +270,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-radi
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `double` |  | attribute `value` | Single mode: the value. |
+| `Value` | `double` |  | attribute `value` | Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `ValueLow` | `double` |  | attribute `value-low` | Dual mode: the low value. |
 | `ValueHigh` | `double` |  | attribute `value-high` | Dual mode: the high value. |
 | `Min` | `double` |  | attribute `min` | Lowest value. |
@@ -298,7 +300,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-rang
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `int` |  | attribute `value` | The rating, 0 for none. |
+| `Value` | `int` |  | attribute `value` | The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Max` | `int` |  | attribute `max` | Number of stars. |
 | `ReadOnly` | `bool` |  | attribute `readonly` | The display form: not interactive, exposed as an image with a text alternative. |
 | `Label` | `string?` |  | attribute `label` | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
@@ -323,7 +325,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-rati
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. |
+| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
 | `Label` | `string?` |  | attribute `label` | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |
@@ -350,7 +352,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-sele
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | Selected option value. |
+| `Value` | `string?` |  | attribute `value` | Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `ValueChanged` | `EventCallback<string?>` |  | two-way pair of `Value` | Raised when Value changes (two-way binding: `@bind-Value`). |
 | `Name` | `string?` |  | attribute `name` | Form field name. |
 | `Placeholder` | `string?` |  | attribute `placeholder` | Shown with no selection. |
@@ -378,7 +380,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-sele
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Checked` | `bool` |  | attribute `checked` | Whether the switch is on. |
+| `Checked` | `bool` |  | attribute `checked` | Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `CheckedChanged` | `EventCallback<bool>` |  | two-way pair of `Checked` | Raised with the new value of Checked (two-way: Checked follows it). |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Name` | `string?` |  | attribute `name` | The form field name. |
@@ -406,7 +408,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-swit
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The tags, comma-joined. |
+| `Value` | `string?` |  | attribute `value` | The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Placeholder` | `string?` |  | attribute `placeholder` | Hint shown in the empty field. |
 | `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
 | `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the value is empty. |
@@ -434,7 +436,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-tag-
 
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
-| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. |
+| `Value` | `string?` |  | attribute `value` | The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
 | `Name` | `string?` |  | attribute `name` | The form field name. |
 | `Placeholder` | `string?` |  | attribute `placeholder` | Hint shown while empty. |
 | `AriaLabel` | `string?` |  | attribute `label` | The accessible name (aria-label). pk-field fills it from its own label when this is empty. |

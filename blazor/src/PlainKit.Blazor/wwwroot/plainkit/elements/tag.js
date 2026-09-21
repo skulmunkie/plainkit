@@ -3,14 +3,14 @@ import { PkElement, define } from '../js/element.js';
 const behaviour = Base => class extends Base {
     connected() {
         if (this.$c) return;
-        this.$c = () => { if (!this.disabled && this.emit('pk-remove', { value: this.value || this.textContent.trim() })) this.remove(); };
+        this.$c = () => { if (this.disabled) return; if (this.emit('pk-remove', { value: this.value || this.textContent.trim() }) && !this.controlled) this.remove(); };
         this.part('remove').addEventListener('click', this.$c);
     }
     updated() { this.part('remove').setAttribute('aria-label', `Remove ${this.value || this.textContent.trim()}`); }
 };
 export default define(class extends behaviour(PkElement) {
     static tag = "pk-tag";
-    static props = {"removable":{"type":"boolean","default":false,"reflect":true},"value":{"type":"string","default":"","reflect":false},"disabled":{"type":"boolean","default":false,"reflect":true}};
+    static props = {"removable":{"type":"boolean","default":false,"reflect":true},"value":{"type":"string","default":"","reflect":false},"disabled":{"type":"boolean","default":false,"reflect":true},"controlled":{"type":"boolean","default":false,"reflect":true}};
     static delegatesFocus = false;
     static formAssociated = false;
     static template = "<span part=\"label\"><slot></slot></span><button part=\"remove\" type=\"button\" data-if=\"removable\" disabled=\"{{disabled}}\" aria-label=\"Remove\">&times;</button>";

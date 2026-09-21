@@ -6,22 +6,26 @@
 <pk-tag removable="@Removable"
         value="@Value"
         disabled="@Disabled"
+        controlled="@Controlled"
         @attributes="Splat">@ChildContent</pk-tag>
 
 @code {
     /// <summary>Show the remove button.</summary>
     [Parameter] public bool Removable { get; set; }
 
-    /// <summary>Sent in the remove event; defaults to the text.</summary>
+    /// <summary>Sent in the remove event (the identifier, not state); defaults to the text.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Dim the tag and disable the button.</summary>
     [Parameter] public bool Disabled { get; set; }
 
+    /// <summary>The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper.</summary>
+    [Parameter] public bool Controlled { get; set; } = true;
+
     /// <summary>The label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>The remove button was pressed. Cancel to keep the tag; otherwise it removes itself.</summary>
+    /// <summary>The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it.</summary>
     /// <remarks>The event can be cancelled in the browser (preventDefault); a callback cannot cancel it.</remarks>
     [Parameter] public EventCallback<PkRemoveEventArgs> OnRemove { get; set; }
 

@@ -905,7 +905,7 @@
             },
             {
               "name": "checked",
-              "description": "Whether the box is checked.",
+              "description": "Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -1137,6 +1137,10 @@
             {
               "name": "pk-copy",
               "description": "After a copy attempt."
+            },
+            {
+              "name": "pk-wrap-change",
+              "description": "The wrap toggle was pressed; wrap already has the new value."
             }
           ]
         },
@@ -1154,7 +1158,7 @@
             },
             {
               "name": "value",
-              "description": "The colour as #rrggbb.",
+              "description": "The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -1243,7 +1247,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -1352,6 +1356,10 @@
             {
               "name": "pk-combo-query",
               "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+            },
+            {
+              "name": "pk-combo-toggle",
+              "description": "The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made."
             }
           ]
         },
@@ -1405,6 +1413,14 @@
             {
               "name": "pk-select",
               "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened (the shortcut, show(), or open set by the host)."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason \"select\", already closed). Cancelable except for \"select\": preventDefault keeps it open."
             }
           ]
         },
@@ -1443,6 +1459,14 @@
             {
               "name": "pk-select",
               "description": "An item was chosen."
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened at the pointer position."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open."
             }
           ]
         },
@@ -2168,6 +2192,10 @@
             {
               "name": "pk-valid",
               "description": "A submit passed validation."
+            },
+            {
+              "name": "pk-reset",
+              "description": "The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled."
             }
           ]
         },
@@ -2589,7 +2617,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -2909,6 +2937,10 @@
             {
               "name": "pk-close",
               "description": "pk-close"
+            },
+            {
+              "name": "pk-open",
+              "description": "It opened."
             }
           ]
         },
@@ -3364,7 +3396,7 @@
             },
             {
               "name": "value",
-              "description": "The code typed so far.",
+              "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -3889,7 +3921,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4027,7 +4059,7 @@
             },
             {
               "name": "value",
-              "description": "Single mode: the value.",
+              "description": "Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "number",
                 "default": "0"
@@ -4120,7 +4152,7 @@
             },
             {
               "name": "value",
-              "description": "The rating, 0 for none.",
+              "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "number",
                 "default": "0"
@@ -4205,7 +4237,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4303,7 +4335,7 @@
           "attributes": [
             {
               "name": "value",
-              "description": "Selected option value.",
+              "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -4360,6 +4392,14 @@
             {
               "name": "pk-change",
               "description": "The selection changed."
+            },
+            {
+              "name": "pk-open",
+              "description": "The list opened."
+            },
+            {
+              "name": "pk-close",
+              "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
             }
           ]
         },
@@ -4425,7 +4465,7 @@
           "events": [
             {
               "name": "pk-nav-toggle",
-              "description": "Rail toggled."
+              "description": "Rail toggled by the user, or restored from the saved state (persist) on connect."
             },
             {
               "name": "pk-open",
@@ -4993,7 +5033,7 @@
           "attributes": [
             {
               "name": "checked",
-              "description": "Whether the switch is on.",
+              "description": "Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -5476,7 +5516,7 @@
           "events": [
             {
               "name": "pk-tab-change",
-              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab."
+              "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on."
             }
           ]
         },
@@ -5494,7 +5534,7 @@
             },
             {
               "name": "value",
-              "description": "Sent in the remove event; defaults to the text.",
+              "description": "Sent in the remove event (the identifier, not state); defaults to the text.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -5503,6 +5543,14 @@
             {
               "name": "disabled",
               "description": "Dim the tag and disable the button.",
+              "value": {
+                "type": "boolean",
+                "default": "false"
+              }
+            },
+            {
+              "name": "controlled",
+              "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper.",
               "value": {
                 "type": "boolean",
                 "default": "false"
@@ -5518,7 +5566,7 @@
           "events": [
             {
               "name": "pk-remove",
-              "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself."
+              "description": "The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it."
             }
           ]
         },
@@ -5536,7 +5584,7 @@
             },
             {
               "name": "value",
-              "description": "The tags, comma-joined.",
+              "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""
@@ -5645,7 +5693,7 @@
             },
             {
               "name": "value",
-              "description": "The current value; what the form submits.",
+              "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.",
               "value": {
                 "type": "string",
                 "default": "\"\""

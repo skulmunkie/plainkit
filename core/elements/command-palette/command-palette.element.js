@@ -22,7 +22,7 @@ const behaviour = Base => class extends Base {
             const list = this.part('list');
             list.addEventListener('pointermove', e => { const r = e.target.closest('[role="option"]'); if (r) this.active(Number(r.dataset.i)); });
             list.addEventListener('click', e => { const r = e.target.closest('[role="option"]'); if (r) this.run(this.$rows[Number(r.dataset.i)]); });
-            this.$k = e => { if (!this.noShortcut && isPaletteShortcut(e)) { e.preventDefault(); this.open = !this.open; } };
+            this.$k = e => { if (!this.noShortcut && isPaletteShortcut(e)) { e.preventDefault(); if (!this.open) this.open = true; else this.hide('shortcut'); } };
         }
         document.addEventListener('keydown', this.$k);
         syncDialog(this, dlg);
@@ -30,7 +30,7 @@ const behaviour = Base => class extends Base {
     disconnected() { document.removeEventListener('keydown', this.$k); const d = this.part('dialog'); if (d.open) d.close(); }
     changed(name) { if (name === 'open') { if (this.open) { this.part('input').value = ''; this.$a = 0; this.paint(); } syncDialog(this, this.part('dialog')); if (this.open) requestAnimationFrame(() => this.part('input').focus()); } }
     show() { this.open = true; }
-    hide() { if (this.emit('pk-close', { reason: 'method' })) this.open = false; }
+    hide(reason = 'method') { if (this.emit('pk-close', { reason })) this.open = false; }
     paint() {
         const list = this.part('list'); const q = this.part('input').value;
         const recents = this.recentsKey ? store.read(this.recentsKey) : [];
@@ -68,7 +68,7 @@ const behaviour = Base => class extends Base {
         const go = safeLink(item.href);
         if (this.recentsKey) store.write(this.recentsKey, pushRecent(store.read(this.recentsKey), item.id));
         const proceed = this.emit('pk-select', { item });
-        this.open = false;
+        this.open = false; this.emit('pk-close', { reason: 'select' }, { cancelable: false });
         if (proceed && go) location.assign(go);
     }
 };

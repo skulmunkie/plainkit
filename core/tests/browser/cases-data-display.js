@@ -42,6 +42,8 @@ export const dataDisplayCases = [
         t.eq(detail.value, 'm'); t.ok(a.isConnected, 'cancelled: the tag stays');
         t.eq(b.part('remove').getAttribute('aria-label'), 'Remove DC');
         b.part('remove').click(); await t.settle(); t.ok(!b.isConnected, 'not cancelled: the tag removes itself');
+        const c = t.stage('<pk-tag removable controlled>Kept</pk-tag>').firstElementChild; await t.load(c.parentElement); let n = 0; c.addEventListener('pk-remove', () => n++);
+        c.part('remove').click(); await t.settle(); t.eq(n, 1); t.ok(c.isConnected, 'controlled: only the host removes it');
     }],
 
     ['avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N', async t => {

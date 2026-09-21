@@ -210,7 +210,7 @@ export interface PkCheckboxElement extends HTMLElement {
     name: string;
     /** The value submitted while checked. */
     value: string;
-    /** Whether the box is checked. */
+    /** Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     checked: boolean;
     /** The mixed state (some of a group are checked). */
     indeterminate: boolean;
@@ -271,7 +271,7 @@ export interface PkCodeBlockElement extends HTMLElement {
 export interface PkColourInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The colour as #rrggbb. */
+    /** The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -292,7 +292,7 @@ export interface PkComboboxElement extends HTMLElement {
     mode: "autocomplete" | "select";
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty. */
     placeholder: string;
@@ -604,7 +604,7 @@ export interface PkInputElement extends HTMLElement {
     type: "text" | "email" | "url" | "tel" | "search" | "password" | "number" | "date" | "time" | "datetime-local" | "month" | "week";
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty (ignored by a floating label). */
     placeholder: string;
@@ -775,7 +775,7 @@ export interface PkNavbarElement extends HTMLElement {
 export interface PkOtpInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The code typed so far. */
+    /** The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -897,7 +897,7 @@ export interface PkProgressElement extends HTMLElement {
 export interface PkRadioGroupElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -928,7 +928,7 @@ export interface PkRangeElement extends HTMLElement {
     max: number;
     /** Increment. */
     step: number;
-    /** Single mode: the value. */
+    /** Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: number;
     /** Dual mode: the low value. */
     valueLow: number;
@@ -951,7 +951,7 @@ export interface PkRangeElement extends HTMLElement {
 export interface PkRatingElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The rating, 0 for none. */
+    /** The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: number;
     /** Number of stars. */
     max: number;
@@ -973,7 +973,7 @@ export interface PkScrollProgressElement extends HTMLElement {
 export interface PkSelectElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
@@ -996,7 +996,7 @@ export interface PkSelectElement extends HTMLElement {
 }
 
 export interface PkSelectMenuElement extends HTMLElement {
-    /** Selected option value. */
+    /** Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Form field name. */
     name: string;
@@ -1162,7 +1162,7 @@ export interface PkStepperElement extends HTMLElement {
 }
 
 export interface PkSwitchElement extends HTMLElement {
-    /** Whether the switch is on. */
+    /** Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     checked: boolean;
     /** Blocks interaction; also set by a disabled fieldset. */
     disabled: boolean;
@@ -1265,16 +1265,18 @@ export interface PkTabsElement extends HTMLElement {
 export interface PkTagElement extends HTMLElement {
     /** Show the remove button. */
     removable: boolean;
-    /** Sent in the remove event; defaults to the text. */
+    /** Sent in the remove event (the identifier, not state); defaults to the text. */
     value: string;
     /** Dim the tag and disable the button. */
     disabled: boolean;
+    /** The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper. */
+    controlled: boolean;
 }
 
 export interface PkTagInputElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The tags, comma-joined. */
+    /** The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown in the empty field. */
     placeholder: string;
@@ -1301,7 +1303,7 @@ export interface PkTagInputElement extends HTMLElement {
 export interface PkTextareaElement extends HTMLElement {
     /** The form field name. */
     name: string;
-    /** The current value; what the form submits. */
+    /** The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
     value: string;
     /** Hint shown while empty. */
     placeholder: string;
@@ -1571,14 +1573,17 @@ declare global {
         'pk-month': CustomEvent<unknown>;
         'pk-change': CustomEvent<{ checked: boolean: unknown }>;
         'pk-copy': CustomEvent<unknown>;
+        'pk-wrap-change': CustomEvent<unknown>;
         'pk-colour': CustomEvent<{ value: string: unknown }>;
         'pk-combo-select': CustomEvent<{ value: string: unknown; label: string: unknown }>;
         'pk-combo-query': CustomEvent<{ query: string: unknown }>;
+        'pk-combo-toggle': CustomEvent<unknown>;
         'pk-open': CustomEvent<unknown>;
         'pk-close': CustomEvent<unknown>;
         'pk-files': CustomEvent<{ count: number: unknown; rejectedCount: number: unknown; files: File[]: unknown; rejected:  file: File: unknown; reason: string []: unknown }>;
         'pk-invalid': CustomEvent<{ count: number: unknown; controls: Element[]: unknown; messages: string[]: unknown }>;
         'pk-valid': CustomEvent<unknown>;
+        'pk-reset': CustomEvent<unknown>;
         'pk-primary-change': CustomEvent<unknown>;
         'pk-remove': CustomEvent<unknown>;
         'pk-add': CustomEvent<unknown>;
@@ -1682,7 +1687,7 @@ declare global {
             'pk-tab-panel': PkJsx<PkTabPanelElement, "value" | "selected">;
             'pk-table': PkJsx<PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "loading" | "cards" | "caption" | "label" | "maxHeight" | "flow">;
             'pk-tabs': PkJsx<PkTabsElement, "value" | "activation" | "noneActive" | "scroll">;
-            'pk-tag': PkJsx<PkTagElement, "removable" | "value" | "disabled">;
+            'pk-tag': PkJsx<PkTagElement, "removable" | "value" | "disabled" | "controlled">;
             'pk-tag-input': PkJsx<PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">;
             'pk-textarea': PkJsx<PkTextareaElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "rows" | "minlength" | "maxlength" | "autogrow" | "maxHeight">;
             'pk-timeline': PkJsx<PkTimelineElement, "label">;

@@ -29,7 +29,8 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The current value; what the form submits."
+      "commit": "change",
+      "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
       "name": "placeholder",
@@ -96,6 +97,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-combo-toggle",
       "description": "Whether the list is open."
     }
   ],
@@ -136,6 +138,13 @@
         "query": "string"
       },
       "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+    },
+    {
+      "name": "pk-combo-toggle",
+      "detail": {
+        "open": "bool"
+      },
+      "description": "The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made."
     }
   ],
   "parts": [

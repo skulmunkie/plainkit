@@ -9,6 +9,7 @@
       "type": "number",
       "default": 1,
       "reflect": true,
+      "commit": "pk-page",
       "description": "Current page, 1-based."
     },
     {

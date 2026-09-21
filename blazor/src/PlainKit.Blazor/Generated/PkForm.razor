@@ -24,6 +24,9 @@
     /// <summary>A submit passed validation.</summary>
     [Parameter] public EventCallback OnValid { get; set; }
 
+    /// <summary>The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled.</summary>
+    [Parameter] public EventCallback OnReset { get; set; }
+
     /// <summary>A form element.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -36,6 +39,7 @@
         {
             ["onpk-invalid"] = EventCallback.Factory.Create<PkInvalidEventArgs>(this, HandlePkInvalid),
             ["onpk-valid"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkValid),
+            ["onpk-reset"] = EventCallback.Factory.Create<EventArgs>(this, HandlePkReset),
         };
     }
 
@@ -47,5 +51,10 @@
     private async Task HandlePkValid(EventArgs e)
     {
         await OnValid.InvokeAsync();
+    }
+
+    private async Task HandlePkReset(EventArgs e)
+    {
+        await OnReset.InvokeAsync();
     }
 }

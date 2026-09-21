@@ -4,7 +4,7 @@
   "group": "Navigation",
   "summary": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, slide sideways with edge fades, and hold trailing content after the last tab.",
   "props": [
-    { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The value of the selected tab. Empty selects the first enabled tab." },
+    { "name": "value", "type": "string", "default": "", "reflect": true, "commit": "pk-tab-change", "description": "The value of the selected tab. Empty selects the first enabled tab." },
     { "name": "activation", "type": "enum", "default": "auto", "values": ["auto", "manual"], "reflect": true, "description": "auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space." },
     { "name": "noneActive", "type": "boolean", "default": false, "reflect": true, "description": "No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs." },
     { "name": "scroll", "type": "boolean", "default": false, "reflect": true, "description": "One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows." }
@@ -15,7 +15,7 @@
     { "name": "trailing", "description": "Content inside the strip after the last tab: a hint, links or buttons." }
   ],
   "events": [
-    { "name": "pk-tab-change", "detail": "{ value, previous }", "detailProps": { "value": "string", "previous": "string" }, "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab." }
+    { "name": "pk-tab-change", "detail": "{ value, previous }", "detailProps": { "value": "string", "previous": "string" }, "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on." }
   ],
   "parts": [
     { "name": "list", "description": "The tab strip." },

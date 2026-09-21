@@ -18,7 +18,8 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The code typed so far."
+      "commit": "pk-otp-change",
+      "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
       "name": "label",

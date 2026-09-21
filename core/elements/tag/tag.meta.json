@@ -16,7 +16,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Sent in the remove event; defaults to the text."
+      "description": "Sent in the remove event (the identifier, not state); defaults to the text."
     },
     {
       "name": "disabled",
@@ -24,6 +24,13 @@
       "default": false,
       "reflect": true,
       "description": "Dim the tag and disable the button."
+    },
+    {
+      "name": "controlled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper."
     }
   ],
   "slots": [
@@ -38,7 +45,7 @@
       "detail": {
         "value": "string"
       },
-      "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself.",
+      "description": "The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it.",
       "cancelable": true
     }
   ],

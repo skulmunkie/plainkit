@@ -55,6 +55,11 @@
       "name": "pk-valid",
       "detail": "null",
       "description": "A submit passed validation."
+    },
+    {
+      "name": "pk-reset",
+      "detail": null,
+      "description": "The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled."
     }
   ],
   "parts": [

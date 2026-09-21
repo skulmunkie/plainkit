@@ -14,7 +14,7 @@
               @attributes="Splat"></pk-tag-input>
 
 @code {
-    /// <summary>The tags, comma-joined.</summary>
+    /// <summary>The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Hint shown in the empty field.</summary>

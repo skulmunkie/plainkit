@@ -26,6 +26,9 @@
     /// <summary>Cap the height, any CSS length.</summary>
     [Parameter] public string? MaxHeight { get; set; }
 
+    /// <summary>The wrap toggle was pressed; wrap already has the new value.</summary>
+    [Parameter] public EventCallback<PkWrapChangeEventArgs> OnWrapChange { get; set; }
+
     /// <summary>After a copy attempt.</summary>
     [Parameter] public EventCallback<PkCopyEventArgs> OnCopy { get; set; }
 
@@ -39,8 +42,14 @@
     {
         Splat = new Dictionary<string, object>
         {
+            ["onpk-wrap-change"] = EventCallback.Factory.Create<PkWrapChangeEventArgs>(this, HandlePkWrapChange),
             ["onpk-copy"] = EventCallback.Factory.Create<PkCopyEventArgs>(this, HandlePkCopy),
         };
+    }
+
+    private async Task HandlePkWrapChange(PkWrapChangeEventArgs e)
+    {
+        await OnWrapChange.InvokeAsync(e);
     }
 
     private async Task HandlePkCopy(PkCopyEventArgs e)

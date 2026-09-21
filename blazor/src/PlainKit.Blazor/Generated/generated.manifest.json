@@ -302,6 +302,7 @@
     "pk-colour",
     "pk-combo-query",
     "pk-combo-select",
+    "pk-combo-toggle",
     "pk-confirm",
     "pk-copy",
     "pk-dismiss",
@@ -321,6 +322,7 @@
     "pk-range",
     "pk-rating-change",
     "pk-remove",
+    "pk-reset",
     "pk-search",
     "pk-section-change",
     "pk-select",
@@ -331,7 +333,8 @@
     "pk-tags-change",
     "pk-toggle",
     "pk-valid",
-    "pk-value-change"
+    "pk-value-change",
+    "pk-wrap-change"
   ],
   "typesToDefine": [
     {

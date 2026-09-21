@@ -176,7 +176,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-scro
 | `BrandContent` | `RenderFragment?` |  | slot `brand` | Brand link. |
 | `ChildContent` | `RenderFragment?` |  | default slot | pk-nav-item children; a pk-nav-item with the group attribute is a group title. |
 | `FooterContent` | `RenderFragment?` |  | slot `footer` | Pinned bottom items. |
-| `OnToggle` | `EventCallback<bool>` |  | event `pk-nav-toggle` | Rail toggled. |
+| `OnToggle` | `EventCallback<bool>` |  | event `pk-nav-toggle` | Rail toggled by the user, or restored from the saved state (persist) on connect. |
 
 Two-way binding: `@bind-Collapsed`, `@bind-Open`.
 
@@ -304,7 +304,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-tab-
 | `Activation` | `PkTabsActivation?` | `Auto` `Manual` | attribute `activation` | auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space. |
 | `NoneActive` | `bool` |  | attribute `none-active` | No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs. |
 | `Scroll` | `bool` |  | attribute `scroll` | One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows. |
-| `OnChange` | `EventCallback<PkTabChangeEventArgs>` |  | event `pk-tab-change` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. |
+| `OnChange` | `EventCallback<PkTabChangeEventArgs>` |  | event `pk-tab-change` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on. |
 | `TrailingContent` | `RenderFragment?` |  | slot `trailing` | The content. The pk-tab and pk-tab-panel children assign themselves to the tab and panel slots; ChildContent holds them. [Parameter] public RenderFragment? ChildContent { get; set; } Content inside the strip after the last tab: a hint, links or buttons. |
 
 **Event args**

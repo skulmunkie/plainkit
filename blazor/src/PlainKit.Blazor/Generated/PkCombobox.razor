@@ -15,7 +15,7 @@
              @attributes="Splat">@ChildContent@if (EmptyContent is not null) {<span slot="empty">@EmptyContent</span>}</pk-combobox>
 
 @code {
-    /// <summary>The current value; what the form submits.</summary>
+    /// <summary>The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Hint shown while empty.</summary>
@@ -51,6 +51,9 @@
     /// <summary>The message shown when nothing matches.</summary>
     [Parameter] public RenderFragment? EmptyContent { get; set; }
 
+    /// <summary>The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made.</summary>
+    [Parameter] public EventCallback<PkComboToggleEventArgs> OnToggle { get; set; }
+
     /// <summary>Raised when Value changes (two-way binding: &lt;c&gt;@bind-Value&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
 
@@ -62,6 +65,7 @@
         Splat = new Dictionary<string, object>
         {
             ["onpk-combo-query"] = EventCallback.Factory.Create<PkComboQueryEventArgs>(this, HandlePkComboQuery),
+            ["onpk-combo-toggle"] = EventCallback.Factory.Create<PkComboToggleEventArgs>(this, HandlePkComboToggle),
             ["onpk-combo-select"] = EventCallback.Factory.Create<PkComboSelectEventArgs>(this, HandlePkComboSelect),
         };
     }
@@ -69,6 +73,11 @@
     private async Task HandlePkComboQuery(PkComboQueryEventArgs e)
     {
         await OnSearchInput.InvokeAsync(e);
+    }
+
+    private async Task HandlePkComboToggle(PkComboToggleEventArgs e)
+    {
+        await OnToggle.InvokeAsync(e);
     }
 
     private async Task HandlePkComboSelect(PkComboSelectEventArgs e)

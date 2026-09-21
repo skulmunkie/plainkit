@@ -48,6 +48,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-menu-toggle",
       "description": "Whether the menu is open."
     },
     {

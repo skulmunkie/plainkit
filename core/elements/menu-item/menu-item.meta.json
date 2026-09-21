@@ -23,6 +23,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-select",
       "description": "Checkbox and radio state."
     },
     {

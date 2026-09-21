@@ -50,7 +50,7 @@ export default Base => class extends Base {
         const text = (() => { try { return localStorage.getItem(this.persist); } catch (error) { this.log.debug('storage blocked: the saved expanded state is not restored', error); return undefined; } })();
         if (text === undefined) return;
         const s = parseNav(text);
-        if (text) this.collapsed = s.collapsed;
+        if (text) { const was = this.collapsed; this.collapsed = s.collapsed; if (this.collapsed !== was) this.emit('pk-nav-toggle', { collapsed: this.collapsed }, { cancelable: false }); }
         const open = new Set(s.open);
         if (text) for (const i of items(this)) if (i.querySelector('pk-nav-item')) i.expanded = open.has(idOf(i));
     }

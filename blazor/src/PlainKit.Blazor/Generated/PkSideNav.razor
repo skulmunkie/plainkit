@@ -41,7 +41,7 @@
     /// <summary>Pinned bottom items.</summary>
     [Parameter] public RenderFragment? FooterContent { get; set; }
 
-    /// <summary>Rail toggled.</summary>
+    /// <summary>Rail toggled by the user, or restored from the saved state (persist) on connect.</summary>
     [Parameter] public EventCallback<bool> OnToggle { get; set; }
 
     private Dictionary<string, object> Splat { get; set; } = new();

@@ -16,7 +16,7 @@
           @attributes="Splat"></pk-range>
 
 @code {
-    /// <summary>Single mode: the value.</summary>
+    /// <summary>Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public double Value { get; set; } = 0;
 
     /// <summary>Dual mode: the low value.</summary>

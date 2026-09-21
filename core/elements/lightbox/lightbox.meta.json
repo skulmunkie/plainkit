@@ -9,6 +9,7 @@
       "type": "number",
       "default": 0,
       "reflect": true,
+      "commit": "pk-change",
       "description": "The index setting"
     },
     {
@@ -23,6 +24,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": ["pk-open","pk-close"],
       "description": "Whether it is shown"
     }
   ],
@@ -46,6 +48,11 @@
         "reason": "string"
       },
       "description": "pk-close"
+    },
+    {
+      "name": "pk-open",
+      "detail": {},
+      "description": "It opened."
     }
   ],
   "parts": [
