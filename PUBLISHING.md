@@ -3,6 +3,9 @@
 Plainkit has no build step and no runtime dependencies, so "publishing" mostly means putting `core/dist` where people can reach it. Each
 way in is a workflow in `.github/workflows/`.
 
+What a version number means, and how a release is cut (a release pull request, then a tag that equals `core/VERSION`), is in
+[CONTRIBUTING.md](CONTRIBUTING.md#versioning-and-releases).
+
 | What | Workflow | Runs on | Where it goes |
 |---|---|---|---|
 | The gallery and tools site, and `dist/` as a URL prefix (always the latest `main`) | `pages.yml` | every push to `main` | `https://skulmunkie.github.io/plainkit/` |

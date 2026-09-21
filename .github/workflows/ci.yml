@@ -26,6 +26,28 @@ jobs:
       - name: Node tests
         run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"
 
+      # One version for the SDK and PlainKit.Blazor (core/VERSION): every place it is stamped must agree.
+      - name: Version is consistent
+        run: node core/tools/versioning.mjs check
+
+      # A pull request that changes core/VERSION is a release pull request: its API baseline must be refreshed for that version, and the version
+      # must cover what the API changed since the previous release (a breaking change needs a major bump, or a minor one while the major is 0).
+      # Any other pull request just prints what its API changes would need.
+      - name: Release pull request checks
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git show "origin/${{ github.base_ref }}:core/site/scorecard/api.baseline.json" > "$RUNNER_TEMP/base-baseline.json"
+          # (A version file that the base branch did not have yet is being introduced, not released.)
+          if git cat-file -e "origin/${{ github.base_ref }}:core/VERSION" 2>/dev/null && ! git diff --quiet "origin/${{ github.base_ref }}" -- core/VERSION; then
+            echo "core/VERSION changed: this is a release pull request"
+            node core/tools/versioning.mjs check --release
+            node core/tools/versioning.mjs bump --baseline "$RUNNER_TEMP/base-baseline.json" --require
+          else
+            echo "core/VERSION unchanged: not a release pull request (information only)"
+            node core/tools/versioning.mjs bump --baseline "$RUNNER_TEMP/base-baseline.json"
+          fi
+
       # The build is deterministic and dist is committed, so a rebuild must change nothing.
       - name: Rebuild and check dist is current
         run: |

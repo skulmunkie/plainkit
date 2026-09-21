@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag such as v0.1.0 to publish the NuGet package (PlainKit.Blazor) and a GitHub release carrying core/dist as a zip, its integrity
+# Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to publish the NuGet package (PlainKit.Blazor) and a GitHub release carrying core/dist as a zip, its integrity
 # manifest and the .nupkg. The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
 # Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
 # Pinned CDN use needs nothing published: https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@<tag>/core/dist/...
@@ -28,8 +28,12 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Version from the tag
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      # The tag must name exactly core/VERSION, and the release pull request must have refreshed the API baseline for it. The version comes
+      # from core/VERSION (the one version of the SDK and the Blazor package), not from the tag.
+      - name: Check the tag and take the version
+        run: |
+          node core/tools/versioning.mjs check --release --tag "$GITHUB_REF_NAME"
+          echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
 
       - name: Tests
         run: |
@@ -41,8 +45,8 @@ jobs:
         if: env.NPM_TOKEN != ''
         working-directory: core
         run: |
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-          npm publish --provenance --access public
+          # A pre-release (1.2.3-beta.1) must not become the "latest" dist-tag: it goes to "next".
+          if [[ "$VERSION" == *-* ]]; then npm publish --provenance --access public --tag next; else npm publish --provenance --access public; fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -77,3 +81,5 @@ jobs:
             nupkg/PlainKit.Blazor.${{ env.VERSION }}.nupkg
             core/dist/manifest.json
           generate_release_notes: true
+          # 1.2.3-alpha.1, -beta.N and -rc.N are marked as pre-releases on GitHub (NuGet treats them as pre-releases by their label).
+          prerelease: ${{ contains(env.VERSION, '-') }}

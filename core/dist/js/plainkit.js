@@ -6,7 +6,9 @@
 import { initInvokers } from './invokers.js';
 import { createLogger } from './log.js';
 import { loadElements, observeElements } from './loader.js';
+import { PK_VERSION } from './version.js';
 
+export * from './version.js';
 export * from './dynamic.js';
 export * from './invokers.js';
 export * from './log.js';
@@ -17,6 +19,7 @@ export * from './colour.js';
 const log = createLogger('plainkit');
 
 export function initPlainkit(root = document) {
+    log.debug(`Plainkit ${PK_VERSION} starting`);
     initInvokers(root);
     loadElements(root).catch(error => log.error('the element loader failed', error));
     if (root === document) observeElements(document);

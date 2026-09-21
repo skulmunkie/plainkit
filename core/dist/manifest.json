@@ -1,5 +1,6 @@
 {
   "name": "plainkit",
+  "version": "0.1.0-alpha.1",
   "dependencies": [],
   "runtimeRequests": "none (same-origin only)",
   "licence": "MIT",
@@ -37,8 +38,8 @@
     },
     {
       "path": "console/console.js",
-      "bytes": 13039,
-      "integrity": "sha384-aPPRcW0Xl/BglpB+m4SNIi3UZNhUaKXGCe53MdDMQ7506lSu5t7RQ776WmmHu+2q"
+      "bytes": 13113,
+      "integrity": "sha384-027y6VliZsttdqk4bvwD0CrB+Oz5MsxVuccDTg3pKKa4C2YJ6ogqF2GPmO09+/sS"
     },
     {
       "path": "custom-elements.json",
@@ -832,8 +833,8 @@
     },
     {
       "path": "js/plainkit.js",
-      "bytes": 947,
-      "integrity": "sha384-hNpcv+wvO15qcZdXWMOXPl4ENN4tGHi9CVY0V8ZASEHfP3SucJVhWEW9T5hnaljs"
+      "bytes": 1073,
+      "integrity": "sha384-0uxClSnfUp0zzIFLwyehnFPVxsX4HyFmF5Yg6U/6zKqisSkN+Zrnmeu15ux6pJBV"
     },
     {
       "path": "js/positioning.js",
@@ -864,6 +865,11 @@
       "path": "js/theme.js",
       "bytes": 7097,
       "integrity": "sha384-hLmt0wgrv3vQLbXopmHOFAcnc48Vcbg4JccZhEvFjSafnxx2oduzc6RkbmyZptxg"
+    },
+    {
+      "path": "js/version.js",
+      "bytes": 147,
+      "integrity": "sha384-A4fdSDR0egG/JUNpPr2Ps72WYvHbPqTBtbqibY84mYasJQxrW5+BQtq1SteTMmWj"
     },
     {
       "path": "performance/performance.css",

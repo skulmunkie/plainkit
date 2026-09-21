@@ -16,6 +16,7 @@ import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, 
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
+import { PK_VERSION } from '../../js/version.js';
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./console.css'];
@@ -96,7 +97,7 @@ export async function mountConsole(container, options = {}) {
         const root = doc.documentElement;
         const media = q => win.matchMedia?.(q).matches;
         return [
-            ['Theme', root.getAttribute('data-theme') ?? 'default'], ['Density', root.getAttribute('data-density') ?? 'default'],
+            ['Plainkit', PK_VERSION], ['Theme', root.getAttribute('data-theme') ?? 'default'], ['Density', root.getAttribute('data-density') ?? 'default'],
             ['Viewport', `${win.innerWidth} x ${win.innerHeight} at ${win.devicePixelRatio}x`], ['Prefers', `${media('(prefers-color-scheme: dark)') ? 'dark' : 'light'} colour, ${media('(prefers-reduced-motion: reduce)') ? 'reduced' : 'full'} motion`],
             ['Language', root.lang || 'not set'], ['Online', String(win.navigator.onLine)], ['Stylesheets', String(doc.styleSheets.length)],
             ['Custom elements', String(elementInventory([...doc.getElementsByTagName('*')].map(e => e.localName), () => true).length) + ' pk-* kinds'],

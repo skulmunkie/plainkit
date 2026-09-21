@@ -17,6 +17,9 @@ public sealed class PkRuntime(IJSRuntime js) : IAsyncDisposable
 
     internal async ValueTask<IJSObjectReference> BridgeAsync() => await _bridge.Value;
 
+    /// <summary>The version of the Plainkit JavaScript the page loaded (<c>PK_VERSION</c> in <c>js/version.js</c>). It equals <see cref="PkAssets.Version"/> unless the app serves an older or newer copy of the assets.</summary>
+    public async ValueTask<string> GetSdkVersionAsync() => await (await _bridge.Value).InvokeAsync<string>("version");
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
