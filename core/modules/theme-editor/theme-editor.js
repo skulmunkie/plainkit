@@ -12,10 +12,10 @@
 // default DEFAULT_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true).
 // Returns { export(), overrides(), setTheme(name), reset(), destroy() }. The pure logic is js/theme-editor-logic.js and js/theme.js.
-// Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
+// Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -177,7 +177,9 @@ export async function mountThemeEditor(container, options = {}) {
         const hex = tokenKind(name, value) === 'colour' ? colourToHex(value) : null;
         const control = hex
             ? h(doc, 'pk-colour-input', { label: name, value: hex })
-            : h(doc, 'pk-input', { label: name, value });
+            : isLengthToken(name, value)
+                ? h(doc, 'pk-unit-input', { label: name, value, units: LENGTH_UNITS })
+                : h(doc, 'pk-input', { label: name, value });
         const reset = h(doc, 'pk-button', { variant: 'ghost', size: 'mini', label: `Reset ${name}` }, 'Reset');
         const chip = /^--color-(text|muted|link|accent)$/.test(name) ? h(doc, 'pk-badge', { 'data-pair': name }) : null;
         const row = h(doc, 'div', { class: 'te-row', 'data-token': name }, h(doc, 'code', { class: 'te-name' }, name), control, ...(chip ? [chip] : []), reset);
@@ -251,8 +253,8 @@ export async function mountThemeEditor(container, options = {}) {
     on(themeSelect, 'change', e => { if (e.target.value !== theme()) api.setTheme(e.target.value); });
     on(resetAll, 'click', () => api.reset());
     on(list, 'pk-colour', e => { const n = tokenOf(e); if (n) edit(n, e.detail.value); });
-    on(list, 'input', e => {
-        if (e.target.localName !== 'pk-input') return;
+    const editField = e => {
+        if (e.target.localName !== 'pk-input' && e.target.localName !== 'pk-unit-input') return;
         const n = tokenOf(e);
         if (!n) return;
         const v = String(e.target.value ?? '').trim();
@@ -260,7 +262,9 @@ export async function mountThemeEditor(container, options = {}) {
         if (problem) { e.target.setAttribute('invalid', ''); e.target.setAttribute('title', problem); return; }
         e.target.removeAttribute('invalid'); e.target.removeAttribute('title');
         edit(n, v);
-    });
+    };
+    on(list, 'input', editField);
+    on(list, 'pk-value-change', editField);   // a unit pick in a pk-unit-input raises this and no input event
     on(list, 'click', e => {
         const b = e.target.closest?.('pk-button');
         const n = tokenOf(e);

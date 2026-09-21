@@ -1,7 +1,7 @@
 // The theme editor's pure logic (modules/theme-editor): which tokens to list, how an edit lands in the override dictionaries, which
 // contrast pairs fail, what an element target gets as inline properties. No DOM; imports only the SDK's theme and colour maths.
 
-import { tokenKind, nameProblem, valueProblem, parseOverrides } from './theme.js';
+import { tokenKind, splitLength, nameProblem, valueProblem, parseOverrides } from './theme.js';
 import { contrast, grade } from './colour.js';
 
 export const KINDS = Object.freeze(['all', 'colour', 'font', 'size', 'shadow', 'layer', 'other']);
@@ -12,6 +12,17 @@ export const DEFAULT_PAIRS = Object.freeze([
     ['--color-text', '--color-bg'], ['--color-text', '--color-panel'], ['--color-muted', '--color-bg'],
     ['--color-muted', '--color-panel'], ['--color-link', '--color-panel'], ['--color-accent', '--color-panel'],
 ].map(p => Object.freeze(p)));
+
+// The units the length editor (pk-unit-input) offers, in the select's format.
+export const LENGTH_UNITS = 'px rem em %';
+
+// Whether a token is edited as a number and a unit: a size token whose value in force is a plain length in one of LENGTH_UNITS (1.5rem, 44px, 50%).
+// Anything else (var(...), calc(...), clamp(...), a bare number) stays a text field, as does every other kind of token.
+export function isLengthToken(name, value) {
+    if (tokenKind(name, value) !== 'size') return false;
+    const length = splitLength(value);
+    return Boolean(length?.unit) && LENGTH_UNITS.split(' ').includes(length.unit);
+}
 
 export const emptyOverrides = () => ({ shared: {}, dark: {}, light: {} });
 

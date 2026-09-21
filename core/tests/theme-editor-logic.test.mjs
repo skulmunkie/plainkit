@@ -2,9 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseTokenBlocks } from '../js/theme.js';
+import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { build } from '../tools/build.mjs';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
 
@@ -37,6 +37,28 @@ test('an edit lands in the theme or the shared dictionary, and an empty or base 
     o = withEdit(o, { theme: 'dark', scope: 'both', name: '--color-text', value: base, base });
     assert.equal(overrideCount(o), 0);
     assert.equal(effectiveValue(o, tokens, 'dark', '--color-text'), base);
+});
+
+test('lengths are edited as a number and a unit: plain px, rem, em and % values of size tokens, and nothing else', () => {
+    assert.equal(LENGTH_UNITS, 'px rem em %');
+    for (const [name, value] of [['--space-4', '1rem'], ['--radius-sm', '4px'], ['--radius-round', '50%'], ['--touch-target', '44px'], ['--space-2', '.5em']]) assert.ok(isLengthToken(name, value), `${name}: ${value}`);
+    for (const [name, value] of [['--text-sm', 'var(--text-meta)'], ['--space-4', 'calc(1rem + 2px)'], ['--space-4', '3'], ['--space-4', '2vh'], ['--color-accent', '#ff0000'], ['--z-modal', '400'], ['--font-sans', 'system-ui'], ['--shadow-1', '0 1px 2px rgba(0, 0, 0, 0.3)']]) assert.ok(!isLengthToken(name, value), `${name}: ${value}`);
+    // every length the stylesheet declares as a size token is either a plain length the unit field can show, or something the text field keeps
+    const sizes = allTokenNames(tokens).filter(n => visibleTokens(tokens, 'dark', { kind: 'size' }).includes(n));
+    assert.ok(sizes.some(n => isLengthToken(n, baseValue(tokens, 'dark', n))) && sizes.some(n => !isLengthToken(n, baseValue(tokens, 'dark', n))));
+});
+
+test('a length edit round-trips through withEdit: a changed value is exported, the stylesheet value or a cleared field is not', () => {
+    const base = baseValue(tokens, 'dark', '--space-4');
+    let o = withEdit(emptyOverrides(), { theme: 'dark', name: '--space-4', value: '1.5rem', base });
+    assert.deepEqual(o.dark, { '--space-4': '1.5rem' });
+    assert.match(buildOverrides(o).css, /--space-4:\s*1\.5rem/);
+    assert.equal(buildOverrides(withEdit(o, { theme: 'dark', name: '--space-4', value: base, base })).css.includes('--space-4'), false, 'the stylesheet value leaves no override');
+    assert.equal(overrideCount(withEdit(o, { theme: 'dark', name: '--space-4', value: '', base })), 0, 'an emptied number clears it');
+    assert.equal(isLengthToken('--space-4', effectiveValue(o, tokens, 'dark', '--space-4')), true, 'the edited value is still a length');
+    const imported = readImport(JSON.stringify({ dark: { '--space-4': '18px' } }));
+    assert.equal(effectiveValue(imported.overrides, tokens, 'dark', '--space-4'), '18px');
+    assert.ok(isLengthToken('--space-4', '18px'));
 });
 
 test('withEdit and withoutToken never change their input', () => {
