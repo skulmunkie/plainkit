@@ -15,6 +15,12 @@ internal static class PkHostEnvironment
     /// <summary>True when the host runs in the Development environment (a browser app: false when its environment cannot be read; set <see cref="PkOptions.DevTools"/> then).</summary>
     internal static bool IsDevelopment(IServiceProvider services) => OperatingSystem.IsBrowser() ? BrowserIsDevelopment(services) : ServerIsDevelopment(services);
 
+    /// <summary>
+    /// Whether the dev tools may be served or mounted: what <see cref="PkOptions.DevTools"/> says, and when it says nothing, only in the Development environment.
+    /// Every entry point to the tools (the page and the dock component) asks here, so a dock left in a layout never ships them to production.
+    /// </summary>
+    internal static bool DevToolsEnabled(PkOptions options, IServiceProvider services) => options.DevTools ?? IsDevelopment(services);
+
     // Own methods, never inlined, so the browser never loads the type they mention.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static string? ServerContentRoot(IServiceProvider? services) =>

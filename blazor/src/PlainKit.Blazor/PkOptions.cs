@@ -4,8 +4,8 @@ namespace PlainKit.Blazor;
 public sealed class PkOptions
 {
     /// <summary>
-    /// Whether the dev tools page (<c>/_plainkit</c>) is served. Null, the default, means only when the app runs in the
-    /// Development environment; set true or false to decide explicitly.
+    /// Whether the dev tools page (<c>/_plainkit</c>) is served and the <c>PkDevTools</c> dock renders anything. Null, the default, means only when the app
+    /// runs in the Development environment (a dock left in a layout is inert in production); set true or false to decide explicitly.
     /// </summary>
     public bool? DevTools { get; set; }
 

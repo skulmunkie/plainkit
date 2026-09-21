@@ -6,9 +6,15 @@
 @* The toolkit's dev tools: Console, Logs, Logging, Performance, Quality, Inspector and Theme tabs, plus Blazor and Components tabs of PlainKit.Blazor's own.
    Docked (a launcher button and a bottom dock on any page, Ctrl+` toggles it) or inline in this element. JavaScript owns the dock, or the element's subtree;
    Blazor renders nothing in it. The marker element is only how the component finds its tools again. *@
-<div @ref="_host" hidden="@(Mode == PkDevToolsMode.Dock)"></div>
+@if (Enabled)
+{
+    <div @ref="_host" hidden="@(Mode == PkDevToolsMode.Dock)"></div>
+}
 
 @code {
+    // The same rule as the /_plainkit page (PkOptions.DevTools, else Development only): a dock left in a layout renders nothing and loads nothing in production.
+    private bool Enabled => PkHostEnvironment.DevToolsEnabled(Options, Services);
+
     private ElementReference _host;
     private IJSObjectReference? _bridge;
     private DotNetObjectReference<PkDevToolsHost>? _callbacks;
@@ -39,6 +45,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!Enabled) return;
         await Runtime.EnsureInitializedAsync(); // applies the logging options before the tools start listening
         _bridge ??= await Runtime.BridgeAsync();
         var key = $"{Mode}|{Hotkey}|{Size}|{Theme}|{BlazorPanels}";
