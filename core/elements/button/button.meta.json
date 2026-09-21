@@ -250,7 +250,7 @@
     },
     {
       "title": "Submits a form",
-      "html": "<form>\n  <input name=\"q\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
+      "html": "<form>\n  <input name=\"q\" aria-label=\"Search\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
     },
     {
       "title": "A link that looks like a button",

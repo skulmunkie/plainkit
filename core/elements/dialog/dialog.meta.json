@@ -162,7 +162,7 @@
   "examples": [
     {
       "title": "Dialog with a footer",
-      "html": "<pk-dialog heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><pk-button slot=\"footer\" variant=\"ghost\">Cancel</pk-button><pk-button slot=\"footer\" variant=\"warn\">Discard</pk-button></pk-dialog>"
+      "html": "<pk-button data-open=\"#discard-dialog\" variant=\"secondary\">Discard draft</pk-button>\n<pk-dialog id=\"discard-dialog\" heading=\"Discard this draft?\" size=\"sm\"><p>Escape closes this, Tab stays inside, and focus returns to the button that opened it.</p><pk-button slot=\"footer\" variant=\"ghost\">Cancel</pk-button><pk-button slot=\"footer\" variant=\"warn\">Discard</pk-button></pk-dialog>"
     }
   ]
 }
