@@ -32,6 +32,12 @@
 
 .te-sample { display: inline-grid; place-items: center; min-height: var(--touch-target); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--te-bg); color: var(--te-fg); font-weight: 700; }
 
+.te-saved { display: flex; flex-direction: column; }
+
+.te-saved-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
+
+.te-saved-name { flex: 1 1 10rem; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+
 .te-changed { box-shadow: inset 3px 0 0 var(--color-accent); }
 
 .te-preview { width: 100%; height: 34rem; border: 1px solid var(--color-border); background: var(--color-bg); }

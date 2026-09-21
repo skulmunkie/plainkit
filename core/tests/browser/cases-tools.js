@@ -102,4 +102,58 @@ export const toolCases = [
         t.ok(editor.applyBrand('nope').error, 'applyBrand refuses an unreadable colour');
         editor.destroy();
     }],
+    ['theme editor module: built-in presets replace the edits, and saved themes are applied, renamed and deleted by name and kept in localStorage', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const key = `pk-test-saved-${Math.random().toString(36).slice(2)}`;
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: key });
+        await until(() => host.querySelector('.te-saved'), 'the presets tab'); await t.load(host); await t.settle();
+        const button = label => [...host.querySelectorAll('pk-button')].find(b => b.textContent.trim() === label);
+        const name = host.querySelector('pk-input[label="Theme name"]');
+        const setName = v => { name.value = v; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        t.eq(editor.presets().map(p => p.id).join(), 'default,high-contrast,compact,roomy');
+        t.ok(editor.applyPreset('high-contrast') && editor.overrides().dark['--color-text'] === '#ffffff', 'a preset replaces the edits');
+        t.eq(preview.style.getPropertyValue('--color-text'), '#ffffff', 'and the target shows it');
+        editor.applyPreset('compact');
+        t.ok(Object.keys(editor.overrides().dark).length === 0 && editor.overrides().shared['--pad-cell'] === 'var(--space-1) var(--space-2)', 'a second preset replaces the first');
+        t.ok(!editor.applyPreset('no such preset'), 'an unknown preset is refused');
+        setName('<b>x</b>'); button('Save current edits').click(); await t.settle();
+        t.ok(/A name is 1 to 40/.test(host.textContent) && editor.saved().length === 0, 'a bad name is refused with a reason');
+        setName('My compact'); button('Save current edits').click(); await t.settle();
+        t.eq(editor.saved().join(), 'My compact');
+        t.ok(window.localStorage.getItem(key).includes('My compact'), 'kept in localStorage');
+        editor.applyPreset('default'); t.eq(Object.keys(editor.overrides().shared).length, 0);
+        const row = () => host.querySelector('[data-saved]');
+        [...row().querySelectorAll('pk-button')].find(b => b.textContent.trim() === 'Apply').click(); await t.settle();
+        t.eq(editor.overrides().shared['--pad-page'], 'var(--space-4)', 'a saved theme applies');
+        setName('Renamed'); [...row().querySelectorAll('pk-button')].find(b => b.textContent.trim() === 'Rename').click(); await t.settle();
+        t.eq(editor.saved().join(), 'Renamed');
+        const again = await mountThemeEditor(t.stage(''), { target: preview, preview: false, savedKey: key });
+        t.eq(again.saved().join(), 'Renamed', 'a new editor reads them back'); again.destroy();
+        [...row().querySelectorAll('pk-button')].find(b => b.textContent.trim() === 'Delete').click(); await t.settle();
+        t.eq(editor.saved().length, 0); t.ok(!window.localStorage.getItem(key).includes('Renamed'), 'delete is stored');
+        window.localStorage.removeItem(key);
+        editor.destroy();
+    }],
+    ['theme editor module: blocked storage is logged and saved themes still work until the page closes', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const desc = Object.getOwnPropertyDescriptor(window, 'localStorage');
+        let editor;
+        try {
+            Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('blocked', 'SecurityError'); } });
+            editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: 'pk-test-blocked' });
+            await until(() => host.querySelector('.te-saved'), 'the presets tab'); await t.load(host); await t.settle();
+            const name = host.querySelector('pk-input[label="Theme name"]');
+            name.value = 'Session only'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+            [...host.querySelectorAll('pk-button')].find(b => b.textContent.trim() === 'Save current edits').click(); await t.settle();
+            t.eq(editor.saved().join(), 'Session only', 'it is kept in memory');
+            t.ok(/blocks storage/.test(host.querySelector('.te-saved').parentElement.textContent), 'and the panel says storage is blocked');
+        } finally {
+            if (desc) Object.defineProperty(window, 'localStorage', desc); else delete window.localStorage;
+            editor?.destroy();
+        }
+    }],
 ];

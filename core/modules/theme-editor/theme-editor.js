@@ -13,13 +13,17 @@
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true).
 // Palette tab: a brand colour (and optionally a neutral tint and a warn colour) generates the accent, fill, hover, link and the surface and text ramps of
 // both themes with every pair in AA_PAIRS at 4.5:1 or better (js/brand-palette-logic.js); the swatches show each pair with its ratio, and Apply writes them
-// as ordinary edits. Returns { export(), overrides(), setTheme(name), reset(), applyBrand(colour, { neutral, warn }), destroy() }.
+// as ordinary edits. Presets tab: the built-in presets (default, high contrast, compact and roomy density; js/theme-presets-logic.js) replace the edits, and the
+// user's saved themes (by name; apply, rename, delete) live in localStorage under the savedKey option ('pk-theme-editor-saved'; false keeps none), best effort:
+// a blocked storage is logged and the themes last until the page closes.
+// Returns { export(), overrides(), setTheme(name), reset(), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
 // The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
 import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
+import { PRESETS, presetById, presetOverrides, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -67,6 +71,7 @@ export async function mountThemeEditor(container, options = {}) {
     const targetDoc = isDoc ? target : target.ownerDocument;
     const pairs = options.pairs ?? DEFAULT_PAIRS;
     const { onchange, storageKey, height } = options;
+    const savedKey = options.savedKey === false ? null : options.savedKey ?? 'pk-theme-editor-saved';
     const showPreview = options.preview !== false;
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
 
@@ -75,7 +80,21 @@ export async function mountThemeEditor(container, options = {}) {
     if (!res.ok) throw new Error(`${tokensUrl}: ${res.status}`);
     const tokens = parseTokenBlocks(await res.text());
 
-    const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '', palette: null };
+    // Saved themes are a per-viewer convenience: read and written best effort. When storage is blocked they still work until the page closes.
+    let savedBlocked = false;
+    function readSavedThemes() {
+        if (!savedKey) return [];
+        try {
+            const raw = win.localStorage.getItem(savedKey);
+            return raw && raw.length <= MAX_STORED ? readSaved(raw) : [];
+        } catch (error) { savedBlocked = true; log.warn(`saved themes could not be read from "${savedKey}" (storage is blocked): starting with none`, error); return []; }
+    }
+    function writeSavedThemes(list) {
+        if (!savedKey) return;
+        try { win.localStorage.setItem(savedKey, serializeSaved(list)); savedBlocked = false; } catch (error) { savedBlocked = true; log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, error); }
+    }
+
+    const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '', palette: null, saved: readSavedThemes() };
     const themeHost = isDoc ? target.documentElement : target;
     const styleRoot = isDoc ? target.documentElement : target;
     if (options.theme) setThemeAttr(themeHost, options.theme);
@@ -134,6 +153,13 @@ export async function mountThemeEditor(container, options = {}) {
     const paletteNote = h(doc, 'div');
     const paletteRowsBox = h(doc, 'div', { class: 'te-pairs' });
     const paletteMsg = h(doc, 'div');
+    const presetSelect = h(doc, 'pk-select', { label: 'Built-in preset', value: PRESETS[0].id }, ...PRESETS.map(p => h(doc, 'option', { value: p.id }, p.name)));
+    const presetHint = h(doc, 'p', { class: 'muted' }, PRESETS[0].description);
+    const applyPreset = h(doc, 'pk-button', { variant: 'primary' }, 'Apply preset');
+    const nameInput = h(doc, 'pk-input', { label: 'Theme name', 'show-label': true, placeholder: 'e.g. Brand dark', maxlength: 40 });
+    const saveBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Save current edits');
+    const savedBox = h(doc, 'div', { class: 'te-saved' });
+    const presetMsg = h(doc, 'div');
 
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
@@ -141,6 +167,12 @@ export async function mountThemeEditor(container, options = {}) {
         h(doc, 'pk-tab-panel', { value: 'palette' },
             h(doc, 'p', { class: 'muted' }, 'Pick a brand colour: the accent, fill, hover and link colours and the text and surface ramps of both themes are generated so every text pair below is 4.5:1 or better. Apply writes them as ordinary edits you can still change.'),
             h(doc, 'div', { class: 'te-palette-inputs' }, brandInput, neutralInput, warnInput), h(doc, 'pk-cluster', { class: 'u-mt-3' }, applyBrand), paletteMsg, paletteNote, paletteRowsBox),
+        h(doc, 'pk-tab', { value: 'presets' }, 'Presets'),
+        h(doc, 'pk-tab-panel', { value: 'presets' },
+            h(doc, 'p', { class: 'muted' }, 'A preset replaces the current edits (Reset all returns to the stylesheet). Saved themes are kept in this browser only.'),
+            h(doc, 'div', { class: 'te-palette-inputs' }, presetSelect, h(doc, 'pk-cluster', {}, applyPreset)), presetHint,
+            h(doc, 'h4', { class: 'te-caption' }, 'Saved themes'),
+            h(doc, 'div', { class: 'te-palette-inputs' }, nameInput, h(doc, 'pk-cluster', {}, saveBtn)), presetMsg, savedBox),
         h(doc, 'pk-tab', { value: 'contrast' }, 'Contrast'), h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, pairTable),
         ...(showPreview ? [h(doc, 'pk-tab', { value: 'preview' }, 'Preview'), h(doc, 'pk-tab-panel', { value: 'preview' }, (ui.previewHost = h(doc, 'div', { class: 'te-preview-host' })))] : []),
         h(doc, 'pk-tab', { value: 'export' }, 'Export / import'),
@@ -245,6 +277,27 @@ export async function mountThemeEditor(container, options = {}) {
         paletteRowsBox.replaceChildren(...group('dark'), ...group('light'));
     }
 
+    function presetNote(kind, text) {
+        presetMsg.replaceChildren(h(doc, 'pk-alert', { kind: kind === 'error' ? 'danger' : kind }, text));
+    }
+
+    function paintSaved() {
+        const rows = state.saved.map(t => h(doc, 'div', { class: 'te-saved-row', 'data-saved': t.name },
+            h(doc, 'span', { class: 'te-saved-name' }, t.name), h(doc, 'span', { class: 'muted' }, `${overrideCount(t.overrides)} overrides`),
+            h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { size: 'mini', 'data-act': 'apply', label: `Apply ${t.name}` }, 'Apply'),
+                h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-act': 'rename', label: `Rename ${t.name} to the name above` }, 'Rename'),
+                h(doc, 'pk-button', { size: 'mini', variant: 'warn', 'data-act': 'delete', label: `Delete ${t.name}` }, 'Delete'))));
+        savedBox.replaceChildren(...(rows.length ? rows : [h(doc, 'p', { class: 'muted' }, 'No saved themes yet: type a name and save the current edits.')]));
+        if (savedBlocked) presetNote('warning', 'This browser blocks storage, so saved themes last only until this page closes.');
+    }
+
+    // Replaces the current edits (an ordinary edit set the user can still change) and repaints everything that shows them.
+    function replaceOverrides(next, message) {
+        state.overrides = { shared: next.shared, dark: next.dark, light: next.light };
+        apply(); paintList();
+        if (message) presetNote('success', message);
+    }
+
     function paintExport(css, rejected) {
         cssBox.value = css;
         jsonBox.value = JSON.stringify(state.overrides, null, 2);
@@ -322,6 +375,28 @@ export async function mountThemeEditor(container, options = {}) {
         apply(); paintList();
         paletteMsg.replaceChildren(h(doc, 'pk-alert', { kind: 'success' }, `Applied: ${overrideCount(state.overrides)} overrides in all. Edit any token in the Tokens tab.`));
     });
+    on(presetSelect, 'change', e => { presetHint.textContent = presetById(e.target.value)?.description ?? ''; });
+    on(applyPreset, 'click', () => api.applyPreset(presetSelect.value));
+    on(saveBtn, 'click', () => {
+        const r = saveTheme(state.saved, String(nameInput.value ?? ''), state.overrides);
+        if (r.error) { log.warn(`save refused: ${r.error}`); presetNote('error', r.error); return; }
+        state.saved = r.list; writeSavedThemes(state.saved); paintSaved();
+        if (!savedBlocked) presetNote('success', r.replaced ? 'Saved over the theme of that name.' : 'Saved.');
+    });
+    on(savedBox, 'click', e => {
+        const b = e.target.closest?.('pk-button');
+        const name = e.target.closest?.('[data-saved]')?.dataset.saved;
+        if (!b || !name) return;
+        const act = b.dataset.act;
+        if (act === 'apply') { const t = state.saved.find(s => s.name === name); if (t) replaceOverrides(t.overrides, `Applied ${name}.`); return; }
+        if (act === 'delete') { state.saved = deleteTheme(state.saved, name); writeSavedThemes(state.saved); paintSaved(); return; }
+        if (act === 'rename') {
+            const r = renameTheme(state.saved, name, String(nameInput.value ?? ''));
+            if (r.error) { log.warn(`rename refused: ${r.error}`); presetNote('error', r.error); return; }
+            state.saved = r.list; writeSavedThemes(state.saved); paintSaved();
+            if (!savedBlocked) presetNote('success', 'Renamed.');
+        }
+    });
     on(importBtn, 'click', () => importText(jsonBox.value));
     on(copyBtn, 'click', () => win.navigator.clipboard?.writeText(cssBox.value));
     on(downloadBtn, 'click', () => {
@@ -342,6 +417,18 @@ export async function mountThemeEditor(container, options = {}) {
         overrides: () => ({ shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }),
         setTheme(name) { setThemeAttr(isDoc ? target.documentElement : themeHost, name); apply(); paintList(); },
         reset() { state.overrides = emptyOverrides(); apply(); paintList(); },
+        // Built-in presets ({ id, name, description }) and the user's saved theme names.
+        presets: () => PRESETS.map(({ id, name, description }) => ({ id, name, description })),
+        saved: () => state.saved.map(t => t.name),
+        // Replaces the edits with a built-in preset ('default', 'high-contrast', 'compact', 'roomy') or a saved theme (by name). Returns false for an unknown one.
+        applyPreset(id) {
+            const built = presetOverrides(id);
+            const saved = built ? null : state.saved.find(t => t.name === id);
+            const next = built ?? (saved ? sanitizeOverrides(saved.overrides) : null);
+            if (!next) { log.warn(`applyPreset: no preset or saved theme called "${id}"`); return false; }
+            replaceOverrides(next, `Applied ${presetById(id)?.name ?? id}.`);
+            return true;
+        },
         // Generates a palette for a brand colour and applies it as edits. Returns the generated result ({ brand, moved, notes, overrides } or { error }).
         applyBrand(colour, options = {}) {
             const p = generatePalette(colour, options);
@@ -359,7 +446,7 @@ export async function mountThemeEditor(container, options = {}) {
             root.remove();
         },
     };
-    apply(); paintList(); paintPalette();
+    apply(); paintList(); paintPalette(); paintSaved();
     return api;
 }
 
