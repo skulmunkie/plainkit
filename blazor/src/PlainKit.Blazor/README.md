@@ -138,8 +138,9 @@ gets the whole detail; a selection that alternates row by row (thousands of sepa
   approaches the limit. Use it above a few hundred rows.
 - If you send a very large selection some other way, raise the limit for the hub in your app: `builder.Services.AddServerSideBlazor().AddHubOptions(o => o.MaximumReceiveMessageSize = 1024 * 1024);`
   (Blazor Web App: `AddInteractiveServerComponents(o => ...)` takes hub options), and prefer short row ids.
-- Every parent re-render of a `PkTable` serialises all of its rows again, even when `Items` did not change (5,000 rows: about 70 ms and 9 MB allocated); keep the
-  table's parent small, or pass a new list only when the data changed.
+- `PkTable` serialises its rows and columns when `Items` (the list reference or its count), `Columns` (compared by value) or `IdOf` change, not on every parent
+  re-render (5,000 rows: an unchanged parameter set took about 70 ms and 9 MB allocated, now about 0.5 ms and 13 KB). Changing an item *inside* the list you already passed is not
+  seen: pass a new list, or call `Refresh()` on the table (`@ref`). Pass the same `IdOf` delegate each time (a lambda that captures something new on every render is a change).
 
 ## Types for structured parameters
 

@@ -85,4 +85,94 @@ public sealed class PkTableScaleTests : TestContext
     {
         Assert.True(Table(Guids(3)).Find("pk-table").HasAttribute("data-pk-ranges"));
     }
+
+    // ---- #130: the rows are serialised when Items, Columns or IdOf changed, not on every parameter set ----
+
+    private static readonly Func<Row, string> IdOfRow = r => r.Id;
+
+    private void Same(IRenderedComponent<PkTable<Row>> cut, Row[] rows, IReadOnlyList<PkTableColumn<Row>>? columns = null, Func<Row, string>? idOf = null, bool striped = false) =>
+        cut.SetParametersAndRender(p => p.Add(x => x.Columns, columns ?? Columns).Add(x => x.Items, rows).Add(x => x.IdOf, idOf ?? IdOfRow).Add(x => x.Selectable, true).Add(x => x.Striped, striped));
+
+    [Fact]
+    public void Unchanged_parameters_do_not_serialise_again_and_the_attribute_is_the_same_string()
+    {
+        var rows = Guids(500);
+        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+        Assert.Equal(1, cut.Instance.RebuildCount);
+        var before = cut.Find("pk-table").GetAttribute("rows");
+
+        Same(cut, rows);
+        Same(cut, rows, striped: true);                                                  // another parameter
+        Same(cut, rows, columns: [new() { Key = "name", Label = "Name" }]);             // a new array holding equal columns
+        cut.Render();
+
+        Assert.Equal(1, cut.Instance.RebuildCount);
+        Assert.Equal(before, cut.Find("pk-table").GetAttribute("rows"));
+    }
+
+    [Fact]
+    public void An_unchanged_parameter_set_of_5000_rows_allocates_next_to_nothing()
+    {
+        var rows = Guids(5000);
+        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+        Same(cut, rows); // warm up
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        Same(cut, rows);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.True(allocated < 256 * 1024, $"{allocated / 1024} KB allocated for an unchanged parameter set (it was about 8.9 MB when every row was serialised again)");
+    }
+
+    [Fact]
+    public void Another_list_columns_or_IdOf_serialise_again()
+    {
+        var rows = Guids(20);
+        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+
+        var other = Guids(20);
+        Same(cut, other);
+        Assert.Equal(2, cut.Instance.RebuildCount);
+        Assert.Contains(other[3].Id, cut.Find("pk-table").GetAttribute("rows"));
+
+        Same(cut, other, columns: [new() { Key = "name", Label = "Full name" }]);
+        Assert.Equal(3, cut.Instance.RebuildCount);
+        Assert.Contains("Full name", cut.Find("pk-table").GetAttribute("columns"));
+
+        Same(cut, other, columns: [new() { Key = "name", Label = "Full name" }], idOf: r => "x" + r.Id);
+        Assert.Equal(4, cut.Instance.RebuildCount);
+        Assert.Contains("x" + other[3].Id, cut.Find("pk-table").GetAttribute("rows"));
+    }
+
+    [Fact]
+    public void A_list_that_grew_is_seen_and_a_changed_item_inside_it_needs_Refresh()
+    {
+        var list = new List<Row>(Guids(3));
+        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+
+        list.Add(new Row("added", "Added"));
+        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+        Assert.Contains("\"added\"", cut.Find("pk-table").GetAttribute("rows"));
+
+        list[0] = new Row(list[0].Id, "Renamed");           // same list, same count: not noticed by a parameter set
+        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+        Assert.DoesNotContain("Renamed", cut.Find("pk-table").GetAttribute("rows"));
+
+        cut.InvokeAsync(() => cut.Instance.Refresh());
+        Assert.Contains("Renamed", cut.Find("pk-table").GetAttribute("rows"));
+    }
+
+    [Fact]
+    public async Task A_data_list_that_re_renders_leaves_the_rows_of_its_table_alone()
+    {
+        var rows = Guids(50);
+        var columns = new PkTableColumn<Row>[] { new() { Key = "name", Label = "Name" } };
+        var cut = RenderComponent<PkDataList<Row>>(p => p
+            .Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "a"));
+        var table = cut.FindComponent<PkTable<Row>>();
+        var built = table.Instance.RebuildCount;
+
+        cut.SetParametersAndRender(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "b"));
+        await cut.InvokeAsync(() => { });
+
+        Assert.Equal(built, table.Instance.RebuildCount);
+    }
 }

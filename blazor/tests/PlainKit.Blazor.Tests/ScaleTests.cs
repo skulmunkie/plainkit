@@ -32,6 +32,9 @@ public sealed class ScaleTests : TestContext
         new() { Key = "qty", Label = "Qty", Type = PkTableColumnType.Number },
     ];
 
+    // One delegate, as a page that renders the same lambda again would pass: a parameter set with the same IdOf, Columns and Items serialises nothing (#130).
+    private static readonly Func<Row, string> IdOfRow = r => r.Id.ToString();
+
     public ScaleTests(ITestOutputHelper output)
     {
         _out = output;
@@ -42,7 +45,7 @@ public sealed class ScaleTests : TestContext
     private static Row[] Rows(int n) => Enumerable.Range(1, n).Select(i => new Row(i, "Person " + i, "City " + i % 5, i % 3 == 0 ? "Active" : "Draft", i * 7 % 1000)).ToArray();
 
     private IRenderedComponent<PkTable<Row>> Table(Row[] rows) => RenderComponent<PkTable<Row>>(p => p
-        .Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, r => r.Id.ToString()).Add(x => x.Selectable, true));
+        .Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true));
 
     // ---- guard: interop chatter. However many components a page holds, the toolkit is imported and initialised once. ----
 
@@ -68,7 +71,7 @@ public sealed class ScaleTests : TestContext
         var cut = Table(rows);
         var before = cut.Find("pk-table").GetAttribute("rows");
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, r => r.Id.ToString()).Add(x => x.Selectable, true));
+        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true));
 
         Assert.Equal(before, cut.Find("pk-table").GetAttribute("rows"));
     }
@@ -86,7 +89,7 @@ public sealed class ScaleTests : TestContext
             GC.Collect();
             var (renderMs, renderKb, cut) = Measure(() => Table(rows));
             var attr = cut.Find("pk-table").GetAttribute("rows")!.Length;
-            var (changeMs, changeKb, _) = Measure(() => { cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, r => r.Id.ToString()).Add(x => x.Selectable, true)); return cut; });
+            var (changeMs, changeKb, _) = Measure(() => { cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true)); return cut; });
             sb.AppendLine($"  {n,5} rows | {attr / 1024.0,8:0.0} KB | {renderMs,7:0.0} ms / {renderKb,8:0} KB | {changeMs,7:0.0} ms / {changeKb,8:0} KB");
             cut.Dispose();
         }
