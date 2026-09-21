@@ -3,18 +3,22 @@
 // DevTools protocol (the WebSocket built into Node 22+), then stops the server and the browser and deletes the temporary profile.
 //
 //   node scripts/scorecard-sweep.mjs [--only sweep,quality,pages] [--port 5342] [--out <dir>] [--timeout 3600] [--concurrency 8] [--write-report]
+//   sweep stage only: [--tabs 4] [--frames 3] [--kinds views,templates,samples] [--filter pk-tabs,gallery #/overview] [--widths 320,375] [--themes dark] [--fresh-frames]
 //
 // Stages (all three by default):
 //   sweep    every gallery view, template and element example at 320, 375, 640, 1024, 1280 and 1920 px in both themes (core/site/scorecard/sweep.js):
-//            overflow, controls under 44 px on a phone, nested scrollers, text under the size tiers, h1 count.
+//            overflow, controls under 44 px on a phone, nested scrollers, text under the size tiers, h1 count. Each item is loaded once and then resized and
+//            re-themed (--fresh-frames loads a frame per cell, the slow cross-check), several browser tabs (--tabs, separate render processes) each run a share, and a
+//            frame counts as settled when its elements are defined, its styles applied and its layout has stopped changing (no fixed sleeps). The narrowing options
+//            (--kinds, --filter, --widths, --themes) are for a change under test; --write-report needs the full sweep.
 //   quality  the scorecard run itself (core/modules/scorecard, the host page's own options): every element example through the SDK quality checks
 //            (accessibility, layout, spacing, touch targets, focus, contrast) at every scoring width and theme, plus the measured performance and scale metrics.
 //   pages    every gallery route in a real tab at a phone and a desktop width: the SDK quality checks on the live page, paint, layout shift and long
 //            tasks (the performance monitor's measures, limits from js/perf-logic.js), layout and style-recalculation counts, and what the dev console
 //            would show (console errors, uncaught exceptions, failed requests).
 // Output: <out>/sweep.json, quality.json, pages.json and summary.md (default <repo>/scratch/scorecard/, which git ignores) and the summary on the screen.
-// Tracked report: core/site/scorecard/sweep-report.json is committed and only holds failures, so it is rewritten only with --write-report (and only from a
-// full sweep); its shape is what the scorecard page reads, and a run with the same counts and no failures leaves it byte-identical.
+// Report for the scorecard page: core/site/scorecard/sweep-report.json is NOT tracked (git ignores it: it goes stale with every gallery edit) and is written only
+// with --write-report, from a full sweep: the counts per metric and the worst item/metric groups, a few KB (the full failing cells stay in <out>/sweep.json).
 // Browser: PK_CHROME (a path to chrome, chromium or msedge), else the usual install paths and PATH names. PK_CHROME_FLAGS adds flags (a CI container may need --no-sandbox).
 // Exit code: 0 when nothing failed, 1 when the analysis found failures, 2 when the run itself could not finish (no browser, port in use, timeout).
 import { spawn, spawnSync } from 'node:child_process';
@@ -26,8 +30,11 @@ import { ensureGenerated } from './generated.mjs';
 import { findChrome, chromeArgs } from './attest-browser.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const DEFAULT_WIDTHS = [320, 375, 640, 1024, 1280, 1920];
+const DEFAULT_THEMES = ['dark', 'light'];
 const sweepReportFile = path.join(root, 'core', 'site', 'scorecard', 'sweep-report.json');
 export const STAGES = ['sweep', 'quality', 'pages'];
+export const SWEEP_KINDS = ['views', 'templates', 'samples'];
 export const PAGE_WIDTHS = [375, 1280];
 // Core Web Vitals "good" limits (js/perf-logic.js THRESHOLDS): a page above them is listed.
 export const PAGE_LIMITS = { lcp: 2500, fcp: 1800, cls: 0.1, longTaskMs: 200 };
@@ -35,17 +42,24 @@ export const PAGE_LIMITS = { lcp: 2500, fcp: 1800, cls: 0.1, longTaskMs: 200 };
 // ---- pure helpers (tested in scripts/tests/scorecard-sweep.test.mjs) -----------------------------------------------------
 
 export function parseArgs(argv) {
-    const o = { only: [...STAGES], port: 5342, timeout: 3600, out: path.join(root, 'scratch', 'scorecard'), writeReport: false };
+    const o = { only: [...STAGES], port: 5342, timeout: 3600, out: path.join(root, 'scratch', 'scorecard'), writeReport: false, tabs: 4, frames: 3, kinds: null, filter: null, widths: null, themes: null, fresh: false };
+    const list = (flag, v, allowed) => { const l = String(v ?? '').split(',').map(x => x.trim()).filter(Boolean); if (!l.length || (allowed && l.some(x => !allowed.includes(x)))) throw new Error(`${flag} takes a comma list${allowed ? ' of ' + allowed.join(', ') : ''}`); return l; };
     const num = (flag, v) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`${flag} needs a positive whole number`); return n; };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (a === '--write-report') o.writeReport = true;
         else if (a === '--only') { o.only = String(argv[++i] ?? '').split(',').filter(Boolean); if (!o.only.length || o.only.some(s => !STAGES.includes(s))) throw new Error(`--only takes a comma list of ${STAGES.join(', ')}`); }
         else if (a === '--out') { if (!argv[i + 1]) throw new Error('--out needs a folder'); o.out = path.resolve(argv[++i]); }
-        else if (a === '--port' || a === '--timeout' || a === '--concurrency') o[a.slice(2)] = num(a, argv[++i]);
+        else if (a === '--fresh-frames') o.fresh = true;
+        else if (a === '--kinds') o.kinds = list(a, argv[++i], SWEEP_KINDS);
+        else if (a === '--filter') o.filter = list(a, argv[++i]);
+        else if (a === '--widths') o.widths = list(a, argv[++i]).map(x => num(a, x));
+        else if (a === '--themes') o.themes = list(a, argv[++i], ['dark', 'light']);
+        else if (a === '--port' || a === '--timeout' || a === '--concurrency' || a === '--tabs' || a === '--frames') o[a.slice(2)] = num(a, argv[++i]);
         else throw new Error(`unknown argument ${a}`);
     }
     if (o.writeReport && !o.only.includes('sweep')) throw new Error('--write-report needs the sweep stage');
+    if (o.writeReport && (o.kinds || o.filter || o.widths || o.themes)) throw new Error('--write-report needs the full sweep (no --kinds, --filter, --widths or --themes)');
     return o;
 }
 
@@ -104,15 +118,24 @@ export function pageProblems(pages, limits = PAGE_LIMITS) {
     return out;
 }
 
-// The tracked sweep report from a full sweep: the shape the scorecard page reads, keeping the notes already in the file.
-export function mergeSweepReport(existing, run) {
-    const failing = new Set(run.failures.map(f => `${f.item}||${f.width}||${f.theme}`)).size;
-    const prev = existing?.summary ?? {};
-    return {
-        partial: false, checked: run.checked, failures: run.failures, widths: run.widths, themes: run.themes,
-        ...(existing?.remeasured ? { remeasured: existing.remeasured } : {}),
-        summary: { checked: run.checked, failing, ...(prev.wasFailing !== undefined ? { wasFailing: prev.wasFailing } : {}), widths: run.widths, themes: run.themes, exceptions: prev.exceptions ?? 'see TARGET_EXCEPTIONS and TEXT_TIERS in scorecard/scoring.data.js' },
-    };
+// Failing cells per metric ({ readingSmall: 1557, ... }, worst first): a cell that fails two metrics counts in both.
+export function countByMetric(failures) {
+    const by = {};
+    for (const f of failures ?? []) for (const { metric } of failingMetrics(f)) by[metric] = (by[metric] ?? 0) + 1;
+    return Object.fromEntries(Object.entries(by).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])));
+}
+
+// The sweeps of several tabs as one run: cells added, failures in item, theme, width order (a fixed order, whatever finished first).
+export function mergeShards(shards, { widths, themes }) {
+    const failures = shards.flatMap(x => x.failures).sort((p, q) => p.item.localeCompare(q.item) || themes.indexOf(p.theme) - themes.indexOf(q.theme) || widths.indexOf(p.width) - widths.indexOf(q.width));
+    return { checked: shards.reduce((n, x) => n + x.checked, 0), failures, widths, themes };
+}
+
+// What the scorecard page reads (core/site/scorecard/sweep-report.json, from a full sweep with --write-report): the totals, the failing cells per metric and
+// the `limit` worst item/metric groups. Small on purpose (a full run has thousands of failing cells; they are in <out>/sweep.json), and not tracked.
+export function sweepReport(run, { limit = 40, at = new Date().toISOString() } = {}) {
+    const groups = groupSweep(run.failures);
+    return { partial: false, at, checked: run.checked, failing: new Set(run.failures.map(f => `${f.item}||${f.width}||${f.theme}`)).size, by: countByMetric(run.failures), widths: run.widths, themes: run.themes, groupCount: groups.length, groups: groups.slice(0, limit) };
 }
 
 const pad = (s, n) => String(s).padEnd(n);
@@ -122,6 +145,7 @@ export function formatSummary({ sweep, quality, pages }) {
     if (sweep) {
         const g = groupSweep(sweep.failures);
         L.push(`SWEEP: ${sweep.checked} cells checked (${sweep.widths.join(', ')} px, ${sweep.themes.join(' and ')}), ${sweep.failures.length} failing, ${g.length} item/metric groups`);
+        L.push(`  failing cells by metric: ${Object.entries(countByMetric(sweep.failures)).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`);
         for (const x of g.slice(0, 40)) L.push(`  ${pad(x.metric, 15)} ${pad(x.cells + ' cells', 10)} worst ${pad(x.worst, 6)} ${x.item}  [${x.widths.join('/')}px ${x.themes.join('+')}]`);
         if (g.length > 40) L.push(`  ... ${g.length - 40} more groups in sweep.json`);
     }
@@ -185,8 +209,9 @@ export class Cdp {
 // ---- what runs inside the page (each is one async expression; the SDK's own modules are imported from the served origin) ----
 
 const IN_PAGE = {
-    sweep: `(async () => { const m = await import(location.origin + '/site/scorecard/sweep.js'); window.__pk = { done: 0, total: 0 };
-        const r = await m.sweep({ progress: (d, n) => { window.__pk = { done: d, total: n }; } }); return { checked: r.checked, failures: r.failures, widths: m.WIDTHS, themes: m.THEMES }; })()`,
+    // One tab's share of the sweep (options and shard are JSON); progress is read from window.__pk while it runs.
+    sweep: options => `(async () => { const m = await import(location.origin + '/site/scorecard/sweep.js'); window.__pk = { done: 0, total: 0 };
+        const r = await m.sweep({ ...${JSON.stringify(options)}, progress: (d, n) => { window.__pk = { done: d, total: n }; } }); return { checked: r.checked, failures: r.failures }; })()`,
     // The scorecard page's own host module exports the mounted card; a second import of the same URL returns the instance the page's script tag made.
     quality: `(async () => { const { ready } = await import(location.origin + '/site/scorecard/scorecard.js'); const card = await ready; if (!card) throw new Error('the scorecard did not mount');
         await new Promise(r => setTimeout(r, 1500));
@@ -238,6 +263,35 @@ async function longEval(cdp, expression, label, progressOf, deadline) {
     }
     if (error) throw error;
     return value;
+}
+
+// The sweep, sharded over `options.tabs` browser tabs: each is its own render process, so the frames of one tab no longer queue behind one main thread.
+// Every tab opens a page of the served origin (any document will do: the sweep only needs somewhere to put its frames) and runs every tabs-th item.
+async function sweepStage(cdp, options, deadline) {
+    const widths = options.widths ?? DEFAULT_WIDTHS; const themes = options.themes ?? DEFAULT_THEMES;
+    const tabs = [cdp];
+    for (let i = 1; i < options.tabs; i++) {
+        const t = await fetch(`http://127.0.0.1:${options.port + 1000}/json/new?about:blank`, { method: 'PUT' }).then(r => r.json());
+        tabs.push(await new Cdp(t.webSocketDebuggerUrl).open());
+    }
+    try {
+        for (const t of tabs) { await t.send('Page.enable'); await t.send('Page.navigate', { url: `http://localhost:${options.port}/site/scorecard/sweep.js` }); }
+        await sleep(1000);
+        for (const t of tabs) { await t.send('Page.bringToFront').catch(() => null); await t.send('Emulation.setFocusEmulationEnabled', { enabled: true }).catch(() => null); }
+        const share = { kinds: options.kinds ?? SWEEP_KINDS, filter: options.filter, widths, themes, size: options.frames, fresh: options.fresh };
+        let finished = 0; let shown = '';
+        const runs = tabs.map((t, index) => t.eval(IN_PAGE.sweep({ ...share, shard: { index, count: tabs.length } })).finally(() => { finished++; }));
+        const all = Promise.all(runs);
+        while (finished < tabs.length) {
+            await Promise.race([all.catch(() => null), sleep(15000)]);
+            if (finished === tabs.length) break;
+            if (Date.now() > deadline) throw new Error('sweep did not finish before the timeout');
+            const ps = await Promise.all(tabs.map(t => t.eval('window.__pk').catch(() => null)));
+            const text = `${ps.reduce((n, p) => n + (p?.done ?? 0), 0)}/${ps.reduce((n, p) => n + (p?.total ?? 0), 0)} items (${tabs.length} tabs)`;
+            if (text !== shown) { log(`sweep: ${text}`); shown = text; }
+        }
+        return mergeShards(await all, { widths, themes });
+    } finally { for (const t of tabs.slice(1)) t.close(); }
 }
 
 async function pagesStage(cdp, port, widths, deadline) {
@@ -326,7 +380,7 @@ async function main() {
         const open = async () => { await cdp.send('Page.enable'); await cdp.send('Page.navigate', { url: start }); await sleep(2500); };
         if (options.only.includes('sweep')) {
             const s = Date.now(); await open();
-            result.sweep = await longEval(cdp, IN_PAGE.sweep, 'sweep', p => (p?.total ? `${p.done}/${p.total} cells` : ''), deadline);
+            result.sweep = await sweepStage(cdp, options, deadline);
             timings.sweep = Date.now() - s;
         }
         if (options.only.includes('quality')) {
@@ -347,9 +401,7 @@ async function main() {
         console.log('\n' + summary + '\n');
         console.log(`timings: ${Object.entries(timings).map(([k, v]) => `${k} ${(v / 1000).toFixed(0)} s`).join(', ')}; total ${((Date.now() - t0) / 1000).toFixed(0)} s; files in ${options.out}`);
         if (options.writeReport && result.sweep) {
-            let existing = null;
-            try { existing = JSON.parse(fs.readFileSync(sweepReportFile, 'utf8')); } catch { existing = null; } // missing or unreadable: written fresh
-            fs.writeFileSync(sweepReportFile, JSON.stringify(mergeSweepReport(existing, result.sweep), null, 1));
+            fs.writeFileSync(sweepReportFile, JSON.stringify(sweepReport(result.sweep), null, 1) + '\n');
             console.log(`wrote ${path.relative(root, sweepReportFile)}`);
         }
         const failing = verdict(result);

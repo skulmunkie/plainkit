@@ -1,7 +1,7 @@
-// The pure helpers of scripts/scorecard-sweep.mjs: argument parsing, grouping and de-duplicating findings, the page problems, the tracked-report merge, the summary and the verdict.
+// The pure helpers of scripts/scorecard-sweep.mjs: argument parsing, grouping and de-duplicating findings, the page problems, the sweep report, the shard merge, the summary and the verdict.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseArgs, failingMetrics, groupSweep, belowScore, dedupeFindings, pageProblems, mergeSweepReport, formatSummary, verdict, STAGES } from '../scorecard-sweep.mjs';
+import { parseArgs, failingMetrics, groupSweep, belowScore, dedupeFindings, pageProblems, countByMetric, mergeShards, sweepReport, formatSummary, verdict, STAGES } from '../scorecard-sweep.mjs';
 
 test('arguments: every stage by default, a stage list, numbers checked, unknown flags refused', () => {
     assert.deepEqual(parseArgs([]).only, STAGES);
@@ -13,6 +13,18 @@ test('arguments: every stage by default, a stage list, numbers checked, unknown 
     assert.throws(() => parseArgs(['--out']), /needs a folder/);
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
     assert.throws(() => parseArgs(['--only', 'quality', '--write-report']), /needs the sweep stage/);
+});
+
+test('arguments: the sweep narrowing and speed options, and a report only from the full sweep', () => {
+    const d = parseArgs([]);
+    assert.deepEqual([d.tabs, d.frames, d.kinds, d.filter, d.widths, d.themes, d.fresh], [4, 3, null, null, null, null, false]);
+    const o = parseArgs(['--tabs', '2', '--frames', '5', '--kinds', 'samples,views', '--filter', 'pk-tabs,gallery #/overview', '--widths', '320,375', '--themes', 'dark', '--fresh-frames']);
+    assert.deepEqual([o.tabs, o.frames, o.kinds, o.filter, o.widths, o.themes, o.fresh], [2, 5, ['samples', 'views'], ['pk-tabs', 'gallery #/overview'], [320, 375], ['dark'], true]);
+    assert.throws(() => parseArgs(['--kinds', 'pages']), /comma list of views, templates, samples/);
+    assert.throws(() => parseArgs(['--widths', '320,x']), /positive whole number/);
+    assert.throws(() => parseArgs(['--tabs', '0']), /positive whole number/);
+    assert.throws(() => parseArgs(['--write-report', '--filter', 'pk-tabs']), /full sweep/);
+    assert.equal(parseArgs(['--write-report']).writeReport, true);
 });
 
 test('a sweep result fails per metric; a clean cell and an h1 of one fail nothing', () => {
@@ -58,13 +70,25 @@ test('page problems: a limit missed, a console error, a thrown error, a failed r
     assert.ok(p[0].why[0].startsWith('LCP 3100 ms'));
 });
 
-test('the tracked sweep report keeps its notes, refreshes the counts and stays byte-identical for the same clean run', () => {
-    const existing = { partial: false, checked: 10, failures: [], widths: [320], themes: ['dark'], remeasured: [{ item: 'x' }], summary: { checked: 10, failing: 0, wasFailing: 12, widths: [320], themes: ['dark'], exceptions: 'see file' } };
-    const run = { checked: 10, failures: [], widths: [320], themes: ['dark'] };
-    assert.equal(JSON.stringify(mergeSweepReport(existing, run)), JSON.stringify(existing));
-    const failing = mergeSweepReport(existing, { checked: 12, failures: [{ item: 'a', width: 320, theme: 'dark', overflow: 1 }, { item: 'a', width: 320, theme: 'dark', smallTargets: 1 }], widths: [320], themes: ['dark'] });
-    assert.deepEqual([failing.checked, failing.summary.failing, failing.summary.wasFailing, failing.remeasured.length], [12, 1, 12, 1]);
-    assert.equal(mergeSweepReport(null, run).summary.exceptions.startsWith('see TARGET_EXCEPTIONS'), true);
+test('the sweep report is small: totals, cells per metric and the worst groups, the same for the same run', () => {
+    const cell = (item, width, extra) => ({ item, width, theme: 'dark', ...extra });
+    const failures = [cell('a', 320, { readingSmall: 3 }), cell('a', 375, { readingSmall: 5, overflow: 2 }), cell('b', 320, { smallTargets: 1 }), cell('c', 320, { error: 'x' })];
+    assert.deepEqual(countByMetric(failures), { readingSmall: 2, error: 1, overflow: 1, smallTargets: 1 });
+    const run = { checked: 100, failures, widths: [320, 375], themes: ['dark'] };
+    const r = sweepReport(run, { limit: 2, at: 'T' });
+    assert.deepEqual([r.partial, r.at, r.checked, r.failing, r.groupCount, r.groups.length], [false, 'T', 100, 4, 4, 2]);
+    assert.deepEqual(r.by, { readingSmall: 2, error: 1, overflow: 1, smallTargets: 1 });
+    assert.deepEqual(r.groups[0], { item: 'a', metric: 'readingSmall', cells: 2, worst: 5, widths: [320, 375], themes: ['dark'] });
+    assert.equal(JSON.stringify(sweepReport(run, { limit: 2, at: 'T' })), JSON.stringify(r));
+    assert.equal(sweepReport({ checked: 1, failures: [], widths: [320], themes: ['dark'] }).failing, 0);
+    const many = Array.from({ length: 3000 }, (_, i) => cell('item ' + (i % 300), 320 + i, { readingSmall: 1 }));
+    assert.ok(JSON.stringify(sweepReport({ checked: 3648, failures: many, widths: [320], themes: ['dark'] })).length < 20000, 'thousands of failing cells still make a report of a few KB');
+});
+
+test('the shards of several tabs merge into one run in a fixed order', () => {
+    const m = mergeShards([{ checked: 4, failures: [{ item: 'b', theme: 'dark', width: 320 }] }, { checked: 4, failures: [{ item: 'a', theme: 'light', width: 320 }, { item: 'a', theme: 'dark', width: 375 }] }], { widths: [320, 375], themes: ['dark', 'light'] });
+    assert.equal(m.checked, 8);
+    assert.deepEqual(m.failures.map(f => `${f.item} ${f.theme} ${f.width}`), ['a dark 375', 'a light 320', 'b dark 320']);
 });
 
 test('the summary reads worst first and the verdict fails on sweep failures, quality errors and page problems only', () => {
