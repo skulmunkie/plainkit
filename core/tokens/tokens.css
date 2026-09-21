@@ -232,12 +232,8 @@
     --shell-nav-w-collapsed: 3.5rem;
     --app-footer-h: 2.9rem;
     --page-crumbs-fg: #8b949e;
-    --stat-card-critical-fg: #f87171;
-    --stat-card-warning-fg: #fbbf24;
-    --stat-card-positive-fg: #4ade80;
     --maint-section-header-hover-bg: rgba(255,255,255,0.08);
     --maint-section-header-bg: rgba(255,255,255,0.04);
-    --infotip-panel-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
     --dg-filter-popup-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     --dg-card-label-fg: #8a8a8a;
     --dg-sortable-hover-fg: #fff;
@@ -261,7 +257,7 @@
     --z-toast: 1800;
     --z-tip: 1900;
     --z-skip: 2000;
-    --shadow-pop: var(--infotip-panel-shadow);
+    --shadow-pop: 0 4px 16px rgba(0, 0, 0, 0.45);
     --toast-w: min(24rem, 100%);
     --pop-w: min(20rem, calc(100vw - 2 * var(--space-4)));
 }
@@ -315,5 +311,10 @@
 /* Form control tokens: control height, field-state colours per theme (each passes 4.5:1 on its theme's input surface), rating star, native control colour scheme. */
 :root { --ctl-h: 2.5rem; }
 :root,
+<<<<<<< HEAD
 [data-theme="dark"] { color-scheme: dark; --field-error: var(--color-notice-error); --field-warn: var(--stat-card-warning-fg); --field-ok: var(--stat-card-positive-fg); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
 [data-theme="light"] { color-scheme: light; --field-error: #b91c1c; --color-notice-error: var(--field-error); --field-warn: #92400e; --field-ok: #15803d; --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
+=======
+[data-theme="dark"] { color-scheme: dark; --color-critical: #f87171; --color-warning: #fbbf24; --color-positive: #4ade80; --field-error: var(--color-notice-error); --field-warn: var(--color-warning); --field-ok: var(--color-positive); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
+[data-theme="light"] { color-scheme: light; --color-critical: #b91c1c; --color-warning: #92400e; --color-positive: #15803d; --field-error: var(--color-critical); --color-notice-error: var(--field-error); --field-warn: var(--color-warning); --field-ok: var(--color-positive); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }}
+>>>>>>> fd9ecc3 (Rename the old-app tokens: --shadow-pop, --color-critical/-warning/-positive)
