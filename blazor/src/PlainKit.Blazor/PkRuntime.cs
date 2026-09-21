@@ -53,7 +53,10 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
             if (_forwarder is not null) await bridge.InvokeVoidAsync("stopLogForwarding");
             await bridge.DisposeAsync();
         }
-        catch (JSDisconnectedException) { /* the circuit is gone; nothing to release */ }
+        catch (Exception e) when (e is JSDisconnectedException or InvalidOperationException or ObjectDisposedException or OperationCanceledException)
+        {
+            // the circuit is gone, or this scope was a prerender (no JavaScript ever): nothing to release
+        }
         finally
         {
             _forwarder?.Dispose();

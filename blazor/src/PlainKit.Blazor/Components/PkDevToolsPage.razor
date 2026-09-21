@@ -43,6 +43,11 @@ else
             <PkCodeExplorer Snapshot="_snapshot" Height="42rem" />
         }
     }
+    else if (Current == "logs")
+    {
+        <PkLogs Height="26rem" />
+        <PkLogSettings Height="30rem" />
+    }
     else if (Current == "scorecard")
     {
         <PkScorecard Targets="Targets" HistoryKey="plainkit-devtools-scorecard" Height="42rem" />
@@ -52,13 +57,13 @@ else
 @code {
     private static readonly (string Key, string Label)[] Tabs =
     [
-        ("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard"), ("performance", "Performance"), ("console", "Console"),
+        ("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard"), ("performance", "Performance"), ("console", "Console"), ("logs", "Logs"),
     ];
 
     private PkSnapshot? _snapshot;
     private string? _loadedFor;
 
-    /// <summary>The tab shown: gallery, files, scorecard, performance or console.</summary>
+    /// <summary>The tab shown: gallery, files, scorecard, performance, console or logs.</summary>
     [Parameter] public string? Tab { get; set; }
 
     private string Current => Tabs.Any(t => t.Key == Tab) ? Tab! : "gallery";

@@ -1,0 +1,65 @@
+@page "/generated"
+@inject IPkLog PkLog
+
+@* A small page that exercises the generated components in a real browser: two-way binds, a dialog driven from C#, a click, a pk-* event
+   with a detail, an enum parameter and IPkLog writes. Each thing shows its state in an element with an id so a script can check it. *@
+<div style="padding:1rem;display:grid;gap:1rem;max-width:44rem">
+    <h1>Generated components</h1>
+
+    <PkInput @bind-Value="_text" Placeholder="Type here" AriaLabel="Text" />
+    <p>Input value in C#: <code id="out-text">@_text</code></p>
+    <PkButton OnClick="@(() => _text = "set from C#")">Set input from C#</PkButton>
+
+    <PkCheckbox @bind-Checked="_checked">Check me</PkCheckbox>
+    <p>Checkbox in C#: <code id="out-checked">@_checked</code></p>
+    <PkButton OnClick="@(() => _checked = !_checked)">Toggle checkbox from C#</PkButton>
+
+    <div>
+        <PkButton Variant="ButtonVariant.Primary" OnClick="OnClick">Primary click</PkButton>
+        <PkButton Variant="ButtonVariant.Warn" OnClick="OnClick">Warn click</PkButton>
+    </div>
+    <PkButton Variant="_variant" Size="ButtonSize.Lg" OnClick="CycleVariant">Cycle variant (<span id="out-variant">@_variant</span>)</PkButton>
+    <p>Clicks: <code id="out-clicks">@_clicks</code></p>
+
+    <PkInput Type="search" Placeholder="Search" AriaLabel="Search" OnSearch="OnSearch" />
+    <p>Last search: <code id="out-search">@_search</code></p>
+
+    <PkButton OnClick="@(() => _open = true)">Open dialog</PkButton>
+    <PkDialog @bind-IsOpen="_open" Title="A dialog" OnClose="OnClose">
+        <ChildContent><p>Dialog body</p></ChildContent>
+        <FooterContent><PkButton OnClick="@(() => _open = false)">Close from C#</PkButton></FooterContent>
+    </PkDialog>
+    <p>Dialog open in C#: <code id="out-open">@_open</code> (close events: <code id="out-closes">@_closes</code>)</p>
+
+    <PkButton OnClick="WriteLogs">Write logs with IPkLog</PkButton>
+    <pk-nope></pk-nope>
+
+    <PkLogs Height="20rem" />
+    <PkLogSettings Height="26rem" />
+</div>
+
+@code {
+    private string? _text = "start";
+    private bool _checked;
+    private bool _open;
+    private int _clicks;
+    private int _closes;
+    private string _search = "";
+
+    // Runs once while prerendering (where JavaScript is not available: the call is dropped without throwing) and once on the circuit (where it is written).
+    protected override async Task OnInitializedAsync() =>
+        await PkLog.WriteAsync(PkLogLevel.Info, "playground", "page initialised");
+
+    private ButtonVariant _variant = ButtonVariant.Warn;
+    private void CycleVariant() => _variant = _variant == ButtonVariant.Warn ? ButtonVariant.Primary : ButtonVariant.Warn;
+
+    private void OnClick() => _clicks++;
+    private void OnSearch(PkSearchEventArgs e) => _search = e.Value ?? "(null)";
+    private void OnClose() => _closes++;
+
+    private async Task WriteLogs()
+    {
+        await PkLog.WriteAsync(PkLogLevel.Warn, "playground", "warn from IPkLog", "detail-1");
+        await PkLog.WriteAsync(PkLogLevel.Error, "playground", "error from IPkLog");
+    }
+}
