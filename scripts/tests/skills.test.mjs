@@ -242,7 +242,7 @@ test('SKILL.md frontmatter is valid: name = folder, a description that says when
         assert.ok(fm.description.length >= 200 && fm.description.length <= 1024, `${s}: description is ${fm.description.length} characters`);
         assert.match(fm.description, /\bUse (it )?when\b/, `${s}: the description must say when to trigger`);
         assert.ok(!/[<>]/.test(fm.description), 'no markup in a description');
-        assert.ok(text.split('\n').length <= 260, `${s}/SKILL.md is ${text.split('\n').length} lines: keep it short and put detail in references/`);
+        assert.ok(text.split('\n').length <= 250, `${s}/SKILL.md is ${text.split('\n').length} lines: keep it short and put detail in references/`);
         assert.doesNotMatch(text, /\{\{/, 'an unfilled placeholder');
     }
 });
