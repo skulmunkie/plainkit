@@ -1,7 +1,8 @@
 # Contributing
 
 Work on Plainkit is tracked in GitHub Issues and closed through pull requests. Nothing is "done" until the issue that describes it is
-closed by a merged pull request.
+closed by a merged pull request. Development is trunk-based: `main` is always releasable, and work reaches it in small pull requests.
+Agents follow [AGENTS.md](AGENTS.md), which has the same flow as commands and rules.
 
 ## The flow
 
@@ -9,12 +10,14 @@ closed by a merged pull request.
    Big efforts get a `tracking` issue whose checklist links the smaller issues (`- [ ] #16`), so progress shows as they close.
 2. **Labels.** `core` (the vanilla toolkit), `blazor` (PlainKit.Blazor and the bridge), `release`, `documentation`, `accessibility`, `bug`,
    `enhancement`, and `tracking` for umbrella issues.
-3. **Work on a branch and open a pull request.** Reference the issue in the description with a closing keyword when the pull request
-   finishes it (`Closes #12`) and with `Refs #1` when it only advances it. Commits can carry `Refs #n` too.
+3. **One issue, one short-lived branch, one small pull request.** Branch from the latest `main` (agents name it `agent/<issue>-<slug>`), aim for
+   about 400 lines of hand-written source (generated files do not count), and split bigger issues into steps that each leave `main` releasable.
+   Reference the issue in the description with a closing keyword when the pull request finishes it (`Closes #12`, one per line: GitHub closes only
+   the first issue of a list) and with `Refs #1` when it only advances it. Commits can carry `Refs #n` too. Squash-merge; the branch is deleted.
 4. **Tick the checklist as parts land.** Edit the issue when a box is done on the branch; the pull request description says which boxes.
    Leave the issue open until every box is ticked, or split the leftovers into a new issue and close the original.
 5. **Merging closes.** A merged pull request with `Closes #n` closes the issue. Do not close an issue by hand unless it was decided against
-   (then close it as "not planned" with a comment saying why).
+   (then close it as "not planned" with a comment saying why). Agents comment and tick checklists but never close issues.
 
 ## Definition of done
 
@@ -23,6 +26,9 @@ A change is done when, on its pull request:
 - `node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"` passes (the last glob checks `blazor/mappings` against the element metas), and `dotnet test PlainKit.slnx` passes.
 - `node core/tools/build.mjs` has been run, so `core/dist` is current, and `node scripts/publish-dist.mjs` has copied it into the Blazor package (CI checks both). `node scripts/generate-blazor.mjs` has regenerated the `Pk*` wrappers in `blazor/src/PlainKit.Blazor/Generated/` from `dist/elements/api.json` and `blazor/mappings` (CI runs it with `--check`).
 - The agent skills are regenerated: `node scripts/build-skills.mjs` writes `core/dist/skills/` (the `plainkit-sdk` and `plainkit-blazor` skills) from the element API, `blazor/mappings`, the generator manifest, the sample folders and the tool modules, and refreshes `dist/manifest.json` (CI runs it with `--check`). Run the tools in this order, because each reads the previous one's output: `node core/tools/build.mjs`, `node scripts/generate-blazor.mjs`, `node scripts/build-skills.mjs`, `node scripts/publish-dist.mjs`. The build keeps the skills it did not produce in the manifest, so `node core/tools/build.mjs && git diff --exit-code -- core/dist` stays clean. Only the short workflows in `scripts/skills/<skill>/SKILL.md` are hand-written; `scripts/tests/skills.test.mjs` verifies every code sample against the sources (a sample that names a tag, prop, slot, component or parameter that does not exist fails), so a new workflow or example must use real API only.
+- A changelog fragment is added (`node scripts/changelog.mjs new <type> <slug> --issue N`; format in `changelog/README.md`), or the pull request has the label `no-changelog` and says why (a change to docs only needs neither). `CHANGELOG.md` itself is edited only by the release pull request. CI runs `check` and `check-pr`.
+- Generated files (`core/dist`, the Blazor `Generated/` and `wwwroot/plainkit`, the skills, `core/elements/*/*.element.js`, `core/elements/elements.css`, the Files snapshot, `gallery.data.js`, `api.current.json`, `core/tests/browser/report.json`) are never edited by hand; GitHub collapses them in diffs (`.gitattributes`). They conflict when two pull requests touch the same source: resolve by taking either side and regenerating, never by merging the text.
+- The skills and docs are updated in the same pull request as the change.
 - If an element source or a browser case changed, the in-browser suite was re-run so `core/tests/browser/report.json` is current (`node core/tools/serve.mjs 5341 --write-reports`, open `/tests/browser/` in a visible tab at desktop size, wait for "report saved").
 - After a change to `PlainKit.Blazor.csproj`, pack into a scratch folder and list it: `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>`, then `unzip -l <dir>/*.nupkg`. There must be no `content/` or `contentFiles/` entries (the generator manifest stays out of the package), and the DLL, the XML docs and `staticwebassets/` must be there. `scripts/tests/blazor-package.test.mjs` checks the csproj part.
 - SDK and Blazor changes ship together: an element change updates its mapping in `blazor/mappings/<name>.json` (the SDK's element meta knows nothing about Blazor) and its generated wrapper (`node scripts/generate-blazor.mjs`; never edit `Generated/` by hand).
@@ -41,17 +47,20 @@ come before a version. Public API means classes, tokens and JS exports, and each
 CSS properties and methods (`core/site/scorecard/api.baseline.json` holds the previous release's; the Blazor mapping is not part of it). Deprecate
 before removing: mark it, log a warning through the logger, keep it for one minor version, remove it in the next.
 
-**When.** `main` is always releasable (CI green, `dist` current). A release is cut when a coherent set of issues has closed, not on every merge;
-Pages tracks `main` as "latest" and tags are the pinned releases.
+**When.** `main` is always releasable (CI green, `dist` current). Packages are published only when a version tag is pushed, never on a merge. A
+release is cut when a batch of finished issues is worth shipping, not on a schedule and not on every merge; nuget.org versions cannot be deleted,
+only unlisted, so publish less often rather than more. Pages tracks `main` as "latest" and tags are the pinned releases.
 
 **How: a release pull request.** Branch `release/X.Y.Z`, then:
 
 1. `node core/tools/versioning.mjs bump` shows what the API changes since the last release need; pick a version that covers them.
 2. `node core/tools/versioning.mjs set X.Y.Z`, then `node core/tools/build.mjs` and `node scripts/publish-dist.mjs` so the stamp lands in the committed `dist` and in the Blazor package copy; then `node scripts/build-skills.mjs` (the skills carry the version) before `node scripts/publish-dist.mjs`.
-3. In `CHANGELOG.md` rename "Unreleased" to the version and date (breaking changes under `### Breaking`) and start a new empty "Unreleased".
+3. `node scripts/changelog.mjs compile --version X.Y.Z` (add `--date YYYY-MM-DD` to set the date): it moves the fragments of `changelog/unreleased/` into a new dated section of `CHANGELOG.md`, grouped Breaking, Added, Changed, Fixed, Removed, Notes, leaves an empty "Unreleased" and deletes the fragments. CI fails a release pull request that still has fragments.
 4. Last, refresh the API baseline for the release: `node core/tools/api-surface.mjs --write --release X.Y.Z`.
 5. CI runs `check --release` and `bump --require` against the base branch's baseline: it fails when the baseline was not refreshed, or when the version does not cover the API changes (a breaking change needs a minor bump while the major is 0, a major bump after).
 6. Merge, then tag the merge commit `vX.Y.Z` and push the tag. `release.yml` checks that the tag equals `core/VERSION`, attaches the `dist` zip, its manifest, the `.nupkg` and `plainkit-skills-<version>.zip` (the agent skills) to a GitHub release (marked as a pre-release when the version has a `-`), then publishes `PlainKit.Blazor` to NuGet, and publishes to npm only if `NPM_TOKEN` is set (pre-releases go to the `next` tag). A registry problem never keeps the release assets from being attached; fix it and re-run the failed job.
+
+The tag is pushed by the owner (agents never push tags). Repository settings that support this flow (branch protection, squash-only merges, release-tag protection, the merge queue) are listed with their `gh` commands, not applied, in [.github/REPO-SETTINGS.md](.github/REPO-SETTINGS.md).
 
 Release notes are generated from the merged pull requests, so titles and descriptions should say what changed. See `PUBLISHING.md` for the
 one-time setup and how people get a version.
