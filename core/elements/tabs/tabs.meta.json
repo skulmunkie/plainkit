@@ -23,6 +23,10 @@
   ],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "pk-tab children", "attributes": ["selected","tabindex","id","aria-controls"], "why": "selected and tabindex (roving) are set on every sync from the value; id is set only when the tab has none; aria-controls names the paired panel. selected is a reflected prop of pk-tab. Kept when the element disconnects." },
+    { "target": "pk-tab-panel children", "attributes": ["selected","tabindex","id","aria-labelledby"], "why": "selected and tabindex follow the value; id is set only when the panel has none; aria-labelledby names the paired tab. Both live in the same tree, so the ids resolve. Kept when the element disconnects." }
+  ],
   "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
   "examples": [
     { "title": "Tabs with panels", "html": "<pk-tabs value=\"details\">\n  <pk-tab value=\"details\">Details</pk-tab>\n  <pk-tab value=\"history\">History</pk-tab>\n  <pk-tab-panel value=\"details\">Item details.</pk-tab-panel>\n  <pk-tab-panel value=\"history\">Item history.</pk-tab-panel>\n</pk-tabs>" },

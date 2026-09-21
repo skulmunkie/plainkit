@@ -72,6 +72,9 @@
       "description": "Next matching label."
     }
   ],
+  "writes": [
+    { "target": "the pk-tree-item descendants", "attributes": ["tabindex","selected","aria()"], "why": "Roving tabindex, the selected flag from the tree value, and role, level, set size, position, expanded and selected pushed through the item ElementInternals (aria(), not attributes). Refreshed on every update; none is undone on disconnect." }
+  ],
   "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
   "examples": [
     {

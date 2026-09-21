@@ -89,6 +89,9 @@
       "description": "Previous step"
     }
   ],
+  "writes": [
+    { "target": "the pk-step children", "attributes": ["state","index","last","clickable","orientation","disabled","tabindex","aria()"], "why": "The parent derives each step state, number, last flag, orientation, clickability and (in guided mode) disabled from the current step and pushes them down, with roving tabindex and role, label, current and disabled through the step ElementInternals (aria()). Refreshed on every change; none is undone on disconnect." }
+  ],
   "a11y": "A labelled list; each step announces \"Step 2 of 4: Pricing, current\"; the current step has aria-current=\"step\"; clickable steps are buttons reachable by Tab and by arrow keys.",
   "mobile": "Horizontal steppers show only the current step’s title next to the markers; clickable steps are 44px tall.",
   "examples": [

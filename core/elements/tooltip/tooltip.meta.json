@@ -137,6 +137,9 @@
       "description": "Closes it"
     }
   ],
+  "writes": [
+    { "target": "the slotted target", "attributes": ["aria-description"], "why": "The tip text is also the target accessible description (an id in the shadow tree cannot reach the target). Set only when the target has none, taken off again when the text or the target changes and when the tooltip disconnects. The single write that is undone on disconnect." }
+  ],
   "a11y": "The tip is a role=tooltip node in the shadow tree, and the slotted target gets aria-description with the same text (an accessible description: nothing is added to your markup, and no id has to cross the shadow boundary; a target that already has its own aria-description keeps it). Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
   "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
   "examples": [

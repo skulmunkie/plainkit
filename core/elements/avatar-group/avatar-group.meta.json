@@ -45,6 +45,9 @@
       "description": "Shown people and the remainder."
     }
   ],
+  "writes": [
+    { "target": "the slotted pk-avatar children", "attributes": ["hidden"], "why": "Every avatar past max gets hidden, and loses it again when max grows or an avatar is removed before it. Kept when the element disconnects." }
+  ],
   "a11y": "role=group with a label; the +N tile is text, so the count of hidden people is available without seeing them.",
   "examples": [
     {

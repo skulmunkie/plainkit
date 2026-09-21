@@ -161,6 +161,9 @@
       "description": "Toggles it"
     }
   ],
+  "writes": [
+    { "target": "the slotted trigger", "attributes": ["aria-haspopup","aria-expanded"], "why": "aria-haspopup=dialog and aria-expanded (true or false, as the open state) describe the popup the trigger controls; refreshed on every open change and when the trigger is replaced. Kept when the element disconnects." }
+  ],
   "a11y": "The trigger carries aria-expanded; the panel is role=dialog (role=alertdialog for confirm) with a label; focus moves in on keyboard open and returns to the trigger on close.",
   "mobile": "Width is min(20rem, viewport minus gutters); scrolls internally past the viewport height; buttons are 44px tall on a phone.",
   "examples": [

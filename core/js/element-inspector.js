@@ -74,6 +74,7 @@ export function createElementInspector(container, options = {}) {
             fold(`Custom properties (${d.cssProperties.length})`, false, d.cssProperties.length ? table('Custom properties', ['Name', 'Default', 'Description'], d.cssProperties.map(c => [code(c.name), code(c.default), c.description])) : none('None. Design tokens inherit into the element.')),
         );
         if (d.methods.length) acc.append(fold(`Methods (${d.methods.length})`, false, table('Methods', ['Name', 'Description'], d.methods.map(m => [code(m.name), m.description]))));
+        if (d.writes.length) acc.append(fold(`Writes to host nodes (${d.writes.length})`, false, table('Writes to host nodes', ['Target', 'Attributes', 'Why'], d.writes.map(w => [w.target, code(w.attributes), w.why]))));
         for (const section of state.extra) {
             const body = h('div', {});
             extraBodies.push([section, body]);

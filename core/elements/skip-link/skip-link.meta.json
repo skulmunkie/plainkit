@@ -27,6 +27,9 @@
   ],
   "cssProperties": [],
   "methods": [],
+  "writes": [
+    { "target": "the page element the href points at", "attributes": ["tabindex"], "why": "tabindex=-1 when the target has none, so the click can move focus there. Not removed. Kept when the element disconnects." }
+  ],
   "a11y": "Target must be a fragment on the same page; the element makes the target focusable so focus really moves.",
   "mobile": "Shown with a 44px target when focused by a keyboard or switch device.",
   "examples": [

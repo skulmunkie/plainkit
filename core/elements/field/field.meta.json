@@ -137,6 +137,9 @@
     }
   ],
   "methods": [],
+  "writes": [
+    { "target": "the slotted control (a pk-* element or a native input, select or textarea)", "attributes": ["label","description","required","invalid","warning","aria-label","aria-description","aria-invalid","data-invalid"], "why": "A pk-* control takes the label, description, required, invalid and warning props (each only when the control has that prop, and label only when the control has none of its own); a native control takes aria-label (when it has none), aria-description, aria-invalid and data-invalid. aria-description and aria-invalid are removed again when the help or error goes. The props and attributes stay when the field disconnects." }
+  ],
   "a11y": "The label click focuses the control. Ids cannot cross shadow roots, so the field sets label, description (help plus error), invalid, warning and required on an pk-* control, or aria-label and aria-description on a native one. Messages are polite live regions that are empty until used; the star is aria-hidden because required is set on the control.",
   "examples": [
     {
