@@ -23,6 +23,7 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 - Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`. Events are `EventCallback` or `EventCallback<PkXxxEventArgs>` (`references/events.md`).
 - Named slots are `RenderFragment` parameters (`FooterContent`). When you use one, write the body as an explicit `<ChildContent>` too.
 - No inline styles or scripts: the toolkit is built for a strict CSP.
+- A button that navigates is `<PkButton Href="/reports">`: a real anchor (middle and ctrl-click and enhanced navigation work; `Target`, `Rel`, `Download`; `Disabled` and `Busy` drop the href; `OnClick` still fires, `@onclick:preventDefault` replaces the navigation).
 
 ## References (open on demand)
 

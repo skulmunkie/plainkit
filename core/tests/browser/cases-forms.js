@@ -199,6 +199,28 @@ export const formCases = [
         t.eq(tg.part('control').getAttribute('aria-pressed'), 'false'); tg.click(); await t.settle(); t.ok(tg.pressed); t.eq(seen.value, 'bold'); t.eq(tg.part('control').getAttribute('aria-pressed'), 'true'); t.ok(tg.hasAttribute('pressed'));
     }],
 
+    ['button link: href renders an anchor that keeps its slots and takes target, rel and download; disabled and busy drop the href and swallow the click', async t => {
+        const b = await t.mount('<pk-button href="#x" download="a.csv" variant="secondary" label="Go now">Go</pk-button>'); t.ok(!b.part('control').hasAttribute('rel')); b.target = '_blank'; await t.settle();
+        let c = b.part('control'); t.eq(c.localName, 'a'); t.eq(c.getAttribute('href'), '#x'); t.eq(c.getAttribute('target'), '_blank'); t.eq(c.getAttribute('rel'), 'noopener', 'noopener is the default for _blank'); t.eq(c.getAttribute('download'), 'a.csv'); t.eq(c.getAttribute('role'), 'link'); t.eq(c.getAttribute('aria-label'), 'Go now');
+        t.eq(c.querySelector('slot:not([name])').assignedNodes().length, 1, 'the label stays slotted');
+        let clicks = 0; b.addEventListener('click', e => { e.preventDefault(); clicks++; });
+        c.click(); t.eq(clicks, 1, 'a link still fires click, and the host can cancel the navigation');
+        b.rel = 'nofollow'; await t.settle(); t.eq(b.part('control').getAttribute('rel'), 'nofollow', 'an explicit rel wins');
+        b.disabled = true; await t.settle(); c = b.part('control'); t.ok(!c.hasAttribute('href') && !c.hasAttribute('download'), 'disabled drops the href'); t.eq(c.getAttribute('aria-disabled'), 'true'); t.eq(c.getAttribute('role'), 'link');
+        const ev = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true }); c.dispatchEvent(ev); t.ok(ev.defaultPrevented && clicks === 1, 'disabled swallows the click');
+        b.disabled = false; b.busy = true; await t.settle(); c = b.part('control'); t.ok(!c.hasAttribute('href')); t.eq(c.getAttribute('aria-disabled'), 'true'); t.eq(c.getAttribute('tabindex'), '0', 'a busy link stays a tab stop'); t.ok(!b.part('spinner').hidden, 'the spinner moved with the children');
+        b.busy = false; await t.settle(); c = b.part('control'); t.eq(c.getAttribute('href'), '#x'); t.ok(!c.hasAttribute('aria-disabled') && !c.hasAttribute('tabindex'));
+        b.removeAttribute('href'); await t.settle(); c = b.part('control'); t.eq(c.localName, 'button', 'without an href it is a button again'); t.eq(c.querySelector('slot:not([name])').assignedNodes().length, 1); t.eq(c.getAttribute('aria-label'), 'Go now');
+        const d = await t.mount('<pk-button href="#y" download>File</pk-button>'); t.eq(d.part('control').getAttribute('download'), '', 'a bare download attribute keeps the URL file name');
+    }],
+
+    ['button link: focus lands on the anchor, a link ignores type and toggle, and a submit button still submits its form', async t => {
+        const b = await t.mount('<pk-button href="#x" toggle type="submit">Open</pk-button>'); b.addEventListener('click', e => e.preventDefault()); b.focus(); t.ok(b.matches(':focus') && b.shadowRoot.activeElement === b.part('control') && b.part('control').localName === 'a', 'delegated focus reaches the link');
+        b.part('control').click(); await t.settle(); t.ok(!b.pressed, 'a link does not toggle'); t.ok(!b.part('control').hasAttribute('aria-pressed'));
+        const host = t.stage('<form><input name="q" value="1"><pk-button type="submit">Send</pk-button></form>'); await t.load(host); let submitted = 0; host.querySelector('form').addEventListener('submit', e => { e.preventDefault(); submitted++; });
+        host.querySelector('pk-button').part('control').click(); await t.settle(); t.eq(submitted, 1, 'the button form is unchanged');
+    }],
+
     ['button-group: single mode keeps exactly one toggle pressed', async t => {
         const g = await t.mount('<pk-button-group mode="single" label="Density"><pk-button toggle pressed>A</pk-button><pk-button toggle>B</pk-button></pk-button-group>'); await t.load(g);
         const [a, b] = g.querySelectorAll('pk-button'); b.click(); await t.settle(); t.ok(b.pressed && !a.pressed); b.click(); await t.settle(); t.ok(b.pressed, 'the pressed one cannot be released'); t.eq(g.part('group').getAttribute('role'), 'group');

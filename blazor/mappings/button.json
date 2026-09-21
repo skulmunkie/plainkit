@@ -17,6 +17,26 @@
       "type": "string"
     },
     {
+      "name": "Href",
+      "prop": "href",
+      "type": "string"
+    },
+    {
+      "name": "Target",
+      "prop": "target",
+      "type": "string"
+    },
+    {
+      "name": "Rel",
+      "prop": "rel",
+      "type": "string"
+    },
+    {
+      "name": "Download",
+      "prop": "download",
+      "type": "string"
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"

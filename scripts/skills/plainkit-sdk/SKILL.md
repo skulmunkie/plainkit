@@ -89,6 +89,18 @@ document.getElementById('settings').addEventListener('submit', event => {
 
 `pk-form` shows the browser's validation messages in each field and a summary; the controls are form-associated, so `FormData` sees them by `name`. Field and control details: `references/elements-form-layout.md`, `references/elements-form-controls.md`.
 
+### Link that looks like a button
+
+A control that navigates is a link, not a click handler: give `pk-button` an `href` and it renders a real anchor with the same variants, sizes and icons (middle and ctrl-click, the status-bar URL and Enter work natively; Space does not activate a link).
+
+```html
+<pk-button href="/reports">Open reports</pk-button>
+<pk-button href="https://example.com/help" target="_blank" variant="secondary">Help</pk-button>
+<pk-button href="/export.csv" download="export.csv" variant="ghost">Download</pk-button>
+```
+
+`target`, `rel` (`noopener` is the default for `_blank`) and `download` only apply with `href`. `disabled` and `busy` drop the href and report `aria-disabled`. A link still fires `click`, so a host can track it.
+
 ### Open a dialog
 
 ```html
