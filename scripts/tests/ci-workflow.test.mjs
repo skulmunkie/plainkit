@@ -73,10 +73,10 @@ test('the jobs that need generated files bootstrap through verify, the path gate
     assert.ok(!/^  changes:/m.test(ci), 'no first job that everything waits for');
 });
 
-test('the dotnet and pack jobs cache NuGet on the props and project files', () => {
-    for (const id of ['dotnet', 'pack']) {
-        assert.match(job(id), /cache: true\n\s+cache-dependency-path: \|\n\s+Directory\.Packages\.props\n\s+\*\*\/\*\.csproj/, id);
-    }
+test('the dotnet job caches NuGet on the props and project files; the pack job does not (nothing is restored there)', () => {
+    assert.match(job('dotnet'), /cache: true\n\s+cache-dependency-path: \|\n\s+Directory\.Packages\.props\n\s+\*\*\/\*\.csproj/);
+    // PlainKit.Blazor has no package references, so ~/.nuget/packages never exists in the pack job and setup-dotnet's cache post-step fails on it.
+    assert.doesNotMatch(job('pack'), /cache: true/);
 });
 
 test('the browser job reruns once, reports flaky, keeps the report and is not required', () => {
