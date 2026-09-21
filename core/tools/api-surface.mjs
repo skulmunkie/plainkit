@@ -1,12 +1,36 @@
-// The SDK's public surface: every class a stylesheet defines, every token, every JS export. node core/tools/api-surface.mjs [--write]
-// site/scorecard/api.baseline.json is the previous release; the compat test fails when anything in it has been removed or renamed.
-// Adding is always fine. To remove on purpose, edit the baseline in the same commit and say why in the commit message.
+// The SDK's public surface: every class a stylesheet defines, every token, every JS export, and every element's API (tag, props with their
+// type, default and enum values, slots, events, parts, CSS properties, methods). node core/tools/api-surface.mjs [--write [--release <version>]]
+// site/scorecard/api.baseline.json is the previous RELEASE: what a release must not break without the version saying so (tools/versioning.mjs
+// computes the bump the differences need). --write refreshes it from the current sources; a release pull request does that with --release.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (['dist', 'node_modules', 'tests'].includes(e.name) ? [] : e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
+
+// The element API as flat items, so a removed prop, event or enum value (or a changed type or default) shows as a missing item.
+export function elementSurface(dir = path.join(root, 'elements')) {
+    const items = [];
+    for (const d of fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory())) {
+        const file = path.join(dir, d.name, `${d.name}.meta.json`);
+        if (!fs.existsSync(file)) continue;
+        const m = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const tag = m.tag;
+        items.push(tag);
+        for (const p of m.props ?? []) {
+            items.push(`${tag}:prop:${p.name}`, `${tag}:prop:${p.name}:type=${p.type}`);
+            if (p.default !== undefined && p.default !== null && p.default !== '') items.push(`${tag}:prop:${p.name}:default=${JSON.stringify(p.default)}`);
+            for (const v of p.values ?? []) items.push(`${tag}:prop:${p.name}:value=${v}`);
+        }
+        for (const s of m.slots ?? []) items.push(`${tag}:slot:${s.name || '(default)'}`);
+        for (const e of m.events ?? []) items.push(`${tag}:event:${e.name}`);
+        for (const x of m.parts ?? []) items.push(`${tag}:part:${x.name}`);
+        for (const c of m.cssProperties ?? []) items.push(`${tag}:css:${c.name}`);
+        for (const x of m.methods ?? []) items.push(`${tag}:method:${x.name}`);
+    }
+    return [...new Set(items)].sort();
+}
 
 export function surface() {
     const files = walk(root);
@@ -19,12 +43,12 @@ export function surface() {
         const rel = path.relative(root, f).split(path.sep).join('/');
         for (const m of fs.readFileSync(f, 'utf8').matchAll(/^export (?:async )?(?:function|const|class)\s+([A-Za-z_$][\w$]*)/gm)) exports.push(`${rel}:${m[1]}`);
     }
-    return { classes, tokens, exports: exports.sort() };
+    return { classes, tokens, exports: exports.sort(), elements: elementSurface() };
 }
 
 export function removed(baseline, current) {
     const out = [];
-    for (const k of ['classes', 'tokens', 'exports']) for (const x of baseline[k]) if (!current[k].includes(x)) out.push(`${k}: ${x}`);
+    for (const k of ['classes', 'tokens', 'exports', 'elements']) for (const x of baseline[k] ?? []) if (!(current[k] ?? []).includes(x)) out.push(`${k}: ${x}`);
     return out;
 }
 
@@ -34,7 +58,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv.includes('--write')) {
-    const s = surface();
-    fs.writeFileSync(path.join(root, 'site', 'scorecard', 'api.baseline.json'), JSON.stringify(s, null, 1) + '\n');
-    console.log(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, v.length])));
+    const file = path.join(root, 'site', 'scorecard', 'api.baseline.json');
+    const at = process.argv.indexOf('--release');
+    const previous = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')).release ?? null : null;
+    const s = { release: at >= 0 ? process.argv[at + 1] : previous, ...surface() };
+    fs.writeFileSync(file, (JSON.stringify(s, null, 1) + '\n').replace(/\n/g, '\r\n'));
+    console.log(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, Array.isArray(v) ? v.length : v])));
 }

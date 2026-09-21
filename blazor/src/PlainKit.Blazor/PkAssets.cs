@@ -13,4 +13,13 @@ public static class PkAssets
     public const string GalleryEmbed = Root + "gallery/embed.html";
 
     internal const string Bridge = "./_content/PlainKit.Blazor/plainkit.blazor.js";
+
+    /// <summary>
+    /// The Plainkit release this package is (SemVer, for example <c>0.1.0-alpha.1</c>). The SDK and this package always share one version, taken
+    /// from <c>core/VERSION</c>; <see cref="PkRuntime.GetSdkVersionAsync"/> asks the JavaScript assets the package serves for theirs.
+    /// </summary>
+    public static string Version { get; } =
+        typeof(PkAssets).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion.Split('+')[0]
+        ?? "0.0.0";
 }

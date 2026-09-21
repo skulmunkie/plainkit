@@ -23,7 +23,7 @@ No install, no build step: link the files.
 | Way | Version |
 |---|---|
 | The Pages site, `https://skulmunkie.github.io/plainkit/` (gallery and tools; `dist/` sits under it) | latest `main` |
-| jsDelivr from a git tag, as above (change `v0.1.0` to any release) | pinned |
+| jsDelivr from a git tag, as above (change `v0.1.0` to any release). A range follows the newest matching tag: `@0.1` is the latest `0.1.x`, `@1` the latest `1.x.y` | pinned, or a range |
 | `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; copy it anywhere | pinned |
 | `dotnet add package PlainKit.Blazor` | pinned |
 

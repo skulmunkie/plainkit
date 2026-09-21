@@ -6,7 +6,6 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { scan, bySeverity, unsafeRegex, RULES, isReassigned } from '../tools/security.mjs';
-import { surface, removed } from '../tools/api-surface.mjs';
 import { build } from '../tools/build.mjs';
 import { sanitizeOverrides, sanitizeDict, parseOverrides, buildOverrides, MAX_OVERRIDES } from '../js/theme.js';
 import { matcherFor } from '../js/code-explorer/providers.js';
@@ -86,10 +85,8 @@ test('a user regex in the code explorer search is refused when it could backtrac
     const t0 = Date.now(); const m = matcherFor('/foo.*bar/'); m('foo' + 'x'.repeat(100000)); assert.ok(Date.now() - t0 < 500, 'a very long line is truncated before matching');
 });
 
-test('the public surface only grows: no class, token or JS export in the previous release baseline has been removed', () => {
-    const removedItems = removed(JSON.parse(read('site/scorecard/api.baseline.json')), surface());
-    assert.deepEqual(removedItems, [], 'removed from the public surface: ' + removedItems.slice(0, 10).join(', '));
-});
+// The public API (classes, tokens, JS exports, element tags/props/events/slots/parts) may change between releases. What a release must do about
+// it is checked when the version changes: node core/tools/versioning.mjs bump --require (see tests/versioning.test.mjs and CONTRIBUTING.md).
 
 test('prefer-const flags a let that is never reassigned and passes one that is', () => {
     const ls = ['let a = 1;', 'let b = 2;', 'b += 3;', 'let c = 0;', 'c++;', 'let d = 4;', 'if (d == 4) {}', 'let e;', 'e = 5;', 'let f = 1;', 'const g = f === 1;'];

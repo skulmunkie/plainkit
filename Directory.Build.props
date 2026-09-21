@@ -12,9 +12,9 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
-  <!-- NuGet package metadata (Plainkit.Blazor). The release workflow sets Version from the git tag. -->
+  <!-- NuGet package metadata (PlainKit.Blazor). The version is core/VERSION, the one version of the SDK and this package; a release PR changes it and the release workflow checks the tag names it. -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)core/VERSION').Trim())</Version>
     <Authors>Plainkit contributors</Authors>
     <Copyright>Copyright (c) 2026 Plainkit contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

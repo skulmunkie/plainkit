@@ -41,6 +41,11 @@ export async function mountConsole(container, options) {
     mounted.set(container, await mountConsole(container, options));
 }
 
+// The Plainkit release of the JavaScript assets this page loaded.
+export async function version() {
+    return (await import('./plainkit/js/version.js')).PK_VERSION;
+}
+
 export const log = (container, level, text) => mounted.get(container)?.log?.(level, text);
 export const clear = container => mounted.get(container)?.clear?.();
 export const pause = container => mounted.get(container)?.stop?.();

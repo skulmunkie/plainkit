@@ -27,7 +27,29 @@ A change is done when, on its pull request:
 - It uses only components that exist in `core`; a missing component is recorded in the "components the SDK lacks" issue instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 
-## Releases
+## Versioning and releases
 
-A release is a tag (`v0.1.0`). See `PUBLISHING.md`. The release notes are generated from the merged pull requests, so titles and descriptions
-should say what changed.
+**One version for everything.** The SDK (`core/dist`) and `PlainKit.Blazor` always carry the same version, kept in `core/VERSION` (SemVer 2.0,
+for example `0.1.0-alpha.1`). `tools/build.mjs` stamps it into `dist/manifest.json` and `js/version.js` (`PK_VERSION`), MSBuild reads it for the
+NuGet package (`PkAssets.Version`), and `node core/tools/versioning.mjs check` (part of CI) fails when any of them disagree.
+
+**What the number means.** Before 1.0 a breaking change bumps the minor version and is listed under a `### Breaking` heading in the changelog; from
+1.0 it bumps the major. A new public item is a minor bump; a fix that changes no API is a patch. Pre-releases (`-alpha.N`, `-beta.N`, `-rc.N`)
+come before a version. Public API means classes, tokens and JS exports, and each element's tag, props (type, default, values), slots, events, parts,
+CSS properties and methods (`core/site/scorecard/api.baseline.json` holds the previous release's; the Blazor mapping is not part of it). Deprecate
+before removing: mark it, log a warning through the logger, keep it for one minor version, remove it in the next.
+
+**When.** `main` is always releasable (CI green, `dist` current). A release is cut when a coherent set of issues has closed, not on every merge;
+Pages tracks `main` as "latest" and tags are the pinned releases.
+
+**How: a release pull request.** Branch `release/X.Y.Z`, then:
+
+1. `node core/tools/versioning.mjs bump` shows what the API changes since the last release need; pick a version that covers them.
+2. `node core/tools/versioning.mjs set X.Y.Z`, then `node core/tools/build.mjs` and `node scripts/publish-dist.mjs` so the stamp lands in the committed `dist` and in the Blazor package copy.
+3. In `CHANGELOG.md` rename "Unreleased" to the version and date (breaking changes under `### Breaking`) and start a new empty "Unreleased".
+4. Last, refresh the API baseline for the release: `node core/tools/api-surface.mjs --write --release X.Y.Z`.
+5. CI runs `check --release` and `bump --require` against the base branch's baseline: it fails when the baseline was not refreshed, or when the version does not cover the API changes (a breaking change needs a minor bump while the major is 0, a major bump after).
+6. Merge, then tag the merge commit `vX.Y.Z` and push the tag. `release.yml` checks that the tag equals `core/VERSION`, publishes `PlainKit.Blazor` to NuGet, attaches the `dist` zip, its manifest and the `.nupkg` to a GitHub release (marked as a pre-release when the version has a `-`), and publishes to npm only if `NPM_TOKEN` is set (pre-releases go to the `next` tag).
+
+Release notes are generated from the merged pull requests, so titles and descriptions should say what changed. See `PUBLISHING.md` for the
+one-time setup and how people get a version.
