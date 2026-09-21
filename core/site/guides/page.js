@@ -111,7 +111,8 @@ function route() {
 
 mountShell({ page: 'guides', title: null });
 buildNav();
-contents.addEventListener('click', () => { const on = !nav.hasAttribute('open'); nav.toggleAttribute('open', on); contents.toggleAttribute('pressed', on); });
+// On the bar, not on the button: the toggle button flips its own `pressed` first, and this sets it to what the drawer really is afterwards.
+contents.parentElement.addEventListener('click', e => { if (!e.target.closest('#gd-contents')) return; const on = !nav.hasAttribute('open'); nav.toggleAttribute('open', on); contents.toggleAttribute('pressed', on); });
 nav.addEventListener('pk-close', () => contents.removeAttribute('pressed')); // Escape or a tap on the backdrop closed the drawer
 // A same-page link (the toc, a heading's permalink) scrolls the article's own scroller and gets its own history entry. The browser's default would also scroll the page
 // shell around the article (the top bar would slide away), so it is done here; a hash typed by hand still comes through hashchange above.

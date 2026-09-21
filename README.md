@@ -29,7 +29,7 @@ Where you get the files, and which versions are pinned:
 |---|---|
 | `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere | pinned |
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
-| The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
+| The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery, guides and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 
 There is no CDN link by git tag: the repository does not contain `core/dist` (it is generated, see below), so a tag has nothing to serve. `dist/manifest.json` lists every file with a SRI hash. The SDK itself makes no third-party requests at run time. How releases are made is in [PUBLISHING.md](PUBLISHING.md).
 
@@ -41,7 +41,7 @@ Generated files (`core/dist`, the element modules, the Blazor wrappers, the agen
 node scripts/bootstrap.mjs
 ```
 
-Then `node core/tools/serve.mjs` (the gallery, theme editor and scorecard on http://localhost:5310/; it runs the bootstrap itself when files are missing), `node --test ...` and `dotnet build` / `dotnet test PlainKit.slnx` work. `dotnet build` on a fresh clone without the bootstrap stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root".
+Then `node core/tools/serve.mjs` (the gallery, guides, theme editor and scorecard on http://localhost:5310/; it runs the bootstrap itself when files are missing), `node --test ...` and `dotnet build` / `dotnet test PlainKit.slnx` work. `dotnet build` on a fresh clone without the bootstrap stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root".
 
 ## Layout
 
