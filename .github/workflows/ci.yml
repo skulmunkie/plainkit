@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # labeled/unlabeled: the `no-changelog` label is read by the Changelog job, so adding it must re-run the checks.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
 
 concurrency:
@@ -60,6 +62,45 @@ jobs:
       # any of them must be regenerated. The build above keeps them in the manifest without producing them, so this is what proves they are current.
       - name: Agent skills are current
         run: node scripts/build-skills.mjs --check
+
+  # Changelog fragments (changelog/README.md): every pull request that changes more than docs adds one file to changelog/unreleased/, and the
+  # release pull request compiles them into CHANGELOG.md (so none may be left).
+  changelog:
+    name: Changelog (fragments)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fragments are valid
+        run: node scripts/changelog.mjs check
+
+      # The label `no-changelog` (with the reason in the description) skips the "needs a fragment" rule.
+      - name: Pull request adds a fragment
+        env:
+          PK_NO_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'no-changelog') && '1' || '' }}
+        run: node scripts/changelog.mjs check-pr --base "origin/${{ github.base_ref }}"
+
+      # A release pull request (core/VERSION changed, as in "Release pull request checks") compiles the fragments into CHANGELOG.md.
+      - name: Release pull request has compiled the changelog
+        run: |
+          if git cat-file -e "origin/${{ github.base_ref }}:core/VERSION" 2>/dev/null && ! git diff --quiet "origin/${{ github.base_ref }}" -- core/VERSION; then
+            left=$(find changelog/unreleased -type f ! -name .gitkeep)
+            if [ -n "$left" ]; then
+              echo "core/VERSION changed (a release pull request) but fragments are left; run: node scripts/changelog.mjs compile --version <X.Y.Z>"
+              echo "$left"
+              exit 1
+            fi
+            echo "release pull request: no fragments left"
+          else
+            echo "not a release pull request"
+          fi
 
   blazor:
     name: Blazor (dotnet)

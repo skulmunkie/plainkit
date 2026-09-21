@@ -12,3 +12,14 @@ blazor/src/PlainKit.Blazor/wwwroot/** eol=crlf
 *.jpg binary
 *.woff2 binary
 *.nupkg binary
+
+# Generated output: GitHub collapses these in pull request diffs. Change the source and regenerate (AGENTS.md); never edit them by hand.
+core/dist/** linguist-generated=true
+blazor/src/PlainKit.Blazor/wwwroot/plainkit/** linguist-generated=true
+blazor/src/PlainKit.Blazor/Generated/** linguist-generated=true
+core/site/files/snapshot.json linguist-generated=true
+core/site/gallery/gallery.data.js linguist-generated=true
+core/site/scorecard/api.current.json linguist-generated=true
+core/elements/*/*.element.js linguist-generated=true
+core/elements/elements.css linguist-generated=true
+core/tests/browser/report.json linguist-generated=true
