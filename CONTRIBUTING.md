@@ -47,7 +47,12 @@ NuGet package (`PkAssets.Version`), and `node core/tools/versioning.mjs check` (
 1.0 it bumps the major. A new public item is a minor bump; a fix that changes no API is a patch. Pre-releases (`-alpha.N`, `-beta.N`, `-rc.N`)
 come before a version. Public API means classes, tokens and JS exports, and each element's tag, props (type, default, values), slots, events, parts,
 CSS properties and methods (`core/site/scorecard/api.baseline.json` holds the previous release's; the Blazor mapping is not part of it). Deprecate
-before removing: mark it, log a warning through the logger, keep it for one minor version, remove it in the next.
+before removing: mark it, log a warning through the logger, keep it for one minor version, remove it in the next. Marking is one field in the element's meta,
+`"deprecated": { "since": "0.2.0", "remove": "0.3.0", "message": "use tone instead" }`, on the element, a prop, an event or a slot (`remove` at least one minor version after
+`since`); the generated module then warns once per page through the logger when the item is used (an attribute or property set, a listener added, a slot filled, the tag connected)
+and an element that deprecates nothing pays nothing. `node core/tools/versioning.mjs check` fails when an item the last release announced for removal in a later version is already
+gone; `bump` lists announced removals and items due for removal. The removal itself is still a breaking change for the bump (a minor bump while the major is 0), and the release
+pull request refreshes the baseline, which also records what was deprecated.
 
 **When.** `main` is always releasable (CI green). Packages are published only when a version tag is pushed, never on a merge. A
 release is cut when a batch of finished issues is worth shipping, not on a schedule and not on every merge; nuget.org versions cannot be deleted,

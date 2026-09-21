@@ -4,6 +4,7 @@
 // computes the bump the differences need). --write refreshes it from the current sources; a release pull request does that with --release.
 import fs from 'node:fs';
 import path from 'node:path';
+import { deprecatedItems } from './element-api.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -30,6 +31,16 @@ export function elementSurface(dir = path.join(root, 'elements')) {
         for (const x of m.methods ?? []) items.push(`${tag}:method:${x.name}`);
     }
     return [...new Set(items)].sort();
+}
+
+// What the metas deprecate, [{ item, since, remove }] sorted by item (the baseline keeps the list of the last release, so versioning.mjs can tell an announced removal).
+export function deprecations(dir = path.join(root, 'elements')) {
+    const out = [];
+    for (const d of fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory())) {
+        const file = path.join(dir, d.name, `${d.name}.meta.json`);
+        if (fs.existsSync(file)) out.push(...deprecatedItems(JSON.parse(fs.readFileSync(file, 'utf8'))).map(({ item, since, remove }) => ({ item, since, remove })));
+    }
+    return out.sort((a, b) => (a.item < b.item ? -1 : a.item > b.item ? 1 : 0));
 }
 
 export function surface() {
@@ -61,7 +72,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const file = path.join(root, 'site', 'scorecard', 'api.baseline.json');
     const at = process.argv.indexOf('--release');
     const previous = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')).release ?? null : null;
-    const s = { release: at >= 0 ? process.argv[at + 1] : previous, ...surface() };
+    const s = { release: at >= 0 ? process.argv[at + 1] : previous, ...surface(), deprecated: deprecations() };
     fs.writeFileSync(file, (JSON.stringify(s, null, 1) + '\n').replace(/\n/g, '\r\n'));
     console.log(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, Array.isArray(v) ? v.length : v])));
 }
