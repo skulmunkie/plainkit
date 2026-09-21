@@ -99,3 +99,49 @@ test('the empty state has a text prop, and the table detail slots are listed in 
     assert.deepEqual(meta.slots.filter(s => s.dynamic).map(s => s.name), ['cell-<rowId>-<key>', 'detail-<rowId>']);
     assert.ok(meta.events.some(e => e.name === 'pk-row-expand'));
 });
+
+// ---- sort cycle (js/table-data.js), one pk-select per checkbox click, keyboard activation of clickable rows
+
+const { nextSort } = await import('../../js/table-data.js');
+
+test('the same header cycles ascending, descending, cleared; another header starts ascending', () => {
+    assert.deepEqual(nextSort('', 'ascending', 'a'), ['a', 'ascending']);
+    assert.deepEqual(nextSort('a', 'ascending', 'a'), ['a', 'descending']);
+    assert.deepEqual(nextSort('a', 'descending', 'a'), [null, null]);
+    assert.deepEqual(nextSort('a', 'descending', 'b'), ['b', 'ascending']);
+    assert.deepEqual(sortRows(rows, undefined, 'ascending').map(r => r.id), [1, 2, 3], 'a cleared sort is the natural order');
+});
+
+// The element's own methods, run against a stand-in host: no DOM needed.
+const Table = (await import('./table.js')).default(class {});
+const host = extra => { const events = []; return Object.assign(Object.create(Table.prototype), { events, selected: [], rowKey: 'id', manual: true, rows, columns: [], sort: 'a', sortDir: 'descending', emit(name, detail) { events.push([name, detail]); return true; } }, extra); };
+const box = (data, checked) => ({ target: { dataset: data, checked } });
+
+test('a checkbox click raises change and input, and pk-select is raised once', () => {
+    const t = host();
+    for (const type of ['input', 'change']) t.input({ type, ...box({ select: '2' }, true) });
+    assert.deepEqual(t.events, [['pk-select', { selected: ['2'] }]]);
+    const all = host();
+    for (const type of ['input', 'change']) all.input({ type, ...box({ selectAll: '' }, true) });
+    assert.equal(all.events.length, 1);
+    assert.deepEqual(all.events[0][1].selected, ['1', '2', '3']);
+});
+
+test('sorting cleared through the header reports a null key and direction, also when the host owns the rows (manual)', () => {
+    const t = host();
+    t.sortBy(null, null);
+    assert.deepEqual(t.events, [['pk-sort', { key: null, direction: null }]]);
+    assert.equal(t.sort, '');
+    assert.equal(t.sortDir, 'ascending');
+    const c = host({ emit() { return false; } });
+    c.sortBy(null, null);
+    assert.equal(c.sort, 'a', 'a cancelled event keeps the sort');
+});
+
+test('Enter and Space on the row itself activate a clickable row; keys on controls inside it do not', () => {
+    const row = { matches: s => s === 'tbody tr[data-clickable]' }, cell = { matches: () => false };
+    for (const key of ['Enter', ' ']) assert.equal(X.activates({ key, target: row }, { clickable: true }), true);
+    assert.equal(X.activates({ key: 'Enter', target: cell }, { clickable: true }), false);
+    assert.equal(X.activates({ key: 'a', target: row }, { clickable: true }), false);
+    assert.equal(X.activates({ key: 'Enter', target: row }, { clickable: false }), false);
+});

@@ -1,5 +1,5 @@
-// Expandable rows for <pk-table>: the toggle column and the detail rows. The table imports this on demand, only when `expandable` is set, so
-// its own module stays inside the per-element budget. The table owns everything drawn here (shadow tree); the detail content is host-provided
+// Lazy parts of <pk-table>: expandable rows (the toggle column and the detail rows) and the keyboard for clickable rows. The table imports this on
+// demand, only when `expandable` or `clickable` is set, so its own module stays inside the per-element budget. The table owns everything drawn here (shadow tree); the detail content is host-provided
 // light DOM in a `detail-<rowId>` slot, and expanding only renders that slot, it never moves or edits the host's nodes.
 
 import { sheetFor } from './element.js';
@@ -37,11 +37,19 @@ export function click(table, e) {
     return true;
 }
 
-// After each render: adopt the styles, and put the keyboard focus back on the toggle that was used (the render replaced it).
+// Keyboard for clickable rows: each row is a tab stop (the checkbox, button and link cells inside it keep theirs), and Enter or Space on the row
+// itself is a click on it, so pk-row-click has one path. A key pressed on a control inside the row is left to that control.
+export const activates = (e, table) => table.clickable && (e.key === 'Enter' || e.key === ' ') && !!e.target.matches?.('tbody tr[data-clickable]');
+
+// After each render: make clickable rows focusable, adopt the styles, and put the keyboard focus back on the toggle that was used (the render replaced it).
 export function after(table) {
-    const sheets = table.shadowRoot.adoptedStyleSheets;
-    sheet ??= sheetFor(STYLES);
-    if (!sheets.includes(sheet)) table.shadowRoot.adoptedStyleSheets = [...sheets, sheet];
+    const root = table.shadowRoot, sheets = root.adoptedStyleSheets;
+    if (!table.$k) { table.$k = 1; root.addEventListener('keydown', e => { if (activates(e, table)) { e.preventDefault(); e.target.click(); } }); }
+    if (table.clickable) for (const tr of table.part('body').querySelectorAll('tr[data-clickable]')) tr.tabIndex = 0;
+    if (table.expandable) {
+        sheet ??= sheetFor(STYLES);
+        if (!sheets.includes(sheet)) root.adoptedStyleSheets = [...sheets, sheet];
+    }
     if (table.$f === undefined) return;
     table.part('body').querySelector(`button[data-expand-id="${CSS.escape(table.$f)}"]`)?.focus();
     table.$f = undefined;
