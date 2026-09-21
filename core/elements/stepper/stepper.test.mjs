@@ -1,7 +1,7 @@
 // Unit tests for the stepper's step states and navigation. Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { stepStates, canEnter, stepKey, stepLabel } from './stepper.js';
+import stepper, { stepStates, canEnter, stepKey, stepLabel } from './stepper.js';
 
 test('steps before the current are done, the current is active, later ones are todo', () => {
     assert.deepEqual(stepStates(4, 1), ['done', 'active', 'todo', 'todo']);
@@ -46,3 +46,25 @@ test('the accessible label says where you are', () => {
     assert.equal(stepLabel(2, 4, 'Review', 'error'), 'Step 3 of 4: Review, has an error');
 });
 
+
+// Issue #38: connecting with steps that are in the document but not upgraded yet must not throw (no aria() on them).
+test('sync waits for un-upgraded steps instead of calling aria() on them, then syncs again', async () => {
+    let waited = null; let syncs = 0;
+    globalThis.customElements = { whenDefined: name => { waited = name; return Promise.resolve(); } };
+    const Stepper = stepper(class {});
+    const raw = {}; // a pk-step that has not been defined yet: a plain element without aria()
+    const host = { steps: [raw], errors: '', current: 0, sync: () => { syncs++; } };
+    assert.doesNotThrow(() => Stepper.prototype.sync.call(host));
+    assert.equal(waited, 'pk-step');
+    await Promise.resolve();
+    assert.equal(syncs, 1);
+});
+
+test('sync still sets the step roles once every step is upgraded', () => {
+    const seen = []; const step = { heading: 'One', textContent: '', aria: m => seen.push(m) };
+    const host = { steps: [step], errors: '', current: 0, clickable: false, free: false, orientation: 'horizontal' };
+    Stepper_sync(host);
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].role, 'listitem');
+    function Stepper_sync(h) { stepper(class {}).prototype.sync.call(h); }
+});
