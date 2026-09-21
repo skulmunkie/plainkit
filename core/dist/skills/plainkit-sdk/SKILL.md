@@ -1,6 +1,6 @@
 ---
 name: plainkit-sdk
-description: Build web pages and apps with the Plainkit SDK, a dependency-free UI toolkit of pk-* custom elements (pk-button, pk-input, pk-dialog, pk-table, pk-app-shell and about 86 more), CSS tokens and small ES modules, with no framework and no build step. Use it when a project links plainkit.css or plainkit.js, uses pk-* tags, or the user asks for a Plainkit page, form, dialog, layout, page template, theme, the Plainkit dev tools dock, logs viewer or logging (createLogger, ?pk-log=). Look elements, props, slots and events up in the references instead of guessing. For Blazor apps use the plainkit-blazor skill.
+description: Build web pages and apps with the Plainkit SDK, a dependency-free UI toolkit of pk-* custom elements (pk-button, pk-input, pk-dialog, pk-table, pk-app-shell and about 88 more), CSS tokens and small ES modules, with no framework and no build step. Use it when a project links plainkit.css or plainkit.js, uses pk-* tags, or the user asks for a Plainkit page, form, dialog, layout, page template, theme, the Plainkit dev tools dock, logs viewer or logging (createLogger, ?pk-log=). Look elements, props, slots and events up in the references instead of guessing. For Blazor apps use the plainkit-blazor skill.
 ---
 
 # Plainkit SDK

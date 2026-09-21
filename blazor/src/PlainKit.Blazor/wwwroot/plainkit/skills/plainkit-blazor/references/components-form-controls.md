@@ -459,3 +459,36 @@ Two-way binding: `@bind-Value`.
 | `pk-value-change` | `PkValueChangeEventArgs` | Value: string? |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-textarea` in the `plainkit-sdk` skill.
+
+## `PkUnitInput`
+
+`<pk-unit-input>`: **Unit input** (Form controls). A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.
+
+**Parameters**
+
+| Parameter | Type | Enum values | Sets | Description |
+|---|---|---|---|---|
+| `Value` | `string?` |  | attribute `value` | The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
+| `ValueChanged` | `EventCallback<string?>` |  | two-way pair of `Value` | Raised when Value changes (two-way binding: `@bind-Value`). |
+| `Name` | `string?` |  | attribute `name` | The form field name. |
+| `Units` | `string?` |  | attribute `units` | The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select. |
+| `Placeholder` | `string?` |  | attribute `placeholder` | Hint shown in the number field while it is empty. |
+| `AriaLabel` | `string?` |  | attribute `label` | The accessible name (aria-label) of the number field; the unit select is named "<label> unit". pk-field fills it from its own label when this is empty. |
+| `ShowLabel` | `bool` |  | attribute `show-label` | Shows label as visible text above the field (linked to it), for use without a pk-field. |
+| `Disabled` | `bool` |  | attribute `disabled` | Blocks interaction; also set by a disabled fieldset. |
+| `ReadOnly` | `bool` |  | attribute `readonly` | Shows the value but does not let it change (the unit select is disabled too). |
+| `Required` | `bool` |  | attribute `required` | The form cannot be submitted while the number is empty. |
+| `IsInvalid` | `bool` |  | attribute `invalid` | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
+| `Min` | `string?` |  | attribute `min` | Lowest number (the number, whatever the unit). |
+| `Max` | `string?` |  | attribute `max` | Highest number. |
+| `Step` | `string?` |  | attribute `step` | The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by. |
+
+Two-way binding: `@bind-Value`.
+
+**Event args**
+
+| Event | Args class | Fields |
+|---|---|---|
+| `pk-value-change` | `PkValueChangeEventArgs` | Value: string? |
+
+Element details (parts, CSS custom properties, methods, accessibility): `pk-unit-input` in the `plainkit-sdk` skill.

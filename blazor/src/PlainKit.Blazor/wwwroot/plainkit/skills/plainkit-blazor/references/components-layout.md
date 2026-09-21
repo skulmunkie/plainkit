@@ -152,6 +152,35 @@ When you set a named fragment (`BreadcrumbContent`, `ActionsContent`, `MetaConte
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-page-header` in the `plainkit-sdk` skill.
 
+## `PkSplitter`
+
+`<pk-splitter>`: **Splitter** (Layout). Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.
+
+**Parameters**
+
+| Parameter | Type | Enum values | Sets | Description |
+|---|---|---|---|---|
+| `Orientation` | `string?` |  | attribute `orientation` | How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise). |
+| `Size` | `double` |  | attribute `size` | The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does. |
+| `SizeChanged` | `EventCallback<double>` |  | two-way pair of `Size` | Raised when Size changes (two-way binding: `@bind-Size`). |
+| `Min` | `double` |  | attribute `min` | Smallest size of the start pane, in percent (aria-valuemin). |
+| `Max` | `double` |  | attribute `max` | Largest size of the start pane, in percent (aria-valuemax). |
+| `Step` | `double` |  | attribute `step` | Percent moved by one arrow key press. |
+| `AriaLabel` | `string?` |  | attribute `label` | The separator's accessible name (aria-label). |
+| `Disabled` | `bool` |  | attribute `disabled` | Fixes the size: the separator no longer takes focus or moves. |
+| `StartContent` | `RenderFragment?` |  | slot `start` | The first pane (left, or top when stacked); its size is size percent. |
+| `EndContent` | `RenderFragment?` |  | slot `end` | The second pane, which takes the rest. |
+
+Two-way binding: `@bind-Size`.
+
+**Event args**
+
+| Event | Args class | Fields |
+|---|---|---|
+| `pk-resize` | `PkResizeEventArgs` | Size: double? |
+
+Element details (parts, CSS custom properties, methods, accessibility): `pk-splitter` in the `plainkit-sdk` skill.
+
 ## `PkStack`
 
 `<pk-stack>`: **Stack** (Layout). A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.

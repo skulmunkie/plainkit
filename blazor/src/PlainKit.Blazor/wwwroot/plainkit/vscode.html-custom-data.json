@@ -2743,6 +2743,49 @@
       ]
     },
     {
+      "name": "pk-splitter",
+      "description": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.\n\nSlots: start, end.",
+      "attributes": [
+        {
+          "name": "orientation",
+          "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise).",
+          "values": [
+            {
+              "name": "horizontal"
+            },
+            {
+              "name": "vertical"
+            }
+          ]
+        },
+        {
+          "name": "size",
+          "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does."
+        },
+        {
+          "name": "min",
+          "description": "Smallest size of the start pane, in percent (aria-valuemin)."
+        },
+        {
+          "name": "max",
+          "description": "Largest size of the start pane, in percent (aria-valuemax)."
+        },
+        {
+          "name": "step",
+          "description": "Percent moved by one arrow key press."
+        },
+        {
+          "name": "label",
+          "description": "The separator's accessible name (aria-label)."
+        },
+        {
+          "name": "disabled",
+          "description": "Fixes the size: the separator no longer takes focus or moves.",
+          "valueSet": "v"
+        }
+      ]
+    },
+    {
       "name": "pk-stack",
       "description": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.\n\nSlots: (default).",
       "attributes": [
@@ -3694,6 +3737,73 @@
           "name": "expandable",
           "description": "Set by the element when it has child items.",
           "valueSet": "v"
+        }
+      ]
+    },
+    {
+      "name": "pk-unit-input",
+      "description": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.\n\nSlots: none.",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "The form field name."
+        },
+        {
+          "name": "value",
+          "description": "The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+        },
+        {
+          "name": "units",
+          "description": "The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select."
+        },
+        {
+          "name": "placeholder",
+          "description": "Hint shown in the number field while it is empty."
+        },
+        {
+          "name": "label",
+          "description": "The accessible name (aria-label) of the number field; the unit select is named \"<label> unit\". pk-field fills it from its own label when this is empty."
+        },
+        {
+          "name": "show-label",
+          "description": "Shows label as visible text above the field (linked to it), for use without a pk-field.",
+          "valueSet": "v"
+        },
+        {
+          "name": "description",
+          "description": "Help and error text, exposed as aria-description; pk-field fills it."
+        },
+        {
+          "name": "disabled",
+          "description": "Blocks interaction; also set by a disabled fieldset.",
+          "valueSet": "v"
+        },
+        {
+          "name": "readonly",
+          "description": "Shows the value but does not let it change (the unit select is disabled too).",
+          "valueSet": "v"
+        },
+        {
+          "name": "required",
+          "description": "The form cannot be submitted while the number is empty.",
+          "valueSet": "v"
+        },
+        {
+          "name": "invalid",
+          "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext).",
+          "valueSet": "v"
+        },
+        {
+          "name": "min",
+          "description": "Lowest number (the number, whatever the unit)."
+        },
+        {
+          "name": "max",
+          "description": "Highest number."
+        },
+        {
+          "name": "step",
+          "description": "The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by."
         }
       ]
     },

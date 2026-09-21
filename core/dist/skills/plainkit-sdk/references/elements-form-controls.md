@@ -1066,3 +1066,75 @@ Example: Fixed and auto-grow
 <pk-textarea label="Notes" rows="3" value="Fixed height, resizable."></pk-textarea>
 <pk-textarea label="Description" autogrow max-height="160" value="Grows as you type, up to 160px."></pk-textarea>
 ```
+
+## `pk-unit-input`
+
+**Unit input** (Form controls). A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.
+
+It is form-associated (takes part in a `<form>` by its `name`) and delegates focus to its inner control.
+
+**Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)
+
+| Attribute | Property | Type | Default | Values | Description |
+|---|---|---|---|---|---|
+| `name` | `name` | string | `""` |  | The form field name. |
+| `value` | `value` | string | `""` |  | The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. |
+| `units` | `units` | string | `"px,rem,em,%"` |  | The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select. |
+| `placeholder` | `placeholder` | string | `""` |  | Hint shown in the number field while it is empty. |
+| `label` | `label` | string | `""` |  | The accessible name (aria-label) of the number field; the unit select is named "<label> unit". pk-field fills it from its own label when this is empty. |
+| `show-label` | `showLabel` | boolean | `false` |  | Shows label as visible text above the field (linked to it), for use without a pk-field. |
+| `description` | `description` | string | `""` |  | Help and error text, exposed as aria-description; pk-field fills it. |
+| `disabled` | `disabled` | boolean | `false` |  | Blocks interaction; also set by a disabled fieldset. |
+| `readonly` | `readonly` | boolean | `false` |  | Shows the value but does not let it change (the unit select is disabled too). |
+| `required` | `required` | boolean | `false` |  | The form cannot be submitted while the number is empty. |
+| `invalid` | `invalid` | boolean | `false` |  | Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). |
+| `min` | `min` | string | `""` |  | Lowest number (the number, whatever the unit). |
+| `max` | `max` | string | `""` |  | Highest number. |
+| `step` | `step` | string | `"any"` |  | The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by. |
+
+**Events** (`addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown)
+
+| Event | Detail | Description |
+|---|---|---|
+| `input` | `native Event` | The number was edited (native, composed: bubbles out of the shadow root). Read the value from the element. |
+| `change` | `native Event` | The user committed the number or picked another unit (re-dispatched from the inner control, composed). |
+| `pk-value-change` | `{ value: string }` | The user committed a new value (same moment as change; carries the value). |
+
+**Methods**
+
+| Method | Description |
+|---|---|
+| `focus()` | Moves focus to the number field. |
+
+**CSS parts** (`::part(name)`)
+
+| Part | Description |
+|---|---|
+| `label` | The visible label shown by showLabel. |
+| `box` | The bordered field that holds the number and the unit. |
+| `control` | The inner number input. |
+| `unit` | The inner unit select. |
+| `chevron` | The arrow drawn on the unit select. |
+
+**CSS custom properties** (set on the element or a parent, from a stylesheet)
+
+| Property | Default | Description |
+|---|---|---|
+| `--pk-control-bg` | `var(--color-input)` | Background of the field. |
+| `--pk-control-border` | `var(--color-input-border)` | Border colour. |
+| `--pk-control-radius` | `var(--radius-sm)` | Corner radius. |
+
+**Accessibility.** A native number input and a native select live in the shadow root: the number is named by label (aria-label) and described by description, the select is named "<label> unit", so both are reachable by Tab and the arrow keys change the number by step. invalid sets aria-invalid and the state is never colour alone (the ring is thicker). Text is 16px and the control 44px tall on a phone.
+
+Example: Lengths
+
+```html
+<pk-unit-input label="Width" value="1.5rem"></pk-unit-input>
+<pk-unit-input label="Gap" show-label units="px rem" value="12px" min="0"></pk-unit-input>
+```
+
+Example: Another set of units
+
+```html
+<pk-unit-input label="Duration" units="ms s" value="250ms"></pk-unit-input>
+```

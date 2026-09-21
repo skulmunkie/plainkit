@@ -64,6 +64,7 @@ export default {
     "pk-skip-link": "./skip-link/skip-link.element.js",
     "pk-spinner": "./spinner/spinner.element.js",
     "pk-split-button": "./split-button/split-button.element.js",
+    "pk-splitter": "./splitter/splitter.element.js",
     "pk-stack": "./stack/stack.element.js",
     "pk-stat": "./stat/stat.element.js",
     "pk-step": "./step/step.element.js",
@@ -85,5 +86,6 @@ export default {
     "pk-tooltip": "./tooltip/tooltip.element.js",
     "pk-tree": "./tree/tree.element.js",
     "pk-tree-item": "./tree-item/tree-item.element.js",
+    "pk-unit-input": "./unit-input/unit-input.element.js",
     "pk-workspace": "./workspace/workspace.element.js"
 };

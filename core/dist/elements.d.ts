@@ -1081,6 +1081,23 @@ export interface PkSplitButtonElement extends HTMLElement {
     hide()(...args: unknown[]): unknown;
 }
 
+export interface PkSplitterElement extends HTMLElement {
+    /** How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise). */
+    orientation: "horizontal" | "vertical";
+    /** The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does. */
+    size: number;
+    /** Smallest size of the start pane, in percent (aria-valuemin). */
+    min: number;
+    /** Largest size of the start pane, in percent (aria-valuemax). */
+    max: number;
+    /** Percent moved by one arrow key press. */
+    step: number;
+    /** The separator's accessible name (aria-label). */
+    label: string;
+    /** Fixes the size: the separator no longer takes focus or moves. */
+    disabled: boolean;
+}
+
 export interface PkStackElement extends HTMLElement {
     /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the flow space). */
     gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
@@ -1464,6 +1481,39 @@ export interface PkTreeItemElement extends HTMLElement {
     select()(...args: unknown[]): unknown;
 }
 
+export interface PkUnitInputElement extends HTMLElement {
+    /** The form field name. */
+    name: string;
+    /** The number and unit joined, for example 1.5rem or 12px (empty until there is a number); what the form submits. A value that is not a number with a unit (auto, calc(...)) leaves the number field empty and is kept until the user edits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently. */
+    value: string;
+    /** The units the select offers, comma or space separated; the first is used until a value or the user picks another. A value whose unit is not listed adds that unit to the select. */
+    units: string;
+    /** Hint shown in the number field while it is empty. */
+    placeholder: string;
+    /** The accessible name (aria-label) of the number field; the unit select is named "<label> unit". pk-field fills it from its own label when this is empty. */
+    label: string;
+    /** Shows label as visible text above the field (linked to it), for use without a pk-field. */
+    showLabel: boolean;
+    /** Help and error text, exposed as aria-description; pk-field fills it. */
+    description: string;
+    /** Blocks interaction; also set by a disabled fieldset. */
+    disabled: boolean;
+    /** Shows the value but does not let it change (the unit select is disabled too). */
+    readonly: boolean;
+    /** The form cannot be submitted while the number is empty. */
+    required: boolean;
+    /** Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). */
+    invalid: boolean;
+    /** Lowest number (the number, whatever the unit). */
+    min: string;
+    /** Highest number. */
+    max: string;
+    /** The number's step: any (the default) allows decimals, or a size such as 0.25 that the arrow keys move by. */
+    step: string;
+    /** Moves focus to the number field. */
+    focus()(...args: unknown[]): unknown;
+}
+
 export interface PkWorkspaceElement extends HTMLElement {
     /** Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve. */
     fill: boolean;
@@ -1545,6 +1595,7 @@ declare global {
         'pk-skip-link': PkSkipLinkElement;
         'pk-spinner': PkSpinnerElement;
         'pk-split-button': PkSplitButtonElement;
+        'pk-splitter': PkSplitterElement;
         'pk-stack': PkStackElement;
         'pk-stat': PkStatElement;
         'pk-step': PkStepElement;
@@ -1566,6 +1617,7 @@ declare global {
         'pk-tooltip': PkTooltipElement;
         'pk-tree': PkTreeElement;
         'pk-tree-item': PkTreeItemElement;
+        'pk-unit-input': PkUnitInputElement;
         'pk-workspace': PkWorkspaceElement;
     }
     interface HTMLElementEventMap {
@@ -1600,6 +1652,7 @@ declare global {
         'pk-rating-change': CustomEvent<{ value: number: unknown }>;
         'pk-split-select': CustomEvent<{ value: string: unknown; label: string: unknown }>;
         'pk-menu-toggle': CustomEvent<{ open: boolean: unknown }>;
+        'pk-resize': CustomEvent<{ size: number: unknown }>;
         'pk-activate': CustomEvent<unknown>;
         'pk-step-change': CustomEvent<unknown>;
         'pk-tab-close': CustomEvent<{ value: unknown }>;
@@ -1679,6 +1732,7 @@ declare global {
             'pk-skip-link': PkJsx<PkSkipLinkElement, "href">;
             'pk-spinner': PkJsx<PkSpinnerElement, "variant" | "size" | "label" | "overlay">;
             'pk-split-button': PkJsx<PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">;
+            'pk-splitter': PkJsx<PkSplitterElement, "orientation" | "size" | "min" | "max" | "step" | "label" | "disabled">;
             'pk-stack': PkJsx<PkStackElement, "gap" | "align" | "dividers">;
             'pk-stat': PkJsx<PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaUnit" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">;
             'pk-step': PkJsx<PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">;
@@ -1700,6 +1754,7 @@ declare global {
             'pk-tooltip': PkJsx<PkTooltipElement, "text" | "placement" | "delay" | "shown" | "interactive" | "help" | "enrich" | "heading" | "label">;
             'pk-tree': PkJsx<PkTreeElement, "label" | "selection" | "value">;
             'pk-tree-item': PkJsx<PkTreeItemElement, "label" | "value" | "expanded" | "selected" | "disabled" | "expandable">;
+            'pk-unit-input': PkJsx<PkUnitInputElement, "name" | "value" | "units" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "min" | "max" | "step">;
             'pk-workspace': PkJsx<PkWorkspaceElement, "fill" | "activePane" | "asideOpen" | "navLabel" | "mainLabel" | "asideLabel">;
         }
     }

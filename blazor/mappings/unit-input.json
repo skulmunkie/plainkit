@@ -1,0 +1,100 @@
+{
+  "component": "PkUnitInput",
+  "params": [
+    {
+      "name": "Value",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "value",
+      "bind": {
+        "event": "pk-value-change",
+        "value": "detail.value"
+      }
+    },
+    {
+      "name": "Name",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "name"
+    },
+    {
+      "name": "Units",
+      "type": "string",
+      "default": "px,rem,em,%",
+      "map": "prop",
+      "prop": "units"
+    },
+    {
+      "name": "Placeholder",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "placeholder"
+    },
+    {
+      "name": "AriaLabel",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "ShowLabel",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "showLabel"
+    },
+    {
+      "name": "Disabled",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "disabled"
+    },
+    {
+      "name": "ReadOnly",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "readonly"
+    },
+    {
+      "name": "Required",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "required"
+    },
+    {
+      "name": "IsInvalid",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "invalid"
+    },
+    {
+      "name": "Min",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "min"
+    },
+    {
+      "name": "Max",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "max"
+    },
+    {
+      "name": "Step",
+      "type": "string",
+      "default": "any",
+      "map": "prop",
+      "prop": "step"
+    }
+  ]
+}

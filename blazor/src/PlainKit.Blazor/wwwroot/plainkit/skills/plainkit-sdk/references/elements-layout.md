@@ -415,6 +415,69 @@ Example: Record: status chips and actions
 </pk-page-header>
 ```
 
+## `pk-splitter`
+
+**Splitter** (Layout). Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.
+
+It is delegates focus to its inner control.
+
+**Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)
+
+| Attribute | Property | Type | Default | Values | Description |
+|---|---|---|---|---|---|
+| `orientation` | `orientation` | enum | `"horizontal"` | `horizontal` `vertical` | How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise). |
+| `size` | `size` | number | `50` |  | The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does. |
+| `min` | `min` | number | `10` |  | Smallest size of the start pane, in percent (aria-valuemin). |
+| `max` | `max` | number | `90` |  | Largest size of the start pane, in percent (aria-valuemax). |
+| `step` | `step` | number | `2` |  | Percent moved by one arrow key press. |
+| `label` | `label` | string | `"Resize panes"` |  | The separator's accessible name (aria-label). |
+| `disabled` | `disabled` | boolean | `false` |  | Fixes the size: the separator no longer takes focus or moves. |
+
+**Slots** (`slot="name"` on a child)
+
+| Slot | Description |
+|---|---|
+| `start` | The first pane (left, or top when stacked); its size is size percent. |
+| `end` | The second pane, which takes the rest. |
+
+**Events** (`addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown)
+
+| Event | Detail | Description |
+|---|---|---|
+| `input` | `native Event` | The size is changing while a drag is in progress (native, composed). Read the size from the element. |
+| `pk-resize` | `{ size: number }` | The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable. |
+
+**CSS parts** (`::part(name)`)
+
+| Part | Description |
+|---|---|
+| `root` | The grid that lays out the two panes and the separator. |
+| `start` | The first pane wrapper (it scrolls on its own). |
+| `handle` | The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen. |
+| `end` | The second pane wrapper (it scrolls on its own). |
+
+**CSS custom properties** (set on the element or a parent, from a stylesheet)
+
+| Property | Default | Description |
+|---|---|---|
+| `--pk-splitter-handle` | `var(--space-2)` | Thickness of the separator. |
+| `--pk-splitter-height` | `auto, or 16rem when stacked` | Height of the splitter (the panes scroll inside it). |
+| `--pk-splitter-line` | `var(--color-border)` | Colour of the separator line at rest. |
+
+**Accessibility.** The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.
+
+Example: Side by side
+
+```html
+<pk-splitter size="30" min="15" max="70" label="Resize the list"><div slot="start" class="stack"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot="end" class="stack"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>
+```
+
+Example: Stacked
+
+```html
+<pk-splitter orientation="vertical" size="60" label="Resize the console"><div slot="start">Editor</div><div slot="end">Console</div></pk-splitter>
+```
+
 ## `pk-stack`
 
 **Stack** (Layout). A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.

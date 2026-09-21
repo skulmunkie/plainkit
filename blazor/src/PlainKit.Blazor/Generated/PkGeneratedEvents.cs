@@ -223,6 +223,13 @@ public class PkRemoveEventArgs : EventArgs
     public string? Value { get; set; }
 }
 
+/// <summary>The detail of <c>pk-resize</c>, raised by PkSplitter. A field is set only when the element sends it.</summary>
+public class PkResizeEventArgs : EventArgs
+{
+    /// <summary>The <c>size</c> field of the detail (<c>number</c>).</summary>
+    public double? Size { get; set; }
+}
+
 /// <summary>The detail of <c>pk-search</c>, raised by PkInput. A field is set only when the element sends it.</summary>
 public class PkSearchEventArgs : EventArgs
 {
@@ -310,7 +317,7 @@ public class PkToggleEventArgs : EventArgs
     public string? Id { get; set; }
 }
 
-/// <summary>The detail of <c>pk-value-change</c>, raised by PkInput, PkRadioGroup, PkSelect, PkTextarea. A field is set only when the element sends it.</summary>
+/// <summary>The detail of <c>pk-value-change</c>, raised by PkInput, PkRadioGroup, PkSelect, PkTextarea, PkUnitInput. A field is set only when the element sends it.</summary>
 public class PkValueChangeEventArgs : EventArgs
 {
     /// <summary>The <c>value</c> field of the detail (<c>string</c>).</summary>
@@ -343,6 +350,7 @@ public class PkValueChangeEventArgs : EventArgs
 [EventHandler("onpk-range", typeof(PkRangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-rating-change", typeof(PkRatingChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-remove", typeof(PkRemoveEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
+[EventHandler("onpk-resize", typeof(PkResizeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-search", typeof(PkSearchEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-section-change", typeof(PkSectionChangeEventArgs), enableStopPropagation: true, enablePreventDefault: true)]
 [EventHandler("onpk-select", typeof(PkSelectEventArgs), enableStopPropagation: true, enablePreventDefault: true)]

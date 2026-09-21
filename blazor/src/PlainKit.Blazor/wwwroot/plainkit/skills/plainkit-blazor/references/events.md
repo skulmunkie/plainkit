@@ -28,6 +28,7 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 | `pk-range` | `PkRangeEventArgs` | `PkRange` | Value: double?, Low: double?, High: double? |
 | `pk-rating-change` | `PkRatingChangeEventArgs` | `PkRating` | Value: double? |
 | `pk-remove` | `PkRemoveEventArgs` | `PkImageGallery` `PkTag` | Index: double?, Src: string?, Value: string? |
+| `pk-resize` | `PkResizeEventArgs` | `PkSplitter` | Size: double? |
 | `pk-search` | `PkSearchEventArgs` | `PkInput` | Value: string? |
 | `pk-section-change` | `PkSectionChangeEventArgs` | `PkToc` | Id: string? |
 | `pk-select` | `PkSelectEventArgs` | `PkCalendar` `PkCommandPalette` `PkContextMenu` `PkDropdown` `PkMenuItem` `PkTree` `PkTreeItem` | Value: string?, Item: JsonElement?, Checked: bool?, Id: string? |
@@ -37,6 +38,6 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 | `pk-tab-close` | `PkTabCloseEventArgs` | `PkTab` | Value: string? |
 | `pk-tags-change` | `PkTagsChangeEventArgs` | `PkTagInput` | Value: string? |
 | `pk-toggle` | `PkToggleEventArgs` | `PkAccordionItem` `PkHint` `PkNavItem` `PkNavbar` `PkTree` `PkTreeItem` | Open: bool?, Expanded: bool?, Id: string? |
-| `pk-value-change` | `PkValueChangeEventArgs` | `PkInput` `PkRadioGroup` `PkSelect` `PkTextarea` | Value: string? |
+| `pk-value-change` | `PkValueChangeEventArgs` | `PkInput` `PkRadioGroup` `PkSelect` `PkTextarea` `PkUnitInput` | Value: string? |
 
 Events without a detail (`pk-confirm` `pk-expand` `pk-load-more` `pk-valid`) use `EventArgs`.

@@ -1,0 +1,136 @@
+{
+  "tag": "pk-splitter",
+  "title": "Splitter",
+  "group": "Layout",
+  "summary": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.",
+  "delegatesFocus": true,
+  "props": [
+    {
+      "name": "orientation",
+      "type": "enum",
+      "default": "horizontal",
+      "values": [
+        "horizontal",
+        "vertical"
+      ],
+      "reflect": true,
+      "description": "How the panes lie: horizontal puts them side by side (the separator is a vertical bar), vertical stacks them (the separator is a horizontal bar and it is 16rem tall unless --pk-splitter-height says otherwise)."
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "default": 50,
+      "reflect": false,
+      "commit": "pk-resize",
+      "description": "The start pane's share of the room, in percent, kept between min and max. While the user drags or presses a key the element owns it; after pk-resize the host does."
+    },
+    {
+      "name": "min",
+      "type": "number",
+      "default": 10,
+      "reflect": false,
+      "description": "Smallest size of the start pane, in percent (aria-valuemin)."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": 90,
+      "reflect": false,
+      "description": "Largest size of the start pane, in percent (aria-valuemax)."
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "default": 2,
+      "reflect": false,
+      "description": "Percent moved by one arrow key press."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Resize panes",
+      "reflect": false,
+      "description": "The separator's accessible name (aria-label)."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fixes the size: the separator no longer takes focus or moves."
+    }
+  ],
+  "slots": [
+    {
+      "name": "start",
+      "description": "The first pane (left, or top when stacked); its size is size percent."
+    },
+    {
+      "name": "end",
+      "description": "The second pane, which takes the rest."
+    }
+  ],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The size is changing while a drag is in progress (native, composed). Read the size from the element."
+    },
+    {
+      "name": "pk-resize",
+      "detail": "{ size: number }",
+      "detailProps": {
+        "size": "number"
+      },
+      "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+    }
+  ],
+  "parts": [
+    {
+      "name": "root",
+      "description": "The grid that lays out the two panes and the separator."
+    },
+    {
+      "name": "start",
+      "description": "The first pane wrapper (it scrolls on its own)."
+    },
+    {
+      "name": "handle",
+      "description": "The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen."
+    },
+    {
+      "name": "end",
+      "description": "The second pane wrapper (it scrolls on its own)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-splitter-handle",
+      "description": "Thickness of the separator.",
+      "default": "var(--space-2)"
+    },
+    {
+      "name": "--pk-splitter-height",
+      "description": "Height of the splitter (the panes scroll inside it).",
+      "default": "auto, or 16rem when stacked"
+    },
+    {
+      "name": "--pk-splitter-line",
+      "description": "Colour of the separator line at rest.",
+      "default": "var(--color-border)"
+    }
+  ],
+  "methods": [],
+  "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.",
+  "mobile": "On a touch screen the separator's hit area is 44px in the resize direction (the line stays thin), and touch-action is off on it so a drag resizes instead of scrolling.",
+  "examples": [
+    {
+      "title": "Side by side",
+      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+    },
+    {
+      "title": "Stacked",
+      "html": "<pk-splitter orientation=\"vertical\" size=\"60\" label=\"Resize the console\"><div slot=\"start\">Editor</div><div slot=\"end\">Console</div></pk-splitter>"
+    }
+  ]
+}

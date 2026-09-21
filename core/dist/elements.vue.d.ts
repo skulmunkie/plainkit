@@ -68,6 +68,7 @@ declare module 'vue' {
         'pk-skip-link': DefineComponent<Partial<Pick<E.PkSkipLinkElement, "href">>>;
         'pk-spinner': DefineComponent<Partial<Pick<E.PkSpinnerElement, "variant" | "size" | "label" | "overlay">>>;
         'pk-split-button': DefineComponent<Partial<Pick<E.PkSplitButtonElement, "variant" | "type" | "disabled" | "toggleLabel" | "open" | "menuAlign">>>;
+        'pk-splitter': DefineComponent<Partial<Pick<E.PkSplitterElement, "orientation" | "size" | "min" | "max" | "step" | "label" | "disabled">>>;
         'pk-stack': DefineComponent<Partial<Pick<E.PkStackElement, "gap" | "align" | "dividers">>>;
         'pk-stat': DefineComponent<Partial<Pick<E.PkStatElement, "label" | "value" | "subtext" | "tone" | "delta" | "deltaUnit" | "deltaDirection" | "invert" | "versus" | "values" | "href" | "tile" | "interactive">>>;
         'pk-step': DefineComponent<Partial<Pick<E.PkStepElement, "heading" | "description" | "state" | "index" | "disabled" | "last" | "clickable" | "orientation">>>;
@@ -89,6 +90,7 @@ declare module 'vue' {
         'pk-tooltip': DefineComponent<Partial<Pick<E.PkTooltipElement, "text" | "placement" | "delay" | "shown" | "interactive" | "help" | "enrich" | "heading" | "label">>>;
         'pk-tree': DefineComponent<Partial<Pick<E.PkTreeElement, "label" | "selection" | "value">>>;
         'pk-tree-item': DefineComponent<Partial<Pick<E.PkTreeItemElement, "label" | "value" | "expanded" | "selected" | "disabled" | "expandable">>>;
+        'pk-unit-input': DefineComponent<Partial<Pick<E.PkUnitInputElement, "name" | "value" | "units" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "min" | "max" | "step">>>;
         'pk-workspace': DefineComponent<Partial<Pick<E.PkWorkspaceElement, "fill" | "activePane" | "asideOpen" | "navLabel" | "mainLabel" | "asideLabel">>>;
     }
 }

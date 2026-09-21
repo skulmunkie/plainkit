@@ -258,4 +258,19 @@ export const formCases = [
         const f = await t.mount('<pk-field label="L" layout="inline" size="sm"><input></pk-field>'); t.eq(f.layout, 'inline'); t.eq(f.size, 'sm');
         const c = await t.mount('<pk-checkbox size="sm">C</pk-checkbox>'); t.eq(c.size, 'sm'); t.ok(getComputedStyle(c.part('control')).fontSize.length > 0);
     }],
+
+    ['unit-input: the number and unit make one value, the form submits it, the commit event carries it, a foreign unit is kept', async t => {
+        const host = t.stage('<form><pk-unit-input name="w" label="Width" show-label value="1.5rem"></pk-unit-input></form>'); await t.load(host); await t.settle();
+        const el = host.querySelector('pk-unit-input'); const n = el.part('control'); const u = el.part('unit');
+        t.eq(n.value, '1.5'); t.eq(u.value, 'rem'); t.eq(new FormData(host.firstElementChild).get('w'), '1.5rem'); t.eq(n.getAttribute('aria-label'), 'Width'); t.eq(u.getAttribute('aria-label'), 'Width unit');
+        t.ok(getComputedStyle(el.part('label')).display !== 'none'); t.eq(el.part('label').htmlFor, 'c');
+        const seen = []; el.addEventListener('pk-value-change', e => seen.push(e.detail.value));
+        n.value = '2'; n.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); t.eq(el.value, '2rem'); t.eq(seen.length, 0, 'no commit while typing');
+        n.dispatchEvent(new Event('change', { bubbles: true })); t.eq(seen.join(), '2rem');
+        u.value = 'px'; u.dispatchEvent(new Event('change', { bubbles: true })); await t.settle(); t.eq(el.value, '2px'); t.eq(seen.join(), '2rem,2px'); t.eq(new FormData(host.firstElementChild).get('w'), '2px');
+        el.value = '10vh'; await t.settle(); t.eq(u.value, 'vh'); t.eq(n.value, '10'); t.eq(seen.length, 2, 'a value the host sets raises nothing');
+        el.units = 'ms s'; el.value = '250ms'; await t.settle(); t.eq([...u.options].map(o => o.value).join(), 'ms,s'); t.eq(u.value, 'ms');
+        el.required = true; el.value = ''; await t.settle(); t.ok(!el.checkValidity(), 'required needs a number');
+        el.readonly = true; await t.settle(); t.ok(u.disabled);
+    }],
 ];

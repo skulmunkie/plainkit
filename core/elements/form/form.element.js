@@ -34,7 +34,7 @@ const behaviour = Base => class extends Base {
     }
     check(control) { const m = messageFor(control); this.show(control, m); return !m; }
     live(e, kind) {
-        const c = e.target.closest?.('pk-input, pk-textarea, pk-select, pk-checkbox, pk-combobox, pk-tag-input, pk-otp-input, pk-range, pk-colour-input, pk-dropzone, pk-radio-group, pk-switch, input, select, textarea');
+        const c = e.target.closest?.('pk-input, pk-textarea, pk-select, pk-checkbox, pk-combobox, pk-tag-input, pk-otp-input, pk-range, pk-colour-input, pk-unit-input, pk-dropzone, pk-radio-group, pk-switch, input, select, textarea');
         if (!c || !this.controls().includes(c)) return;
         const showing = Boolean(c.closest('pk-field')?.error);
         if (shouldCheck(this.validate, kind, showing)) queueMicrotask(() => this.check(c));
