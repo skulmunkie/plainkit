@@ -16,6 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - Fixed: `pk-split-button`, `pk-nav-item` and `pk-context-menu` lost their outside-click dismissal when re-attached while open; `pk-local-time` no longer starts its refresh timer on a detached element; the code explorer no longer keeps a change-feed subscription that resolves after it was disconnected.
 - Fixed: `PkElement.watchSlot` adds one `slotchange` listener per slot however often `connected()` runs (tabs, cards, avatar groups and others stacked one per move).
 - Fixed: PlainKit.Blazor's mount components (`PkLogs`, `PkScorecard`, `PkConsole`, `PkPerformance`, `PkCodeExplorer`, `PkLogSettings`) leaked a running tool when they were disposed while its module was still loading; the bridge now drops a mount that is no longer current.
+- Fixed: the Files page snapshot (`core/site/files/snapshot.json`) went stale with any edit. `node core/tools/build.mjs` now writes it (deterministic: no timestamp, sorted by path on every platform, generated files laid over the disk copy, never includes itself or `dist/`), `node core/tools/snapshot.mjs` with no arguments runs that build, `core/tests/generated-current.test.mjs` proves every generated file is current, and the CI rebuild step checks `core/site`, `plainkit.css` and the element modules as well as `core/dist`. Refs #10.
 
 ## [0.1.0-alpha.1] - 2026-09-21
 

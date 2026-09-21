@@ -49,10 +49,12 @@ jobs:
           fi
 
       # The build is deterministic and dist is committed, so a rebuild must change nothing.
-      - name: Rebuild and check dist is current
+      # The same build also writes the other generated files (plainkit.css, the gallery data, api.current.json and the Files page's snapshot of core/),
+      # so they are checked here too; core/tests/generated-current.test.mjs proves the same thing from inside the node tests.
+      - name: Rebuild and check dist and the other generated files are current
         run: |
           node core/tools/build.mjs
-          git diff --exit-code -- core/dist
+          git diff --exit-code -- core/dist core/site core/plainkit.css core/elements core/js/version.js
 
       # The agent skills (core/dist/skills) are generated from the API, the Blazor mappings and manifest, the sample folders and the tool modules; a change to
       # any of them must be regenerated. The build above keeps them in the manifest without producing them, so this is what proves they are current.

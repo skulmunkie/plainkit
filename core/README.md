@@ -129,8 +129,7 @@ The element inspector, `createElementInspector(container)` in `dist/js/element-i
 ## Build and test
 
 ```
-node tools/build.mjs        # regenerate plainkit.css, gallery data, dist/ (deterministic)
-node tools/snapshot.mjs     # refresh site/files/snapshot.json for the Files page
+node tools/build.mjs        # regenerate plainkit.css, gallery data, the Files snapshot (site/files/snapshot.json), dist/ (deterministic)
 node --test .               # unit, budget, security and API-surface tests
 node tools/security.mjs     # scan for eval, inline handlers, secrets, unlisted innerHTML, ...
 node site/scorecard/static-audit.mjs
