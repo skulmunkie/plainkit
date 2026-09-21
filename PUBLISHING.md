@@ -9,7 +9,7 @@ What a version number means, and how a release is cut (a release pull request, t
 | What | Workflow | Runs on | Where it goes |
 |---|---|---|---|
 | The gallery and tools site, and `dist/` as a URL prefix (always the latest `main`) | `pages.yml` | every push to `main` | `https://skulmunkie.github.io/plainkit/` |
-| `PlainKit.Blazor` (NuGet), a GitHub release carrying `dist` zipped, its integrity manifest, the `.nupkg` and `plainkit-skills-<version>.zip` (the agent skills) | `release.yml` | a tag such as `v0.1.0` | nuget.org, GitHub Releases |
+| `PlainKit.Blazor` (NuGet), a GitHub release carrying `dist` zipped, its integrity manifest, the `.nupkg` and `plainkit-skills-<version>.zip` (the agent skills) | `release.yml` | a tag such as `v0.1.0` | GitHub Releases first, then nuget.org |
 | `plainkit` on npm (optional) | `release.yml` | a tag, only when the secret `NPM_TOKEN` exists | npmjs.com |
 | Tests, the "package copy is current" check and the "skills are current" check | `ci.yml` | every push and pull request | (checks only) |
 
@@ -44,6 +44,7 @@ NuGet.org issues a one-hour key to a workflow it trusts, so no key is stored in 
    - **Repository:** `plainkit`
    - **Workflow File:** `release.yml` (the file name only, no path)
    - **Environment:** leave empty (this workflow does not use one)
+   - **Scopes:** **Push new packages and package versions**. The first release creates the package id, and without this scope the push is refused with a 403 ("does not have permission to access the specified package") even though the login step succeeds.
    - **Policy owner:** you, or an organisation you belong to. A policy covers the packages that owner publishes; scope it to `PlainKit.*` if the form offers a package pattern, and allow publishing new packages so the first release can create the package id.
 2. In the GitHub repository: **Settings > Secrets and variables > Actions**, add `NUGET_USER` = your nuget.org **username** (profile name, not your email).
 3. Tag a release: `git tag v0.1.0 && git push origin v0.1.0`.
