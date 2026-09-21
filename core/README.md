@@ -81,8 +81,15 @@ The loader imports only the elements the page uses. Props are attributes or prop
 
 Attributes: `kind` (foundations, elements, layouts, templates; `controls` is the old name of elements), `group`, `control` (an element tag or name, or a comma list), `theme` (dark, light), `width` (desktop, phone),
 `filter` (search text), `chrome` (`none` is the default: content only, sized to fit; `full` keeps the nav, toolbar and the Details inspector (an element page's API and live markup)), `height` (pixels) and `src`
-(the address of `gallery/embed.html` when it is not next to `elements/`). The SDK's own gallery page uses the same module (`mountGallery` in `site/gallery/gallery.js`).
+(the address of `gallery/embed.html` when it is not next to `elements/`; a relative address resolves against `document.baseURI`, so it works on a routed page) and `sections` (below). The SDK's own gallery page uses the same module (`mountGallery` in `site/gallery/gallery.js`).
 A narrowed mount (`kind`, `group`, `control`) shows only that part everywhere: its overview cards, the nav and the Elements list; `filter` narrows the same lists by title. The option rules are in `js/gallery-options.js`.
+
+**Host sections in the Details drawer.** With `chrome` full, a host can add sections to the inspector for the open element, even though the gallery runs in its own frame: pass plain data, never code.
+`sections` is a list of `{ tag?, title, open?, lines?, columns?, rows?, code? }`, all text: `tag` limits it to one element (`pk-button`; none shows it for every element), `lines` are short paragraphs, `columns` and `rows` a table, `code` one block of monospaced text with a copy button.
+Give it to `mountGallery(container, { sections })` or `setGallerySections(list)` in the same document, or to the element as JSON text, `<pk-gallery chrome="full" sections='[{"tag":"pk-button","title":"Notes","lines":["Used on the order page."]}]'>`, which is sent to the frame by message.
+The contract has no callbacks: the frame posts `{ type: 'pk-gallery-ready' }` to its parent once mounted, and the host answers with `{ type: 'pk-gallery-sections', sections }` (the whole list, again whenever it changes; an empty list clears). The frame believes only its embedding window.
+Everything is set as text (never parsed as markup, so nothing can inject HTML or script), drawn with SDK components (`pk-accordion-item`, `pk-table`, `pk-code-block`) and cut to limits (200 sections, 80 characters of title, 400 per cell or line, 60 rows of 6 cells, 4000 characters of code; `LIMITS` in `js/gallery-sections.js`).
+The section is static per element: it cannot follow the live markup (use `createElementInspector` with `extraSections` in your own document for that), and the SDK keeps no copy of what the host sends. PlainKit.Blazor uses it for the Blazor section (`PkGallerySection.ForBlazor()`).
 
 ## Tool modules: code explorer, scorecard, theme editor, performance, console, logs, log settings, dev tools
 

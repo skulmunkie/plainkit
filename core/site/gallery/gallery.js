@@ -3,6 +3,14 @@
 // top navbar (site/shell.js) is the only other navigation. Samples render in iframes (frame.js) so the phone switch is real.
 // The gallery's own chrome, views and samples are pk-* elements.
 // Framework-free; ES module driven by gallery.data.js.
+//
+//   mountGallery(container, { kind, group, control, theme, width, filter, chrome, sections })   // resolves once the first view is drawn
+//   setGallerySections(sections)                                                             // replace the sections a host adds to the Details drawer
+//
+// sections: what a host adds to the docked inspector (Details), as plain serialisable data so it also works when the gallery runs in a frame:
+// [{ tag?, title, open?, lines?, columns?, rows?, code? }], all text (js/gallery-sections.js has the shape and the limits). A framed gallery
+// (embed.html) takes them by message from the embedding page: <pk-gallery sections='[...]'> does that, or post
+// { type: 'pk-gallery-sections', sections } to the frame after it posts { type: 'pk-gallery-ready' } to its parent.
 
 import { readSetting, writeSetting } from './settings.js';
 import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, PREVIEW, HAS_SITE } from './paths.js';
@@ -14,7 +22,8 @@ import { contrast, grade } from '../../js/colour.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { initPlainkit } from '../../js/plainkit.js';
 import { renderElement } from './elements-view.js';
-import { createElementInspector } from '../../js/element-inspector.js';
+import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
+import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -323,6 +332,7 @@ function viewFoundation(id) {
 // What the docked inspector shows: { meta, element } for the element page that is open (element is its playground's live element), or null.
 let inspecting = null;
 let inspector = null; // the element inspector (js/element-inspector.js), created with the chrome
+let hostSections = []; // what the host added to the inspector (normalised), see setGallerySections
 
 // ---- views ---------------------------------------------------------------------------------------------------------------
 function overviewHtml() {
@@ -432,7 +442,7 @@ function renderInspector() {
     if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').classList.remove('gx-view--inspecting'); return; }
     box.setAttribute('heading', inspecting ? `${inspecting.meta.title}: details` : 'Inspector');
     inspector ??= createElementInspector($('#gx-inspector-body'));
-    inspector.show(inspecting && { meta: inspecting.meta, element: inspecting.element });
+    inspector.show(inspecting && { meta: inspecting.meta, element: inspecting.element, extraSections: sectionsFor(hostSections, inspecting.meta.tag).map(sectionFromData) });
     const stored = readSetting('pk-gallery-inspector');
     const open = stored === null ? Boolean(inspecting) && !phone() : stored === '1';
     setInspector(open, false);
@@ -509,10 +519,17 @@ const CHROME_HTML = `
 
 const BARE_HTML = '<div class="gx-flow" id="gx-shell"><div class="gx-view" id="gx-view"></div></div>';
 
+// Replace the sections a host adds to the Details drawer (see the header); they are cleaned first, and the open drawer redraws.
+export function setGallerySections(sections) {
+    hostSections = normalizeSections(sections);
+    if (inspector && inspecting) renderInspector();
+}
+
 // Show the gallery in `container` (its document must load the SDK stylesheets and gallery.css). Options: kind, group, control, theme,
-// width, filter, chrome ('full' keeps the nav, toolbar and inspector; 'none' shows only the content). Resolves once the first view is drawn.
+// width, filter, chrome ('full' keeps the nav, toolbar and inspector; 'none' shows only the content), sections (see the header). Resolves once the first view is drawn.
 export async function mountGallery(container, options = {}) {
     opts = normalizeOptions(options);
+    hostSections = normalizeSections(options.sections);
     baseTitle = document.title || baseTitle;
     bare = opts.chrome === 'none';
     state.theme = opts.theme ?? currentTheme(document.documentElement);

@@ -2,7 +2,7 @@
 
 @* The toolkit's gallery inside a page: every control, element, layout and template with live samples. It runs in its own frame. *@
 <pk-gallery kind="@Kind.Attr()" group="@Group" control="@Control" theme="@Theme.Attr()" width="@Width.Attr()"
-            filter="@Filter" chrome="@Chrome.Attr()" height="@(Height > 0 ? Height.ToString() : null)" src="@Src"
+            filter="@Filter" chrome="@Chrome.Attr()" height="@(Height > 0 ? Height.ToString() : null)" src="@Src" sections="@SectionsJson"
             @attributes="AdditionalAttributes"></pk-gallery>
 
 @code {
@@ -32,6 +32,26 @@
 
     /// <summary>The address of the gallery's embed page. Defaults to the one shipped with PlainKit.Blazor.</summary>
     [Parameter] public string? Src { get; set; } = PkAssets.GalleryEmbed;
+
+    /// <summary>
+    /// Sections to add to the gallery's Details drawer (chrome full), as text data: the gallery runs in its own frame, so this description is what
+    /// crosses (see <see cref="PkGallerySection"/>). Compute them from your own data; <see cref="PkGallerySection.ForBlazor"/> is the Blazor section.
+    /// </summary>
+    [Parameter] public IReadOnlyList<PkGallerySection>? Sections { get; set; }
+
+    private IReadOnlyList<PkGallerySection>? _sent;
+    private string? _json;
+
+    // Serialised once per list, so a re-render with the same list sends the same text and Blazor sends no attribute update.
+    private string? SectionsJson
+    {
+        get
+        {
+            if (Sections is null) return null;
+            if (!ReferenceEquals(_sent, Sections)) { _sent = Sections; _json = PkGallerySection.ToJson(Sections); }
+            return _json;
+        }
+    }
 
     /// <summary>Extra attributes for the element.</summary>
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
