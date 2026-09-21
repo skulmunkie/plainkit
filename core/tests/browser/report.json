@@ -1,23 +1,23 @@
 {
- "ran": "2026-09-21T12:59:04.613Z",
+ "ran": "2026-09-21T13:17:56.912Z",
  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
- "passed": 134,
+ "passed": 139,
  "failed": 0,
  "results": [
   {
    "name": "declarative shadow DOM gives a first paint and upgrades in place",
    "ok": true,
-   "ms": 28
+   "ms": 70
   },
   {
    "name": "a not-yet-defined element is hidden, then shown once its module loads (no flash of unstyled content)",
    "ok": true,
-   "ms": 8
+   "ms": 15
   },
   {
    "name": "every registered tag is defined by the loader",
    "ok": true,
-   "ms": 242
+   "ms": 340
   },
   {
    "name": "button: defaults, attribute to property, property to attribute, invalid enum falls back",
@@ -27,7 +27,7 @@
   {
    "name": "button: label, start and end slots are projected; the control part is exposed",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "button: focus goes to the inner button (delegatesFocus) and a disabled button swallows clicks",
@@ -37,17 +37,17 @@
   {
    "name": "button: type=submit submits and type=reset resets the surrounding form",
    "ok": true,
-   "ms": 5
+   "ms": 3
   },
   {
    "name": "card: heading is bound, aria-level follows level, header hides when empty",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "card: an actions child reveals the header and a footer child reveals the footer (slotchange)",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "card: tone reflects and the ::part hook and custom properties style the shadow tree",
@@ -62,7 +62,7 @@
   {
    "name": "tabs: clicking selects, emits a composed cancelable event, and preventDefault keeps the old tab",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "tabs: arrow keys, Home and End move focus and select; disabled tabs are skipped",
@@ -72,7 +72,7 @@
   {
    "name": "tabs: manual activation moves focus but selects only on click",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "switch: toggles, emits change, and reflects checked",
@@ -117,22 +117,22 @@
   {
    "name": "mounting 200 buttons is fast enough to be unnoticeable",
    "ok": true,
-   "ms": 17
+   "ms": 13
   },
   {
    "name": "tooltip: focus shows it, the target gets aria-description and no node is added, Escape hides it",
    "ok": true,
-   "ms": 34
+   "ms": 32
   },
   {
    "name": "tooltip: a hint card draws its own help button, a touch tap toggles it, and its links live in the panel",
    "ok": true,
-   "ms": 40
+   "ms": 19
   },
   {
    "name": "popover: a click on the trigger opens it, Escape closes it and returns focus, confirm fires pk-confirm",
    "ok": true,
-   "ms": 6
+   "ms": 5
   },
   {
    "name": "popover: a cancelable pk-close lets the host veto closing",
@@ -142,12 +142,12 @@
   {
    "name": "dropdown: opens, arrows and typeahead move focus, checkbox toggles and reports, Escape returns focus to the trigger",
    "ok": true,
-   "ms": 11
+   "ms": 6
   },
   {
    "name": "dropdown: a submenu opens with Right and closes with Left",
    "ok": true,
-   "ms": 5
+   "ms": 3
   },
   {
    "name": "context menu: contextmenu opens it at the pointer; choosing an item closes it",
@@ -157,17 +157,17 @@
   {
    "name": "select-menu: reads its options, opens, chooses with the keyboard, reports pk-change and joins the form",
    "ok": true,
-   "ms": 23
+   "ms": 14
   },
   {
    "name": "drawer: open reflects to a native modal dialog; Escape asks first and can be vetoed; a backdrop click closes unless persistent",
    "ok": true,
-   "ms": 7
+   "ms": 5
   },
   {
    "name": "drawer: docked is non-modal, sits inside its positioned ancestor, and Escape still asks before closing",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "drawer: sides, the wide flag and the actions slot are part of the API",
@@ -177,57 +177,57 @@
   {
    "name": "dialog: the backdrop never closes it; Escape and the close button do; confirm resolves a promise",
    "ok": true,
-   "ms": 78
+   "ms": 73
   },
   {
    "name": "dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)",
    "ok": true,
-   "ms": 6
+   "ms": 5
   },
   {
    "name": "toast: kind sets its role, the timer dismisses it, hover pauses it",
    "ok": true,
-   "ms": 412
+   "ms": 399
   },
   {
    "name": "toast stack: shows at most max toasts and reveals the next as one is dismissed",
    "ok": true,
-   "ms": 2
+   "ms": 7
   },
   {
    "name": "alert: role follows the kind and dismiss hides it unless vetoed",
    "ok": true,
-   "ms": 1
+   "ms": 5
   },
   {
    "name": "loading overlay: busy makes the content inert and announces the label",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "breadcrumb: a long trail folds the middle crumbs behind a button that expands them",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "stepper: states follow current; a linear stepper blocks skipping ahead; events are cancelable",
    "ok": true,
-   "ms": 9
+   "ms": 3
   },
   {
    "name": "toc: lists the headings of its target with generated ids and marks the current one",
    "ok": true,
-   "ms": 5
+   "ms": 10
   },
   {
    "name": "side nav: filter shows matches and opens their branch, tree keys walk the rows, the rail marks items",
    "ok": true,
-   "ms": 6
+   "ms": 9
   },
   {
    "name": "side nav: collapsed state and open branches persist under the persist key",
    "ok": true,
-   "ms": 2
+   "ms": 8
   },
   {
    "name": "nav item: a branch button toggles expanded; current and disabled set ARIA on the row",
@@ -237,7 +237,7 @@
   {
    "name": "command palette: opens on Ctrl+K, filters as you type, Enter fires pk-select with the item and records a recent",
    "ok": true,
-   "ms": 6
+   "ms": 7
   },
   {
    "name": "lightbox: shows the item at an index, steps with wrap-around, refuses unsafe sources",
@@ -247,12 +247,12 @@
   {
    "name": "navbar: the hamburger toggles open and Escape closes it; app shell toggles its nav drawer",
    "ok": true,
-   "ms": 9
+   "ms": 8
   },
   {
    "name": "scroll aids: progress starts at 0, back-to-top is hidden until scrolled, the skip link points at a same-page fragment",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "pager and step render their slots",
@@ -272,7 +272,7 @@
   {
    "name": "progress: native bar carries value and max, shows the percentage, goes indeterminate and colours by threshold",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "badge: caps a count, lets the slot win, and dot mode shows the dot",
@@ -287,7 +287,7 @@
   {
    "name": "avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size",
@@ -297,12 +297,12 @@
   {
    "name": "table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "table: manual mode shows rows as given and only reports; selection, bulk bar, filter event, loading and empty states",
    "ok": true,
-   "ms": 336
+   "ms": 352
   },
   {
    "name": "table: slotted-table mode frames a raw table, hides its own table, and flow drops the scroll container",
@@ -320,14 +320,19 @@
    "ms": 1
   },
   {
+   "name": "stat: delta-unit points reads +4 pts and is spoken as points; the default stays percent",
+   "ok": true,
+   "ms": 0
+  },
+  {
    "name": "empty-state: hides what is not given, exposes the heading level, and announces when asked",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "field-list: hides an empty heading and lays dt and dd out as a grid",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root",
@@ -337,7 +342,7 @@
   {
    "name": "card: media slot shows only when used, horizontal lays out in a row, href adds one link",
    "ok": true,
-   "ms": 3
+   "ms": 4
   },
   {
    "name": "timeline: list role on the feed, listitem on each item, and a time element",
@@ -347,47 +352,47 @@
   {
    "name": "list-group: rows become list items and an actionable row marks the current one",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "accordion: an item toggles its details and reports it; exclusive closes the others",
    "ok": true,
-   "ms": 56
+   "ms": 54
   },
   {
    "name": "tree: roving focus, arrow keys, expand and collapse, selection and aria attributes",
    "ok": true,
-   "ms": 5
+   "ms": 11
   },
   {
    "name": "chart: draws a labelled svg from the table, adds a legend for several series, keeps the table, and takes a data property",
    "ok": true,
-   "ms": 8
+   "ms": 15
   },
   {
    "name": "code-block: one line per source line with numbers, wrap toggle and a copy result",
    "ok": true,
-   "ms": 22
+   "ms": 24
   },
   {
    "name": "calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months",
    "ok": true,
-   "ms": 21
+   "ms": 28
   },
   {
    "name": "divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "gallery: attributes narrow the framed view, theme and width apply, a changed attribute reloads it, the frame follows the content height",
    "ok": true,
-   "ms": 254
+   "ms": 447
   },
   {
    "name": "gallery: chrome full keeps the contents nav, cut down to the requested control",
    "ok": true,
-   "ms": 122
+   "ms": 108
   },
   {
    "name": "input: typing updates value, reports input and change, and the form receives it",
@@ -402,17 +407,17 @@
   {
    "name": "input: clear button, password reveal and the number stepper",
    "ok": true,
-   "ms": 6
+   "ms": 5
   },
   {
    "name": "input: money shows the plain number while editing and the formatted amount when left, and keeps the number in value",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "input: search debounces pk-search, Escape clears, and add-on slots and the floating label render",
    "ok": true,
-   "ms": 100
+   "ms": 90
   },
   {
    "name": "textarea: value, form entry and reset; autogrow reflects",
@@ -422,27 +427,27 @@
   {
    "name": "select: option children become the choices, value and change flow, multiple submits one entry each",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "field: hands label, description and error to the control; counter follows the value; required marks the control",
    "ok": true,
-   "ms": 6
+   "ms": 4
   },
   {
    "name": "form: an invalid submit is stopped, messages appear in the fields, focus goes to the first problem, and fixing clears it",
    "ok": true,
-   "ms": 13
+   "ms": 14
   },
   {
    "name": "checkbox: toggles, submits its value only when checked, resets, and a master mirrors its group with the mixed state",
    "ok": true,
-   "ms": 5
+   "ms": 8
   },
   {
    "name": "radio-group: options become native radios in one group; choosing sets value and submits it; segmented is a variant",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "range: single value and fill; dual keeps low below high and submits two entries",
@@ -457,12 +462,12 @@
   {
    "name": "combobox: typing filters, arrows and Enter pick, Escape closes; blur reverts stray text; select mode uses the trigger and typeahead",
    "ok": true,
-   "ms": 7
+   "ms": 10
   },
   {
    "name": "tag-input: Enter and separators add, duplicates and the limit are refused, Backspace and the cross remove, the form gets one entry per tag",
    "ok": true,
-   "ms": 3
+   "ms": 5
   },
   {
    "name": "otp-input: typing advances, a pasted or autofilled code spreads, Backspace steps back, completion is an event",
@@ -472,12 +477,17 @@
   {
    "name": "colour-input: the swatch and hex field stay in step, short hex is expanded, junk is invalid",
    "ok": true,
-   "ms": 1
+   "ms": 2
+  },
+  {
+   "name": "textarea and colour-input: show-label shows a visible label linked to the control, hidden by default",
+   "ok": true,
+   "ms": 5
   },
   {
    "name": "dropzone: accepted files are listed and submitted, rejected ones get a reason, Remove drops a file",
    "ok": true,
-   "ms": 4
+   "ms": 6
   },
   {
    "name": "button: busy ignores clicks without losing focus, a toggle flips pressed and reports it, icon and block reflect",
@@ -490,9 +500,14 @@
    "ms": 1
   },
   {
+   "name": "button-group: single mode works as a segmented control (value per button, pk-toggle bubbles to the group)",
+   "ok": true,
+   "ms": 1
+  },
+  {
    "name": "split-button: the caret opens the menu, arrows and Escape work, choosing reports and closes",
    "ok": true,
-   "ms": 4
+   "ms": 7
   },
   {
    "name": "switch: invalid, size and label position reflect and the invalid ring shows",
@@ -512,52 +527,57 @@
   {
    "name": "dropzone: with an input in the input slot the zone only draws the target and drops go into that input",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "combobox: typing reports the query even when the client filters, and an option refresh keeps the filter",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "field and checkbox: inline layout, small size and the checkbox custom properties reflect",
    "ok": true,
-   "ms": 1
+   "ms": 2
+  },
+  {
+   "name": "unit-input: the number and unit make one value, the form submits it, the commit event carries it, a foreign unit is kept",
+   "ok": true,
+   "ms": 4
   },
   {
    "name": "code explorer module: mounts a snapshot object, opens the requested file and runs the search",
    "ok": true,
-   "ms": 161
+   "ms": 150
   },
   {
    "name": "scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter",
    "ok": true,
-   "ms": 394
+   "ms": 402
   },
   {
    "name": "page-header: the title is a heading at the chosen level, slots land in their parts, and empty rows are hidden",
    "ok": true,
-   "ms": 1
+   "ms": 8
   },
   {
    "name": "page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "page-header: on a narrow container the actions take the full width and are touch sized",
    "ok": true,
-   "ms": 2
+   "ms": 5
   },
   {
    "name": "page-header and toolbar: keep their width inside a shrink-to-fit flex parent (size containment must not collapse them)",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token",
@@ -572,107 +592,112 @@
   {
    "name": "cluster: the hidden attribute hides it",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "stack: dividers draw a rule above every child but the first",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "grid: auto-fit equal columns of at least min, at two widths, down to one column on a phone",
    "ok": true,
-   "ms": 2
+   "ms": 7
   },
   {
    "name": "grid: columns caps the count, an unparseable min is ignored, and the default min applies without one",
    "ok": true,
-   "ms": 3
+   "ms": 4
   },
   {
    "name": "grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)",
    "ok": true,
-   "ms": 1
+   "ms": 2
+  },
+  {
+   "name": "splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once",
+   "ok": true,
+   "ms": 13
   },
   {
    "name": "icon: the use href is an absolute URL to the SDK sprite and the symbol exists there; a label makes it an image, none hides it",
    "ok": true,
-   "ms": 16
+   "ms": 21
   },
   {
    "name": "local time: writes the instant in the given locale and zone inside a time element, falls back to the slot, and relative reads as words",
    "ok": true,
-   "ms": 9
+   "ms": 11
   },
   {
    "name": "field: a label-action slot sits beside the label, shows even without a label, and clicking it does not focus the control",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "workspace (1200px): the nav, main and aside panes sit side by side, the phone strip is hidden, each pane holds its slot",
    "ok": true,
-   "ms": 125
+   "ms": 191
   },
   {
    "name": "workspace (375px): one pane at a time, the strip switches it, pk-pane-change reports it and can be cancelled",
    "ok": true,
-   "ms": 177
+   "ms": 174
   },
   {
    "name": "workspace (375px): the strip is keyboard operable: roving tabindex, arrows, Home and End select and focus the tab",
    "ok": true,
-   "ms": 185
+   "ms": 187
   },
   {
    "name": "workspace: without a nav there is no nav tab and no column; with no aside the strip is not needed",
    "ok": true,
-   "ms": 179
+   "ms": 120
   },
   {
    "name": "workspace: fill takes the height of its parent and drops the frame; without it the height is a viewport share",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "image gallery: one tile per image, the primary one carries the Primary badge, status shows, read-only has no buttons or add tile",
    "ok": true,
-   "ms": 7
+   "ms": 6
   },
   {
    "name": "image gallery: make primary moves the badge and raises pk-primary-change (cancelable); the primary has no make-primary button",
    "ok": true,
-   "ms": 12
+   "ms": 8
   },
   {
    "name": "image gallery: remove raises pk-remove (cancelable), drops the image, and removing the primary makes the first image primary",
    "ok": true,
-   "ms": 11
+   "ms": 12
   },
   {
    "name": "image gallery: the add tile is a real file input and raises pk-add with the chosen files",
    "ok": true,
-   "ms": 8
+   "ms": 9
   },
   {
    "name": "image gallery: clicking a thumbnail opens the lightbox on that image",
    "ok": true,
-   "ms": 62
+   "ms": 56
   },
   {
    "name": "image gallery: columns fixes the count; min sets how many fit",
    "ok": true,
-   "ms": 14
+   "ms": 8
   },
   {
    "name": "image gallery (375px): three thumbnails fit a row, nothing overflows sideways, buttons and the add tile are touch sized",
    "ok": true,
-   "ms": 495
+   "ms": 485
   }
  ],
  "sources": {
@@ -715,7 +740,7 @@
   "elements/button-group/button-group.css": "aa63aefa4047370b2752084b3a4e8463ff909db7115ca1bd932c3c8144bacb12",
   "elements/button-group/button-group.html": "2db6a13c80c78d4b91b68a23b39a025af9ba32ced06645a493345e59900284d3",
   "elements/button-group/button-group.js": "3f1ce946a6a1ea0bdfff352e9a128d1ad7a9223dfb32df18abd020be46a0492b",
-  "elements/button-group/button-group.meta.json": "d9ab9b2f01a0155ae4346444457e0f085a77bd64ffbfbaee1a8c5b845e6ba031",
+  "elements/button-group/button-group.meta.json": "3435660b9548cee2f939834a944763ee8e09b3b987bd1e9b3be77d9e738e72c7",
   "elements/button/button.css": "24ea882ecad839378dbd729b9c9b2ef5fff1e29130bb1497ca6a33bb9bfd88d4",
   "elements/button/button.html": "8c9b909f4439f01706e7130910fc09518573efe1e63f2ee2e091beab03f87893",
   "elements/button/button.js": "9c833a7ffbda904fe7182e2b6aa2af6013c06a884f7dc7dea4213c16cf1b0583",
@@ -743,10 +768,10 @@
   "elements/code-block/code-block.html": "17f47910a039f7eb3a278e91c103250507038822b9169ef9c755186f526ad5d3",
   "elements/code-block/code-block.js": "0b4b5d27c758272fa4696b54a72a5d8b93dfb1019cd3d81d3e1cf2b0473cb70a",
   "elements/code-block/code-block.meta.json": "3166ab6dbdd312a9b3c3dceeee8f84d2ad0db6d4d90760e1e21dbab6c4b5ca71",
-  "elements/colour-input/colour-input.css": "c6de58d82481036a9a883a5d0b93739e3364b97a65adec5682129e84ba6e15ff",
-  "elements/colour-input/colour-input.html": "36834ba067db3c6e0874b8f62ba0f23ffcda963cc7403403d15ac7847ff38146",
+  "elements/colour-input/colour-input.css": "8a920b850554a5a5411ecfc4080b3155e0331782b636ddd031e7426166ec8909",
+  "elements/colour-input/colour-input.html": "6ebc35380b93d1e76a696d3854a440449fc03471c6b5caabecc482c276845ee3",
   "elements/colour-input/colour-input.js": "d473ffe9bce0fa669b5ca7984b0370269295586ab2b114b98b015daba1d11be0",
-  "elements/colour-input/colour-input.meta.json": "654265ace5f936e05e1a1ade004fb0fee64214c275b68820f3c3fd22fcd5d209",
+  "elements/colour-input/colour-input.meta.json": "5fd0117e2178ac2168ed8d897695947961d1350053c699e0cf58a50d8a7c86d3",
   "elements/combobox/combobox.css": "84ee66e5e32f2a1202ed59d9da1989c45e02db28525d2e2d3d8b8c32e067cc44",
   "elements/combobox/combobox.html": "799d2f5d72b804851ab6dd9962129702300a26e30020fa8f2c302702bd52c091",
   "elements/combobox/combobox.js": "67ec4efab5033b4c04353e6d31490f63e2c08cd0dbadd4d32aca12f6bc0c8246",
@@ -802,7 +827,7 @@
   "elements/form-section/form-section.meta.json": "76b76f9418c5d65e49a75ef17fda6462dc64d36708dc3b82be49417798c84514",
   "elements/form/form.css": "cdc36a5f05af01c6e46fc54ff5d78802e3dbfc5c41e12c6941f84a98937544a0",
   "elements/form/form.html": "bca2e3c792d85c3732883cbfa5fcf5dd56886df34d8147e16efd3871595209be",
-  "elements/form/form.js": "8e74325e311ad3943f5274533f1c91989de7c1df2300ade83f4b8cc83cebf56b",
+  "elements/form/form.js": "21dbba6a14c06bbf0ae0acaacfed7d354e6acd44c660f3001f0b5bca9c464d1f",
   "elements/form/form.meta.json": "0cfca389b5a3ccdd734af76d5d227206c31fc8241c4f5a112b59f80e55459874",
   "elements/gallery/gallery.css": "ec2eeb9cc7fb321395fbcd8ad8c16cdacd0f4d6fc6455c2571a66468aecf7349",
   "elements/gallery/gallery.html": "e23bacec0c45967064c9155f3a7ee45f7195fbffb4436996ccee7f2cc9e6ffe1",
@@ -927,13 +952,17 @@
   "elements/split-button/split-button.html": "9201d189027962eec675dce388f5b89ec5b90ddb6972167f13128af3e4a7f7be",
   "elements/split-button/split-button.js": "31cfcc398e188ea7fe4c98240cdf177dbe7458a2200a46de065f2d8013b6ee5e",
   "elements/split-button/split-button.meta.json": "fb161f7e71fbc4271a63f4072384f65d711dfa6ee2110c4d7bbef5e56a84c565",
+  "elements/splitter/splitter.css": "eecf84736b60caa2feaadfc171366659cfcb821decb48b9f6176b29eac435396",
+  "elements/splitter/splitter.html": "49c798f69b0bff988edba8eed4a90eeeef8562cf8db6ac5698f16988c775be99",
+  "elements/splitter/splitter.js": "20ab2a8d3ad4a4952b897eb289b9f30a633da932fe9ccb9579097b31fedb961f",
+  "elements/splitter/splitter.meta.json": "f2dc76658cc431701692fc377c21fc4a9f2a397092caf5bf99ab78f5d06688e8",
   "elements/stack/stack.css": "2090ea5a5ffb655a88c25dda1428c0d9f459bcfba3d1d9708bf6684f9edfffda",
   "elements/stack/stack.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/stack/stack.meta.json": "099bce48aaf18eb89b19f83c62970641471b023e18c0fe359653766356f49eac",
   "elements/stat/stat.css": "a5482563670879af9bf3df482bedc26941e289950272269e34dd7e850e29f917",
   "elements/stat/stat.html": "ddf826b3fa1056475e9e5d1377d42c5e65d1d93be6bcd63a566ed60242b740d1",
-  "elements/stat/stat.js": "dc0fc69bbe06869e2f002e3d12a49a5071b1a8901dff7d46473e724be3bf275a",
-  "elements/stat/stat.meta.json": "ffdaf856aec35c472335bf3fc35bf01563e43e79fbea255432ca29ae78e308cf",
+  "elements/stat/stat.js": "5c8d0ddf55cbdeade7bcca9b33bd20dfefb48e48205c87b7cfadf9e56af2b678",
+  "elements/stat/stat.meta.json": "32c8d3753e635a0ba60557668f87c3395bdbdcd18f14402aff8a2582c5c76887",
   "elements/step/step.css": "4be894149b5bf3533ab28082ae8699bf079b19e2b35b0fd03fab33ac7ae14367",
   "elements/step/step.html": "01770198d49fe6cc47dd08e06b72d9789f5fa566f7c1ee29ad5d06f7f72056e6",
   "elements/step/step.meta.json": "a48d8724e28a128e9761c7a470c880041518f22572b5a90c6c2286144fb30a28",
@@ -969,10 +998,10 @@
   "elements/tag/tag.html": "47d0331d07c20b440aaee8fc81953786c704db664ae726d06c0cee50e51eaead",
   "elements/tag/tag.js": "48a1210d546bd6c4069da2b2f653d16741c32af347775dbcfdfb63025f2698ae",
   "elements/tag/tag.meta.json": "e39ce0e5066c0c697a8869e32c88529b10dbb65cccfadb8101f98a68c85e47d5",
-  "elements/textarea/textarea.css": "352add94fa3fbfa6972cfd266ec5700f0c732d5d385ae1d6b173c9fcfb4bc2ff",
-  "elements/textarea/textarea.html": "1788037cfe898a184979fb38ce860846dd216ecf0d5b652b43966e89ced61878",
+  "elements/textarea/textarea.css": "31f05b4fd6c1b01737cec95f6825bb69eee6173a1f078fd477dae62e73a040fc",
+  "elements/textarea/textarea.html": "c14a0fef1185c295f011cd492111e2fdc192117676af694169343c84675bd92f",
   "elements/textarea/textarea.js": "52072c985714864ba2c3786933259044745d082338a38668fbbd13a074b6a03b",
-  "elements/textarea/textarea.meta.json": "dce84a8e3e8db249db45bfdc5734d9ca0a932f1a04e57004d9a694c703a1c508",
+  "elements/textarea/textarea.meta.json": "bba11a97f65c00260c02142a6158388e98ab2ada32978ebb1880f854a16370b9",
   "elements/timeline-item/timeline-item.css": "ba1cd4c12da8e20d2b9df1d72e350ec9c730db35060d27b48ec8134b210cfcc1",
   "elements/timeline-item/timeline-item.html": "4a84548c5c579d4943995514cc66d5074fe75e300ac0a1fa153287c6e9d2c8b0",
   "elements/timeline-item/timeline-item.js": "fd204b44ff083b65d9e186a5471290f5cdc4bc49d4673b754b82726062d72bca",
@@ -1009,6 +1038,10 @@
   "elements/tree/tree.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/tree/tree.js": "6d4a860609d36dc46cc878b172868a66f9ab9d0432f2009b13259932ef86593c",
   "elements/tree/tree.meta.json": "a86a4def34438e541c6e2d8443a1f41212f4dd17a4c70f440743f3e06c43289d",
+  "elements/unit-input/unit-input.css": "33707e612a1c43ba68721e99d936e34272bb8306d7c8e715a90e6a0c03dbd382",
+  "elements/unit-input/unit-input.html": "05cb3e1c5bef4dc5397f198b805d5acc604e78ed5425d7463b027f76e9e36325",
+  "elements/unit-input/unit-input.js": "caf381e6258217ea14451a01703896037ee02cee2c5eeb7ddaccd984c67f4e9f",
+  "elements/unit-input/unit-input.meta.json": "69efbdefca53e5a865531476838ed6d6c446754f2959d3239fbe15e990a3bcea",
   "elements/workspace/workspace.css": "c387aea07b7648a749c8519022b3c9162c3bccbeac191dd7f798957e4956de23",
   "elements/workspace/workspace.html": "68a2252d41089e6798bb05a63cc6dfb4323c1b85481b12dd9a424e6b2817e199",
   "elements/workspace/workspace.js": "123b97919ef785a2bca39c10296d80b6741a00f8350b9215e3929b62974d3d8d",
@@ -1016,11 +1049,11 @@
   "js/element-core.js": "37c527b73e86890f3de774ae134d8f0a2e78ce7890f231ba1a0df529ea34fcc4",
   "js/element.js": "6f4ff0701a6baabb385726a5f718c522b7ecfe89ed5cb607717651a5ffc794b6",
   "js/loader.js": "0d9fb1168dfc846b86c35f6c41e3c671c9b0d51786ab98214a53155d4c09aa49",
-  "tests/browser/cases-data-display.js": "62c548a62bdafac6123134c35b9b4682b8d7c141d815ac9a93c83d8ff853530a",
-  "tests/browser/cases-forms.js": "846967f6127e330b0c302b70695f4c20ffbd70c6775c3086b3dd45bd4491b009",
+  "tests/browser/cases-data-display.js": "26d56e72e74e1927a69acec9ca38a9e7e65275fbb70e6ddb4c1bc23aedeab70f",
+  "tests/browser/cases-forms.js": "307f3b915d5cb9c105728dbe0b82144d47639d5d268a8626e7a6c66020a33685",
   "tests/browser/cases-headers.js": "41dc79ee8de1e214e501ead0b45aacfc3a36faa40d0890f281f8c3a4755a17de",
   "tests/browser/cases-icon-time.js": "d3f4cfa796abd1327c37067630b97b8ca06881a5e9784e62515af210f6f17293",
-  "tests/browser/cases-layout.js": "f771e0576f16206ccd15fad17de1ef62a12ffe354fa37104e90f8df3c66a472e",
+  "tests/browser/cases-layout.js": "9cf1f0182bebbc891d10eb448e42086f6eb52565c26780581805d12e0113c030",
   "tests/browser/cases-overlays.js": "ce1aefd34222fa9fe7c2223d130ae8d182f77ae603d7b6498511d8522e018a64",
   "tests/browser/cases-tools.js": "fd7527a154815434180c75baafc6dbe6bb341c3bab0db9db8dde6fcc0a19c803",
   "tests/browser/cases-workspace.js": "fa94574318a91d51c22ae8569b7eb5e5a4925435bb3526faa16ec4f6a6195e6e",
