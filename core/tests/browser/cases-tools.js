@@ -74,4 +74,32 @@ export const toolCases = [
         t.eq(fresh.value, '1rem');
         editor.destroy();
     }],
+    ['theme editor module: a brand colour generates palette swatches at 4.5:1 or better, Apply writes ordinary edits, and a colour it cannot read disables Apply', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false });
+        await until(() => host.querySelector('.te-pair'), 'the palette swatches');
+        await t.load(host); await t.settle();
+        const okAll = () => [...host.querySelectorAll('.te-pair pk-badge')].every(b => b.getAttribute('variant') === 'ok');
+        const palette = () => host.querySelector('.te-palette-inputs').parentElement;
+        t.ok(host.querySelectorAll('.te-pair').length >= 32 && okAll(), 'every pair in both themes is at 4.5:1 or better');
+        const brand = host.querySelector('pk-colour-input[label="Brand colour"]');
+        const applyBtn = [...host.querySelectorAll('pk-button')].find(b => b.textContent.trim() === 'Apply as edits');
+        brand.part('control').value = '#ffffff'; brand.part('control').dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        t.ok(okAll(), 'an extreme brand still gives AA everywhere');
+        t.ok(/had to move/.test(palette().textContent), 'it says the brand colour moved');
+        t.eq(Object.keys(editor.overrides().dark).length, 0, 'nothing changes before Apply');
+        applyBtn.click(); await t.settle();
+        t.ok(Object.keys(editor.overrides().dark).length > 8 && Object.keys(editor.overrides().light).length > 8, 'Apply writes edits for both themes');
+        t.eq(preview.style.getPropertyValue('--color-accent'), editor.overrides().dark['--color-accent'], 'the current theme is applied to the target');
+        t.ok(host.querySelector('[data-token="--color-accent"]').classList.contains('te-changed'), 'the generated tokens are ordinary edits, listed as changed');
+        const neutral = host.querySelector('pk-input[label^="Neutral tint"]');
+        neutral.value = 'nope'; neutral.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        t.ok(applyBtn.hasAttribute('disabled') && /not one this can read/.test(palette().textContent), 'a colour it cannot read disables Apply and says why');
+        const p = editor.applyBrand('#e11d74');
+        t.ok(p.brand === '#e11d74' && !p.error, 'applyBrand generates and applies in one call');
+        t.ok(editor.applyBrand('nope').error, 'applyBrand refuses an unreadable colour');
+        editor.destroy();
+    }],
 ];

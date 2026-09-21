@@ -13,6 +13,15 @@ export const DEFAULT_PAIRS = Object.freeze([
     ['--color-muted', '--color-panel'], ['--color-link', '--color-panel'], ['--color-accent', '--color-panel'],
 ].map(p => Object.freeze(p)));
 
+// Text-on-surface pairs the toolkit promises at WCAG AA (4.5:1) in both themes: the default pairs plus the link and the body text on the other
+// page surfaces, and the text on the accent and warn fills. The AA test (tests/theme-editor-logic.test.mjs) grades the stylesheet against this list
+// and the brand palette generator (js/brand-palette-logic.js) must meet every entry; a new documented pair is added here (issue 58).
+export const AA_PAIRS = Object.freeze([...DEFAULT_PAIRS, ['--color-link', '--color-bg'], ['--color-text', '--color-flyout'], ['--color-text', '--color-surface'], ['--color-text', '--color-surface-alt'],
+    // Text on a fill (issue 69): white on the primary button, badge and selected fills, and on their hover fill.
+    ['--btn-primary-fg', '--color-accent-fill'], ['--btn-primary-fg', '--color-accent-fill-hover'],
+    // The warn button (issue 92): its hover fill darkens, like the accent fill's, so white text keeps 4.5:1 in every state; the small (mini) button too.
+    ['--btn-warn-fg', '--btn-warn-bg'], ['--btn-warn-fg', '--btn-warn-hover-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-hover-bg']].map(p => Object.freeze(p)));
+
 // The units the length editor (pk-unit-input) offers, in the select's format.
 export const LENGTH_UNITS = 'px rem em %';
 

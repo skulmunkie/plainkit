@@ -11,11 +11,15 @@
 // of the stylesheet whose token blocks are edited; default the SDK's own), pairs ([foreground, background] token names to grade;
 // default DEFAULT_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true).
-// Returns { export(), overrides(), setTheme(name), reset(), destroy() }. The pure logic is js/theme-editor-logic.js and js/theme.js.
+// Palette tab: a brand colour (and optionally a neutral tint and a warn colour) generates the accent, fill, hover, link and the surface and text ramps of
+// both themes with every pair in AA_PAIRS at 4.5:1 or better (js/brand-palette-logic.js); the swatches show each pair with its ratio, and Apply writes them
+// as ordinary edits. Returns { export(), overrides(), setTheme(name), reset(), applyBrand(colour, { neutral, warn }), destroy() }.
+// The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
+import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -71,7 +75,7 @@ export async function mountThemeEditor(container, options = {}) {
     if (!res.ok) throw new Error(`${tokensUrl}: ${res.status}`);
     const tokens = parseTokenBlocks(await res.text());
 
-    const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '' };
+    const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '', palette: null };
     const themeHost = isDoc ? target.documentElement : target;
     const styleRoot = isDoc ? target.documentElement : target;
     if (options.theme) setThemeAttr(themeHost, options.theme);
@@ -123,9 +127,20 @@ export async function mountThemeEditor(container, options = {}) {
     const downloadBtn = h(doc, 'pk-button', { variant: 'ghost' }, 'Download JSON');
     const rejectedBox = h(doc, 'div');
     const message = h(doc, 'div');
+    const brandInput = h(doc, 'pk-colour-input', { label: 'Brand colour', 'show-label': true, value: normalizeColour(baseValue(tokens, 'light', '--color-accent-fill')) ?? '#1d4ed8' });
+    const neutralInput = h(doc, 'pk-input', { label: 'Neutral tint (optional)', 'show-label': true, placeholder: 'e.g. #334155', clearable: true });
+    const warnInput = h(doc, 'pk-input', { label: 'Warn button (optional)', 'show-label': true, placeholder: 'e.g. #c2410c', clearable: true });
+    const applyBrand = h(doc, 'pk-button', { variant: 'primary' }, 'Apply as edits');
+    const paletteNote = h(doc, 'div');
+    const paletteRowsBox = h(doc, 'div', { class: 'te-pairs' });
+    const paletteMsg = h(doc, 'div');
 
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
+        h(doc, 'pk-tab', { value: 'palette' }, 'Palette'),
+        h(doc, 'pk-tab-panel', { value: 'palette' },
+            h(doc, 'p', { class: 'muted' }, 'Pick a brand colour: the accent, fill, hover and link colours and the text and surface ramps of both themes are generated so every text pair below is 4.5:1 or better. Apply writes them as ordinary edits you can still change.'),
+            h(doc, 'div', { class: 'te-palette-inputs' }, brandInput, neutralInput, warnInput), h(doc, 'pk-cluster', { class: 'u-mt-3' }, applyBrand), paletteMsg, paletteNote, paletteRowsBox),
         h(doc, 'pk-tab', { value: 'contrast' }, 'Contrast'), h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, pairTable),
         ...(showPreview ? [h(doc, 'pk-tab', { value: 'preview' }, 'Preview'), h(doc, 'pk-tab-panel', { value: 'preview' }, (ui.previewHost = h(doc, 'div', { class: 'te-preview-host' })))] : []),
         h(doc, 'pk-tab', { value: 'export' }, 'Export / import'),
@@ -206,6 +221,30 @@ export async function mountThemeEditor(container, options = {}) {
         for (const n of rowsByName.keys()) paintRow(n);
     }
 
+    // The generated palette for the inputs as they stand: { palette, error } and its swatches (each pair as sample text on its surface, with the ratio).
+    function generate() {
+        const read = el => String(el.value ?? el.getAttribute('value') ?? '').trim();   // before the element upgrades, the attribute is the value
+        return generatePalette(read(brandInput), { neutral: read(neutralInput) || undefined, warn: read(warnInput) || undefined });
+    }
+
+    function paintPalette() {
+        const p = generate();
+        state.palette = p.error ? null : p;
+        applyBrand.toggleAttribute('disabled', Boolean(p.error));
+        if (p.error) { paletteNote.replaceChildren(h(doc, 'pk-alert', { kind: 'danger' }, p.error)); paletteRowsBox.replaceChildren(); return; }
+        paletteNote.replaceChildren(p.moved
+            ? h(doc, 'pk-alert', { kind: 'warning' }, `The brand colour ${p.brand} had to move to meet 4.5:1: `, ...p.notes.flatMap((n, i) => (i ? [h(doc, 'br'), n] : [n])))
+            : h(doc, 'pk-alert', { kind: 'success' }, `The brand colour ${p.brand} meets 4.5:1 as it is in both themes.`));
+        const rows = paletteRows(p.overrides, tokens);
+        const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).map(r => {
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}` }, 'Aa');
+            sample.style.setProperty('--te-fg', r.fgValue); sample.style.setProperty('--te-bg', r.bgValue);
+            return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
+                h(doc, 'pk-badge', { variant: r.bad ? 'danger' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(1)}:1 ${r.grade}`));
+        })];
+        paletteRowsBox.replaceChildren(...group('dark'), ...group('light'));
+    }
+
     function paintExport(css, rejected) {
         cssBox.value = css;
         jsonBox.value = JSON.stringify(state.overrides, null, 2);
@@ -276,6 +315,13 @@ export async function mountThemeEditor(container, options = {}) {
         old.replaceWith(fresh);
         paintRow(n);
     });
+    for (const el of [brandInput, neutralInput, warnInput]) on(el, 'input', () => paintPalette());
+    on(applyBrand, 'click', () => {
+        if (!state.palette || applyBrand.hasAttribute('disabled')) return;
+        state.overrides = applyPalette(state.overrides, state.palette.overrides, tokens);
+        apply(); paintList();
+        paletteMsg.replaceChildren(h(doc, 'pk-alert', { kind: 'success' }, `Applied: ${overrideCount(state.overrides)} overrides in all. Edit any token in the Tokens tab.`));
+    });
     on(importBtn, 'click', () => importText(jsonBox.value));
     on(copyBtn, 'click', () => win.navigator.clipboard?.writeText(cssBox.value));
     on(downloadBtn, 'click', () => {
@@ -296,6 +342,15 @@ export async function mountThemeEditor(container, options = {}) {
         overrides: () => ({ shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }),
         setTheme(name) { setThemeAttr(isDoc ? target.documentElement : themeHost, name); apply(); paintList(); },
         reset() { state.overrides = emptyOverrides(); apply(); paintList(); },
+        // Generates a palette for a brand colour and applies it as edits. Returns the generated result ({ brand, moved, notes, overrides } or { error }).
+        applyBrand(colour, options = {}) {
+            const p = generatePalette(colour, options);
+            if (p.error) { log.warn(`applyBrand refused: ${p.error}`); return p; }
+            state.overrides = applyPalette(state.overrides, p.overrides, tokens);
+            brandInput.setAttribute('value', p.brand); brandInput.value = p.brand;
+            apply(); paintList(); paintPalette();
+            return p;
+        },
         destroy() {
             observer.disconnect();
             for (const off of listeners) off();
@@ -304,7 +359,7 @@ export async function mountThemeEditor(container, options = {}) {
             root.remove();
         },
     };
-    apply(); paintList();
+    apply(); paintList(); paintPalette();
     return api;
 }
 
