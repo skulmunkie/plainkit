@@ -133,8 +133,8 @@
     },
     {
       "path": "elements/calendar.js",
-      "bytes": 9565,
-      "integrity": "sha384-euP3ckJKEuuvDu6Dw6vEmY6EA9Vyc7948qrbzKCoIkwoREgE8avP2/QMGugoCTYR"
+      "bytes": 9602,
+      "integrity": "sha384-yiksN31UCyXDDkF5WsGYpLowZ1F3+oNCoW2CMXDc8/zH+OcdZgxVMMVfFd5UZpyS"
     },
     {
       "path": "elements/card.js",
@@ -438,8 +438,8 @@
     },
     {
       "path": "elements/table.js",
-      "bytes": 12677,
-      "integrity": "sha384-IvtiJCSX4nvnDbTVom5xLx9UonmGLjG3AtTObEKPTeVfWst8sqPtw/PxKEV7oBnR"
+      "bytes": 12568,
+      "integrity": "sha384-QeeL2Q3RwW5Iudpcdq01gtySWIr+bw1HOSlIgpE4LXUhSAqt4hJev8YClqAsuz51"
     },
     {
       "path": "elements/tabs.js",
@@ -713,8 +713,8 @@
     },
     {
       "path": "gallery/tokens.css",
-      "bytes": 11756,
-      "integrity": "sha384-fc8qOgJ+s22DOxVAkX5cH0uq18jBFMCkDqo6WDD4GwapmkInJplqsD2csgzdkG+R"
+      "bytes": 11856,
+      "integrity": "sha384-oe9Czr9Xfe/WL4Sop8XrxOqsalYtvYiq3rWOM5ar5FvFx4Y6CMqO2tArnq+3fG9d"
     },
     {
       "path": "gallery/utilities.css",
@@ -923,8 +923,8 @@
     },
     {
       "path": "plainkit.css",
-      "bytes": 39178,
-      "integrity": "sha384-jeqR7ELgullVnAPvU9hCYXFujq9xt6bRPNlLahIoP3dUS0Wipu5TcEqR3KFALX7e"
+      "bytes": 39278,
+      "integrity": "sha384-O6uQQGB7HbKE0ClHmuY1r7h2/YOVidqyCNwenbZdvyjv9YsYNsXacLmTtHjPfisG"
     },
     {
       "path": "plainkit.js",
@@ -933,8 +933,8 @@
     },
     {
       "path": "plainkit.min.css",
-      "bytes": 28101,
-      "integrity": "sha384-tfwoNox9krl/cgiFOhJ0YlGGQwl2c6X9AfeD3zGNu9DqR+fFWyD7/erzPh2gKouG"
+      "bytes": 28122,
+      "integrity": "sha384-NbPz0bla4vHjhlAZ4ttKCkdCgyaU05hrZ6WnwbZY9reKWSUOPiAKDSLN+dgPBqjp"
     },
     {
       "path": "quality/quality.js",
@@ -1129,7 +1129,7 @@
     {
       "path": "skills/plainkit-sdk/references/theming.md",
       "bytes": 6491,
-      "integrity": "sha384-2Z9yTND6yUN/rkEV/zSY/lnnGoKxVaifhiLSUjAEr1jrdn2JlxYh6WzbfTf9y/ra"
+      "integrity": "sha384-Ly52c08tqM5bL370z1KTwTx7KHRUQyG8J37HSUR+GxH9ITY5UGY5Zrq0/Ha5kjj0"
     },
     {
       "path": "skills/plainkit-sdk/references/tools.md",
@@ -1148,8 +1148,8 @@
     },
     {
       "path": "theme-editor/tokens.css",
-      "bytes": 11756,
-      "integrity": "sha384-fc8qOgJ+s22DOxVAkX5cH0uq18jBFMCkDqo6WDD4GwapmkInJplqsD2csgzdkG+R"
+      "bytes": 11856,
+      "integrity": "sha384-oe9Czr9Xfe/WL4Sop8XrxOqsalYtvYiq3rWOM5ar5FvFx4Y6CMqO2tArnq+3fG9d"
     },
     {
       "path": "vscode.html-custom-data.json",

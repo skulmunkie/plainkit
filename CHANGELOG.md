@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 ### Added
 
 - Added: the ownership and reactivity contract (`core/STANDARDS.md`, "Ownership and reactivity", and the matching "How binding works" section of the PlainKit.Blazor README): the host owns attributes and light-DOM children, the element owns its shadow tree, two-way values follow a commit event, subscriptions outside an element's subtree are added in `connected()` and removed in `disconnected()`, and the reactive core stays "attributes and properties in, one microtask-batched render, events out". Enforced by `core/tests/ownership.test.mjs` (a source guard for document, window, matchMedia, interval and observer subscriptions, plus a fake-DOM reconnect check) and `core/tests/element-surface.test.mjs` (the `PkElement` surface, its lifecycle hooks and the `{{ }}` / `data-if` syntax are frozen).
+- Added: browser cases that verify `pk-dialog` (centred, or full screen on a phone) and `pk-drawer` (flush against the right, left and bottom edge) positions after their entry animations finish. Refs #7.
 
 ### Fixed
 
@@ -17,6 +18,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - Fixed: `PkElement.watchSlot` adds one `slotchange` listener per slot however often `connected()` runs (tabs, cards, avatar groups and others stacked one per move).
 - Fixed: PlainKit.Blazor's mount components (`PkLogs`, `PkScorecard`, `PkConsole`, `PkPerformance`, `PkCodeExplorer`, `PkLogSettings`) leaked a running tool when they were disposed while its module was still loading; the bridge now drops a mount that is no longer current.
 - Fixed: the Files page snapshot (`core/site/files/snapshot.json`) went stale with any edit. `node core/tools/build.mjs` now writes it (deterministic: no timestamp, sorted by path on every platform, generated files laid over the disk copy, never includes itself or `dist/`), `node core/tools/snapshot.mjs` with no arguments runs that build, `core/tests/generated-current.test.mjs` proves every generated file is current, and the CI rebuild step checks `core/site`, `plainkit.css` and the element modules as well as `core/dist`. Refs #10.
+- Fixed: `pk-calendar` on a phone keeps every day a full-height 44px tap area as wide as its column allows (seven columns need 308px for 44px, so in a 288px container a day is about 41 x 44 and never scrolls sideways) and the highlight is a rounded square instead of an oval. Refs #7.
+- Fixed: `pk-table` row-select checkboxes on a phone: the box is larger and every checkbox cell (rows and the select-all header) is at least 52 x 44px and toggles the box when tapped anywhere in the cell; measured at 320px and 375px (before: 49 x 41.5 to 43px, only the 21px box was tappable). Removed an unused `.sr` rule and simplified two spots in `table.js` to stay inside the element budget. Refs #7.
+- Fixed: the site shell theme menu label ("Light theme" / "Dark theme") follows the theme attribute on the html element with one MutationObserver, so it refreshes when the theme editor (or the Settings page) changes the theme; `mountShell` now returns `{ root, destroy() }`. Refs #7.
+
+### Changed
+
+- Changed: on a phone (640px and narrower) secondary text (`--text-meta`: chips, tags, captions, mini buttons, table headers) is 13px instead of 12px; desktop is unchanged. The page-level stylesheet stays inside its budget (9.91 of 10 KB gzip). Refs #7.
 
 ## [0.1.0-alpha.1] - 2026-09-21
 

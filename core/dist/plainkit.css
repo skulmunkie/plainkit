@@ -303,9 +303,9 @@
     --pad-page: var(--space-4);
 }
 
-/* The page gutter narrows on a phone in every density. */
+/* The page gutter narrows on a phone in every density; secondary text (chips, captions, mini buttons) is 13px there, 12px elsewhere. */
 @media (max-width: 640px) {
-    :root { --pad-page: var(--space-4); }
+    :root { --pad-page: var(--space-4); --text-meta: 0.93rem; }
     [data-density="compact"] { --pad-page: var(--space-3); }
 }
 

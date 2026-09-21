@@ -44,6 +44,7 @@ function searchField(placeholder) {
 
 // The theme switch lives in the settings (profile) menu at the end of the bar, next to a link to the Settings page.
 // options: { page, title, search: { placeholder } | null }. Dispatches "site-search" (detail: string) and "site-theme" (detail: name) on document.
+// Returns { root, destroy() }.
 export function mountShell({ page, title, search = null }) {
     const root = document.documentElement;
     setTheme(root, new URLSearchParams(location.search).get('theme') ?? read(THEME_KEY) ?? 'dark');
@@ -60,13 +61,17 @@ export function mountShell({ page, title, search = null }) {
                 h('pk-menu-item', { href: '../settings/index.html', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
     document.body.prepend(header);
     if (title) { const h1 = h('h1', { class: 'u-sr-only' }, title); header.after(h1); }
+    // The label follows the theme attribute on <html>, whoever changes it (this item, the Settings page, the theme editor's own switch): one
+    // MutationObserver, no polling. destroy() disconnects it for a host that unmounts the shell.
+    const paintTheme = () => { const label = currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme'; if (themeItem.textContent !== label) themeItem.textContent = label; };
+    const themeWatch = new MutationObserver(paintTheme);
+    themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
     themeItem.addEventListener('pk-select', () => {
         write(THEME_KEY, toggleTheme(root));
-        themeItem.textContent = currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme';
         document.dispatchEvent(new CustomEvent('site-theme', { detail: currentTheme(root) }));
     });
     initPlainkit(document);
-    return { root };
+    return { root, destroy: () => themeWatch.disconnect() };
 }
 
 export { read as readSetting, write as writeSetting };

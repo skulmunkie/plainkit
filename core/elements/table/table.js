@@ -27,7 +27,7 @@ export default Base => class extends Base {
     connected() {
         if (this.$c) return;
         this.$c = 1;
-                const r = this.shadowRoot;
+        const r = this.shadowRoot;
         r.addEventListener('click', e => this.click(e));
         r.addEventListener('change', e => this.input(e));
         r.addEventListener('input', e => this.input(e));
@@ -42,7 +42,9 @@ export default Base => class extends Base {
 
     click(e) {
         const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tbody tr[data-id]');
-        if (th && t.closest('button')) this.sortBy(th.dataset.key, th.dataset.key === this.sort && this.sortDir === 'ascending' ? 'descending' : 'ascending');
+        // The whole checkbox cell is the tap area: a click on the cell (not on the box) toggles the box.
+        if (t.matches('[data-check]')) t.firstChild.click();
+        else if (th && t.closest('button')) this.sortBy(th.dataset.key, th.dataset.key === this.sort && this.sortDir === 'ascending' ? 'descending' : 'ascending');
         else if (tr && this.clickable && !t.closest('input,button,a,select,label')) this.emit('pk-row-click', { id: tr.dataset.id, row: this.view[this.ids().indexOf(tr.dataset.id)] });
     }
     input(e) {
@@ -67,16 +69,15 @@ export default Base => class extends Base {
         box.checked = rows.length > 0 && sel.size >= rows.length; box.indeterminate = sel.size > 0 && sel.size < rows.length;
         const head = [h('tr', {}, ...(this.selectable ? [h('th', { 'data-check': true }, box)] : []),
             ...cols.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': ph(c), scope: 'col', 'aria-sort': c.sortable ? (this.sort === c.key ? this.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
-        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...cols.map(c => { const i = h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' }); return h('th', { 'data-hide-phone': ph(c) }, i); })));
+        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...cols.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
         this.part('head').replaceChildren(...head);
 
         const body = this.loading ? [h('tr', { 'data-skeleton': true, 'aria-hidden': true }, h('td', { colspan: cols.length + lead }))] : rows.flatMap((row, i) => {
             const id = String(row[this.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
             pick.checked = sel.has(id);
-            const tr = h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': this.clickable },
+            return h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': this.clickable },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
                 ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
-            return [tr];
         });
         this.part('body').replaceChildren(...body);
         this.part('empty').hidden = this.loading || rows.length > 0;
