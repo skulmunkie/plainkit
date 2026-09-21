@@ -135,7 +135,7 @@
     {
       "name": "--pk-segmented-active",
       "description": "Background of the chosen segment.",
-      "default": "var(--color-accent)"
+      "default": "var(--color-accent-fill)"
     }
   ],
   "methods": [

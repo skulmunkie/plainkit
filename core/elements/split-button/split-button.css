@@ -1,4 +1,4 @@
-:host { display: inline-block; position: relative; --_bg: var(--pk-split-bg, var(--color-accent)); --_hv: var(--color-accent-hover); --_fg: var(--pk-split-fg, var(--btn-primary-fg)); --_bd: transparent; }
+:host { display: inline-block; position: relative; --_bg: var(--pk-split-bg, var(--color-accent-fill)); --_hv: var(--color-accent-fill-hover); --_fg: var(--pk-split-fg, var(--btn-primary-fg)); --_bd: transparent; }
 :host([variant="ghost"]) { --_bg: var(--pk-split-bg, transparent); --_hv: transparent; --_fg: var(--pk-split-fg, var(--field-muted)); --_bd: var(--color-border); }
 .sp { display: inline-flex; }
 button { min-height: var(--ctl-h); padding: var(--space-2) var(--space-4); background: var(--_bg); color: var(--_fg); border: 1px solid var(--_bd); font: inherit; font-size: var(--text-read); font-weight: 500; line-height: 1.3; white-space: nowrap; cursor: pointer; touch-action: manipulation; }

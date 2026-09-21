@@ -6,7 +6,7 @@ nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: spac
 button, select { min-inline-size: var(--_s); min-block-size: var(--_s); padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: transparent; color: var(--color-text); font: inherit; cursor: pointer; }
 select { background: var(--color-input); }
 button:hover:not(:disabled) { background: var(--color-surface-alt); }
-button[aria-current="page"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--btn-primary-fg); font-weight: 600; }
+button[aria-current="page"] { background: var(--color-accent-fill); border-color: var(--color-accent-fill); color: var(--btn-primary-fg); font-weight: 600; }
 button:disabled { opacity: 0.45; cursor: default; }
 button:focus-visible, select:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 .gap { padding-inline: var(--space-1); color: var(--color-muted); }

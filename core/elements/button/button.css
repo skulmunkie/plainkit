@@ -1,9 +1,9 @@
-:host { display: inline-block; --_bg: var(--pk-button-bg, var(--color-accent)); --_bg-hover: var(--pk-button-bg-hover, var(--color-accent-hover)); --_fg: var(--pk-button-fg, var(--btn-primary-fg)); --_bd: transparent; }
+:host { display: inline-block; --_bg: var(--pk-button-bg, var(--color-accent-fill)); --_bg-hover: var(--pk-button-bg-hover, var(--color-accent-fill-hover)); --_fg: var(--pk-button-fg, var(--btn-primary-fg)); --_bd: transparent; }
 :host([variant="ghost"]) { --_bg: var(--pk-button-bg, transparent); --_bg-hover: var(--pk-button-bg-hover, transparent); --_fg: var(--pk-button-fg, var(--field-muted)); --_bd: var(--color-border); }
 :host([variant="warn"]) { --_bg: var(--pk-button-bg, var(--btn-warn-bg)); --_bg-hover: var(--pk-button-bg-hover, var(--btn-warn-hover-bg)); --_fg: var(--pk-button-fg, var(--btn-warn-fg)); }
 :host([variant="secondary"]) { --_bg: var(--pk-button-bg, transparent); --_bg-hover: var(--pk-button-bg-hover, transparent); --_fg: var(--pk-button-fg, var(--color-accent)); --_bd: var(--color-accent); }
 :host([variant="plain"]) { --_bg: var(--pk-button-bg, transparent); --_bg-hover: var(--pk-button-bg-hover, var(--color-surface-alt)); --_fg: var(--pk-button-fg, var(--field-muted)); }
-:host([pressed]) { --_bg: var(--pk-button-bg, var(--color-accent)); --_bg-hover: var(--pk-button-bg-hover, var(--color-accent-hover)); --_fg: var(--pk-button-fg, var(--btn-primary-fg)); --_bd: var(--color-accent); }
+:host([pressed]) { --_bg: var(--pk-button-bg, var(--color-accent-fill)); --_bg-hover: var(--pk-button-bg-hover, var(--color-accent-fill-hover)); --_fg: var(--pk-button-fg, var(--btn-primary-fg)); --_bd: var(--color-accent-fill); }
 :host([block]) { display: block; }
 [part="control"] { font: inherit; font-size: var(--text-read); font-weight: 500; line-height: 1.3; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--ctl-h); background: var(--_bg); color: var(--_fg); border: 1px solid var(--pk-button-border, var(--_bd)); border-radius: var(--pk-button-radius, var(--radius-sm)); padding: var(--pk-button-padding, var(--space-2) var(--space-4)); white-space: nowrap; text-decoration: none; cursor: pointer; touch-action: manipulation; }
 :host([block]) [part="control"] { width: 100%; }
