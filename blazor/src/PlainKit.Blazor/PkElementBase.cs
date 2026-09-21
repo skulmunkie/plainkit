@@ -14,6 +14,9 @@ public abstract class PkElementBase : ComponentBase
 
     private Dictionary<string, object>? _handlers;
 
+    /// <summary>The element this component renders, once it has rendered (for example to give <see cref="PkRuntime.ReadFormValuesAsync"/> a <see cref="PkForm"/>).</summary>
+    public ElementReference Element { get; protected set; }
+
     /// <summary>
     /// Attributes that match no parameter (<c>id</c>, <c>data-*</c>, <c>aria-*</c>, <c>class</c>, ...). They are put on the element; a <c>class</c>
     /// is added to the component's own classes.

@@ -87,7 +87,9 @@ public static class PkMappingInfo
             else if (prop is not null)
             {
                 // Two-way: the component's one model (its value prop and change event), or a parameter that names its own event to bind to.
+                // "bind" is one event or a list of them (PkCommandPalette.Open: pk-open and pk-close); the list is shown by its first.
                 var changeEvent = p.TryGetProperty("bind", out var twoWay) && twoWay.ValueKind == JsonValueKind.Object ? Str(twoWay, "event")
+                    : twoWay.ValueKind == JsonValueKind.Array && twoWay.GetArrayLength() > 0 ? Str(twoWay[0], "event")
                     : model is { } mo && Str(mo, "prop") == prop ? Str(mo, "event") : null;
                 var def = p.TryGetProperty("default", out var dv) ? (dv.ValueKind == JsonValueKind.String ? dv.GetString() : dv.GetRawText()) : defaults is not null && defaults.TryGetValue(prop, out var d) ? d : null;
                 parameters.Add(new(name, "parameter", type, def, changeEvent is not null, Kebab(prop), reason));

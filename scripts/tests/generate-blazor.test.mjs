@@ -306,3 +306,20 @@ test('every param that names a slot, event or prop resolved, or is accounted for
     assert.ok(manifest.typesToDefine.every(t => t.reason.includes('issue #9')));
     for (const g of real.report.generated) assert.ok(fs.existsSync(path.join(generatedDir, `${g.component}.razor`)), g.component);
 });
+
+test('two-way: a bind can name several events (one sets true, another false), and every component holds its element', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'IsOpen').bind = [{ event: 'pk-dismiss', value: true }, { event: 'pk-close', value: false }];
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /IsOpen = true;\s+await IsOpenChanged\.InvokeAsync\(IsOpen\);/);
+    assert.match(razor, /IsOpen = false;\s+await IsOpenChanged\.InvokeAsync\(IsOpen\);\s+await OnClose\.InvokeAsync\(e\);/);
+    assert.equal(razor.match(/EventCallback<bool> IsOpenChanged/g).length, 1);
+    assert.match(razor, /@ref="Element"/);
+});
+
+test('the real palette and combobox are two-way on Open from the events the elements raise', () => {
+    const razor = name => fs.readFileSync(path.join(generatedDir, name + '.razor'), 'utf8');
+    assert.match(razor('PkCommandPalette'), /Open = true;\s+await OpenChanged\.InvokeAsync\(Open\);\s+await OnOpen\.InvokeAsync\(\);/);
+    assert.match(razor('PkCommandPalette'), /Open = false;\s+await OpenChanged\.InvokeAsync\(Open\);/);
+    assert.match(razor('PkCombobox'), /Open = e\.Open == true;\s+await OpenChanged\.InvokeAsync\(Open\);\s+await OnToggle\.InvokeAsync\(e\);/);
+});
