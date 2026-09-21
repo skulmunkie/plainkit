@@ -35,4 +35,4 @@ input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; b
 :host([floating]) .box { min-height: calc(var(--ctl-h) * 1.35); }
 :host([floating]) input { padding: 1.15rem 0 0.2rem; }
 :host([floating]) .box:focus-within .fl, :host([floating][has-value]) .fl { bottom: auto; top: var(--space-1); align-items: flex-start; font-size: var(--text-meta); }
-@media (max-width: 640px) { .box { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }
+@media (--phone) { .box { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }

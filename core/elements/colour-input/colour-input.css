@@ -11,4 +11,4 @@ label { display: none; margin-block-end: var(--space-1); }
 .hex:focus { outline: var(--focus-ring); outline-offset: 2px; border-color: var(--color-accent-hover); }
 .sw:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 :host([disabled]) .wrap { opacity: 0.55; }
-@media (max-width: 640px) { .sw { width: var(--touch-target); height: var(--touch-target); } .hex { min-height: var(--touch-target); font-size: 16px; } }
+@media (--phone) { .sw { width: var(--touch-target); height: var(--touch-target); } .hex { min-height: var(--touch-target); font-size: 16px; } }

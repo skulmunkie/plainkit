@@ -25,7 +25,7 @@
 
 [part="bars"] { display: block; width: 1.25rem; height: 2px; margin: auto; background: var(--color-text); box-shadow: 0 -6px 0 var(--color-text), 0 6px 0 var(--color-text); }
 
-@media (max-width: 1024px) {
+@media (--tablet) {
     [part="toggle"] { display: block; margin-inline-start: auto; }
     [part="actions"] { margin-inline-start: 0; }
     [part="links"] { display: none; flex: 1 1 100%; flex-direction: column; align-items: stretch; padding-bottom: var(--space-2); }

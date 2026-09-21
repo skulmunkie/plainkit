@@ -12,4 +12,4 @@
 :host([line-numbers]) .line { position: relative; padding-inline-start: calc(var(--pk-code-block-gutter, 2) * 1ch + var(--space-6)); counter-increment: line; }
 :host([line-numbers]) .line::before { content: counter(line); position: absolute; inset-inline-start: 0; inline-size: calc(var(--pk-code-block-gutter, 2) * 1ch + var(--space-3)); padding-inline-end: var(--space-2); text-align: end; color: var(--cv-muted); background: var(--cv-gutter); user-select: none; }
 .sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 640px) { [part="bar"] button { min-block-size: var(--touch-target); } }
+@media (--phone) { [part="bar"] button { min-block-size: var(--touch-target); } }

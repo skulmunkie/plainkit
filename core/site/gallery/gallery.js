@@ -24,6 +24,7 @@ import { initPlainkit } from '../../js/plainkit.js';
 import { renderElement } from './elements-view.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -440,7 +441,7 @@ function render() {
     }
 }
 
-const phone = () => matchMedia('(max-width: 640px)').matches;
+const phone = () => mediaBelow('phone').matches;
 
 function renderInspector() {
     const box = $('#gx-inspector'); const toggle = $('#gx-inspect');

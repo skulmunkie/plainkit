@@ -7,7 +7,7 @@
 [part="count"] { color: var(--color-muted); }
 [part="close"] { font: inherit; font-size: var(--text-sm); color: var(--color-muted); background: transparent; border: 0; padding: 0 0.35rem; margin-left: -0.25rem; cursor: pointer; }
 [part="close"]:hover { color: var(--color-text); }
-@media (max-width: 640px) {
+@media (--phone) {
     :host { min-height: var(--touch-target); }
     :host([only="phone"]) { display: inline-flex; }
     :host([only="desktop"]) { display: none; }

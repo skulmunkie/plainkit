@@ -14,4 +14,4 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .menu[data-placement="top"] { top: auto; bottom: 100%; margin: 0 0 var(--space-1); }
 ::slotted([slot="menu"]) { display: flex; align-items: center; width: 100%; min-height: 2.25rem; padding: var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text); font: inherit; text-align: start; white-space: nowrap; cursor: pointer; }
 ::slotted([slot="menu"]:hover), ::slotted([slot="menu"]:focus-visible) { background: var(--color-surface-alt); }
-@media (max-width: 640px) { button, ::slotted([slot="menu"]) { min-height: var(--touch-target); } }
+@media (--phone) { button, ::slotted([slot="menu"]) { min-height: var(--touch-target); } }

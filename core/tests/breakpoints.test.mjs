@@ -96,5 +96,48 @@ test('the built element modules and page layer carry exactly the media condition
         if (c.length) built[f.replace(/\.js$/, '')] = c;
     }
     built['plainkit.css'] = conditions(read('dist/plainkit.css'));
-    assert.deepEqual(built, baseline);
+    // The only two conditions that changed when the literals became names (#124), both recorded here so nothing else can change silently:
+    // pk-grid's range syntax (width <= 640px) now reads (max-width: 640px), the same query; pk-form-section's (min-width: 1024px) is now
+    // (--above-tablet) = (min-width: 1025px), so the desktop layout starts one pixel later and the tablet band no longer overlaps at exactly 1024px.
+    const recorded = { grid: { '(width <= 640px)': '(max-width: 640px)' }, 'form-section': { '(min-width: 1024px)': '(min-width: 1025px)' } };
+    const expected = Object.fromEntries(Object.entries(baseline).map(([k, list]) => [k, list.map(c => recorded[k]?.[c] ?? c)]));
+    assert.deepEqual(built, expected);
+});
+
+test('no literal breakpoint remains: element CSS uses names, unbuilt CSS only the named widths, and no matchMedia holds a width', () => {
+    const widths = new Set(bps.flatMap(b => [b.width, b.width + 1]));
+    const files = dir => fs.readdirSync(core + dir, { recursive: true }).map(f => `${dir}/${f.replace(/\\/g, '/')}`);
+    const problems = [];
+    // Element CSS is built, so it names its breakpoints: any (min|max)-width or range condition with a px value in an @media is a literal.
+    for (const f of files('elements').filter(x => x.endsWith('.css'))) {
+        for (const m of read(f).matchAll(/@media([^{;]*)\{/g)) if (/(?:min|max)-width\s*:|width\s*[<>]=?|\d+px/.test(m[1])) problems.push(`${f}: @media${m[1]}uses a literal width; write (--phone), (--above-phone), (--tablet)...`);
+    }
+    // CSS the site loads unbuilt cannot use a name; its literal widths must be a named one (or one above it).
+    const unbuilt = ['tokens', 'base', 'site', 'modules', 'samples', 'layouts'].flatMap(files).filter(x => x.endsWith('.css'));
+    for (const f of unbuilt) {
+        for (const m of read(f).matchAll(/@media([^{;]*)\{/g)) {
+            if (/\(\s*--/.test(m[1])) problems.push(`${f}: @media${m[1]}names a breakpoint, but this file is served unbuilt; write the literal width`);
+            for (const w of m[1].matchAll(/(?:min|max)-width\s*:\s*(\d+)px/g)) if (!widths.has(Number(w[1]))) problems.push(`${f}: @media${m[1]}has ${w[1]}px, which is not a named breakpoint (tokens/breakpoints.json)`);
+        }
+    }
+    // Scripts read the widths through js/breakpoints.js.
+    const scripts = ['elements', 'js', 'modules', 'site', 'samples', 'layouts', 'tests/browser'].flatMap(files).filter(x => /\.(js|mjs)$/.test(x) && !/\.test\.mjs$/.test(x) && !x.endsWith('.element.js') && !x.endsWith('.data.js'));
+    for (const f of scripts) if (/matchMedia\(\s*[`'"][^)]*(?:min|max)-width/.test(read(f))) problems.push(`${f}: matchMedia with a literal width; use mediaBelow('phone') from js/breakpoints.js`);
+    assert.deepEqual(problems, []);
+});
+
+test('js/breakpoints.js defaults equal tokens/breakpoints.json, and its helper reads --pk-bp-* and falls back with a debug line', async () => {
+    const { DEFAULT_BREAKPOINTS, breakpoint, belowQuery, aboveQuery } = await import('../js/breakpoints.js');
+    assert.deepEqual({ ...DEFAULT_BREAKPOINTS }, Object.fromEntries(bps.map(b => [b.name, b.width])));
+    assert.equal(breakpoint('phone'), 640);           // no document here: the default
+    assert.equal(belowQuery('tablet'), '(max-width: 1024px)');
+    assert.equal(aboveQuery('phone'), '(min-width: 641px)');
+    assert.throws(() => breakpoint('huge'), /unknown breakpoint/);
+    const g = globalThis; const saved = { document: g.document, getComputedStyle: g.getComputedStyle };
+    try {
+        g.document = { documentElement: {} }; g.getComputedStyle = () => ({ getPropertyValue: p => (p === '--pk-bp-phone' ? ' 480px' : '') });
+        assert.equal(breakpoint('phone'), 480);
+        assert.equal(aboveQuery('phone'), '(min-width: 481px)');
+        assert.equal(breakpoint('tablet'), 1024);       // not defined: the default
+    } finally { for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete g[k]; else g[k] = v; } }
 });

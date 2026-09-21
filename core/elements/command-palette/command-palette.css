@@ -46,4 +46,4 @@
 
 @media (prefers-reduced-motion: reduce) { [part="dialog"][open] { animation: none; } }
 
-@media (max-width: 640px) { [part="dialog"] { margin-top: var(--space-4); } [part="hint"] { display: none; } }
+@media (--phone) { [part="dialog"] { margin-top: var(--space-4); } [part="hint"] { display: none; } }
