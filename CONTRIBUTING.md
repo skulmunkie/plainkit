@@ -51,7 +51,7 @@ Pages tracks `main` as "latest" and tags are the pinned releases.
 3. In `CHANGELOG.md` rename "Unreleased" to the version and date (breaking changes under `### Breaking`) and start a new empty "Unreleased".
 4. Last, refresh the API baseline for the release: `node core/tools/api-surface.mjs --write --release X.Y.Z`.
 5. CI runs `check --release` and `bump --require` against the base branch's baseline: it fails when the baseline was not refreshed, or when the version does not cover the API changes (a breaking change needs a minor bump while the major is 0, a major bump after).
-6. Merge, then tag the merge commit `vX.Y.Z` and push the tag. `release.yml` checks that the tag equals `core/VERSION`, publishes `PlainKit.Blazor` to NuGet, attaches the `dist` zip, its manifest, the `.nupkg` and `plainkit-skills-<version>.zip` (the agent skills) to a GitHub release (marked as a pre-release when the version has a `-`), and publishes to npm only if `NPM_TOKEN` is set (pre-releases go to the `next` tag).
+6. Merge, then tag the merge commit `vX.Y.Z` and push the tag. `release.yml` checks that the tag equals `core/VERSION`, attaches the `dist` zip, its manifest, the `.nupkg` and `plainkit-skills-<version>.zip` (the agent skills) to a GitHub release (marked as a pre-release when the version has a `-`), then publishes `PlainKit.Blazor` to NuGet, and publishes to npm only if `NPM_TOKEN` is set (pre-releases go to the `next` tag). A registry problem never keeps the release assets from being attached; fix it and re-run the failed job.
 
 Release notes are generated from the merged pull requests, so titles and descriptions should say what changed. See `PUBLISHING.md` for the
 one-time setup and how people get a version.
