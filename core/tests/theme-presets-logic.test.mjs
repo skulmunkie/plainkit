@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { emptyOverrides, overrideCount, allTokenNames } from '../js/theme-editor-logic.js';
 import { paletteRows } from '../js/brand-palette-logic.js';
-import { PRESETS, presetById, presetOverrides, cleanName, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme, MAX_SAVED, MAX_NAME } from '../js/theme-presets-logic.js';
+import { PRESETS, presetById, presetOverrides, cleanName, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme, readCustomPresets, readOverridesInput, MAX_SAVED, MAX_NAME } from '../js/theme-presets-logic.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
 
@@ -79,6 +79,24 @@ test('rename and delete: a name may not collide, a missing theme is an error, de
     assert.equal(renameTheme(list, 'A', 'a').list[0].name, 'a', 'a case change of its own name is fine');
     assert.deepEqual(deleteTheme(list, 'A').map(t => t.name), ['B']);
     assert.equal(list.length, 2);
+});
+
+test('app-supplied presets: JSON, CSS or an object, named, and a bad, duplicate or built-in-named one is left out with a sentence', () => {
+    const css = ':root, [data-theme="dark"] { --color-accent: #123456; }\n[data-theme="light"] { --color-accent: #654321; }';
+    const { presets, problems } = readCustomPresets([
+        { name: 'Brand', theme: '{"shared":{"--radius-md":"2px"}}', description: 'Our theme' },
+        { name: 'From css', theme: css },
+        { name: 'From object', theme: { dark: { '--color-text': '#ffffff', BAD: 'x' } } },
+        { name: 'brand', theme: css }, { name: 'compact', theme: css }, { name: '<b>', theme: css }, { name: 'Empty', theme: 'not a theme' }, { theme: css }, null,
+    ]);
+    assert.deepEqual(presets.map(p => p.id), ['Brand', 'From css', 'From object']);
+    assert.equal(presets[0].description, 'Our theme'); assert.equal(presets[1].description, 'Supplied by the app.');
+    assert.deepEqual(presets[1].overrides, { shared: {}, dark: { '--color-accent': '#123456' }, light: { '--color-accent': '#654321' } });
+    assert.deepEqual(presets[2].overrides, { shared: {}, dark: { '--color-text': '#ffffff' }, light: {} });
+    assert.equal(problems.length, 6, problems.join(' | '));
+    assert.deepEqual(readCustomPresets(undefined), { presets: [], problems: [] });
+    assert.ok(readOverridesInput('').error && readOverridesInput('{"shared":{"BAD":"x"}}').error);
+    assert.deepEqual(readOverridesInput('{"shared":{},"dark":{},"light":{}}').overrides, { shared: {}, dark: {}, light: {} });
 });
 
 test('reading saved text: round-trips, and bad text, bad names, duplicates and bad tokens are dropped, never thrown', () => {

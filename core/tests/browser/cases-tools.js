@@ -231,6 +231,30 @@ export const toolCases = [
         t.eq(host.querySelector('pk-tabs').value, 'tokens', 'and the Tokens tab is open');
         editor.destroy();
     }],
+    ['theme editor module: an app supplies the initial theme and its own presets (CSS, JSON or object), and reports each change with the exported CSS', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const css = ':root, [data-theme="dark"] { --color-accent: #123456; }\n[data-theme="light"] { --color-accent: #654321; }';
+        const seen = [];
+        const editor = await mountThemeEditor(host, {
+            target: preview, preview: false, savedKey: false, initial: css, onchange: ({ css: out }) => seen.push(out),
+            presets: [{ name: 'Brand', theme: '{"shared":{"--radius-md":"2px"}}', description: 'Our theme' }, { name: 'Bad', theme: 'nothing usable' }, { name: 'High-contrast', theme: css }, { name: 'From css', theme: css }],
+        });
+        await until(() => host.querySelector('.te-saved'), 'the presets tab'); await t.load(host); await t.settle();
+        t.eq(editor.overrides().dark['--color-accent'], '#123456', 'the initial theme is the starting edits');
+        t.eq(preview.style.getPropertyValue('--color-accent'), '#123456', 'and it is applied');
+        t.ok(!editor.undo(), 'the initial theme is the baseline: there is nothing to undo');
+        t.eq(editor.presets().map(p => p.id).join(), 'default,high-contrast,compact,roomy,Brand,From css', 'app presets follow the built-in ones; a bad or built-in-named one is left out');
+        t.ok(host.querySelector('pk-select[label="Built-in preset"] option[value="Brand"]'), 'and they are in the picker');
+        seen.length = 0;
+        t.ok(editor.applyPreset('Brand') && editor.overrides().shared['--radius-md'] === '2px' && Object.keys(editor.overrides().dark).length === 0, 'an app preset replaces the edits');
+        t.ok(seen.length > 0 && /--radius-md:\s*2px/.test(seen.at(-1)), 'onchange reports the exported CSS');
+        editor.destroy();
+        const stored = await mountThemeEditor(t.stage(''), { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: 'not a theme' });
+        t.eq(Object.keys(stored.overrides().dark).length, 0, 'an initial theme with nothing usable is ignored');
+        stored.destroy();
+    }],
     ['theme editor module: blocked storage is logged and saved themes still work until the page closes', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;

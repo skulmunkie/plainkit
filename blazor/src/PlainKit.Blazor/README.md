@@ -304,7 +304,12 @@ Serve it outside Development with `AddPlainKit(o => o.DevTools = true)` (keep it
 <PkDevTools Mode="PkDevToolsMode.Inline" Tab="quality" />   @* the same tabs filling this element *@
 <PkQuality AutoRun="true" Height="24rem" />
 <PkThemeEditor StorageKey="my-theme" Preview="false" />
+<PkThemeEditor InitialTheme="@_savedThemeCss" Presets="_presets" OnThemeChanged="css => _savedThemeCss = css" />
 ```
+
+**The theme editor** starts from `InitialTheme` (the override CSS it exports, or its JSON; used when nothing was kept for the viewer under `StorageKey`), lists your `Presets` (`new PkThemePreset("Brand", css, "Our colours")`, CSS or JSON text) after the built-in ones, and raises `OnThemeChanged` with the exported CSS a moment after every change. Everything else (the brand palette generator, saved themes, undo and redo, the change list, the shareable link, the contrast audit) is inside the tool.
+
+**Shipping an exported theme.** The exported CSS is plain override blocks (`:root, [data-theme="dark"] { ... }` and `[data-theme="light"] { ... }`) and needs no runtime. Save it as a file in your app (for example `wwwroot/theme.css`, from `OnThemeChanged` at design time or from the editor's Copy snippet) and link it **after** the toolkit's stylesheet, so its custom properties win: `<PkStyles />` first, then `<link rel="stylesheet" href="theme.css" />`. A file works under a strict `style-src 'self'`; an inline `<style>` block does not. There is nothing to configure in `PkOptions`. Keep the file: the editor's JSON (Export / import tab) is the way back into it, and a link from the editor's "Create link" carries the same edits in its fragment.
 
 **The gallery's Details drawer.** `<PkGallery Chrome="PkChrome.Full" Sections="...">` takes a list of `PkGallerySection` (text data only: the gallery runs in its own frame, so the SDK passes the description across by message, never code). `PkGallerySection.ForBlazor()` builds the Blazor section (component, parameters, the Razor for the example), which is what `/_plainkit/gallery` passes. A relative `src` on `<pk-gallery>` resolves against the document's base address, so it also works on a routed page. `blazorInspectorSections(host)` in `wwwroot/blazor-devtools.js` is the same section for `createElementInspector(...).show({ meta, element, extraSections })` in a page of your own.
 

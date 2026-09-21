@@ -20,6 +20,8 @@
 // stylesheet value (js/theme-history-logic.js), '3 changes', with a reset for each edit and for each group of tokens.
 // Contrast tab (the live audit): every pair in `pairs` in both themes under the current edits, as sample text with its ratio, worst first, and a jump to the token that sets each
 // side (js/theme-editor-logic.js auditPairs); the tab title counts the pairs below 4.5:1.
+// Options for an app: initial (the theme to start from, as JSON { shared, dark, light }, an override CSS block or an object; used when nothing was kept for the
+// viewer) and presets ([{ name, description?, theme }], theme being the same kinds of value; listed after the built-in presets and applied by name).
 // Export / import tab: the CSS block, a copy-paste snippet (theme.css), the JSON, and a link to the theme (js/theme-share-logic.js): the edits in the fragment as
 // '#pk-theme=z.<compressed>' (plain when the browser has no CompressionStream), at most 4096 characters, validated on the way in like pasted JSON, text only.
 // Option readHash: true applies the theme in the page's own #pk-theme= fragment at mount, as edits (Undo takes it back).
@@ -30,7 +32,7 @@
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport, guardLeaks, AA_PAIRS, auditPairs, auditSummary } from '../../js/theme-editor-logic.js';
 import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
-import { PRESETS, presetById, presetOverrides, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
+import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
@@ -103,7 +105,21 @@ export async function mountThemeEditor(container, options = {}) {
         try { win.localStorage.setItem(savedKey, serializeSaved(list)); savedBlocked = false; } catch (error) { savedBlocked = true; log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, error); }
     }
 
-    const state = { overrides: readStored(storageKey, win), scope: 'theme', kind: 'all', filter: '', palette: null, saved: readSavedThemes() };
+    // Presets the app supplies, after the built-in ones; a bad one is left out and logged.
+    const custom = readCustomPresets(options.presets);
+    for (const problem of custom.problems) log.warn(`preset: ${problem}`);
+    const presetList = [...PRESETS, ...custom.presets];
+    const presetById = id => presetList.find(p => p.id === id) ?? null;
+    const presetOverrides = id => { const p = presetById(id); return p ? { shared: { ...p.overrides.shared }, dark: { ...p.overrides.dark }, light: { ...p.overrides.light } } : null; };
+
+    // The edits to start from: what was kept for this viewer, else the app's initial theme (JSON, override CSS or an object).
+    let start = readStored(storageKey, win);
+    if (options.initial !== undefined && options.initial !== null && !overrideCount(start)) {
+        const read = readOverridesInput(options.initial);
+        if (read.error) log.warn(`initial theme not used: ${read.error}`); else start = read.overrides;
+    }
+
+    const state = { overrides: start, scope: 'theme', kind: 'all', filter: '', palette: null, saved: readSavedThemes() };
     // Every change of the overrides goes through commit(), so undo and redo see it; typing in one field is one step.
     let hist = createHistory(state.overrides);
     const recordStep = (next, key = null) => { hist = record(hist, next, { key, at: Date.now() }); return hist.present; };
@@ -178,8 +194,8 @@ export async function mountThemeEditor(container, options = {}) {
     const paletteNote = h(doc, 'div');
     const paletteRowsBox = h(doc, 'div', { class: 'te-pairs' });
     const paletteMsg = h(doc, 'div');
-    const presetSelect = h(doc, 'pk-select', { label: 'Built-in preset', value: PRESETS[0].id }, ...PRESETS.map(p => h(doc, 'option', { value: p.id }, p.name)));
-    const presetHint = h(doc, 'p', { class: 'muted' }, PRESETS[0].description);
+    const presetSelect = h(doc, 'pk-select', { label: 'Built-in preset', value: presetList[0].id }, ...presetList.map(p => h(doc, 'option', { value: p.id }, p.name)));
+    const presetHint = h(doc, 'p', { class: 'muted' }, presetList[0].description);
     const applyPreset = h(doc, 'pk-button', { variant: 'primary' }, 'Apply preset');
     const nameInput = h(doc, 'pk-input', { label: 'Theme name', 'show-label': true, placeholder: 'e.g. Brand dark', maxlength: 40 });
     const saveBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Save current edits');
@@ -548,7 +564,7 @@ export async function mountThemeEditor(container, options = {}) {
         // Applies the theme in a link (the fragment or the whole URL) as edits: { overrides } or { error }.
         importShare: text => importLink(text),
         // Built-in presets ({ id, name, description }) and the user's saved theme names.
-        presets: () => PRESETS.map(({ id, name, description }) => ({ id, name, description })),
+        presets: () => presetList.map(({ id, name, description }) => ({ id, name, description })),
         saved: () => state.saved.map(t => t.name),
         // Replaces the edits with a built-in preset ('default', 'high-contrast', 'compact', 'roomy') or a saved theme (by name). Returns false for an unknown one.
         applyPreset(id) {
