@@ -24,6 +24,10 @@
 // viewer) and presets ([{ name, description?, theme }], theme being the same kinds of value; listed after the built-in presets and applied by name).
 // Export / import tab: the CSS block, a copy-paste snippet (theme.css), the JSON, and a link to the theme (js/theme-share-logic.js): the edits in the fragment as
 // '#pk-theme=z.<compressed>' (plain when the browser has no CompressionStream), at most 4096 characters, validated on the way in like pasted JSON, text only.
+// Custom SDK tab (sdk-tab.js; option sdk: false leaves it out, dist: the URL of the folder holding the shipped dist files, default the release layout next to this module): tick
+// Theme and/or Breakpoints (phone, tablet and wide as whole pixel widths, validated, with a live table of the elements and properties that change at each), then export: theme only
+// is a small zip (plainkit-theme.css, plainkit.custom.json, README.md) that loads after plainkit.css; with breakpoints it is the shipped dist re-resolved with a recomputed SRI manifest
+// (js/custom-sdk-logic.js), as a zip written in the page (js/zip-store.js). The settings file imports back. Only same-origin reads of the shipped files.
 // Option readHash: true applies the theme in the page's own #pk-theme= fragment at mount, as edits (Undo takes it back).
 // Returns { export(), overrides(), setTheme(name), reset(), undo(), redo(), share(), importShare(text), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
 // The pure logic is js/theme-editor-logic.js and js/theme.js.
@@ -37,6 +41,7 @@ import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, cha
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { createSdkTab } from './sdk-tab.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('theme-editor');
 
@@ -202,6 +207,12 @@ export async function mountThemeEditor(container, options = {}) {
     const savedBox = h(doc, 'div', { class: 'te-saved' });
     const presetMsg = h(doc, 'div');
 
+    // The Custom SDK tab (sdk-tab.js): theme and breakpoints as independent choices, and the export. It reads the edits through these two closures.
+    const sdk = options.sdk === false ? null : createSdkTab({
+        doc, win, dist: options.dist,
+        theme: () => ({ overrides: { shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }, css: outputCss().css }),
+        importTheme: next => replaceOverrides(next, null),
+    });
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
         changesTab, h(doc, 'pk-tab-panel', { value: 'changes' }, changesBox),
@@ -223,7 +234,8 @@ export async function mountThemeEditor(container, options = {}) {
             rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox,
             h(doc, 'p', { class: 'te-caption' }, 'The same as a file: save it as theme.css and load it after the SDK stylesheets (a strict style-src cannot use an inline style element)'), snippetBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, copySnippet),
             h(doc, 'p', { class: 'te-caption' }, 'A link to this theme: the edits travel in the link fragment (compressed when the browser can, at most 4096 characters, text only), and whoever opens it gets them as ordinary edits'),
-            h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message));
+            h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message),
+        ...(sdk ? [h(doc, 'pk-tab', { value: 'sdk' }, 'Custom SDK'), h(doc, 'pk-tab-panel', { value: 'sdk' }, sdk.panel)] : []));
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
         h(doc, 'div', { class: 'te-toolbar' }, find, kindSelect, themeSelect, scopeSelect),
@@ -412,6 +424,7 @@ export async function mountThemeEditor(container, options = {}) {
         paintPairs();
         paintChanges();
         paintExport(css, rejected);
+        sdk?.refresh();
         onchange?.({ css, overrides: api.overrides() });
     }
 
@@ -586,6 +599,7 @@ export async function mountThemeEditor(container, options = {}) {
         },
         destroy() {
             observer.disconnect();
+            sdk?.destroy();
             for (const off of listeners) off();
             if (sheet) targetDoc.adoptedStyleSheets = targetDoc.adoptedStyleSheets.filter(s => s !== sheet);
             else for (const n of setInline) themeHost.style.removeProperty(n);

@@ -171,7 +171,16 @@ Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>
 
 ### Respond to screen size
 
-The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below); do not restyle them there. In your own stylesheet use the literal query with the same width (`@media (max-width: 640px)`); custom properties do not work in `@media`. In a script never write the number: `import { mediaBelow } from './plainkit/js/breakpoints.js'; mediaBelow('phone').matches` (it reads `--pk-bp-phone` from `plainkit.css`). Other widths need a rebuild of the SDK; the table of what changes at each width is in `references/theming.md`.
+The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below); do not restyle them there. In your own stylesheet use the literal query with the same width (`@media (max-width: 640px)`); custom properties do not work in `@media`. In a script never write the number: `import { mediaBelow } from './plainkit/js/breakpoints.js'; mediaBelow('phone').matches` (it reads `--pk-bp-phone` from `plainkit.css`). Other widths need a rebuilt `dist`: see "Ship a custom SDK" below; the table of what changes at each width is in `references/theming.md`.
+
+### Ship a custom SDK
+
+A consumer's theme and breakpoint widths are two independent choices, both made in the theme editor's **Custom SDK** tab (`mountThemeEditor(el)`; the Theme page of the site has it). Do not hand-edit `dist` to change a width: the tab does it with checked transforms.
+
+1. **Only colours and styles (the common case):** tick Theme, untick Breakpoints, export. The zip is `plainkit-theme.css` (load it after `plainkit.css`: `<link rel="stylesheet" href="plainkit-theme.css">`), `plainkit.custom.json` and a `README.md`; no SDK file changes. Blazor: put the file in `wwwroot` and link it after the PlainKit stylesheet in `App.razor` or `_Host.cshtml`. The Download plainkit-theme.css button gives just the stylesheet.
+2. **Different breakpoint widths:** tick Breakpoints (whole px 320 to 2560, ascending, at least 64 apart; `phone`, `tablet`, `wide` keep their names). The table shows which elements and properties change at each and which viewport widths flip. The export is a zip of `dist/` with every `@media` width, `--pk-bp-*` and the report rewritten and `manifest.json` recomputed (size and SHA-384 per file), plus `plainkit.custom.json` and a `README.md` naming the version and the settings. Tick Theme as well and the theme is also baked into `plainkit.css` and `plainkit.min.css`.
+3. **Change it again later:** paste `plainkit.custom.json` into the tab's Import box.
+4. Use the exported `dist/` wherever the release `dist` is used and keep scripts on `js/breakpoints.js` (it reads `--pk-bp-*`), never a literal width. It all runs in the browser with same-origin reads of the shipped files, each checked against its release hash; nothing leaves the page. A Blazor exporter is not built yet: `PkThemeEditor` shows the same tab, and its theme-only zip is the way to ship a theme in a Blazor app.
 
 ### Change the theme
 

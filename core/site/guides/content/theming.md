@@ -94,6 +94,7 @@ The [Theme editor](../theme/index.html) is the quickest way to a theme of your o
 - **Undo and redo** every change, and list what differs from the stylesheet (the Changes tab), with a reset for each edit and each group of tokens.
 - **Audit contrast** (the Contrast tab) for every documented pair in both themes under your edits, with a jump to the token that sets each side.
 - **Export** the edits as CSS, as a snippet for a `theme.css` file, as JSON, or as a link: the edits travel in the link's fragment, compressed where the browser can, and are checked like pasted JSON, so a link is text only and never markup.
+- **Export a custom SDK** (the Custom SDK tab): a theme-only zip, or the prebuilt `dist` with your theme and your breakpoint widths (see below).
 
 The same tool is available for your own pages:
 
@@ -118,5 +119,15 @@ The export is plain override blocks and needs no runtime. Save it as `theme.css`
     private string? _theme;
 }
 ```
+
+### Export a custom SDK
+
+The editor's **Custom SDK** tab makes a download from your theme and your breakpoint widths, and you tick what goes in. The two parts are independent:
+
+- **Theme only** (a small zip): `plainkit-theme.css`, the settings file `plainkit.custom.json` and a `README.md`. No SDK file is touched. Load it after `plainkit.css` as a file, `<link rel="stylesheet" href="plainkit-theme.css">`; in Blazor put it in `wwwroot` and link it after the PlainKit stylesheet in `App.razor` or `_Host.cshtml`. The **Download plainkit-theme.css** button gives just the stylesheet.
+- **Breakpoints only**: the release `dist` with the widths of `phone`, `tablet` and `wide` rewritten (in the page layer, in every element module and in the tools' stylesheets), the `--pk-bp-*` properties following, and `dist/manifest.json` recomputed so every file has its size and SRI hash again. The widths are whole pixels from 320 to 2560, ascending, at least 64 apart, and a table lists the elements and properties that change at each breakpoint and the viewport widths whose behaviour flips.
+- **Both**: the same `dist` with your theme also written into `plainkit.css` and `plainkit.min.css`, after the token blocks.
+
+Everything happens in the page. The only requests are same-origin reads of the shipped files, and each is checked against its hash in the release manifest before it is used. The zip has the release layout (`dist/`, so it drops in where `dist` is used), the settings and a README naming the version and the settings; paste `plainkit.custom.json` into the tab's Import box to change and export again. Turn the tab off in your own page with `mountThemeEditor(el, { sdk: false })`, or point it at another copy of the files with `dist: '/assets/plainkit/'` (a folder on the same origin).
 
 The [Scorecard](../scorecard/index.html) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.

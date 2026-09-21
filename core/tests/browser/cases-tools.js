@@ -3,6 +3,20 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
 const dist = name => import(new URL(`../../dist/${name}/${name}.js`, import.meta.url).href);
 
+// A store-only zip read back: Map of name -> text (or bytes with raw), from the central directory.
+function unzip(bytes, raw = false) {
+    const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let end = bytes.length - 22; while (v.getUint32(end, true) !== 0x06054b50) end--;
+    const out = new Map(); let at = v.getUint32(end + 16, true);
+    for (let i = 0, n = v.getUint16(end + 10, true); i < n; i++) {
+        const size = v.getUint32(at + 24, true), len = v.getUint16(at + 28, true), off = v.getUint32(at + 42, true);
+        const name = new TextDecoder().decode(bytes.subarray(at + 46, at + 46 + len)); at += 46 + len;
+        const start = off + 30 + v.getUint16(off + 26, true) + v.getUint16(off + 28, true);
+        out.set(name, raw ? bytes.slice(start, start + size) : new TextDecoder().decode(bytes.subarray(start, start + size)));
+    }
+    return out;
+}
+
 const SNAPSHOT = { version: 1, files: [
     { path: 'src/app.js', language: 'js', content: 'export function run() {\n  return 42;\n}\n', symbols: [{ kind: 'function', name: 'run', line: 1, depth: 0 }] },
     { path: 'README.md', language: 'md', content: '# Title\nsome text\n' },
@@ -274,6 +288,91 @@ export const toolCases = [
             if (desc) Object.defineProperty(window, 'localStorage', desc); else delete window.localStorage;
             editor?.destroy();
         }
+    }],
+
+    ['theme editor Custom SDK tab: theme only exports a small zip without touching the SDK; the widths are validated and the delta table follows them', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the three breakpoint inputs');
+        await t.load(host); await t.settle();
+        const sdk = s => host.querySelector(`.te-sdk [data-sdk="${s}"]`);
+        const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        const tick = (el, on) => { el.checked = on; el.dispatchEvent(new Event('change', { bubbles: true, composed: true })); };
+        t.eq(inputs.map(i => i.dataset.breakpointInput + i.value).join(), 'phone640,tablet1024,wide1280', 'the shipped widths are the start');
+        t.eq(sdk('export').textContent.trim(), 'Export custom SDK');
+        // validation: ascending and a gap; the message and the invalid flag say which, and the export is off
+        type(inputs[1], 660); await t.settle();
+        t.ok(inputs[1].hasAttribute('invalid') && /at least 64/.test(host.querySelector('.te-sdk pk-alert').textContent) && sdk('export').hasAttribute('disabled'), 'a tablet 660px next to a phone 640px is refused');
+        type(inputs[1], 1100); type(inputs[0], 700); await t.settle();
+        t.ok(!host.querySelector('.te-sdk pk-alert') && !sdk('export').hasAttribute('disabled'), 'a valid set clears the message');
+        // the delta table: the changed breakpoint is open, says which viewport widths flip and lists elements with their properties
+        const item = host.querySelector('.te-sdk [data-breakpoint="phone"]');
+        t.ok(/phone: 640px to 700px \(\d+ elements/.test(item.getAttribute('heading')) && item.hasAttribute('open'), item.getAttribute('heading'));
+        t.ok(/Viewports 641 to 700px/.test(item.textContent) && item.querySelectorAll('tbody tr').length > 40 && /pk-grid|pk-tabs|pk-table/.test(item.textContent), 'the elements that change are listed');
+        t.ok(!host.querySelector('.te-sdk [data-breakpoint="wide"]').hasAttribute('open'), 'an unchanged breakpoint stays closed');
+        // theme only: untick Breakpoints; the button says so and the download is the small zip, with no SDK file in it
+        tick(host.querySelector('.te-sdk [data-sdk="include-breakpoints"]'), false); await t.settle();
+        t.eq(sdk('export').textContent.trim(), 'Export theme only');
+        const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click;
+        URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
+        HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
+        try {
+            const before = performance.getEntriesByType('resource').length;
+            sdk('export').click(); await until(() => got.length, 'the download');
+            const files = unzip(new Uint8Array(await got[0].blob.arrayBuffer()));
+            t.eq([...files.keys()].sort().join(), 'README.md,plainkit-theme.css,plainkit.custom.json');
+            t.ok(/--color-accent: #123456/.test(files.get('plainkit-theme.css')) && /Blazor: copy the file to/.test(files.get('README.md')) && got[0].name.startsWith('plainkit-theme-'), got[0].name);
+            t.eq(JSON.parse(files.get('plainkit.custom.json')).include.breakpoints, false);
+            t.ok(performance.getEntriesByType('resource').slice(before).every(r => !/dist\/(elements|manifest)/.test(r.name)), 'no SDK file was fetched for a theme-only export');
+            // the stylesheet on its own: the separate, labelled action
+            sdk('download-css').click(); await until(() => got.length === 2, 'the css download');
+            t.eq(got[1].name, 'plainkit-theme.css');
+        } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
+        editor.destroy();
+    }],
+    ['theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the breakpoint inputs');
+        await t.load(host); await t.settle();
+        const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        type(inputs[0], 700); await t.settle();
+        const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click;
+        URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
+        HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
+        let files;
+        try {
+            host.querySelector('.te-sdk [data-sdk="export"]').click();
+            await until(() => got.length, 'the export');
+            files = unzip(new Uint8Array(await got[0].blob.arrayBuffer()), true);
+        } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
+        const text = p => new TextDecoder().decode(files.get(p));
+        t.ok(/^plainkit-custom-.+\.zip$/.test(got[0].name) && files.has('README.md') && files.has('plainkit.custom.json') && files.has('dist/manifest.json') && files.has('dist/elements/button.js'), got[0].name);
+        t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width: 700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
+        const manifest = JSON.parse(text('dist/manifest.json'));
+        for (const p of ['plainkit.css', 'plainkit.min.css', 'elements/tabs.js', 'icons.svg']) {
+            const digest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get(`dist/${p}`)));
+            t.eq(manifest.files.find(f => f.path === p).integrity, 'sha384-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
+        }
+        // the exported page layer works in a real document: the widths are on :root and the theme wins
+        const frame = document.createElement('iframe'); frame.style.width = '680px'; document.body.append(frame);
+        try {
+            const sheet = new frame.contentWindow.CSSStyleSheet(); sheet.replaceSync(text('dist/plainkit.css')); frame.contentDocument.adoptedStyleSheets = [sheet];
+            const cs = frame.contentWindow.getComputedStyle(frame.contentDocument.documentElement);
+            t.eq(cs.getPropertyValue('--pk-bp-phone'), '700px'); t.eq(cs.getPropertyValue('--color-accent').trim(), '#123456');
+        } finally { frame.remove(); }
+        // the settings import back: another editor takes the widths and the theme from plainkit.custom.json
+        const other = t.stage('');
+        const second = await mountThemeEditor(other, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false });
+        await until(() => other.querySelectorAll('.te-sdk [data-breakpoint-input]').length === 3, 'the second editor'); await t.load(other); await t.settle();
+        const box = other.querySelector('.te-sdk pk-textarea'); box.value = text('plainkit.custom.json'); box.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        other.querySelector('.te-sdk [data-sdk="import"]').click(); await t.settle();
+        t.eq(other.querySelector('[data-breakpoint-input="phone"]').value, '700', 'the width is back');
+        t.eq(second.overrides().dark['--color-accent'], '#123456', 'and the theme');
+        t.ok(/Imported settings made with Plainkit/.test(other.textContent));
+        second.destroy(); editor.destroy();
     }],
 
     ['layout builder module: renders the page live in an inert canvas, selects by click, arrows and the structure tree, and the keyboard moves, duplicates, deletes and undoes', async t => {
