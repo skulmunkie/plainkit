@@ -49,7 +49,16 @@ test('form reset returns to the state at connection; restore reads the saved sta
     el.onRestore(undefined); assert.equal(el.checked, false);
 });
 
-// Every other form element (checkbox, input, select, range...) captures its reset value once, guarded by $init.
-// pk-switch takes it again on every connect, so moving a toggled switch in the DOM makes a later form reset restore the moved-time state, not the original.
-// Issue #98.
-test.todo('form reset still restores the original checked state after the switch is disconnected and reconnected while toggled (switch.js connected() overwrites $initial each time; checkbox guards with $init)');
+// Every other form element (checkbox, input, select, range...) captures its reset value once. pk-switch used to take it again on every connect, so
+// moving a toggled switch in the DOM made a later form reset restore the moved-time state, not the original (issue #98).
+test('form reset still restores the original checked state after the switch is disconnected and reconnected while toggled', () => {
+    const { el } = make({ checked: false });
+    el.connected(); el.checked = true;
+    el.disconnected?.(); el.connected();
+    el.onReset();
+    assert.equal(el.checked, false);
+    // and the same for a switch that started on
+    const on = make({ checked: true }).el;
+    on.connected(); on.checked = false; on.connected(); on.onReset();
+    assert.equal(on.checked, true);
+});
