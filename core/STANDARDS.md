@@ -40,6 +40,7 @@ Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`
 - **Scopes**: `loader`, `invokers`, the tag name for an element (`pk-input`), the module name for a tool (`scorecard`, `code-explorer`, `theme-editor`, `quality`, `performance`), your own name for an app.
 - **error**: something the page asked for did not happen and cannot recover (a module failed to load, a run failed).
 - **warn**: a mistake the SDK worked around (a bad attribute value that fell back to its default, an unknown tag, a selector that matches nothing, a saved value that could not be read). Say what was wrong and what was used instead. In an element, say it once per instance (`warnOnce`) so a re-render loop cannot flood.
+- **Deprecation**: an item that will go is marked `deprecated: { since, remove, message }` in its element meta (element, prop, event or slot; see `tools/element-api.mjs`); the generated module warns once per page through the element's logger (`js/deprecation.js`, imported only by elements that deprecate something, never by the base). Keep it for one minor version, remove it in the release `remove` names.
 - **info**: rare, useful milestones an app might want to see. The SDK itself seldom uses it.
 - **debug**: lifecycle and expected fallbacks (element defined, connected, a prop changed, a module loaded and how long it took, a tool mounted, blocked storage, an unsupported browser API). Guard anything costly to build with `isLogEnabled('debug', scope)`; the default level is `warn`, so a quiet page prints nothing extra.
 

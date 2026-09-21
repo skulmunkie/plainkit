@@ -522,3 +522,12 @@ test('the skills say raw @onpk-... handlers work for every element and name the 
     for (const n of ['pk-sort', 'pk-filter', 'pk-row-click', 'pk-row-expand']) assert.ok(events.includes(`\`${n}\``), n);
     assert.match(gen.get('plainkit-blazor/SKILL.md'), /@onpk-sort="OnSort"/);
 });
+
+test('a deprecated item in an element meta is listed in the element reference with what to use instead, and only then', () => {
+    const marked = structuredClone(src); const badge = marked.api.find(e => e.tag === 'pk-badge');
+    badge.props[0].deprecated = { since: '0.2.0', remove: '0.3.0', message: 'use tone' };
+    const ref = [...generate(marked)].filter(([f]) => f.includes('references/elements-')).map(([, t]) => t).join('\n');
+    assert.match(ref, /Deprecated: do not use in new code/);
+    assert.match(ref, /prop `variant` \| 0\.2\.0 \| 0\.3\.0 \| use tone/);
+    assert.doesNotMatch([...gen].filter(([f]) => f.includes('references/elements-')).map(([, t]) => t).join('\n'), /Deprecated: do not use/);
+});

@@ -224,6 +224,8 @@ function elementSection(e) {
     const out = [`## ${code(e.tag)}`, '', `**${e.title}** (${e.group}). ${e.summary}`];
     const flags = [e.formAssociated && 'form-associated (takes part in a `<form>` by its `name`)', e.delegatesFocus && 'delegates focus to its inner control'].filter(Boolean);
     if (flags.length) out.push('', `It is ${flags.join(' and ')}.`);
+    const deprecated = [[e.deprecated, 'the element'], ...[['prop', 'props'], ['event', 'events'], ['slot', 'slots']].flatMap(([k, l]) => e[l].map(x => [x.deprecated, `${k} ${code(x.name || '(default)')}`]))].filter(([d]) => d);
+    if (deprecated.length) out.push('', '**Deprecated: do not use in new code** (it logs a warning and is removed in the release shown)', '', table(['What', 'Since', 'Removed in', 'Use instead'], deprecated.map(([d, what]) => [what, d.since, d.remove, d.message])));
     if (e.props.length) out.push('', '**Props** (set as an attribute in kebab-case, or as a property in camelCase; a boolean is present or absent)', '', table(['Attribute', 'Property', 'Type', 'Default', 'Values', 'Description'], e.props.map(p => [code(attrName(p)), code(p.name), typeText(p), code(showValue(p.default)), p.values ? p.values.map(code).join(' ') : '', p.description])));
     else out.push('', '**Props**: none.');
     if (e.slots.length) out.push('', '**Slots** (`slot="name"` on a child)', '', table(['Slot', 'Description'], e.slots.map(s => [s.name ? code(s.name) : '(default)', s.description])));

@@ -13,8 +13,13 @@
 //   methods[]       { name, description }
 //   writes[]        optional { target, attributes[], why }: what the element writes to nodes it does not own (light-DOM children, a trigger, a heading elsewhere):
 //                   the attribute or property names (an ElementInternals call is 'aria()'), and why, including whether it is undone; core/tests/ownership.test.mjs holds the source to it
+//   deprecated      optional { since, remove, message } on the element itself and on a props[], events[] or slots[] entry: the release that deprecated it, the release that removes it
+//                   (at least one minor later; core/tools/versioning.mjs refuses a removal before that) and what to use instead. The generated module then warns once per page
+//                   through the logger when it is used (js/deprecation.js); an element that deprecates nothing pays nothing
 //   a11y            keyboard and ARIA notes
 //   examples[]      { title, html }   usage snippets shown in the gallery: <pk-*> markup, never a style attribute
+
+import { parseVersion, changeLevel } from './semver.mjs';
 
 export const PROP_TYPES = ['string', 'boolean', 'number', 'enum', 'json'];
 const NAME = /^[a-z][a-zA-Z0-9]*$/;
@@ -58,6 +63,12 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     for (const d of meta.props) if ('commit' in d) { const named = [].concat(d.commit); need(named.length > 0 && named.every(n => typeof n === 'string' && meta.events.some(e => e.name === n)), `prop "${d.name}" commit must name events declared in events[] (${JSON.stringify(d.commit)})`); }
     need(meta.writes === undefined || Array.isArray(meta.writes), 'writes must be an array when present');
     for (const w of Array.isArray(meta.writes) ? meta.writes : []) need(isText(w.target) && Array.isArray(w.attributes) && w.attributes.length > 0 && w.attributes.every(isText) && isText(w.why), `each writes entry needs a target, attributes[] and a why (${JSON.stringify(w.target)})`);
+    for (const [where, d] of [['the element', meta.deprecated], ...[['prop', meta.props], ['event', meta.events], ['slot', meta.slots]].flatMap(([k, l]) => l.map(x => [`${k} "${x.name}"`, x.deprecated]))]) if (d !== undefined) {
+        const ok = d && isText(d.since) && isText(d.remove) && isText(d.message) && parseVersion(d.since) && parseVersion(d.remove);
+        need(ok, `${where}: deprecated needs { since, remove, message } (since and remove are SemVer versions)`);
+        if (ok) need(['minor', 'major'].includes(changeLevel(d.since, d.remove)), `${where}: deprecated.remove ${d.remove} must be at least one minor version after deprecated.since ${d.since}`);
+    }
+    for (const [k, list] of [['part', meta.parts], ['cssProperty', meta.cssProperties], ['method', meta.methods]]) for (const x of list) need(x.deprecated === undefined, `${k} "${x.name}": deprecated is supported on the element, props, events and slots only`);
     for (const e of meta.events) need('detail' in e, `event "${e.name}" needs a detail (null when there is none)`);
     for (const c of meta.cssProperties) need(CSS_PROP.test(c.name), `css property "${c.name}" must start with --pk-`);
 
@@ -82,3 +93,19 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
 
 // The same props as the runtime wants them: { name: { type, default, values, reflect } }.
 export const propsObject = meta => Object.fromEntries(meta.props.map(({ name, type, default: d, values, reflect }) => [name, { type, default: d, ...(values ? { values } : {}), reflect }]));
+
+// Everything an element deprecates, as [{ item, since, remove, message }]. `item` is the API surface name (api-surface.mjs): the tag, then
+// tag:prop:name, tag:event:name or tag:slot:name (the default slot is "(default)").
+export function deprecatedItems(meta) {
+    const out = [], add = (item, d) => { if (d) out.push({ item, since: d.since, remove: d.remove, message: d.message }); };
+    add(meta.tag, meta.deprecated);
+    for (const [k, list] of [['prop', meta.props], ['event', meta.events], ['slot', meta.slots]]) for (const x of list ?? []) add(`${meta.tag}:${k}:${x.name || '(default)'}`, x.deprecated);
+    return out;
+}
+
+// What the runtime helper (js/deprecation.js) needs, or null when the element deprecates nothing (its module then does not import the helper).
+export function deprecationSpec(meta) {
+    const spec = { tag: meta.tag, element: meta.deprecated ?? null, props: {}, events: {}, slots: {} };
+    for (const [k, list] of [['props', meta.props], ['events', meta.events], ['slots', meta.slots]]) for (const x of list ?? []) if (x.deprecated) spec[k][x.name] = x.deprecated;
+    return deprecatedItems(meta).length ? spec : null;
+}
