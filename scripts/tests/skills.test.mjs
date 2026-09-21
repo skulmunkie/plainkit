@@ -101,7 +101,8 @@ function checkSlot(tag, el, value, parent, problems, parentTag = parent?.lower) 
     if (!owner) return;
     const names = owner.slots.map(s => s.name);
     if (names.includes(value)) return;
-    if (parentTag === 'pk-table' && /^cell-[\w-]+$/.test(value)) return; // the per-cell slots are described in the rows prop
+    // A slot the element names per row (cell-<rowId>-<key>, detail-<rowId>) is listed as a pattern in its meta.
+    if (owner.slots.some(s => s.dynamic && new RegExp('^' + s.name.replace(/<[^>]+>/g, '[\\w.-]+') + '$').test(value))) return;
     problems.push(`<${parentTag}> has no slot "${value}" (it has: ${names.map(n => n || '(default)').join(', ')})`);
 }
 
@@ -409,6 +410,15 @@ test('the Blazor references name only Pk* types that exist (or are elements with
 });
 
 test('an example left out of the references is still wrong in its source (remove the entry when the source is fixed)', () => {
+    // The pk-table examples that were wrong (empty-text, expandable and detail slots; issue #39) are fixed: they are checked and published now.
+    for (const title of ['Empty and loading', 'Expandable rows']) {
+        const ex = byTag.get('pk-table').examples.find(x => x.title === title);
+        assert.ok(ex, `pk-table example "${title}" exists`);
+        assert.deepEqual(checkHtml(ex.html), [], `pk-table example "${title}" is valid`);
+        assert.ok(!EXAMPLE_ISSUES.some(i => i.tag === 'pk-table' && i.title === title), `${title} is not left out`);
+        assert.ok([...gen.values()].some(t => t.includes(ex.html.trim().split('\n')[0])), `${title} is in the references`);
+    }
+
     for (const i of EXAMPLE_ISSUES) {
         const ex = byTag.get(i.tag)?.examples.find(x => x.title === i.title);
         assert.ok(ex, `${i.tag} "${i.title}" no longer exists: remove it from EXAMPLE_ISSUES`);

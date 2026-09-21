@@ -75,7 +75,7 @@ declare module 'vue' {
         'pk-switch': DefineComponent<Partial<Pick<E.PkSwitchElement, "checked" | "disabled" | "name" | "value" | "invalid" | "size" | "labelPosition">>>;
         'pk-tab': DefineComponent<Partial<Pick<E.PkTabElement, "value" | "selected" | "disabled" | "count" | "closable" | "only">>>;
         'pk-tab-panel': DefineComponent<Partial<Pick<E.PkTabPanelElement, "value" | "selected">>>;
-        'pk-table': DefineComponent<Partial<Pick<E.PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "loading" | "cards" | "caption" | "label" | "maxHeight" | "flow">>>;
+        'pk-table': DefineComponent<Partial<Pick<E.PkTableElement, "columns" | "rows" | "rowKey" | "striped" | "hover" | "bordered" | "density" | "stickyHeader" | "stickyColumn" | "selectable" | "clickable" | "filterable" | "manual" | "sort" | "sortDir" | "filters" | "selected" | "expandable" | "expanded" | "loading" | "emptyText" | "cards" | "caption" | "label" | "maxHeight" | "flow">>>;
         'pk-tabs': DefineComponent<Partial<Pick<E.PkTabsElement, "value" | "activation" | "noneActive" | "scroll">>>;
         'pk-tag': DefineComponent<Partial<Pick<E.PkTagElement, "removable" | "value" | "disabled">>>;
         'pk-tag-input': DefineComponent<Partial<Pick<E.PkTagInputElement, "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "required" | "invalid" | "separators" | "max" | "allowDuplicates">>>;
