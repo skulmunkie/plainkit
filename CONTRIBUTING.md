@@ -37,6 +37,10 @@ A change is done when, on its pull request:
 - It uses only components that exist in `core`; a missing component is recorded in the "components the SDK lacks" issue instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 
+## Building PlainKit.Blazor from a clone
+
+The generated components (`blazor/src/PlainKit.Blazor/Generated/`), the package copy of the toolkit (`wwwroot/plainkit/`) and `Generated/generated.manifest.json` (the list of what is not generated, and why) are not in git. On a fresh clone run `node scripts/bootstrap.mjs` from the repository root (Node only, about 4 seconds) before `dotnet build` or `dotnet test PlainKit.slnx`; without it the build stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root". The generator uses the type a mapping names for a JSON prop when the package declares it, and lists a JSON prop that has no type in `generated.manifest.json` (`typesToDefine`). Consumers of the NuGet package are not affected: the package contains everything, and the manifest itself stays out of it (its content reaches them as `references/known-gaps.md` in the skill).
+
 ## Versioning and releases
 
 **One version for everything.** The SDK (`core/dist`) and `PlainKit.Blazor` always carry the same version, kept in `core/VERSION` (SemVer 2.0,

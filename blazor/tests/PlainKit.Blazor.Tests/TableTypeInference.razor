@@ -1,0 +1,16 @@
+@* The README and the skill say a PkTable whose OnRowClick is a method group needs an explicit TItem, and so does a PkDataList with a method group OnRowClick (issue #94): Razor cannot infer TItem
+   through the EventCallback<PkTableRowClickArgs<TItem>> conversion. Compiling this file is the proof that the documented form works. *@
+<PkTable TItem="Row" Items="_rows" Columns="_columns" IdOf="r => r.Id.ToString()" Label="Rows" Clickable OnRowClick="Open" />
+<PkDataList TItem="Row" Load="LoadAsync" Columns="_columns" IdOf="r => r.Id.ToString()" Label="List" OnRowClick="OpenRow" />
+
+@code {
+    public sealed record Row(int Id, string Name);
+
+    public Row? Opened { get; private set; }
+    private readonly IReadOnlyList<Row> _rows = [new(1, "Ada")];
+    private readonly IReadOnlyList<PkTableColumn<Row>> _columns = [new() { Key = "name", Label = "Name" }];
+
+    private Task<PkListResult<Row>> LoadAsync(PkListRequest request) => Task.FromResult(new PkListResult<Row>(_rows, _rows.Count));
+    private void OpenRow(Row row) => Opened = row;
+    private void Open(PkTableRowClickArgs<Row> row) => Opened = row.Item;
+}

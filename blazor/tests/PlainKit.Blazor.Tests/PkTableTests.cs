@@ -194,4 +194,14 @@ public sealed class PkTableTests : TestContext
         Assert.Single(JsonDocument.Parse(second!).RootElement.EnumerateArray());
         Assert.Equal(calls, JSInterop.Invocations.Count);   // a parameter change is an attribute, never a JavaScript call
     }
+
+    // The documented form (README, skill): a method group for OnRowClick needs TItem written out. TableTypeInference.razor compiles with it; the same
+    // markup without TItem fails with CS1503 (checked by hand for issue #94, a failing compile cannot be a passing test).
+    [Fact]
+    public async Task A_method_group_handler_works_with_an_explicit_TItem()
+    {
+        var cut = RenderComponent<TableTypeInference>();
+        await cut.Find("pk-table").TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "1" });
+        Assert.Equal("Ada", cut.Instance.Opened?.Name);
+    }
 }

@@ -161,7 +161,7 @@ export function collect() {
     for (const [dir, kind] of [['Generated', 'generated'], ['Components', 'hand-written']]) {
         for (const f of list(path.join(pkg, dir), f => f.endsWith('.razor') && !f.startsWith('_'))) {
             const text = read(path.join(pkg, dir, f));
-            razor[f.replace(/\.razor$/, '')] = { kind, params: razorParams(text), routes: [...text.matchAll(/^@page "([^"]+)"/gm)].map(m => m[1]) };
+            razor[f.replace(/\.razor$/, '')] = { kind, params: razorParams(text), typeParams: [...text.matchAll(/^@typeparam (\w+)/gm)].map(m => m[1]), routes: [...text.matchAll(/^@page "([^"]+)"/gm)].map(m => m[1]) };
         }
     }
     const cs = f => read(path.join(pkg, f));
@@ -414,6 +414,20 @@ function componentSection(src, tag, enumMap) {
     return out.join('\n');
 }
 
+/** What the pk-table element does today, as sentences derived from its meta (so they cannot go stale): the current-row prop, keyboard rows, a sort that clears. */
+function tableFacts(src) {
+    const el = src.api.find(e => e.tag === 'pk-table');
+    if (!el) return [];
+    const prop = n => el.props.find(p => p.name === n);
+    const event = n => el.events.find(e => e.name === n);
+    const facts = [];
+    if (prop('currentRow')) facts.push('The table marks the open record with `CurrentRow` (the row id: tinted, an accent bar and `aria-current`); `PkDataList` passes it through.');
+    if (/tab stop/.test(prop('clickable')?.description ?? '')) facts.push('`Clickable` rows are keyboard stops (Enter or Space activates).');
+    if (/cleared/.test(event('pk-sort')?.description ?? '')) facts.push('A third activation of a sortable header clears the sort (`OnSort` reports a null key and direction).');
+    if (/in the cards layout too/.test(el.props.find(p => p.name === 'columns')?.description ?? '')) facts.push('A `HidePhone` column is hidden in the `cards` layout too.');
+    return facts;
+}
+
 const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage'];
 
 function blazorFiles(src) {
@@ -447,7 +461,9 @@ function blazorFiles(src) {
         files.set('references/data-list.md', ['# PkDataList: a searchable, sortable, server-paged list', '', stamp(src, 'Components/PkDataList.razor, PkListTypes.cs and PkTableTypes.cs'), '',
             'A hand-written component with no element of its own. It is a `PkTable` in manual mode with a `PkInput` (type search) in the toolbar and a `PkPagination` in the footer. It owns the state (search text, sort key and direction, page, page size, total) and asks you for one page at a time through `Load`; you own the data. Use it for any list you load from a database a page at a time. For a table you fill yourself, use `PkTable`.', '',
             `Request: ${code('record PkListRequest(' + (req?.[2] ?? '') + ')')}, with ${src.cs.listRequest.map(m => code(m.decl) + ' (' + m.doc + ')').join(' and ')}. Result: ${code('record PkListResult<T>(' + (res?.[2] ?? '') + ')')}.`, '',
-            'Rules the component follows: a new search, sort or page size goes back to page 1; the search box debounces itself (`SearchDebounceMs`, the element\'s own timer, no .NET timer and no JavaScript); a request that is replaced by a newer one has its `CancellationToken` cancelled and its result ignored, so no stale rows appear; while a request is in flight the table is `loading` (no rows); when the total shrinks below the current page (rows deleted elsewhere) it settles on the last page that exists and loads it; a thrown `Load` shows an error with a Retry button (`OnLoadError` reports it). `ReloadAsync()` loads the current page again (after the host saved something). The first column is the row\'s identity: it stays in the phone `cards` layout, marks the current row (`CurrentId`: bold and `aria-current`) and, with `OnRowClick`, holds a link so the row is reachable by keyboard. Limits today: the table element has no current-row highlight, its rows are not keyboard stops and its sort only toggles between ascending and descending (see `known-gaps.md`).', '',
+            'Rules the component follows: a new search, sort or page size goes back to page 1; the search box debounces itself (`SearchDebounceMs`, the element\'s own timer, no .NET timer and no JavaScript); a request that is replaced by a newer one has its `CancellationToken` cancelled and its result ignored, so no stale rows appear; while a request is in flight the table is `loading` (no rows); when the total shrinks below the current page (rows deleted elsewhere) it settles on the last page that exists and loads it; a thrown `Load` shows an error with a Retry button (`OnLoadError` reports it). `ReloadAsync()` loads the current page again (after the host saved something). The first column is the row\'s identity: it stays in the phone `cards` layout, marks the current row (`CurrentId`: bold and `aria-current`) and, with `OnRowClick`, holds a link so the row is reachable by keyboard.', '',
+            tableFacts(src).length ? tableFacts(src).join(' ') : '',
+            '',
             '## `PkDataList`', '', table(['Parameter', 'Type', 'Description'], dl.params.map(p => [code(p.name), code(p.type), p.doc])), '',
             '## `PkTableColumn<TItem>` (the columns of `PkDataList` and `PkTable`)', '', table(['Member', 'Description'], src.cs.tableColumn.map(m => [code(m.decl), m.doc])), ''].join('\n'));
     }
@@ -466,11 +482,11 @@ function blazorFiles(src) {
         members('PkOptions', src.cs.options), members('PkLoggingOptions', src.cs.logging), members('IPkLog', src.cs.ipklog), members('PkRuntime', src.cs.runtime), members('PkAssets', src.cs.assets)].join('\n'));
     const cats = { wrapper: src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour')), css: src.manifest.notGenerated.filter(n => n.reason.startsWith('sets the ')), type: [...src.manifest.notGenerated.filter(n => n.reason.startsWith('type not yet defined')), ...src.manifest.typesToDefine] };
     const missing = src.manifest.skipped.filter(s => !s.handWritten);
-    files.set('references/known-gaps.md', ['# Not yet available and known gaps', '', stamp(src, 'generated.manifest.json and the "Alpha status" section of the package README'), '', `PlainKit.Blazor ${src.version} is an alpha.`, '',
+    files.set('references/known-gaps.md', ['# Not yet available and known gaps', '', stamp(src, 'generated.manifest.json, the pk-table element meta and the "Alpha status" section of the package README'), '', `PlainKit.Blazor ${src.version} is an alpha.`, '',
         '- **Blazor Server is verified** in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).',
         '- **Blazor WebAssembly is not verified.** It has not been run in a WebAssembly host; treat it as untested there. The Files tool is server-side only by design.', '',
         `## Components that do not exist yet (${missing.length})`, '', (missing.length ? missing.map(m => `- ${code(m.component)}: use the element ${code('<' + m.tag + '>')} directly in markup (raw \`pk-*\` tags work; see the SKILL for how they get loaded).`).join('\n') : 'None: every element has a component.'), '',
-        '## Table and list limits that need the element (not the wrapper)', '', '- `pk-table` has no current-row highlight (`selected` is the checkbox selection); `PkDataList` marks the current row\'s first cell instead.', '- The rows of `pk-table` are not keyboard stops: `Clickable` rows react to a mouse or touch click only. `PkDataList` puts a link in the first cell for keyboard users.', '- The sort only toggles between ascending and descending; a third click does not clear it, and the element never reports a null key.', '- A column with `HidePhone` is still shown in the `cards` layout on a phone (the card rule overrides the hide rule).', '',
+        ...(tableFacts(src).length ? ['## Table and list behaviour today (from the `pk-table` element)', '', ...tableFacts(src).map(x => '- ' + x), ''] : []),
         `## Wrapper-only parameters that do not exist (${cats.wrapper.length})`, '', 'Behaviour of the old wrappers that is not a property of the element. They are not generated; do not use them.', '', table(['Component', 'Parameter', 'Why'], cats.wrapper.map(n => [code(n.component), code(n.param), n.reason])), '',
         `## Parameters set through a CSS custom property (${cats.css.length}), not generated`, '', table(['Component', 'Parameter', 'Why'], cats.css.map(n => [code(n.component), code(n.param), n.reason])), '',
         `## Parameters whose type is not defined yet (${cats.type.length})`, '', 'Not generated until the type exists.', '', table(['Component', 'Parameter', 'Why'], cats.type.map(n => [code(n.component), code(n.param), n.reason])), '',
