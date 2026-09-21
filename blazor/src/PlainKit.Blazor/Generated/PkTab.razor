@@ -20,7 +20,7 @@
     /// <summary>A badge shown in muted parentheses after the label (a queue count); empty shows none.</summary>
     [Parameter] public string? Count { get; set; }
 
-    /// <summary>Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab.</summary>
+    /// <summary>Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab.</summary>
     [Parameter] public bool Closable { get; set; }
 
     /// <summary>all shows the tab everywhere; phone only at phone width (640px and below); desktop hides it at phone width.</summary>

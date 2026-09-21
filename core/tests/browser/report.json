@@ -1,23 +1,23 @@
 {
- "ran": "2026-09-21T01:16:50.810Z",
+ "ran": "2026-09-21T01:53:32.945Z",
  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
- "passed": 133,
+ "passed": 134,
  "failed": 0,
  "results": [
   {
    "name": "declarative shadow DOM gives a first paint and upgrades in place",
    "ok": true,
-   "ms": 36
+   "ms": 33
   },
   {
    "name": "a not-yet-defined element is hidden, then shown once its module loads (no flash of unstyled content)",
    "ok": true,
-   "ms": 10
+   "ms": 7
   },
   {
    "name": "every registered tag is defined by the loader",
    "ok": true,
-   "ms": 250
+   "ms": 289
   },
   {
    "name": "button: defaults, attribute to property, property to attribute, invalid enum falls back",
@@ -27,17 +27,17 @@
   {
    "name": "button: label, start and end slots are projected; the control part is exposed",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "button: focus goes to the inner button (delegatesFocus) and a disabled button swallows clicks",
    "ok": true,
-   "ms": 2
+   "ms": 5
   },
   {
    "name": "button: type=submit submits and type=reset resets the surrounding form",
    "ok": true,
-   "ms": 5
+   "ms": 3
   },
   {
    "name": "card: heading is bound, aria-level follows level, header hides when empty",
@@ -47,17 +47,17 @@
   {
    "name": "card: an actions child reveals the header and a footer child reveals the footer (slotchange)",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "card: tone reflects and the ::part hook and custom properties style the shadow tree",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "tabs: first tab is selected, panels follow, roving tabindex and aria wiring are set",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "tabs: clicking selects, emits a composed cancelable event, and preventDefault keeps the old tab",
@@ -67,22 +67,22 @@
   {
    "name": "tabs: arrow keys, Home and End move focus and select; disabled tabs are skipped",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "tabs: manual activation moves focus but selects only on click",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "switch: toggles, emits change, and reflects checked",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "switch: takes part in the form (value when on, absent when off), resets and follows a disabled fieldset",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "switch: exposes the switch role to assistive technology and is named by its label",
@@ -107,32 +107,32 @@
   {
    "name": "tabs: count badge, close button event, only=phone hidden on desktop, trailing slot",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "tabs: none-active selects nothing and every choice raises the event; scroll mode fades the edge with more tabs",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "mounting 200 buttons is fast enough to be unnoticeable",
    "ok": true,
-   "ms": 15
+   "ms": 7
   },
   {
    "name": "tooltip: focus shows it, the target is described by a light-DOM node, Escape hides it",
    "ok": true,
-   "ms": 33
+   "ms": 32
   },
   {
    "name": "tooltip: a hint card draws its own help button, a touch tap toggles it, and its links live in the panel",
    "ok": true,
-   "ms": 35
+   "ms": 75
   },
   {
    "name": "popover: a click on the trigger opens it, Escape closes it and returns focus, confirm fires pk-confirm",
    "ok": true,
-   "ms": 10
+   "ms": 8
   },
   {
    "name": "popover: a cancelable pk-close lets the host veto closing",
@@ -142,52 +142,57 @@
   {
    "name": "dropdown: opens, arrows and typeahead move focus, checkbox toggles and reports, Escape returns focus to the trigger",
    "ok": true,
-   "ms": 7
+   "ms": 8
   },
   {
    "name": "dropdown: a submenu opens with Right and closes with Left",
    "ok": true,
-   "ms": 6
+   "ms": 5
   },
   {
    "name": "context menu: contextmenu opens it at the pointer; choosing an item closes it",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "select-menu: reads its options, opens, chooses with the keyboard, reports pk-change and joins the form",
    "ok": true,
-   "ms": 15
+   "ms": 18
   },
   {
    "name": "drawer: open reflects to a native modal dialog; Escape asks first and can be vetoed; a backdrop click closes unless persistent",
    "ok": true,
-   "ms": 9
+   "ms": 6
   },
   {
    "name": "drawer: docked is non-modal, sits inside its positioned ancestor, and Escape still asks before closing",
    "ok": true,
-   "ms": 7
+   "ms": 3
   },
   {
    "name": "drawer: sides, the wide flag and the actions slot are part of the API",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "dialog: the backdrop never closes it; Escape and the close button do; confirm resolves a promise",
    "ok": true,
-   "ms": 76
+   "ms": 77
+  },
+  {
+   "name": "dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)",
+   "ok": true,
+   "ms": 15
   },
   {
    "name": "toast: kind sets its role, the timer dismisses it, hover pauses it",
    "ok": true,
-   "ms": 407
+   "ms": 388
   },
   {
    "name": "toast stack: shows at most max toasts and reveals the next as one is dismissed",
    "ok": true,
-   "ms": 3
+   "ms": 7
   },
   {
    "name": "alert: role follows the kind and dismiss hides it unless vetoed",
@@ -197,7 +202,7 @@
   {
    "name": "loading overlay: busy makes the content inert and announces the label",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "breadcrumb: a long trail folds the middle crumbs behind a button that expands them",
@@ -207,22 +212,22 @@
   {
    "name": "stepper: states follow current; a linear stepper blocks skipping ahead; events are cancelable",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "toc: lists the headings of its target with generated ids and marks the current one",
    "ok": true,
-   "ms": 4
+   "ms": 11
   },
   {
    "name": "side nav: filter shows matches and opens their branch, tree keys walk the rows, the rail marks items",
    "ok": true,
-   "ms": 8
+   "ms": 11
   },
   {
    "name": "side nav: collapsed state and open branches persist under the persist key",
    "ok": true,
-   "ms": 3
+   "ms": 8
   },
   {
    "name": "nav item: a branch button toggles expanded; current and disabled set ARIA on the row",
@@ -232,22 +237,22 @@
   {
    "name": "command palette: opens on Ctrl+K, filters as you type, Enter fires pk-select with the item and records a recent",
    "ok": true,
-   "ms": 6
+   "ms": 8
   },
   {
    "name": "lightbox: shows the item at an index, steps with wrap-around, refuses unsafe sources",
    "ok": true,
-   "ms": 7
+   "ms": 9
   },
   {
    "name": "navbar: the hamburger toggles open and Escape closes it; app shell toggles its nav drawer",
    "ok": true,
-   "ms": 6
+   "ms": 9
   },
   {
    "name": "scroll aids: progress starts at 0, back-to-top is hidden until scrolled, the skip link points at a same-page fragment",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "pager and step render their slots",
@@ -257,12 +262,12 @@
   {
    "name": "skeleton: text variant sets the line count, circle and block take a size, the label is for assistive tech",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "spinner: is a status region with a label, and each variant shows only its own shape",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "progress: native bar carries value and max, shows the percentage, goes indeterminate and colours by threshold",
@@ -272,32 +277,32 @@
   {
    "name": "badge: caps a count, lets the slot win, and dot mode shows the dot",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "tag: remove button fires a cancelable pk-remove with the value, and removes the tag unless cancelled",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order",
    "ok": true,
-   "ms": 3
+   "ms": 21
   },
   {
    "name": "table: manual mode shows rows as given and only reports; selection, bulk bar, filter event, loading and empty states",
    "ok": true,
-   "ms": 338
+   "ms": 340
   },
   {
    "name": "table: slotted-table mode frames a raw table, hides its own table, and flow drops the scroll container",
@@ -307,7 +312,7 @@
   {
    "name": "table: filters and sorts locally when not manual, and a slotted cell replaces the text",
    "ok": true,
-   "ms": 5
+   "ms": 3
   },
   {
    "name": "stat: shows the change with an arrow, sign, colour and spoken form; an href makes one link; a sparkline draws",
@@ -322,17 +327,17 @@
   {
    "name": "field-list: hides an empty heading and lays dt and dd out as a grid",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "card: media slot shows only when used, horizontal lays out in a row, href adds one link",
    "ok": true,
-   "ms": 5
+   "ms": 4
   },
   {
    "name": "timeline: list role on the feed, listitem on each item, and a time element",
@@ -342,17 +347,17 @@
   {
    "name": "list-group: rows become list items and an actionable row marks the current one",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "accordion: an item toggles its details and reports it; exclusive closes the others",
    "ok": true,
-   "ms": 67
+   "ms": 53
   },
   {
    "name": "tree: roving focus, arrow keys, expand and collapse, selection and aria attributes",
    "ok": true,
-   "ms": 6
+   "ms": 11
   },
   {
    "name": "chart: draws a labelled svg from the table, adds a legend for several series, keeps the table, and takes a data property",
@@ -367,27 +372,27 @@
   {
    "name": "calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months",
    "ok": true,
-   "ms": 29
+   "ms": 47
   },
   {
    "name": "divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "gallery: attributes narrow the framed view, theme and width apply, a changed attribute reloads it, the frame follows the content height",
    "ok": true,
-   "ms": 263
+   "ms": 367
   },
   {
    "name": "gallery: chrome full keeps the contents nav, cut down to the requested control",
    "ok": true,
-   "ms": 112
+   "ms": 229
   },
   {
    "name": "input: typing updates value, reports input and change, and the form receives it",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "input: required and pattern set validity through ElementInternals; invalid reflects to aria-invalid",
@@ -397,12 +402,12 @@
   {
    "name": "input: clear button, password reveal and the number stepper",
    "ok": true,
-   "ms": 4
+   "ms": 7
   },
   {
    "name": "input: money shows the plain number while editing and the formatted amount when left, and keeps the number in value",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "input: search debounces pk-search, Escape clears, and add-on slots and the floating label render",
@@ -417,7 +422,7 @@
   {
    "name": "select: option children become the choices, value and change flow, multiple submits one entry each",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "field: hands label, description and error to the control; counter follows the value; required marks the control",
@@ -427,17 +432,17 @@
   {
    "name": "form: an invalid submit is stopped, messages appear in the fields, focus goes to the first problem, and fixing clears it",
    "ok": true,
-   "ms": 11
+   "ms": 14
   },
   {
    "name": "checkbox: toggles, submits its value only when checked, resets, and a master mirrors its group with the mixed state",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "radio-group: options become native radios in one group; choosing sets value and submits it; segmented is a variant",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "range: single value and fill; dual keeps low below high and submits two entries",
@@ -452,17 +457,17 @@
   {
    "name": "combobox: typing filters, arrows and Enter pick, Escape closes; blur reverts stray text; select mode uses the trigger and typeahead",
    "ok": true,
-   "ms": 8
+   "ms": 12
   },
   {
    "name": "tag-input: Enter and separators add, duplicates and the limit are refused, Backspace and the cross remove, the form gets one entry per tag",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "otp-input: typing advances, a pasted or autofilled code spreads, Backspace steps back, completion is an event",
    "ok": true,
-   "ms": 4
+   "ms": 7
   },
   {
    "name": "colour-input: the swatch and hex field stay in step, short hex is expanded, junk is invalid",
@@ -472,7 +477,7 @@
   {
    "name": "dropzone: accepted files are listed and submitted, rejected ones get a reason, Remove drops a file",
    "ok": true,
-   "ms": 9
+   "ms": 4
   },
   {
    "name": "button: busy ignores clicks without losing focus, a toggle flips pressed and reports it, icon and block reflect",
@@ -487,7 +492,7 @@
   {
    "name": "split-button: the caret opens the menu, arrows and Escape work, choosing reports and closes",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "switch: invalid, size and label position reflect and the invalid ring shows",
@@ -507,37 +512,37 @@
   {
    "name": "dropzone: with an input in the input slot the zone only draws the target and drops go into that input",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "combobox: typing reports the query even when the client filters, and an option refresh keeps the filter",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "field and checkbox: inline layout, small size and the checkbox custom properties reflect",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "code explorer module: mounts a snapshot object, opens the requested file and runs the search",
    "ok": true,
-   "ms": 169
+   "ms": 148
   },
   {
    "name": "scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter",
    "ok": true,
-   "ms": 400
+   "ms": 413
   },
   {
    "name": "page-header: the title is a heading at the chosen level, slots land in their parts, and empty rows are hidden",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title",
    "ok": true,
-   "ms": 8
+   "ms": 7
   },
   {
    "name": "page-header: on a narrow container the actions take the full width and are touch sized",
@@ -547,22 +552,22 @@
   {
    "name": "page-header and toolbar: keep their width inside a shrink-to-fit flex parent (size containment must not collapse them)",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "cluster: every gap value maps to its spacing token, and align, justify and vertical map to the flex properties",
    "ok": true,
-   "ms": 3
+   "ms": 4
   },
   {
    "name": "cluster: the hidden attribute hides it",
@@ -572,17 +577,17 @@
   {
    "name": "stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis",
    "ok": true,
-   "ms": 2
+   "ms": 8
   },
   {
    "name": "stack: dividers draw a rule above every child but the first",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "grid: auto-fit equal columns of at least min, at two widths, down to one column on a phone",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "grid: columns caps the count, an unparseable min is ignored, and the default min applies without one",
@@ -597,42 +602,42 @@
   {
    "name": "icon: the use href is an absolute URL to the SDK sprite and the symbol exists there; a label makes it an image, none hides it",
    "ok": true,
-   "ms": 19
+   "ms": 12
   },
   {
    "name": "local time: writes the instant in the given locale and zone inside a time element, falls back to the slot, and relative reads as words",
    "ok": true,
-   "ms": 9
+   "ms": 11
   },
   {
    "name": "field: a label-action slot sits beside the label, shows even without a label, and clicking it does not focus the control",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "workspace (1200px): the nav, main and aside panes sit side by side, the phone strip is hidden, each pane holds its slot",
    "ok": true,
-   "ms": 131
+   "ms": 126
   },
   {
    "name": "workspace (375px): one pane at a time, the strip switches it, pk-pane-change reports it and can be cancelled",
    "ok": true,
-   "ms": 174
+   "ms": 182
   },
   {
    "name": "workspace (375px): the strip is keyboard operable: roving tabindex, arrows, Home and End select and focus the tab",
    "ok": true,
-   "ms": 189
+   "ms": 2227
   },
   {
    "name": "workspace: without a nav there is no nav tab and no column; with no aside the strip is not needed",
    "ok": true,
-   "ms": 181
+   "ms": 179
   },
   {
    "name": "workspace: fill takes the height of its parent and drops the frame; without it the height is a viewport share",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "image gallery: one tile per image, the primary one carries the Primary badge, status shows, read-only has no buttons or add tile",
@@ -642,32 +647,32 @@
   {
    "name": "image gallery: make primary moves the badge and raises pk-primary-change (cancelable); the primary has no make-primary button",
    "ok": true,
-   "ms": 6
+   "ms": 9
   },
   {
    "name": "image gallery: remove raises pk-remove (cancelable), drops the image, and removing the primary makes the first image primary",
    "ok": true,
-   "ms": 7
+   "ms": 11
   },
   {
    "name": "image gallery: the add tile is a real file input and raises pk-add with the chosen files",
    "ok": true,
-   "ms": 6
+   "ms": 5
   },
   {
    "name": "image gallery: clicking a thumbnail opens the lightbox on that image",
    "ok": true,
-   "ms": 60
+   "ms": 58
   },
   {
    "name": "image gallery: columns fixes the count; min sets how many fit",
    "ok": true,
-   "ms": 9
+   "ms": 7
   },
   {
    "name": "image gallery (375px): three thumbnails fit a row, nothing overflows sideways, buttons and the add tile are touch sized",
    "ok": true,
-   "ms": 497
+   "ms": 473
   }
  ],
  "sources": {
@@ -683,10 +688,10 @@
   "elements/alert/alert.html": "cd4b7b74087e823d84e4a2f2884046d634228acc48b3fdfe62ee3100a6991324",
   "elements/alert/alert.js": "b72d2c55346a1f8ae7f7294e9055ab136dca7632f5cddf2cb70e10d488114186",
   "elements/alert/alert.meta.json": "03c74fb4adb1c73e05b439ea719dbc4c27dde28568b3591d7271bf03a69b0e42",
-  "elements/app-shell/app-shell.css": "c615a02f8e80c6c75a4451a00808419477569e153dd26a340f1d250002586646",
+  "elements/app-shell/app-shell.css": "2fe56a90f6dfed778a891ee24cc32de15b5d2b49d1c513f7f0d13253a65a539f",
   "elements/app-shell/app-shell.html": "005f714d6a6dabf9d6b010c0061e160137adaa5c8734df3c0727dd0e18fc56c5",
   "elements/app-shell/app-shell.js": "6f30b75e47cbe44e3f3db47bc7538a1198a1b488ec9f9ea073dded8a347e4d7f",
-  "elements/app-shell/app-shell.meta.json": "969b14ec601e5996f6ccdcbef74ec893a9b6755bda65fe081a49cf35c11ed6bc",
+  "elements/app-shell/app-shell.meta.json": "488c9b4c1c9f6bd8884f980ea8e3fe7938ebe6ce00673aff5a5e417b7ad1650d",
   "elements/avatar-group/avatar-group.css": "79adac03287d57812937d2dbf140fc78721b07c9f68cb04ad205f49ac0c341f1",
   "elements/avatar-group/avatar-group.html": "f220db2a8599f6d1727a8dce089110bffe74bcd39d63bca2f8a54a1c94e95742",
   "elements/avatar-group/avatar-group.js": "09ff1f18d7940b465e4c29e426328d60a8f9bc003ccb11d9d6373e3d2e93116c",
@@ -719,10 +724,10 @@
   "elements/calendar/calendar.html": "1df8abd72d68a4d34fb925776a991f7ceb621f6073185fed0baea0ee77403fb2",
   "elements/calendar/calendar.js": "54e7ed2afb56d2f0aa911be906a0eeac3b1984f54631b9c52cd66bfa75e428f7",
   "elements/calendar/calendar.meta.json": "3763fb247328bad2832274cd95d249ed933993db17ac99f0ecdd8efe99af89d0",
-  "elements/card/card.css": "13a69d463e9b476181b4fda8e866d01da86ff59991aea7a49b2d3a96c4f5eb52",
+  "elements/card/card.css": "d0b86453e1453f3ed744f92d93ee912e3ca99dd8f0228ad3c0fe3f86eb71e7aa",
   "elements/card/card.html": "e5d53a35c402c28a22662daca86397b97c4ff65e5fa7ffa494a2ad3eb8ba2408",
   "elements/card/card.js": "6e23e67db0c232fbc93269449421a83ae1bf2942b643578d5b28386520be32f8",
-  "elements/card/card.meta.json": "d4be46c37f33c8790d5ebe0df49f7060f7f4e1e7a2403906faeefd5e65c98a7f",
+  "elements/card/card.meta.json": "57c52f3f201ad7204c0f5c95b1e91b5bbfa2405a64e645e6fe235f3d54d2221c",
   "elements/chart/chart.css": "be5ecb97b849fa60517adb9cd3e573209eb237f7b993e983ce88dedbccdb9b50",
   "elements/chart/chart.html": "0b78b8b49eced5732d5931c46ba80af1c4a2aaea6e36db605cbd2923a39fefbd",
   "elements/chart/chart.js": "3a95e1536ec3207ce416a5f59c1467957c76d693b095d30e63d50bdf9f2beb0c",
@@ -756,16 +761,16 @@
   "elements/context-menu/context-menu.meta.json": "0a6dd44afda95e8d8a445048b4cc87a7a260f79eca0508684ea2879f9604b536",
   "elements/dialog/dialog.css": "6722ec0e244ecb7ecf8e00bc88cf3f6cecc91d78d02f35e6e221cb58bbecab4c",
   "elements/dialog/dialog.html": "b3f5f968de3d421563725274fdf1842171a3069ec751f33b9bfcf30b3d35546c",
-  "elements/dialog/dialog.js": "55b394e9959fba66c28e030f5f2d0ec1e0336900868f205a0b34f424d1043a80",
-  "elements/dialog/dialog.meta.json": "84653f3ecc847af9d382239acb4f4bfe2d10cd9f01e047940dcc01a429c2cfb2",
+  "elements/dialog/dialog.js": "daa6698d1d1b437062704eb46e9f9f5624bb2bae846ae50b94789e17ed13ce91",
+  "elements/dialog/dialog.meta.json": "62ae74680ac0d1322a8d924f23c98cdc9cb492783d2e4ce2b43a264089159a77",
   "elements/divider/divider.css": "613a8a14104aa467aeaa647ad95c6ffbacb61a3f68767e05f7d053a23dd13303",
   "elements/divider/divider.html": "0788cb17311ec99ea681784a05474f7d685e8f44dd348de2e5636fbad4f46ae7",
   "elements/divider/divider.js": "09cfc130b064b7392aade7711fe6a9edd5ac117d3a21d358e8ff28eac5217605",
   "elements/divider/divider.meta.json": "2d6744143302c4f6cd06a08c6de5dcbacfabc407ff6a020127e920dc106af266",
   "elements/drawer/drawer.css": "5dd5ef98959859bc07f6974a7ff0e8fd85f80124529dc35a18175f759eef8baa",
   "elements/drawer/drawer.html": "a7175acfca5bd0b2093cdc573a3beba84f24beba6c2f8e2f4c85c88a6ec761f7",
-  "elements/drawer/drawer.js": "c72475eac34dba0ca4611485e8c1d2f5fccb8721dd9b8d3a87db430026926f36",
-  "elements/drawer/drawer.meta.json": "e29371660f04e86cccb59c46fefaaaee086483f610df6ffa46f3b18384269c09",
+  "elements/drawer/drawer.js": "9d73b9f95a14e71b67d7c1521f0da318dd8b363435b29fb5ec00ff34465019f6",
+  "elements/drawer/drawer.meta.json": "e1d2e04167285baf7efb9e811ba7fe4724214f37df76a00667bcb00014717a59",
   "elements/dropdown/dropdown.css": "a31d2f5c3460cb5c1e7b77df42a3a72eaa9bcd215781a2354c522bdcb97bf0f0",
   "elements/dropdown/dropdown.html": "f21067cf93fcf5ff2561d465947145414e130664c6d88c0970db2c0b21019ff0",
   "elements/dropdown/dropdown.js": "9c5cbee35ca952b362dd73eebc0a5b35c2703a6de4182e950f9c42663de42242",
@@ -802,11 +807,11 @@
   "elements/gallery/gallery.css": "ec2eeb9cc7fb321395fbcd8ad8c16cdacd0f4d6fc6455c2571a66468aecf7349",
   "elements/gallery/gallery.html": "e23bacec0c45967064c9155f3a7ee45f7195fbffb4436996ccee7f2cc9e6ffe1",
   "elements/gallery/gallery.js": "05b932581dc9eb2bc2eb25a8d89a0434e50c7a958aec6a509f0f658680527a91",
-  "elements/gallery/gallery.meta.json": "14de14f46c18c943a4316915ff4b8aef9c6bd1a6da63f451dc52417eaa1bc2d3",
-  "elements/grid/grid.css": "2675b7c250165a0069cf6493a9d71cf646591e5b5ffd37c99a304d597caabe81",
+  "elements/gallery/gallery.meta.json": "a1ef9ed1cb725446b19274818b6a51eccd6f3b82b19442e1ff57f97a1bf166f9",
+  "elements/grid/grid.css": "daa1457d2618217b3fac599d354188515c2ff1fc45d2a926e63537322d89d4e6",
   "elements/grid/grid.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
-  "elements/grid/grid.js": "9fc8f818182b96ba0f439fef5651b123ea41d5e004b46fa01ed5ced3502982f3",
-  "elements/grid/grid.meta.json": "508d4bd1ff3830bc90e75eba9e30e84f23371cd4386ba6047df29142037aa04e",
+  "elements/grid/grid.js": "4077d3a9f5d8a2c3263850ca081c303efe342e2939c0f908c93def7ddbfdb8a8",
+  "elements/grid/grid.meta.json": "bd184acf9f44c7bda96615db1da4a2b7b4b8dcb73ecc15898200489a7f741cb0",
   "elements/hint/hint.css": "bda9d7155fba56253969f7745ee1f5c08b74f35bb33fc0a05137127621e925d3",
   "elements/hint/hint.html": "0c3ef3ca76bddb0055ae6702e121e306767031390edc508c59c721b9f9e22f87",
   "elements/hint/hint.js": "c0ba77d3bb18f0732bc366cb8d5105817de122880e833cfa09ba31366bedf83b",
@@ -819,10 +824,10 @@
   "elements/image-gallery/image-gallery.html": "fdfc62638bfa3418eccf6bb3ed8b8e572f579ca1f9d096d6211f95cc3450c342",
   "elements/image-gallery/image-gallery.js": "22b79b89276c4dd4f913f278f9d480811c4171d59098accea346da7d912f8d19",
   "elements/image-gallery/image-gallery.meta.json": "db64fb9c6cbb32f0b40526bd9c768351e8794f7467fa52ec3fe9ded874897062",
-  "elements/input/input.css": "b2838a4933c27608ecdc0efaa4bf65ae6859573d1947e2600672fc8af09b31f2",
-  "elements/input/input.html": "798b253f508b6fd4459b999d1ad077d59545a2bf2db866d3ff07aa7a1498f6cc",
-  "elements/input/input.js": "9509b2cea5df6d53a5115babe5bfda3f452d90c9db2a1204555af120f590306a",
-  "elements/input/input.meta.json": "9e765858248f961a76c88d0653611e8f1d5ef835d196bb05ee16a770fa8bca86",
+  "elements/input/input.css": "6fca2a3fb8e4b6214a8bbbecb7b487983c5afa3cf39affec66dd201f78d90fa0",
+  "elements/input/input.html": "a5d7edd50efa8192001c45ba0dfaff1c43b7421f0e4a81e16d3952113226cc1a",
+  "elements/input/input.js": "dc40f92f21e7e0975292b7a7dbfa9cdfedc2dbc40808ae7c4f070c90dce65154",
+  "elements/input/input.meta.json": "f8f16331a5f1dd5c87ec6a6239d821f899f718a04db84002771c21d70c708c9a",
   "elements/lightbox/lightbox.css": "dcd470f6d1457686377346da1a9f47c4e89fa6ca13f63736cd60864fe3545f26",
   "elements/lightbox/lightbox.html": "08554192f3c400472f931b0b56591a285573c4ba828c1282d13c206b6f7d6a65",
   "elements/lightbox/lightbox.js": "df35118f778586ccfecb6292c8399b03c94a99d51a867d42d343187f60001a5e",
@@ -847,15 +852,15 @@
   "elements/menu-item/menu-item.html": "f00c3a180029301a09bbba47044ee71065aa7a6717457a0eb9b3b845f7b5e38d",
   "elements/menu-item/menu-item.js": "4bb017d0427f84485961db79f7fd5b1e6bd7938cd01eaf895c0d1b5f8f91eda2",
   "elements/menu-item/menu-item.meta.json": "dd8decb97d18d9a3a6f59787403e7aeac7dda34d42b1abe7603959f2131da3a8",
-  "elements/nav-item/nav-item.css": "e335d5726fc4eabbc6abdf6a22c46afcbba8d8c56b416b3cf7a59c3f8c015622",
+  "elements/nav-item/nav-item.css": "f5d8a8b023ba50c1f50b98c6978fab28f3a606dbc0e0103d88d1a98c3e0c21c5",
   "elements/nav-item/nav-item.html": "742fd5dfe084f559bedaeb0339e1a0d715a68cc0400bd35140bae77fde877a46",
-  "elements/nav-item/nav-item.js": "2e1ae967d8cdf243f9e8d3ff26a7ec4b9b3f93727ceda167d4666abb4d71955f",
-  "elements/nav-item/nav-item.meta.json": "15e9b292bd6c9ef0192138722927e9f8e4f45bb90b58a6a15ea2c17891c52e7b",
+  "elements/nav-item/nav-item.js": "031e2f65aa102e68ecdbb102bfb5e405819f04408766ba94388023710b1e3c2a",
+  "elements/nav-item/nav-item.meta.json": "5d05eb0e1a4452011f5bddf99a375b1d604d392a0208f33203aebe49b987f8ac",
   "elements/navbar/navbar.css": "4204175a291db4cfe58675c79c7bd41e0d8077e5b2197aa7371563842edc0800",
   "elements/navbar/navbar.html": "0a3a644924da9d71f84797ffeb05d198526f7ab41c333922f8fe529a9160105f",
   "elements/navbar/navbar.js": "897c64586e98c03eb05aac113dac1fc1da04c39660f872dedee364794278dcdf",
   "elements/navbar/navbar.meta.json": "43482dd0d5b86d414215e304fe7bc8d9b6d619d11648a4054dc0026866415878",
-  "elements/otp-input/otp-input.css": "b5af71920d2b099db0071c18f8a26ef472349a7c6c88aa0dbf6e6c0f9a3a5c93",
+  "elements/otp-input/otp-input.css": "50cdb7c157df9c221bce3b46861b5acfbd3e6cbfe858f41caafdacdc14f768e2",
   "elements/otp-input/otp-input.html": "14c07969e3739eb5916ece559c9c79aab03178333d0397450aba5cd7c180a380",
   "elements/otp-input/otp-input.js": "a88748024afd60fc2d4a09a276041c254dda29e3cd6ef19af22f639a78ca7322",
   "elements/otp-input/otp-input.meta.json": "38fb45117145f17cf2a803b1977c7bc1b4c1a05302a3bdd01d760c1efa845ebd",
@@ -872,12 +877,12 @@
   "elements/pagination/pagination.meta.json": "e72b4bd4d4312123d9a3c783e9de649802cf6e610a5428ad3ae2219d9fccd8fc",
   "elements/popover/popover.css": "7afeb1cba9d03b0a06a90cbfbdc3b54fd9eca5cbe81bd3d6e5412991006b792f",
   "elements/popover/popover.html": "c389ed7a0fa9793a833b95b11e70769a94cf02ed1153917047daa93f01704a59",
-  "elements/popover/popover.js": "be9d35d18da2c8fbc5117f71df7eb3fb034246154d3554fc0fb9b5bc74319c16",
-  "elements/popover/popover.meta.json": "c5795e6efd98920eea6221777f8be1362d0ab78039241c9eb9de02741bf3e051",
-  "elements/progress/progress.css": "d73fd1680e572596976cb6209a7ea41b1047ab5a56c7cd7718ea0726805e5132",
+  "elements/popover/popover.js": "283de994570ab02b917e554f9fd6585bb033e374fb4f29fefbb305b7d6210894",
+  "elements/popover/popover.meta.json": "0196a31769adbdc1ecf61597e4e81e547eb52c7342a5dd28d8c2f26c879ef4a2",
+  "elements/progress/progress.css": "a6c922707afc454501003428cc49e5604a57d8cdcdd42319b8bbe131d39435e5",
   "elements/progress/progress.html": "4e13df5ac0d1e8bacfb66ae35e94e64ad2e671d40724cac2efe665fbe53e6843",
   "elements/progress/progress.js": "95f1b7ad96d99112a461f61f670ebddd40a4a7cdafb83c1be150baf0f8523e11",
-  "elements/progress/progress.meta.json": "289ca55c3c7c236c449e7221af2521d85ea60bb1c8c8cc906f45c4c1b16649d5",
+  "elements/progress/progress.meta.json": "08de47947298d844cbd05afd3540ff22168c29931099007f0e8bd4bc789c01a0",
   "elements/radio-group/radio-group.css": "0768473f8a8a3f347f3a4b1bdb8b870d1c6305ed3df0eaed1b9577493bc9bbbd",
   "elements/radio-group/radio-group.html": "2372226f5de150a4abcfca0e606d0a2531b17df3d3da4128fa0921db850decc9",
   "elements/radio-group/radio-group.js": "f661017842ce794a594edd31ecd4068b6a6cf332323315ec62542cde3be1d79b",
@@ -904,8 +909,8 @@
   "elements/select/select.meta.json": "e0f6603a40e44765a54b80b65e98768849a151ec3cb2d433726a673329828f65",
   "elements/side-nav/side-nav.css": "34b97ff2cb9de841a4def1ad418d5525a3e8c589968c634dba47b1da92b5e969",
   "elements/side-nav/side-nav.html": "b2a924b704b7dfefe75d6e692ce066f47e408d20ae094e525321d59e96fcdbfc",
-  "elements/side-nav/side-nav.js": "263cf5af8a77727d7706efc47ea57d1970a2d72529699329242fbf74c55d9dde",
-  "elements/side-nav/side-nav.meta.json": "ee895676335168cd93a63ae45d7222868a04ee796123614746044d3c19a13bbd",
+  "elements/side-nav/side-nav.js": "9cabbeb9c9fb2e1d0362ca477b328b48a87180f605ec38b65683eb073c069c07",
+  "elements/side-nav/side-nav.meta.json": "9ad8bc538d8533c08cc333a3263db0b40318fe96adfceb4fdac354e8b97f5bf9",
   "elements/skeleton/skeleton.css": "1ee164a0c989bc3d353e82f27f156e55292936e7bafa74d8b4e0d881ae3d5282",
   "elements/skeleton/skeleton.html": "c07de67e86d61973e606dc18ab37741c7cf046db23da64776a63463cf9dedf2f",
   "elements/skeleton/skeleton.js": "af98b9aa2956d534b4fbedd70c60b157e04b11919a69f72341e4436bcc09b8c8",
@@ -945,9 +950,9 @@
   "elements/tab-panel/tab-panel.js": "05546d5dc35653ee4d8a758d3720570d26ca441941b678d5da63b43b6bb0d364",
   "elements/tab-panel/tab-panel.meta.json": "0f4db24f9925465301a17f6d68159c49d8881a59fb7a17c6d118bab46a13717f",
   "elements/tab/tab.css": "5d4af7da9030d9849a747393847e9388b6089a57c0a661d7525d6f73bd712089",
-  "elements/tab/tab.html": "119775d7dc9e88dc14ebf1ff3e0b81ee712e014ef0daf0eb4805a0fcfed37a6c",
-  "elements/tab/tab.js": "17a88687c5966b8d77ffea2c59fe1d6f4511b5a399115792a1754f004bdcc066",
-  "elements/tab/tab.meta.json": "4d8a0a3427f247870c0b33435c6de1d40f8881ee0ae9214aacfff01e05f7ae2e",
+  "elements/tab/tab.html": "5f8da59427b37701a9f1f01bea1c8e0ca01487ed1406127add2678bce353029c",
+  "elements/tab/tab.js": "b881958194f7b3396325eb58d510350e671dec397bdb38f7daa3d67cf85dfbea",
+  "elements/tab/tab.meta.json": "7632625867c66336a1d5ee1becb9464acdb95265b2938f529568741e4839f11a",
   "elements/table/table.css": "290fd0891aea74b20b5a4aec743aae5c14ada24b7e6d8700eb8cf14febc4601b",
   "elements/table/table.html": "32756d5babfc4bfa5736ae14c1351923d20ec21cbf6ea0c47c35be3e21e77a7d",
   "elements/table/table.js": "87cdd805355a3cecb8c707425d749249431ebe750abc2f6973c2fbe7f1629531",
@@ -1002,21 +1007,21 @@
   "elements/tree-item/tree-item.meta.json": "47c5f62ec510cdb47a6d129419e9dea71fea95cdf5793e76505abd1578a1f25c",
   "elements/tree/tree.css": "70674394241531ed42f8e6d71c8b671784954d57e010f7ab22a17f69d953fc81",
   "elements/tree/tree.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
-  "elements/tree/tree.js": "111df1883b50afe494d96c03e52f24bba96fe001d14b56ccf508390dbf871235",
+  "elements/tree/tree.js": "6d4a860609d36dc46cc878b172868a66f9ab9d0432f2009b13259932ef86593c",
   "elements/tree/tree.meta.json": "24b19e96564cf32d8fd2ade85083b06ec63b20e8ab4f7c81f5f1fc962037242a",
-  "elements/workspace/workspace.css": "b697a2b6716b0aa3b59c3eecfc6339aa3f91add58ca73ec9598119f93eb0bf66",
+  "elements/workspace/workspace.css": "c387aea07b7648a749c8519022b3c9162c3bccbeac191dd7f798957e4956de23",
   "elements/workspace/workspace.html": "68a2252d41089e6798bb05a63cc6dfb4323c1b85481b12dd9a424e6b2817e199",
   "elements/workspace/workspace.js": "5440a4f7bbc32bd0c83d82f313b344ac0c42b89551bd51f50c2af93873bbb717",
-  "elements/workspace/workspace.meta.json": "173702bc39b15444745861567c41182d283ac7dbef780a7c5635103040f6201e",
+  "elements/workspace/workspace.meta.json": "f5108b289e1121a6679ed96c3df86d0e66e47c2eb29288e61cb24e369582aebb",
   "js/element-core.js": "37c527b73e86890f3de774ae134d8f0a2e78ce7890f231ba1a0df529ea34fcc4",
   "js/element.js": "1ce6f9da25c8e0f72cafc4cbcd8f124e81ac5d8aa09c3c401d620c5fbe36cbdd",
   "js/loader.js": "0d9fb1168dfc846b86c35f6c41e3c671c9b0d51786ab98214a53155d4c09aa49",
-  "tests/browser/cases-data-display.js": "80a13cf0f523b5611b89cc6eeeffd0e272cf649c21abd3b5cb0bb3922aebe4e5",
+  "tests/browser/cases-data-display.js": "ea82e7686f0348f91ade9a6fc52391e336c00f11b57c603c33c7515515ef1444",
   "tests/browser/cases-forms.js": "846967f6127e330b0c302b70695f4c20ffbd70c6775c3086b3dd45bd4491b009",
   "tests/browser/cases-headers.js": "41dc79ee8de1e214e501ead0b45aacfc3a36faa40d0890f281f8c3a4755a17de",
   "tests/browser/cases-icon-time.js": "d3f4cfa796abd1327c37067630b97b8ca06881a5e9784e62515af210f6f17293",
   "tests/browser/cases-layout.js": "f771e0576f16206ccd15fad17de1ef62a12ffe354fa37104e90f8df3c66a472e",
-  "tests/browser/cases-overlays.js": "39fd680a89fdedcecce1a38d0d28fb9b1dd38563664206672f644322181f5250",
+  "tests/browser/cases-overlays.js": "0e092e58e487057c9809ca0336c4e39b7b21818b9c611591f852f48dce4d17bb",
   "tests/browser/cases-tools.js": "fd7527a154815434180c75baafc6dbe6bb341c3bab0db9db8dde6fcc0a19c803",
   "tests/browser/cases-workspace.js": "fa94574318a91d51c22ae8569b7eb5e5a4925435bb3526faa16ec4f6a6195e6e",
   "tests/browser/cases.js": "79f47aeef0f9e60719f6a61e7b8df940501d911fd4113f3d985f5566a6bdecd8",

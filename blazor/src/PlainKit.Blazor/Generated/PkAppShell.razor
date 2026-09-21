@@ -4,6 +4,7 @@
 @inherits PkElementBase
 
 <pk-app-shell nav-open="@NavOpen"
+              flush="@Flush"
               @attributes="Splat">@if (SidebarContent is not null) {<span slot="nav">@SidebarContent</span>}@if (HeaderContent is not null) {<span slot="header">@HeaderContent</span>}@BodyContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-app-shell>
 
 @code {
@@ -24,6 +25,9 @@
 
     /// <summary>Raised when NavOpen changes (two-way binding: &lt;c&gt;@bind-NavOpen&lt;/c&gt;).</summary>
     [Parameter] public EventCallback<bool> NavOpenChanged { get; set; }
+
+    /// <summary>Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay).</summary>
+    [Parameter] public bool Flush { get; set; }
 
     private Dictionary<string, object> Splat { get; set; } = new();
 

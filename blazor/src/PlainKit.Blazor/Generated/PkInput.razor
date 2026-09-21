@@ -25,6 +25,7 @@
           format="@Format"
           currency="@Currency"
           floating="@Floating"
+          show-label="@ShowLabel"
           debounce="@PkAttr.Num(DebounceMs)"
           @attributes="Splat">@if (PrefixContent is not null) {<span slot="prefix">@PrefixContent</span>}@if (SuffixContent is not null) {<span slot="suffix">@SuffixContent</span>}</pk-input>
 
@@ -94,6 +95,9 @@
 
     /// <summary>Shows label inside the field until it has focus or a value, then floats it to the top edge.</summary>
     [Parameter] public bool Floating { get; set; }
+
+    /// <summary>Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label.</summary>
+    [Parameter] public bool ShowLabel { get; set; }
 
     /// <summary>Search only: milliseconds to wait after typing before pk-search fires; 0 fires on every change.</summary>
     [Parameter] public int DebounceMs { get; set; } = 0;

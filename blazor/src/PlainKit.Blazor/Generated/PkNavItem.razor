@@ -9,6 +9,7 @@
              expanded="@Expanded"
              rail="@Rail"
              flyout="@Flyout"
+             group="@Group"
              @attributes="Splat">@ChildContent@if (IconContent is not null) {<span slot="icon">@IconContent</span>}@if (BadgeContent is not null) {<span slot="badge">@BadgeContent</span>}@if (ChildrenContent is not null) {<span slot="children">@ChildrenContent</span>}</pk-nav-item>
 
 @code {
@@ -32,6 +33,9 @@
 
     /// <summary>In the icon rail, the branch is open as a flyout beside the rail.</summary>
     [Parameter] public bool Flyout { get; set; }
+
+    /// <summary>A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider.</summary>
+    [Parameter] public bool Group { get; set; }
 
     /// <summary>Label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
