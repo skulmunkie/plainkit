@@ -104,7 +104,7 @@ export class CodeExplorerElement extends Base {
     <div class="ce-pane" data-ce-pane></div>
   </div>
   <div slot="aside" class="ce-aside" data-ce-inspector>
-    <div class="ce-aside-head"><h2 data-ce-inspector-title>Outline</h2><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close>&#10005;</pk-button></div>
+    <div class="ce-aside-head"><h2 data-ce-inspector-title>Outline</h2><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></div>
     <div data-ce-inspector-body></div>
   </div>
 </pk-workspace>`);

@@ -42,6 +42,17 @@ export const toolCases = [
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();
     }],
+    ['scorecard module: an icon-only pk-button with no accessible name is an unnamed-input failure; one named by its text or its label is not, and none is under 44px on a phone', async t => {
+        const { mountScorecard } = await dist('scorecard');
+        const { sampleDoc } = await import('../../site/gallery/frame.js'); // a frame that loads the elements, so the buttons are drawn (and measurable)
+        const targets = [
+            { name: 'Nameless', srcdoc: () => sampleDoc('<pk-button icon icon-name="plus"></pk-button>') },
+            { name: 'Named', srcdoc: () => sampleDoc('<pk-button icon icon-name="plus">Add item</pk-button> <pk-button icon icon-name="search" label="Search"></pk-button> <pk-button icon href="#a"><pk-icon name="chevron-left"></pk-icon>Back to Orders</pk-button>') },
+        ];
+        const results = await (await mountScorecard(t.stage(''), { targets, themes: ['dark'], widths: [375], settleMs: 1500, checks: ['unnamed-input', 'touch-target'] })).run();
+        t.eq(results.find(i => i.name === 'Nameless').findings.map(f => f.check).join(), 'unnamed-input', 'no name is a failure');
+        t.eq(results.find(i => i.name === 'Named').findings.length, 0, 'named icon buttons pass, and their 44px target is met');
+    }],
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
