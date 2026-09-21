@@ -1,6 +1,9 @@
 // Browser cases for the overlays, feedback and navigation elements. Same contract as cases.js: [name, async (t) => void].
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const focus = (el, t) => { el.focus(); return t.settle(); };
+// Waits for the entry animation of a panel to finish, so a position is read after the transition and not in the middle of it.
+const arrived = async (panel, t) => { await t.settle(); await Promise.all(panel.getAnimations().map(a => a.finished.catch(() => {}))); await wait(30); };
+const near = (a, b, tol = 1) => Math.abs(a - b) <= tol;
 
 export const overlaysCases = [
     ['tooltip: focus shows it, the target gets aria-description and no node is added, Escape hides it', async t => {
@@ -126,6 +129,36 @@ export const overlaysCases = [
     ['drawer: sides, the wide flag and the actions slot are part of the API', async t => {
         const el = await t.mount('<pk-drawer side="left" wide heading="H"><button slot="actions">Save</button>x</pk-drawer>');
         t.eq(el.side, 'left'); t.ok(el.wide); t.eq(el.slotted('actions').length, 1);
+    }],
+
+    ['dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport', async t => {
+        const el = await t.mount('<pk-dialog heading="Where am I?" size="sm">Text</pk-dialog>');
+        const dlg = el.part('dialog'); el.open = true; await arrived(dlg, t);
+        const r = dlg.getBoundingClientRect(); const vw = document.documentElement.clientWidth; const vh = window.innerHeight;
+        t.ok(getComputedStyle(dlg).transform === 'none' || /^matrix\(1, 0, 0, 1, 0, 0\)$/.test(getComputedStyle(dlg).transform), 'the entry transform is gone');
+        if (matchMedia('(max-width: 640px)').matches) {
+            t.ok(near(r.left, 0) && near(r.top, 0) && near(r.width, vw) && near(r.height, vh), `full screen on a phone (${r.left},${r.top} ${r.width}x${r.height} in ${vw}x${vh})`);
+        } else {
+            t.ok(near(r.left + r.width / 2, vw / 2), `centred horizontally (${r.left + r.width / 2} vs ${vw / 2})`);
+            t.ok(near(r.top + r.height / 2, vh / 2), `centred vertically (${r.top + r.height / 2} vs ${vh / 2})`);
+            t.ok(r.width <= 26 * 16 + 1 && r.height <= vh, 'size sm stays within 26rem and the viewport');
+        }
+        el.open = false; await t.settle();
+    }],
+
+    ['drawer: once open (after its slide) it is flush with its edge and spans the viewport: right, left and bottom', async t => {
+        const vw = document.documentElement.clientWidth; const vh = window.innerHeight;
+        for (const side of ['right', 'left', 'bottom']) {
+            const el = await t.mount(`<pk-drawer side="${side}" heading="Edge">Body</pk-drawer>`);
+            const panel = el.part('panel'); el.open = true; await arrived(panel, t);
+            const r = panel.getBoundingClientRect();
+            t.ok(getComputedStyle(panel).transform === 'none' || /^matrix\(1, 0, 0, 1, 0, 0\)$/.test(getComputedStyle(panel).transform), `${side}: the slide transform is gone`);
+            if (side === 'right') t.ok(near(r.right, vw) && near(r.top, 0) && near(r.height, vh), `right drawer at the right edge, full height (${r.right} of ${vw}, ${r.top}, ${r.height} of ${vh})`);
+            if (side === 'left') t.ok(near(r.left, 0) && near(r.top, 0) && near(r.height, vh), `left drawer at the left edge, full height (${r.left}, ${r.top}, ${r.height} of ${vh})`);
+            if (side === 'bottom') t.ok(near(r.bottom, vh) && near(r.left, 0) && near(r.width, vw), `bottom drawer at the bottom edge, full width (${r.bottom} of ${vh}, ${r.left}, ${r.width} of ${vw})`);
+            if (side !== 'bottom') t.ok(r.width <= Math.min(24 * 16, vw * 0.9) + 1, `${side}: width is min(24rem, 90vw) at most (${r.width})`);
+            el.open = false; await t.settle();
+        }
     }],
 
     ['dialog: the backdrop never closes it; Escape and the close button do; confirm resolves a promise', async t => {

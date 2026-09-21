@@ -88,4 +88,4 @@ A change that lands in only one of the two is incomplete.
 
 ## Tests
 
-`node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` from the repository root. A change to an element source, `js/element*.js`, `js/loader.js` or a browser case needs the browser suite re-run (`tests/browser/`), because `elements-attest.test.mjs` compares it with the attested report.
+`node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs"` from the repository root. A change to an element source, `js/element*.js`, `js/loader.js` or a browser case needs the browser suite re-run (`node scripts/attest-browser.mjs`, see `core/README.md`), because `elements-attest.test.mjs` compares it with the attested report.

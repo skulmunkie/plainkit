@@ -40,6 +40,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - Changed: the dock's Theme tab keeps room under its last row so the dev tools launcher does not cover a control (checked at 375px, dark and light).
 - Added: `pk-textarea` and `pk-colour-input` `showLabel` (a visible label linked to the control, the `label` part; the same as `pk-input`), `pk-stat` `deltaUnit` (`percent` or `points`: `delta="4" delta-unit="points"` reads "+4 pts" and is spoken as points), and the Blazor parameters `ShowLabel` (`PkTextarea`, `PkColourInput`) and `DeltaUnit` (the `pk-stat` mapping). `pk-button-group` `mode="single"` is documented as the SDK segmented control (a Dark/Light switch) with an example (issue #8).
 - Added: `pk-splitter` (two panes and a draggable separator: `role=separator` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`, arrow keys along the axis, Home and End, pointer capture, a 44px hit area on a touch screen; `orientation`, `size`, `min`, `max`, `step`, `label`, `disabled`, the `start` and `end` slots, and the `pk-resize` commit event with `{ size }`; `PkSplitter` with `@bind-Size`), and `pk-unit-input` (a number and a unit select for lengths such as `1.5rem`: `value`, `units`, `showLabel` and the input props, the `pk-value-change` commit event with `{ value }` like `pk-input`; `PkUnitInput`). `pk-form` validates `pk-unit-input` live like the other controls (issue #8).
+- Added: browser cases that verify `pk-dialog` (centred, or full screen on a phone) and `pk-drawer` (flush against the right, left and bottom edge) positions after their entry animations finish. Refs #7.
+- Added: `node scripts/attest-browser.mjs` runs the in-browser element suite headless (starts `core/tools/serve.mjs 5341 --write-reports`, opens `/tests/browser/` in an installed Chrome, Chromium or Edge at 1280x900, waits for the report, prints the passed and failed counts, re-runs `core/tests/elements-attest.test.mjs`, stops everything and deletes the temporary profile); no browser dependency. `core/README.md` documents the procedure, the desktop-viewport requirement and why the suite is not a required CI check; `ci.yml` has an on-demand `browser` job (workflow_dispatch only). Refs #11.
 
 ### Fixed
 
@@ -61,6 +63,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 ### Fixed
 
 - Fixed: the Gallery workspace of `/_plainkit/{workspace}` framed a 404: `<pk-gallery>` resolves its `src` against the page's URL, so the relative address missed under a routed path. The page now passes an absolute address.
+- Fixed: the Files page snapshot (`core/site/files/snapshot.json`) went stale with any edit. `node core/tools/build.mjs` now writes it (deterministic: no timestamp, sorted by path on every platform, generated files laid over the disk copy, never includes itself or `dist/`), `node core/tools/snapshot.mjs` with no arguments runs that build, `core/tests/generated-current.test.mjs` proves every generated file is current, and the CI rebuild step checks `core/site`, `plainkit.css` and the element modules as well as `core/dist`. Refs #10.
+- Fixed: `pk-calendar` on a phone keeps every day a full-height 44px tap area as wide as its column allows (seven columns need 308px for 44px, so in a 288px container a day is about 41 x 44 and never scrolls sideways) and the highlight is a rounded square instead of an oval. Refs #7.
+- Fixed: `pk-table` row-select checkboxes on a phone: the box is larger and every checkbox cell (rows and the select-all header) is at least 52 x 44px and toggles the box when tapped anywhere in the cell; measured at 320px and 375px (before: 49 x 41.5 to 43px, only the 21px box was tappable). Removed an unused `.sr` rule and simplified two spots in `table.js` to stay inside the element budget. Refs #7.
+- Fixed: the site shell theme menu label ("Light theme" / "Dark theme") follows the theme attribute on the html element with one MutationObserver, so it refreshes when the theme editor (or the Settings page) changes the theme; `mountShell` now returns `{ root, destroy() }`. Refs #7.
+
+### Changed
+
+- Changed: on a phone (640px and narrower) secondary text (`--text-meta`: chips, tags, captions, mini buttons, table headers) is 13px instead of 12px; desktop is unchanged. The page-level stylesheet stays inside its budget (9.91 of 10 KB gzip). Refs #7.
 
 ## [0.1.0-alpha.1] - 2026-09-21
 

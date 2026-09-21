@@ -49,10 +49,12 @@ jobs:
           fi
 
       # The build is deterministic and dist is committed, so a rebuild must change nothing.
-      - name: Rebuild and check dist is current
+      # The same build also writes the other generated files (plainkit.css, the gallery data, api.current.json and the Files page's snapshot of core/),
+      # so they are checked here too; core/tests/generated-current.test.mjs proves the same thing from inside the node tests.
+      - name: Rebuild and check dist and the other generated files are current
         run: |
           node core/tools/build.mjs
-          git diff --exit-code -- core/dist
+          git diff --exit-code -- core/dist core/site core/plainkit.css core/elements core/js/version.js
 
       # The agent skills (core/dist/skills) are generated from the API, the Blazor mappings and manifest, the sample folders and the tool modules; a change to
       # any of them must be regenerated. The build above keeps them in the manifest without producing them, so this is what proves they are current.
@@ -83,3 +85,30 @@ jobs:
 
       - name: Build and test
         run: dotnet test PlainKit.slnx --configuration Release
+
+  # The in-browser element suite (core/tests/browser), on demand only (Actions > CI > Run workflow): not a required check, see core/README.md.
+  # It uses the Chrome that ubuntu-latest already has and no npm package; the run refreshes core/tests/browser/report.json on the runner only.
+  browser:
+    name: Element suite in a real browser (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run the suite and check the attestation test against it
+        env:
+          PK_CHROME: /usr/bin/google-chrome
+        run: node scripts/attest-browser.mjs
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-report
+          path: core/tests/browser/report.json
+          if-no-files-found: ignore

@@ -10,7 +10,7 @@ export default Base => class extends Base {
     connected() {
         if (this.$c) return;
         this.$c = 1;
-                const r = this.shadowRoot;
+        const r = this.shadowRoot;
         r.addEventListener('click', e => this.click(e));
         r.addEventListener('change', e => this.input(e));
         r.addEventListener('input', e => this.input(e));
@@ -26,7 +26,9 @@ export default Base => class extends Base {
     click(e) {
         const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tbody tr[data-id]');
         if (this.$m?.click(this, e)) return;
-        if (th && t.closest('button')) this.sortBy(th.dataset.key, th.dataset.key === this.sort && this.sortDir === 'ascending' ? 'descending' : 'ascending');
+        // The whole checkbox cell is the tap area: a click on the cell (not on the box) toggles the box.
+        if (t.matches('[data-check]')) t.firstChild.click();
+        else if (th && t.closest('button')) this.sortBy(th.dataset.key, th.dataset.key === this.sort && this.sortDir === 'ascending' ? 'descending' : 'ascending');
         else if (tr && this.clickable && !t.closest('input,button,a,select,label')) this.emit('pk-row-click', { id: tr.dataset.id, row: this.view[this.ids().indexOf(tr.dataset.id)] });
     }
     input(e) {
@@ -52,7 +54,7 @@ export default Base => class extends Base {
         box.checked = rows.length > 0 && sel.size >= rows.length; box.indeterminate = sel.size > 0 && sel.size < rows.length;
         const head = [h('tr', {}, ...(this.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
             ...cols.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': ph(c), scope: 'col', 'aria-sort': c.sortable ? (this.sort === c.key ? this.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
-        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...cols.map(c => { const i = h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' }); return h('th', { 'data-hide-phone': ph(c) }, i); })));
+        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...cols.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
         this.part('head').replaceChildren(...head);
 
         const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: cols.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : rows.flatMap((row, i) => {
