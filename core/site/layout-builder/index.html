@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDK Layout builder</title>
+<link rel="stylesheet" href="../../plainkit.css">
+<link rel="stylesheet" href="../site.css">
+<link rel="stylesheet" href="layout-builder.css">
+</head>
+<body>
+<div class="site-body">
+    <pk-alert kind="warning" class="gx-notice-file" id="boot-notice" role="status">
+        Loading the layout builder. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
+    </pk-alert>
+    <div id="lb-host"></div>
+</div>
+<script type="module" src="layout-builder.js"></script>
+</body>
+</html>

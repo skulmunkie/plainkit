@@ -151,6 +151,33 @@ Lists every token in the SDK token stylesheet with an input for each (a colour p
 
 The element inspector, `createElementInspector(container)` in `dist/js/element-inspector.js`, shows one element from its API data (`dist/elements/api.json`): tag, summary, live markup with a copy button, properties, slots, events, CSS parts and properties and methods; with nothing selected it shows an empty state. It is what the gallery's Details drawer uses. `inspector.show({ meta, element, extraSections })` draws an element (`element` is the live element; `inspector.refresh()` redraws after it changes; `show(null)` clears it). A host adds its own sections with `extraSections`, an array of `{ title, render(container, { meta, element }), open? }`: each becomes an accordion item after the built-in ones and `render` fills its container using SDK components only. It runs on `show()` and on every `refresh()`; if it throws, the error is logged (scope `element-inspector`), that section shows a note and the others still draw. This is how a host such as a layout builder or PlainKit.Blazor's `/_plainkit` page contributes its own sections (for example a Blazor parameter table); the SDK itself carries none.
 
+### Layout builder
+
+```js
+import { mountLayoutBuilder } from './dist/layout-builder/layout-builder.js';
+const builder = await mountLayoutBuilder(el, { html: '<pk-card heading="Hi">Body</pk-card>', onchange: ({ model }) => draft(model), onsave: ({ model, html }) => save(model, html) });
+builder.getModel(); builder.toHtml(); builder.destroy();
+```
+
+An editor for a page built from Plainkit elements: a palette generated from `dist/elements/api.json` (grouped like the gallery, with search, so a new element appears without a builder change), the page rendered live in an inert canvas, a structure tree (`pk-tree`), a properties form and the element inspector for the selected element, and the exported HTML. The page is a JSON document (`js/layout-model.js`, below) and the host owns persistence: the builder stores nothing. Options: `registry` (the element API: an array or a URL; default `dist/elements/api.json` beside the module), `model` (a document or its JSON text) or `html` (starting markup, sanitised), `onchange({ model, reason })`, `onsave({ model, html })` (adds a Save button), `exporters` (`{ name: (model, helpers) => text }`: extra export formats a host contributes, for example Razor from the Blazor side), `height`, `theme`. Returns `{ element, getModel(), setModel(model), setHtml(markup), toHtml(options), exportAs(name), select(id), selection(), insert(tag), undo(), redo(), on(event, fn), destroy() }`. Refused input (an unknown tag, a script, a bad prop value, an invalid drop) is logged through the SDK logger (scope `layout-builder`) and reported, never applied.
+
+Keyboard, with the canvas or the tree focused: arrows select, Alt+arrows move the selection (Up and Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes; the toolbar and the palette do the same with buttons (touch targets are 44px on a phone, where the panes become tabs). Pointer drag and drop needs a sortable element the SDK does not have yet, and the responsive preview needs an iframe; both are next (`modules/layout-builder/DESIGN.md`, which also answers the design questions). The SDK's Layout builder page is a thin host on the module. No element: an editor is an app, not markup.
+
+### Layout builder: the document model
+
+`dist/js/layout-model.js` is the model a layout builder edits (the editor above edits it; the design is in `modules/layout-builder/DESIGN.md`). A page is a JSON tree `{ version, seq, nodes }`; a node is `{ id, tag, props, slots }` (props: attribute name to a string, or `true` for a boolean attribute; slots: slot name, `''` for the default, to children; a child is a node or a string of text). It is pure data and functions, with no DOM:
+
+```js
+import { createRegistry, emptyDoc, insertNode, setProp, toHtml, fromHtml, validateDoc, createHistory } from './dist/js/layout-model.js';
+const registry = createRegistry(await (await fetch('dist/elements/api.json')).json());
+let { doc, id } = insertNode(emptyDoc(), { node: { tag: 'pk-card', props: { heading: 'Hi' }, text: 'Body' } }, registry);
+doc = setProp(doc, { id, name: 'tone', value: 'error' }, registry).doc;
+toHtml(doc);                                   // '<pk-card heading="Hi" tone="error">Body</pk-card>'
+const { doc: loaded, problems } = fromHtml(html, { registry });   // sanitised: what was refused is listed in problems
+```
+
+`validateDoc(doc, registry)` returns problems (`{ code, severity, message, id, path }`): the checks the skills use for markup (real element, prop, slot and enum value, numbers, JSON, no `style`) plus structure, text form and limits (depth 32, 5000 nodes). `fromHtml` and `fromJson` never return a document with errors; scripts, styles, iframes, forms, handlers, `javascript:` and `data:` URLs and unknown tags are refused. `toHtml(doc, { ids, compact })` and `fromHtml(text, { registry, ids })` round-trip (`data-lb-id` carries ids when asked); `toJson` and `fromJson` round-trip exactly. The operations (`insertNode`, `moveNode`, `removeNode`, `duplicateNode`, `wrapNode`, `setProp`, `setText`, `setSlot`) return a new document and throw `ModelError` (with `code` and `problems`) when the edit is not valid; `createHistory(doc)` is the undo and redo stack.
+
 ## Build and test
 
 ```

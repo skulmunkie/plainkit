@@ -141,6 +141,22 @@ if (location.hostname === 'localhost') {
 
 Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
 
+### Let people build pages with the layout builder
+
+Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
+
+```js
+import { mountLayoutBuilder } from './plainkit/layout-builder/layout-builder.js';
+
+const builder = await mountLayoutBuilder(document.getElementById('editor'), {
+    html: startingMarkup,   // or model: a saved document
+    onchange: ({ model, reason }) => keepDraft(model),
+    onsave: ({ model, html }) => savePage(model, html),
+});
+```
+
+The palette lists every element in `elements/api.json`, so a new element appears without a change. Selection, moving (Alt+arrows or the toolbar), duplicate, delete, undo and redo work by keyboard and touch; the inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
+
 ### Enable logging
 
 ```js
@@ -159,4 +175,4 @@ Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of four with no search yet, no reactive template layer, no layout builder).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of four with no search yet, no reactive template layer, no pointer drag and drop in the layout builder).
