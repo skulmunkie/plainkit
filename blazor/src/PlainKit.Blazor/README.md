@@ -128,13 +128,15 @@ What is not generated is listed in `references/known-gaps.md` of the skill: comp
 
 Measured (`scripts/bench/blazor.mjs`, Blazor Server, five columns): a `PkTable<T>` sends about 80 bytes per row to the browser (100 rows 11 KB, 1,000 rows 79 KB,
 5,000 rows 387 KB), and `pk-table` draws every row it is given (10,000 rows take about 2 s to render). The limit that bites is the other direction: SignalR
-refuses a message the browser sends that is larger than `MaximumReceiveMessageSize` (32 KB by default) and **closes the circuit**. With `Selectable`, "select all"
-sends every row id back in one `pk-select` event: about 6 bytes per id for numbers, about 40 for GUIDs, so 5,000 numeric ids (33 KB) or about 800 GUID ids are enough
-to lose the circuit. So:
+refuses a message the browser sends that is larger than `MaximumReceiveMessageSize` (32 KB by default) and **closes the circuit**. The `pk-select` event of a
+selectable table carries every selected id (about 6 bytes per number, about 40 per GUID: 5,000 numbers or about 800 GUIDs are enough to lose the circuit), so `PkTable`
+does not let it: the page module sends a selection of 64 rows or more as runs of row indexes (select all is `[0, 4999]`, a few bytes) and `PkTable` turns them
+back into the ids of the rows it sent (`Selected`, `SelectedChanged`, `OnSelect` see the ids, in row order). A raw `<pk-table @onpk-select>` in your own markup, and any other element, still
+gets the whole detail; a selection that alternates row by row (thousands of separate runs) is the one case that can still grow. So:
 
 - Page big data: `PkDataList` (or `PkTable` in `Manual` mode with a `PkPagination`) keeps a page at 10 to 100 rows, sorts and filters on the server, and never
   approaches the limit. Use it above a few hundred rows.
-- If a large `Selectable` table is unavoidable, raise the limit for the hub in your app: `builder.Services.AddServerSideBlazor().AddHubOptions(o => o.MaximumReceiveMessageSize = 1024 * 1024);`
+- If you send a very large selection some other way, raise the limit for the hub in your app: `builder.Services.AddServerSideBlazor().AddHubOptions(o => o.MaximumReceiveMessageSize = 1024 * 1024);`
   (Blazor Web App: `AddInteractiveServerComponents(o => ...)` takes hub options), and prefer short row ids.
 - Every parent re-render of a `PkTable` serialises all of its rows again, even when `Items` did not change (5,000 rows: about 70 ms and 9 MB allocated); keep the
   table's parent small, or pass a new list only when the data changed.

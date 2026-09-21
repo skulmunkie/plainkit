@@ -11,7 +11,7 @@
    PlainKit.Blazor.lib.module.js). Cell templates, the detail template and the slots are ordinary Blazor children of the element (the element
    reads them, it never rewrites them): a cell template is a <span slot="cell-<id>-<key>"> per row, so a change of rows re-renders them together
    with the rows attribute. *@
-<pk-table columns="@_columns"
+<pk-table data-pk-ranges columns="@_columns"
           rows="@_rows"
           row-key="id"
           manual="@Manual"
@@ -61,6 +61,8 @@
     private List<Row> _items = [];
     private List<PkTableColumn<TItem>> _cells = [];
     private readonly Dictionary<string, TItem> _byId = new();
+
+    [Inject] private IPkLog Log { get; set; } = default!;
 
     /// <summary>The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a <c>Text</c> or a <c>Cell</c>) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (<c>Sort</c>, <c>OnSort</c>, <c>Filters</c>).</summary>
     [Parameter] public IReadOnlyList<PkTableColumn<TItem>>? Columns { get; set; }
@@ -221,7 +223,7 @@
     {
         handlers["onpk-sort"] = EventCallback.Factory.Create<PkSortEventArgs>(this, HandleSort);
         handlers["onpk-filter"] = EventCallback.Factory.Create<PkFilterEventArgs>(this, HandleFilter);
-        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandleSelect);
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelect);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClick);
         handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpand);
     }
@@ -243,13 +245,32 @@
         await OnFilter.InvokeAsync(e);
     }
 
-    private async Task HandleSelect(PkSelectEventArgs e)
+    private async Task HandleSelect(PkTableSelectEventArgs e)
     {
+        // A big selection arrives as runs of row indexes (see PkTableSelectEventArgs): back to the ids of the rows this table sent.
+        if (e.Ranges is not null && !await ExpandAsync(e)) return;
         // pk-select also bubbles up from menus, calendars and trees in the table's own slots: only the table's carries "selected".
         if (e.Selected is null) return;
         Selected = e.Selected;
         await SelectedChanged.InvokeAsync(Selected);
         await OnSelect.InvokeAsync(e);
+    }
+
+    // False when the element's rows are not the rows of the last render (the parameters changed after the element raised the event): the event is dropped
+    // and the next one, raised for the new rows, carries the selection.
+    private async Task<bool> ExpandAsync(PkTableSelectEventArgs e)
+    {
+        var n = _items.Count;
+        if (e.RowCount != n || n == 0 || e.FirstId != _items[0].Id || e.LastId != _items[n - 1].Id || e.Ranges!.Length % 2 != 0)
+        {
+            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {n} rows; it was ignored (the next event carries the selection).");
+            return false;
+        }
+        var ids = new List<string>();
+        for (var r = 0; r < e.Ranges.Length; r += 2)
+            for (var i = Math.Max(0, e.Ranges[r]); i <= Math.Min(n - 1, e.Ranges[r + 1]); i++) ids.Add(_items[i].Id);
+        e.Selected = ids.ToArray();
+        return true;
     }
 
     private async Task HandleRowClick(PkRowClickEventArgs e)
