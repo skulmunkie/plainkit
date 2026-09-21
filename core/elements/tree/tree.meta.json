@@ -27,6 +27,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
+      "commit": "pk-select",
       "description": "The value (or label) of the selected item."
     }
   ],

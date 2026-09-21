@@ -54,6 +54,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-fiel
 | `Summary` | `bool` |  | attribute `summary` | Shows a summary of the problems with links to the fields. |
 | `OnInvalid` | `EventCallback<PkInvalidEventArgs>` |  | event `pk-invalid` | A submit was stopped because these controls are invalid. |
 | `OnValid` | `EventCallback` |  | event `pk-valid` | A submit passed validation. |
+| `OnReset` | `EventCallback` |  | event `pk-reset` | The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled. |
 | `ChildContent` | `RenderFragment?` |  | default slot | A form element. |
 
 **Event args**

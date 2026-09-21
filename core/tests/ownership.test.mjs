@@ -301,3 +301,69 @@ test('select, radio-group and combobox wire their own listeners once, however ma
         disconnect();
     }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// Two-way props name their commit event (rule 4)
+// ---------------------------------------------------------------------------------------------------------------------------------
+
+// A prop with one of these names holds state the user can change. Its meta names the event that announces the change (`commit`, one event or
+// a list), and that event must be one the element declares. A prop that is not changed by the user itself is listed in NOT_TWO_WAY with why.
+const TWO_WAY = new Set(['value', 'open', 'checked', 'selected', 'current', 'expanded', 'page', 'collapsed', 'index', 'pressed', 'wrap']);
+const NOT_TWO_WAY = {
+    'button.value': 'the value the button submits and reports, not state',
+    'checkbox.value': 'the value the checkbox submits when checked; checked is the state',
+    'switch.value': 'the value the switch submits when on; checked is the state',
+    'tag.value': 'the identifier pk-remove reports, not state',
+    'menu-item.value': 'the item\'s identifier, reported by pk-select',
+    'menu-item.open': 'a submenu opened by the pointer or the arrow keys: no event names it yet (open issue #47)',
+    'nav-item.current': 'the route marker the host sets; the element never changes it',
+    'progress.value': 'output only: nothing the user can change',
+    'step.index': 'the step\'s position, set by its stepper',
+    'stat.value': 'output only: a figure the host supplies',
+    'stat.values': 'output only: the series the host supplies',
+    'tab.value': 'the tab\'s identifier, paired with a pk-tab-panel; the tab strip raises pk-tab-change',
+    'tab.selected': 'pushed down by pk-tabs, which raises pk-tab-change (selfAssigned coupling)',
+    'tab-panel.value': 'the panel\'s identifier, paired with a pk-tab',
+    'tab-panel.selected': 'pushed down by pk-tabs, which raises pk-tab-change (selfAssigned coupling)',
+    'tree-item.value': 'the item\'s identifier, reported by pk-select',
+    'table.selected': 'pk-table changes in another piece of work (its commit event is named there): open issue #47',
+};
+
+const readMeta = () => {
+    const out = {};
+    for (const d of fs.readdirSync(path.join(root, 'elements'))) {
+        const p = path.join(root, 'elements', d, `${d}.meta.json`);
+        if (fs.existsSync(p)) out[d] = JSON.parse(fs.readFileSync(p, 'utf8'));
+    }
+    return out;
+};
+
+test('every two-way prop names the event that announces a user change, or is on the documented exception list', () => {
+    const problems = []; const metas = readMeta();
+    for (const [el, meta] of Object.entries(metas)) {
+        for (const p of meta.props) {
+            if (!TWO_WAY.has(p.name)) continue;
+            const key = `${el}.${p.name}`;
+            if (p.commit !== undefined) {
+                const named = [].concat(p.commit);
+                const bad = named.filter(n => !meta.events.some(e => e.name === n));
+                if (!named.length || bad.length) problems.push(`${key}: commit ${JSON.stringify(p.commit)} names an event the element does not declare`);
+                if (NOT_TWO_WAY[key]) problems.push(`${key}: has a commit event and is also on the exception list: remove it from NOT_TWO_WAY`);
+            } else if (!NOT_TWO_WAY[key]) problems.push(`${key}: no commit event named in the meta`);
+        }
+    }
+    const stale = Object.keys(NOT_TWO_WAY).filter(k => { const [el, prop] = k.split('.'); return !metas[el]?.props.some(p => p.name === prop); });
+    assert.deepEqual(problems, [], `\n${problems.join('\n')}\n\nA two-way prop has "commit": "<event>" in its meta (a list when it takes two, pk-open and pk-close); ${SECTION}, rule 4. A prop the user never changes goes on NOT_TWO_WAY in core/tests/ownership.test.mjs with the reason.`);
+    assert.deepEqual(stale, [], `these NOT_TWO_WAY entries name no such prop: remove them\n${stale.join('\n')}`);
+});
+
+test('the elements that change a two-way prop themselves raise its commit event (the cases the ownership audit found)', () => {
+    const src = n => fs.readFileSync(path.join(root, 'elements', n, `${n}.js`), 'utf8');
+    assert.match(src('tabs'), /this\.value = [^;]*;[^}]*emit\('pk-tab-change'/, 'pk-tabs: the fallback to the first tab raises pk-tab-change');
+    assert.match(src('side-nav'), /this\.collapsed = s\.collapsed;[^}]*emit\('pk-nav-toggle'/, 'pk-side-nav: a restored collapsed state raises pk-nav-toggle');
+    assert.match(src('combobox'), /setOpen\(open\) \{[^}]*emit\('pk-combo-toggle'/, 'pk-combobox: opening and closing raise pk-combo-toggle');
+    assert.doesNotMatch(strip(src('combobox')), /this\.open = (true|false)/, 'pk-combobox: open changes through setOpen() only');
+    assert.match(src('command-palette'), /hide\('shortcut'\)/, 'pk-command-palette: the shortcut closes through hide(), which raises pk-close');
+    assert.match(src('command-palette'), /emit\('pk-close', \{ reason: 'select' \}/, 'pk-command-palette: choosing a command raises pk-close');
+    assert.match(src('code-block'), /this\.wrap = !this\.wrap; this\.emit\('pk-wrap-change'/, 'pk-code-block: the wrap toggle raises pk-wrap-change');
+});

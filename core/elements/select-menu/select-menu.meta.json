@@ -9,7 +9,8 @@
       "type": "string",
       "default": "",
       "reflect": true,
-      "description": "Selected option value."
+      "commit": "pk-change",
+      "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
       "name": "name",
@@ -30,6 +31,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": ["pk-open","pk-close"],
       "description": "Whether the list is shown."
     },
     {
@@ -62,6 +64,18 @@
         "previous": "string"
       },
       "description": "The selection changed."
+    },
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "The list opened."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
     }
   ],
   "parts": [

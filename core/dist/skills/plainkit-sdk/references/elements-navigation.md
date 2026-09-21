@@ -344,7 +344,7 @@ Example: Reading progress bar
 
 | Event | Detail | Description |
 |---|---|---|
-| `pk-nav-toggle` | `{ collapsed: boolean }` | Rail toggled. |
+| `pk-nav-toggle` | `{ collapsed: boolean }` | Rail toggled by the user, or restored from the saved state (persist) on connect. |
 | `pk-open` | `none` | Drawer opened. |
 | `pk-close` | `{ reason: string }` | Drawer closed. |
 
@@ -619,7 +619,7 @@ Example: Two panels
 
 | Event | Detail | Description |
 |---|---|---|
-| `pk-tab-change` | `{ value, previous }` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. |
+| `pk-tab-change` | `{ value, previous }` | A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on. |
 
 **CSS parts** (`::part(name)`)
 

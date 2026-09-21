@@ -17,12 +17,15 @@ Every component renders its element with the parameters you set as attributes. A
 | `RecentsKey` | `string?` |  | attribute `recents-key` | localStorage key; empty disables recents. |
 | `NoShortcut` | `bool` |  | attribute `no-shortcut` | Do not bind Ctrl/Cmd+K on the document. |
 | `Label` | `string?` |  | attribute `label` | Accessible name of the dialog. |
+| `OnOpen` | `EventCallback` |  | event `pk-open` | It opened (the shortcut, show(), or open set by the host). |
+| `OnClose` | `EventCallback<PkCloseEventArgs>` |  | event `pk-close` | A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason "select", already closed). Cancelable except for "select": preventDefault keeps it open. |
 | `OnSelect` | `EventCallback<PkSelectEventArgs>` |  | event `pk-select` | A command was chosen; navigates to href when it has one and the event is not cancelled. |
 
 **Event args**
 
 | Event | Args class | Fields |
 |---|---|---|
+| `pk-close` | `PkCloseEventArgs` | Reason: string? |
 | `pk-select` | `PkSelectEventArgs` | Value: string?, Item: JsonElement?, Checked: bool?, Id: string? |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-command-palette` in the `plainkit-sdk` skill.

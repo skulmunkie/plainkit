@@ -14,7 +14,7 @@
            @attributes="Splat">@ChildContent</pk-switch>
 
 @code {
-    /// <summary>Whether the switch is on.</summary>
+    /// <summary>Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public bool Checked { get; set; }
 
     /// <summary>Raised with the new value of Checked (two-way: Checked follows it).</summary>

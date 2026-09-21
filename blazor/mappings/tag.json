@@ -17,6 +17,12 @@
       "type": "bool"
     },
     {
+      "name": "Controlled",
+      "prop": "controlled",
+      "type": "bool",
+      "default": true
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

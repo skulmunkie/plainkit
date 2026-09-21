@@ -9,10 +9,11 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 | `pk-activate` | `PkActivateEventArgs` | `PkStat` | Href: string? |
 | `pk-add` | `PkAddEventArgs` | `PkImageGallery` | Files: PkFileInfo[]?, Names: string[]? |
 | `pk-change` | `PkChangeEventArgs` | `PkCheckbox` `PkLightbox` `PkSelectMenu` `PkSwitch` | Checked: bool?, Index: double?, Value: string?, Label: string?, Previous: string? |
-| `pk-close` | `PkCloseEventArgs` | `PkDialog` `PkDrawer` `PkDropdown` `PkLightbox` `PkPopover` `PkSideNav` | Reason: string? |
+| `pk-close` | `PkCloseEventArgs` | `PkCommandPalette` `PkDialog` `PkDrawer` `PkDropdown` `PkLightbox` `PkPopover` `PkSideNav` | Reason: string? |
 | `pk-colour` | `PkColourEventArgs` | `PkColourInput` | Value: string? |
 | `pk-combo-query` | `PkComboQueryEventArgs` | `PkCombobox` | Query: string? |
 | `pk-combo-select` | `PkComboSelectEventArgs` | `PkCombobox` | Value: string?, Label: string? |
+| `pk-combo-toggle` | `PkComboToggleEventArgs` | `PkCombobox` | Open: bool? |
 | `pk-copy` | `PkCopyEventArgs` | `PkCodeBlock` | Ok: bool? |
 | `pk-dismiss` | `PkDismissEventArgs` | `PkToast` | Reason: string? |
 | `pk-files` | `PkFilesEventArgs` | `PkDropzone` | Count: double?, RejectedCount: double? |
@@ -39,5 +40,6 @@ An event with a detail gives `EventCallback<PkXxxEventArgs>`; the args class has
 | `pk-tags-change` | `PkTagsChangeEventArgs` | `PkTagInput` | Value: string? |
 | `pk-toggle` | `PkToggleEventArgs` | `PkAccordionItem` `PkHint` `PkNavItem` `PkNavbar` `PkTree` `PkTreeItem` | Open: bool?, Expanded: bool?, Id: string? |
 | `pk-value-change` | `PkValueChangeEventArgs` | `PkInput` `PkRadioGroup` `PkSelect` `PkTextarea` | Value: string? |
+| `pk-wrap-change` | `PkWrapChangeEventArgs` | `PkCodeBlock` | Wrap: bool? |
 
-Events without a detail (`pk-confirm` `pk-expand` `pk-load-more` `pk-valid`) use `EventArgs`.
+Events without a detail (`pk-confirm` `pk-expand` `pk-load-more` `pk-reset` `pk-valid`) use `EventArgs`.

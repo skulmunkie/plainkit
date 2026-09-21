@@ -20,13 +20,12 @@ export function typeaheadIndex(labels, buffer, from = -1) {
 export default Base => class extends Base {
     connected() {
         if (this.$init) return;
-        this.$init = true; this.$initial = this.value; this.$opts = true; this.$query = ''; this.$type = { text: '', at: 0 };
+        this.$init = true; this.$initial = this.value; this.$opts = true; this.$type = { text: '', at: 0 };
         const rebuild = () => { this.$opts = true; this.requestUpdate(); };
         this.watchSlot('', rebuild);
-        this.$obs = new MutationObserver(rebuild);
-        this.$obs.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'disabled', 'label'] });
-        const inp = this.part('control'); const tr = this.part('trigger'); const pop = this.part('popup');
-        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.open = true; this.emit('pk-combo-query', { query: inp.value }); this.filter(); });
+        new MutationObserver(rebuild).observe(this,{ childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'disabled', 'label'] });
+        const inp = this.part('control'), tr = this.part('trigger'), pop = this.part('popup');
+        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.emit('pk-combo-query', { query: inp.value }); this.filter(); });
         inp.addEventListener('click', () => { if (!this.open) this.show(); });
         tr.addEventListener('click', () => { if (this.open) this.hide(); else this.show(); });
         pop.addEventListener('mousedown', e => e.preventDefault());
@@ -47,8 +46,10 @@ export default Base => class extends Base {
         for (const o of this.ops()) o.classList.toggle('hl', o === op);
         if (op) { this.ctl().setAttribute('aria-activedescendant', op.id); op.scrollIntoView?.({ block: 'nearest' }); } else this.ctl().removeAttribute('aria-activedescendant');
     }
-    show() { this.$query = ''; this.open = true; this.filter(); const c = this.chosen(); this.highlight(c && !c.hidden ? c : null); }
-    hide() { if (this.open) { this.open = false; } this.highlight(null); }
+    // The one way the element opens or closes itself: it says so, so a host that mirrors `open` hears it.
+    setOpen(open) { if (this.open !== open) this.emit('pk-combo-toggle', { open: this.open = open }, { cancelable: false }); }
+    show() { this.$query = ''; this.setOpen(true); this.filter(); const c = this.chosen(); this.highlight(c?.hidden ? null : c); }
+    hide() { this.setOpen(false); this.highlight(null); }
     filter() {
         const ops = this.ops();
         if (this.filtering === 'off') return;
@@ -58,24 +59,24 @@ export default Base => class extends Base {
         this.highlight(this.live()[0] ?? null);
     }
     pick(op) {
-        this.$typing = false; this.value = op.dataset.value; this.$query = '';
-        this.open = false; this.highlight(null); this.ctl().focus();
+        this.$typing = false; this.value = op.dataset.value;
+        this.hide(); this.ctl().focus();
         this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
         this.emit('pk-combo-select', { value: this.value, label: op.textContent });
     }
     keys(e) {
         const src = e.composedPath()[0];
         if (src !== this.part('control') && src !== this.part('trigger')) return;
-        const select = this.mode === 'select'; const items = this.live(); const at = items.findIndex(o => o.classList.contains('hl')); const k = e.key;
+        const select = this.mode === 'select', items = this.live(), at = items.findIndex(o => o.classList.contains('hl')), k = e.key;
         if (k === 'ArrowDown' || k === 'ArrowUp' || (select && this.open && (k === 'Home' || k === 'End'))) {
             e.preventDefault();
             if (!this.open) { this.show(); if (!this.chosen()) this.highlight(this.live()[k === 'ArrowUp' ? this.live().length - 1 : 0] ?? null); } else this.highlight(items[nextIndex(at, items.length, k)]);
-        } else if (k === 'Enter' || (select && k === ' ')) {
+        } else if (k === 'Enter' || select && k === ' ') {
             if (this.open && at >= 0) { e.preventDefault(); this.pick(items[at]); } else if (select) { e.preventDefault(); if (this.open) this.hide(); else this.show(); }
         } else if (k === 'Escape' && this.open) { e.preventDefault(); e.stopPropagation(); this.hide(); }
         else if (k === 'Tab') this.hide();
         else if (select && k.length === 1 && k !== ' ') {
-            const t = this.$type; const now = Date.now(); const buffer = now - t.at < 700 ? t.text + k : k;
+            const t = this.$type, now = Date.now(), buffer =now - t.at < 700 ? t.text + k : k;
             this.$type = { text: buffer, at: now };
             const cur = at >= 0 ? at : items.indexOf(this.chosen());
             const i = typeaheadIndex(items.map(o => o.textContent), buffer, buffer.length > 1 ? cur - 1 : cur);
@@ -84,7 +85,7 @@ export default Base => class extends Base {
         }
     }
     updated() {
-        const pop = this.part('popup'); const inp = this.part('control'); const tr = this.part('trigger');
+        const pop = this.part('popup'), inp = this.part('control'), tr = this.part('trigger');
         if (this.$opts ?? true) {
             this.$opts = false;
             for (const o of this.ops()) o.remove();
@@ -100,7 +101,7 @@ export default Base => class extends Base {
         const chosen = this.chosen();
         for (const o of this.ops()) o.setAttribute('aria-selected', String(o === chosen));
         if (this.mode === 'select') { tr.textContent = chosen ? chosen.textContent : ''; tr.dataset.placeholder = this.placeholder; }
-        else if (!this.$typing) inp.value = chosen ? chosen.textContent : (this.free ? this.value : '');
+        else if (!this.$typing) inp.value = chosen ? chosen.textContent : this.free ? this.value : '';
         pop.hidden = !this.open;
         for (const c of [inp, tr]) c.setAttribute('aria-expanded', String(this.open));
         if (this.open) { const b = this.ctl().getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; }

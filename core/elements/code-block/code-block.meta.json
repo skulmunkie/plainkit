@@ -23,6 +23,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-wrap-change",
       "description": "Wrap long lines."
     },
     {
@@ -48,6 +49,14 @@
         "ok": "bool"
       },
       "description": "After a copy attempt.",
+      "cancelable": false
+    },
+    {
+      "name": "pk-wrap-change",
+      "detail": {
+        "wrap": "bool"
+      },
+      "description": "The wrap toggle was pressed; wrap already has the new value.",
       "cancelable": false
     }
   ],

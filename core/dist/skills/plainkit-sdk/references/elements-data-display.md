@@ -236,6 +236,7 @@ Example: Donut and stack
 | Event | Detail | Description |
 |---|---|---|
 | `pk-copy` | `{ ok: bool }` | After a copy attempt. |
+| `pk-wrap-change` | `{ wrap: bool }` | The wrap toggle was pressed; wrap already has the new value. |
 
 **Methods**
 
@@ -831,8 +832,9 @@ Example: Expandable rows
 | Attribute | Property | Type | Default | Values | Description |
 |---|---|---|---|---|---|
 | `removable` | `removable` | boolean | `false` |  | Show the remove button. |
-| `value` | `value` | string | `""` |  | Sent in the remove event; defaults to the text. |
+| `value` | `value` | string | `""` |  | Sent in the remove event (the identifier, not state); defaults to the text. |
 | `disabled` | `disabled` | boolean | `false` |  | Dim the tag and disable the button. |
+| `controlled` | `controlled` | boolean | `false` |  | The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper. |
 
 **Slots** (`slot="name"` on a child)
 
@@ -844,7 +846,7 @@ Example: Expandable rows
 
 | Event | Detail | Description |
 |---|---|---|
-| `pk-remove` | `{ value: string }` | The remove button was pressed. Cancel to keep the tag; otherwise it removes itself. |
+| `pk-remove` | `{ value: string }` | The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it. |
 
 **CSS parts** (`::part(name)`)
 

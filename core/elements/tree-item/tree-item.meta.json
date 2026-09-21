@@ -23,6 +23,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-toggle",
       "description": "Children visible."
     },
     {
@@ -30,6 +31,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-select",
       "description": "The chosen item."
     },
     {

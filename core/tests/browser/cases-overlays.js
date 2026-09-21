@@ -3,13 +3,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const focus = (el, t) => { el.focus(); return t.settle(); };
 
 export const overlaysCases = [
-    ['tooltip: focus shows it, the target is described by a light-DOM node, Escape hides it', async t => {
+    ['tooltip: focus shows it, the target gets aria-description and no node is added, Escape hides it', async t => {
         const el = await t.mount('<pk-tooltip text="Saves the draft"><button>Save</button></pk-tooltip>');
         const b = el.querySelector('button');
         b.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true })); await wait(30);
         t.ok(el.hasAttribute('shown'), 'shown on focus');
-        const d = document.getElementById(b.getAttribute('aria-describedby'));
-        t.eq(d.textContent, 'Saves the draft'); t.eq(el.part('tip').textContent, 'Saves the draft');
+        t.eq(b.getAttribute('aria-description'), 'Saves the draft'); t.ok(!b.hasAttribute('aria-describedby') && el.children.length === 1, 'nothing is added to the light DOM');
+        t.eq(el.part('tip').textContent, 'Saves the draft');
         t.ok(getComputedStyle(el.part('tip')).display !== 'none', 'visible');
         t.key(b, 'Escape'); await t.settle();
         t.ok(!el.hasAttribute('shown'), 'Escape hides it');

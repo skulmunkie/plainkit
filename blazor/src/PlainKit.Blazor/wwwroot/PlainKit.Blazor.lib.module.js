@@ -9,6 +9,7 @@ const events = [
     'pk-colour',
     'pk-combo-query',
     'pk-combo-select',
+    'pk-combo-toggle',
     'pk-confirm',
     'pk-copy',
     'pk-dismiss',
@@ -28,6 +29,7 @@ const events = [
     'pk-range',
     'pk-rating-change',
     'pk-remove',
+    'pk-reset',
     'pk-search',
     'pk-section-change',
     'pk-select',
@@ -39,6 +41,7 @@ const events = [
     'pk-toggle',
     'pk-valid',
     'pk-value-change',
+    'pk-wrap-change',
 ];
 
 // The detail, made safe to serialize: files become { name, size, type }, DOM nodes are dropped, depth is capped.

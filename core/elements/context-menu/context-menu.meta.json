@@ -9,6 +9,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": ["pk-open","pk-close"],
       "description": "Whether the menu is shown."
     },
     {
@@ -38,6 +39,21 @@
         "checked": "boolean"
       },
       "description": "An item was chosen."
+    },
+    {
+      "name": "pk-open",
+      "detail": {
+        "x": "number",
+        "y": "number"
+      },
+      "description": "It opened at the pointer position."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open."
     }
   ],
   "parts": [

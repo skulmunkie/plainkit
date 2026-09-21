@@ -27,6 +27,11 @@
       "type": "null"
     },
     {
+      "name": "OnReset",
+      "event": "pk-reset",
+      "type": "null"
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

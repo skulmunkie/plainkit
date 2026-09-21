@@ -597,6 +597,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Expanded."
             }
         ],
@@ -1368,6 +1369,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "The pressed state of a toggle button."
             },
             {
@@ -1558,6 +1560,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
+                "commit": "pk-select",
                 "description": "The selected day, an ISO date such as 2026-09-19."
             },
             {
@@ -1999,7 +2002,8 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Whether the box is checked."
+                "commit": "pk-change",
+                "description": "Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "indeterminate",
@@ -2282,6 +2286,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-wrap-change",
                 "description": "Wrap long lines."
             },
             {
@@ -2307,6 +2312,14 @@ export const ELEMENTS = [
                     "ok": "bool"
                 },
                 "description": "After a copy attempt.",
+                "cancelable": false
+            },
+            {
+                "name": "pk-wrap-change",
+                "detail": {
+                    "wrap": "bool"
+                },
+                "description": "The wrap toggle was pressed; wrap already has the new value.",
                 "cancelable": false
             }
         ],
@@ -2404,7 +2417,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The colour as #rrggbb."
+                "commit": "pk-colour",
+                "description": "The colour as #rrggbb. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -2539,7 +2553,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -2606,6 +2621,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-combo-toggle",
                 "description": "Whether the list is open."
             }
         ],
@@ -2646,6 +2662,13 @@ export const ELEMENTS = [
                     "query": "string"
                 },
                 "description": "The user typed: the text so far, so a host can fetch more options (with filtering=\"off\" it also replaces the client filter)."
+            },
+            {
+                "name": "pk-combo-toggle",
+                "detail": {
+                    "open": "bool"
+                },
+                "description": "The list opened or closed by itself (typing, a click, a key, focus leaving); open already has the new value. Not raised for a change the host made."
             }
         ],
         "parts": [
@@ -2732,6 +2755,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -2771,6 +2798,18 @@ export const ELEMENTS = [
                     "item": "object"
                 },
                 "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+            },
+            {
+                "name": "pk-open",
+                "detail": null,
+                "description": "It opened (the shortcut, show(), or open set by the host)."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason \"select\", already closed). Cancelable except for \"select\": preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -2844,6 +2883,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the menu is shown."
             },
             {
@@ -2873,6 +2916,21 @@ export const ELEMENTS = [
                     "checked": "boolean"
                 },
                 "description": "An item was chosen."
+            },
+            {
+                "name": "pk-open",
+                "detail": {
+                    "x": "number",
+                    "y": "number"
+                },
+                "description": "It opened at the pointer position."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -2912,6 +2970,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -3153,6 +3215,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             },
             {
@@ -3311,6 +3377,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the menu is shown."
             },
             {
@@ -4044,6 +4114,11 @@ export const ELEMENTS = [
                 "name": "pk-valid",
                 "detail": "null",
                 "description": "A submit passed validation."
+            },
+            {
+                "name": "pk-reset",
+                "detail": null,
+                "description": "The form was reset and every control has its initial value again. A reset raises no input or change event on the controls (as with native controls), so a host that mirrors their values reads them again here. Not raised when the reset was cancelled."
             }
         ],
         "parts": [
@@ -4436,6 +4511,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Expanded."
             },
             {
@@ -4775,7 +4851,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -5128,6 +5205,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": true,
+                "commit": "pk-change",
                 "description": "The index setting"
             },
             {
@@ -5142,6 +5220,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether it is shown"
             }
         ],
@@ -5165,6 +5247,11 @@ export const ELEMENTS = [
                     "reason": "string"
                 },
                 "description": "pk-close"
+            },
+            {
+                "name": "pk-open",
+                "detail": {},
+                "description": "It opened."
             }
         ],
         "parts": [
@@ -5556,6 +5643,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-select",
                 "description": "Checkbox and radio state."
             },
             {
@@ -5684,6 +5772,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Branch open."
             },
             {
@@ -5790,6 +5879,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Links unfolded (small screens)."
             },
             {
@@ -5884,7 +5974,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The code typed so far."
+                "commit": "pk-otp-change",
+                "description": "The code typed so far. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -6206,6 +6297,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 1,
                 "reflect": true,
+                "commit": "pk-page",
                 "description": "Current page, 1-based."
             },
             {
@@ -6405,6 +6497,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the panel is shown."
             },
             {
@@ -6735,7 +6831,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -6913,7 +7010,8 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": false,
-                "description": "Single mode: the value."
+                "commit": "pk-range",
+                "description": "Single mode: the value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "valueLow",
@@ -7061,7 +7159,8 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": false,
-                "description": "The rating, 0 for none."
+                "commit": "pk-rating-change",
+                "description": "The rating, 0 for none. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "max",
@@ -7203,7 +7302,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "label",
@@ -7344,7 +7444,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": true,
-                "description": "Selected option value."
+                "commit": "pk-change",
+                "description": "Selected option value. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "name",
@@ -7365,6 +7466,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Whether the list is shown."
             },
             {
@@ -7397,6 +7502,18 @@ export const ELEMENTS = [
                     "previous": "string"
                 },
                 "description": "The selection changed."
+            },
+            {
+                "name": "pk-open",
+                "detail": null,
+                "description": "The list opened."
+            },
+            {
+                "name": "pk-close",
+                "detail": {
+                    "reason": "string"
+                },
+                "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
             }
         ],
         "parts": [
@@ -7456,6 +7573,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-nav-toggle",
                 "description": "Icon rail."
             },
             {
@@ -7463,6 +7581,10 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": [
+                    "pk-open",
+                    "pk-close"
+                ],
                 "description": "Drawer open (phones and tablets)."
             },
             {
@@ -7500,7 +7622,7 @@ export const ELEMENTS = [
                 "detail": {
                     "collapsed": "boolean"
                 },
-                "description": "Rail toggled."
+                "description": "Rail toggled by the user, or restored from the saved state (persist) on connect."
             },
             {
                 "name": "pk-open",
@@ -7834,6 +7956,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-menu-toggle",
                 "description": "Whether the menu is open."
             },
             {
@@ -8333,6 +8456,7 @@ export const ELEMENTS = [
                 "type": "number",
                 "default": 0,
                 "reflect": true,
+                "commit": "pk-step-change",
                 "description": "Zero-based current step."
             },
             {
@@ -8438,7 +8562,8 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
-                "description": "Whether the switch is on."
+                "commit": "pk-change",
+                "description": "Whether the switch is on. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "disabled",
@@ -9066,6 +9191,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": true,
+                "commit": "pk-tab-change",
                 "description": "The value of the selected tab. Empty selects the first enabled tab."
             },
             {
@@ -9118,7 +9244,7 @@ export const ELEMENTS = [
                     "value": "string",
                     "previous": "string"
                 },
-                "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab."
+                "description": "A tab was chosen. Cancelable: preventDefault keeps the previous tab. Also raised, not cancelable, when the value falls back to the first enabled tab (empty or no matching tab), so the host learns the value the element settled on."
             }
         ],
         "parts": [
@@ -9163,7 +9289,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "Sent in the remove event; defaults to the text."
+                "description": "Sent in the remove event (the identifier, not state); defaults to the text."
             },
             {
                 "name": "disabled",
@@ -9171,6 +9297,13 @@ export const ELEMENTS = [
                 "default": false,
                 "reflect": true,
                 "description": "Dim the tag and disable the button."
+            },
+            {
+                "name": "controlled",
+                "type": "boolean",
+                "default": false,
+                "reflect": true,
+                "description": "The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper."
             }
         ],
         "slots": [
@@ -9185,7 +9318,7 @@ export const ELEMENTS = [
                 "detail": {
                     "value": "string"
                 },
-                "description": "The remove button was pressed. Cancel to keep the tag; otherwise it removes itself.",
+                "description": "The remove button was pressed. preventDefault keeps the tag; when nobody cancels it and controlled is off, the tag removes itself after the event. With controlled the host removes it.",
                 "cancelable": true
             }
         ],
@@ -9240,7 +9373,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The tags, comma-joined."
+                "commit": "pk-tags-change",
+                "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -9409,7 +9543,8 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
-                "description": "The current value; what the form submits."
+                "commit": "pk-value-change",
+                "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
             },
             {
                 "name": "placeholder",
@@ -10168,7 +10303,7 @@ export const ELEMENTS = [
                 "description": "Closes it"
             }
         ],
-        "a11y": "The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
+        "a11y": "The tip is a role=tooltip node in the shadow tree, and the slotted target gets aria-description with the same text (an accessible description: nothing is added to your markup, and no id has to cross the shadow boundary; a target that already has its own aria-description keeps it). Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.",
         "mobile": "Touch shows it after a 500ms press and hides it on the next touch; text is 14px and wraps at 20rem.",
         "examples": [
             {
@@ -10206,6 +10341,7 @@ export const ELEMENTS = [
                 "type": "string",
                 "default": "",
                 "reflect": false,
+                "commit": "pk-select",
                 "description": "The value (or label) of the selected item."
             }
         ],
@@ -10283,6 +10419,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-toggle",
                 "description": "Children visible."
             },
             {
@@ -10290,6 +10427,7 @@ export const ELEMENTS = [
                 "type": "boolean",
                 "default": false,
                 "reflect": true,
+                "commit": "pk-select",
                 "description": "The chosen item."
             },
             {

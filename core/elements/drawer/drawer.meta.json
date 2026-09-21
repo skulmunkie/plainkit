@@ -9,6 +9,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": ["pk-open","pk-close"],
       "description": "Whether it is shown"
     },
     {

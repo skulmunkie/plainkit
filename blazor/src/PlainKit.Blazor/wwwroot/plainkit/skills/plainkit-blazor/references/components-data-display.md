@@ -89,6 +89,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-char
 | `Wrap` | `bool` |  | attribute `wrap` | Wrap long lines. |
 | `NoCopy` | `bool` |  | attribute `no-copy` | Hide the copy button. |
 | `MaxHeight` | `string?` |  | attribute `max-height` | Cap the height, any CSS length. |
+| `OnWrapChange` | `EventCallback<PkWrapChangeEventArgs>` |  | event `pk-wrap-change` | The wrap toggle was pressed; wrap already has the new value. |
 | `OnCopy` | `EventCallback<PkCopyEventArgs>` |  | event `pk-copy` | After a copy attempt. |
 | `ChildContent` | `string?` |  | text content | The content. |
 
@@ -97,6 +98,7 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-char
 | Event | Args class | Fields |
 |---|---|---|
 | `pk-copy` | `PkCopyEventArgs` | Ok: bool? |
+| `pk-wrap-change` | `PkWrapChangeEventArgs` | Wrap: bool? |
 
 Element details (parts, CSS custom properties, methods, accessibility): `pk-code-block` in the `plainkit-sdk` skill.
 
@@ -298,8 +300,9 @@ Element details (parts, CSS custom properties, methods, accessibility): `pk-stat
 | Parameter | Type | Enum values | Sets | Description |
 |---|---|---|---|---|
 | `Removable` | `bool` |  | attribute `removable` | Show the remove button. |
-| `Value` | `string?` |  | attribute `value` | Sent in the remove event; defaults to the text. |
+| `Value` | `string?` |  | attribute `value` | Sent in the remove event (the identifier, not state); defaults to the text. |
 | `Disabled` | `bool` |  | attribute `disabled` | Dim the tag and disable the button. |
+| `Controlled` | `bool` |  | attribute `controlled` | The host removes the tag: a press only raises pk-remove and never removes the element (the host renders the list, so it removes the tag from its own state). Used by the Blazor wrapper. |
 | `ChildContent` | `RenderFragment?` |  | default slot | The label. |
 | `OnRemove` | `EventCallback<PkRemoveEventArgs>` |  | event `pk-remove` |  |
 

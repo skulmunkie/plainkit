@@ -23,6 +23,8 @@ Every element also takes the usual HTML global attributes (`id`, `class`, `slot`
 | Event | Detail | Description |
 |---|---|---|
 | `pk-select` | `{ item: object }` | A command was chosen; navigates to href when it has one and the event is not cancelled. |
+| `pk-open` | `none` | It opened (the shortcut, show(), or open set by the host). |
+| `pk-close` | `{ reason: string }` | A close was asked for (Escape, backdrop, the shortcut, hide()) or a command was chosen (reason "select", already closed). Cancelable except for "select": preventDefault keeps it open. |
 
 **Methods**
 
@@ -81,6 +83,8 @@ Example: Command palette
 | Event | Detail | Description |
 |---|---|---|
 | `pk-select` | `{ item: element, value: string, checked: boolean }` | An item was chosen. |
+| `pk-open` | `{ x: number, y: number }` | It opened at the pointer position. |
+| `pk-close` | `{ reason: string }` | A close was asked for (Escape, outside press, choosing an item). Cancelable: preventDefault keeps it open. |
 
 **Methods**
 
@@ -316,6 +320,7 @@ Example: Menu with a header, checkable items and a submenu
 |---|---|---|
 | `pk-change` | `{ index: number }` | Another image is shown. |
 | `pk-close` | `{ reason: string }` | pk-close |
+| `pk-open` | `{ }` | It opened. |
 
 **Methods**
 
@@ -524,7 +529,7 @@ Example: Confirmation popover
 |---|---|---|
 | `--pk-tooltip-max-w` | `min(20rem, viewport)` | Maximum width |
 
-**Accessibility.** The slotted target gets aria-describedby pointing at a visually-hidden copy of the text while shown, so the description crosses the shadow boundary. Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.
+**Accessibility.** The tip is a role=tooltip node in the shadow tree, and the slotted target gets aria-description with the same text (an accessible description: nothing is added to your markup, and no id has to cross the shadow boundary; a target that already has its own aria-description keeps it). Escape hides it. Wrap a focusable element (button, link); never the only way to learn something essential.
 
 Example: Tooltip on hover, focus and long press
 

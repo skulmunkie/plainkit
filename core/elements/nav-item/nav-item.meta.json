@@ -30,6 +30,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
+      "commit": "pk-toggle",
       "description": "Branch open."
     },
     {

@@ -16,7 +16,7 @@
              @attributes="Splat">@ChildContent</pk-checkbox>
 
 @code {
-    /// <summary>Whether the box is checked.</summary>
+    /// <summary>Whether the box is checked. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently.</summary>
     [Parameter] public bool Checked { get; set; }
 
     /// <summary>Blocks interaction; also set by a disabled fieldset.</summary>
