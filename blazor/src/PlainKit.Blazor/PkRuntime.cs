@@ -32,7 +32,28 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
     private async Task InitAsync()
     {
         await EnsureLoggingAsync();
-        await (await Bridge).InvokeVoidAsync("init");
+        var bridge = await Bridge;
+        await WarnOnVersionMismatchAsync(bridge);
+        await bridge.InvokeVoidAsync("init");
+    }
+
+    // The package and the JavaScript it serves are one version (core/VERSION). A page that loads a different copy (a stale cache, a CDN or self-hosted copy of
+    // core/dist) gets the mismatch as one warning per runtime, in the SDK log (the logs viewer) and in ILogger. Never a failure: the check must not break startup.
+    private async Task WarnOnVersionMismatchAsync(IJSObjectReference bridge)
+    {
+        var logger = loggerFactory?.CreateLogger(PkLogMapping.Category("blazor"));
+        try
+        {
+            var sdk = await bridge.InvokeAsync<string?>("version");
+            if (string.IsNullOrEmpty(sdk) || sdk == PkAssets.Version) return;
+            var message = $"PlainKit.Blazor {PkAssets.Version} is running with the Plainkit JavaScript {sdk}: the versions differ, so components and elements may not match. Serve the JavaScript that ships in the package (the static web assets under _content/PlainKit.Blazor/plainkit/), and clear a stale cache or a CDN copy.";
+            logger?.LogWarning("{PkMessage}", message);
+            await bridge.InvokeVoidAsync("writeLog", "warn", "blazor", message, $"{{\"package\":\"{PkAssets.Version}\",\"javascript\":\"{sdk}\"}}");
+        }
+        catch (Exception e) when (e is JSException or JSDisconnectedException or InvalidOperationException or OperationCanceledException or ObjectDisposedException)
+        {
+            logger?.LogDebug(e, "Could not compare the Plainkit JavaScript version with the package version");
+        }
     }
 
     /// <summary>Applies <see cref="PkOptions.Logging"/> to the SDK logger and starts the <see cref="ILogger"/> forwarder, once.</summary>

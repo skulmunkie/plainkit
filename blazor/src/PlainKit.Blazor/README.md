@@ -242,6 +242,8 @@ await PkLog.WriteAsync(PkLogLevel.Warn, "checkout", "Card declined", detail: ord
 await PkLog.SetLevelAsync(PkLogLevel.Debug);
 ```
 
+**Version check.** The package and the JavaScript it serves are one version. When the page loads a different copy (a stale cache, a CDN or a self-hosted copy of `core/dist`), the runtime logs one warning per runtime, once at startup, to `ILogger` (category `PlainKit.blazor`) and to the SDK log (scope `blazor`, so the Logs tab shows it); the Blazor dev tools tab shows both versions as well.
+
 ## Agent skills
 
 The package serves two skills for developer agents (Claude Code and others) as static web assets, next to the toolkit: `plainkit-blazor` (these components, their parameters, enums and events, `AddPlainKit`, `PkOptions`, `IPkLog`, the dev tools, what is not available yet) and `plainkit-sdk` (the underlying `pk-*` elements, needed for the raw elements that have no component yet). Each is a short `SKILL.md` plus plain markdown `references/`, generated from the same sources as the components and tested, at the version of this package.
