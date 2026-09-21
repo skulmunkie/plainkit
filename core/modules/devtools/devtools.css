@@ -6,6 +6,7 @@
 
 .dt-surface--dock[hidden] { display: none; }
 
-.dt-panel-body { padding: var(--space-3); }
+/* Room under the last row for the launcher (fixed, bottom end, over the open dock): a dock tab always scrolls clear of it. */
+.dt-panel-body { padding: var(--space-3); padding-block-end: calc(var(--touch-target) + var(--space-3) * 2); }
 
 .dt-launcher { position: fixed; inset-inline-end: var(--space-3); bottom: var(--space-3); z-index: var(--z-pop); }

@@ -95,3 +95,17 @@ test('dist/theme-editor ships its own token stylesheet and the module reads it f
     assert.ok(out.has('dist/theme-editor/theme-editor.css'));
     assert.ok(out.has('dist/js/theme-editor-logic.js'));
 });
+
+// Text-on-surface pairs the toolkit promises at WCAG AA (4.5:1) in both themes: the editor's default pairs plus the link and the body and
+// muted text on the other page surfaces. A new documented pair belongs here; a token change that drops one below 4.5 fails this test (issue 58).
+const AA_PAIRS = [...DEFAULT_PAIRS, ['--color-link', '--color-bg'], ['--color-text', '--color-flyout'], ['--color-text', '--color-surface'], ['--color-text', '--color-surface-alt']];
+
+for (const theme of ['dark', 'light']) {
+    test(`contrast: every documented text pair meets 4.5:1 in the ${theme} theme`, () => {
+        const rows = evaluatePairs(AA_PAIRS, name => baseValue(tokens, theme, name));
+        for (const r of rows) {
+            assert.notEqual(r.ratio, null, `${r.fg} on ${r.bg}: not a literal colour`);
+            assert.ok(r.ratio >= 4.5, `${theme}: ${r.fg} on ${r.bg} is ${r.ratio.toFixed(2)}:1`);
+        }
+    });
+}
