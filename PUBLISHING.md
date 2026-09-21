@@ -6,6 +6,12 @@ way in is a workflow in `.github/workflows/`.
 What a version number means, and how a release is cut (a release pull request, then a tag that equals `core/VERSION`), is in
 [CONTRIBUTING.md](CONTRIBUTING.md#versioning-and-releases).
 
+**Packages are published only when a version tag is pushed.** Merging to `main` never publishes to NuGet or npm, and CI (`ci.yml`) may build and
+pack to verify but never pushes. The tag must equal `core/VERSION` (`release.yml` refuses otherwise) and is pushed by the owner after the release
+pull request merged. Pages and jsDelivr are not packages: Pages redeploys on every push to `main` ("latest"), jsDelivr serves any tag as it is
+pushed, and the CI artifacts (the `dist` zip, the manifest, the `.nupkg`, the skills zip) are attached to the GitHub release of that tag.
+nuget.org versions cannot be deleted, only unlisted, so a release is cut when a batch is worth it, not on a schedule.
+
 | What | Workflow | Runs on | Where it goes |
 |---|---|---|---|
 | The gallery and tools site, and `dist/` as a URL prefix (always the latest `main`) | `pages.yml` | every push to `main` | `https://skulmunkie.github.io/plainkit/` |
