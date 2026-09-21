@@ -60,6 +60,13 @@
       "default": false,
       "reflect": true,
       "description": "A submenu is open."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Plain text under the label: muted, smaller, wrapping inside the menu width, and the item's accessible description (not its name or typeahead text). Keep it to one short sentence, such as the consequence of the action; the description slot takes markup instead."
     }
   ],
   "slots": [
@@ -74,6 +81,10 @@
     {
       "name": "suffix",
       "description": "Shortcut or badge after it."
+    },
+    {
+      "name": "description",
+      "description": "A secondary line under the label (one short sentence); it takes the place of the description attribute and, like it, is the item's accessible description."
     },
     {
       "name": "submenu",
@@ -101,6 +112,10 @@
       "description": "Label text"
     },
     {
+      "name": "description",
+      "description": "The description line under the label"
+    },
+    {
       "name": "chevron",
       "description": "Submenu or branch chevron"
     },
@@ -111,12 +126,16 @@
   ],
   "cssProperties": [],
   "methods": [],
-  "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props.",
-  "mobile": "44px tall on a phone; the submenu chevron points down and the submenu opens inline.",
+  "a11y": "The host takes role menuitem, menuitemcheckbox or menuitemradio (header and divider are presentation and separator); aria-checked and aria-disabled follow the props. The description (attribute or slot) is hidden from the name and is the item's accessible description, set as aria-description through ElementInternals (an aria-describedby id cannot cross the shadow root) and refreshed when the slot or attribute changes and when the item takes focus; it is not part of typeahead or of the value pk-select reports.",
+  "mobile": "44px tall on a phone; a description wraps onto more lines instead of being truncated, so keep it to one short sentence; the submenu chevron points down and the submenu opens inline.",
   "examples": [
     {
       "title": "Item types",
       "html": "<div class=\"stack\"><pk-menu-item type=\"header\">Header</pk-menu-item><pk-menu-item>Plain item</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Checkbox</pk-menu-item><pk-menu-item type=\"radio\" checked>Radio</pk-menu-item><pk-menu-item disabled>Disabled</pk-menu-item></div>"
+    },
+    {
+      "title": "With a description",
+      "html": "<div class=\"stack\"><pk-menu-item description=\"Additive; nothing is deleted.\">Import sample data</pk-menu-item><pk-menu-item>Rebuild the index<span slot=\"description\">Takes a minute; the list is empty until it finishes.</span></pk-menu-item></div>"
     }
   ]
 }

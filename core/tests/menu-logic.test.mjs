@@ -1,7 +1,7 @@
 // Unit tests for the dropdown menu's keyboard decisions. Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nextIndex, typeaheadIndex, checkedAfter, isEnabled, keyAction, typeaheadBuffer } from '../js/menu-logic.js';
+import { nextIndex, typeaheadIndex, checkedAfter, isEnabled, keyAction, typeaheadBuffer, labelOf } from '../js/menu-logic.js';
 
 test('keyAction maps keys to menu actions, treating Escape in a submenu as closing only the submenu', () => {
     assert.equal(keyAction('ArrowDown'), 'move');
@@ -68,3 +68,10 @@ test('disabled and hidden items are skipped', () => {
     assert.equal(isEnabled(item({}, true)), false);
 });
 
+
+test('labelOf leaves the description slot out of a row label and keeps everything else', () => {
+    const node = (slot, text) => ({ nodeType: 1, getAttribute: n => (n === 'slot' ? slot : null), textContent: text });
+    const row = kids => ({ textContent: kids.map(k => k.textContent).join(''), querySelector: () => kids.find(k => k.nodeType === 1 && k.getAttribute('slot') === 'description') ?? null, childNodes: kids });
+    assert.equal(labelOf(row([{ nodeType: 3, textContent: 'Import' }, node('description', 'Nothing is deleted.'), node('suffix', ' Ctrl+I')])), 'Import Ctrl+I');
+    assert.equal(labelOf({ textContent: 'Plain' }), 'Plain');
+});

@@ -62,6 +62,13 @@
       "prop": "open"
     },
     {
+      "name": "Description",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "description"
+    },
+    {
       "name": "ChildContent",
       "type": "RenderFragment?",
       "map": "slot",
@@ -78,6 +85,12 @@
       "type": "RenderFragment?",
       "map": "slot",
       "slot": "suffix"
+    },
+    {
+      "name": "DescriptionContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "description"
     },
     {
       "name": "SubmenuContent",

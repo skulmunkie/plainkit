@@ -70,6 +70,19 @@ export const overlaysCases = [
         t.ok(!el.open); t.eq(document.activeElement, trig, 'focus returned');
     }],
 
+    ['menu-item: a description (attribute or slot) wraps under the label, is the accessible description and stays out of the value and typeahead', async t => {
+        const el = await t.mount('<pk-dropdown open><button slot="trigger">Actions</button><pk-menu-item description="Additive; nothing is deleted, and every existing row keeps its current value so you can undo it later.">Import</pk-menu-item><pk-menu-item>Rebuild<span slot="description">Takes a minute.</span></pk-menu-item><pk-menu-item>Plain</pk-menu-item></pk-dropdown>');
+        const [a, b, c] = el.querySelectorAll('pk-menu-item'); await t.settle();
+        t.ok(!a.part('description').hidden && !b.part('description').hidden && c.part('description').hidden, 'only items with a description show the line');
+        t.eq(a.internals.ariaDescription, a.description); t.eq(b.internals.ariaDescription, 'Takes a minute.'); t.ok(!c.internals.ariaDescription, 'no description, no aria-description');
+        t.eq(a.part('description').getAttribute('aria-hidden'), 'true', 'the line is not part of the name');
+        a.style.width = '14rem'; await t.settle(); const row = a.getBoundingClientRect(); const line = a.part('description').getBoundingClientRect();
+        t.ok(line.height > parseFloat(getComputedStyle(a.part('description')).fontSize) * 1.5, 'a long description wraps onto more lines'); t.ok(line.right <= row.right + 0.5 && a.scrollWidth <= a.clientWidth + 1, 'and stays inside the item');
+        a.focus(); t.key(a, 't'); await t.settle(); t.ok(document.activeElement !== b, 'typeahead ignores the description text');
+        b.querySelector('[slot="description"]').textContent = 'Changed.'; b.focus(); t.eq(b.internals.ariaDescription, 'Changed.', 'focus refreshes the description');
+        let seen; el.addEventListener('pk-select', e => { seen = e.detail; }); b.click(); await t.settle(); t.eq(seen.value, 'Rebuild', 'the value is the label alone');
+    }],
+
     ['dropdown: a submenu opens with Right and closes with Left', async t => {
         const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item>More<pk-menu-item slot="submenu">One</pk-menu-item><pk-menu-item slot="submenu">Two</pk-menu-item></pk-menu-item></pk-dropdown>');
         const parent = el.querySelector('pk-menu-item'); const [one, two] = parent.querySelectorAll('pk-menu-item');
