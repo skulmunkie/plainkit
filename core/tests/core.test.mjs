@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, blend, contrast, grade } from '../js/colour.js';
 import { buildOverrides, parseOverrides, nameProblem, valueProblem, parseTokenBlocks, tokenKind, splitLength, colourToHex } from '../js/theme.js';
-import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
+import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
 import { scoreMetric, scoreCategory, scoreAll, scoreFindings, rankWorstFirst, groupFindings, pushRun, readHistory, deltas, importHistory, exportHistory } from '../js/scoring.js';
 import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
@@ -324,4 +324,14 @@ test('the gallery data file loads and every element and sample has the documente
     }
     assert.equal(new Set(mod.ELEMENTS.map(m => m.tag)).size, mod.ELEMENTS.length);
     for (const list of [mod.TEMPLATES, mod.PATTERNS, mod.LAYOUTS]) for (const x of list) assert.ok(x.id && x.title && x.summary, x.id + ': id, title and summary');
+});
+
+test('tokenPx reads a length token as pixels, so the minimum control gap is the page token (0.25rem = 3.5px at the 14px root), not a copied 4', () => {
+    const win = tokens => ({ getComputedStyle: () => ({ fontSize: '14px', getPropertyValue: n => tokens[n] ?? '' }) });
+    const doc = { documentElement: {} };
+    assert.equal(tokenPx(win({ '--gap-min': '0.25rem' }), doc, '--gap-min', 4), 3.5);
+    assert.equal(tokenPx(win({ '--gap-min': ' 6px' }), doc, '--gap-min', 4), 6);
+    assert.equal(tokenPx(win({}), doc, '--gap-min', 4), 4, 'no token on the page: the default');
+    assert.equal(tokenPx(win({ '--gap-min': 'calc(1px + 2px)' }), doc, '--gap-min', 4), 4, 'a value it cannot read: the default');
+    assert.equal(QUALITY_DEFAULTS.minGapPx, 4);
 });

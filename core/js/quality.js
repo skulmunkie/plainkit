@@ -11,7 +11,7 @@ export const DEFAULTS = Object.freeze({
     // Custom elements whose control lives in a shadow root, so none of the selectors above reach it: measured and named here (a pk-button's ring is drawn inside its shadow root, so they are not focus-probed).
     hosts: 'pk-button',
     maxFocusProbe: 40,
-    minGapPx: 4,                // controls in a row or stack closer than this fail (the --gap-min token)
+    minGapPx: 4,                // controls closer than this fail (the --gap-min token wins)
     minPaddingPx: 4,            // text closer than this to the edge of a bordered or filled box fails
     gapTolerancepx: 6,          // gaps within one stack may differ by at most this
     flush: '.cv-scroll, .cv-row, .input-group, .btn-group, .ft-list, .co, .csr-group, .tabs, .pagination, .list-group, .gal-item, .dg-body, .flyout-panel--docked, .stat-card-value-row, .workspace, .workspace-main, .ft-row, .combo-popup, .tag-input, pk-tree, pk-side-nav, pk-list-group, pk-timeline, pk-stepper, pk-field-list',
@@ -50,11 +50,17 @@ const CONTROL = /^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/;
 // and a tab panel, which is focusable for the keyboard but is not something a finger taps.
 export const touchExempt = (el, win) => el.localName === 'pk-tab-panel' || (el.tagName === 'A' && win.getComputedStyle(el).display === 'inline');
 
+export const tokenPx = (win, doc, name, fb) => {
+    const cs = win.getComputedStyle(doc.documentElement); const v = cs.getPropertyValue(name).trim();
+    return v.endsWith('rem') ? parseFloat(v) * parseFloat(cs.fontSize) : v.endsWith('px') ? parseFloat(v) : fb;
+};
+
 // Spacing measures: consecutive block siblings with no gap, controls sitting closer than the minimum gap, text touching the
 // edge of a box that has its own border or fill, and containers whose gaps disagree. Containers marked data-flush, or matching
 // cfg.flush (rows that are flush by design: code lines, tree rows, joined groups), are skipped.
 export function spacingMeasures(scope, win, cfg) {
     const out = [];
+    cfg = { ...cfg, minGapPx: tokenPx(win, scope.ownerDocument ?? scope, '--gap-min', cfg.minGapPx) };
     const skip = el => el.closest?.(cfg.flush) || el.closest?.('[data-flush]');
     const visible = el => { const s = win.getComputedStyle(el); if (s.position === 'absolute' || s.position === 'fixed' || s.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? r : null; };
     for (const el of scope.querySelectorAll('*')) {
