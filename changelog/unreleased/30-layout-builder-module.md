@@ -1,5 +1,0 @@
----
-type: added
-issue: 30
----
-`mountLayoutBuilder` (`dist/layout-builder/layout-builder.js`) is an editor for a page built from Plainkit elements: a palette generated from `elements/api.json` (grouped like the gallery, with search, so a new element appears without a change), the page rendered live in an inert canvas, selection by click, arrow keys or the structure tree (`pk-tree`), a properties form and the element inspector for the selected element, and the exported HTML. Move (Alt+arrows or the toolbar), duplicate, wrap, delete, undo and redo work by keyboard and touch, and on a phone the panes become tabs. The page is the JSON model from `js/layout-model.js`; the host owns persistence through `onchange`, `onsave` and the `model` or `html` option, and can add export formats with `exporters`. Refused input is logged (scope `layout-builder`). The SDK has a Layout builder page. `createElementInspector` gains `setElement(element)` to follow a replaced live element without redrawing. Pointer drag and drop is not built (the SDK has no sortable element yet), nor the iframe device preview, reusable blocks or the Blazor wrapper.
