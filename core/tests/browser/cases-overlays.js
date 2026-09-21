@@ -86,10 +86,20 @@ export const overlaysCases = [
     ['dropdown: a submenu opens with Right and closes with Left', async t => {
         const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item>More<pk-menu-item slot="submenu">One</pk-menu-item><pk-menu-item slot="submenu">Two</pk-menu-item></pk-menu-item></pk-dropdown>');
         const parent = el.querySelector('pk-menu-item'); const [one, two] = parent.querySelectorAll('pk-menu-item');
+        const toggles = []; parent.addEventListener('pk-submenu-toggle', e => toggles.push(e.detail.open));
         parent.focus(); t.key(parent, 'ArrowRight'); await t.settle();
-        t.ok(parent.open, 'submenu open'); t.eq(document.activeElement, one);
+        t.ok(parent.open, 'submenu open'); t.eq(document.activeElement, one); t.eq(JSON.stringify(toggles), JSON.stringify([true]), 'opening it itself raises pk-submenu-toggle');
         t.key(one, 'ArrowDown'); await t.settle(); t.eq(document.activeElement, two);
-        t.key(two, 'ArrowLeft'); await t.settle(); t.ok(!parent.open); t.eq(document.activeElement, parent);
+        t.key(two, 'ArrowLeft'); await t.settle(); t.ok(!parent.open); t.eq(document.activeElement, parent); t.eq(JSON.stringify(toggles), JSON.stringify([true, false]), 'closing raises it too');
+        parent.open = true; parent.open = false; await t.settle(); t.eq(JSON.stringify(toggles), JSON.stringify([true, false]), 'a change the host makes raises nothing');
+    }],
+
+    ['table: the row checkboxes commit selected through pk-select; a host change raises nothing', async t => {
+        const el = await t.mount('<pk-table selectable label="T"></pk-table>'); el.columns = [{ key: 'n', label: 'N' }]; el.rows = [{ id: 'a', n: 1 }, { id: 'b', n: 2 }]; await t.settle();
+        const seen = []; el.addEventListener('pk-select', e => seen.push(e.detail.selected));
+        el.selected = ['a']; await t.settle(); t.eq(JSON.stringify(seen), JSON.stringify([]), 'host change is silent');
+        const box = el.shadowRoot.querySelector('[data-select="b"]'); box.checked = true; box.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(JSON.stringify(seen), JSON.stringify([['a', 'b']])); t.eq(JSON.stringify([...el.selected]), '["a","b"]');
     }],
 
     ['context menu: contextmenu opens it at the pointer; choosing an item closes it', async t => {

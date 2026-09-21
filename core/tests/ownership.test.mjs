@@ -315,7 +315,6 @@ const NOT_TWO_WAY = {
     'switch.value': 'the value the switch submits when on; checked is the state',
     'tag.value': 'the identifier pk-remove reports, not state',
     'menu-item.value': 'the item\'s identifier, reported by pk-select',
-    'menu-item.open': 'a submenu opened by the pointer or the arrow keys: no event names it yet (open issue #47)',
     'nav-item.current': 'the route marker the host sets; the element never changes it',
     'progress.value': 'output only: nothing the user can change',
     'step.index': 'the step\'s position, set by its stepper',
@@ -326,7 +325,6 @@ const NOT_TWO_WAY = {
     'tab-panel.value': 'the panel\'s identifier, paired with a pk-tab',
     'tab-panel.selected': 'pushed down by pk-tabs, which raises pk-tab-change (selfAssigned coupling)',
     'tree-item.value': 'the item\'s identifier, reported by pk-select',
-    'table.selected': 'pk-table changes in another piece of work (its commit event is named there): open issue #47',
 };
 
 const readMeta = () => {

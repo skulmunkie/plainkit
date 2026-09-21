@@ -137,7 +137,8 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Ids of the selected rows."
+      "commit": "pk-select",
+      "description": "Ids of the selected rows. The user changes it with the row checkboxes and the element raises pk-select with the new ids; a change the host makes raises nothing."
     },
     {
       "name": "expandable",
