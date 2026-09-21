@@ -122,18 +122,19 @@ export function paintApi(doc, host, { baseline, current }) {
 // ---- size sweep -----------------------------------------------------------------------------------------------------------
 
 export function paintSweep(doc, host, report) {
-    if (!report) return missing(doc, host, 'sweep report', 'Pass data.sweep: the last size sweep report.');
+    if (!report) return missing(doc, host, 'sweep report', 'Pass data.sweep: the last size sweep report. The tool writes it (it is not kept in the repository): node scripts/scorecard-sweep.mjs --only sweep --write-report.');
     const s = sweepSummary(report);
     const parts = [
-        row(doc, badge(doc, s.failing ? 'warn' : 'ok', `${s.failing} failing`), badge(doc, 'muted', `${s.checked} cells checked`), badge(doc, 'muted', `${s.widths.join(', ')}px`), badge(doc, 'muted', s.themes.join(' + ')), s.partial ? badge(doc, 'danger', 'partial') : null),
+        row(doc, badge(doc, s.failing ? 'warn' : 'ok', `${s.failing} failing`), badge(doc, 'muted', `${s.checked} cells checked`), badge(doc, 'muted', `${s.widths.join(', ')}px`), badge(doc, 'muted', s.themes.join(' + ')), ...s.by.map(b => badge(doc, 'muted', `${b.metric} ${b.cells}`)), s.at ? badge(doc, 'muted', s.at.slice(0, 10)) : null, s.partial ? badge(doc, 'danger', 'partial') : null),
         note(doc, 'Every view, template and control sample at each width and theme: overflow, targets under 44px on a phone, reading text under 14px, secondary text under 12px, nested scrollers.'),
     ];
     if (s.rows.length) parts.push(table(doc, {
-        label: 'Failing cells',
-        columns: [text('item', 'Item'), num('width', 'Width'), text('theme', 'Theme'), num('overflow', 'Overflow'), num('targets', 'Targets'), num('reading', 'Reading'), num('meta', 'Meta'), num('nested', 'Nested')],
+        label: s.grouped ? 'Worst items by metric' : 'Failing cells',
+        columns: s.grouped ? [text('item', 'Item'), text('metric', 'Metric'), num('cells', 'Cells'), text('worst', 'Worst'), text('where', 'Where')]
+            : [text('item', 'Item'), num('width', 'Width'), text('theme', 'Theme'), num('overflow', 'Overflow'), num('targets', 'Targets'), num('reading', 'Reading'), num('meta', 'Meta'), num('nested', 'Nested')],
         rows: s.rows, filterable: true, maxHeight: '24rem',
     }));
-    if (s.total > s.rows.length) parts.push(note(doc, `Showing ${s.rows.length} of ${s.total}.`));
+    if (s.total > s.rows.length) parts.push(note(doc, `Showing ${s.rows.length} of ${s.total}${s.grouped ? ' groups' : ''}; the full list is in scratch/scorecard/sweep.json after a run.`));
     for (const n of s.notes) parts.push(note(doc, `${n.item}: ${n.note}`));
     host.replaceChildren(...parts);
 }
