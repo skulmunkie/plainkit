@@ -27,18 +27,18 @@ Elements used: `pk-badge` `pk-breadcrumb` `pk-button` `pk-page-header` `pk-table
 
 One record: chips and actions under the top bar, a tab strip and read-only fields beside editable ones.
 
-Built from: Page header (record), Badge, Tabs, Card, Field list, Field, Alert.
+Built from: Page header (record), Badge, Tabs, Card, Field list, Field, Alert, Timeline.
 
 On a phone: Header actions wrap; the tab strip scrolls sideways; FieldList stacks label over value.
 
-Elements used: `pk-alert` `pk-badge` `pk-button` `pk-card` `pk-field` `pk-field-list` `pk-input` `pk-page-header` `pk-stack` `pk-tab` `pk-tab-panel` `pk-tabs`.
+Elements used: `pk-alert` `pk-badge` `pk-button` `pk-card` `pk-field` `pk-field-list` `pk-input` `pk-page-header` `pk-stack` `pk-tab` `pk-tab-panel` `pk-tabs` `pk-timeline` `pk-timeline-item`.
 
 ```html
 <pk-page-header variant="record"><pk-badge variant="ok">Received</pk-badge><pk-button slot="actions" size="mini" variant="ghost">Print</pk-button></pk-page-header>
 <pk-tabs scroll value="details"><pk-tab value="details">Details</pk-tab><pk-tab value="lines" count="3">Lines</pk-tab><pk-tab value="history">History</pk-tab>
 <pk-tab-panel value="details"><pk-card heading="Vendor"><pk-stack><pk-field-list><dt>Vendor</dt><dd>Acme Supply</dd><dt>Ordered</dt><dd>Sep 12</dd></pk-field-list><pk-field label="Notes"><pk-input value="Ship together"></pk-input></pk-field></pk-stack></pk-card></pk-tab-panel>
 <pk-tab-panel value="lines"><pk-card heading="Lines"><p>Three lines on this order.</p></pk-card></pk-tab-panel>
-<pk-tab-panel value="history"><pk-card heading="History"><p>No changes yet.</p></pk-card></pk-tab-panel>
+<pk-tab-panel value="history"><pk-card heading="History"><pk-timeline label="History"><pk-timeline-item heading="Received" time="Sep 18" status="done">All three lines checked in.</pk-timeline-item><pk-timeline-item heading="Shipped by vendor" time="Sep 15" status="done"></pk-timeline-item><pk-timeline-item heading="Approved" time="Sep 12" status="done"></pk-timeline-item><pk-timeline-item heading="Created" time="Sep 12" status="done"></pk-timeline-item></pk-timeline></pk-card></pk-tab-panel>
 </pk-tabs>
 <pk-alert kind="info">Receiving this PO creates ledger entries.</pk-alert>
 ```

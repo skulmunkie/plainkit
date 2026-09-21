@@ -28,6 +28,9 @@ export const HAS_SITE = false;
 // Where the full-page templates live, relative to this folder.
 export const TEMPLATES_DIR = 'templates/';
 
+// Where a pattern's optional script lives, relative to this folder.
+export const PATTERNS_DIR = 'patterns/';
+
 // The page that hosts a pattern or layout fragment as a whole page.
 export const PREVIEW = 'preview.html';
 `;
@@ -51,6 +54,9 @@ export function galleryDist(read, root, dataText) {
             .replace('../../../elements/toast-stack/toast-stack.element.js', '../../../elements/toast-stack.js')
             .replace('../../site/gallery/preview.html', '../preview.html'));
     }
+    // A pattern's optional script (samples/patterns/<id>/<id>.js) is loaded by preview.js from patterns/<id>/<id>.js, at the same depth as the source.
+    const pdir = path.join(root, 'samples', 'patterns');
+    for (const f of fs.readdirSync(pdir, { recursive: true }).map(x => x.replaceAll('\\', '/')).filter(x => /\.js$/.test(x)).sort()) files.set(`patterns/${f}`, read(path.join(pdir, f)));
     files.set('site.css', read(path.join(root, 'site', 'site.css')));
     files.set('tokens.css', read(path.join(root, 'tokens', 'tokens.css')));
     // The Foundations pages list the utility and spacing classes from their source files.

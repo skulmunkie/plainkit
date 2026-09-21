@@ -1,8 +1,8 @@
 <pk-grid columns="2" min="18rem">
-<pk-card heading="Items"><pk-list-group variant="action" label="Items"><a href="#">Item one</a><a href="#" aria-current="true"><strong>Item two</strong></a><a href="#">Item three</a></pk-list-group></pk-card>
-<pk-card heading="Item two"><pk-button slot="actions" size="mini" variant="ghost">Edit</pk-button>
-<pk-tabs value="overview"><pk-tab value="overview">Overview</pk-tab><pk-tab value="history">History</pk-tab>
-<pk-tab-panel value="overview"><pk-field-list><dt>Name</dt><dd>Item two</dd><dt>Status</dt><dd><pk-badge variant="muted">Draft</pk-badge></dd></pk-field-list></pk-tab-panel>
-<pk-tab-panel value="history"><pk-timeline label="History"><pk-timeline-item heading="Edited" status="done"></pk-timeline-item><pk-timeline-item heading="Created" status="done"></pk-timeline-item></pk-timeline></pk-tab-panel>
+<pk-card heading="Items" data-list><pk-list-group variant="action" label="Items"><a href="#" data-id="one" data-status="Active" data-variant="ok" data-history="Published|Edited|Created">Item one</a><a href="#" aria-current="true" data-id="two" data-status="Draft" data-variant="muted" data-history="Edited|Created"><strong>Item two</strong></a><a href="#" data-id="three" data-status="Review" data-variant="warn" data-history="Sent for review|Edited|Created">Item three</a></pk-list-group></pk-card>
+<pk-card heading="Item two" data-detail><pk-button slot="actions" size="mini" variant="ghost">Edit</pk-button>
+<pk-tabs value="overview" data-tabs><pk-tab value="overview">Overview</pk-tab><pk-tab value="history">History</pk-tab>
+<pk-tab-panel value="overview"><pk-field-list><dt>Name</dt><dd data-name>Item two</dd><dt>Status</dt><dd><pk-badge variant="muted" data-status>Draft</pk-badge></dd></pk-field-list></pk-tab-panel>
+<pk-tab-panel value="history"><pk-timeline label="History" data-history><pk-timeline-item heading="Edited" status="done"></pk-timeline-item><pk-timeline-item heading="Created" status="done"></pk-timeline-item></pk-timeline></pk-tab-panel>
 </pk-tabs></pk-card>
 </pk-grid>

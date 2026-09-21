@@ -38,7 +38,9 @@ export function loadSamples(rootDir = root) {
             const metaFile = path.join(base, e.name, `${e.name}.meta.json`); const htmlFile = path.join(base, e.name, `${e.name}.html`);
             if (!fs.existsSync(metaFile) || !fs.existsSync(htmlFile)) throw new Error(`${dir}/${e.name} needs ${e.name}.html and ${e.name}.meta.json`);
             const meta = JSON.parse(read(metaFile));
-            list.push({ ...meta, ...(group === 'templates' ? {} : { html: read(htmlFile).trim() }), file: `${dir}/${e.name}/${e.name}.html` });
+            // A pattern may ship a script beside its markup (<id>.js: export default mount(root) -> { destroy() }); the data names it relative to the patterns folder.
+            const script = group === 'patterns' && fs.existsSync(path.join(base, e.name, `${e.name}.js`)) ? { script: `${e.name}/${e.name}.js` } : {};
+            list.push({ ...meta, ...(group === 'templates' ? {} : { html: read(htmlFile).trim() }), ...script, file: `${dir}/${e.name}/${e.name}.html` });
         }
         groups[group] = list.sort((a, b) => a.order - b.order);
     }

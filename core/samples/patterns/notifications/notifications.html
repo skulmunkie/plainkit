@@ -1,6 +1,7 @@
 <pk-stack>
-<pk-cluster><pk-button variant="ghost">Notifications <pk-badge count="3" variant="danger"></pk-badge></pk-button></pk-cluster>
+<pk-cluster><pk-button variant="ghost" data-bell aria-label="Notifications, mark all as read">Notifications <pk-badge count="3" variant="danger" data-unread></pk-badge></pk-button></pk-cluster>
 <pk-alert kind="success">Item saved.</pk-alert>
 <pk-alert kind="warning">Two items need a price.</pk-alert>
-<pk-stack gap="sm"><pk-toast>Item archived.<pk-button slot="action" size="mini" variant="ghost">Undo</pk-button></pk-toast><pk-toast>Export ready.<a slot="action" href="#">Download</a></pk-toast></pk-stack>
+<pk-cluster><pk-button data-toast="saved">Save item</pk-button><pk-button variant="ghost" data-toast="archived">Archive item</pk-button><pk-button variant="ghost" data-toast="failed">Export</pk-button></pk-cluster>
+<pk-toast-stack></pk-toast-stack>
 </pk-stack>

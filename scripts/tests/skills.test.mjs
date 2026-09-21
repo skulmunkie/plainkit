@@ -356,6 +356,11 @@ test('the SDK skill covers templates, patterns, layouts, tools, logging, openers
     const f = n => gen.get(`plainkit-sdk/references/${n}.md`);
     for (const t of src.samples.templates) assert.ok(f('templates').includes(`## ${t.id}: `), t.id);
     for (const t of src.samples.patterns) assert.ok(f('patterns').includes(`## ${t.id}: `), t.id);
+    // A pattern can ship a script: the reference says so and shows its source, with the imports as an app has them.
+    const scripted = src.samples.patterns.filter(t => t.script);
+    assert.ok(scripted.length >= 6, 'the patterns that need behaviour have scripts');
+    assert.ok(f('patterns').includes('also ships a script'), 'the patterns reference says a pattern can have a script');
+    for (const t of scripted) { assert.ok(t.scriptSource.includes('export default function mount(root)'), t.id); assert.ok(f('patterns').includes(t.scriptSource), `${t.id}: its script is shown`); assert.ok(!f('patterns').includes('../../../js/'), 'script imports are rewritten to ./plainkit/js/'); }
     for (const t of src.samples.layouts) assert.ok(f('layouts').includes(`## ${t.id}: `), t.id);
     for (const m of src.modules) { assert.ok(m.mount, `${m.name} has no mount function`); assert.ok(f('tools').includes(`\`${m.mount}\``), m.name); assert.ok(f('tools').includes(m.header.split('\n')[0]), `${m.name} header`); }
     for (const n of src.logExports) assert.ok(f('logging').includes(`\`${n}\``), n);

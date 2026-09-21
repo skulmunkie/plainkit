@@ -16,5 +16,8 @@ export const HAS_SITE = false;
 // Where the full-page templates live, relative to this folder.
 export const TEMPLATES_DIR = 'templates/';
 
+// Where a pattern's optional script lives, relative to this folder.
+export const PATTERNS_DIR = 'patterns/';
+
 // The page that hosts a pattern or layout fragment as a whole page.
 export const PREVIEW = 'preview.html';
