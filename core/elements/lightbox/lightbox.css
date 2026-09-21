@@ -34,7 +34,7 @@
 
 [part="counter"] { position: absolute; inset-block-end: max(var(--space-3), env(safe-area-inset-bottom)); inset-inline: 0; margin: 0; text-align: center; color: var(--color-text); font-size: var(--text-meta); }
 
-@media (max-width: 640px) {
+@media (--phone) {
     [part="dialog"] { padding: var(--space-3); }
     [part="dialog"][open] { grid-template-columns: 1fr; }
     [part="figure"] { grid-column: 1; }

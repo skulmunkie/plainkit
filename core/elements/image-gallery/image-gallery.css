@@ -19,7 +19,7 @@
 [part="add-text"] { font-size: var(--text-meta); line-height: 1.2; }
 [part="file"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     [part="action"] { --pk-button-padding: calc((var(--touch-target) - 1.25 * var(--text-meta)) / 2) var(--space-2); }
     [part="add"] { min-block-size: var(--touch-target); }
 }

@@ -34,7 +34,7 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
 .sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { tr[data-skeleton] td::before { animation: none; } }
-@media (max-width: 640px) {
+@media (--phone) {
     [data-hide-phone] { display: none; }
     th button { display: inline-flex; align-items: center; min-block-size: var(--touch-target); min-inline-size: var(--touch-target); }
     /* A row-select checkbox: the box is 24.5px and the whole cell (49px wide, at least 44px tall with its padding) is the tap area: table.js toggles the box on a cell click. */

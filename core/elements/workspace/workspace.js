@@ -1,5 +1,6 @@
 // pk-workspace: a nav pane, a main pane and an optional docked aside, each scrolling on its own. Below 640px one pane shows at a time and a
 // tab strip switches it. The pure logic (which panes exist, which one shows, how the arrow keys move) is exported so node can test it.
+import { mediaBelow } from '../../js/breakpoints.js';
 
 export const PANES = ['nav', 'main', 'aside'];
 
@@ -43,7 +44,7 @@ export default Base => class extends Base {
         });
         this.watchSlot('nav', () => this.requestUpdate());
         this.watchSlot('aside', () => this.requestUpdate());
-        if (typeof matchMedia === 'function') { this.$mq = matchMedia('(max-width: 640px)'); this.$mqf = () => this.requestUpdate(); }
+        if (typeof matchMedia === 'function') { this.$mq = mediaBelow('phone'); this.$mqf = () => this.requestUpdate(); }
     }
     get effective() { return resolvePane(this.activePane, this.$avail ?? ['main']); }
     choose(pane, focus = false) {

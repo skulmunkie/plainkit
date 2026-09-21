@@ -14,7 +14,7 @@ td { padding: 0; text-align: center; }
 .day[data-mark]::after { content: ""; position: absolute; inset-block-end: var(--space-1); inset-inline-start: 50%; inline-size: var(--space-1); block-size: var(--space-1); margin-inline-start: calc(-0.5 * var(--space-1)); border-radius: var(--radius-round); background: currentcolor; }
 .day:disabled { opacity: 0.4; cursor: default; }
 .day:focus-visible, [part="prev"]:focus-visible, [part="next"]:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
-@media (min-width: 641px) { :host { --_c: var(--pk-calendar-cell, var(--space-8)); } }
+@media (--above-phone) { :host { --_c: var(--pk-calendar-cell, var(--space-8)); } }
 /* Phone: seven columns cannot each reach 44px inside a narrow column (7 x 44 = 308px), so the month is never scrolled: every day stays a full-height (44px) tap
    area as wide as its column allows (about 41px in a 288px container, 44px from 308px), and the highlight is a rounded square, not an oval. */
-@media (max-width: 640px) { :host { padding-inline: 0; } .day { border-radius: var(--radius-md); } }
+@media (--phone) { :host { padding-inline: 0; } .day { border-radius: var(--radius-md); } }

@@ -5,4 +5,4 @@
 .desc:empty { display: none; }
 .body { display: grid; align-content: start; gap: var(--gap-field); grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--pk-form-section-column, 14rem)), 1fr)); }
 ::slotted(.form-span) { grid-column: 1 / -1; }
-@media (min-width: 1024px) { .sec { grid-template-columns: minmax(12rem, 1fr) 2fr; } }
+@media (--above-tablet) { .sec { grid-template-columns: minmax(12rem, 1fr) 2fr; } }

@@ -12,5 +12,5 @@ button { font: inherit; font-size: var(--text-read); color: var(--color-text); d
 :host(:is([invalid], [aria-invalid="true"])) [part="track"] { box-shadow: 0 0 0 2px var(--field-error); }
 button:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
-@media (max-width: 640px) { button { min-height: var(--touch-target); } }
+@media (--phone) { button { min-height: var(--touch-target); } }
 @media (prefers-reduced-motion: reduce) { [part="track"], [part="thumb"] { transition: none; } }

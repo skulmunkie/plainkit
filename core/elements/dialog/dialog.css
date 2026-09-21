@@ -51,7 +51,7 @@
 
 @media (prefers-reduced-motion: reduce) { [part="dialog"][open] { animation: none; } }
 
-@media (max-width: 640px) {
+@media (--phone) {
     :host, :host([size]) { --pk-dialog-w: 100vw; }
     [part="dialog"] { height: 100dvh; max-height: none; border-radius: 0; margin: 0; }
     [part="body"] { overflow-y: auto; }

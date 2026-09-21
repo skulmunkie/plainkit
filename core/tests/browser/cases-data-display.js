@@ -1,4 +1,5 @@
 // Browser cases for the data display and content elements. Same shape as cases.js: [name, async (t) => void].
+import { mediaBelow } from '../../js/breakpoints.js';
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const cols = '[{"key":"sku","label":"SKU","sortable":true},{"key":"price","label":"Price","type":"number","sortable":true}]';
 const rows = '[{"id":1,"sku":"B","price":"$10"},{"id":2,"sku":"A","price":"$2"},{"id":3,"sku":"C","price":"$5"}]';
@@ -318,7 +319,7 @@ export const dataDisplayCases = [
     ['field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root', async t => {
         const l = await t.mount('<pk-field-list><dt>A</dt><dd>B</dd></pk-field-list>');
         const cols = () => getComputedStyle(l.part('list')).gridTemplateColumns.split(' ').length;
-        t.eq(cols(), matchMedia('(max-width: 640px)').matches ? 1 : 2); l.style.setProperty('--pk-field-list-columns', '1fr 1fr 1fr 1fr'); t.eq(cols(), 4);
+        t.eq(cols(), mediaBelow('phone').matches ? 1 : 2); l.style.setProperty('--pk-field-list-columns', '1fr 1fr 1fr 1fr'); t.eq(cols(), 4);
     }],
 
     ['card: media slot shows only when used, horizontal lays out in a row, href adds one link', async t => {

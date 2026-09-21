@@ -1,4 +1,5 @@
 import { filterNav, treeKey, serializeNav, parseNav } from '../../js/nav-logic.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 export { filterNav, splitMatch, treeKey, serializeNav, parseNav, railFlyoutPlacement, railRowTooltip, DRAWER_BREAKPOINT, navMode } from '../../js/nav-logic.js';
 
 // pk-side-nav: icon rail, filter, arrow-key tree navigation, persisted state, and an off-canvas drawer on small screens.
@@ -19,7 +20,7 @@ export default Base => class extends Base {
             this.addEventListener('pk-toggle', () => this.save());
             this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) this.request('escape'); });
             this.watchSlot('', () => this.sync());
-            this.$mq = globalThis.matchMedia('(max-width: 1024px)'); this.$sync = () => this.sync();
+            this.$mq = mediaBelow('tablet'); this.$sync = () => this.sync();
             this.restore(); customElements.whenDefined('pk-nav-item').then(() => this.sync());
         }
         this.$mq.addEventListener('change', this.$sync);

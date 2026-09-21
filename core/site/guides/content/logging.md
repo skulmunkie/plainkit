@@ -1,6 +1,6 @@
 ---
 title: Logging
-order: 4
+order: 5
 summary: What the SDK logs and when, how to turn it up, how to write your own entries into the same log, and how to see them.
 ---
 

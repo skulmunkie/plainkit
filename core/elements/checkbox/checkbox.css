@@ -12,4 +12,4 @@ input:indeterminate::after { left: 22%; top: 42%; width: 56%; height: 0; border-
 input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 :host([disabled]) .chk { opacity: 0.55; cursor: not-allowed; }
 :host([disabled]) input { cursor: not-allowed; }
-@media (max-width: 640px) { .chk { min-height: var(--touch-target); } }
+@media (--phone) { .chk { min-height: var(--touch-target); } }

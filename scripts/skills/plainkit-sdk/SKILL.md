@@ -14,7 +14,7 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 - Use only elements, props, slots and events that appear in the references. Never invent a `pk-*` tag or an attribute: open `references/elements-index.md`, find the tag, and open the file it names. If a component you need does not exist, say so.
 - Props are attributes in kebab-case (`hide-close`) or properties in camelCase (`hideClose`); a boolean prop is present or absent. Events are `addEventListener('pk-...')` and carry a `detail`.
 - No inline `style` attributes, `<style>` elements, inline event handlers or inline scripts (the toolkit runs under `script-src 'self'; style-src 'self'`). Put scripts in files; style with props, `::part()`, CSS custom properties and tokens from a stylesheet.
-- No literal colours: use the tokens (`references/theming.md`). The old class-based components (`.btn`, `.card`, `.modal-*`) no longer exist.
+- No literal colours: use the tokens (`references/theming.md`). No literal breakpoint widths in scripts: use the named breakpoints (same file, "Breakpoints"). The old class-based components (`.btn`, `.card`, `.modal-*`) no longer exist.
 - Never use anything a reference marks **Deprecated**: it logs a warning once, and it is removed in the release named there; use what the table says.
 - Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning.
 
@@ -169,10 +169,14 @@ log.info('order placed', { id: 42 });
 
 Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`.
 
+### Respond to screen size
+
+The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below); do not restyle them there. In your own stylesheet use the literal query with the same width (`@media (max-width: 640px)`); custom properties do not work in `@media`. In a script never write the number: `import { mediaBelow } from './plainkit/js/breakpoints.js'; mediaBelow('phone').matches` (it reads `--pk-bp-phone` from `plainkit.css`). Other widths need a rebuild of the SDK; the table of what changes at each width is in `references/theming.md`.
+
 ### Change the theme
 
 `data-theme="dark|light"` and `data-density="compact"` on `<html>` or any element. Override tokens in a stylesheet loaded after `plainkit.css` (`references/theming.md` lists every token).
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of four with no search yet, no reactive template layer, no pointer drag and drop in the layout builder).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no pointer drag and drop in the layout builder).

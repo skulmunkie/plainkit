@@ -52,7 +52,7 @@
 
 [part="close"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-@media (max-width: 640px) { :host { flex-wrap: wrap; } [part="actions"] { flex-basis: 100%; order: 2; } [part="close"] { order: 1; } }
+@media (--phone) { :host { flex-wrap: wrap; } [part="actions"] { flex-basis: 100%; order: 2; } [part="close"] { order: 1; } }
 :host([plain]) { display: block; padding: 0; border: 0; border-radius: 0; background: none; color: var(--pk-alert-c); margin: var(--space-1) 0 var(--space-2); font-size: var(--text-md); }
 :host([plain]) [part="icon"] { display: none; }
 :host([plain]) [part="close"] { width: auto; height: auto; margin: 0 0 0 var(--space-2); padding: 0 var(--space-1); }

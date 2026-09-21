@@ -52,7 +52,7 @@ test('the ratio prop sets --pk-grid-ratio, warns once on a bad value and clears 
 
 test('the css uses --pk-grid-ratio when set and goes back to auto columns on a phone; the meta lists both', () => {
     assert.ok(css.includes('grid-template-columns: var(--pk-grid-ratio, var(--_cols));'));
-    assert.match(css, /@media \(width <= 640px\) \{ :host \{ grid-template-columns: var\(--_cols\); \} \}/);
+    assert.match(css, /@media \(--phone\) \{ :host \{ grid-template-columns: var\(--_cols\); \} \}/);
     assert.equal(prop('ratio').default, '');
     assert.ok(meta.cssProperties.some(p => p.name === '--pk-grid-ratio'));
 });

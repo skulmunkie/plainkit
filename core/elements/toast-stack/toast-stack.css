@@ -24,6 +24,6 @@
 
 :host([position="top"]), :host([position="bottom"]) { inset-inline: 0; margin-inline: auto; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     :host, :host([position$="start"]), :host([position="top"]), :host([position="bottom"]) { inset-inline: 0; width: 100%; margin-inline: 0; padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); }
 }
