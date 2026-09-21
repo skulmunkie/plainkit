@@ -77,7 +77,7 @@ The loader imports only the elements the page uses. Props are attributes or prop
 ```
 
 Attributes: `kind` (foundations, elements, layouts, templates; `controls` is the old name of elements), `group`, `control` (an element tag or name, or a comma list), `theme` (dark, light), `width` (desktop, phone),
-`filter` (search text), `chrome` (`none` is the default: content only, sized to fit; `full` keeps the nav, toolbar and inspector), `height` (pixels) and `src`
+`filter` (search text), `chrome` (`none` is the default: content only, sized to fit; `full` keeps the nav, toolbar and the Details inspector (an element page's API and live markup)), `height` (pixels) and `src`
 (the address of `gallery/embed.html` when it is not next to `elements/`). The SDK's own gallery page uses the same module (`mountGallery` in `site/gallery/gallery.js`).
 A narrowed mount (`kind`, `group`, `control`) shows only that part everywhere: its overview cards, the nav and the Elements list; `filter` narrows the same lists by title. The option rules are in `js/gallery-options.js`.
 
@@ -120,6 +120,8 @@ Lists every token in the SDK token stylesheet with an input for each, applies ed
 ### Performance, console and dev tools
 
 `mountPerformance(el, { interval, history, autostart })` shows the Core Web Vitals, frame rate, long tasks, DOM size, heap and page weight from the browser's own APIs. `mountConsole(el, { capture, max, tab })` records `console.*`, errors, the `pk-*` events the elements fire, network requests, the `pk-*` elements on the page and the environment. `mountDevTools(container, { mode: 'dock' | 'inline', hotkey, tab, open, size, panels })` puts them, plus Logs, Logging, Quality, Inspector and Theme (the theme editor, live on the page) panels, in one tabbed surface: a bottom dock toggled with Ctrl+` or inline in a container. A panel of your own is `{ id, title, mount(element, context) }`. Each is `dist/<name>/<name>.js`.
+
+The element inspector, `createElementInspector(container)` in `dist/js/element-inspector.js`, shows one element from its API data (`dist/elements/api.json`): tag, summary, live markup with a copy button, properties, slots, events, CSS parts and properties and methods; with nothing selected it shows an empty state. It is what the gallery's Details drawer uses. `inspector.show({ meta, element, extraSections })` draws an element (`element` is the live element; `inspector.refresh()` redraws after it changes; `show(null)` clears it). A host adds its own sections with `extraSections`, an array of `{ title, render(container, { meta, element }), open? }`: each becomes an accordion item after the built-in ones and `render` fills its container using SDK components only. It runs on `show()` and on every `refresh()`; if it throws, the error is logged (scope `element-inspector`), that section shows a note and the others still draw. This is how a host such as a layout builder or PlainKit.Blazor's `/_plainkit` page contributes its own sections (for example a Blazor parameter table); the SDK itself carries none.
 
 ## Build and test
 

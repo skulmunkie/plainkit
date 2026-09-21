@@ -10,7 +10,7 @@
     { "name": "theme", "type": "enum", "default": "auto", "values": ["auto", "dark", "light"], "reflect": true, "description": "The theme of the gallery and its samples. auto keeps the gallery's own default (dark)." },
     { "name": "width", "type": "enum", "default": "desktop", "values": ["desktop", "phone"], "reflect": true, "description": "Render the samples at desktop width or in a 375px phone frame." },
     { "name": "filter", "type": "string", "default": "", "reflect": false, "description": "Search text: only controls whose name (or group) contains it are shown." },
-    { "name": "chrome", "type": "enum", "default": "none", "values": ["none", "full"], "reflect": true, "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector." },
+    { "name": "chrome", "type": "enum", "default": "none", "values": ["none", "full"], "reflect": true, "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup)." },
     { "name": "height", "type": "number", "default": 0, "reflect": false, "description": "A fixed height in pixels. 0 fits the content when chrome is none and uses the default height when chrome is full." },
     { "name": "src", "type": "string", "default": "", "reflect": false, "description": "Address of the gallery's embed.html when it is not next to the element module, for example on a CDN prefix." }
   ],

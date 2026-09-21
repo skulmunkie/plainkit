@@ -4267,7 +4267,7 @@ export const ELEMENTS = [
                     "full"
                 ],
                 "reflect": true,
-                "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the markup inspector."
+                "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup)."
             },
             {
                 "name": "height",
