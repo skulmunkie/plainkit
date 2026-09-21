@@ -79,6 +79,10 @@ export const toolsOpen = container => mounted.get(container)?.isOpen?.() ?? fals
 export const exportTheme = container => mounted.get(container)?.export?.() ?? null;
 export const setThemeMode = (container, name) => mounted.get(container)?.setTheme?.(name);
 
+// What a form holds right now, by control name (PkRuntime.ReadFormValuesAsync): files are left out, a repeated name keeps its last value.
+// A pk-form wraps a native <form>: either element can be passed.
+export const formValues = el => Object.fromEntries([...new FormData(el instanceof HTMLFormElement ? el : el.querySelector('form'))].filter(([, v]) => typeof v === 'string'));
+
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {
     return (await import('./plainkit/js/version.js')).PK_VERSION;

@@ -42,6 +42,15 @@
       "type": "string"
     },
     {
+      "name": "Open",
+      "prop": "open",
+      "type": "bool",
+      "bind": {
+        "event": "pk-combo-toggle",
+        "value": "detail.open"
+      }
+    },
+    {
       "name": "AriaLabel",
       "prop": "label",
       "type": "string"

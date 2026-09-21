@@ -27,7 +27,7 @@ Every element has a component, named `Pk` plus the tag in PascalCase, so `pk-ale
 | a prop | a `[Parameter]` sent as an attribute: `bool` is present or absent, numbers use the invariant culture, dates are ISO strings, structures are JSON. A prop with a fixed set of values is an enum (`ButtonVariant`, `PkAlertKind`, ...); a null enum or a nullable number is left off, so the element's own default applies |
 | a slot | a `RenderFragment` (`ChildContent` for the default slot; a named slot is rendered as `<span slot="name">`) |
 | an event | an `EventCallback`, or `EventCallback<PkXxxEventArgs>` when the event carries a detail (`pk-value-change` gives `PkValueChangeEventArgs`); `click` gives `MouseEventArgs` |
-| a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen` (a `...Changed` callback next to it) |
+| a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, `@bind-Open` (a `...Changed` callback next to it) |
 
 A component takes its listed parameters, and every other attribute (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, so `<PkButton id="save" data-test="x" aria-label="Save">` works. A `class` is added to the component's own classes (the components that list `ExtraClass` combine both). An inline `style` is blocked by the CSP: use a class. Each component loads the toolkit through `PkRuntime` on its first render. The `pk-*` events reach Blazor through `PlainKit.Blazor.lib.module.js`, a JavaScript initializer that Blazor loads on its own (see "Events on raw elements").
 
@@ -179,7 +179,22 @@ The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivit
 - **Events up.** A two-way parameter (`@bind-Value`) commits on the element's own change event (`pk-value-change`, `pk-change`, `pk-tab-change`, ...), which fires when the user commits a change, not on every keystroke. Until then the element owns the value; after the callback runs, your component owns it. Re-render with the value you were given and nothing fights it.
 - **Your markup stays yours.** An element does not add, remove or reorder the children you render (the `<option>` items of a combobox, the tabs of a `PkTabs`). It draws inside its own shadow tree.
 - **A list of tags is yours to remove.** `PkTag` is `Controlled` by default: a press raises `OnRemove` and the tag never removes itself, so remove it from your own list in the handler (the DOM and Blazor's tree then agree). Set `Controlled="false"` only for a tag that is not in a Blazor-rendered list.
-- **A form reset raises no change event** (as with native controls): a value your component mirrors keeps its old value after `form.reset()`. `PkForm.OnReset` runs after the controls have their initial values again; set your model back there.
+- **Open state is two-way where the element reports it.** `@bind-Open` works on `PkCombobox` (it follows `pk-combo-toggle`) and `PkCommandPalette` (it follows `pk-open` and `pk-close`), as `@bind-IsOpen` does on `PkDialog`. The element owns the state while the user works (typing, a click, Escape, Ctrl/Cmd+K); after the event your field holds the new value, and setting it from C# opens or closes the element. `PkCommandPalette` also raises `pk-open` for a change the host made, which finds the parameter already equal, so nothing loops. `OnToggle`, `OnOpen` and `OnClose` still run after the binding has updated.
+- **A form reset raises no change event** (as with native controls): a value your component mirrors keeps its old value after `form.reset()`. `PkForm.OnReset` runs after the controls have their initial values again; read them back there with `PkRuntime.ReadFormValuesAsync(form.Element)` (inject `PkRuntime`, keep the `PkForm` with `@ref`; the controls need a `Name`). It returns the values by control name, one call, no per-component interop:
+
+  ```razor
+  <PkForm @ref="_form" OnReset="Resync">
+      <form>
+          <PkInput @bind-Value="_name" Name="name" />
+          <PkButton Type="reset">Reset</PkButton>
+      </form>
+  </PkForm>
+  @code {
+      [Inject] private PkRuntime Runtime { get; set; } = default!;
+      private PkForm? _form; private string? _name = "Ada";
+      private async Task Resync() => _name = (await Runtime.ReadFormValuesAsync(_form!.Element)).GetValueOrDefault("name");
+  }
+  ```
 - **Tools own a container.** `PkLogs`, `PkScorecard`, `PkConsole`, `PkPerformance`, `PkCodeExplorer` and `PkLogSettings` render an empty `<div>` and hand it to JavaScript; do not put your own children in it. They mount when first rendered, mount again only when a parameter that changes the tool changes, and are destroyed when the component is disposed.
 
 ## Dev tools (built in)

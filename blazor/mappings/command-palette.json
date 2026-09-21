@@ -6,7 +6,17 @@
       "type": "bool",
       "default": false,
       "map": "prop",
-      "prop": "open"
+      "prop": "open",
+      "bind": [
+        {
+          "event": "pk-open",
+          "value": true
+        },
+        {
+          "event": "pk-close",
+          "value": false
+        }
+      ]
     },
     {
       "name": "Placeholder",

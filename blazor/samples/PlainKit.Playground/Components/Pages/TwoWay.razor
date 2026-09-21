@@ -1,0 +1,45 @@
+@page "/twoway"
+@inject PkRuntime Runtime
+
+@* Issue #47: @bind-Open on PkCombobox and PkCommandPalette, and the re-sync of a mirrored value after form.reset() (PkForm.OnReset +
+   PkRuntime.ReadFormValuesAsync). Each state shows in an element with an id so a script can check it in a real browser. *@
+<div style="padding:1rem;display:grid;gap:1rem;max-width:44rem">
+    <h1>Two-way Open and form reset</h1>
+
+    <PkCombobox @bind-Open="_comboOpen" @bind-Value="_fruit" AriaLabel="Fruit" Placeholder="Pick a fruit">
+        <option value="apple">Apple</option>
+        <option value="pear">Pear</option>
+        <option value="plum">Plum</option>
+    </PkCombobox>
+    <p>Combobox open in C#: <code id="out-combo-open">@_comboOpen</code>, value: <code id="out-fruit">@_fruit</code></p>
+    <PkButton id="combo-open" OnClick="@(() => _comboOpen = true)">Open combobox from C#</PkButton>
+    <PkButton id="combo-close" OnClick="@(() => _comboOpen = false)">Close combobox from C#</PkButton>
+
+    <PkCommandPalette @bind-Open="_paletteOpen" OnOpen="@(() => _paletteOpens++)" />
+    <p>Palette open in C#: <code id="out-palette-open">@_paletteOpen</code> (open events: <code id="out-palette-opens">@_paletteOpens</code>)</p>
+    <PkButton id="palette-open" OnClick="@(() => _paletteOpen = true)">Open palette from C#</PkButton>
+
+    <PkForm @ref="_form" OnReset="Resync">
+        <form>
+            <PkInput @bind-Value="_name" Name="name" AriaLabel="Name" />
+            <PkButton Type="reset" id="reset-form">Reset</PkButton>
+        </form>
+    </PkForm>
+    <p>Name in C#: <code id="out-name">@_name</code> (resyncs: <code id="out-resyncs">@_resyncs</code>)</p>
+</div>
+
+@code {
+    private bool _comboOpen, _paletteOpen;
+    private int _paletteOpens, _resyncs;
+    private string? _fruit;
+    private string? _name = "Ada";
+    private PkForm? _form;
+
+    // The reset gave the input its initial value again without a change event: read the form and copy the values back into the model.
+    private async Task Resync()
+    {
+        var values = await Runtime.ReadFormValuesAsync(_form!.Element);
+        _name = values.GetValueOrDefault("name");
+        _resyncs++;
+    }
+}

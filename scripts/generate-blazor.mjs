@@ -181,7 +181,8 @@ export function modelElement(el, mapping, reg) {
             declare({ name: p.name, kind: 'param', cs: r.cs, init: r.init, doc: api.description, note: p.note });
             out.attrs.push({ attr: kebab(p.prop), expr: r.expr, boolean: r.attr === 'bool' });
             if (r.todo) todo(p.name, r.todo);
-            if (p.bind) addBind(r, { event: p.bind.event, literal: typeof p.bind.value !== 'string' ? p.bind.value : undefined, path: typeof p.bind.value === 'string' ? p.bind.value.replace(/^detail\./, '') : undefined });
+            // `bind` is one event or a list of them (PkCommandPalette.Open follows pk-open and pk-close).
+            for (const b of [p.bind].flat().filter(Boolean)) addBind(r, { event: b.event, literal: typeof b.value !== 'string' ? b.value : undefined, path: typeof b.value === 'string' ? b.value.replace(/^detail\./, '') : undefined });
         } else if (map === 'slot' || map === 'text') {
             const slot = map === 'text' ? '' : p.slot;
             if (/[<>]/.test(slot)) { skip(p.name, `dynamic slot name "${slot}": the wrapper has to render one slot per item, which needs a hand-written component`); continue; }
@@ -348,6 +349,8 @@ export function renderComponent(m, mappingName) {
     const custom = live.filter(h => !h.native);
     const attrs = [];
     for (const a of m.attrs) attrs.push(`${a.attr}="${a.expr}"`);
+    // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
+    attrs.push('@ref="Element"');
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
     // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
     // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).

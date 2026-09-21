@@ -53,8 +53,8 @@ test('every parameter maps to a real prop, slot, event or css property, or is a 
 });
 
 test('two-way parameters name the change event that drives them', () => {
-    for (const n of names) for (const p of mappings[n].params.filter(x => x.bind)) {
-        assert.ok(metas[n].events.some(e => e.name === p.bind.event), `${n}.${p.name} binds to ${p.bind.event}`);
+    for (const n of names) for (const p of mappings[n].params.filter(x => x.bind)) for (const b of [p.bind].flat()) { // one event, or a list of them
+        assert.ok(metas[n].events.some(e => e.name === b.event), `${n}.${p.name} binds to ${b.event}`);
     }
 });
 

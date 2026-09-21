@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
@@ -75,6 +76,15 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
 
     /// <summary>The version of the Plainkit JavaScript the page loaded (<c>PK_VERSION</c> in <c>js/version.js</c>). It equals <see cref="PkAssets.Version"/> unless the app serves an older or newer copy of the assets.</summary>
     public async ValueTask<string> GetSdkVersionAsync() => await (await Bridge).InvokeAsync<string>("version");
+
+    /// <summary>
+    /// The values the controls of a form hold right now, by control name (what the browser would submit; a name used twice keeps its last value).
+    /// A form reset gives the controls their initial values again without raising a change event, so a value your component mirrors is stale
+    /// afterwards: call this from <c>PkForm.OnReset</c> (raised after the controls have their initial values) and copy the values back.
+    /// </summary>
+    /// <param name="form">The <see cref="PkForm"/>'s <see cref="PkElementBase.Element"/> (it wraps a native <c>&lt;form&gt;</c>, which is the one read), or a native form's reference.</param>
+    public async ValueTask<IReadOnlyDictionary<string, string>> ReadFormValuesAsync(ElementReference form) =>
+        await (await Bridge).InvokeAsync<Dictionary<string, string>>("formValues", form);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
