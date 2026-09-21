@@ -225,14 +225,14 @@ export const dataDisplayCases = [
         const frame = el.part('frame');
         frame.loading = 'eager'; // The stage sits off-screen, where a lazy frame may never be asked to load; the element keeps loading=lazy for real pages, the test forces it.
         t.ok(/[?&]chrome=none\b/.test(frame.getAttribute('src')) && /group=forms-inputs/.test(frame.getAttribute('src')), 'the attributes are in the frame address');
-        const doc = await until(() => frame.contentDocument?.querySelectorAll('#gx-view h1').length && frame.contentDocument, 'the gallery view');
-        t.eq([...doc.querySelectorAll('#gx-view h1')].map(h => h.textContent).join(), 'TagInput', 'the filter narrows the group to one control');
+        const doc = await until(() => frame.contentDocument?.querySelectorAll('#gx-view pk-page-header[level="1"]').length && frame.contentDocument, 'the gallery view');
+        t.eq([...doc.querySelectorAll('#gx-view pk-page-header[level="1"]')].map(h => h.getAttribute('heading')).join(), 'TagInput', 'the filter narrows the group to one control');
         t.eq(doc.documentElement.dataset.theme, 'light');
         t.ok(!doc.querySelector('#gx-nav'), 'no chrome: no nav');
         t.eq(doc.documentElement.dataset.width, 'phone', 'phone width');
         await until(() => /^\d+px$/.test(el.style.getPropertyValue('--pk-gallery-height')), 'the reported height');
         el.setAttribute('theme', 'dark'); el.setAttribute('width', 'desktop'); el.setAttribute('filter', '');
-        await until(() => frame.contentDocument?.documentElement.dataset.theme === 'dark' && frame.contentDocument.documentElement.dataset.width === 'desktop' && frame.contentDocument.querySelectorAll('#gx-view h1').length > 3 && frame.contentDocument, 'the reloaded, wider view');
+        await until(() => frame.contentDocument?.documentElement.dataset.theme === 'dark' && frame.contentDocument.documentElement.dataset.width === 'desktop' && frame.contentDocument.querySelectorAll('#gx-view pk-page-header[level="1"]').length > 3 && frame.contentDocument, 'the reloaded, wider view');
         el.setAttribute('height', '300'); await t.settle();
         t.eq(Math.round(frame.getBoundingClientRect().height), 300, 'a fixed height wins over the content height');
     }],
@@ -241,9 +241,9 @@ export const dataDisplayCases = [
         const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
         const el = await t.mount('<pk-gallery chrome="full" control="button" height="420"></pk-gallery>');
         el.part('frame').loading = 'eager'; // The stage sits off-screen, where a lazy frame may never be asked to load; the element keeps loading=lazy for real pages, the test forces it.
-        const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav .snav-link') && el.part('frame').contentDocument, 'the nav');
-        t.eq([...doc.querySelectorAll('#gx-nav .snav-sub a')].map(a => a.textContent).join(), 'Button');
-        t.ok(doc.querySelector('.workspace-bar'), 'the toolbar is there');
-        t.ok(doc.querySelector('#gx-view h1')?.textContent === 'Button', 'it opens on the control');
+        const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav pk-nav-item') && el.part('frame').contentDocument, 'the nav');
+        t.eq([...doc.querySelectorAll('#gx-nav pk-nav-item[slot][href]')].map(a => a.textContent.trim()).join(), 'Button');
+        t.ok(doc.querySelector('.gx-bar'), 'the toolbar is there');
+        t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
     }],
 ];
