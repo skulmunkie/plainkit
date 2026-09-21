@@ -45,7 +45,7 @@ test('each scanner rule fires on hostile input', () => {
     assert.ok(hit('no-eval', 'eval("x")')); assert.ok(hit('no-new-function', 'new Function("x")')); assert.ok(hit('no-document-write', 'document.write("x")'));
     assert.ok(hit('no-javascript-url', 'href="javascript:alert(1)"')); assert.ok(hit('no-inline-handler', '<a onclick="x()">'));
     assert.ok(hit('blank-needs-noopener', '<a target="_blank" href="x">')); assert.ok(!hit('blank-needs-noopener', '<a target="_blank" rel="noopener" href="x">'));
-    assert.ok(hit('secret-token', 'ghp_' + 'a'.repeat(36))); assert.ok(hit('secret-private-key', '-----BEGIN RSA PRIVATE KEY-----'));
+    assert.ok(hit('secret-token', 'ghp_' + 'a'.repeat(36))); assert.ok(hit('secret-private-key', '-----BEGIN RSA PRIVATE KEY-----')); // secret-scan:allow (a fixture for the scanner rule)
     assert.ok(hit('secret-assignment', 'password: "hunter2hunter2"')); assert.ok(hit('no-external-request', 'fetch("https://cdn.example.net/x.js")'));
 });
 

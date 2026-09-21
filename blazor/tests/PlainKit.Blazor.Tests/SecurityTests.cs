@@ -95,7 +95,7 @@ public sealed class SecurityTests : TestContext
         {
             var path = Path.Combine(root, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, "{\"ConnectionStrings\":{\"Default\":\"Server=db;Password=not-for-the-browser\"}}");
+            File.WriteAllText(path, "{\"ConnectionStrings\":{\"Default\":\"Server=db;Password=not-for-the-browser\"}}"); // secret-scan:allow (fixture)
             File.WriteAllText(Path.Combine(root, "Program.cs"), "class Program {}");
 
             var snapshot = PkSnapshot.FromDirectory(root);
