@@ -17,6 +17,20 @@
       "default": false,
       "reflect": true,
       "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay)."
+    },
+    {
+      "name": "backHref",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Puts a back link (an arrow) before the title: a same-site path or an http(s) address, usually the parent list. Empty shows no link. Anything else is dropped with a warning."
+    },
+    {
+      "name": "backLabel",
+      "type": "string",
+      "default": "Back",
+      "reflect": true,
+      "description": "The back link's accessible name (its aria-label), for example \"Back to Invoices\"; the arrow is the only visible content."
     }
   ],
   "slots": [
@@ -25,8 +39,12 @@
       "description": "A pk-side-nav."
     },
     {
+      "name": "title",
+      "description": "The page title in the top bar (a heading or plain text), after the back link and before the header slot; one line, truncated with an ellipsis. Put the page's only h1 here."
+    },
+    {
       "name": "header",
-      "description": "Top bar content."
+      "description": "Top bar content after the title: page actions, an account menu. A direct child marked data-nav-toggle stays first."
     },
     {
       "name": "",
@@ -52,6 +70,14 @@
       "description": "Main column"
     },
     {
+      "name": "back",
+      "description": "The back link"
+    },
+    {
+      "name": "title",
+      "description": "The title area"
+    },
+    {
       "name": "header",
       "description": "Header row"
     },
@@ -66,12 +92,16 @@
   ],
   "cssProperties": [],
   "methods": [],
-  "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
-  "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
+  "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot. The back link is a real link (keyboard reachable, 44px target, focus ring) named by back-label; the arrow is aria-hidden. Put the page's h1 in the title slot so there is exactly one page heading; do not repeat it in the body.",
+  "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar. The back link keeps a 44px target and a long title is truncated to one line.",
   "examples": [
     {
       "title": "App shell with a sticky footer",
       "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+    },
+    {
+      "title": "Title and back link",
+      "html": "<pk-app-shell back-href=\"#invoices\" back-label=\"Back to Invoices\"><h1 slot=\"title\">Invoice 1042</h1><pk-button slot=\"header\" variant=\"ghost\">Edit</pk-button><pk-stack><p>The title is the page heading; the back link goes to the list.</p></pk-stack></pk-app-shell>"
     }
   ]
 }

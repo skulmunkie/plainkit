@@ -7,6 +7,22 @@
 
 [part="header"]:not(:has(::slotted(*))) { display: none; }
 
+[part="back"] { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); margin-inline-start: calc(var(--space-2) * -1); border-radius: var(--radius-sm); color: var(--color-text); font-size: var(--text-lg); text-decoration: none; }
+
+[part="back"][hidden] { display: none; }
+
+[part="back"]:hover { background: var(--color-surface-alt); }
+
+[part="back"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+
+[part="title"] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-lg); font-weight: 600; }
+
+[part="title"][hidden] { display: none; }
+
+::slotted([slot="title"]) { display: block; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: inherit; }
+
+::slotted([data-nav-toggle]) { order: -1; }
+
 [part="body"] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
 :host([flush]) [part="body"] { padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
