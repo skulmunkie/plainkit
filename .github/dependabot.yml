@@ -1,0 +1,33 @@
+# Dependabot version updates (and, with "Dependabot alerts" and "security updates" switched on in the repository settings, security updates).
+# github-actions: the pinned action versions in .github/workflows (a full commit SHA with a version comment is updated together with the comment).
+# nuget: Directory.Packages.props (central package management): the test packages and the WebAssembly sample. PlainKit.Blazor itself references none.
+# The core folder has no npm dependencies by design (a test enforces it), so there is no npm entry.
+# Pull requests carry the `no-changelog` label: an update to the build or the tests has no visible effect (a shipped change gets a fragment by hand).
+# The labels `dependencies` and `no-changelog` must exist (.github/REPO-SETTINGS.md); an update is never merged around a failing check.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, no-changelog]
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, no-changelog]
+    commit-message:
+      prefix: "deps"
+    groups:
+      test-packages:
+        patterns: ["*"]

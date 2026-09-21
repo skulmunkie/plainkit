@@ -1,0 +1,47 @@
+name: CodeQL
+
+# Code scanning with GitHub's own CodeQL for the SDK (JavaScript) and the Blazor package (C#). It runs weekly and on demand, NOT on pull requests: it is an
+# audit tool, not a gate, and no branch protection rule may require it (a required check that a workflow with a schedule trigger never reports would stay
+# pending). Results appear under Security > Code scanning once code scanning is available for the repository (public repositories have it).
+# Generated files are not in git: the bootstrap produces them so the scan sees the code that ships (the element modules, the generated components).
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, csharp]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

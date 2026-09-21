@@ -259,9 +259,14 @@ jobs:
       actions: read
       pull-requests: write
     steps:
+      # The script that runs here holds a token that can write to the pull request, so it is the BASE branch's copy (the merge target's tip), never the
+      # pull request's own: a pull request that edits scripts/ci-report.mjs is tested by the other jobs, but cannot run its edit with this job's token.
+      # (A change to the report takes effect once it is merged.) persist-credentials is off: nothing after this step needs the checkout's token.
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: scripts
+          persist-credentials: false
 
       - name: Write the summary and the sticky comment
         uses: actions/github-script@v7

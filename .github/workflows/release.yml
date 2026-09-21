@@ -65,17 +65,21 @@ jobs:
       - name: Zip the agent skills for the release
         run: cd core/dist/skills && zip -r ../../../plainkit-skills-$VERSION.zip .
 
+      # The GitHub CLI that the runner already has, not a third-party action: this job holds contents: write and an OIDC token, so nothing outside GitHub's own
+      # actions and NuGet's login runs in it. A re-run of the job updates the release that exists (upload --clobber) instead of creating another.
       - name: GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            plainkit-dist-${{ env.VERSION }}.zip
-            plainkit-skills-${{ env.VERSION }}.zip
-            nupkg/PlainKit.Blazor.${{ env.VERSION }}.nupkg
-            core/dist/manifest.json
-          generate_release_notes: true
-          # 1.2.3-alpha.1, -beta.N and -rc.N are marked as pre-releases on GitHub (NuGet treats them as pre-releases by their label).
-          prerelease: ${{ contains(env.VERSION, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=("plainkit-dist-$VERSION.zip" "plainkit-skills-$VERSION.zip" "nupkg/PlainKit.Blazor.$VERSION.nupkg" core/dist/manifest.json)
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+          else
+            # 1.2.3-alpha.1, -beta.N and -rc.N are marked as pre-releases on GitHub (NuGet treats them as pre-releases by their label).
+            flags=(--generate-notes --verify-tag)
+            if [[ "$VERSION" == *-* ]]; then flags+=(--prerelease); fi
+            gh release create "$GITHUB_REF_NAME" "${files[@]}" --title "$GITHUB_REF_NAME" "${flags[@]}"
+          fi
 
       # The registries come after the GitHub release, so a problem with one of them never keeps the dist zip, the skills zip, the .nupkg and the
       # manifest from being attached. A failed step still turns the run red,
@@ -83,13 +87,16 @@ jobs:
 
       # Requested right before the push: the key it returns lasts one hour.
       - name: NuGet login (OIDC to a temporary API key)
-        uses: NuGet/login@v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
 
+      # The key goes in through the environment, never spliced into the script text.
       - name: Push PlainKit.Blazor to NuGet
-        run: dotnet nuget push "nupkg/PlainKit.Blazor.$VERSION.nupkg" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "nupkg/PlainKit.Blazor.$VERSION.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Publish to npm (only when NPM_TOKEN is set)
         if: always() && env.NPM_TOKEN != ''
