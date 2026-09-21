@@ -5,12 +5,6 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <!-- bunit parses component markup with AngleSharp; the advisory below has no fixed release at the latest version, and here it only ever
-       parses our own trusted test markup in the test host. Test project only: nothing shipped references it. Revisit on each bunit/AngleSharp update. -->
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-pgww-w46g-26qg" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
