@@ -229,4 +229,4 @@ Forwarded entries use the category `PlainKit.<scope>`. Inject `IPkLog` to write 
 
 ### Wire the dev tools
 
-In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`.
+In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`. `PkGallery Chrome="PkChrome.Full"` takes `Sections` (a list of `PkGallerySection`: text rows for the Details drawer, per element tag; `PkGallerySection.ForBlazor()` is the component, parameters and Razor section that `/_plainkit` shows), and `Src` may be relative (resolved against the document's base).

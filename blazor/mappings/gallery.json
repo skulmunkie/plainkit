@@ -37,6 +37,12 @@
     {
       "name": "Src",
       "prop": "src"
+    },
+    {
+      "name": "Sections",
+      "type": "IReadOnlyList<PkGallerySection>",
+      "prop": "sections",
+      "note": "Sent as JSON text ([{ tag, title, open, lines, columns, rows, code }]); the gallery frame draws it in the Details drawer as text. PkGallerySection.ForBlazor() is the Blazor section, computed from the package's mappings."
     }
   ],
   "notes": "New component, no Blazor equivalent. Needs the SDK dist folder served with the app so embed.html is reachable."

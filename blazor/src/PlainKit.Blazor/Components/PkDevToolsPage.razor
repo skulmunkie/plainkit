@@ -28,9 +28,9 @@ else
 
     @if (Workspace == "gallery")
     {
-        @* The gallery element resolves its frame's address against the page's URL, not the document's base, so under /_plainkit/{workspace} a relative address
-           would miss: give it an absolute one. *@
-        <PkGallery Chrome="PkChrome.Full" Height="760" Src="@Nav.ToAbsoluteUri(PkAssets.GalleryEmbed).ToString()" />
+        @* The Blazor section (component, parameters, the Razor) goes into the gallery's Details drawer for every element, computed here from the
+           package's own mappings; the SDK holds no copy of them. *@
+        <PkGallery Chrome="PkChrome.Full" Height="760" Sections="PkGallerySection.ForBlazor()" />
     }
     else if (Workspace == "files")
     {

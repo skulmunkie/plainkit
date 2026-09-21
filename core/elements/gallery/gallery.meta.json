@@ -12,7 +12,8 @@
     { "name": "filter", "type": "string", "default": "", "reflect": false, "description": "Search text: only controls whose name (or group) contains it are shown." },
     { "name": "chrome", "type": "enum", "default": "none", "values": ["none", "full"], "reflect": true, "description": "none shows only the content, sized to fit it; full keeps the contents nav, the viewport and text size toolbar and the element inspector (Details: an element's API and live markup)." },
     { "name": "height", "type": "number", "default": 0, "reflect": false, "description": "A fixed height in pixels. 0 fits the content when chrome is none and uses the default height when chrome is full." },
-    { "name": "src", "type": "string", "default": "", "reflect": false, "description": "Address of the gallery's embed.html when it is not next to the element module, for example on a CDN prefix." }
+    { "name": "src", "type": "string", "default": "", "reflect": false, "description": "Address of the gallery's embed.html when it is not next to the element module, for example on a CDN prefix. A relative address resolves against the document's base URI (document.baseURI), so it works on a routed page." },
+    { "name": "sections", "type": "string", "default": "", "reflect": false, "description": "Sections to add to the gallery's Details drawer (chrome full), as JSON text: a list of { tag?, title, open?, lines?, columns?, rows?, code? }, all text. The element sends them to its frame by message once the gallery is ready and whenever the text changes; tag limits one to an element (pk-button), none shows it for every element. Text only, cut to limits; see js/gallery-sections.js." }
   ],
   "slots": [],
   "events": [],

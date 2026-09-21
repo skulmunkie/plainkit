@@ -28,6 +28,33 @@ public sealed class ComponentTests : TestContext
     }
 
     [Fact]
+    public void Gallery_sends_its_sections_as_json_text_and_none_when_there_are_none()
+    {
+        Assert.Null(RenderComponent<PkGallery>().Find("pk-gallery").GetAttribute("sections"));
+
+        var sections = new[] { new PkGallerySection { Tag = "pk-button", Title = "Blazor", Open = true, Lines = ["Component PkButton"], Rows = [["Variant", "string"]] } };
+        var json = RenderComponent<PkGallery>(p => p.Add(x => x.Sections, sections)).Find("pk-gallery").GetAttribute("sections");
+
+        using var doc = JsonDocument.Parse(json!);
+        var first = doc.RootElement[0];
+        Assert.Equal("pk-button", first.GetProperty("tag").GetString());
+        Assert.Equal("Blazor", first.GetProperty("title").GetString());
+        Assert.True(first.GetProperty("open").GetBoolean());
+        Assert.False(first.TryGetProperty("code", out _));
+    }
+
+    [Fact]
+    public void Blazor_section_is_computed_from_the_mappings_for_every_mapped_element()
+    {
+        var sections = PkGallerySection.ForBlazor();
+        Assert.Equal(PkMappingInfo.Tags.Count, sections.Count);
+        var button = Assert.Single(sections, s => s.Tag == "pk-button");
+        Assert.Contains("PkButton", button.Lines![0]);
+        Assert.Contains(button.Rows!, r => r[0] == "Variant");
+        Assert.StartsWith("<PkButton", button.Code);
+    }
+
+    [Fact]
     public void Dev_tools_page_offers_the_three_workspaces_and_marks_the_current_one()
     {
         var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));

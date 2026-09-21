@@ -15,6 +15,9 @@
 // pk-accordion-item after the built-in ones, and render fills its container with SDK components (it runs on show() and on every refresh()).
 // A render that throws is logged (scope element-inspector) and its section shows a short note; the others still draw.
 // Pure logic is js/element-inspector-logic.js.
+//
+// sectionFromData(data) turns a plain, serialisable descriptor ({ title, open?, lines?, columns?, rows?, code? }, all text: see js/gallery-sections.js)
+// into such a section, drawn with the same components (p, pk-table, pk-code-block) and only ever as text: it is how a host in another frame adds one.
 
 import { createLogger } from './log.js';
 import { describeElement, cleanMarkup } from './element-inspector-logic.js';
@@ -33,6 +36,18 @@ function table(label, cols, rows) {
     return h('pk-table', { label }, h('table', {},
         h('thead', {}, h('tr', {}, ...cols.map(c => h('th', {}, c)))),
         h('tbody', {}, ...rows.map(r => h('tr', {}, ...r.map(c => h('td', {}, c)))))));
+}
+
+// A descriptor from another window (already through normalizeSections) as an extra section; text only, no markup is ever parsed.
+export function sectionFromData(data) {
+    return {
+        title: data.title, open: data.open === true,
+        render(box) {
+            for (const line of data.lines ?? []) box.append(h('p', {}, line));
+            if (data.rows?.length) box.append(table(data.title, data.columns, data.rows));
+            if (data.code) { const block = h('pk-code-block', { label: data.title, wrap: true }); block.textContent = data.code; box.append(block); }
+        },
+    };
 }
 
 const EMPTY_TEXT = 'Open an element page to see its tag, properties, slots, events, styling hooks and its live markup with a copy button.';
