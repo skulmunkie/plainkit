@@ -85,3 +85,30 @@ jobs:
 
       - name: Build and test
         run: dotnet test PlainKit.slnx --configuration Release
+
+  # The in-browser element suite (core/tests/browser), on demand only (Actions > CI > Run workflow): not a required check, see core/README.md.
+  # It uses the Chrome that ubuntu-latest already has and no npm package; the run refreshes core/tests/browser/report.json on the runner only.
+  browser:
+    name: Element suite in a real browser (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run the suite and check the attestation test against it
+        env:
+          PK_CHROME: /usr/bin/google-chrome
+        run: node scripts/attest-browser.mjs
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-report
+          path: core/tests/browser/report.json
+          if-no-files-found: ignore

@@ -135,6 +135,30 @@ node tools/security.mjs     # scan for eval, inline handlers, secrets, unlisted 
 node site/scorecard/static-audit.mjs
 ```
 
+### The in-browser element suite and its attestation
+
+`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so the last run is attested: `tests/browser/report.json` holds its results and a SHA-256 of every source it covered, and `tests/elements-attest.test.mjs` fails when an element source or a browser case changed after that run, or when the run had failures. Re-run it after any change to an element source, `js/element*.js`, `js/loader.js` or a browser case.
+
+One command does the whole procedure (from the repository root; Node only, no browser package; it needs an installed Chrome, Chromium or Edge, found by `PK_CHROME` or the usual install paths):
+
+```
+node scripts/attest-browser.mjs
+```
+
+It starts `node core/tools/serve.mjs 5341 --write-reports`, opens `http://localhost:5341/tests/browser/` in a headless browser, waits for the page to post its report (about 170 s; it gives up after 420 s), prints the passed and failed counts from `report.json`, re-runs `node --test core/tests/elements-attest.test.mjs`, then stops the server and the browser and deletes the temporary profile. The exit code is 0 when every case passed and the attestation test passes, 1 for a failed case, 2 when the run could not finish. `--port`, `--timeout`, `--width`, `--height` and `--no-attest` are the options; `PK_CHROME_FLAGS` adds browser flags.
+
+By hand, the same thing:
+
+1. `node core/tools/serve.mjs 5341 --write-reports` (`--write-reports` lets the page post its report to the server, which writes `report.json`).
+2. Open `http://localhost:5341/tests/browser/` in Chrome at desktop size. Headless: `chrome --headless=new --disable-gpu --no-first-run --user-data-dir=<a temporary folder> --window-size=1280,900 http://localhost:5341/tests/browser/`.
+3. Wait about 170 s for "report saved" (a visible tab shows it; a headless run has no window, so read the file).
+4. Read `tests/browser/report.json` (`passed` and `failed`), then `node --test core/tests/elements-attest.test.mjs`.
+5. Stop the server and the browser and delete the temporary profile (on Windows a browser child can keep the folder locked for a moment; `scripts/attest-browser.mjs` ends the whole process tree and retries).
+
+**Viewport.** Run it at desktop size, 1280x900 or larger. A small window (about 486x425) made the suite flaky, because several cases assert layout, so the script refuses a window smaller than 1024x700. A visible tab must stay in front: a background tab throttles timers.
+
+**In CI.** The suite is not a required check: it takes minutes and reads layout, so a slow or differently configured runner would make a required check flaky, and the attestation already guards the sources cheaply. The runners have a Chrome preinstalled, and the script needs no npm dependency, so `.github/workflows/ci.yml` has a `browser` job that runs it on demand (Actions, Run workflow) and uploads `report.json`; it is not part of push or pull request runs. It has not been proven on a runner yet: promote it to a required check only after a few clean runs there.
+
 ## Add an element
 
 1. Create `elements/<name>/` (the tag is `pk-<name>`).
