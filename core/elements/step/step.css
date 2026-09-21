@@ -16,7 +16,7 @@
 
 [part="marker"] { flex: none; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border: 2px solid var(--pk-step-c); border-radius: var(--radius-round); background: var(--color-bg); font-size: var(--text-meta); font-weight: 600; }
 
-:host([state="active"]) [part="marker"], :host([state="done"]) [part="marker"] { background: var(--color-accent); color: var(--btn-primary-fg); }
+:host([state="active"]) [part="marker"], :host([state="done"]) [part="marker"] { background: var(--color-accent-fill); color: var(--btn-primary-fg); }
 
 :host([state="error"]) [part="marker"] { background: var(--color-notice-error); color: var(--color-bg); }
 

@@ -151,7 +151,7 @@
     {
       "name": "--pk-tag-bg",
       "description": "Tag pill background.",
-      "default": "var(--color-accent)"
+      "default": "var(--color-accent-fill)"
     }
   ],
   "methods": [

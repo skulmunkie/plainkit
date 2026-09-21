@@ -17,6 +17,6 @@ input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 :host([variant="segmented"][fill]) .opt { flex: 1 1 0; }
 :host([variant="segmented"]) input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
 :host([variant="segmented"]) .opt:hover { color: var(--color-text); }
-:host([variant="segmented"]) .opt:has(input:checked) { background: var(--pk-segmented-active, var(--color-accent)); color: var(--btn-primary-fg); }
+:host([variant="segmented"]) .opt:has(input:checked) { background: var(--pk-segmented-active, var(--color-accent-fill)); color: var(--btn-primary-fg); }
 :host([variant="segmented"]) .opt:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: 1px; }
 @media (max-width: 640px) { .opt { min-height: var(--touch-target); } }

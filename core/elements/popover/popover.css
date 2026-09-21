@@ -46,7 +46,7 @@
 
 [part="cancel"]:hover { background: var(--color-surface-alt); }
 
-[part="confirm"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--btn-primary-fg); }
+[part="confirm"] { border-color: var(--color-accent-fill); background: var(--color-accent-fill); color: var(--btn-primary-fg); }
 
 :host([danger]) [part="confirm"] { border-color: var(--btn-warn-bg); background: var(--btn-warn-bg); color: var(--btn-warn-fg); }
 

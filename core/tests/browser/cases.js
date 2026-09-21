@@ -185,9 +185,9 @@ export const cases = [
         const probe = (theme) => { const d = document.createElement('div'); d.setAttribute('data-theme', theme); d.className = 'tb-probe'; host.append(d); const v = getComputedStyle(d).getPropertyValue('--color-accent').trim(); d.remove(); return v; };
         const bg = el => getComputedStyle(el.part('control')).backgroundColor;
         t.ok(bg(dark) !== '' && bg(light) !== '', 'both resolve a background');
-        const colour = (theme) => { const d = document.createElement('div'); d.setAttribute('data-theme', theme); host.append(d); d.style.backgroundColor = 'var(--color-accent)'; const c = getComputedStyle(d).backgroundColor; d.remove(); return c; };
-        t.eq(bg(dark), colour('dark'), 'dark button uses the dark accent');
-        t.eq(bg(light), colour('light'), 'light button uses the light accent');
+        const colour = (theme) => { const d = document.createElement('div'); d.setAttribute('data-theme', theme); host.append(d); d.style.backgroundColor = 'var(--color-accent-fill)'; const c = getComputedStyle(d).backgroundColor; d.remove(); return c; };
+        t.eq(bg(dark), colour('dark'), 'dark button uses the dark accent fill');
+        t.eq(bg(light), colour('light'), 'light button uses the light accent fill');
         t.ok(probe('dark') !== undefined);
     }],
 
