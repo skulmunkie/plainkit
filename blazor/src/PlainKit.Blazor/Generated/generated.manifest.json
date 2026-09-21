@@ -1,0 +1,450 @@
+{
+  "generator": "scripts/generate-blazor.mjs",
+  "note": "Generated. Lists what was generated and what was not, so a change to either shows in review; node scripts/generate-blazor.mjs --check compares it.",
+  "generated": [
+    "PkAccordion",
+    "PkAccordionItem",
+    "PkAlert",
+    "PkAppShell",
+    "PkAvatar",
+    "PkAvatarGroup",
+    "PkBackToTop",
+    "PkBadge",
+    "PkBreadcrumb",
+    "PkButton",
+    "PkButtonGroup",
+    "PkCalendar",
+    "PkChart",
+    "PkCheckbox",
+    "PkCluster",
+    "PkCodeBlock",
+    "PkColourInput",
+    "PkCombobox",
+    "PkCommandPalette",
+    "PkContextMenu",
+    "PkDialog",
+    "PkDivider",
+    "PkDrawer",
+    "PkDropdown",
+    "PkDropzone",
+    "PkField",
+    "PkFieldRow",
+    "PkForm",
+    "PkFormActions",
+    "PkFormSection",
+    "PkGrid",
+    "PkHint",
+    "PkIcon",
+    "PkImageGallery",
+    "PkInput",
+    "PkLightbox",
+    "PkListGroup",
+    "PkLoadingOverlay",
+    "PkLocalTime",
+    "PkMedia",
+    "PkMenuItem",
+    "PkNavItem",
+    "PkNavbar",
+    "PkOtpInput",
+    "PkPageHeader",
+    "PkPager",
+    "PkPagination",
+    "PkPopover",
+    "PkProgress",
+    "PkRadioGroup",
+    "PkRange",
+    "PkRating",
+    "PkScrollProgress",
+    "PkSelect",
+    "PkSelectMenu",
+    "PkSideNav",
+    "PkSkeleton",
+    "PkSkipLink",
+    "PkSpinner",
+    "PkSplitButton",
+    "PkStack",
+    "PkStep",
+    "PkStepper",
+    "PkSwitch",
+    "PkTab",
+    "PkTabPanel",
+    "PkTabs",
+    "PkTag",
+    "PkTagInput",
+    "PkTextarea",
+    "PkTimeline",
+    "PkTimelineItem",
+    "PkToast",
+    "PkToastStack",
+    "PkToc",
+    "PkToolbar",
+    "PkTooltip",
+    "PkTree",
+    "PkTreeItem",
+    "PkWorkspace"
+  ],
+  "skipped": [
+    {
+      "component": "PkCard",
+      "tag": "pk-card",
+      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
+      "handWritten": false
+    },
+    {
+      "component": "PkEmptyState",
+      "tag": "pk-empty-state",
+      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
+      "handWritten": false
+    },
+    {
+      "component": "PkFieldList",
+      "tag": "pk-field-list",
+      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
+      "handWritten": false
+    },
+    {
+      "component": "PkGallery",
+      "tag": "pk-gallery",
+      "reason": "hand-written in Components/",
+      "handWritten": true
+    },
+    {
+      "component": "PkStat",
+      "tag": "pk-stat",
+      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
+      "handWritten": false
+    },
+    {
+      "component": "PkTable",
+      "tag": "pk-table",
+      "reason": "existing: true in the mapping (kept by hand, not in this package yet)",
+      "handWritten": false
+    }
+  ],
+  "enums": [
+    {
+      "name": "ButtonSize",
+      "members": [
+        "Md",
+        "Mini",
+        "Lg"
+      ],
+      "usedBy": [
+        "PkButton"
+      ]
+    },
+    {
+      "name": "ButtonVariant",
+      "members": [
+        "Primary",
+        "Ghost",
+        "Warn",
+        "Secondary",
+        "Plain"
+      ],
+      "usedBy": [
+        "PkButton"
+      ]
+    },
+    {
+      "name": "InfoTipPlacement",
+      "members": [
+        "Top",
+        "Bottom",
+        "Left",
+        "Right"
+      ],
+      "usedBy": [
+        "PkTooltip"
+      ]
+    },
+    {
+      "name": "MenuitemType",
+      "members": [
+        "Item",
+        "Checkbox",
+        "Radio",
+        "Header",
+        "Divider"
+      ],
+      "usedBy": [
+        "PkMenuItem"
+      ]
+    },
+    {
+      "name": "NoticeKind",
+      "members": [
+        "Error",
+        "Warning",
+        "Info",
+        "Success"
+      ],
+      "usedBy": [
+        "PkAlert"
+      ]
+    },
+    {
+      "name": "PaginationMode",
+      "members": [
+        "Numbered",
+        "Simple",
+        "LoadMore"
+      ],
+      "usedBy": [
+        "PkPagination"
+      ]
+    },
+    {
+      "name": "PkTabOnly",
+      "members": [
+        "All",
+        "Phone",
+        "Desktop"
+      ],
+      "usedBy": [
+        "PkTab"
+      ]
+    },
+    {
+      "name": "PkTabsActivation",
+      "members": [
+        "Auto",
+        "Manual"
+      ],
+      "usedBy": [
+        "PkTabs"
+      ]
+    },
+    {
+      "name": "PopoverTrigger",
+      "members": [
+        "Click",
+        "Hover",
+        "Manual"
+      ],
+      "usedBy": [
+        "PkPopover"
+      ]
+    },
+    {
+      "name": "PopoverVariant",
+      "members": [
+        "Default",
+        "Confirm"
+      ],
+      "usedBy": [
+        "PkPopover"
+      ]
+    },
+    {
+      "name": "StepOrientation",
+      "members": [
+        "Horizontal",
+        "Vertical"
+      ],
+      "usedBy": [
+        "PkStep"
+      ]
+    },
+    {
+      "name": "StepperOrientation",
+      "members": [
+        "Horizontal",
+        "Vertical"
+      ],
+      "usedBy": [
+        "PkStepper"
+      ]
+    },
+    {
+      "name": "StepState",
+      "members": [
+        "Todo",
+        "Active",
+        "Done",
+        "Error"
+      ],
+      "usedBy": [
+        "PkStep"
+      ]
+    },
+    {
+      "name": "ToastKind",
+      "members": [
+        "Info",
+        "Success",
+        "Warning",
+        "Danger"
+      ],
+      "usedBy": [
+        "PkToast"
+      ]
+    },
+    {
+      "name": "ToaststackPosition",
+      "members": [
+        "TopStart",
+        "Top",
+        "TopEnd",
+        "BottomStart",
+        "Bottom",
+        "BottomEnd"
+      ],
+      "usedBy": [
+        "PkToastStack"
+      ]
+    }
+  ],
+  "events": [
+    "pk-add",
+    "pk-change",
+    "pk-close",
+    "pk-colour",
+    "pk-combo-query",
+    "pk-combo-select",
+    "pk-confirm",
+    "pk-copy",
+    "pk-dismiss",
+    "pk-expand",
+    "pk-files",
+    "pk-invalid",
+    "pk-load-more",
+    "pk-month",
+    "pk-nav-toggle",
+    "pk-open",
+    "pk-otp-change",
+    "pk-otp-complete",
+    "pk-page",
+    "pk-page-size",
+    "pk-pane-change",
+    "pk-primary-change",
+    "pk-range",
+    "pk-rating-change",
+    "pk-remove",
+    "pk-search",
+    "pk-section-change",
+    "pk-select",
+    "pk-split-select",
+    "pk-step-change",
+    "pk-tab-change",
+    "pk-tab-close",
+    "pk-tags-change",
+    "pk-toggle",
+    "pk-valid",
+    "pk-value-change"
+  ],
+  "typesToDefine": [
+    {
+      "component": "PkChart",
+      "param": "Data",
+      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ChartData"
+    },
+    {
+      "component": "PkImageGallery",
+      "param": "Images",
+      "reason": "type not yet defined in PlainKit.Blazor (issue #9): GalleryImage"
+    }
+  ],
+  "notGenerated": [
+    {
+      "component": "PkAlert",
+      "param": "Boxed",
+      "reason": "wrapper behaviour, not a property of the element (The alert element is always boxed; it has no unboxed variant.)"
+    },
+    {
+      "component": "PkAlert",
+      "param": "Compact",
+      "reason": "wrapper behaviour, not a property of the element (Compat class only.)"
+    },
+    {
+      "component": "PkAlert",
+      "param": "Inline",
+      "reason": "wrapper behaviour, not a property of the element (Alert is a block; it has no inline variant.)"
+    },
+    {
+      "component": "PkAppShell",
+      "param": "ErrorOverlayMessage",
+      "reason": "wrapper behaviour, not a property of the element (As ShowErrorOverlay.)"
+    },
+    {
+      "component": "PkAppShell",
+      "param": "ShowErrorOverlay",
+      "reason": "wrapper behaviour, not a property of the element (The Blazor error UI stays in the wrapper.)"
+    },
+    {
+      "component": "PkDialog",
+      "param": "CloseButtonLabel",
+      "reason": "wrapper behaviour, not a property of the element (Text of the close button; the element draws a cross with an accessible name.)"
+    },
+    {
+      "component": "PkDialog",
+      "param": "FooterAlignEnd",
+      "reason": "wrapper behaviour, not a property of the element (The footer is always end-aligned.)"
+    },
+    {
+      "component": "PkDialog",
+      "param": "MaxWidthPx",
+      "reason": "sets the --pk-dialog-w custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper"
+    },
+    {
+      "component": "PkDialog",
+      "param": "OverFlyout",
+      "reason": "wrapper behaviour, not a property of the element (Not needed: a native dialog is in the top layer above any flyout.)"
+    },
+    {
+      "component": "PkDialog",
+      "param": "ShowCloseButton",
+      "reason": "wrapper behaviour, not a property of the element (The element always shows its close button (house rule: every modal has its own Cancel or Close).)"
+    },
+    {
+      "component": "PkDialog",
+      "param": "Theme",
+      "reason": "type not yet defined in PlainKit.Blazor (issue #9): ModalTheme"
+    },
+    {
+      "component": "PkDrawer",
+      "param": "Backdrop",
+      "reason": "wrapper behaviour, not a property of the element (A docked, backdrop-less inspector is the element's docked prop.)"
+    },
+    {
+      "component": "PkDrawer",
+      "param": "IsLoading",
+      "reason": "wrapper behaviour, not a property of the element (Wrap the body in pk-loading-overlay busy.)"
+    },
+    {
+      "component": "PkDrawer",
+      "param": "PhoneCards",
+      "reason": "wrapper behaviour, not a property of the element (Compat class only.)"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "DocLink",
+      "reason": "wrapper behaviour, not a property of the element (Link inside the rich content slot.)"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "ExternalLink",
+      "reason": "wrapper behaviour, not a property of the element (As DocLink.)"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "Kind",
+      "reason": "type not yet defined in PlainKit.Blazor (issue #9): InfoTipKind"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "LoadAsync",
+      "reason": "wrapper behaviour, not a property of the element (Loads the rich slot content on the first pk-show.)"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "OnClick",
+      "reason": "wrapper behaviour, not a property of the element (Click on the target.)"
+    },
+    {
+      "component": "PkTooltip",
+      "param": "Title",
+      "reason": "wrapper behaviour, not a property of the element (Bold heading inside the rich content slot.)"
+    }
+  ]
+}

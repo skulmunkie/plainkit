@@ -72,5 +72,9 @@ jobs:
       - name: Package copy of the toolkit is current
         run: node scripts/publish-dist.mjs --check
 
+      # The Pk* wrappers are generated from core/dist/elements/api.json and blazor/mappings; a change to either must be regenerated.
+      - name: Generated Blazor wrappers are current
+        run: node scripts/generate-blazor.mjs --check
+
       - name: Build and test
         run: dotnet test PlainKit.slnx --configuration Release
