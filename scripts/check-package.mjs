@@ -3,7 +3,7 @@
 //   node scripts/check-package.mjs <folder-or-.nupkg>     e.g. after: dotnet pack blazor/src/PlainKit.Blazor -c Release -o <folder>
 //
 // The package must have: the DLL and its XML docs, the README, the toolkit as static web assets (staticwebassets/plainkit/) with both agent skills,
-// and the version of core/VERSION (in the file name and in the nuspec). It must NOT have content/ or contentFiles/ entries (they would be copied
+// and the version of core/VERSION (in the file name and in the nuspec). It must NOT declare a frameworkReference (Blazor WebAssembly cannot use one) and must NOT have content/ or contentFiles/ entries (they would be copied
 // into a consumer's project; the generator manifest belongs to the repository, see PlainKit.Blazor.csproj).
 // Exit code: 0 ok, 1 the package is wrong (each problem says what to change), 2 could not read it.
 import fs from 'node:fs';
@@ -35,6 +35,9 @@ export function checkPackage({ entries, nuspec, fileName, version }) {
     const m = /<version>([^<]+)<\/version>/.exec(nuspec ?? '');
     if (!m) problems.push('the nuspec has no <version>');
     else if (m[1].trim() !== version) problems.push(`the nuspec version is ${m[1].trim()} but core/VERSION is ${version} (Directory.Build.props reads core/VERSION)`);
+    // A FrameworkReference in the nuspec makes a Blazor WebAssembly app fail to restore (NETSDK1082: no runtime pack for Microsoft.AspNetCore.App on browser-wasm).
+    // The server framework stays a private compile-time reference (PrivateAssets=all in PlainKit.Blazor.csproj); a Blazor Server app has it from its own SDK.
+    if (/<frameworkReference/i.test(nuspec ?? '')) problems.push('the nuspec declares a frameworkReference: a Blazor WebAssembly app cannot restore it (keep <FrameworkReference Include="Microsoft.AspNetCore.App" PrivateAssets="all" /> in PlainKit.Blazor.csproj)');
     if (fileName && !fileName.endsWith(`.${version}.nupkg`)) problems.push(`the file name ${fileName} does not end with .${version}.nupkg`);
     return problems;
 }

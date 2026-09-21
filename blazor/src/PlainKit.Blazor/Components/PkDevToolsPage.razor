@@ -1,6 +1,5 @@
 @page "/_plainkit"
 @page "/_plainkit/{Tab}"
-@using Microsoft.Extensions.Hosting
 @inject PkOptions Options
 @inject PkSourceProvider Source
 @inject NavigationManager Nav
@@ -66,7 +65,7 @@ else
 
     private string? ToolTab => Tools.Contains(Tab) ? Tab : null;
 
-    private bool Enabled => Options.DevTools ?? Services.GetService(typeof(IHostEnvironment)) is IHostEnvironment { EnvironmentName: "Development" };
+    private bool Enabled => Options.DevTools ?? PkHostEnvironment.IsDevelopment(Services);
 
     private IReadOnlyList<PkScoreTarget> Targets => Options.ScoreTargets ??
     [

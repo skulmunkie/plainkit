@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Generated/ (the Pk* components) and wwwroot/plainkit (a copy of core/dist) are NOT in git: node scripts/bootstrap.mjs writes them. Without them the

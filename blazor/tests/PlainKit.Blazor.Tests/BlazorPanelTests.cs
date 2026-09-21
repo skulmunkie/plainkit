@@ -130,12 +130,32 @@ public sealed class BlazorPanelTests : TestContext
     }
 
     [Fact]
-    public void The_circuit_handler_is_registered_on_the_server_and_is_the_same_instance_per_scope()
+    public async Task The_circuit_handler_is_registered_on_the_server_and_feeds_the_scopes_circuit_state()
     {
         using var scope = Services.CreateScope();
 
         var handler = Assert.Single(scope.ServiceProvider.GetServices<CircuitHandler>());
-        Assert.Same(scope.ServiceProvider.GetRequiredService<PkCircuitState>(), handler);
+        var state = scope.ServiceProvider.GetRequiredService<PkCircuitState>();
+        Assert.Equal(PkCircuitPhase.None, state.Phase);
+
+        var circuit = (Circuit)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Circuit)); // only Opened reads its id
+        await handler.OnConnectionUpAsync(circuit, default);
+        Assert.Equal(PkCircuitPhase.Connected, state.Phase);
+        await handler.OnConnectionDownAsync(circuit, default);
+        await handler.OnConnectionUpAsync(circuit, default);
+        Assert.Equal((PkCircuitPhase.Connected, 1, 1), (state.Phase, state.Disconnects, state.Reconnects));
+        await handler.OnCircuitClosedAsync(circuit, default);
+        Assert.Equal(PkCircuitPhase.Closed, state.Phase);
+    }
+
+    [Fact]
+    public void The_public_types_do_not_depend_on_the_server_assembly_so_a_browser_app_can_scan_them()
+    {
+        // The router's AdditionalAssemblies scan calls Assembly.GetExportedTypes(): a public type whose base class lives in
+        // Microsoft.AspNetCore.Components.Server (absent in Blazor WebAssembly) made the whole scan throw there.
+        foreach (var type in typeof(PkAssets).Assembly.GetExportedTypes())
+            for (var t = type; t is not null; t = t.BaseType)
+                Assert.DoesNotContain("Components.Server", t.Assembly.GetName().Name);
     }
 
     // ---- the inspector's Blazor section (mappings and the manifest carried by the assembly)
