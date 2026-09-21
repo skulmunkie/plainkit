@@ -26,7 +26,7 @@
 
   <!-- Transitive pins: bunit 1.x brings versions with known advisories (NU1902/NU1903). Test-only; the library references no packages. -->
   <ItemGroup Label="Security pins">
-    <PackageVersion Include="AngleSharp" Version="1.4.0" />
+    <PackageVersion Include="AngleSharp" Version="1.8.2" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
   </ItemGroup>
 
