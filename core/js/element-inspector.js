@@ -7,6 +7,7 @@
 //   const inspector = createElementInspector(container);
 //   inspector.show({ meta, element, extraSections });   // meta: the element's API entry; element: the live element (optional)
 //   inspector.refresh();                                // the live element changed: redraw the markup and the extra sections
+//   inspector.setElement(el);                           // the live element was replaced by another of the same tag: follow it (markup and extra sections only)
 //   inspector.show(null);                               // nothing selected: an empty state that says what the inspector shows
 //   inspector.destroy();
 //
@@ -125,8 +126,11 @@ export function createElementInspector(container, options = {}) {
         draw();
     }
 
+    // The same element type is still shown but its live element was replaced (a host that redraws its canvas): follow it and redraw the markup and extra sections only.
+    function setElement(element) { if (destroyed) return; state.element = element ?? null; refresh(); }
+
     function destroy() { destroyed = true; container.replaceChildren(); }
 
     show(options.meta ? options : null);
-    return { show, refresh, destroy, get tag() { return state.meta?.tag ?? null; } };
+    return { show, refresh, setElement, destroy, get tag() { return state.meta?.tag ?? null; } };
 }

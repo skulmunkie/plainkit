@@ -81,6 +81,22 @@ test('the inspector shows an empty state with nothing selected, then the element
     assert.equal(box.children.length, 0);
 });
 
+test('setElement follows a replaced live element without redrawing the tables, so a host that redraws its canvas keeps the accordion state', async () => {
+    const El = fakeDom();
+    const { createElementInspector } = await import('../js/element-inspector.js');
+    const box = new El('div');
+    const inspector = createElementInspector(box);
+    inspector.show({ meta: api.find(m => m.tag === 'pk-alert'), element: liveAlert(El) });
+    const tables = box.find('pk-table');
+    const [markup] = box.find('pk-code-block');
+    inspector.setElement(Object.assign(new El('pk-alert'), { outerHTML: '<pk-alert kind="danger">New</pk-alert>' }));
+    assert.equal(markup.textContent, '<pk-alert kind="danger">New</pk-alert>');
+    assert.deepEqual(box.find('pk-table'), tables, 'the same tables: nothing was redrawn');
+    inspector.destroy();
+    inspector.setElement(liveAlert(El));
+    assert.equal(box.children.length, 0, 'after destroy it does nothing');
+});
+
 test('extraSections: each becomes an accordion item that renders with the meta and the element, and refreshes with it', async () => {
     const El = fakeDom();
     const { createElementInspector } = await import('../js/element-inspector.js');

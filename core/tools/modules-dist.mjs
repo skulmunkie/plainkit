@@ -13,6 +13,7 @@ export const MODULES = {
     'log-settings': { files: ['log-settings.js', 'log-settings.css'] },
     devtools: { files: ['devtools.js', 'panels.js', 'devtools.css'] },
     quality: { files: ['quality.js'] },
+    'layout-builder': { files: ['layout-builder.js', 'layout-builder.css'] },
     'theme-editor': { files: ['theme-editor.js', 'theme-editor.css'], tokens: true },
 };
 

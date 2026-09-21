@@ -1,0 +1,7 @@
+/* Layout builder page. The builder's own chrome is modules/layout-builder/layout-builder.css. Tokens only. */
+
+#lb-host { padding: var(--space-4); }
+
+@media (max-width: 640px) {
+    #lb-host { padding: var(--space-2); }
+}

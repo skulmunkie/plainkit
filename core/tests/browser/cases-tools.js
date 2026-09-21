@@ -1,4 +1,4 @@
-// Browser cases for the tool modules shipped in dist (mountCodeExplorer, mountScorecard, mountThemeEditor). Same shape as cases.js.
+// Browser cases for the tool modules shipped in dist (mountCodeExplorer, mountScorecard, mountThemeEditor, mountLayoutBuilder). Same shape as cases.js.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
 const dist = name => import(new URL(`../../dist/${name}/${name}.js`, import.meta.url).href);
@@ -274,5 +274,83 @@ export const toolCases = [
             if (desc) Object.defineProperty(window, 'localStorage', desc); else delete window.localStorage;
             editor?.destroy();
         }
+    }],
+
+    ['layout builder module: renders the page live in an inert canvas, selects by click, arrows and the structure tree, and the keyboard moves, duplicates, deletes and undoes', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const start = '<pk-stack gap="md"><h2>Title</h2><pk-card heading="Open"><p>Waiting</p><pk-button slot="footer">Review</pk-button></pk-card></pk-stack>';
+        const builder = await mountLayoutBuilder(host, { html: start });
+        const reasons = []; builder.on('change', e => reasons.push(e.reason));
+        await t.load(host);
+        const canvas = host.querySelector('.lb-canvas'), page = host.querySelector('.lb-page');
+        t.ok(page.inert, 'the built page is inert: it cannot act on the builder');
+        t.eq(page.querySelectorAll('[data-lb-id]').length, 5, 'every node is rendered as a real element');
+        t.ok(customElements.get('pk-card') && page.querySelector('pk-card').shadowRoot, 'the elements are live');
+        const key = (k, o = {}) => canvas.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...o }));
+        const para = page.querySelector('p').getBoundingClientRect();
+        canvas.dispatchEvent(new MouseEvent('click', { clientX: para.left + 4, clientY: para.top + para.height / 2, bubbles: true }));
+        const selected = () => builder.selection() && page.querySelector('[data-lb-selected]')?.localName;
+        t.eq(selected(), 'p', 'a click selects the smallest element under it');
+        key('ArrowLeft'); t.eq(selected(), 'pk-card', 'Left selects the parent');
+        key('ArrowDown'); t.eq(selected(), 'p', 'Down walks the page in order');
+        key('ArrowLeft'); key('ArrowUp'); t.eq(selected(), 'h2', 'Up walks back');
+        key('ArrowDown', { altKey: true });
+        t.eq(builder.toHtml({ compact: true }), '<pk-stack gap="md"><pk-card heading="Open"><p>Waiting</p><pk-button slot="footer">Review</pk-button></pk-card><h2>Title</h2></pk-stack>', 'Alt+Down reorders');
+        key('ArrowLeft', { altKey: true });
+        t.eq(builder.getModel().nodes.length, 2, 'Alt+Left moves the heading out of the stack');
+        key('z', { ctrlKey: true }); key('z', { ctrlKey: true });
+        t.eq(builder.toHtml({ compact: true }), start, 'Ctrl+Z undoes the moves');
+        key('y', { ctrlKey: true }); t.ok(reasons.includes('redo'), 'Ctrl+Y redoes');
+        key('z', { ctrlKey: true });
+        builder.select(builder.getModel().nodes[0].slots[''][1].id);
+        key('d', { ctrlKey: true }); t.eq(page.querySelectorAll('pk-card').length, 2, 'Ctrl+D duplicates');
+        key('Delete'); t.eq(page.querySelectorAll('pk-card').length, 1, 'Delete removes the selection');
+        key('z', { ctrlKey: true }); key('z', { ctrlKey: true });
+        const tree = host.querySelector('pk-tree');
+        t.eq(tree.querySelectorAll('pk-tree-item').length, 5, 'the structure tree lists every node');
+        const item = [...tree.querySelectorAll('pk-tree-item')].find(i => i.label.startsWith('pk-button'));
+        item.dispatchEvent(new CustomEvent('pk-select', { bubbles: true, detail: { id: item.value } }));
+        t.eq(selected(), 'pk-button', 'choosing a tree item selects it on the canvas');
+        t.ok(host.querySelector('.lb-status').textContent.includes('pk-button'), 'the selection is announced');
+        t.eq(host.querySelector('pk-code-block').textContent, builder.toHtml(), 'the HTML tab follows the page');
+        builder.destroy(); t.ok(!host.querySelector('.lb'));
+    }],
+    ['layout builder module: the palette comes from the element API, the inspector edits props (enum, boolean, invalid number) and hostile models and markup are refused', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const problems = []; let saved = null;
+        const builder = await mountLayoutBuilder(host, { html: '<pk-card heading="Open"><p>Waiting</p></pk-card>', onsave: e => { saved = e; } });
+        builder.on('problem', e => problems.push(e.code));
+        await t.load(host);
+        const api = await (await fetch(new URL('../../dist/elements/api.json', import.meta.url))).json();
+        const tags = () => [...host.querySelectorAll('.lb-palette pk-button[data-tag]')].map(b => b.dataset.tag);
+        t.eq(new Set(tags()).size, tags().length, 'each element appears once');
+        t.ok(tags().length >= api.length, 'every element of the API is offered (plus the native content tags)');
+        const search = host.querySelector('pk-input[type=search]');
+        search.value = 'tabs'; search.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        t.ok(tags().includes('pk-tabs') && tags().length < 8, 'search narrows the palette');
+        builder.select(builder.getModel().nodes[0].id); await t.load(host);
+        const control = attr => host.querySelector('.lb-form [data-attr="' + attr + '"]');
+        const fire = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true, composed: true }));
+        control('heading').value = 'Renamed'; fire(control('heading'), 'input'); await t.settle();
+        t.eq(builder.getModel().nodes[0].props.heading, 'Renamed', 'a string prop edits the model');
+        control('tone').value = 'error'; fire(control('tone'), 'change'); await t.settle();
+        t.eq(host.querySelector('.lb-page pk-card').getAttribute('tone'), 'error', 'an enum prop reaches the live element');
+        control('flush').checked = true; fire(control('flush'), 'change'); await t.settle();
+        t.eq(builder.getModel().nodes[0].props.flush, true, 'a boolean prop is present or absent');
+        control('level').value = 'abc'; fire(control('level'), 'input'); await t.settle();
+        t.ok(control('level').hasAttribute('invalid') && !('level' in builder.getModel().nodes[0].props), 'an invalid number is refused and marked');
+        t.ok(problems.includes('invalid'), 'the refusal is reported');
+        t.ok(host.querySelectorAll('.lb-inspector pk-accordion-item').length > 3, 'the element inspector shows the documentation');
+        const id = builder.insert('pk-badge');
+        t.ok(id && builder.getModel().nodes[0].slots[''].some(c => c.tag === 'pk-badge'), 'a palette insert goes inside the selected container');
+        const hostile = builder.setModel({ version: 1, seq: 2, nodes: [{ id: 'n1', tag: 'script', props: {}, slots: {} }] });
+        t.ok(!hostile.ok && builder.getModel().nodes[0].tag === 'pk-card', 'a model with a script tag is refused and the page is kept');
+        const markup = builder.setHtml('<p onclick="x()">Hi</p><script>alert(1)</script><a href="' + 'java' + 'script:x">l</a>');
+        t.ok(markup.problems.length >= 3 && !/script|onclick|javascript/.test(builder.toHtml()), 'markup is sanitised on the way in');
+        host.querySelector('.lb pk-button[data-action=save]').click(); await t.settle();
+        t.ok(saved && saved.html === builder.toHtml() && saved.model === builder.getModel(), 'Save hands the host the model and the HTML');
+        builder.destroy();
     }],
 ];

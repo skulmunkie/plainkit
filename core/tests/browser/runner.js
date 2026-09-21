@@ -42,10 +42,14 @@ async function sources() {
 
 const list = document.getElementById('results');
 const results = [];
+const CASE_TIMEOUT_MS = 60000;
 for (const [name, fn] of cases) {
     const started = performance.now();
     const li = document.createElement('li');
-    try { await fn(t); li.className = 'tb-pass'; li.textContent = name; results.push({ name, ok: true, ms: Math.round(performance.now() - started) }); }
+    // A case that never settles must fail by name, not stall the whole run (and the report) forever.
+    let timer;
+    const stalled = new Promise((_, reject) => { timer = setTimeout(() => reject(new Failure(`did not finish in ${CASE_TIMEOUT_MS / 1000} s`)), CASE_TIMEOUT_MS); });
+    try { await Promise.race([fn(t), stalled]); clearTimeout(timer); li.className = 'tb-pass'; li.textContent = name; results.push({ name, ok: true, ms: Math.round(performance.now() - started) }); }
     catch (e) { li.className = 'tb-fail'; li.textContent = `${name}: ${e.message}`; results.push({ name, ok: false, ms: Math.round(performance.now() - started), error: String(e.message ?? e) }); }
     list.append(li);
 }
