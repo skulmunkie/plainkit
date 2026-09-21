@@ -262,6 +262,15 @@ export const dataDisplayCases = [
         t.ok([...plain.shadowRoot.querySelectorAll('tbody tr')].every(x => !x.hasAttribute('tabindex')), 'a table that is not clickable adds no tab stops');
     }],
 
+    ['table: a click on slotted cell content raises pk-row-click; a slotted button keeps its click', async t => {
+        const el = await t.mount(`<pk-table clickable columns='[{"key":"a","label":"A"},{"key":"b","label":"B"},{"key":"c","label":"C"}]' rows='[{"id":1,"a":"plain","b":"","c":""},{"id":2,"a":"x","b":"","c":""}]'><span slot="cell-1-b">badge</span><button slot="cell-1-c" type="button">go</button></pk-table>`);
+        await until(() => [...el.shadowRoot.querySelectorAll('tbody tr')].filter(x => x.tabIndex === 0).length === 2, 'focusable rows');
+        const got = []; el.addEventListener('pk-row-click', e => got.push(e.detail.id));
+        el.shadowRoot.querySelector('tbody td').click(); t.eq(got.join(), '1', 'a plain text cell');
+        el.querySelector('span').click(); t.eq(got.join(), '1,1', 'a slotted span');
+        el.querySelector('button').click(); t.eq(got.join(), '1,1', 'a slotted button keeps its click');
+    }],
+
     ['table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"note","label":"Note","hidePhone":true}]' rows='[{"id":1,"sku":"A","note":"n1"}]'></pk-table>`;
