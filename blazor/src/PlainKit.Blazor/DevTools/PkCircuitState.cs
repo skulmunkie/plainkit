@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components.Server.Circuits;
-
 namespace PlainKit.Blazor;
 
 /// <summary>Where a Blazor Server circuit is.</summary>
@@ -18,10 +16,11 @@ public enum PkCircuitPhase
 }
 
 /// <summary>
-/// A Blazor Server circuit's own lifecycle, from the framework's <see cref="CircuitHandler"/> events (the only source of real circuit state). Scoped, so
-/// each circuit has its own. It is registered by <c>AddPlainKit</c> on Blazor Server and not in a browser (WebAssembly), where there is no circuit.
+/// A Blazor Server circuit's own lifecycle, from the framework's circuit events (the only source of real circuit state). Scoped, so each circuit has its own.
+/// It is registered by <c>AddPlainKit</c> on Blazor Server and not in a browser (WebAssembly), where there is no circuit. A plain class on purpose: the
+/// server-only <c>CircuitHandler</c> that fills it is internal (<c>PkCircuitHandler</c>), so this assembly can be loaded and scanned in a browser.
 /// </summary>
-public sealed class PkCircuitState : CircuitHandler
+public sealed class PkCircuitState
 {
     /// <summary>Where the circuit is now.</summary>
     public PkCircuitPhase Phase { get; private set; }
@@ -44,37 +43,26 @@ public sealed class PkCircuitState : CircuitHandler
     /// <summary>How many times it came back after a drop.</summary>
     public int Reconnects { get; private set; }
 
-    /// <inheritdoc />
-    public override Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
+    internal void Opened(string id)
     {
-        CircuitId = circuit.Id;
+        CircuitId = id;
         OpenedAt = DateTimeOffset.UtcNow;
         Phase = PkCircuitPhase.Opened;
-        return Task.CompletedTask;
     }
 
-    /// <inheritdoc />
-    public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
+    internal void ConnectionUp()
     {
         if (Disconnects > 0) Reconnects++;
         ConnectedAt = DateTimeOffset.UtcNow;
         Phase = PkCircuitPhase.Connected;
-        return Task.CompletedTask;
     }
 
-    /// <inheritdoc />
-    public override Task OnConnectionDownAsync(Circuit circuit, CancellationToken cancellationToken)
+    internal void ConnectionDown()
     {
         Disconnects++;
         DisconnectedAt = DateTimeOffset.UtcNow;
         Phase = PkCircuitPhase.Disconnected;
-        return Task.CompletedTask;
     }
 
-    /// <inheritdoc />
-    public override Task OnCircuitClosedAsync(Circuit circuit, CancellationToken cancellationToken)
-    {
-        Phase = PkCircuitPhase.Closed;
-        return Task.CompletedTask;
-    }
+    internal void Closed() => Phase = PkCircuitPhase.Closed;
 }

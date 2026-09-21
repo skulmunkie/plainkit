@@ -9,7 +9,7 @@ The package carries the whole toolkit as static web assets (`_content/PlainKit.B
 This package is a pre-release. What it covers and what it does not:
 
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
-- **Not verified:** Blazor WebAssembly. It has not been run in a WebAssembly host, so treat it as untested there (the Files tool is server-side only by design).
+- **Verified:** standalone Blazor WebAssembly (.NET 10, a normal publish needs no wasm workload), driven in headless Chrome against the `PlainKit.WasmPlayground` sample (`blazor/samples/`): the assets, the `pk-*` events into `EventCallback`s, `@bind-Value`, `@bind-Checked` and `@bind-IsOpen`, `PkTable<TItem>` events, `PkDataList<TItem>`, `AddPlainKit` with the `ILogger` forwarder and `IPkLog`, and the dev tools page. See "Blazor WebAssembly" for the setup and the limits: the Files tool needs a server, and AOT and the `InteractiveWebAssembly` render mode of a Web App were not run.
 - **Every element has a component.** `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable<TItem>` (the data table) are hand-written in `Components/`, and so is `PkDataList<TItem>` (a searchable, sortable, server-paged list; it has no element of its own): see "Tables and lists" below.
 - **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
 - **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
@@ -106,6 +106,8 @@ Fields left at their default are left out of the JSON. Two former parameters bec
 
 ## Set up
 
+This is the Blazor Server / Web App setup; for a standalone Blazor WebAssembly app see "Blazor WebAssembly" below.
+
 Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the components and `PkLogLevel`).
 
 ```csharp
@@ -168,6 +170,17 @@ The most-used parameters (the full lists are in the references):
 - `<PkStyles InHead="true" />` renders through `HeadContent` into `<HeadOutlet />`, which comes after the app's stylesheets in the standard `App.razor`. That was how `PkStyles` worked in the first alpha; use it only if you want the base layer last.
 - Direct link, no component: `<link rel="stylesheet" href="@PkAssets.CssVersioned" />` in the head, first. `PkAssets.Css` is the file, `PkAssets.CssMin` the minified one and `PkAssets.CssMinVersioned` that with a cache-busting query. `<PkStyles Minified="true" Versioned="false" />` picks the same variants.
 - **Cache busting.** `PkAssets.Versioned("js/plainkit.js")` (any file of the toolkit, relative to `PkAssets.Root` or a full path) appends `?v=` and the first 12 characters of the file's SHA-384, so a browser fetches the file again exactly when its content changed. The hash comes from the package's manifest, embedded in the assembly and read once: no file access per request. `PkAssets.Integrity(path)` gives the full `sha384-...` value for an `integrity` attribute. `PkStyles` uses the versioned URL by default (`Versioned="false"` turns it off).
+
+### Blazor WebAssembly
+
+A standalone Blazor WebAssembly app needs no server and no extra package; the sample `blazor/samples/PlainKit.WasmPlayground` is the whole thing (build it explicitly with `dotnet publish blazor/samples/PlainKit.WasmPlayground -c Release -o <dir>`; it is not in `PlainKit.slnx` because it downloads the browser runtime packs). What differs from Server:
+
+- **Register the same way** (`builder.Services.AddPlainKit(...)` in `Program.cs`, including `o.Logging.ForwardToILogger`; the default browser console logger writes the forwarded entries to the console). No `CircuitHandler` is registered (there is no circuit): the dev tools' Blazor tab shows "Blazor WebAssembly" and no circuit facts.
+- **The stylesheet goes first in the head of `wwwroot/index.html`**, as a plain link: `<link rel="stylesheet" href="_content/PlainKit.Blazor/plainkit/plainkit.css" />` (a static page has no component before the head).
+- **Events work through the library's JavaScript initializer.** Blazor WebAssembly calls its `afterStarted` hook (`afterWebStarted` is only called by the Web App runtime); the initializer registers every `pk-*` event there, so `@onpk-...` and every generated `EventCallback` work.
+- **The dev tools page** (`/_plainkit`) is routable with `AdditionalAssemblies` on the router, as on Server (a standalone app has no `MapRazorComponents`, so no `AddPlainKitDevTools`). It serves in the `Development` environment (`dotnet run`, or a publish with `-p:WasmApplicationEnvironmentName=Development`) and otherwise says it is off: set `AddPlainKit(o => o.DevTools = true)`. The **Files** workspace reads a folder on the server, so in a browser-only app it shows "No source to browse" instead of failing.
+- **The package keeps the ASP.NET Core server framework a private compile-time reference** (`PrivateAssets="all"`), because a public framework reference cannot be restored by a WebAssembly app (NETSDK1082). A Blazor Server app has the framework from its own SDK; a plain class library that uses the package's server types needs its own `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
+- **Not verified:** AOT, the `InteractiveWebAssembly` render mode of a Blazor Web App (the same components, but no such host was run) and an ASP.NET Core hosted deployment.
 
 ### Page header
 
@@ -277,7 +290,7 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. To see the forwarder work, put a misspelt element on a page, for example `<pk-buton></pk-buton>`: the SDK's loader logs the warning "`<pk-buton>` is not a Plainkit element" (scope `loader`, once per tag and page), and it appears in your `ILogger` output as a `Warning` in the category `PlainKit.loader`. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It is designed to work in Blazor Server and WebAssembly (only Server is verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
+Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. To see the forwarder work, put a misspelt element on a page, for example `<pk-buton></pk-buton>`: the SDK's loader logs the warning "`<pk-buton>` is not a Plainkit element" (scope `loader`, once per tag and page), and it appears in your `ILogger` output as a `Warning` in the category `PlainKit.loader`. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It works in Blazor Server and in standalone WebAssembly (both verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
 
 ```csharp
 @inject IPkLog PkLog

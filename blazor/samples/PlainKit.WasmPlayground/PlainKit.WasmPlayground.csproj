@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- A standalone Blazor WebAssembly host for PlainKit.Blazor: proves the package works with no server (issue #76). Not packed, and not in PlainKit.slnx
+       (it needs the wasm build of the runtime, so it is built explicitly: dotnet publish blazor/samples/PlainKit.WasmPlayground -c Release -o <dir>). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>PlainKit.WasmPlayground</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <ProjectReference Include="..\..\src\PlainKit.Blazor\PlainKit.Blazor.csproj" />
+  </ItemGroup>
+
+</Project>

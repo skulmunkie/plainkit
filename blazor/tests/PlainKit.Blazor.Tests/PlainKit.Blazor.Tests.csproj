@@ -22,7 +22,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- PlainKit.Blazor keeps its framework reference private (so it does not reach a WebAssembly app); the tests exercise the server types. -->
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\src\PlainKit.Blazor\PlainKit.Blazor.csproj" />
   </ItemGroup>
 

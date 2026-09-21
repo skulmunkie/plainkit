@@ -21,6 +21,13 @@ test('content/ and contentFiles/ entries are refused', () => {
     assert.match(p[1], /contentFiles\//);
 });
 
+test('a frameworkReference in the nuspec is refused (a Blazor WebAssembly app cannot restore it)', () => {
+    const bad = '<package><metadata><id>PlainKit.Blazor</id><version>1.2.3-alpha.1</version><frameworkReferences><group targetFramework="net10.0"><frameworkReference name="Microsoft.AspNetCore.App" /></group></frameworkReferences></metadata></package>';
+    const p = checkPackage(input({ nuspec: bad }));
+    assert.equal(p.length, 1);
+    assert.match(p[0], /frameworkReference.*WebAssembly/);
+});
+
 test('missing pieces are named', () => {
     const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|plainkit-blazor\/SKILL|manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
     assert.equal(p.filter(x => x.startsWith('missing')).length, 3);

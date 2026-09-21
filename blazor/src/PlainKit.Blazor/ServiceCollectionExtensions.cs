@@ -27,6 +27,6 @@ public static class ServiceCollectionExtensions
     private static void AddCircuitState(IServiceCollection services)
     {
         services.AddScoped<PkCircuitState>();
-        services.AddScoped<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler>(sp => sp.GetRequiredService<PkCircuitState>());
+        services.AddScoped<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler>(sp => new PkCircuitHandler(sp.GetRequiredService<PkCircuitState>()));
     }
 }

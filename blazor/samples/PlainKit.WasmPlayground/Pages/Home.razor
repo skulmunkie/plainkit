@@ -1,0 +1,78 @@
+@page "/"
+@inject IPkLog PkLog
+@inject Microsoft.AspNetCore.Components.WebAssembly.Hosting.IWebAssemblyHostEnvironment Env
+
+@* Issue #76: the generated components in a Blazor WebAssembly host. Each state shows in an element with an id so a script can check it in a real browser. *@
+<div style="padding:1rem;display:grid;gap:1rem;max-width:44rem">
+    <h1>PlainKit on WebAssembly</h1>
+    <p>Host: <code id="out-host">@(OperatingSystem.IsBrowser() ? "browser" : "not a browser")</code>, environment: <code id="out-env">@Env.Environment</code></p>
+
+    <PkInput @bind-Value="_text" Placeholder="Type here" AriaLabel="Text" />
+    <p>Input value in C#: <code id="out-text">@_text</code></p>
+    <PkButton OnClick="@(() => _text = "set from C#")">Set input from C#</PkButton>
+
+    <PkCheckbox @bind-Checked="_checked">Check me</PkCheckbox>
+    <p>Checkbox in C#: <code id="out-checked">@_checked</code></p>
+    <PkButton OnClick="@(() => _checked = !_checked)">Toggle checkbox from C#</PkButton>
+
+    <PkButton Variant="ButtonVariant.Primary" OnClick="@(() => _clicks++)">Primary click</PkButton>
+    <p>Clicks: <code id="out-clicks">@_clicks</code></p>
+
+    <PkButton OnClick="@(() => _open = true)">Open dialog</PkButton>
+    <PkDialog @bind-IsOpen="_open" Title="A dialog" OnClose="@(() => _closes++)">
+        <ChildContent><p>Dialog body</p></ChildContent>
+        <FooterContent><PkButton OnClick="@(() => _open = false)">Close from C#</PkButton></FooterContent>
+    </PkDialog>
+    <p>Dialog open in C#: <code id="out-open">@_open</code> (close events: <code id="out-closes">@_closes</code>)</p>
+
+    <PkTable TItem="Person" Items="_people" Columns="_columns" IdOf="p => p.Id.ToString()" Label="People" Clickable="true" id="table"
+             OnSort="@(e => _sort = $"{e.Key} {e.Direction}")" OnRowClick="@(e => _row = e.Item.Name)" />
+    <p>Table sort: <code id="out-sort">@_sort</code> | row: <code id="out-row">@_row</code></p>
+
+    <PkDataList TItem="Person" Load="LoadAsync" Columns="_columns" IdOf="p => p.Id.ToString()" Label="Everyone" PagerLabel="Pages"
+                SearchPlaceholder="Search people" PageSize="5" id="list" />
+    <p>Loads: <code id="out-loads">@_loads</code>, last request: <code id="out-request">@_last</code></p>
+
+    <PkButton OnClick="WriteLogs">Write logs with IPkLog</PkButton>
+    <pk-nope></pk-nope>
+    <PkLogs Height="16rem" />
+</div>
+
+@code {
+    private sealed record Person(int Id, string Name, string City);
+
+    private string? _text = "start";
+    private bool _checked, _open;
+    private int _clicks, _closes, _loads;
+    private string _sort = "-", _row = "-", _last = "-";
+
+    private static readonly string[] Names = ["Ada", "Grace", "Alan", "Edsger", "Barbara", "Linus", "Margaret", "Dennis", "Ken", "Radia", "Tim", "Donald"];
+    private readonly List<Person> _people = Enumerable.Range(1, 12).Select(i => new Person(i, Names[i - 1], i % 2 == 0 ? "London" : "Oslo")).ToList();
+
+    private readonly IReadOnlyList<PkTableColumn<Person>> _columns =
+    [
+        new() { Key = "name", Label = "Name", Sortable = true },
+        new() { Key = "city", Label = "City", Sortable = true },
+    ];
+
+    private async Task<PkListResult<Person>> LoadAsync(PkListRequest request)
+    {
+        _loads++;
+        _last = $"{request.Search ?? "-"}|{request.SortKey ?? "-"}|p{request.Page}";
+        await InvokeAsync(StateHasChanged); // the list re-renders itself, not this page: show the counters
+        await Task.Delay(50, request.CancellationToken);
+        IEnumerable<Person> q = _people;
+        if (request.Search is { } s) q = q.Where(p => p.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
+        q = request.SortKey == "name" ? (request.Descending ? q.OrderByDescending(p => p.Name) : q.OrderBy(p => p.Name)) : q.OrderBy(p => p.Id);
+        var list = q.ToList();
+        return new PkListResult<Person>(list.Skip(request.Skip).Take(request.PageSize).ToList(), list.Count);
+    }
+
+    protected override async Task OnInitializedAsync() => await PkLog.WriteAsync(PkLogLevel.Info, "wasm", "page initialised");
+
+    private async Task WriteLogs()
+    {
+        await PkLog.WriteAsync(PkLogLevel.Warn, "wasm", "warn from IPkLog", "detail-1");
+        await PkLog.WriteAsync(PkLogLevel.Error, "wasm", "error from IPkLog");
+    }
+}

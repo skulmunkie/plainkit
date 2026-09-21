@@ -341,7 +341,8 @@ test('every enum, event-args class and option of the Blazor package is in a refe
 test('the Blazor skill states the alpha status from the manifest: WebAssembly, missing components, the wrapper-only parameters', () => {
     const skill = gen.get('plainkit-blazor/SKILL.md');
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
-    assert.match(skill, /Blazor Server is verified\. Blazor WebAssembly is not/);
+    assert.match(skill, /Blazor Server and standalone Blazor WebAssembly are verified/);
+    assert.match(gaps, /Standalone Blazor WebAssembly is verified.*Not run: AOT/);
     // PkTable is hand-written now (the last element without a component), and so is PkDataList, which has no element at all.
     assert.ok(src.manifest.skipped.some(s => s.component === 'PkTable' && s.handWritten), 'PkTable is hand-written');
     assert.ok(src.manifest.skipped.every(s => s.handWritten), 'every element has a component');

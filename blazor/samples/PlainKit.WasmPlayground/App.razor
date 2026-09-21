@@ -1,0 +1,7 @@
+@* AdditionalAssemblies is what makes the /_plainkit dev tools page in PlainKit.Blazor routable. *@
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PkAssets).Assembly }">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" />
+    </Found>
+    <NotFound><p>Not found.</p></NotFound>
+</Router>
