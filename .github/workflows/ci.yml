@@ -1,5 +1,18 @@
 name: CI
 
+# The checks live in scripts/verify.mjs and each job runs one group of them (`node scripts/verify.mjs --only <job>`), so a failure reproduces on a
+# developer machine with the same command and the same FIX message. Run everything locally: node scripts/verify.mjs (--fast for the inner loop).
+#
+# Speed: every job starts at once (no job waits for another); budgets (seconds): lint 15, node 30, dotnet 45, the whole run 60. Each job appends
+# its time against its budget to the job summary (a warning line when over; a budget is never raised to get green, the check is made faster).
+# Generated files are not in git: every job that needs them bootstraps first (a few seconds; part of the verify groups).
+#
+# Path filters without a filter action: a job that has nothing to check finishes green in a few seconds after `node scripts/ci-changes.mjs <job>`
+# says so (scripts/ci-changes.mjs has the rules). It is done inside each job, not in a first job, because a required check that is skipped counts
+# as passed only when the job exists in the run, and because no job then waits for a runner just to be told what to do.
+#
+# Required checks (see .github/REPO-SETTINGS.md): "Changelog (fragments)", "Toolkit (node)", "Blazor (dotnet)". The browser and package jobs
+# run but are not required yet. "CI summary" writes the single sticky pull request comment with the FIX lines of whatever failed.
 on:
   push:
     branches: [main]
@@ -13,141 +26,268 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# core: the vanilla toolkit. blazor: PlainKit.Blazor, which serves a copy of core/dist (scripts/publish-dist.mjs).
-# Generated files are not in git: each job that needs them runs node scripts/bootstrap.mjs first (a few seconds). Before this change the jobs took
-# about 15 s (node) and 31 s (dotnet); the bootstrap adds its own few seconds to each.
+permissions:
+  contents: read
+
 jobs:
-  core:
-    name: Toolkit (node)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      # Generated files (core/dist, the element modules, the Blazor wrappers, the skills, the package copy) are not in git: produce them first.
-      - name: Bootstrap (generate everything)
-        run: node scripts/bootstrap.mjs --quiet
-
-      - name: Node tests
-        run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
-
-      # One version for the SDK and PlainKit.Blazor (core/VERSION): every place it is stamped must agree.
-      - name: Version is consistent
-        run: node core/tools/versioning.mjs check
-
-      # A pull request that changes core/VERSION is a release pull request: its API baseline must be refreshed for that version, and the version
-      # must cover what the API changed since the previous release (a breaking change needs a major bump, or a minor one while the major is 0).
-      # Any other pull request just prints what its API changes would need.
-      - name: Release pull request checks
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch --depth=1 origin "${{ github.base_ref }}"
-          git show "origin/${{ github.base_ref }}:core/site/scorecard/api.baseline.json" > "$RUNNER_TEMP/base-baseline.json"
-          # (A version file that the base branch did not have yet is being introduced, not released.)
-          if git cat-file -e "origin/${{ github.base_ref }}:core/VERSION" 2>/dev/null && ! git diff --quiet "origin/${{ github.base_ref }}" -- core/VERSION; then
-            echo "core/VERSION changed: this is a release pull request"
-            node core/tools/versioning.mjs check --release
-            node core/tools/versioning.mjs bump --baseline "$RUNNER_TEMP/base-baseline.json" --require
-          else
-            echo "core/VERSION unchanged: not a release pull request (information only)"
-            node core/tools/versioning.mjs bump --baseline "$RUNNER_TEMP/base-baseline.json"
-          fi
-
-      # Generated output is not source controlled: after the bootstrap no tracked file may have changed and no generated path may be tracked.
-      # (That every generator is deterministic and that what is on disk is what it produces are node tests: core/tests/generated-current.test.mjs,
-      # scripts/tests/skills.test.mjs, scripts/tests/generate-blazor.test.mjs.)
-      - name: Bootstrap leaves the tree clean
-        run: node scripts/generated.mjs check
-
   # Changelog fragments (changelog/README.md): every pull request that changes more than docs adds one file to changelog/unreleased/, and the
-  # release pull request compiles them into CHANGELOG.md (so none may be left).
-  changelog:
+  # release pull request compiles them into CHANGELOG.md (so none may be left). Needs history (the merge base), not Node beyond the runner's own.
+  lint:
     name: Changelog (fragments)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      failures: ${{ steps.verify.outputs.failures }}
     steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Fragments are valid
-        run: node scripts/changelog.mjs check
-
       # The label `no-changelog` (with the reason in the description) skips the "needs a fragment" rule.
-      - name: Pull request adds a fragment
+      - name: Changelog checks (node scripts/verify.mjs --only lint)
+        id: verify
         env:
           PK_NO_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'no-changelog') && '1' || '' }}
-        run: node scripts/changelog.mjs check-pr --base "origin/${{ github.base_ref }}"
+        run: node scripts/verify.mjs --only lint
 
-      # A release pull request (core/VERSION changed, as in "Release pull request checks") compiles the fragments into CHANGELOG.md.
-      - name: Release pull request has compiled the changelog
-        run: |
-          if git cat-file -e "origin/${{ github.base_ref }}:core/VERSION" 2>/dev/null && ! git diff --quiet "origin/${{ github.base_ref }}" -- core/VERSION; then
-            left=$(find changelog/unreleased -type f ! -name .gitkeep)
-            if [ -n "$left" ]; then
-              echo "core/VERSION changed (a release pull request) but fragments are left; run: node scripts/changelog.mjs compile --version <X.Y.Z>"
-              echo "$left"
-              exit 1
-            fi
-            echo "release pull request: no fragments left"
-          else
-            echo "not a release pull request"
-          fi
+      - name: Time budget
+        if: always()
+        run: node scripts/verify.mjs --budget lint
 
-  blazor:
+  # The vanilla toolkit: bootstrap, version consistency, release pull request rules, the tree stays clean, and all node tests.
+  node:
+    name: Toolkit (node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      failures: ${{ steps.verify.outputs.failures }}
+    steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs node
+
+      # The runner's own Node is older than the 22 the scripts are written for (node --test with globs needs 21+).
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+
+      # The release pull request checks compare with the base branch: fetch just its tip.
+      - name: Fetch the base branch
+        if: steps.gate.outputs.run == 'true' && github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+
+      - name: Bootstrap, version, tree, node tests (node scripts/verify.mjs --only node)
+        id: verify
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --only node
+
+      - name: Time budget
+        if: always() && steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --budget node
+
+  # PlainKit.Blazor: builds against the generated wrappers and the package copy of core/dist, then runs the xunit and bUnit tests.
+  dotnet:
     name: Blazor (dotnet)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      failures: ${{ steps.verify.outputs.failures }}
     steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs dotnet
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
 
+      # The NuGet cache (~/.nuget/packages) is keyed on the hash of these files. (There is no packages.lock.json: central package management pins the
+      # versions in Directory.Packages.props, so the props file and the projects say what would be restored.)
       - uses: actions/setup-dotnet@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/*.csproj
 
-      # The Pk* wrappers and the package's copy of core/dist are generated, not in git; the project refuses to build without them.
-      - name: Bootstrap (generate everything)
-        run: node scripts/bootstrap.mjs --quiet
+      - name: Bootstrap, build and test (node scripts/verify.mjs --only dotnet)
+        id: verify
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --only dotnet
 
-      - name: Build and test
-        run: dotnet test PlainKit.slnx --configuration Release
+      - name: Time budget
+        if: always() && steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --budget dotnet
 
-  # The in-browser element suite (core/tests/browser), on demand only (Actions > CI > Run workflow): not a required check, see core/README.md.
-  # It uses the Chrome that ubuntu-latest already has and no npm package; the run refreshes core/tests/browser/report.json on the runner only.
+  # The in-browser element suite (core/tests/browser) in the headless Chrome that ubuntu-latest has, on pull requests that touch element or module sources,
+  # browser cases or the runner (and on a manual run). NOT required yet: the owner promotes it after a few clean runs. A failure is rerun once; a pass
+  # on the rerun is reported as "flaky" (job summary, annotation, the pull request comment), two failures fail the job.
   browser:
-    name: Element suite in a real browser (manual)
-    if: github.event_name == 'workflow_dispatch'
+    name: Browser (element suite)
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+    outputs:
+      failures: ${{ steps.second.outputs.failures || steps.first.outputs.failures }}
+      flaky: ${{ steps.flaky.outputs.flaky }}
     steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs browser
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
 
-      - name: Bootstrap (generate everything)
-        run: node scripts/bootstrap.mjs --quiet
+      - name: Element suite (node scripts/verify.mjs --only browser)
+        id: first
+        if: steps.gate.outputs.run == 'true'
+        continue-on-error: true
+        run: node scripts/verify.mjs --only browser
 
-      - name: Run the suite and check the attestation test against it
-        env:
-          PK_CHROME: /usr/bin/google-chrome
-        run: node scripts/attest-browser.mjs
+      - name: Element suite, rerun once
+        id: second
+        if: steps.first.outcome == 'failure'
+        continue-on-error: true
+        run: node scripts/verify.mjs --only browser
+
+      - name: Flaky?
+        id: flaky
+        if: steps.first.outcome == 'failure' && steps.second.outcome == 'success'
+        run: |
+          echo "flaky=true" >> "$GITHUB_OUTPUT"
+          echo "::warning title=flaky browser suite::the first run failed and the rerun passed; note it on the issue if it happens again"
+          echo "FLAKY: the first run failed and the rerun passed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Failed twice
+        if: steps.first.outcome == 'failure' && steps.second.outcome == 'failure'
+        run: |
+          echo "the element suite failed twice; see the FIX line above"
+          exit 1
 
       - name: Keep the report
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: browser-report
           path: core/tests/browser/report.json
           if-no-files-found: ignore
+
+      - name: Time budget
+        if: always() && steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --budget browser
+
+  # The NuGet package, only when what goes into it changed: dotnet pack, then scripts/check-package.mjs (no content/ or contentFiles/, static web
+  # assets and skills present, the version stamped). Nothing is pushed anywhere. Not required.
+  pack:
+    name: Package (contents)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      failures: ${{ steps.verify.outputs.failures }}
+    steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs pack
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/*.csproj
+
+      - name: Bootstrap, pack, check the package (node scripts/verify.mjs --only pack)
+        id: verify
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --only pack
+
+      - name: Time budget
+        if: always() && steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --budget pack
+
+  # One sticky comment on the pull request (marker <!-- ci-summary -->, created or updated, never a new one per push): what failed, the FIX line of each
+  # failed check, the log links, and the whole run's time against its 60 s budget. Text and rules: scripts/ci-report.mjs. Only this job may write
+  # to pull requests. On a pull request from a fork the token is read-only: the comment is skipped with a warning and the job summary has the text.
+  ci-summary:
+    name: CI summary
+    if: always() && github.event_name == 'pull_request'
+    needs: [lint, node, dotnet, browser, pack]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - name: Write the summary and the sticky comment
+        uses: actions/github-script@v7
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const { buildReport, MARKER, RUN_BUDGET } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/ci-report.mjs`);
+            const { owner, repo } = context.repo;
+            const run_id = context.runId;
+            const needs = JSON.parse(process.env.NEEDS);
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { owner, repo, run_id, per_page: 100 });
+            const run = (await github.rest.actions.getWorkflowRun({ owner, repo, run_id })).data;
+            const runSeconds = (Date.now() - new Date(run.run_started_at).getTime()) / 1000;
+            const report = buildReport({ needs, jobs, runSeconds, runUrl: run.html_url });
+            await core.summary.addRaw(report.summary, true).write();
+            if (runSeconds > RUN_BUDGET) core.warning(`the run took ${Math.round(runSeconds)} s, over its ${RUN_BUDGET} s budget`);
+            if (report.cancelled) { core.info('a job was cancelled (a newer push replaced this run): no comment'); return; }
+            try {
+              const issue_number = context.payload.pull_request.number;
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+              const mine = comments.find(c => c.body && c.body.includes(MARKER));
+              if (mine) await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body: report.body });
+              else if (report.problems > 0) await github.rest.issues.createComment({ owner, repo, issue_number, body: report.body });
+            } catch (e) {
+              core.warning(`could not write the pull request comment (a pull request from a fork has a read-only token): ${e.message}`);
+            }
