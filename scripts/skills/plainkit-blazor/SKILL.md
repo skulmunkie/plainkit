@@ -174,7 +174,7 @@ app.MapRazorComponents<App>()
 
 ### Show a searchable, server-paged list (`PkDataList`)
 
-`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time; a new search, sort or page size goes back to page 1, a superseded request is cancelled (pass `request.CancellationToken` to the database), a total that shrinks below the current page settles on the last page, `ReloadAsync()` reloads. Every parameter: `references/data-list.md`.
+`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time; a new search, sort or page size goes back to page 1, a superseded request is cancelled (pass `request.CancellationToken` to the database), a total that shrinks below the current page settles on the last page, `ReloadAsync()` reloads. Every parameter: `references/data-list.md`. Page anything over a few hundred rows (here or with `Manual` and `PkPagination`): `pk-table` draws every row it is given, and a `Selectable` table sends every selected id back in one event, so about 5,000 numeric ids exceed SignalR's default 32 KB `MaximumReceiveMessageSize` and the circuit is closed.
 
 ```razor
 <PkDataList TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
