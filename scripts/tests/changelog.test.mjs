@@ -33,7 +33,7 @@ test('checkFragments: names, stray files and folders', () => {
 });
 
 test('isDocsOnly / checkPr', () => {
-    for (const p of ['README.md', 'core/README.md', '.github/pull_request_template.md', 'changelog/unreleased/1-a.md', 'changelog/README.md']) assert.ok(isDocsOnly(p), p);
+    for (const p of ['README.md', 'core/README.md', '.github/pull_request_template.md', 'changelog/unreleased/1-a.md', 'changelog/README.md', 'core/tests/browser/report.json']) assert.ok(isDocsOnly(p), p);
     for (const p of ['core/elements/pk-tabs/pk-tabs.js', '.github/workflows/ci.yml', 'scripts/changelog.mjs']) assert.ok(!isDocsOnly(p), p);
     assert.ok(checkPr([{ status: 'M', path: 'CONTRIBUTING.md' }]).ok);
     assert.ok(!checkPr([{ status: 'M', path: 'core/js/log.js' }]).ok);

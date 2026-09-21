@@ -86,10 +86,10 @@ export function checkFragments(files) {
 
 // ---------------------------------------------------------------- pull request check
 
-/** A path that does not need a changelog entry: markdown anywhere, docs under .github, and the changelog folder itself. */
+/** A path that does not need a changelog entry: markdown anywhere, docs under .github, the changelog folder itself, and the browser attestation report (evidence, not a change). */
 export function isDocsOnly(p) {
     p = p.replace(/\\/g, '/');
-    return /\.md$/i.test(p) || p.startsWith('changelog/') || (p.startsWith('.github/') && /\.md$/i.test(p));
+    return /\.md$/i.test(p) || p.startsWith('changelog/') || (p.startsWith('.github/') && /\.md$/i.test(p)) || p === 'core/tests/browser/report.json';
 }
 
 /**
