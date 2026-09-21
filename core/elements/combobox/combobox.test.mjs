@@ -24,3 +24,13 @@ test('typeaheadIndex finds the next label starting with the typed letters, wrapp
     assert.equal(typeaheadIndex(labels, 'z', 0), -1);
     assert.equal(typeaheadIndex(labels, 'su', -2), -1);
 });
+
+// Performance guard (audit #106): the option build ran a shadow-root query per option, which made 5,000 options take seconds (quadratic). The
+// nodes it needs are looked up once, before the loop.
+test('the option build does not query the shadow root once per option', async () => {
+    const { readFileSync } = await import('node:fs');
+    const source = readFileSync(new URL('./combobox.js', import.meta.url), 'utf8');
+    const body = source.slice(source.indexOf('.forEach((c, i) => {'), source.indexOf("pop.append(this.part('empty'))"));
+    assert.ok(body.length > 50, 'found the option loop');
+    assert.doesNotMatch(body, /this\.part\(|querySelector/, 'no lookup inside the per-option loop');
+});
