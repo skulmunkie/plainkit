@@ -97,6 +97,16 @@ public sealed class PkTableTests : TestContext
     }
 
     [Fact]
+    public void CurrentRow_is_a_host_set_attribute_and_absent_when_unset()
+    {
+        var cut = Render(p => p.Add(x => x.CurrentRow, "1043"));
+        Assert.Equal("1043", cut.Find("pk-table").GetAttribute("current-row"));
+
+        cut.SetParametersAndRender(p => p.Add(x => x.CurrentRow, null));
+        Assert.False(cut.Find("pk-table").HasAttribute("current-row"));
+    }
+
+    [Fact]
     public async Task A_sort_reaches_OnSort_and_the_two_way_parameters()
     {
         string? sort = null;

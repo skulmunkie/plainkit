@@ -25,7 +25,8 @@ th[aria-sort="none"] button::after { content: " \2195"; opacity: 0.5; }
 th[aria-sort="ascending"] button::after { content: " \2191"; }
 th[aria-sort="descending"] button::after { content: " \2193"; }
 [data-check] { inline-size: var(--space-8); text-align: center; }
-tr[data-selected] { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+tr[data-selected], tr[aria-current] { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+tr[aria-current] td:first-child { box-shadow: inset 3px 0 0 var(--color-accent); }
 tr[data-filters] th { padding-block: var(--space-1); text-transform: none; letter-spacing: 0; }
 tr[data-filters] input { inline-size: 100%; min-inline-size: 6rem; }
 tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; background: repeating-linear-gradient(to bottom, var(--color-surface-alt) 0 1em, transparent 1em 1.5em); border-radius: var(--radius-sm); animation: pulse 1.4s ease-in-out infinite; }

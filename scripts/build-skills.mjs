@@ -261,7 +261,7 @@ function templatesMd(src) {
     const out = ['# Page templates', '', stamp(src, 'core/samples/templates and the element API'), '',
         'Full-page starting points, one folder each in `dist/gallery/templates/<id>/`. The markup below is the page content (the demo pages put it inside `<main id="content">`, or use a `pk-workspace` with that id); the demo pages wrap it in a demo shell (`chrome.js`), which you should not copy: build your own frame from `pk-app-shell` with `pk-side-nav` or `pk-navbar` (see `elements-navigation.md`, and the `overlays-nav` template, which shows one). To start from a template: put its markup in your page, keep the page script if one is shown (it is what the demo runs after the shell; its imports assume `plainkit/` is a copy of `dist` next to your page), and change the text and data.', ''];
     for (const t of src.samples.templates) {
-        out.push(`## ${t.id}: ${t.title}`, '', t.summary, '', `Elements used: ${t.used.map(u => code('pk-' + u)).join(' ')}.`, '', fence('html', t.main));
+        out.push(`## ${t.id}: ${t.title}`, '', t.summary, '', ...(t.notes ? [t.notes, ''] : []), `Elements used: ${t.used.map(u => code('pk-' + u)).join(' ')}.`, '', fence('html', t.main));
         if (t.script) out.push('', 'Page script:', '', fence('js', t.script));
         out.push('');
     }

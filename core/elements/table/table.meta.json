@@ -87,6 +87,13 @@
       "description": "Rows are activatable: they show a pointer, take the keyboard (each row is a tab stop; Enter or Space on the row) and fire pk-row-click."
     },
     {
+      "name": "currentRow",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The id of the row that is open elsewhere (the record shown in a detail pane): that row is tinted, marked with an accent bar and given aria-current. The host sets it (from the route, or from pk-row-click); the element never changes it. Empty marks no row."
+    },
+    {
       "name": "filterable",
       "type": "boolean",
       "default": false,
@@ -334,7 +341,7 @@
       "description": "Sort programmatically. sortBy(null) clears the sort."
     }
   ],
-  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML.",
+  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML. The current row (current-row) carries aria-current=\"true\", so a screen reader announces which record is open.",
   "examples": [
     {
       "title": "Sortable, selectable table",
