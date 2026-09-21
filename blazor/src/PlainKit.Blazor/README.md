@@ -43,6 +43,30 @@ In the Development environment, `/_plainkit` serves the toolkit's own tools, all
 
 Serve it outside Development with `AddPlainKit(o => o.DevTools = true)`. Each tool is also a component you can place anywhere: `PkGallery`, `PkCodeExplorer`, `PkScorecard`, `PkPerformance`, `PkConsole`.
 
+## Logging
+
+The SDK has one logger (`js/log.js`). Configure it, and optionally forward its entries to `ILogger`, through `PkOptions.Logging`:
+
+```csharp
+builder.Services.AddPlainKit(o =>
+{
+    o.Logging.Level = PkLogLevel.Info;                      // the SDK's global level, applied at startup
+    o.Logging.Scopes["loader"] = PkLogLevel.Debug;          // a level for one scope
+    o.Logging.Routes[PkLogLevel.Error] = ["console", "toast"];
+    o.Logging.ForwardToILogger = true;                      // off by default
+    o.Logging.ForwardMinimumLevel = PkLogLevel.Warn;        // the forwarder's own filter
+    o.Logging.ForwardScopes.Add("pk-*");                    // empty means every scope; ForwardExcludeScopes wins
+});
+```
+
+Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It works the same in Blazor Server and WebAssembly, and its calls do not throw while prerendering or after the circuit disconnects.
+
+```csharp
+@inject IPkLog PkLog
+await PkLog.WriteAsync(PkLogLevel.Warn, "checkout", "Card declined", detail: orderId);
+await PkLog.SetLevelAsync(PkLogLevel.Debug);
+```
+
 ## Licence
 
 MIT.
