@@ -3,19 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SDK Guides</title>
+<meta name="description" content="Plainkit guides: getting started with the SDK and with Blazor, theming and tokens, logging.">
+<title>Plainkit Guides</title>
 <link rel="stylesheet" href="../../plainkit.css">
 <link rel="stylesheet" href="../site.css">
+<link rel="stylesheet" href="guides.css">
 </head>
 <body>
-<div class="site-body"><div class="site-scroll">
-    <pk-badge variant="muted">Coming soon</pk-badge>
-    <pk-empty-state heading="Guides: coming soon">
-        Help and developer guides will live here, built from the same SDK. Until then, see the README and the <a href="../gallery/index.html">gallery</a>.
-        <a slot="actions" href="../gallery/index.html">Open the gallery</a>
-    </pk-empty-state>
-</div></div>
+<div class="site-body">
+    <div class="gd-shell">
+        <pk-side-nav id="gd-nav" class="gd-nav" label="Guides"><a slot="brand" href="#/">Guides</a></pk-side-nav>
+        <div class="gd-scroll" id="gd-scroll">
+            <div class="gd-bar">
+                <pk-button variant="ghost" toggle class="gd-contents" id="gd-contents">Guides</pk-button>
+                <pk-breadcrumb id="gd-crumbs" label="Breadcrumb"></pk-breadcrumb>
+            </div>
+            <div class="gd-page">
+                <aside class="gd-aside" id="gd-aside" hidden><pk-toc id="gd-toc" for="#gd-body" levels="h2,h3" scroller="#gd-scroll" heading="On this page"></pk-toc></aside>
+                <article class="gd-article" aria-labelledby="gd-title">
+                    <h1 class="gd-title" id="gd-title" tabindex="-1"></h1>
+                    <p class="gd-summary" id="gd-summary"></p>
+                    <div class="gd-body prose" id="gd-body"></div>
+                    <pk-pager id="gd-pager" label="Guide navigation"></pk-pager>
+                </article>
+            </div>
+        </div>
+    </div>
+</div>
+<noscript><p class="gx-notice-file"><strong>The guides need JavaScript.</strong></p></noscript>
 <script type="module" src="page.js"></script>
-
 </body>
 </html>

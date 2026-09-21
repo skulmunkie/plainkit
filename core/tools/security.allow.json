@@ -5,6 +5,10 @@
       "count": 2,
       "source": "Markup assembled from gallery.data.js (generated from the element and sample folders) with every dynamic value passed through esc()."
     },
+    "site/guides/page.js": {
+      "count": 1,
+      "source": "One sink (fill): the guide HTML that tools/guides.mjs generated from the repo's own Markdown files. tools/markdown.mjs escapes raw HTML and every attribute value and refuses unsafe addresses; the HTML is parsed inert in a template before it is imported."
+    },
     "site/gallery/preview.js": {
       "count": 1,
       "source": "One sink: the pattern or layout fragment picked by id from gallery.data.js (generated from the repo's own sample files); nothing from the query string is interpolated."

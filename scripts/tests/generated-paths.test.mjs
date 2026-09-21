@@ -31,7 +31,7 @@ test('no tracked file is generated, and the release artefacts and sources are tr
 
 test('git ignores every generated sample path and none of the tracked sources', { skip: !inGit && 'not a git checkout' }, () => {
     const samples = ['core/dist/manifest.json', 'core/plainkit.css', 'core/elements/elements.css', 'core/elements/registry.js', 'core/elements/button/button.element.js', 'core/js/version.js',
-        'core/site/gallery/gallery.data.js', 'core/site/files/snapshot.json', 'core/site/scorecard/api.current.json', 'blazor/src/PlainKit.Blazor/Generated/PkButton.razor',
+        'core/site/gallery/gallery.data.js', 'core/site/guides/guides.data.js', 'core/site/files/snapshot.json', 'core/site/scorecard/api.current.json', 'blazor/src/PlainKit.Blazor/Generated/PkButton.razor',
         'blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js', 'blazor/src/PlainKit.Blazor/wwwroot/plainkit/manifest.json'];
     for (const f of samples) { assert.ok(isGenerated(f), `${f} is listed as generated`); assert.equal(git(['check-ignore', '-q', f]).status, 0, `${f} is git-ignored`); }
     for (const f of ['core/site/scorecard/api.baseline.json', 'core/tests/browser/report.json', 'core/VERSION', 'core/elements/button/button.js', 'blazor/src/PlainKit.Blazor/wwwroot/plainkit.blazor.js'])

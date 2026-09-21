@@ -40,15 +40,31 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `elements/<name>/` | The custom elements: `<name>.html` (template), `.css`, `.js` (behaviour, optional), `.meta.json` (the API); `.element.js` is generated. `registry.js` maps tag to module |
 | `layouts/<id>/` | Page anatomies (list, record, setup, tool, wizard): `<id>.html` + `<id>.meta.json` listing the elements used |
 | `samples/templates/<id>/`, `samples/patterns/<id>/` | Full-page templates and composed patterns, each in its own folder with `.html`, `.meta.json` (and `.js`: a template's page script, a pattern's optional `mount(root)` script) |
-| `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (`spacing/` only redirects to the gallery) |
+| `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (its `content/*.md` are the guides; `spacing/` only redirects to the gallery) |
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/<tool>/`; the site pages are thin hosts on them |
-| `tools/` | `build.mjs`, `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs` |
+| `tools/` | `build.mjs`, `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs`, `markdown.mjs` and `guides.mjs` (the Guides' Markdown converter and loader) |
 | `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab, attested by `report.json`) |
 | `dist/` | Generated output (not in git; `node scripts/bootstrap.mjs` from the repository root writes it); never edit |
 
-`plainkit.css`, `elements/*/*.element.js`, `site/gallery/gallery.data.js`, `site/files/snapshot.json`, `site/scorecard/api.current.json`, `js/version.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`, and none of them is in git. On a fresh clone (and after switching branches or editing sources) run `node scripts/bootstrap.mjs` from the repository root: it runs the build, then the Blazor wrapper generator, the skills generator and the package copy (about 4 seconds). `node tools/serve.mjs` runs it by itself when the files are missing. The pinned release is the GitHub release `dist` zip, or NuGet; there is no CDN link by git tag, because a tag does not carry `dist`.
+`plainkit.css`, `elements/*/*.element.js`, `site/gallery/gallery.data.js`, `site/guides/guides.data.js`, `site/files/snapshot.json`, `site/scorecard/api.current.json`, `js/version.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`, and none of them is in git. On a fresh clone (and after switching branches or editing sources) run `node scripts/bootstrap.mjs` from the repository root: it runs the build, then the Blazor wrapper generator, the skills generator and the package copy (about 4 seconds). `node tools/serve.mjs` runs it by itself when the files are missing. The pinned release is the GitHub release `dist` zip, or NuGet; there is no CDN link by git tag, because a tag does not carry `dist`.
+
+## Add a guide
+
+The Guides page (`site/guides/`) shows the Markdown files in `site/guides/content/`. A guide is `<id>.md` (lowercase letters, digits and dashes: the file name is its address, `#/<id>`) that starts with front matter and then uses `##` and below (the page shows the title as its one `h1`):
+
+```markdown
+---
+title: Getting started with the SDK
+order: 1
+summary: One sentence for the list and the top of the page.
+---
+
+## Install
+```
+
+It reads headings, paragraphs, lists, fenced code (the language becomes the label of a `pk-code-block`), tables, images (files next to the guides), links, `code`, bold and italic, and a quote is a `pk-alert` (`> [!warning] Text` picks the kind). Raw HTML is shown as text, never passed through. Link to another guide with `[text](other-guide.md#heading-id)`; the build checks that the guide and the heading exist and fails, naming the file, on any problem. `node scripts/bootstrap.mjs` converts the guides into `site/guides/guides.data.js` (generated, not in git). `scripts/tests/guides.test.mjs` checks the code in every guide against the SDK and Blazor API, so a sample must use real `pk-*` tags, props, `Pk*` components and exports.
 
 ## Add a sample
 

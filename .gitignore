@@ -37,6 +37,7 @@ _site/
 /core/elements/*/*.element.js
 /core/js/version.js
 /core/site/gallery/gallery.data.js
+/core/site/guides/guides.data.js
 /core/site/files/snapshot.json
 /core/site/scorecard/api.current.json
 /blazor/src/PlainKit.Blazor/Generated/
