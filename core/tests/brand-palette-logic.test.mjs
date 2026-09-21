@@ -2,9 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseTokenBlocks } from '../js/theme.js';
+import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { contrast } from '../js/colour.js';
-import { emptyOverrides, overrideCount, effectiveValue } from '../js/theme-editor-logic.js';
+import { emptyOverrides, overrideCount, effectiveValue, baseValue, guardLeaks, evaluatePairs } from '../js/theme-editor-logic.js';
 import { AA_PAIRS, generatePalette, applyPalette, paletteRows, hslToHex, normalizeColour, toHsl } from '../js/brand-palette-logic.js';
 import { TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
 
@@ -87,7 +87,6 @@ test('a colour it cannot read is an error and produces no overrides', () => {
 });
 
 test('every generated name and value passes the SDK override rules, so the export keeps all of it', async () => {
-    const { buildOverrides } = await import('../js/theme.js');
     const p = generatePalette('#e11d74', { warn: '#c2410c', neutral: '#334155' });
     const built = buildOverrides(p.overrides);
     assert.deepEqual(built.rejected, []);
@@ -103,4 +102,37 @@ test('applying a palette gives ordinary edits: the user can change them, and re-
     const again = applyPalette(applied, generatePalette('#0d9488').overrides, tokens);
     assert.equal(effectiveValue(again, tokens, 'light', '--color-accent'), generatePalette('#0d9488').overrides.light['--color-accent']);
     assert.equal(JSON.stringify(applied.dark) === JSON.stringify(applyPalette(applied, p.overrides, tokens).dark), true, 'idempotent');
+});
+
+// What a page in a theme shows once the emitted override CSS is adopted after the stylesheet: the :root block (dark) also matches the light page and,
+// coming later than the stylesheet's light block, beats it unless the light block sets the token too.
+const inForce = (css, theme, name) => {
+    const blocks = parseTokenBlocks(css);
+    return (theme === 'light' ? blocks.light[name] ?? blocks.dark[name] : blocks.dark[name]) ?? baseValue(tokens, theme, name);
+};
+
+test('the emitted CSS of a palette gives each theme its own values: a dark-only edit does not leak into the light theme', () => {
+    for (const brand of ['#e11d74', '#0d9488', '#ffffff', '#000000', '#1d4ed8']) {
+        const p = generatePalette(brand, { warn: '#c2410c' });
+        const applied = applyPalette(emptyOverrides(), p.overrides, tokens);
+        const css = buildOverrides(guardLeaks(applied, tokens)).css;
+        for (const theme of ['dark', 'light']) for (const [name, value] of Object.entries(p.overrides[theme])) assert.equal(inForce(css, theme, name), value, `${brand}: ${theme} ${name}`);
+        const rows = evaluatePairs(AA_PAIRS, name => inForce(css, 'light', name));
+        for (const r of rows) assert.ok(r.ratio >= 4.5, `${brand}: light ${r.fg} on ${r.bg} is ${r.ratio.toFixed(2)}:1 in the emitted CSS`);
+    }
+    // without the guard the leak is real: this is what the emitted CSS would do
+    const applied = applyPalette(emptyOverrides(), generatePalette('#e11d74').overrides, tokens);
+    assert.notEqual(inForce(buildOverrides(applied).css, 'light', '--color-input'), '#ffffff', 'unguarded, the dark input colour wins in the light theme');
+    assert.equal(inForce(buildOverrides(guardLeaks(applied, tokens)).css, 'light', '--color-input'), '#ffffff');
+});
+
+test('guardLeaks adds the stylesheet light value for a dark-only edit, and leaves shared and light edits and its input alone', () => {
+    const o = { shared: { '--radius-md': '4px' }, dark: { '--color-accent': '#111111', '--radius-md': '2px', '--color-text': '#eeeeee' }, light: { '--color-text': '#000000' } };
+    const g = guardLeaks(o, tokens);
+    assert.equal(g.light['--color-accent'], baseValue(tokens, 'light', '--color-accent'));
+    assert.equal(g.light['--color-text'], '#000000'); assert.ok(!('--radius-md' in g.light));
+    assert.equal(o.light['--color-accent'], undefined, 'the input is not changed');
+    assert.equal(guardLeaks({ shared: {}, dark: {}, light: { '--x-y': '1' } }, tokens).light['--x-y'], '1');
+    const clean = { shared: {}, dark: {}, light: {} };
+    assert.equal(guardLeaks(clean, tokens), clean);
 });

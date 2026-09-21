@@ -8,8 +8,8 @@
 //
 // Options: target (a Document, the default: one adopted stylesheet of override CSS; or an Element: the current theme's overrides as
 // inline custom properties, so only that subtree changes), theme ('dark' | 'light', initial), onchange({ css, overrides }), tokens (URL
-// of the stylesheet whose token blocks are edited; default the SDK's own), pairs ([foreground, background] token names to grade;
-// default DEFAULT_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
+// of the stylesheet whose token blocks are edited; default the SDK's own), pairs ([foreground, background] token names to audit;
+// default AA_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true).
 // Palette tab: a brand colour (and optionally a neutral tint and a warn colour) generates the accent, fill, hover, link and the surface and text ramps of
 // both themes with every pair in AA_PAIRS at 4.5:1 or better (js/brand-palette-logic.js); the swatches show each pair with its ratio, and Apply writes them
@@ -18,15 +18,21 @@
 // a blocked storage is logged and the themes last until the page closes.
 // Undo and redo (buttons, Ctrl/Cmd+Z, Shift+Z or Y outside a text field; typing in one field is one step) walk every change; the Changes tab lists each edit against the
 // stylesheet value (js/theme-history-logic.js), '3 changes', with a reset for each edit and for each group of tokens.
-// Returns { export(), overrides(), setTheme(name), reset(), undo(), redo(), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
+// Contrast tab (the live audit): every pair in `pairs` in both themes under the current edits, as sample text with its ratio, worst first, and a jump to the token that sets each
+// side (js/theme-editor-logic.js auditPairs); the tab title counts the pairs below 4.5:1.
+// Export / import tab: the CSS block, a copy-paste snippet (theme.css), the JSON, and a link to the theme (js/theme-share-logic.js): the edits in the fragment as
+// '#pk-theme=z.<compressed>' (plain when the browser has no CompressionStream), at most 4096 characters, validated on the way in like pasted JSON, text only.
+// Option readHash: true applies the theme in the page's own #pk-theme= fragment at mount, as edits (Undo takes it back).
+// Returns { export(), overrides(), setTheme(name), reset(), undo(), redo(), share(), importShare(text), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
 // The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport, guardLeaks, AA_PAIRS, auditPairs, auditSummary } from '../../js/theme-editor-logic.js';
 import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
 import { PRESETS, presetById, presetOverrides, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
+import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -72,7 +78,7 @@ export async function mountThemeEditor(container, options = {}) {
     const target = options.target ?? doc;
     const isDoc = target.nodeType === 9;
     const targetDoc = isDoc ? target : target.ownerDocument;
-    const pairs = options.pairs ?? DEFAULT_PAIRS;
+    const pairs = options.pairs ?? AA_PAIRS;
     const { onchange, storageKey, height } = options;
     const savedKey = options.savedKey === false ? null : options.savedKey ?? 'pk-theme-editor-saved';
     const showPreview = options.preview !== false;
@@ -102,6 +108,7 @@ export async function mountThemeEditor(container, options = {}) {
     let hist = createHistory(state.overrides);
     const recordStep = (next, key = null) => { hist = record(hist, next, { key, at: Date.now() }); return hist.present; };
     const commit = (next, key = null) => { state.overrides = recordStep(next, key); };
+    const outputCss = () => buildOverrides(guardLeaks(state.overrides, tokens));
     const themeHost = isDoc ? target.documentElement : target;
     const styleRoot = isDoc ? target.documentElement : target;
     if (options.theme) setThemeAttr(themeHost, options.theme);
@@ -146,16 +153,23 @@ export async function mountThemeEditor(container, options = {}) {
     const warn = h(doc, 'pk-alert', { kind: 'warning' });
     warn.hidden = true;
     const list = h(doc, 'div', { class: 'te-list' });
-    const pairTable = h(doc, 'pk-table', {
-        label: 'Contrast', density: 'compact',
-        columns: JSON.stringify([{ key: 'pair', label: 'Text on background' }, { key: 'ratio', label: 'Ratio', align: 'end' }, { key: 'grade', label: 'WCAG' }]),
-    });
+    const auditBox = h(doc, 'div', { class: 'te-pairs te-audit' });
+    const contrastTab = h(doc, 'pk-tab', { value: 'contrast' }, 'Contrast');
     const cssBox = h(doc, 'pk-textarea', { label: 'CSS block', rows: 10, readonly: true });
     const jsonBox = h(doc, 'pk-textarea', { label: 'JSON overrides', rows: 10 });
     const importBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Import JSON or CSS');
     const copyBtn = h(doc, 'pk-button', { variant: 'ghost' }, 'Copy CSS');
     const downloadBtn = h(doc, 'pk-button', { variant: 'ghost' }, 'Download JSON');
     const rejectedBox = h(doc, 'div');
+    const snippetBox = h(doc, 'pk-textarea', { label: 'Copy-paste snippet', rows: 8, readonly: true });
+    const copySnippet = h(doc, 'pk-button', { variant: 'ghost' }, 'Copy snippet');
+    const linkBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Create link');
+    const linkBox = h(doc, 'pk-input', { label: 'Theme link', 'show-label': true, readonly: true, placeholder: 'Create link to fill this' });
+    const copyLink = h(doc, 'pk-button', { variant: 'ghost' }, 'Copy link');
+    const linkIn = h(doc, 'pk-input', { label: 'Paste a theme link', 'show-label': true, placeholder: '...#pk-theme=z....' });
+    const importLinkBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Import link');
+    const shareMsg = h(doc, 'div');
+    const topNote = h(doc, 'div');
     const message = h(doc, 'div');
     const brandInput = h(doc, 'pk-colour-input', { label: 'Brand colour', 'show-label': true, value: normalizeColour(baseValue(tokens, 'light', '--color-accent-fill')) ?? '#1d4ed8' });
     const neutralInput = h(doc, 'pk-input', { label: 'Neutral tint (optional)', 'show-label': true, placeholder: 'e.g. #334155', clearable: true });
@@ -185,15 +199,19 @@ export async function mountThemeEditor(container, options = {}) {
             h(doc, 'div', { class: 'te-palette-inputs' }, presetSelect, h(doc, 'pk-cluster', {}, applyPreset)), presetHint,
             h(doc, 'h4', { class: 'te-caption' }, 'Saved themes'),
             h(doc, 'div', { class: 'te-palette-inputs' }, nameInput, h(doc, 'pk-cluster', {}, saveBtn)), presetMsg, savedBox),
-        h(doc, 'pk-tab', { value: 'contrast' }, 'Contrast'), h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, pairTable),
+        contrastTab, h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, auditBox),
         ...(showPreview ? [h(doc, 'pk-tab', { value: 'preview' }, 'Preview'), h(doc, 'pk-tab-panel', { value: 'preview' }, (ui.previewHost = h(doc, 'div', { class: 'te-preview-host' })))] : []),
         h(doc, 'pk-tab', { value: 'export' }, 'Export / import'),
         h(doc, 'pk-tab-panel', { value: 'export' },
             h(doc, 'p', { class: 'muted' }, 'Names are lowercase custom properties; values use only letters, digits and # % . , ( ) - + / and spaces, at most 200 characters.'),
-            rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message));
+            rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox,
+            h(doc, 'p', { class: 'te-caption' }, 'The same as a file: save it as theme.css and load it after the SDK stylesheets (a strict style-src cannot use an inline style element)'), snippetBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, copySnippet),
+            h(doc, 'p', { class: 'te-caption' }, 'A link to this theme: the edits travel in the link fragment (compressed when the browser can, at most 4096 characters, text only), and whoever opens it gets them as ordinary edits'),
+            h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message));
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
         h(doc, 'div', { class: 'te-toolbar' }, find, kindSelect, themeSelect, scopeSelect),
+        topNote,
         h(doc, 'pk-cluster', { justify: 'between' }, count, shown, h(doc, 'pk-cluster', {}, undoBtn, redoBtn, resetAll)),
         tabs);
     if (height) { root.classList.add('te--fixed'); root.style.height = height; }
@@ -204,7 +222,7 @@ export async function mountThemeEditor(container, options = {}) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
         previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
-        previewFrame.addEventListener('load', () => applyToPreview(buildOverrides(state.overrides).css));
+        previewFrame.addEventListener('load', () => applyToPreview(outputCss().css));
         ui.previewHost.append(previewFrame);
     }
 
@@ -256,13 +274,36 @@ export async function mountThemeEditor(container, options = {}) {
         if (themeSelect.value !== theme()) themeSelect.value = theme();
     }
 
+    // The live audit: every pair in both themes under the current edits, worst first within a theme, each with a jump to the token that sets it.
     function paintPairs() {
-        const results = evaluatePairs(pairs, readComputed);
-        pairTable.setAttribute('rows', JSON.stringify(results.map((r, id) => ({ id, pair: `${r.fg} on ${r.bg}`, ratio: r.ratio === null ? 'n/a' : `${r.ratio.toFixed(2)}:1`, grade: r.grade }))));
-        const bad = results.filter(r => r.bad).length;
-        warn.hidden = bad === 0;
-        warn.textContent = `${bad} text pair${bad === 1 ? '' : 's'} below 4.5:1 in the ${theme()} theme.`;
+        const rows = auditPairs(state.overrides, tokens, pairs);
+        const sum = auditSummary(rows);
+        warn.hidden = false;
+        warn.setAttribute('kind', sum.bad ? 'warning' : 'success');
+        warn.textContent = sum.text;
+        contrastTab.textContent = sum.bad ? `Contrast (${sum.bad} below AA)` : 'Contrast';
+        const jump = (name, theme) => h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-jump': name, 'data-jump-theme': theme, label: `Go to ${name} in the ${theme} theme` }, name.replace(/^--/, ''));
+        const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).sort((x, y) => Number(y.bad) - Number(x.bad)).map(r => {
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}` }, 'Aa');
+            sample.style.setProperty('--te-fg', r.fgValue); sample.style.setProperty('--te-bg', r.bgValue);
+            return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
+                h(doc, 'pk-badge', { variant: r.bad ? 'danger' : r.ratio === null ? 'muted' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(2)}:1 ${r.grade}`),
+                h(doc, 'pk-cluster', { class: 'te-pair-jump' }, jump(r.fg, r.theme), jump(r.bg, r.theme)));
+        })];
+        auditBox.replaceChildren(...group('dark'), ...group('light'));
         for (const n of rowsByName.keys()) paintRow(n);
+    }
+
+    // Shows a token in the Tokens tab: in the theme the audit row is about, filtered to its name, scrolled to and focused.
+    function jumpTo(name, forTheme) {
+        if (forTheme !== theme()) api.setTheme(forTheme);
+        state.filter = name; state.kind = 'all';
+        find.value = name; find.setAttribute('value', name); kindSelect.value = 'all';
+        paintList();
+        tabs.value = 'tokens'; tabs.setAttribute('value', 'tokens');
+        const row = list.querySelector(`[data-token="${CSS.escape(name)}"]`);
+        row?.scrollIntoView?.({ block: 'center' });
+        row?.querySelector('pk-colour-input, pk-input, pk-unit-input')?.focus?.();
     }
 
     // The generated palette for the inputs as they stand: { palette, error } and its swatches (each pair as sample text on its surface, with the ratio).
@@ -340,6 +381,7 @@ export async function mountThemeEditor(container, options = {}) {
 
     function paintExport(css, rejected) {
         cssBox.value = css;
+        snippetBox.value = buildSnippet(guardLeaks(state.overrides, tokens));
         jsonBox.value = JSON.stringify(state.overrides, null, 2);
         const n = overrideCount(state.overrides);
         count.setAttribute('value', String(n));
@@ -347,7 +389,7 @@ export async function mountThemeEditor(container, options = {}) {
     }
 
     function apply() {
-        const { css, rejected } = buildOverrides(state.overrides);
+        const { css, rejected } = outputCss();
         applyToTarget(css);
         applyToPreview(css);
         if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch (error) { log.debug('storage blocked: the edit applies but is not saved', error); }
@@ -385,6 +427,7 @@ export async function mountThemeEditor(container, options = {}) {
     on(scopeSelect, 'change', e => { state.scope = e.target.value; });
     on(themeSelect, 'change', e => { if (e.target.value !== theme()) api.setTheme(e.target.value); });
     on(resetAll, 'click', () => api.reset());
+    on(auditBox, 'click', e => { const b = e.target.closest?.('[data-jump]'); if (b) jumpTo(b.dataset.jump, b.dataset.jumpTheme); });
     on(undoBtn, 'click', () => api.undo());
     on(redoBtn, 'click', () => api.redo());
     on(changesBox, 'click', e => {
@@ -454,6 +497,30 @@ export async function mountThemeEditor(container, options = {}) {
             if (!savedBlocked) presetNote('success', 'Renamed.');
         }
     });
+    // A link to the current edits, or the edits of a link: text only, the same rules as pasting JSON.
+    function shareNote(kind, text) { shareMsg.replaceChildren(h(doc, 'pk-alert', { kind: kind === 'error' ? 'danger' : kind }, text)); }
+    async function makeLink() {
+        const r = await encodeShare(state.overrides);
+        if (r.error) { log.warn(`share refused: ${r.error}`); shareNote('error', r.error); return r; }
+        const url = `${win.location.href.split('#')[0]}#${r.hash}`;
+        linkBox.value = url; linkBox.setAttribute('value', url);
+        shareNote('success', `Link ready (${r.hash.length} of 4096 characters${r.compressed ? ', compressed' : ''}).`);
+        return { url, hash: r.hash };
+    }
+    async function importLink(text, fromPage = false) {
+        const r = await decodeShare(text);
+        if (r.error) { log.warn(`link refused, the edits are unchanged: ${r.error}`); shareNote('error', r.error); if (fromPage) topNote.replaceChildren(h(doc, 'pk-alert', { kind: 'danger' }, `The theme link in the address was not used: ${r.error}`)); return r; }
+        commit(r.overrides);
+        apply(); paintList();
+        shareNote('success', 'Imported the theme from the link as edits. Undo takes it back.');
+        if (fromPage) topNote.replaceChildren(h(doc, 'pk-alert', { kind: 'info' }, `Applied the theme from the link: ${changeSummary(state.overrides)}. Undo takes it back.`));
+        return r;
+    }
+    const clip = (text, what) => win.navigator.clipboard?.writeText(text)?.catch(error => log.warn(`could not copy the ${what}`, error));
+    on(linkBtn, 'click', () => { makeLink(); });
+    on(copyLink, 'click', () => clip(linkBox.value, 'link'));
+    on(copySnippet, 'click', () => clip(snippetBox.value, 'snippet'));
+    on(importLinkBtn, 'click', () => { importLink(String(linkIn.value ?? '')); });
     on(importBtn, 'click', () => importText(jsonBox.value));
     on(copyBtn, 'click', () => win.navigator.clipboard?.writeText(cssBox.value));
     on(downloadBtn, 'click', () => {
@@ -470,12 +537,16 @@ export async function mountThemeEditor(container, options = {}) {
     if (!isDoc) observer.observe(themeHost, { attributes: true, attributeFilter: ['data-theme'] });
 
     const api = {
-        export: () => buildOverrides(state.overrides).css,
+        export: () => outputCss().css,
         overrides: () => ({ shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }),
         setTheme(name) { setThemeAttr(isDoc ? target.documentElement : themeHost, name); apply(); paintList(); },
         reset() { commit(emptyOverrides()); apply(); paintList(); },
         undo() { return step(undo); },
         redo() { return step(redo); },
+        // A link to the current edits: { url, hash } or { error } (nothing differs, or too large for a link). Text only: the edits are in the fragment.
+        share: () => makeLink(),
+        // Applies the theme in a link (the fragment or the whole URL) as edits: { overrides } or { error }.
+        importShare: text => importLink(text),
         // Built-in presets ({ id, name, description }) and the user's saved theme names.
         presets: () => PRESETS.map(({ id, name, description }) => ({ id, name, description })),
         saved: () => state.saved.map(t => t.name),
@@ -506,6 +577,7 @@ export async function mountThemeEditor(container, options = {}) {
         },
     };
     apply(); paintList(); paintPalette(); paintSaved();
+    if (options.readHash && win.location.hash.includes(`${SHARE_KEY}=`)) await importLink(win.location.hash, true);
     return api;
 }
 

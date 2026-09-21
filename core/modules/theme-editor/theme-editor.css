@@ -30,6 +30,8 @@
 
 .te-pair-name { overflow-wrap: anywhere; background: none; padding: 0; }
 
+.te-pair-jump { grid-column: 2 / -1; }
+
 .te-sample { display: inline-grid; place-items: center; min-height: var(--touch-target); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--te-bg); color: var(--te-fg); font-weight: 700; }
 
 .te-saved { display: flex; flex-direction: column; }

@@ -11,7 +11,7 @@
 // moved, and `moved` and `notes` say so, with the ratio it reached. Nothing is ever emitted below AA.
 
 import { parseColour, contrast } from './colour.js';
-import { AA_PAIRS, MIN_CONTRAST, emptyOverrides, withEdit, baseValue, effectiveValue, evaluatePairs } from './theme-editor-logic.js';
+import { AA_PAIRS, MIN_CONTRAST, emptyOverrides, withEdit, baseValue, auditPairs } from './theme-editor-logic.js';
 
 export { AA_PAIRS };
 
@@ -125,9 +125,4 @@ export function applyPalette(current, generated, tokens) {
 }
 
 // Every AA pair in both themes with the colours it would have under `overrides` (the generated palette over the stylesheet): the swatches and ratios.
-export function paletteRows(overrides, tokens, pairs = AA_PAIRS) {
-    return ['dark', 'light'].flatMap(theme => {
-        const read = name => effectiveValue(overrides, tokens, theme, name);
-        return evaluatePairs(pairs, read).map(r => ({ theme, fg: r.fg, bg: r.bg, fgValue: read(r.fg), bgValue: read(r.bg), ratio: r.ratio, grade: r.grade, bad: r.bad }));
-    });
-}
+export const paletteRows = (overrides, tokens, pairs = AA_PAIRS) => auditPairs(overrides, tokens, pairs);
