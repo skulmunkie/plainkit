@@ -58,10 +58,13 @@ export function keyAction(key, { hasSubmenu = false, inSubmenu = false, modified
     return null;
 }
 
+// A row's label text for typeahead and for the value pk-select reports: its text without the description slot, which is a secondary line, not part of the name.
+export const labelOf = el => (el.querySelector?.(':scope > [slot="description"]') ? Array.from(el.childNodes).filter(n => n.nodeType !== 1 || n.getAttribute('slot') !== 'description').map(n => n.textContent).join('') : el.textContent);
+
 // DOM side of the keyboard model, shared by the dropdown, the context menu, submenus and the select list. `items` are the enabled elements
 // in order; `label(el)` gives the text typeahead matches. Returns true when the key was a movement or typeahead key (and was handled).
 // `state` is a { buffer, at } object kept by the caller between keys.
-export function moveFocus(event, items, state, label = el => el.textContent, focus = el => el.focus({ preventScroll: true })) {
+export function moveFocus(event, items, state, label = labelOf, focus = el => el.focus({ preventScroll: true })) {
     const at = items.indexOf(event.target.closest?.('pk-menu-item, [role="option"]') ?? event.target);
     const to = nextIndex(at, items.length, event.key);
     if (to !== null) { event.preventDefault(); focus(items[to]); return true; }
