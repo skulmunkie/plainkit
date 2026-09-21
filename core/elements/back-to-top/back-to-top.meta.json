@@ -16,7 +16,7 @@
       "type": "number",
       "default": 400,
       "reflect": true,
-      "description": "The threshold setting"
+      "description": "Scroll distance in px past which the button appears; below 0 it is always shown (previews, short pages)."
     },
     {
       "name": "label",
@@ -57,7 +57,7 @@
   "examples": [
     {
       "title": "Back to top",
-      "html": "<pk-back-to-top label=\"Back to top\" visible></pk-back-to-top>"
+      "html": "<pk-back-to-top label=\"Back to top\" threshold=\"-1\"></pk-back-to-top>"
     }
   ]
 }
