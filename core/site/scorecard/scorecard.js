@@ -25,7 +25,9 @@ async function workspaceFill({ host }) {
         host.append(f);
         await new Promise(r => f.addEventListener('load', () => setTimeout(r, 400), { once: true }));
         const d = f.contentDocument; const ws = d.querySelector('pk-workspace, .workspace'); const foot = d.querySelector('[slot="footer"], .shell-footer');
-        const bottom = ws.getBoundingClientRect().bottom; const want = h - (foot?.getBoundingClientRect().height ?? 0);
+        // The footer is slotted spans; the strip they sit in (the shell's footer part) is what takes the room.
+        const strip = foot?.assignedSlot?.parentElement ?? foot;
+        const bottom = ws.getBoundingClientRect().bottom; const want = h - (strip?.getBoundingClientRect().height ?? 0);
         const scroll = d.documentElement.scrollHeight > h + 1;
         if (bottom < want - 2 || scroll) failures.push({ w, h, bottom: Math.round(bottom), want: Math.round(want), pageScroll: scroll });
         f.remove();
@@ -67,11 +69,12 @@ async function main() {
     intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
     const host = document.createElement('div');
     root.replaceChildren(intro, host);
-    await mountScorecard(host, {
+    return mountScorecard(host, {
         sections: ['ranked', 'performance', 'size', 'api', 'sweep', 'security', 'history'],
         targets: elementTargets(),
         historyKey: SCORING.historyKey,
         historyMax: SCORING.historyMax,
+        concurrency: Number(new URLSearchParams(location.search).get('concurrency')) || undefined, // ?concurrency=2 renders fewer frames at once on a slow machine
         link: i => `../gallery/index.html#/elements/${i.id}`,
         rankedLabel: 'Element',
         fileLink: (file, line) => `../files/index.html#path=${encodeURIComponent(file)}&line=${line}`,
@@ -93,10 +96,12 @@ async function main() {
     });
 }
 
-main().catch(err => {
+// The mounted card ({ run, results, report, ready }) is exported so a headless runner (scripts/scorecard-sweep.mjs) can drive the same run the button does.
+export const ready = main().catch(err => {
     const n = document.createElement('pk-alert');
     n.setAttribute('kind', 'danger');
     n.className = 'gx-notice-file';
     n.textContent = `The scorecard could not start: ${err.message}. Serve the Plainkit folder with a static server.`;
     document.body.append(n);
+    return null;
 });
