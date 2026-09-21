@@ -23,7 +23,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 
 ## The dist pattern
 
-`node tools/build.mjs` is deterministic and writes everything generated: `plainkit.css`, the element modules, the gallery data and `dist/`. `dist/` is self-contained: every runtime URL is built from `import.meta.url`, so the folder works when copied anywhere or served from a CDN prefix. `dist/manifest.json` lists each file with an SRI hash. The build owns `dist/js`: a file there that no source produces is removed, and a test fails if one is left. Never edit generated files.
+`node tools/build.mjs` is deterministic and writes the toolkit's generated files: `plainkit.css`, the element modules, the gallery data and `dist/` (`node scripts/bootstrap.mjs` runs it with the other generators). None of it is committed. `dist/` is self-contained: every runtime URL is built from `import.meta.url`, so the folder works when copied anywhere or served from a CDN prefix. `dist/manifest.json` lists each file with an SRI hash. The build owns `dist/js`: a file there that no source produces is removed, and a test fails if one is left. Never edit generated files.
 
 ## Security (CSP)
 
@@ -79,10 +79,8 @@ Plainkit is a vanilla toolkit with exactly one owner of reactivity at any point:
 
 `core/` (the `plainkit` npm package) and `blazor/` (the `PlainKit.Blazor` NuGet package) are versioned and released together. The Blazor package serves a byte-for-byte copy of `core/dist`. After any change to `core/`:
 
-1. `node core/tools/build.mjs`
-2. `node scripts/generate-blazor.mjs`, then `node scripts/build-skills.mjs` (the agent skills in `core/dist/skills`, generated from the API, the mappings and the samples; it refreshes the manifest)
-3. `node scripts/publish-dist.mjs` (copies `core/dist` into the package; `--check` is what CI runs)
-4. Update the Blazor wrappers and the element's `blazor/mappings/<name>.json` when an element's API changed, and run both test suites (`node --test "scripts/tests/*.test.mjs"` is the mapping check).
+1. `node scripts/bootstrap.mjs`: `node core/tools/build.mjs`, `node scripts/generate-blazor.mjs`, `node scripts/build-skills.mjs` (the agent skills in `core/dist/skills`, generated from the API, the mappings and the samples; it refreshes the manifest), `node scripts/publish-dist.mjs` (copies `core/dist` into the package), in that order. All of it is generated and gitignored; CI runs it first.
+2. Update the Blazor wrappers and the element's `blazor/mappings/<name>.json` when an element's API changed, and run both test suites (`node --test "scripts/tests/*.test.mjs"` is the mapping check).
 
 A change that lands in only one of the two is incomplete.
 

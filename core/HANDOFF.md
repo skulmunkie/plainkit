@@ -68,4 +68,4 @@ Tests for all of the above: `tests/mount-modules.test.mjs`, `tests/scorecard-mod
 - **Servers**: stop every `node ... serve.mjs` you start; a running server locks folders on Windows.
 - **Shell quoting**: the shell mangles backslash-n and quotes inside `node -e` strings. Use the editor's Edit tool for single-line edits, or write a small script file.
 - **Carve-out**: nothing under `sdk/` may name the host app (no source-tree paths, no app project names, no absolute user paths); `tests/carveout.test.mjs` fails on it, this file included.
-- Build then test order: `node tools/build.mjs` (regenerates `plainkit.css`, gallery data and `dist/`), then the node tests. `dist/manifest.json` carries SRI hashes and the build is deterministic, so a rebuild of unchanged sources must be byte-identical.
+- Bootstrap then test order: `node scripts/bootstrap.mjs` from the repository root (generates `plainkit.css`, gallery data, `dist/` and the rest; none of it is in git), then the node tests. `dist/manifest.json` carries SRI hashes and the build is deterministic, so a rebuild of unchanged sources must be byte-identical.

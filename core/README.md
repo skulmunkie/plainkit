@@ -44,11 +44,11 @@ relative paths, so the folder can be served under any prefix (`/sdk/1.0.0/`).
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/<tool>/`; the site pages are thin hosts on them |
-| `tools/` | `build.mjs`, `serve.mjs`, `snapshot.mjs`, `security.mjs`, `api-surface.mjs` |
+| `tools/` | `build.mjs`, `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs` |
 | `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab, attested by `report.json`) |
-| `dist/` | Generated output; never edit |
+| `dist/` | Generated output (not in git; `node scripts/bootstrap.mjs` from the repository root writes it); never edit |
 
-`plainkit.css`, `site/gallery/gallery.data.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`.
+`plainkit.css`, `elements/*/*.element.js`, `site/gallery/gallery.data.js`, `site/files/snapshot.json`, `site/scorecard/api.current.json`, `js/version.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`, and none of them is in git. On a fresh clone (and after switching branches or editing sources) run `node scripts/bootstrap.mjs` from the repository root: it runs the build, then the Blazor wrapper generator, the skills generator and the package copy (about 4 seconds). `node tools/serve.mjs` runs it by itself when the files are missing. The pinned release is the GitHub release `dist` zip, or NuGet; there is no CDN link by git tag, because a tag does not carry `dist`.
 
 ## Add a sample
 
@@ -129,8 +129,9 @@ The element inspector, `createElementInspector(container)` in `dist/js/element-i
 ## Build and test
 
 ```
-node tools/build.mjs        # regenerate plainkit.css, gallery data, the Files snapshot (site/files/snapshot.json), dist/ (deterministic)
-node --test .               # unit, budget, security and API-surface tests
+node ../scripts/bootstrap.mjs  # from core/: generate everything (not in git): plainkit.css, gallery data, the Files snapshot, dist/, the Blazor wrappers, the skills
+node tools/build.mjs        # only the toolkit part of it (deterministic)
+node --test .               # unit, budget, security and API-surface tests (they need the bootstrap first and say so)
 node tools/security.mjs     # scan for eval, inline handlers, secrets, unlisted innerHTML, ...
 node site/scorecard/static-audit.mjs
 ```
@@ -163,7 +164,7 @@ By hand, the same thing:
 
 1. Create `elements/<name>/` (the tag is `pk-<name>`).
 2. Write `<name>.html` (the template), `<name>.css` (tokens only), `<name>.js` only if it needs behaviour, `<name>.meta.json` (the API, with examples), and `<name>.test.mjs` for logic.
-3. Run `node tools/build.mjs`, then `node --test .`; run the browser suite (`tests/browser/`) and refresh the attestation.
+3. Run `node scripts/bootstrap.mjs` (from the repository root), then `node --test .`; run the browser suite (`tests/browser/`) and refresh the attestation.
 
 Rules the tests enforce: no literal colours in element CSS (tokens live in `tokens/tokens.css`), no inline scripts or event handlers, every `innerHTML` use is allow-listed with its markup source, the public surface (classes, tokens,
 JS exports in `site/scorecard/api.baseline.json`) only grows, and size budgets in `site/scorecard/scoring.data.js`.

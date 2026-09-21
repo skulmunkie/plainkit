@@ -3,7 +3,7 @@ name: Release
 # Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to create a GitHub release carrying core/dist as a zip, its integrity
 # manifest, the .nupkg and the agent skills as plainkit-skills-<version>.zip, and then to publish the NuGet package (PlainKit.Blazor). The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
 # Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
-# Pinned CDN use needs nothing published: https://cdn.jsdelivr.net/gh/skulmunkie/plainkit@<tag>/core/dist/...
+# The tag does not carry core/dist (generated files are not in git): pinned versions are the release assets and the NuGet package, built here.
 # NuGet uses Trusted Publishing (OIDC): no API key is stored. A policy on nuget.org trusts this repository and this workflow file
 # (release.yml); the NuGet/login step below swaps GitHub's short-lived token for a one-hour NuGet key just before the push.
 on:
@@ -35,12 +35,17 @@ jobs:
           node core/tools/versioning.mjs check --release --tag "$GITHUB_REF_NAME"
           echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
 
+      # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and publishes what this step produces: npm's
+      # `files: [dist]` in core/package.json, the NuGet static web assets and both zips.
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
+
       - name: Tests
         run: |
           node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
-          node core/tools/build.mjs
-          git diff --exit-code -- core/dist
-          node scripts/build-skills.mjs --check
+
+      - name: Bootstrap leaves the tree clean
+        run: node scripts/generated.mjs check
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -48,7 +53,6 @@ jobs:
 
       - name: Test and pack PlainKit.Blazor
         run: |
-          node scripts/publish-dist.mjs --check
           dotnet test PlainKit.slnx --configuration Release
           dotnet pack blazor/src/PlainKit.Blazor --configuration Release -p:Version="$VERSION" -o nupkg
 
@@ -72,7 +76,7 @@ jobs:
           prerelease: ${{ contains(env.VERSION, '-') }}
 
       # The registries come after the GitHub release, so a problem with one of them never keeps the dist zip, the skills zip, the .nupkg and the
-      # manifest from being attached (jsDelivr, the downloads and the skills need only the tag and the release). A failed step still turns the run red,
+      # manifest from being attached. A failed step still turns the run red,
       # and a re-run of the failed job picks up where it stopped (the release step updates the existing release; the NuGet push skips a duplicate).
 
       # Requested right before the push: the key it returns lasts one hour.

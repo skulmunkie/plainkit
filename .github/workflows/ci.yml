@@ -14,6 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 # core: the vanilla toolkit. blazor: PlainKit.Blazor, which serves a copy of core/dist (scripts/publish-dist.mjs).
+# Generated files are not in git: each job that needs them runs node scripts/bootstrap.mjs first (a few seconds). Before this change the jobs took
+# about 15 s (node) and 31 s (dotnet); the bootstrap adds its own few seconds to each.
 jobs:
   core:
     name: Toolkit (node)
@@ -24,6 +26,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      # Generated files (core/dist, the element modules, the Blazor wrappers, the skills, the package copy) are not in git: produce them first.
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
 
       - name: Node tests
         run: node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
@@ -50,18 +56,11 @@ jobs:
             node core/tools/versioning.mjs bump --baseline "$RUNNER_TEMP/base-baseline.json"
           fi
 
-      # The build is deterministic and dist is committed, so a rebuild must change nothing.
-      # The same build also writes the other generated files (plainkit.css, the gallery data, api.current.json and the Files page's snapshot of core/),
-      # so they are checked here too; core/tests/generated-current.test.mjs proves the same thing from inside the node tests.
-      - name: Rebuild and check dist and the other generated files are current
-        run: |
-          node core/tools/build.mjs
-          git diff --exit-code -- core/dist core/site core/plainkit.css core/elements core/js/version.js
-
-      # The agent skills (core/dist/skills) are generated from the API, the Blazor mappings and manifest, the sample folders and the tool modules; a change to
-      # any of them must be regenerated. The build above keeps them in the manifest without producing them, so this is what proves they are current.
-      - name: Agent skills are current
-        run: node scripts/build-skills.mjs --check
+      # Generated output is not source controlled: after the bootstrap no tracked file may have changed and no generated path may be tracked.
+      # (That every generator is deterministic and that what is on disk is what it produces are node tests: core/tests/generated-current.test.mjs,
+      # scripts/tests/skills.test.mjs, scripts/tests/generate-blazor.test.mjs.)
+      - name: Bootstrap leaves the tree clean
+        run: node scripts/generated.mjs check
 
   # Changelog fragments (changelog/README.md): every pull request that changes more than docs adds one file to changelog/unreleased/, and the
   # release pull request compiles them into CHANGELOG.md (so none may be left).
@@ -116,13 +115,9 @@ jobs:
         with:
           global-json-file: global.json
 
-      # The package serves a byte-for-byte copy of core/dist; it must be current.
-      - name: Package copy of the toolkit is current
-        run: node scripts/publish-dist.mjs --check
-
-      # The Pk* wrappers are generated from core/dist/elements/api.json and blazor/mappings; a change to either must be regenerated.
-      - name: Generated Blazor wrappers are current
-        run: node scripts/generate-blazor.mjs --check
+      # The Pk* wrappers and the package's copy of core/dist are generated, not in git; the project refuses to build without them.
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
 
       - name: Build and test
         run: dotnet test PlainKit.slnx --configuration Release
@@ -140,6 +135,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Bootstrap (generate everything)
+        run: node scripts/bootstrap.mjs --quiet
 
       - name: Run the suite and check the attestation test against it
         env:
