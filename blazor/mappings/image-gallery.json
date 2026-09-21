@@ -1,0 +1,78 @@
+{
+  "component": "PkImageGallery",
+  "params": [
+    {
+      "name": "Images",
+      "type": "IReadOnlyList<GalleryImage>",
+      "map": "prop",
+      "prop": "images",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): GalleryImage"
+    },
+    {
+      "name": "Primary",
+      "type": "int",
+      "default": -1,
+      "map": "prop",
+      "prop": "primary",
+      "bind": {
+        "event": "pk-primary-change",
+        "value": "detail.index"
+      }
+    },
+    {
+      "name": "Columns",
+      "type": "int",
+      "default": 0,
+      "map": "prop",
+      "prop": "columns"
+    },
+    {
+      "name": "Min",
+      "type": "string",
+      "default": "6.25rem",
+      "map": "prop",
+      "prop": "min"
+    },
+    {
+      "name": "Editable",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "editable"
+    },
+    {
+      "name": "AddLabel",
+      "type": "string",
+      "default": "Add image",
+      "map": "prop",
+      "prop": "addLabel"
+    },
+    {
+      "name": "Accept",
+      "type": "string",
+      "default": "image/*",
+      "map": "prop",
+      "prop": "accept"
+    },
+    {
+      "name": "OnPrimaryChange",
+      "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>",
+      "map": "event",
+      "event": "pk-primary-change",
+      "cancelable": true
+    },
+    {
+      "name": "OnRemove",
+      "type": "EventCallback<ImageGalleryRemoveEventArgs>",
+      "map": "event",
+      "event": "pk-remove",
+      "cancelable": true
+    },
+    {
+      "name": "OnAdd",
+      "type": "EventCallback<ImageGalleryAddEventArgs>",
+      "map": "event",
+      "event": "pk-add"
+    }
+  ]
+}

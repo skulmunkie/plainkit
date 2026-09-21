@@ -1,0 +1,36 @@
+{
+  "component": "PkRating",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "int"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "int"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-rating-change",
+    "key": "value",
+    "type": "number"
+  }
+}

@@ -32,6 +32,8 @@ import { scoreFindings, rankWorstFirst, groupFindings, scoreAll, readHistory, pu
 import { staticMetrics } from '../../js/audit.js';
 import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { createLogger } from '../../js/log.js';
+const log = createLogger('scorecard');
 import { sameOrigin } from '../../js/framework-checks.js';
 import { watchVitals, timeRows, recalcMs, readTexts, measureSizes } from './measure.js';
 import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
@@ -72,7 +74,7 @@ export function openFrame(host, frame, { theme = 'dark', width = 1280, settleMs 
         const f = host.ownerDocument.createElement('iframe');
         f.style.cssText = `position:absolute;left:0;top:0;width:${width}px;height:700px;border:0`;
         f.addEventListener('load', () => {
-            if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch { /* another origin: measure() reports it */ }
+            if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch (error) { log.debug('could not set the theme in a frame from another origin', error); }
             setTimeout(() => resolve(f), settleMs);
         }, { once: true });
         if (frame.url) f.src = frame.url; else f.srcdoc = docFor(frame, { theme, width }, base);
@@ -124,7 +126,7 @@ export function rankedTable(items, { changes = [], link, label = 'Target' } = {}
     return `<pk-table label="${esc(label)} ranking" density="compact"><table class="sc-table"><thead><tr><th>${esc(label)}</th><th class="num">Score</th><th class="num">Change</th><th>Failing items</th></tr></thead><tbody>${rows.join('')}</tbody></table></pk-table>`;
 }
 
-const storage = { getItem: k => { try { return localStorage.getItem(k); } catch { return null; } }, setItem: (k, v) => { try { localStorage.setItem(k, v); } catch { /* blocked: the run is still shown */ } } };
+const storage = { getItem: k => { try { return localStorage.getItem(k); } catch (error) { log.debug('storage blocked: no run history is read', error); return null; } }, setItem: (k, v) => { try { localStorage.setItem(k, v); } catch (error) { log.debug('storage blocked: the run is shown but not saved', error); } } };
 
 // Markup the module writes itself (fixed strings and the ranked table, every dynamic value escaped) becomes nodes here, the one sink.
 const fromHtml = (doc, markup) => { const t = doc.createElement('template'); t.innerHTML = markup; return t.content; };
@@ -133,6 +135,7 @@ const NOT_YET = ['No run yet', 'Press Run scorecard: every target is rendered at
 const meanScore = items => Math.round(items.reduce((n, i) => n + i.score, 0) / items.length);
 
 export async function mountScorecard(container, options = {}) {
+    log.debug('mounted', { module: 'scorecard', options: Object.keys(options) });
     const { targets, theme, height, historyKey, historyMax, autorun, link, fileLink, extraItems } = options;
     const data = options.data ?? {};
     const sections = new Set(options.sections ?? ['ranked']);
@@ -170,7 +173,7 @@ export async function mountScorecard(container, options = {}) {
         hosts[name] = body;
         root.insertBefore(card(doc, heading[name], body), $('[data-sc-frames]'));
     }
-    const fill = (name, get, paint, hint) => (hosts[name] ? Promise.resolve().then(get).then(v => paint(v)).catch(err => missing(doc, hosts[name], hint, `${err.message}`)) : null);
+    const fill = (name, get, paint, hint) => (hosts[name] ? Promise.resolve().then(get).then(v => paint(v)).catch(err => { log.warn(`the ${name} section could not be filled`, err); missing(doc, hosts[name], hint, `${err.message}`); }) : null);
     const paintHist = () => {
         const history = historyKey ? readHistory(storage, historyKey) : [];
         if (!historyKey) return missing(doc, hosts.history, 'history key', 'Pass historyKey: the runs are kept in this browser under it.');
@@ -178,7 +181,7 @@ export async function mountScorecard(container, options = {}) {
             history, scoring,
             actions: {
                 onExport: () => { const a = doc.createElement('a'); a.href = URL.createObjectURL(new Blob([exportHistory(readHistory(storage, historyKey))], { type: 'application/json' })); a.download = `${historyKey}.json`; a.click(); URL.revokeObjectURL(a.href); },
-                onImport: async file => { try { const imported = importHistory(await file.text()); storage.setItem(historyKey, JSON.stringify(imported.slice(-(historyMax ?? 40)))); setProgress(`Imported ${imported.length} runs.`); } catch (err) { setProgress(`The import failed: ${err.message}`); } paintHist(); },
+                onImport: async file => { try { const imported = importHistory(await file.text()); storage.setItem(historyKey, JSON.stringify(imported.slice(-(historyMax ?? 40)))); setProgress(`Imported ${imported.length} runs.`); } catch (err) { log.warn('importing the run history failed', err); setProgress(`The import failed: ${err.message}`); } paintHist(); },
                 onClear: () => { storage.setItem(historyKey, '[]'); paintHist(); },
             },
         }));
@@ -191,7 +194,7 @@ export async function mountScorecard(container, options = {}) {
         fill('sweep', () => load(data.sweep), v => paintSweep(doc, hosts.sweep, v), 'sweep report'),
         fill('security', () => load(data.security), v => paintSecurity(doc, hosts.security, v, { fileLink }), 'security report'),
         hosts.history ? paintHist() : null,
-    ].filter(Boolean)).then(() => loadElements(root).catch(() => {}));
+    ].filter(Boolean)).then(() => loadElements(root));
 
     // ---- a run: frames, then (performance) the measurements that need a real browser ---------------------------------------
     async function measured(scoring, ranked) {
@@ -264,7 +267,7 @@ export async function mountScorecard(container, options = {}) {
             const result = $('[data-sc-result]');
             if (!perf) {
                 result.replaceChildren(h(doc, 'div', { class: 'sc-scores' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', fromHtml(doc, rankedTable(items, { changes, link }))));
-                loadElements(result).catch(() => {});
+                loadElements(result);
             } else {
                 const parts = [scoreTiles(doc, report.scores, { deltas: d, history })];
                 if (sections.has('ranked')) {
@@ -273,15 +276,15 @@ export async function mountScorecard(container, options = {}) {
                 }
                 parts.push(card(doc, 'Scores in detail', categoryTabs(doc, scoring, report.scores, report.perFile)));
                 result.replaceChildren(...parts);
-                loadElements(result).catch(() => {});
+                loadElements(result);
             }
             setProgress(`Done. Overall ${overall}.`);
-        } catch (err) { setProgress(`The run failed: ${err.message}`); } finally { button.removeAttribute('disabled'); }
+        } catch (err) { log.error('the scorecard run failed', err); setProgress(`The run failed: ${err.message}`); } finally { button.removeAttribute('disabled'); }
         return items;
     }
 
     $('[data-sc-run]')?.addEventListener('click', run);
-    loadElements(root).catch(() => {});
+    loadElements(root);
     if (autorun && runs) await run();
     return { run, results: () => items, report: () => last, ready, destroy: () => root.remove() };
 }

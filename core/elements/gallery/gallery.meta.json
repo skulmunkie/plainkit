@@ -24,21 +24,6 @@
   ],
   "methods": [],
   "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
-  "blazor": {
-    "component": "PkGallery",
-    "params": [
-      { "name": "Kind", "prop": "kind" },
-      { "name": "Group", "prop": "group" },
-      { "name": "Control", "prop": "control" },
-      { "name": "Theme", "prop": "theme" },
-      { "name": "Width", "prop": "width" },
-      { "name": "Filter", "prop": "filter" },
-      { "name": "Chrome", "prop": "chrome" },
-      { "name": "Height", "prop": "height" },
-      { "name": "Src", "prop": "src" }
-    ],
-    "notes": "New component, no Blazor equivalent. Needs the SDK dist folder served with the app so embed.html is reachable."
-  },
   "examples": [
     { "title": "Every form control, phone width, light theme", "html": "<pk-gallery kind=\"controls\" group=\"Forms & inputs\" width=\"phone\" theme=\"light\"></pk-gallery>" },
     { "title": "Two controls only", "html": "<pk-gallery control=\"button,badge\"></pk-gallery>" },

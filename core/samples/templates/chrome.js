@@ -61,7 +61,7 @@ export function mountChrome({ title, page, crumbs = [], actions = '', fill = fal
     customElements.whenDefined('pk-command-palette').then(() => { palette.items = NAV.map(([, l, h]) => ({ id: h, label: l, group: 'Templates', href: `${href(h)}${q}` })); });
     document.body.append(shell, palette);
     wireOpeners();
-    loadElements(document).catch(() => {});
+    loadElements(document);
     observeElements(document);
 }
 

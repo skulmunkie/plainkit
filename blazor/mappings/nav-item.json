@@ -1,0 +1,81 @@
+{
+  "component": "PkNavItem",
+  "params": [
+    {
+      "name": "Href",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "href"
+    },
+    {
+      "name": "Current",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "current"
+    },
+    {
+      "name": "Disabled",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "disabled"
+    },
+    {
+      "name": "Expanded",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "expanded",
+      "bind": {
+        "event": "pk-toggle",
+        "value": "detail.expanded"
+      }
+    },
+    {
+      "name": "Rail",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "rail"
+    },
+    {
+      "name": "Flyout",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "flyout"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "IconContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "icon"
+    },
+    {
+      "name": "BadgeContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "badge"
+    },
+    {
+      "name": "ChildrenContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "children"
+    },
+    {
+      "name": "OnToggle",
+      "type": "EventCallback<NavItemToggleEventArgs>",
+      "map": "event",
+      "event": "pk-toggle"
+    }
+  ]
+}

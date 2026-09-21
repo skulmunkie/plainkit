@@ -1,0 +1,84 @@
+{
+  "component": "PkDialog",
+  "params": [
+    {
+      "name": "IsOpen",
+      "type": "bool",
+      "map": "prop",
+      "prop": "open",
+      "bind": {
+        "event": "pk-close",
+        "value": false
+      }
+    },
+    {
+      "name": "Title",
+      "type": "string?",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "HeaderContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "header"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "FooterContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "footer"
+    },
+    {
+      "name": "OnClose",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-close",
+      "cancelable": true
+    },
+    {
+      "name": "ShowCloseButton",
+      "type": "bool",
+      "map": "wrapper",
+      "note": "The element always shows its close button (house rule: every modal has its own Cancel or Close)."
+    },
+    {
+      "name": "CloseButtonLabel",
+      "type": "string",
+      "map": "wrapper",
+      "note": "Text of the close button; the element draws a cross with an accessible name."
+    },
+    {
+      "name": "FooterAlignEnd",
+      "type": "bool",
+      "map": "wrapper",
+      "note": "The footer is always end-aligned."
+    },
+    {
+      "name": "MaxWidthPx",
+      "type": "int",
+      "map": "cssProperty",
+      "cssProperty": "--pk-dialog-w",
+      "format": "{0}px"
+    },
+    {
+      "name": "OverFlyout",
+      "type": "bool",
+      "map": "wrapper",
+      "note": "Not needed: a native dialog is in the top layer above any flyout."
+    },
+    {
+      "name": "Theme",
+      "type": "ModalTheme",
+      "map": "wrapper",
+      "note": "The element has no product or archived tint.",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): ModalTheme"
+    }
+  ]
+}

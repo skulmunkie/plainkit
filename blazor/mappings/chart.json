@@ -1,0 +1,36 @@
+{
+  "component": "PkChart",
+  "params": [
+    {
+      "name": "Kind",
+      "prop": "kind",
+      "type": "string"
+    },
+    {
+      "name": "Caption",
+      "prop": "caption",
+      "type": "string"
+    },
+    {
+      "name": "Height",
+      "prop": "height",
+      "type": "int"
+    },
+    {
+      "name": "Data",
+      "prop": "data",
+      "type": "ChartData"
+    },
+    {
+      "name": "CaptionContent",
+      "slot": "caption",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment?"
+    }
+  ],
+  "notes": "ChartData is { Labels, Series: [{ Name, Values }] }."
+}

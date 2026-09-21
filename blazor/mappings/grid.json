@@ -1,0 +1,25 @@
+{
+  "component": "PkGrid",
+  "params": [
+    {
+      "name": "Min",
+      "prop": "min",
+      "type": "string"
+    },
+    {
+      "name": "Columns",
+      "prop": "columns",
+      "type": "int"
+    },
+    {
+      "name": "Gap",
+      "prop": "gap",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

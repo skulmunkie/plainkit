@@ -59,31 +59,6 @@
     }
   ],
   "a11y": "A plain layout box with no role; the rules from dividers are decorative borders, not separators, so add pk-divider where a separator should be announced.",
-  "blazor": {
-    "component": "PkStack",
-    "params": [
-      {
-        "name": "Gap",
-        "prop": "gap",
-        "type": "string"
-      },
-      {
-        "name": "Align",
-        "prop": "align",
-        "type": "string"
-      },
-      {
-        "name": "Dividers",
-        "prop": "dividers",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Even rhythm",

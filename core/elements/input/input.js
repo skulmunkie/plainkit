@@ -48,7 +48,7 @@ export default Base => class extends Base {
         if (!this.$typing && i.value !== s) i.value = s;
         this.$typing = false;
         this.toggleAttribute('has-value', this.value !== '');
-        if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch {} this.part('currency').textContent = c; }
+        if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch { this.warnOnce('c', 'bad currency'); } this.part('currency').textContent = c; }
         if (this.stepper) { const v = this.value === '' ? NaN : Number(this.value); this.part('step-down').disabled = this.disabled || v <= (bound(this.min) ?? -Infinity); this.part('step-up').disabled = this.disabled || v >= (bound(this.max) ?? Infinity); }
         this.check();
     }

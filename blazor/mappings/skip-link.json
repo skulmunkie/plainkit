@@ -1,0 +1,18 @@
+{
+  "component": "PkSkipLink",
+  "params": [
+    {
+      "name": "Href",
+      "type": "string",
+      "default": "#main",
+      "map": "prop",
+      "prop": "href"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}

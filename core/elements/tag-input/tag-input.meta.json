@@ -160,57 +160,6 @@
     }
   ],
   "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag.",
-  "blazor": {
-    "component": "PkTagInput",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "Placeholder",
-        "prop": "placeholder",
-        "type": "string"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "Required",
-        "prop": "required",
-        "type": "bool"
-      },
-      {
-        "name": "IsInvalid",
-        "prop": "invalid",
-        "type": "bool"
-      },
-      {
-        "name": "Separators",
-        "prop": "separators",
-        "type": "string"
-      },
-      {
-        "name": "Max",
-        "prop": "max",
-        "type": "int"
-      },
-      {
-        "name": "AriaLabel",
-        "prop": "label",
-        "type": "string"
-      }
-    ],
-    "model": {
-      "prop": "value",
-      "event": "pk-tags-change",
-      "key": "value",
-      "type": "string"
-    }
-  },
   "examples": [
     {
       "title": "Tags",

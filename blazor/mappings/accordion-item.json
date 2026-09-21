@@ -1,0 +1,35 @@
+{
+  "component": "PkAccordionItem",
+  "params": [
+    {
+      "name": "Heading",
+      "prop": "heading",
+      "type": "string"
+    },
+    {
+      "name": "Open",
+      "prop": "open",
+      "type": "bool"
+    },
+    {
+      "name": "OpenChanged",
+      "event": "pk-toggle",
+      "type": "EventCallback<bool>"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "HeadingContent",
+      "slot": "heading",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "IconContent",
+      "slot": "icon",
+      "type": "RenderFragment?"
+    }
+  ]
+}

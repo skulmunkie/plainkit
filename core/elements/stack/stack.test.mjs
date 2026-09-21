@@ -22,12 +22,6 @@ test('it respects [hidden], uses logical properties and no literal colours', () 
     assert.ok(!/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i.test(css), 'literal colour');
 });
 
-test('the blazor block maps every prop and the default slot', () => {
-    assert.equal(meta.blazor.component, 'PkStack');
-    for (const p of meta.props) assert.ok(meta.blazor.params.some(x => x.prop === p.name), p.name);
-    assert.ok(meta.blazor.params.some(x => x.slot === ''));
-});
-
 test('a stack is a vertical flex column, with optional dividers', () => {
     assert.ok(/flex-direction:\s*column/.test(css)); assert.equal(prop('dividers').default, false); assert.ok(css.includes(':host([dividers])'));
 });

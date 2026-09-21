@@ -49,36 +49,6 @@
   "methods": [],
   "a11y": "A nav landmark; links carry rel=\"prev\" and rel=\"next\" when the author sets them, and say where they go.",
   "mobile": "Stacks: the note on top, previous and next as full-width 44px buttons.",
-  "blazor": {
-    "component": "PkPager",
-    "params": [
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "Page navigation",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "PrevContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "prev"
-      },
-      {
-        "name": "NextContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "next"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Previous and next page",

@@ -53,27 +53,6 @@
   ],
   "methods": [],
   "a11y": "With a label the host is role img with that name; without one it is aria-hidden, so put the meaning in the surrounding text (a button label) and leave the icon decorative. The stroke follows currentColor, so it meets the contrast of its text. Give an icon-only button a 44px target.",
-  "blazor": {
-    "component": "PkIcon",
-    "params": [
-      {
-        "name": "Name",
-        "prop": "name",
-        "type": "string"
-      },
-      {
-        "name": "Size",
-        "prop": "size",
-        "type": "string"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      }
-    ],
-    "notes": "Replaces Icon. Class-based icons used a relative sprite path; pk-icon resolves the sprite from its own module URL."
-  },
   "examples": [
     {
       "title": "Follows text colour and size",

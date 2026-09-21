@@ -9,6 +9,8 @@ export const MODULES = {
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
     performance: { files: ['performance.js', 'performance.css'] },
     console: { files: ['console.js', 'console.css'] },
+    logs: { files: ['logs.js', 'logs.css'] },
+    'log-settings': { files: ['log-settings.js', 'log-settings.css'] },
     devtools: { files: ['devtools.js', 'panels.js', 'devtools.css'] },
     quality: { files: ['quality.js'] },
     'theme-editor': { files: ['theme-editor.js', 'theme-editor.css'], tokens: true },

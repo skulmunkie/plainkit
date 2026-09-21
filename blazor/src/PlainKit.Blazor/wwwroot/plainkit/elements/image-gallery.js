@@ -80,6 +80,7 @@ const behaviour = Base => class extends Base {
             const li = tpl.content.firstElementChild.cloneNode(true);
             li.setAttribute('data-index', String(i)); li.toggleAttribute('data-primary', i === p);
             const el = li.querySelector('img'); const src = safeSrc(img.src);
+            if (!src && typeof img.src === 'string' && img.src.trim()) this.warnOnce(`src:${i}`, `image ${i + 1} has a source that is not allowed (only same-site paths, http(s) and png/jpeg/gif/webp/avif data URLs are shown): it is left blank`, { src: img.src.slice(0, 80) });
             if (src) el.setAttribute('src', src); el.setAttribute('alt', img.alt);
             const status = li.querySelector('[part="status"]');
             if (img.status) status.textContent = img.status; else status.remove();
@@ -93,7 +94,7 @@ const behaviour = Base => class extends Base {
             }
             grid.insertBefore(li, add);
         });
-        loadElements(this.shadowRoot).catch(() => {});
+        loadElements(this.shadowRoot);
         if (this.$focus !== undefined) {
             const n = this.$focus; this.$focus = undefined;
             const target = grid.querySelector(`[data-index="${n}"] pk-media`)?.part?.('box') ?? this.part('file');

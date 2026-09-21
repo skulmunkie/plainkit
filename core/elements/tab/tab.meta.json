@@ -27,18 +27,6 @@
   ],
   "methods": [],
   "a11y": "Exposes role=tab, aria-selected and aria-disabled through ElementInternals. pk-tabs manages tabindex (roving) and aria-controls. The close button is outside the tab order (tabindex -1) and labelled; keyboard users close a tab from the page's own command.",
-  "blazor": {
-    "component": "PkTab",
-    "params": [
-      { "name": "Value", "prop": "value" },
-      { "name": "Disabled", "prop": "disabled" },
-      { "name": "Count", "prop": "count" },
-      { "name": "Closable", "prop": "closable" },
-      { "name": "Only", "prop": "only" },
-      { "name": "OnClose", "event": "pk-tab-close" },
-      { "name": "ChildContent", "slot": "" }
-    ]
-  },
   "examples": [
     { "title": "Inside pk-tabs", "html": "<pk-tabs value=\"a\">\n  <pk-tab value=\"a\" count=\"12\">Pending</pk-tab>\n  <pk-tab value=\"b\" closable>Draft</pk-tab>\n  <pk-tab value=\"c\" disabled>Locked</pk-tab>\n  <pk-tab-panel value=\"a\">Pending content</pk-tab-panel>\n</pk-tabs>" }
   ]

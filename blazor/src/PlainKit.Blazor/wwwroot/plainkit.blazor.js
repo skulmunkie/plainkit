@@ -41,6 +41,18 @@ export async function mountConsole(container, options) {
     mounted.set(container, await mountConsole(container, options));
 }
 
+export async function mountLogs(container, options) {
+    const { mountLogs } = await import('./plainkit/logs/logs.js');
+    destroy(container);
+    mounted.set(container, await mountLogs(container, options));
+}
+
+export async function mountLogSettings(container, options) {
+    const { mountLogSettings } = await import('./plainkit/log-settings/log-settings.js');
+    destroy(container);
+    mounted.set(container, await mountLogSettings(container, options));
+}
+
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {
     return (await import('./plainkit/js/version.js')).PK_VERSION;
@@ -48,5 +60,9 @@ export async function version() {
 
 export const log = (container, level, text) => mounted.get(container)?.log?.(level, text);
 export const clear = container => mounted.get(container)?.clear?.();
-export const pause = container => mounted.get(container)?.stop?.();
-export const resume = container => mounted.get(container)?.start?.();
+// pause/resume: the performance monitor stops and starts; the logs viewer pauses and resumes what it draws.
+export const pause = container => { const m = mounted.get(container); return (m?.pause ?? m?.stop)?.call(m); };
+export const resume = container => { const m = mounted.get(container); return (m?.resume ?? m?.start)?.call(m); };
+export const sendTest = container => mounted.get(container)?.test?.();
+export const save = container => { mounted.get(container)?.save?.(); };
+export const reset = container => mounted.get(container)?.reset?.();

@@ -4,6 +4,10 @@ Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the d
 
 The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
 
+## Where the element mappings live
+
+How each SDK element becomes a component (its `Pk` name, parameters, slots and events) is not in the SDK's element metadata: it is one file per element in [`blazor/mappings/`](../../mappings), starting overrides for the wrapper generator (issue #2). `scripts/tests/blazor-mappings.test.mjs` checks them against `core/elements/*/*.meta.json`.
+
 ## Set up
 
 ```csharp

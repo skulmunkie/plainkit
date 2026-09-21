@@ -1,0 +1,61 @@
+{
+  "component": "PkCheckbox",
+  "params": [
+    {
+      "name": "Checked",
+      "prop": "checked",
+      "type": "bool"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "Indeterminate",
+      "prop": "indeterminate",
+      "type": "bool"
+    },
+    {
+      "name": "Group",
+      "prop": "group",
+      "type": "string"
+    },
+    {
+      "name": "Master",
+      "prop": "master",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    }
+  ],
+  "model": {
+    "prop": "checked",
+    "event": "pk-change",
+    "key": "checked",
+    "type": "bool"
+  }
+}

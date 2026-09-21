@@ -3,6 +3,7 @@
 
 # The toolkit build emits CRLF and its tests compare bytes (dist files, SRI hashes), so these are CRLF on every platform.
 core/** eol=crlf
+blazor/mappings/** eol=crlf
 blazor/src/PlainKit.Blazor/Generated/** eol=crlf
 blazor/src/PlainKit.Blazor/wwwroot/** eol=crlf
 

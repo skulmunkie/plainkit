@@ -30,18 +30,6 @@
   "methods": [],
   "a11y": "Decorative (aria-hidden); the scroll position is already available to assistive tech.",
   "mobile": "3px bar; ignores the safe-area inset because it sits at the top edge of the content.",
-  "blazor": {
-    "component": "PkScrollProgress",
-    "params": [
-      {
-        "name": "For",
-        "type": "string",
-        "default": "",
-        "map": "prop",
-        "prop": "for"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Reading progress bar",

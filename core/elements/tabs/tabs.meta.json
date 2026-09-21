@@ -24,18 +24,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
-  "blazor": {
-    "component": "PkTabs",
-    "params": [
-      { "name": "Value", "prop": "value" },
-      { "name": "Activation", "prop": "activation" },
-      { "name": "NoneActive", "prop": "noneActive" },
-      { "name": "Scroll", "prop": "scroll" },
-      { "name": "OnChange", "event": "pk-tab-change" },
-      { "name": "ChildContent", "slot": "" },
-      { "name": "TrailingContent", "slot": "trailing" }
-    ]
-  },
   "examples": [
     { "title": "Tabs with panels", "html": "<pk-tabs value=\"details\">\n  <pk-tab value=\"details\">Details</pk-tab>\n  <pk-tab value=\"history\">History</pk-tab>\n  <pk-tab-panel value=\"details\">Item details.</pk-tab-panel>\n  <pk-tab-panel value=\"history\">Item history.</pk-tab-panel>\n</pk-tabs>" },
     { "title": "Scrolling strip with counts and trailing content", "html": "<pk-tabs scroll value=\"a\">\n  <pk-tab value=\"a\" count=\"12\">Pending</pk-tab>\n  <pk-tab value=\"b\" count=\"3\">Failed</pk-tab>\n  <pk-tab value=\"c\">Done</pk-tab>\n  <span slot=\"trailing\">Updated a minute ago</span>\n</pk-tabs>" }

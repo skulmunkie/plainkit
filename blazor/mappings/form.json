@@ -1,0 +1,35 @@
+{
+  "component": "PkForm",
+  "params": [
+    {
+      "name": "Validate",
+      "prop": "validate",
+      "type": "string"
+    },
+    {
+      "name": "ShowValid",
+      "prop": "showValid",
+      "type": "bool"
+    },
+    {
+      "name": "Summary",
+      "prop": "summary",
+      "type": "bool"
+    },
+    {
+      "name": "OnInvalid",
+      "event": "pk-invalid",
+      "type": "{ controls: Element[], messages: string[] }"
+    },
+    {
+      "name": "OnValid",
+      "event": "pk-valid",
+      "type": "null"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

@@ -103,52 +103,6 @@
   ],
   "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled.",
   "mobile": "Full width at the top of the screen; rows are 44px; the list is the only scroller.",
-  "blazor": {
-    "component": "PkCommandPalette",
-    "params": [
-      {
-        "name": "Open",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "open"
-      },
-      {
-        "name": "Placeholder",
-        "type": "string",
-        "default": "Type a command or search…",
-        "map": "prop",
-        "prop": "placeholder"
-      },
-      {
-        "name": "RecentsKey",
-        "type": "string",
-        "default": "pk-palette-recents",
-        "map": "prop",
-        "prop": "recentsKey"
-      },
-      {
-        "name": "NoShortcut",
-        "type": "bool",
-        "default": false,
-        "map": "prop",
-        "prop": "noShortcut"
-      },
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "Command palette",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "OnSelect",
-        "type": "EventCallback<CommandPaletteSelectEventArgs>",
-        "map": "event",
-        "event": "pk-select"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Command palette",

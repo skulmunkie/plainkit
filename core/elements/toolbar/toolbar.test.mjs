@@ -12,9 +12,8 @@ test('the template has a lead with title, note and a default slot, and an action
     assert.ok(!/\sstyle=/.test(html));
 });
 
-test('the API: heading and note, and the Blazor component', () => {
+test('the API: heading and note', () => {
     assert.deepEqual(meta.props.map(p => p.name), ['heading', 'note']);
-    assert.equal(meta.blazor.component, 'PkToolbar');
 });
 
 test('it wraps, stacks on a narrow container with touch-sized actions, and uses tokens only', () => {

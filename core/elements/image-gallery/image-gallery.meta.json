@@ -43,21 +43,6 @@
   ],
   "a11y": "The grid is a list. Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
   "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons and the add tile are 44px high, and there is no hover step.",
-  "blazor": {
-    "component": "PkImageGallery",
-    "params": [
-      { "name": "Images", "type": "IReadOnlyList<GalleryImage>", "map": "prop", "prop": "images" },
-      { "name": "Primary", "type": "int", "default": -1, "map": "prop", "prop": "primary", "bind": { "event": "pk-primary-change", "value": "detail.index" } },
-      { "name": "Columns", "type": "int", "default": 0, "map": "prop", "prop": "columns" },
-      { "name": "Min", "type": "string", "default": "6.25rem", "map": "prop", "prop": "min" },
-      { "name": "Editable", "type": "bool", "default": false, "map": "prop", "prop": "editable" },
-      { "name": "AddLabel", "type": "string", "default": "Add image", "map": "prop", "prop": "addLabel" },
-      { "name": "Accept", "type": "string", "default": "image/*", "map": "prop", "prop": "accept" },
-      { "name": "OnPrimaryChange", "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>", "map": "event", "event": "pk-primary-change", "cancelable": true },
-      { "name": "OnRemove", "type": "EventCallback<ImageGalleryRemoveEventArgs>", "map": "event", "event": "pk-remove", "cancelable": true },
-      { "name": "OnAdd", "type": "EventCallback<ImageGalleryAddEventArgs>", "map": "event", "event": "pk-add" }
-    ]
-  },
   "examples": [
     {
       "title": "Thumbnails with a primary image and an add tile",

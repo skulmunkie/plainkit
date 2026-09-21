@@ -82,32 +82,6 @@
   ],
   "methods": [],
   "a11y": "The host is role=status with a text label read by screen readers. Motion stops under prefers-reduced-motion.",
-  "blazor": {
-    "component": "PkSpinner",
-    "params": [
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "Size",
-        "prop": "size",
-        "type": "string"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Overlay",
-        "prop": "overlay",
-        "type": "bool"
-      }
-    ],
-    "notes": "New component; the text-only Loading component is unchanged."
-  },
   "examples": [
     {
       "title": "Sizes",

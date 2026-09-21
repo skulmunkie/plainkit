@@ -1,0 +1,32 @@
+{
+  "component": "PkFieldList",
+  "existing": true,
+  "params": [
+    {
+      "name": "Title",
+      "prop": "heading",
+      "type": "string?"
+    },
+    {
+      "name": "Layout",
+      "prop": "layout",
+      "type": "string"
+    },
+    {
+      "name": "Dividers",
+      "prop": "dividers",
+      "type": "bool"
+    },
+    {
+      "name": "Dense",
+      "prop": "dense",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment?"
+    }
+  ],
+  "notes": "Keeps Title (heading) and ChildContent. The Field component keeps emitting a dt and dd pair (Label, Value, LabelTip, When, SkipEmpty), so pages need no change."
+}

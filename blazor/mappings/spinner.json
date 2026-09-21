@@ -1,0 +1,26 @@
+{
+  "component": "PkSpinner",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Overlay",
+      "prop": "overlay",
+      "type": "bool"
+    }
+  ],
+  "notes": "New component; the text-only Loading component is unchanged."
+}

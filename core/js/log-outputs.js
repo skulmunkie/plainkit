@@ -31,7 +31,9 @@ async function ensureToast() {
     toastReady ??= (async () => {
         const registry = new URL('../elements/registry.js', import.meta.url).href;
         const map = (await import(registry)).default;
-        await import(new URL(map['pk-toast-stack'], registry).href);
+        const mod = await import(new URL(map['pk-toast-stack'], registry).href);
+        // The stack only publishes PkToast when an instance connects, and a log toast may be the first: take the class from the module.
+        globalThis.PkToast ??= mod.default;
         return globalThis.PkToast;
     })();
     return toastReady;
@@ -62,7 +64,7 @@ async function ensureAlerts() {
         doc.body.prepend(alertRegion);
         alertNodes.clear();
         const { loadElements } = await import('./loader.js');
-        loadElements(alertRegion).catch(() => {});
+        loadElements(alertRegion);
     }
     return alertRegion;
 }

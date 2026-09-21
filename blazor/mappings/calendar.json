@@ -1,0 +1,61 @@
+{
+  "component": "PkCalendar",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "ValueChanged",
+      "event": "pk-select",
+      "type": "EventCallback<DateOnly?>"
+    },
+    {
+      "name": "Month",
+      "prop": "month",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "Min",
+      "prop": "min",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "WeekStart",
+      "prop": "weekStart",
+      "type": "int"
+    },
+    {
+      "name": "Locale",
+      "prop": "locale",
+      "type": "string?"
+    },
+    {
+      "name": "Marks",
+      "prop": "marks",
+      "type": "IReadOnlyList<DateOnly>"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "OnMonthChanged",
+      "event": "pk-month",
+      "type": "EventCallback<MonthEventArgs>"
+    }
+  ],
+  "notes": "Bind with @bind-Value; dates convert to and from ISO strings."
+}

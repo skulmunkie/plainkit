@@ -14,6 +14,8 @@
 import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, summarizeResources, formatBytes, formatMs, shortName } from '../js/perf-logic.js';
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
+import { createLogger } from '../js/log.js';
+const log = createLogger('performance');
 
 const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./performance.css'];
@@ -35,7 +37,7 @@ function observe(win, type, onEntries, extra = {}) {
         const po = new win.PerformanceObserver(list => onEntries(list.getEntries()));
         po.observe({ type, buffered: true, ...extra });
         return po;
-    } catch { return null; }
+    } catch (error) { log.debug(`the ${type} performance entry type is not supported in this browser`, error); return null; }
 }
 
 // The data side: performance observers plus a frame counter. Nothing here touches the page's markup.
@@ -87,6 +89,7 @@ export function collect(win, doc, { history = DEFAULTS.history } = {}) {
 }
 
 export async function mountPerformance(container, options = {}) {
+    log.debug('mounted', { module: 'performance', options: Object.keys(options) });
     const { theme, height, autostart = true, interval = DEFAULTS.interval, history = DEFAULTS.history, onsample } = options;
     const doc = container.ownerDocument;
     const win = options.target?.defaultView ?? doc.defaultView;
@@ -106,7 +109,7 @@ export async function mountPerformance(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => {});
+    loadElements(root);
 
     const c = collect(win, watched, { history });
     let timer = 0;

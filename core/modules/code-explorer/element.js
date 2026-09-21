@@ -16,6 +16,8 @@ import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { createLogger } from '../../js/log.js';
+const log = createLogger('code-explorer');
 
 const CSS = ['./code-explorer.css'];
 const NAV = '::nav';
@@ -83,7 +85,7 @@ export class CodeExplorerElement extends Base {
     }
 
     // Load the modules of any pk-* element that was just written and is not defined yet (a no-op once they all are).
-    #upgrade() { loadElements(this).catch(() => {}); }
+    #upgrade() { loadElements(this); }
 
     #build() {
         fill(this, `
@@ -128,7 +130,7 @@ export class CodeExplorerElement extends Base {
         // update against items that are not upgraded yet.
         const scratch = this.ownerDocument.createElement('div');
         fill(scratch, '<pk-tree><pk-tree-item></pk-tree-item></pk-tree><pk-badge></pk-badge><pk-tab></pk-tab><pk-empty-state></pk-empty-state>');
-        this.#ready = Promise.all([loadElements(scratch), loadElements(this)]).catch(() => {});
+        this.#ready = Promise.all([loadElements(scratch), loadElements(this)]);
     }
 
     async #start() {
@@ -148,6 +150,7 @@ export class CodeExplorerElement extends Base {
             const query = this.getAttribute('search');
             if (query) await this.search(query);
         } catch (error) {
+            log.error('the code explorer could not start', error);
             fill(this.querySelector('[data-ce-tree]'), `<p class="ce-error" role="alert">${esc(error.message)}</p>`);
             this.dispatchEvent(new CustomEvent('code-explorer-error', { detail: { error } }));
         }
@@ -238,7 +241,7 @@ export class CodeExplorerElement extends Base {
 
     async #runSearch(query) {
         if (!query.trim() || !this.#provider.search) return;
-        try { this.#search = { query, groups: await this.#provider.search(query) }; } catch (e) { this.#search = { query, groups: [], error: e.message }; }
+        try { this.#search = { query, groups: await this.#provider.search(query) }; } catch (e) { log.warn('the search failed', e); this.#search = { query, groups: [], error: e.message }; }
         this.#renderTree();
     }
 
@@ -287,6 +290,7 @@ export class CodeExplorerElement extends Base {
                 this.#docs.set(path, { ...doc, language, tokens: tokenize(doc.lines, language) });
             }
         } catch (error) {
+            log.warn(`could not open ${path}`, error);
             this.dispatchEvent(new CustomEvent('code-explorer-error', { detail: { error } }));
             return;
         }
@@ -342,12 +346,12 @@ export class CodeExplorerElement extends Base {
 
     // ---- inspector -------------------------------------------------------
     async #showOutline(toPane = true) {
-        try { this.#inspector = { kind: 'outline', items: await this.#provider.outline(this.#active) }; } catch (e) { this.#inspector = { kind: 'outline', items: [], error: e.message }; }
+        try { this.#inspector = { kind: 'outline', items: await this.#provider.outline(this.#active) }; } catch (e) { log.warn('the outline could not be read', e); this.#inspector = { kind: 'outline', items: [], error: e.message }; }
         this.#renderInspector(); if (toPane) this.#showPane('aside');
     }
 
     async #showUsages() {
-        try { this.#inspector = { kind: 'usages', word: this.#word, items: await this.#provider.references(this.#active, this.#word) }; } catch (e) { this.#inspector = { kind: 'usages', word: this.#word, items: [], error: e.message }; }
+        try { this.#inspector = { kind: 'usages', word: this.#word, items: await this.#provider.references(this.#active, this.#word) }; } catch (e) { log.warn('the usages could not be read', e); this.#inspector = { kind: 'usages', word: this.#word, items: [], error: e.message }; }
         this.#renderInspector(); this.#showPane('aside');
     }
 

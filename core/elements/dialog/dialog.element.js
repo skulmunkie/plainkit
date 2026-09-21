@@ -66,10 +66,11 @@ const behaviour = Base => class extends Base {
         const dlg = this.part('dialog');
         if (!this.$w) { this.$w = true; wireDialog(this, dlg); globalThis.PkDialog ??= this.constructor; }
         syncDialog(this, dlg);
+        if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel');
     }
     disconnected() { const d = this.part('dialog'); if (d.open) d.close(); }
     changed(name) {
-        if (name === 'open') syncDialog(this, this.part('dialog'));
+        if (name === 'open') { syncDialog(this, this.part('dialog')); if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel'); }
         else if (name === 'maxWidth') { if (this.maxWidth > 0) this.style.setProperty('--pk-dialog-w', `min(${this.maxWidth}px, calc(100vw - 2rem))`); else this.style.removeProperty('--pk-dialog-w'); }
     }
     show() { this.open = true; }

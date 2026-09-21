@@ -58,37 +58,6 @@
   "methods": [],
   "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded.",
   "mobile": "More than three crumbs fold the middle ones; links and the fold button are 44px tall.",
-  "blazor": {
-    "component": "PkBreadcrumb",
-    "params": [
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "Breadcrumb",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "Max",
-        "type": "int",
-        "default": 4,
-        "map": "prop",
-        "prop": "max"
-      },
-      {
-        "name": "ChildContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": ""
-      },
-      {
-        "name": "OnExpand",
-        "type": "EventCallback",
-        "map": "event",
-        "event": "pk-expand"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Breadcrumb",

@@ -7,7 +7,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 - **Elements**: the tag prefix is `pk-`. The folder is `elements/<name>/` and the tag is `pk-<name>` (the build fails otherwise).
 - **Custom properties**: design tokens are plain (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`) and live only in `tokens/tokens.css`. An element's own hooks are `--pk-<element>-<part>` (for example `--pk-button-bg`) and are listed in its `.meta.json`.
 - **Attributes and events**: data attributes are `data-pk-*`, events are `pk-<name>`.
-- **Blazor components**: `Pk` plus the tag in PascalCase (`pk-alert` is `PkAlert`, `pk-table` is `PkTable`). The name comes from `blazor.component` in the element's meta file; parameters map one to one to the element's props and events.
+- **Blazor components**: `Pk` plus the tag in PascalCase (`pk-alert` is `PkAlert`, `pk-table` is `PkTable`). The SDK's element meta says nothing about Blazor: the name and the parameters live in `blazor/mappings/<name>.json` (`scripts/tests/blazor-mappings.test.mjs` checks them against the meta).
 
 ## Styling
 
@@ -33,6 +33,16 @@ The whole site runs under `script-src 'self'; style-src 'self'`.
 - Every `innerHTML`-style sink is counted and documented in `tools/security.allow.json` with the source of its markup; prefer DOM APIs and `textContent`. Escape every dynamic value.
 - No `eval`, no runtime requests to another origin.
 
+## Logging
+
+Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`js/element.js` gives every element `this.log` and `this.warnOnce(key, message, detail)`); never a bare `console.*`. An empty `catch` or `.catch` handler needs either a log call or a one-line comment saying why silence is right (`tests/no-silent-catch.test.mjs` enforces it).
+
+- **Scopes**: `loader`, `invokers`, the tag name for an element (`pk-input`), the module name for a tool (`scorecard`, `code-explorer`, `theme-editor`, `quality`, `performance`), your own name for an app.
+- **error**: something the page asked for did not happen and cannot recover (a module failed to load, a run failed).
+- **warn**: a mistake the SDK worked around (a bad attribute value that fell back to its default, an unknown tag, a selector that matches nothing, a saved value that could not be read). Say what was wrong and what was used instead. In an element, say it once per instance (`warnOnce`) so a re-render loop cannot flood.
+- **info**: rare, useful milestones an app might want to see. The SDK itself seldom uses it.
+- **debug**: lifecycle and expected fallbacks (element defined, connected, a prop changed, a module loaded and how long it took, a tool mounted, blocked storage, an unsupported browser API). Guard anything costly to build with `isLogEnabled('debug', scope)`; the default level is `warn`, so a quiet page prints nothing extra.
+
 ## Files
 
 - Every file under `core/` is CRLF (`.gitattributes`), the build emits CRLF and tests compare bytes. Never rewrite a whole file with a tool that strips carriage returns.
@@ -45,7 +55,7 @@ The whole site runs under `script-src 'self'; style-src 'self'`.
 
 1. `node core/tools/build.mjs`
 2. `node scripts/publish-dist.mjs` (copies `core/dist` into the package; `--check` is what CI runs)
-3. Update the Blazor wrappers when an element's API changed, and run both test suites.
+3. Update the Blazor wrappers and the element's `blazor/mappings/<name>.json` when an element's API changed, and run both test suites (`node --test "scripts/tests/*.test.mjs"` is the mapping check).
 
 A change that lands in only one of the two is incomplete.
 

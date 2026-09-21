@@ -18,6 +18,8 @@ import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setTheme
 import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries } from '../js/theme-editor-logic.js';
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
+import { createLogger } from '../js/log.js';
+const log = createLogger('theme-editor');
 
 const STYLES = ['../plainkit.css'];
 const OWN_STYLES = ['./theme-editor.css'];
@@ -49,10 +51,11 @@ function readStored(key, win) {
     try {
         const raw = win.localStorage.getItem(key) ?? '{}';
         return raw.length > MAX_STORED ? emptyOverrides() : sanitizeOverrides(JSON.parse(raw));
-    } catch { return emptyOverrides(); }
+    } catch (error) { log.warn(`the saved theme edits under "${key}" could not be read: starting with none`, error); return emptyOverrides(); }
 }
 
 export async function mountThemeEditor(container, options = {}) {
+    log.debug('mounted', { module: 'theme-editor', options: Object.keys(options) });
     const doc = container.ownerDocument;
     const win = doc.defaultView;
     const target = options.target ?? doc;
@@ -136,7 +139,7 @@ export async function mountThemeEditor(container, options = {}) {
         tabs);
     if (height) { root.classList.add('te--fixed'); root.style.height = height; }
     container.replaceChildren(root);
-    loadElements(root).catch(() => {});
+    loadElements(root);
 
     if (showPreview) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
@@ -213,7 +216,7 @@ export async function mountThemeEditor(container, options = {}) {
         const { css, rejected } = buildOverrides(state.overrides);
         applyToTarget(css);
         applyToPreview(css);
-        if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch { /* storage blocked: the edit still applies */ }
+        if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch (error) { log.debug('storage blocked: the edit applies but is not saved', error); }
         paintPairs();
         paintExport(css, rejected);
         onchange?.({ css, overrides: api.overrides() });
@@ -301,4 +304,4 @@ export async function mountThemeEditor(container, options = {}) {
 }
 
 // The Preview frame loads this same module as its script: inside it, the only job is to define the pk-* elements the frame shows.
-if (globalThis.document?.documentElement?.hasAttribute('data-te-preview')) loadElements(document).catch(() => {});
+if (globalThis.document?.documentElement?.hasAttribute('data-te-preview')) loadElements(document);

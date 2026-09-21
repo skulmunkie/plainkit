@@ -1,0 +1,20 @@
+{
+  "component": "PkAvatarGroup",
+  "params": [
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "double"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

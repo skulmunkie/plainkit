@@ -1,0 +1,51 @@
+{
+  "component": "PkOtpInput",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Length",
+      "prop": "length",
+      "type": "int"
+    },
+    {
+      "name": "Type",
+      "prop": "type",
+      "type": "string"
+    },
+    {
+      "name": "SeparatorAt",
+      "prop": "separatorAt",
+      "type": "int"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "OnComplete",
+      "event": "pk-otp-complete",
+      "type": "{ value: string }"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-otp-change",
+    "key": "value",
+    "type": "string"
+  }
+}

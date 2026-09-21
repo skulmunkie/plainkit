@@ -76,41 +76,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "role=listitem through ElementInternals; the time uses a real time element with a datetime attribute.",
-  "blazor": {
-    "component": "PkTimelineItem",
-    "params": [
-      {
-        "name": "Heading",
-        "prop": "heading",
-        "type": "string"
-      },
-      {
-        "name": "Time",
-        "prop": "time",
-        "type": "string"
-      },
-      {
-        "name": "Status",
-        "prop": "status",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "HeadingContent",
-        "slot": "heading",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "TimeContent",
-        "slot": "time",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Statuses",

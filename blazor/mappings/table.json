@@ -1,0 +1,85 @@
+{
+  "component": "PkTable",
+  "existing": true,
+  "params": [
+    {
+      "name": "Columns",
+      "prop": "columns",
+      "type": "IReadOnlyList<DataGridColumn>",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridColumn"
+    },
+    {
+      "name": "Items",
+      "prop": "rows",
+      "type": "IReadOnlyList<TItem>"
+    },
+    {
+      "name": "EnableSelection",
+      "prop": "selectable",
+      "type": "bool"
+    },
+    {
+      "name": "SelectedKeys",
+      "prop": "selected",
+      "type": "HashSet<int>"
+    },
+    {
+      "name": "PhoneLayout",
+      "prop": "cards",
+      "type": "DataGridPhoneLayout",
+      "todo": "type not yet defined in PlainKit.Blazor (issue #9): DataGridPhoneLayout"
+    },
+    {
+      "name": "Loading",
+      "prop": "loading",
+      "type": "bool"
+    },
+    {
+      "name": "HeaderActionsTemplate",
+      "slot": "toolbar",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "FilterTemplate",
+      "slot": "toolbar",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "FooterTemplate",
+      "slot": "footer",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "BulkTemplate",
+      "slot": "bulk",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "RowTemplate",
+      "slot": "cell-<rowId>-<key>",
+      "type": "RenderFragment<TItem>",
+      "note": "The slot name is dynamic: the wrapper renders one slot=\"cell-<rowId>-<key>\" per cell, so it is not a fixed slot of the element."
+    },
+    {
+      "name": "OnRowClick",
+      "event": "pk-row-click",
+      "type": "EventCallback<TItem>"
+    },
+    {
+      "name": "OnSelectionChanged",
+      "event": "pk-select",
+      "type": "EventCallback"
+    },
+    {
+      "name": "OnSort",
+      "event": "pk-sort",
+      "type": "EventCallback<SortEventArgs>"
+    },
+    {
+      "name": "OnFilter",
+      "event": "pk-filter",
+      "type": "EventCallback<FilterEventArgs>"
+    }
+  ],
+  "notes": "The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. The Blazor EmptyText fills the empty slot."
+}

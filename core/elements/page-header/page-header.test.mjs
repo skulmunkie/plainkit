@@ -14,12 +14,11 @@ test('the template is a header element with a heading-role title and the four sl
     assert.ok(!/\sstyle=/.test(html));
 });
 
-test('the API: heading, level, variant page|section|record, and the Blazor component', () => {
+test('the API: heading, level, variant page|section|record', () => {
     const p = Object.fromEntries(meta.props.map(x => [x.name, x]));
     assert.equal(p.level.default, 2);
     assert.deepEqual(p.variant.values, ['page', 'section', 'record']);
     assert.equal(p.variant.default, 'page');
-    assert.equal(meta.blazor.component, 'PkPageHeader');
     assert.ok(meta.examples.some(e => /variant="record"/.test(e.html)) && meta.examples.some(e => /variant="section"/.test(e.html)));
 });
 

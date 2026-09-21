@@ -6,7 +6,7 @@ import { loadElements, observeElements } from '../../../js/loader.js';
 import { initInvokers } from '../../../js/invokers.js';
 import Toast from '../../../elements/toast-stack.js';
 
-loadElements(document).catch(() => {});
+loadElements(document);
 observeElements(document);
 globalThis.PkToast = Toast;
 initInvokers(document);

@@ -121,66 +121,6 @@
     }
   ],
   "a11y": "Roles, levels, set sizes and states are set through ElementInternals by the tree. The host is the roving tab stop and shows a focus ring on the row, which is 44px tall on a phone.",
-  "blazor": {
-    "component": "PkTreeItem",
-    "params": [
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "Expanded",
-        "prop": "expanded",
-        "type": "bool"
-      },
-      {
-        "name": "Selected",
-        "prop": "selected",
-        "type": "bool"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "Expandable",
-        "prop": "expandable",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "LabelContent",
-        "slot": "label",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "IconContent",
-        "slot": "icon",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "OnSelect",
-        "event": "pk-select",
-        "type": "EventCallback<SelectEventArgs>"
-      },
-      {
-        "name": "OnToggle",
-        "event": "pk-toggle",
-        "type": "EventCallback<ToggleEventArgs>"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Leaf and branch",

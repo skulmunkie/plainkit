@@ -1,0 +1,34 @@
+{
+  "component": "PkTabs",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value"
+    },
+    {
+      "name": "Activation",
+      "prop": "activation"
+    },
+    {
+      "name": "NoneActive",
+      "prop": "noneActive"
+    },
+    {
+      "name": "Scroll",
+      "prop": "scroll"
+    },
+    {
+      "name": "OnChange",
+      "event": "pk-tab-change"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "note": "The pk-tab and pk-tab-panel children assign themselves to the tab and panel slots; ChildContent holds them."
+    },
+    {
+      "name": "TrailingContent",
+      "slot": "trailing"
+    }
+  ]
+}

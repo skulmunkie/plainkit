@@ -104,42 +104,6 @@
     }
   ],
   "a11y": "The svg is role=img with a generated text alternative listing the values; the source table stays in a details for exact numbers. Series colours are the chart tokens and every multi-series chart has a legend, so colour is not the only key.",
-  "blazor": {
-    "component": "PkChart",
-    "params": [
-      {
-        "name": "Kind",
-        "prop": "kind",
-        "type": "string"
-      },
-      {
-        "name": "Caption",
-        "prop": "caption",
-        "type": "string"
-      },
-      {
-        "name": "Height",
-        "prop": "height",
-        "type": "int"
-      },
-      {
-        "name": "Data",
-        "prop": "data",
-        "type": "ChartData"
-      },
-      {
-        "name": "CaptionContent",
-        "slot": "caption",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment?"
-      }
-    ],
-    "notes": "ChartData is { Labels, Series: [{ Name, Values }] }."
-  },
   "examples": [
     {
       "title": "Bar from a table",

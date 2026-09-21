@@ -19,6 +19,12 @@
             <pk-field label="Sample width"><pk-select id="set-width"><option value="desktop">Desktop</option><option value="phone">Phone (375px)</option></pk-select></pk-field>
         </pk-stack>
     </pk-card>
+    <pk-card heading="Logging">
+        <pk-stack gap="sm">
+            <span class="muted">What the SDK and your code log through <code>createLogger</code>: the level, a level per scope and where each level goes. Saved in this browser. The <code>?pk-log=</code> address parameter and <code>&lt;html data-pk-log&gt;</code> still choose the level when a page loads.</span>
+            <div id="set-logging"></div>
+        </pk-stack>
+    </pk-card>
 </pk-stack></div></div>
 <script type="module" src="page.js"></script>
 </body>

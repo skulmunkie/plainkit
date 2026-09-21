@@ -1,0 +1,35 @@
+{
+  "component": "PkAvatar",
+  "params": [
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Src",
+      "prop": "src",
+      "type": "string"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Shape",
+      "prop": "shape",
+      "type": "string"
+    },
+    {
+      "name": "Status",
+      "prop": "status",
+      "type": "string"
+    },
+    {
+      "name": "Colour",
+      "prop": "colour",
+      "type": "string"
+    }
+  ]
+}

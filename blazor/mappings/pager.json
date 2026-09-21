@@ -1,0 +1,30 @@
+{
+  "component": "PkPager",
+  "params": [
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "Page navigation",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "PrevContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "prev"
+    },
+    {
+      "name": "NextContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "next"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}

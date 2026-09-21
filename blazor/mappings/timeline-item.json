@@ -1,0 +1,35 @@
+{
+  "component": "PkTimelineItem",
+  "params": [
+    {
+      "name": "Heading",
+      "prop": "heading",
+      "type": "string"
+    },
+    {
+      "name": "Time",
+      "prop": "time",
+      "type": "string"
+    },
+    {
+      "name": "Status",
+      "prop": "status",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "HeadingContent",
+      "slot": "heading",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "TimeContent",
+      "slot": "time",
+      "type": "RenderFragment"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "component": "PkBadge",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "Count",
+      "prop": "count",
+      "type": "string"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "double"
+    },
+    {
+      "name": "Dot",
+      "prop": "dot",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ],
+  "notes": "New component. Record status keeps using Chip and StatusChip."
+}

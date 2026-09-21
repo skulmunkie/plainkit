@@ -41,11 +41,11 @@ const behaviour = Base => class extends Base {
     disconnected() { this.$from = null; }
     save() {
         if (!this.persist) return;
-        try { localStorage.setItem(this.persist, serializeNav(items(this).filter(i => i.expanded).map(idOf), this.collapsed)); } catch { /* storage blocked */ }
+        try { localStorage.setItem(this.persist, serializeNav(items(this).filter(i => i.expanded).map(idOf), this.collapsed)); } catch (error) { this.log.debug('storage blocked: the expanded state is not saved', error); }
     }
     restore() {
         if (!this.persist) return;
-        const text = (() => { try { return localStorage.getItem(this.persist); } catch { return undefined; } })();
+        const text = (() => { try { return localStorage.getItem(this.persist); } catch (error) { this.log.debug('storage blocked: the saved expanded state is not restored', error); return undefined; } })();
         if (text === undefined) return;
         const s = parseNav(text);
         if (text) this.collapsed = s.collapsed;

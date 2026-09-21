@@ -1,0 +1,40 @@
+{
+  "component": "PkPageHeader",
+  "params": [
+    {
+      "name": "Heading",
+      "prop": "heading",
+      "type": "string"
+    },
+    {
+      "name": "Level",
+      "prop": "level",
+      "type": "int"
+    },
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "BreadcrumbContent",
+      "slot": "breadcrumb",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "ActionsContent",
+      "slot": "actions",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "MetaContent",
+      "slot": "meta",
+      "type": "RenderFragment?"
+    }
+  ]
+}

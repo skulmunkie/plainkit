@@ -1,0 +1,30 @@
+{
+  "component": "PkButtonGroup",
+  "params": [
+    {
+      "name": "Orientation",
+      "prop": "orientation",
+      "type": "string"
+    },
+    {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Mode",
+      "prop": "mode",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

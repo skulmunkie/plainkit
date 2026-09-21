@@ -1,0 +1,65 @@
+{
+  "component": "PkToast",
+  "params": [
+    {
+      "name": "Kind",
+      "type": "ToastKind",
+      "default": "info",
+      "map": "prop",
+      "prop": "kind",
+      "enum": {
+        "Info": "info",
+        "Success": "success",
+        "Warning": "warning",
+        "Danger": "danger"
+      }
+    },
+    {
+      "name": "Heading",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "Message",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "message"
+    },
+    {
+      "name": "Duration",
+      "type": "int",
+      "default": -1,
+      "map": "prop",
+      "prop": "duration"
+    },
+    {
+      "name": "NoClose",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "noClose"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "ActionContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "action"
+    },
+    {
+      "name": "OnDismiss",
+      "type": "EventCallback<ToastDismissEventArgs>",
+      "map": "event",
+      "event": "pk-dismiss",
+      "cancelable": true
+    }
+  ]
+}

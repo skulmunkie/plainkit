@@ -138,66 +138,6 @@
   ],
   "methods": [],
   "a11y": "The label click focuses the control. Ids cannot cross shadow roots, so the field sets label, description (help plus error), invalid, warning and required on an pk-* control, or aria-label and aria-description on a native one. Messages are polite live regions that are empty until used; the star is aria-hidden because required is set on the control.",
-  "blazor": {
-    "component": "PkField",
-    "params": [
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Hint",
-        "prop": "help",
-        "type": "string"
-      },
-      {
-        "name": "Error",
-        "prop": "error",
-        "type": "string"
-      },
-      {
-        "name": "Required",
-        "prop": "required",
-        "type": "bool"
-      },
-      {
-        "name": "MaxLength",
-        "prop": "max",
-        "type": "int"
-      },
-      {
-        "name": "Layout",
-        "prop": "layout",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "LabelExtra",
-        "slot": "label",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "LabelAction",
-        "slot": "label-action",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "HintContent",
-        "slot": "help",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "Size",
-        "prop": "size",
-        "type": "string"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Help, required and counter",

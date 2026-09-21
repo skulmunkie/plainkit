@@ -53,31 +53,6 @@
     }
   ],
   "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
-  "blazor": {
-    "component": "PkGrid",
-    "params": [
-      {
-        "name": "Min",
-        "prop": "min",
-        "type": "string"
-      },
-      {
-        "name": "Columns",
-        "prop": "columns",
-        "type": "int"
-      },
-      {
-        "name": "Gap",
-        "prop": "gap",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Auto columns",

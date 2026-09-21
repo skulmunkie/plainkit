@@ -1,5 +1,5 @@
 // The gallery page of a custom element, generated entirely from its meta API: a live playground (props become controls, the slot content
-// is editable markup, events land in a log, custom properties are settable), the usage snippet with its Blazor equivalent, the examples
+// is editable markup, events land in a log, custom properties are settable), the usage snippet, the examples
 // rendered live, and the API tables. Built with DOM APIs; the only markup parsed is the element's own examples from its meta. The page
 // itself is made of pk-* elements (page header, cards, accordions, tables, fields, code blocks).
 
@@ -29,20 +29,6 @@ function table(label, cols, rows) {
 
 const show = v => (v === '' ? '""' : String(v));
 
-export function blazorSnippet(meta, root) {
-    const b = meta.blazor; const attrs = [];
-    for (const p of b.params.filter(x => x.prop)) {
-        const def = meta.props.find(d => d.name === p.prop);
-        const attr = p.prop.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
-        if (!root.hasAttribute(attr)) continue;
-        const raw = root.getAttribute(attr); const member = p.enum && Object.keys(p.enum).find(k => p.enum[k] === raw);
-        attrs.push(def?.type === 'boolean' ? p.name : member ? `${p.name}="@(${p.type.replace('?', '')}.${member})"` : `${p.name}="${raw}"`);
-    }
-    const events = b.params.filter(x => x.event).map(x => `${x.name}="Handle${x.name}"`);
-    const open = `<${b.component}${[...attrs, ...events].map(a => ' ' + a).join('')}>`;
-    return `${open}\n    @* ChildContent and named slots as RenderFragments *@\n</${b.component}>`;
-}
-
 export function renderElement(meta) {
     const page = h('pk-stack', { class: 'gx-page' });
     page.append(h('pk-page-header', { class: 'gx-head', level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
@@ -55,8 +41,8 @@ export function renderElement(meta) {
     // An example that lists several instances (one per kind) would push the controls off screen: the playground drives ONE, the Examples section shows the rest.
     for (const sib of [...(live.parentElement?.children ?? [])]) if (sib !== live && sib.localName === meta.tag) sib.remove();
     const controls = h('pk-grid', { class: 'gx-el-controls', min: '9rem', gap: 'sm' });
-    const snippet = codeBlock('Markup'); const blazor = codeBlock('Razor');
-    const refresh = () => { snippet.textContent = live.outerHTML.replace(/\s(data-[\w-]+="[^"]*")/g, '').replace(/\shidden(="")?(?=[\s>])/g, ''); blazor.textContent = blazorSnippet(meta, live); };
+    const snippet = codeBlock('Markup');
+    const refresh = () => { snippet.textContent = live.outerHTML.replace(/\s(data-[\w-]+="[^"]*")/g, '').replace(/\shidden(="")?(?=[\s>])/g, ''); };
 
     // A control starts from the attribute the example carries, else the declared default: read from the markup, so it does not depend on the element being upgraded yet.
     const initial = d => { const a = d.name.replace(/[A-Z]/g, c => '-' + c.toLowerCase()); return d.type === 'boolean' ? live.hasAttribute(a) : live.hasAttribute(a) ? live.getAttribute(a) : d.default; };
@@ -94,7 +80,6 @@ export function renderElement(meta) {
         h('div', { class: 'gx-el-play' }, h('pk-card', {}, h('div', { class: 'gx-el-live' }, stage)), controls),
         slotField,
         disclose('Markup', snippet),
-        disclose('Blazor equivalent', blazor),
         meta.events.length ? logBox : null,
         meta.cssProperties.length ? disclose(`Theme it (${meta.cssProperties.length} custom ${meta.cssProperties.length === 1 ? 'property' : 'properties'})`, theming) : null));
     refresh();
@@ -113,6 +98,5 @@ export function renderElement(meta) {
         h('h3', {}, 'Custom properties'), meta.cssProperties.length ? table('Custom properties', ['Name', 'Default', 'Description'], meta.cssProperties.map(c => [code(c.name), code(c.default ?? ''), c.description])) : h('p', { class: 'muted' }, 'None. Design tokens (--color-*, --space-*, ...) inherit into the element.')));
     if (meta.methods.length) page.append(fold('Methods', table('Methods', ['Name', 'Description'], meta.methods.map(m => [code(m.name), m.description]))));
     page.append(fold('Accessibility', h('p', {}, meta.a11y)));
-    page.append(fold('Blazor mapping', h('p', { class: 'muted' }, `The ${meta.blazor.component} component maps its parameters one to one:`), table('Blazor parameters', ['Parameter', 'Becomes'], meta.blazor.params.map(p => [code(p.name), p.prop ? `property ${p.prop}` : p.event ? `event ${p.event}` : `slot ${p.slot === '' ? '(default)' : p.slot}`]))));
     return page;
 }

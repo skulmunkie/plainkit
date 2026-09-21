@@ -85,41 +85,6 @@
     }
   ],
   "a11y": "Turns the native bubble off and puts each message in the field as a polite live region with aria-invalid on the control; the first invalid control takes focus on submit; the summary is role=alert and its links move focus. Custom text per constraint: data-msg-required, data-msg-type, data-msg-pattern, data-msg-min, data-msg-max on the control.",
-  "blazor": {
-    "component": "PkForm",
-    "params": [
-      {
-        "name": "Validate",
-        "prop": "validate",
-        "type": "string"
-      },
-      {
-        "name": "ShowValid",
-        "prop": "showValid",
-        "type": "bool"
-      },
-      {
-        "name": "Summary",
-        "prop": "summary",
-        "type": "bool"
-      },
-      {
-        "name": "OnInvalid",
-        "event": "pk-invalid",
-        "type": "{ controls: Element[], messages: string[] }"
-      },
-      {
-        "name": "OnValid",
-        "event": "pk-valid",
-        "type": "null"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Validated form with summary",

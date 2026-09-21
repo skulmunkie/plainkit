@@ -1,0 +1,33 @@
+{
+  "component": "PkTab",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled"
+    },
+    {
+      "name": "Count",
+      "prop": "count"
+    },
+    {
+      "name": "Closable",
+      "prop": "closable"
+    },
+    {
+      "name": "Only",
+      "prop": "only"
+    },
+    {
+      "name": "OnClose",
+      "event": "pk-tab-close"
+    },
+    {
+      "name": "ChildContent",
+      "slot": ""
+    }
+  ]
+}

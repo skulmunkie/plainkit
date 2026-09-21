@@ -1,0 +1,68 @@
+{
+  "component": "PkDropdown",
+  "params": [
+    {
+      "name": "Open",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "open",
+      "bind": {
+        "event": "pk-close",
+        "value": false
+      }
+    },
+    {
+      "name": "Placement",
+      "type": "string",
+      "default": "bottom-start",
+      "map": "prop",
+      "prop": "placement"
+    },
+    {
+      "name": "KeepOpen",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "keepOpen"
+    },
+    {
+      "name": "Mega",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "mega"
+    },
+    {
+      "name": "TriggerContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "trigger"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnSelect",
+      "type": "EventCallback<DropdownSelectEventArgs>",
+      "map": "event",
+      "event": "pk-select"
+    },
+    {
+      "name": "OnOpen",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-open"
+    },
+    {
+      "name": "OnClose",
+      "type": "EventCallback<DropdownCloseEventArgs>",
+      "map": "event",
+      "event": "pk-close",
+      "cancelable": true
+    }
+  ]
+}

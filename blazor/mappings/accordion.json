@@ -1,0 +1,20 @@
+{
+  "component": "PkAccordion",
+  "params": [
+    {
+      "name": "Exclusive",
+      "prop": "exclusive",
+      "type": "bool"
+    },
+    {
+      "name": "Flush",
+      "prop": "flush",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

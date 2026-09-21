@@ -1,0 +1,80 @@
+{
+  "component": "PkButton",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "ButtonVariant"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "ButtonSize"
+    },
+    {
+      "name": "Type",
+      "prop": "type",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "Busy",
+      "prop": "busy",
+      "type": "bool"
+    },
+    {
+      "name": "BusyText",
+      "prop": "busyText",
+      "type": "string"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Block",
+      "prop": "block",
+      "type": "bool"
+    },
+    {
+      "name": "Icon",
+      "prop": "icon",
+      "type": "bool"
+    },
+    {
+      "name": "Toggle",
+      "prop": "toggle",
+      "type": "bool"
+    },
+    {
+      "name": "Pressed",
+      "prop": "pressed",
+      "type": "bool"
+    },
+    {
+      "name": "OnClick",
+      "event": "click",
+      "type": "MouseEventArgs"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "StartContent",
+      "slot": "start",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "EndContent",
+      "slot": "end",
+      "type": "RenderFragment"
+    }
+  ]
+}

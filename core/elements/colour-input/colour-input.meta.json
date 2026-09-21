@@ -115,42 +115,6 @@
     }
   ],
   "a11y": "Both inputs are labelled; text that is not a colour sets aria-invalid and a validity message; the picker is the platform's own, so it is keyboard and screen-reader accessible everywhere. The swatch is 44px on a phone.",
-  "blazor": {
-    "component": "PkColourInput",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "Disabled",
-        "prop": "disabled",
-        "type": "bool"
-      },
-      {
-        "name": "Required",
-        "prop": "required",
-        "type": "bool"
-      },
-      {
-        "name": "IsInvalid",
-        "prop": "invalid",
-        "type": "bool"
-      },
-      {
-        "name": "AriaLabel",
-        "prop": "label",
-        "type": "string"
-      }
-    ],
-    "model": {
-      "prop": "value",
-      "event": "pk-colour",
-      "key": "value",
-      "type": "string"
-    }
-  },
   "examples": [
     {
       "title": "Picker and hex",

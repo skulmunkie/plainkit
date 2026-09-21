@@ -80,59 +80,6 @@
   ],
   "a11y": "A nav landmark; the current link has aria-current=\"location\"; links are real anchors, so the browser handles focus and history.",
   "mobile": "Not sticky below 1024px; links are 44px tall.",
-  "blazor": {
-    "component": "PkToc",
-    "params": [
-      {
-        "name": "For",
-        "type": "string",
-        "default": "",
-        "map": "prop",
-        "prop": "for"
-      },
-      {
-        "name": "Levels",
-        "type": "string",
-        "default": "h2,h3",
-        "map": "prop",
-        "prop": "levels"
-      },
-      {
-        "name": "Offset",
-        "type": "int",
-        "default": 80,
-        "map": "prop",
-        "prop": "offset"
-      },
-      {
-        "name": "Scroller",
-        "type": "string",
-        "default": "",
-        "map": "prop",
-        "prop": "scroller"
-      },
-      {
-        "name": "Heading",
-        "type": "string",
-        "default": "",
-        "map": "prop",
-        "prop": "heading"
-      },
-      {
-        "name": "Label",
-        "type": "string",
-        "default": "On this page",
-        "map": "prop",
-        "prop": "label"
-      },
-      {
-        "name": "OnSectionChange",
-        "type": "EventCallback<TocSectionChangeEventArgs>",
-        "map": "event",
-        "event": "pk-section-change"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "On this page",

@@ -1,0 +1,62 @@
+{
+  "component": "PkCard",
+  "params": [
+    {
+      "name": "Heading",
+      "prop": "heading",
+      "type": "string"
+    },
+    {
+      "name": "Level",
+      "prop": "level",
+      "type": "int"
+    },
+    {
+      "name": "Tone",
+      "prop": "tone",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "ActionsContent",
+      "slot": "actions",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "FooterContent",
+      "slot": "footer",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "Orientation",
+      "prop": "orientation",
+      "type": "string"
+    },
+    {
+      "name": "Flush",
+      "prop": "flush",
+      "type": "bool"
+    },
+    {
+      "name": "Href",
+      "prop": "href",
+      "type": "string?"
+    },
+    {
+      "name": "MediaContent",
+      "slot": "media",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
+    }
+  ],
+  "existing": true,
+  "notes": "Keeps the existing PkCard parameters (Title maps to heading)."
+}

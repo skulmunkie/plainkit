@@ -65,26 +65,6 @@
   ],
   "methods": [],
   "a11y": "The heading is a real h2 so the section is navigable by heading; the fields keep their own labels.",
-  "blazor": {
-    "component": "PkFormSection",
-    "params": [
-      {
-        "name": "Title",
-        "prop": "heading",
-        "type": "string"
-      },
-      {
-        "name": "Description",
-        "prop": "description",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Two sections",

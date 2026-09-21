@@ -1,6 +1,6 @@
-// The dev tools as a module: mountDevTools(container, options) puts the SDK's live tools (performance, console, and any panel you add)
+// The dev tools as a module: mountDevTools(container, options) puts the SDK's live tools (console, logs, logging settings, performance, and any panel you add)
 // in one tabbed surface, either docked over the page (Ctrl+` toggles it, like a browser's dev tools) or inline in a container.
-// Built only from SDK components (pk-tabs, pk-button, pk-button-group) around the performance and console modules, plus the Quality
+// Built only from SDK components (pk-tabs, pk-button, pk-button-group) around the console, logs, log settings and performance modules, plus the Quality
 // (the SDK page checks on the live page), Inspector (pk-* elements on the page) and Theme (the theme editor, live on this page) panels in panels.js.
 //
 //   const tools = await mountDevTools(null, { mode: 'dock' });      // a floating button and a bottom dock on any page
@@ -15,6 +15,8 @@
 
 import { mountPerformance } from '../performance/performance.js';
 import { mountConsole } from '../console/console.js';
+import { mountLogs } from '../logs/logs.js';
+import { mountLogSettings } from '../log-settings/log-settings.js';
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
 import { qualityPanel, inspectorPanel, themePanel } from './panels.js';
@@ -27,6 +29,9 @@ export const SIZES = Object.freeze({ small: '25vh', medium: '40vh', large: '65vh
 // The built-in panels, in the shape a panel of your own takes. Console mounts first so it records from the start.
 export const BUILT_IN = Object.freeze([
     { id: 'console', title: 'Console', mount: async el => { const c = await mountConsole(el, {}); return { destroy: () => c.destroy() }; } },
+    // Logs is the SDK logger's entries (js/log.js), not console output; Logging is where its level and outputs are set.
+    { id: 'logs', title: 'Logs', mount: async el => { const l = await mountLogs(el, {}); return { destroy: () => l.destroy() }; } },
+    { id: 'logging', title: 'Logging', mount: async el => { const s = await mountLogSettings(el, {}); return { destroy: () => s.destroy(), activate: () => s.refresh() }; } },
     {
         id: 'performance', title: 'Performance',
         mount: async el => { const p = await mountPerformance(el, { autostart: false }); return { destroy: () => p.destroy(), activate: () => p.start(), deactivate: () => p.stop() }; },
@@ -95,8 +100,8 @@ export async function mountDevTools(container, options = {}) {
     } else {
         container.replaceChildren(surface);
     }
-    loadElements(surface).catch(() => {});
-    if (toggleButton) loadElements(toggleButton).catch(() => {});
+    loadElements(surface).catch(() => { /* loadElements logs its own failures */ });
+    if (toggleButton) loadElements(toggleButton).catch(() => { /* loadElements logs its own failures */ });
 
     // Every panel mounts up front (the console must record from the start); activate/deactivate follow what is visible.
     // whileHidden runs a measurement with the tools out of the way (so the page is measured, not the tools); isTool says whether an element is ours.

@@ -94,46 +94,6 @@
   ],
   "methods": [],
   "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark.",
-  "blazor": {
-    "component": "PkPageHeader",
-    "params": [
-      {
-        "name": "Heading",
-        "prop": "heading",
-        "type": "string"
-      },
-      {
-        "name": "Level",
-        "prop": "level",
-        "type": "int"
-      },
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "BreadcrumbContent",
-        "slot": "breadcrumb",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "ActionsContent",
-        "slot": "actions",
-        "type": "RenderFragment?"
-      },
-      {
-        "name": "MetaContent",
-        "slot": "meta",
-        "type": "RenderFragment?"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Page: crumbs, title and actions",

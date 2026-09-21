@@ -1,0 +1,21 @@
+{
+  "component": "PkIcon",
+  "params": [
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    }
+  ],
+  "notes": "Replaces Icon. Class-based icons used a relative sprite path; pk-icon resolves the sprite from its own module URL."
+}

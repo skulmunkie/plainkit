@@ -65,32 +65,6 @@
   ],
   "methods": [],
   "a11y": "Decorative. Wrap a loading region in aria-busy=\"true\" and let one skeleton carry the label so a single status is announced. The pulse stops under prefers-reduced-motion.",
-  "blazor": {
-    "component": "PkSkeleton",
-    "params": [
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "Lines",
-        "prop": "lines",
-        "type": "double"
-      },
-      {
-        "name": "Size",
-        "prop": "size",
-        "type": "string"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      }
-    ],
-    "notes": "New component. Pair with the existing Loading text line where a status message is wanted."
-  },
   "examples": [
     {
       "title": "Paragraph and avatar",

@@ -1,0 +1,20 @@
+{
+  "component": "PkFormSection",
+  "params": [
+    {
+      "name": "Title",
+      "prop": "heading",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

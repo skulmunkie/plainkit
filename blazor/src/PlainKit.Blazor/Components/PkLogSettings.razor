@@ -1,0 +1,52 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* The toolkit's logging settings: the global level, a level per scope and where each level is sent, with a test, Save and Reset. *@
+<div @ref="_host"></div>
+
+@code {
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+
+    /// <summary>The theme of the panel itself.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>Any CSS length, or "fill".</summary>
+    [Parameter] public string? Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _bridge ??= await Runtime.BridgeAsync();
+        var key = $"{Theme}|{Height}";
+        if (key == _mounted) return;
+        _mounted = key;
+        await _bridge.InvokeVoidAsync("mountLogSettings", _host, new { theme = Theme.Attr(), height = Height });
+    }
+
+    /// <summary>Logs one entry per level under the scope settings-test, using the settings as edited (for this page only).</summary>
+    public async Task SendTestAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("sendTest", _host);
+    }
+
+    /// <summary>Applies the settings as edited and keeps them in the browser.</summary>
+    public async Task SaveAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("save", _host);
+    }
+
+    /// <summary>Forgets the saved settings and goes back to the defaults.</summary>
+    public async Task ResetAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("reset", _host);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

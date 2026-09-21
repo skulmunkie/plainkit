@@ -72,42 +72,6 @@
     }
   ],
   "a11y": "role=tree with treeitem, aria-expanded, aria-selected, aria-level, aria-setsize and aria-posinset. One tab stop; arrows and Home and End move; Right and Left expand and collapse or move to the child or parent; Enter and Space select; typing a letter jumps to the next label starting with it.",
-  "blazor": {
-    "component": "PkTree",
-    "params": [
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "Selection",
-        "prop": "selection",
-        "type": "string"
-      },
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "string"
-      },
-      {
-        "name": "ValueChanged",
-        "event": "pk-select",
-        "type": "EventCallback<string>"
-      },
-      {
-        "name": "OnToggle",
-        "event": "pk-toggle",
-        "type": "EventCallback<ToggleEventArgs>"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ],
-    "notes": "Bind with @bind-Value."
-  },
   "examples": [
     {
       "title": "Categories",

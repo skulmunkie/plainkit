@@ -87,7 +87,7 @@ export async function mountConsole(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => {});
+    loadElements(root).catch(() => { /* loadElements logs its own failures */ });
 
     // ---- rendering: throttled, one panel at a time ------------------------------------------------------------------------
     const setRows = (key, rows) => { const s = JSON.stringify(rows); if (tables[key].getAttribute('rows') !== s) tables[key].setAttribute('rows', s); };
@@ -159,7 +159,7 @@ export async function mountConsole(container, options = {}) {
     search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
     levels.addEventListener('pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
     clear.addEventListener('click', () => { entries = []; render(); });
-    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(() => {}));
+    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(() => { /* clipboard blocked: nothing to copy to */ }));
     const timer = win.setInterval(() => { if (active === 'elements' || active === 'environment') render(); }, 2000);
 
     render();

@@ -61,58 +61,6 @@
   "methods": [],
   "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot.",
   "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar.",
-  "blazor": {
-    "component": "PkAppShell",
-    "params": [
-      {
-        "name": "SidebarContent",
-        "type": "RenderFragment",
-        "map": "slot",
-        "slot": "nav"
-      },
-      {
-        "name": "HeaderContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "header"
-      },
-      {
-        "name": "BodyContent",
-        "type": "RenderFragment",
-        "map": "slot",
-        "slot": ""
-      },
-      {
-        "name": "FooterContent",
-        "type": "RenderFragment?",
-        "map": "slot",
-        "slot": "footer"
-      },
-      {
-        "name": "ShowErrorOverlay",
-        "type": "bool",
-        "default": true,
-        "map": "wrapper",
-        "note": "The Blazor error UI stays in the wrapper."
-      },
-      {
-        "name": "ErrorOverlayMessage",
-        "type": "string",
-        "map": "wrapper",
-        "note": "As ShowErrorOverlay."
-      },
-      {
-        "name": "NavOpen",
-        "type": "bool",
-        "map": "prop",
-        "prop": "navOpen",
-        "bind": {
-          "event": "pk-nav-toggle",
-          "value": "detail.open"
-        }
-      }
-    ]
-  },
   "examples": [
     {
       "title": "App shell with a sticky footer",

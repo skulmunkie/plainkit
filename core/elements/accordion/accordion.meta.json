@@ -30,26 +30,6 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "Each item is a native details and summary, so Enter and Space toggle it and find-in-page opens matches. The accordion only coordinates the items.",
-  "blazor": {
-    "component": "PkAccordion",
-    "params": [
-      {
-        "name": "Exclusive",
-        "prop": "exclusive",
-        "type": "bool"
-      },
-      {
-        "name": "Flush",
-        "prop": "flush",
-        "type": "bool"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Exclusive",

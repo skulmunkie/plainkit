@@ -1,0 +1,25 @@
+{
+  "component": "PkListGroup",
+  "params": [
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "string"
+    },
+    {
+      "name": "Checklist",
+      "prop": "checklist",
+      "type": "bool"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

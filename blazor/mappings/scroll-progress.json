@@ -1,0 +1,12 @@
+{
+  "component": "PkScrollProgress",
+  "params": [
+    {
+      "name": "For",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "for"
+    }
+  ]
+}

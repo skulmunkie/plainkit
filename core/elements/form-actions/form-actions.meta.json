@@ -54,31 +54,6 @@
   ],
   "methods": [],
   "a11y": "Plain layout; the status text is not a live region (use a Notice for announcements). On a phone the buttons of a sticky bar share the width.",
-  "blazor": {
-    "component": "PkFormActions",
-    "params": [
-      {
-        "name": "Sticky",
-        "prop": "sticky",
-        "type": "bool"
-      },
-      {
-        "name": "Align",
-        "prop": "align",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      },
-      {
-        "name": "StatusContent",
-        "slot": "status",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "End-aligned",

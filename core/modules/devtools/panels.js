@@ -37,7 +37,7 @@ export const inspectorPanel = {
             columns: JSON.stringify([{ key: 'tag', label: 'Element' }, { key: 'domId', label: 'Id' }, { key: 'props', label: 'Set with' }, { key: 'size', label: 'Size', align: 'end' }]),
         });
         el.append(h(doc, 'pk-cluster', {}, refresh, status), h(doc, 'div', { class: 'u-mt-3' }, table));
-        loadElements(el).catch(() => {});
+        loadElements(el).catch(() => { /* loadElements logs its own failures */ });
 
         let found = [];
         let outlined = null;

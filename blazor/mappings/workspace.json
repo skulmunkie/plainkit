@@ -1,0 +1,76 @@
+{
+  "component": "PkWorkspace",
+  "params": [
+    {
+      "name": "Fill",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "fill"
+    },
+    {
+      "name": "ActivePane",
+      "type": "string",
+      "default": "main",
+      "map": "prop",
+      "prop": "activePane",
+      "bind": {
+        "event": "pk-pane-change",
+        "value": "detail.pane"
+      }
+    },
+    {
+      "name": "AsideOpen",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "asideOpen"
+    },
+    {
+      "name": "NavLabel",
+      "type": "string",
+      "default": "Contents",
+      "map": "prop",
+      "prop": "navLabel"
+    },
+    {
+      "name": "MainLabel",
+      "type": "string",
+      "default": "Content",
+      "map": "prop",
+      "prop": "mainLabel"
+    },
+    {
+      "name": "AsideLabel",
+      "type": "string",
+      "default": "Details",
+      "map": "prop",
+      "prop": "asideLabel"
+    },
+    {
+      "name": "NavContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "nav"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "AsideContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "aside"
+    },
+    {
+      "name": "OnPaneChange",
+      "type": "EventCallback<WorkspacePaneChangeEventArgs>",
+      "map": "event",
+      "event": "pk-pane-change",
+      "cancelable": true
+    }
+  ]
+}

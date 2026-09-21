@@ -17,6 +17,8 @@ import { collect, evaluate, focusProblems } from '../js/quality.js';
 import { pageScore, scoreTone, findingRows } from '../js/inspect-logic.js';
 import { ensureStyles, styleUrls } from '../js/mount-support.js';
 import { loadElements } from '../js/loader.js';
+import { createLogger } from '../js/log.js';
+const log = createLogger('quality');
 
 const STYLES = ['../plainkit.css'];
 export const PHONE_MAX = 640;
@@ -39,6 +41,7 @@ export function checkPage(root, { phone } = {}) {
 }
 
 export async function mountQuality(container, options = {}) {
+    log.debug('mounted', { module: 'quality', options: Object.keys(options) });
     const { theme, height, autorun, onresult } = options;
     const doc = container.ownerDocument;
     const win = doc.defaultView;
@@ -56,7 +59,7 @@ export async function mountQuality(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => {});
+    loadElements(root);
 
     // What must not be measured: the module itself unless the host says otherwise (the dev tools hide their whole dock).
     const around = options.around ?? (fn => { const before = root.hidden; root.hidden = true; try { return fn(); } finally { root.hidden = before; } });

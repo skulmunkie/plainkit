@@ -118,56 +118,6 @@
   ],
   "methods": [],
   "a11y": "Built on the native progress element, so its role, value and range are exposed without extra ARIA; the label names it (aria-labelledby). Always give it a label. Indeterminate when no value applies.",
-  "blazor": {
-    "component": "PkProgress",
-    "params": [
-      {
-        "name": "Value",
-        "prop": "value",
-        "type": "double"
-      },
-      {
-        "name": "Max",
-        "prop": "max",
-        "type": "double"
-      },
-      {
-        "name": "Variant",
-        "prop": "variant",
-        "type": "string"
-      },
-      {
-        "name": "Size",
-        "prop": "size",
-        "type": "string"
-      },
-      {
-        "name": "Striped",
-        "prop": "striped",
-        "type": "bool"
-      },
-      {
-        "name": "Indeterminate",
-        "prop": "indeterminate",
-        "type": "bool"
-      },
-      {
-        "name": "Label",
-        "prop": "label",
-        "type": "string"
-      },
-      {
-        "name": "ShowValue",
-        "prop": "showValue",
-        "type": "bool"
-      },
-      {
-        "name": "LevelThresholds",
-        "prop": "levelThresholds",
-        "type": "string"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Labelled",

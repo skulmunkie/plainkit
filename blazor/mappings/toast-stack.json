@@ -1,0 +1,33 @@
+{
+  "component": "PkToastStack",
+  "params": [
+    {
+      "name": "Position",
+      "type": "ToaststackPosition",
+      "default": "bottom-end",
+      "map": "prop",
+      "prop": "position",
+      "enum": {
+        "TopStart": "top-start",
+        "Top": "top",
+        "TopEnd": "top-end",
+        "BottomStart": "bottom-start",
+        "Bottom": "bottom",
+        "BottomEnd": "bottom-end"
+      }
+    },
+    {
+      "name": "Max",
+      "type": "int",
+      "default": 3,
+      "map": "prop",
+      "prop": "max"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ]
+}

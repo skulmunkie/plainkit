@@ -35,21 +35,6 @@
   ],
   "methods": [],
   "a11y": "Plain layout with no role of its own.",
-  "blazor": {
-    "component": "PkFieldRow",
-    "params": [
-      {
-        "name": "Align",
-        "prop": "align",
-        "type": "string"
-      },
-      {
-        "name": "ChildContent",
-        "slot": "",
-        "type": "RenderFragment"
-      }
-    ]
-  },
   "examples": [
     {
       "title": "Two fields",

@@ -1,0 +1,25 @@
+{
+  "component": "PkDivider",
+  "params": [
+    {
+      "name": "Vertical",
+      "prop": "vertical",
+      "type": "bool"
+    },
+    {
+      "name": "LabelPosition",
+      "prop": "labelPosition",
+      "type": "string"
+    },
+    {
+      "name": "Decorative",
+      "prop": "decorative",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

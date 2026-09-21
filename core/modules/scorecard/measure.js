@@ -3,12 +3,15 @@
 // files (raw and gzip). Every read is of a file the host names on its own origin; nothing else is requested.
 
 import { stripComments, sameOrigin } from '../../js/framework-checks.js';
+import { createLogger } from '../../js/log.js';
+
+const log = createLogger('scorecard');
 
 // Timings collected from page load (buffered observers), so the numbers describe the page as it loaded. Returns the live object.
 export function watchVitals(win) {
     const v = { lcp: null, cls: 0, longTasks: 0, inp: 0 };
     const observe = (type, fn, extra = {}) => {
-        try { new win.PerformanceObserver(l => l.getEntries().forEach(fn)).observe({ type, buffered: true, ...extra }); } catch { /* not supported in this browser: the metric stays unmeasured */ }
+        try { new win.PerformanceObserver(l => l.getEntries().forEach(fn)).observe({ type, buffered: true, ...extra }); } catch (error) { log.debug(`the ${type} entry type is not supported in this browser: the metric stays unmeasured`, error); }
     };
     observe('largest-contentful-paint', e => { v.lcp = e.startTime; });
     observe('layout-shift', e => { if (!e.hadRecentInput) v.cls += e.value; });

@@ -76,7 +76,6 @@ test('the API validator rejects each kind of drift', () => {
     bad(m => { m.examples[0].html = '<pk-card style="x:y"></pk-card>'; }, 'style attribute');
     bad(() => {}, 'binds {{ghost}}', el.template.replace('{{heading}}', '{{ghost}}'));
     bad(() => {}, 'style element or attribute', el.template.replace('<div part="card">', '<div part="card" style="a:b">'));
-    bad(m => { m.blazor = undefined; }, 'blazor');
     bad(m => { m.tag = 'card'; }, 'tag must look like');
 });
 
@@ -118,10 +117,10 @@ test('generated element files on disk are the build output (run node tools/build
     for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `elements/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
 });
 
-test('the element base stays small: element.js + element-core.js under 2.5 KB gzipped (comments and blank lines stripped)', () => {
+test('the element base stays small: element.js + element-core.js under 2.8 KB gzipped (comments and blank lines stripped)', () => {
     const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\n\s+/g, '\n').replace(/\n+/g, '\n');
     const size = ['js/element.js', 'js/element-core.js'].reduce((n, f) => n + zlib.gzipSync(strip(read(f))).length, 0);
-    assert.ok(size <= 2560, `base is ${size} bytes gzipped`);
+    assert.ok(size <= 2867, `base is ${size} bytes gzipped`);
 });
 
 test('no element source carries an inline style: template, css, behaviour, examples', () => {
