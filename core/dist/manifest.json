@@ -418,8 +418,8 @@
     },
     {
       "path": "elements/stepper.js",
-      "bytes": 4759,
-      "integrity": "sha384-vxf741mys7GEv0dO1expw+xttRAF0wh230RmlgG6Nc8FLFTbhMV0mMctAd8KONhf"
+      "bytes": 4903,
+      "integrity": "sha384-F5jrRCFQQTMPnQOkT2//GSKCGgC/2bo4yoxKLmz6k9Hvd3e34tvn7XDZW1eB1Z49"
     },
     {
       "path": "elements/switch.js",

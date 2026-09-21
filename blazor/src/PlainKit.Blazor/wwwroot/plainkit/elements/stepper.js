@@ -44,7 +44,9 @@ const behaviour = Base => class extends Base {
     get steps() { return this.slotted().filter(s => s.localName === 'pk-step'); }
     changed(name) { if (name === 'current') this.$far = Math.max(this.$far ?? 0, this.current); if (name !== 'label') this.sync(); }
     sync() {
-        const steps = this.steps; const errs = this.errors.split(',').filter(x => x.trim() !== '').map(x => Number(x.trim())).filter(Number.isInteger);
+        const steps = this.steps;
+        if (steps.some(x => typeof x.aria !== 'function')) { customElements.whenDefined('pk-step').then(() => this.sync()); return; }
+        const errs = this.errors.split(',').filter(x => x.trim() !== '').map(x => Number(x.trim())).filter(Number.isInteger);
         const states = stepStates(steps.length, this.current, errs);
         steps.forEach((s, i) => {
             s.state = states[i]; s.index = i + 1; s.last = i === steps.length - 1; s.clickable = this.clickable; s.orientation = this.orientation;
