@@ -2887,7 +2887,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-dialog",
         "title": "Dialog",
-        "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.",
+        "summary": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {
@@ -3128,7 +3128,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-drawer",
         "title": "Drawer",
-        "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+        "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {
@@ -6342,7 +6342,7 @@ export const ELEMENTS = [
     {
         "tag": "pk-popover",
         "title": "Popover",
-        "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+        "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
         "group": "Overlays",
         "props": [
             {

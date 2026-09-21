@@ -1,7 +1,7 @@
 {
   "tag": "pk-drawer",
   "title": "Drawer",
-  "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.",
+  "summary": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
   "group": "Overlays",
   "props": [
     {

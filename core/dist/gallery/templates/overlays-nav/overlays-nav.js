@@ -1,15 +1,14 @@
 // Wiring for the overlays and navigation sample: the elements do the work; this only connects the demo buttons to their public API
 // (show/hide, the palette's items property) and to the toast helper. Nothing here is needed by the components themselves.
+// The overlay elements install the data-open / data-toggle / data-close openers themselves (js/invokers.js).
 // The element loader (js/element.js) registers the pk-* tags on demand when the page uses them.
 
 import { loadElements, observeElements } from '../../../js/loader.js';
-import { initInvokers } from '../../../js/invokers.js';
 import Toast from '../../../elements/toast-stack.js';
 
 loadElements(document);
 observeElements(document);
 globalThis.PkToast = Toast;
-initInvokers(document);
 
 const $ = selector => document.querySelector(selector);
 

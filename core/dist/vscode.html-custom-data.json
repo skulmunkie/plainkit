@@ -873,7 +873,7 @@
     },
     {
       "name": "pk-dialog",
-      "description": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close.\n\nSlots: header, (default), footer.",
+      "description": "A native modal dialog in five sizes with a scrolling body, full screen on a phone; plus confirm, alert and prompt patterns that return a promise. The backdrop never closes it: every dialog offers its own Cancel or Close. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).\n\nSlots: header, (default), footer.",
       "attributes": [
         {
           "name": "open",
@@ -971,7 +971,7 @@
     },
     {
       "name": "pk-drawer",
-      "description": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch.\n\nSlots: header, (default), footer, actions.",
+      "description": "A panel that slides in from the left, right or bottom over a dimmed page, on a native modal dialog: backdrop, focus trap and Escape come with it. A bottom sheet has a grab handle and swipe-to-close on touch. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).\n\nSlots: header, (default), footer, actions.",
       "attributes": [
         {
           "name": "open",
@@ -2149,7 +2149,7 @@
     },
     {
       "name": "pk-popover",
-      "description": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.\n\nSlots: trigger, (default).",
+      "description": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).\n\nSlots: trigger, (default).",
       "attributes": [
         {
           "name": "open",

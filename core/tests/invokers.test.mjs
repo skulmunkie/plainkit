@@ -89,3 +89,24 @@ test('a mistake on the page is logged, not swallowed: unmatched, empty and inval
     assert.match(messages[3], /data-close is not inside/);
     clearLogBuffer();
 });
+
+test('elements install the openers on demand: each connecting root is wired once, however many overlays connect', () => {
+    const doc = root({});
+    let added = 0;
+    const original = doc.addEventListener.bind(doc);
+    doc.addEventListener = (type, fn) => { added++; original(type, fn); };
+    for (let i = 0; i < 5; i++) initInvokers(doc); // five overlays connecting, as pk-dialog, pk-drawer and pk-popover each do
+    assert.equal(added, 1);
+    const other = root({});
+    other.addEventListener = () => { added++; };
+    initInvokers(other);
+    assert.equal(added, 2, 'a different root is wired separately');
+});
+
+test('the dialog, drawer and popover sources each call initInvokers from connected()', async () => {
+    const { readFileSync } = await import('node:fs');
+    for (const name of ['dialog', 'drawer', 'popover']) {
+        const src = readFileSync(new URL(`../elements/${name}/${name}.js`, import.meta.url), 'utf8');
+        assert.match(src, /initInvokers\(this\.ownerDocument\)/, `pk-${name} installs the openers`);
+    }
+});

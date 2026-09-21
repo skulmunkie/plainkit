@@ -1,7 +1,7 @@
 {
   "tag": "pk-popover",
   "title": "Popover",
-  "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed.",
+  "summary": "A small non-modal panel anchored to its trigger with a heading, body and actions; opens on click or hover, flips and shifts to stay on screen, closes on Escape, an outside press or focus leaving. variant=\"confirm\" asks a yes/no question beside the control that was pressed. Declarative openers: data-open=\"#id\", data-toggle and data-close work without any script (installed when the element connects).",
   "group": "Overlays",
   "props": [
     {

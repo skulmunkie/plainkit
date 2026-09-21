@@ -146,6 +146,17 @@ export const overlaysCases = [
         t.eq(await q, false);
     }],
 
+    ['dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)', async t => {
+        const box = await t.mount('<div><pk-button data-open="#pk-inv-d">Open</pk-button><pk-button data-open="#pk-inv-w">Drawer</pk-button><pk-button data-toggle="#pk-inv-p">Toggle</pk-button><pk-dialog id="pk-inv-d" heading="Hi" size="sm">Text<pk-button data-close>Cancel</pk-button></pk-dialog><pk-drawer id="pk-inv-w" heading="Side">Body</pk-drawer><pk-popover id="pk-inv-p" heading="Pop">Body</pk-popover></div>');
+        const [openD, openW, toggleP] = box.querySelectorAll('pk-button');
+        const dialog = box.querySelector('pk-dialog'); const drawer = box.querySelector('pk-drawer'); const pop = box.querySelector('pk-popover');
+        openD.click(); await t.settle(); t.ok(dialog.open, 'data-open opens the dialog');
+        dialog.querySelector('[data-close]').click(); await t.settle(); t.ok(!dialog.open, 'data-close closes it');
+        openW.click(); await t.settle(); t.ok(drawer.open, 'data-open opens the drawer');
+        toggleP.click(); await t.settle(); t.ok(pop.open, 'data-toggle opens the popover');
+        toggleP.click(); await t.settle(); t.ok(!pop.open, 'data-toggle closes it again');
+    }],
+
     ['toast: kind sets its role, the timer dismisses it, hover pauses it', async t => {
         const el = await t.mount('<pk-toast kind="danger" heading="Failed" duration="80">Sync error.</pk-toast>');
         t.eq(el.internals.role, 'alert');

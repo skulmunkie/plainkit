@@ -43,6 +43,10 @@ Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`
 - **info**: rare, useful milestones an app might want to see. The SDK itself seldom uses it.
 - **debug**: lifecycle and expected fallbacks (element defined, connected, a prop changed, a module loaded and how long it took, a tool mounted, blocked storage, an unsupported browser API). Guard anything costly to build with `isLogEnabled('debug', scope)`; the default level is `warn`, so a quiet page prints nothing extra.
 
+## Declarative openers
+
+`data-open="#id"`, `data-toggle="#id"` and `data-close` (`js/invokers.js`) open, toggle and close a `pk-dialog`, `pk-drawer` or `pk-popover`. The three elements install the one delegated listener themselves the first time one connects (`initInvokers(this.ownerDocument)` in `connected()`), so a page that only uses an overlay needs no script and a page without one pays nothing; `initPlainkit()` calls the same idempotent function. A new overlay element calls `initInvokers` from `connected()` and is added to `OVERLAYS` in `js/invokers.js`. Mistakes (an empty, invalid or unmatched selector, a stray `data-close`) are logged by the `invokers` scope.
+
 ## Files
 
 - Every file under `core/` is CRLF (`.gitattributes`), the build emits CRLF and tests compare bytes. Never rewrite a whole file with a tool that strips carriage returns.

@@ -1,3 +1,4 @@
+import { initInvokers } from '../../js/invokers.js';
 import { place, autoUpdate, onOutside } from '../../js/positioning.js';
 
 // Popover logic: the open/close state machine. Pure, so it can be tested without a DOM.
@@ -18,6 +19,7 @@ export const hoverShouldClose = (overTrigger, overPanel) => !overTrigger && !ove
 // pk-popover: a non-modal panel anchored to the slotted trigger; variant="confirm" adds Cancel and Confirm.
 export default Base => class extends Base {
     connected() {
+        initInvokers(this.ownerDocument); // data-open / data-toggle / data-close work on a page that never calls initPlainkit (once per document)
         if (!this.$w) {
             this.$w = true;
             this.addEventListener('click', e => { if (this.triggerEl?.contains(e.target) && this.trigger !== 'hover' && this.trigger !== 'manual') { this.$kb = e.detail === 0; if (this.open) this.request('toggle'); else this.open = true; } });
