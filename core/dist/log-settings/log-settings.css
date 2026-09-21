@@ -1,5 +1,0 @@
-/* Logging settings chrome. Everything inside is SDK components; this only paints a mounted panel that carries its own theme and sizes its headings. */
-
-.ls-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }
-
-.ls-heading { margin: 0; font-size: var(--text-lg); }
