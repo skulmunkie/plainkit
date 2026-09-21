@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - Fixed: the NuGet package no longer contains `Generated/generated.manifest.json` (it was packed as `content/` and `contentFiles/` and copied into consumers' projects); `scripts/tests/blazor-package.test.mjs` guards it.
 - Fixed: every public enum and member in PlainKit.Blazor (`PkTheme`, `PkWidth`, `PkChrome`, `PkGalleryKind`, `PkLogLevel`) has an XML doc comment, so the build has no CS1591 warnings.
 - Changed: the gallery's Guides page says "Coming soon" (a `pk-badge` above the empty state); the docs engine is undecided (issue #6).
+### Breaking
+
+- Changed (breaking): the code explorer element is now `<pk-code-explorer>` (was `<code-explorer>`), its events `pk-code-explorer-open` and `pk-code-explorer-error` (were `code-explorer-open` and `code-explorer-error`) and its height hook `--pk-code-explorer-height` (was `--code-explorer-height`), following the `pk-` naming rule (issue #12). There is no alias for the old tag. `mountCodeExplorer`, the module name and the JS exports are unchanged; `PkCodeExplorer` in Blazor is unaffected.
 
 - Fixed: PlainKit.Blazor no longer throws out of the request pipeline when `IPkLog` (or a component) touches JavaScript while a page is prerendered; `PkRuntime.DisposeAsync` now ignores the "JavaScript interop calls cannot be issued at this time" error of a prerender scope. Found by driving the Playground in a real browser.
 - Added: the `/_plainkit` dev tools page in PlainKit.Blazor has a Logs tab (`PkLogs` and `PkLogSettings`), as the logging documentation said it did; the Playground has a `/generated` page that exercises the generated components (binds, dialog, events, an enum, `IPkLog`) with the `ILogger` forwarder on.

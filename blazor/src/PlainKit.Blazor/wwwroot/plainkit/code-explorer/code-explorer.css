@@ -2,19 +2,19 @@
    buttons and badges are pk-* elements; what is left here is the host, the code viewer (cv-*, tk-*), the outline (co-*) and the search
    results (csr-*), none of which an element covers, plus the small ce-* layout classes around the elements. */
 
-/* The <code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
-code-explorer {
+/* The <pk-code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
+pk-code-explorer {
     --ce-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     display: flex;
     flex-direction: column;
-    height: var(--code-explorer-height, 32rem);
+    height: var(--pk-code-explorer-height, 32rem);
     min-height: 0;
     min-inline-size: 0;
     background: var(--color-bg);
     color: var(--color-text);
 }
-code-explorer [hidden] { display: none !important; }
-code-explorer pk-workspace { --pk-workspace-pad: 0; }
+pk-code-explorer [hidden] { display: none !important; }
+pk-code-explorer pk-workspace { --pk-workspace-pad: 0; }
 
 /* Nav pane: two search boxes, their buttons and the file tree. */
 .ce-nav { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
@@ -22,7 +22,7 @@ code-explorer pk-workspace { --pk-workspace-pad: 0; }
 .ce-name { min-inline-size: 0; overflow-wrap: anywhere; }
 .ce-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-inline-size: 0; }
 .ce-folder { font-weight: 600; }
-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
+pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
 .ce-muted { color: var(--color-muted); }
 .ce-error { margin: var(--space-1); color: var(--field-error); }
 

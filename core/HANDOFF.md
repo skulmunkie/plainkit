@@ -15,7 +15,7 @@ The deliverable for each capability is a **JavaScript module** with a small API,
 | Capability | Module | Element | Status |
 |---|---|---|---|
 | Gallery | `mountGallery(container, options)` in `site/gallery/gallery.js`, shipped as `dist/gallery/` | `<pk-gallery>` (`elements/gallery/`), a lazy frame over `dist/gallery/embed.html` | done |
-| Code explorer | `mountCodeExplorer(container, options)` in `modules/code-explorer/code-explorer.js`, shipped as `dist/code-explorer/` | none: `<code-explorer>` already is the element form | done |
+| Code explorer | `mountCodeExplorer(container, options)` in `modules/code-explorer/code-explorer.js`, shipped as `dist/code-explorer/` | none: `<pk-code-explorer>` already is the element form | done |
 | Scorecard | `mountScorecard(container, options)` in `modules/scorecard/scorecard.js` (+ `scorecard.css`), shipped as `dist/scorecard/` | none: a run is an action, not markup | done |
 | Performance monitor | `mountPerformance(container, options)` in `modules/performance/` (+ `js/perf-logic.js`) | none | done |
 | Dev console | `mountConsole(container, options)` in `modules/console/` (+ `js/console-logic.js`) | none | done |

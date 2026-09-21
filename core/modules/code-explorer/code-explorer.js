@@ -23,7 +23,7 @@ export async function mountCodeExplorer(container, options = {}) {
     if (!snapshot && !provider) throw new Error('mountCodeExplorer needs a snapshot (a URL or an object) or a provider');
     await ensureStyles(styleUrls(STYLES, import.meta.url), container.ownerDocument);
     const source = provider ?? new SnapshotProvider(await loadJson(snapshot));
-    const element = container.ownerDocument.createElement('code-explorer');
+    const element = container.ownerDocument.createElement('pk-code-explorer');
     element.setAttribute('height', height ?? '32rem');
     if (theme) element.setAttribute('theme', theme);
     if (file) element.setAttribute('initial', file);
