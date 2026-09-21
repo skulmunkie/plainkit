@@ -68,7 +68,7 @@ test('the panels have the shape mountDevTools takes: { id, title, mount }, with 
         assert.equal(typeof p.title, 'string');
         assert.equal(typeof p.mount, 'function');
     }
-    const sdk = fs.readFileSync(path.join(wwwroot, 'plainkit', 'devtools', 'devtools.js'), 'utf8') + fs.readFileSync(path.join(wwwroot, 'plainkit', 'devtools', 'panels.js'), 'utf8');
+    const sdk = fs.readFileSync(path.join(wwwroot, 'plainkit', 'modules', 'devtools', 'devtools.js'), 'utf8') + fs.readFileSync(path.join(wwwroot, 'plainkit', 'modules', 'devtools', 'panels.js'), 'utf8');
     for (const p of panels) assert.ok(!new RegExp(`id: '${p.id}'`).test(sdk), `${p.id} is not an SDK panel id`);
 });
 

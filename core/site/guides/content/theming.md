@@ -99,7 +99,7 @@ The [Theme editor](../theme/index.html) is the quickest way to a theme of your o
 The same tool is available for your own pages:
 
 ```js
-import { mountThemeEditor } from './plainkit/theme-editor/theme-editor.js';
+import { mountThemeEditor } from './plainkit/modules/theme-editor/theme-editor.js';
 
 const editor = await mountThemeEditor(document.getElementById('editor'), { storageKey: 'my-theme', height: '32rem', readHash: true });
 editor.applyBrand('#0d9488');

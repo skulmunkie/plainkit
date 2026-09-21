@@ -253,3 +253,65 @@ test('fetchDist reads the manifest and every file, verifies each hash, and refus
     const evil = enc.encode(JSON.stringify({ version: '1', files: [{ path: '../secret', bytes: 1, integrity: 'x' }] }));
     await assert.rejects(fetchDist('http://localhost/dist/', { fetchImpl: serve({ 'manifest.json': evil }) }), /unsafe path/);
 });
+
+// ---- the two units (issue 162): the runtime manifest at the top, the modules manifest under modules/, each recomputed on its own
+
+const modulesManifest = JSON.parse(fs.readFileSync(dist + 'modules/manifest.json', 'utf8'));
+const loadAll = () => new Map([...load(), ['modules/manifest.json', new Uint8Array(fs.readFileSync(dist + 'modules/manifest.json'))], ...modulesManifest.files.map(f => [`modules/${f.path}`, new Uint8Array(fs.readFileSync(dist + 'modules/' + f.path))])]);
+const verify = async (files, prefix, own) => {
+    const m = JSON.parse(text(files, `${prefix}manifest.json`));
+    assert.deepEqual(m.files.map(f => f.path), [...files.keys()].filter(own).map(p => p.slice(prefix.length)).filter(p => p !== 'manifest.json').sort());
+    for (const f of m.files) { const b = files.get(prefix + f.path); assert.equal(b.length, f.bytes, f.path); assert.equal(await integrityOf(b), f.integrity, f.path); }
+    return m;
+};
+
+test('with the modules unit: shipped widths and no theme give the shipped dist and modules byte for byte, both manifests included', async () => {
+    const files = loadAll();
+    assert.ok(files.size > load().size + 20);
+    for (const include of [{ theme: false, breakpoints: true }, { theme: true, breakpoints: true }]) {
+        const { files: out, summary } = await customizeDist(files, { include, breakpoints: DEFAULTS, theme: { css: '' } });
+        assert.deepEqual(changedPaths(files, out), [], JSON.stringify(include));
+        assert.equal(summary.fileCount, files.size);
+    }
+});
+
+test('a changed width rewrites the tools stylesheets too, and each unit gets its own recomputed manifest', async () => {
+    const files = loadAll();
+    const { files: out, summary } = await customizeDist(files, { include: { breakpoints: true }, breakpoints: { ...DEFAULTS, phone: 720 } });
+    const changed = changedPaths(files, out);
+    assert.ok(changed.some(p => /^modules\/[^/]+\/[^/]+\.css$/.test(p)), 'a tool stylesheet carries a phone condition');
+    assert.ok(changed.includes('manifest.json') && changed.includes('modules/manifest.json'));
+    assert.equal(total(new Map([...out].filter(([p]) => p.startsWith('modules/'))), 640), 0);
+    const runtime = await verify(out, '', p => !p.startsWith('modules/'));
+    const tools = await verify(out, 'modules/', p => p.startsWith('modules/'));
+    assert.equal(runtime.name, 'plainkit'); assert.equal(tools.name, 'plainkit-modules');
+    assert.equal(tools.requires, modulesManifest.requires);
+    assert.match(tools.provenance, /Customised export/);
+    assert.ok(summary.touched.some(p => p.startsWith('modules/')));
+    // theme only touches no module file
+    const themed = await customizeDist(files, { include: { theme: true, breakpoints: false }, breakpoints: DEFAULTS, theme });
+    assert.deepEqual(changedPaths(files, themed.files).filter(p => p.startsWith('modules/')), []);
+});
+
+test('fetchDist reads and verifies both units, a bundle of both unzips to dist/ and dist/modules/, and a missing modules unit is only the runtime', async () => {
+    const files = loadAll();
+    const serve = (over = {}) => async url => {
+        const p = new URL(url).pathname.replace(/^\/dist\//, '');
+        const body = over[p] ?? files.get(p);
+        return body === undefined ? { ok: false, status: 404 } : { ok: true, status: 200, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) };
+    };
+    const got = await fetchDist('http://localhost/dist/', { fetchImpl: serve(), concurrency: 4 });
+    assert.equal(got.files.size, files.size);
+    assert.ok(got.files.has('modules/theme-editor/theme-editor.js') && got.files.has('modules/manifest.json'));
+    const exp = await exportSdk({ dist: got, include: { theme: false, breakpoints: true }, breakpoints: { ...DEFAULTS, phone: 700 } });
+    const back = unzip(exp.zip);
+    assert.ok(back.has('dist/manifest.json') && back.has('dist/modules/manifest.json') && back.has('dist/modules/theme-editor/theme-editor.js'));
+    await assert.rejects(fetchDist('http://localhost/dist/', { fetchImpl: serve({ 'modules/logs/logs.js': enc.encode('x') }) }), /modules\/logs\/logs\.js: does not match its hash/);
+    const other = enc.encode(JSON.stringify({ ...modulesManifest, version: '9.9.9' }));
+    await assert.rejects(fetchDist('http://localhost/dist/', { fetchImpl: serve({ 'modules/manifest.json': other }) }), /modules\/manifest\.json is release 9\.9\.9/);
+    const runtimeOnly = await fetchDist('http://localhost/dist/', { fetchImpl: async url => (new URL(url).pathname.includes('/modules/') ? { ok: false, status: 404 } : serve()(url)) });
+    assert.equal(runtimeOnly.files.size, load().size);
+    // the modules hosted apart: modulesBase names the folder
+    const apart = await fetchDist('http://localhost/dist/', { fetchImpl: async url => serve()(String(url).replace('http://elsewhere/tools/', 'http://localhost/dist/modules/')), modulesBase: 'http://elsewhere/tools/' });
+    assert.ok(apart.files.has('modules/logs/logs.js'));
+});

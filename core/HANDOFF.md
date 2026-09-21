@@ -15,14 +15,14 @@ The deliverable for each capability is a **JavaScript module** with a small API,
 | Capability | Module | Element | Status |
 |---|---|---|---|
 | Gallery | `mountGallery(container, options)` in `site/gallery/gallery.js`, shipped as `dist/gallery/` | `<pk-gallery>` (`elements/gallery/`), a lazy frame over `dist/gallery/embed.html` | done |
-| Code explorer | `mountCodeExplorer(container, options)` in `modules/code-explorer/code-explorer.js`, shipped as `dist/code-explorer/` | none: `<pk-code-explorer>` already is the element form | done |
-| Scorecard | `mountScorecard(container, options)` in `modules/scorecard/scorecard.js` (+ `scorecard.css`), shipped as `dist/scorecard/` | none: a run is an action, not markup | done |
+| Code explorer | `mountCodeExplorer(container, options)` in `modules/code-explorer/code-explorer.js`, shipped as `dist/modules/code-explorer/` | none: `<pk-code-explorer>` already is the element form | done |
+| Scorecard | `mountScorecard(container, options)` in `modules/scorecard/scorecard.js` (+ `scorecard.css`), shipped as `dist/modules/scorecard/` | none: a run is an action, not markup | done |
 | Performance monitor | `mountPerformance(container, options)` in `modules/performance/` (+ `js/perf-logic.js`) | none | done |
 | Dev console | `mountConsole(container, options)` in `modules/console/` (+ `js/console-logic.js`) | none | done |
-| Logs viewer | `mountLogs(container, options)` in `modules/logs/` (+ `js/log-view-logic.js`), shipped as `dist/logs/` | none | done; row detail is a pane under the table (pk-table has no expandable rows), newest first stands in for auto-scroll |
-| Logging settings | `mountLogSettings(container, options)` in `modules/log-settings/` (+ `js/log-settings-logic.js`), shipped as `dist/log-settings/`; also the Settings page's Logging section and the dev tools' Logging tab | none | done |
+| Logs viewer | `mountLogs(container, options)` in `modules/logs/` (+ `js/log-view-logic.js`), shipped as `dist/modules/logs/` | none | done; row detail is a pane under the table (pk-table has no expandable rows), newest first stands in for auto-scroll |
+| Logging settings | `mountLogSettings(container, options)` in `modules/log-settings/` (+ `js/log-settings-logic.js`), shipped as `dist/modules/log-settings/`; also the Settings page's Logging section and the dev tools' Logging tab | none | done |
 | Dev tools | `mountDevTools(container, options)` in `modules/devtools/`: dock (Ctrl+`) or inline; panels are `{ id, title, mount }` | none | done (Console, Logs, Logging, Performance, Quality, Inspector, Theme tabs); an Elements tab is left |
-| Theme editor | `mountThemeEditor(container, options)` in `modules/theme-editor/` (+ `js/theme-editor-logic.js`), shipped as `dist/theme-editor/` (with its own `tokens.css`) | none: an editor with an export method is an app, not markup | done |
+| Theme editor | `mountThemeEditor(container, options)` in `modules/theme-editor/` (+ `js/theme-editor-logic.js`), shipped as `dist/modules/theme-editor/` (with its own `tokens.css`) | none: an editor with an export method is an app, not markup | done |
 
 ### Gallery
 

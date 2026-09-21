@@ -27,9 +27,9 @@ export async function init() {
     initPlainkit();
 }
 
-export const mountCodeExplorer = (container, options) => mountTool(container, () => import('./plainkit/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
+export const mountCodeExplorer = (container, options) => mountTool(container, () => import('./plainkit/modules/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
 
-export const mountScorecard = (container, options) => mountTool(container, () => import('./plainkit/scorecard/scorecard.js'), 'mountScorecard', options);
+export const mountScorecard = (container, options) => mountTool(container, () => import('./plainkit/modules/scorecard/scorecard.js'), 'mountScorecard', options);
 
 export const openFile = (container, path, line) => mounted.get(container)?.openFile?.(path, { line });
 export const search = (container, query) => mounted.get(container)?.search?.(query);
@@ -40,16 +40,16 @@ export function destroy(container) {
     unmount(container);
 }
 
-export const mountPerformance = (container, options) => mountTool(container, () => import('./plainkit/performance/performance.js'), 'mountPerformance', options);
+export const mountPerformance = (container, options) => mountTool(container, () => import('./plainkit/modules/performance/performance.js'), 'mountPerformance', options);
 
-export const mountConsole = (container, options) => mountTool(container, () => import('./plainkit/console/console.js'), 'mountConsole', options);
+export const mountConsole = (container, options) => mountTool(container, () => import('./plainkit/modules/console/console.js'), 'mountConsole', options);
 
-export const mountLogs = (container, options) => mountTool(container, () => import('./plainkit/logs/logs.js'), 'mountLogs', options);
+export const mountLogs = (container, options) => mountTool(container, () => import('./plainkit/modules/logs/logs.js'), 'mountLogs', options);
 
-export const mountLogSettings = (container, options) => mountTool(container, () => import('./plainkit/log-settings/log-settings.js'), 'mountLogSettings', options);
+export const mountLogSettings = (container, options) => mountTool(container, () => import('./plainkit/modules/log-settings/log-settings.js'), 'mountLogSettings', options);
 
 export async function mountQuality(container, options) {
-    const { mountQuality } = await import('./plainkit/quality/quality.js');
+    const { mountQuality } = await import('./plainkit/modules/quality/quality.js');
     destroy(container);
     mounted.set(container, await mountQuality(container, options));
 }
@@ -57,7 +57,7 @@ export async function mountQuality(container, options) {
 // host (optional) is a DotNetObjectReference of PkThemeEditorHost: each change of the theme is reported to it with the exported CSS, a moment after typing stops.
 // A null option means "not set" (.NET sends null for it): it is left out so the module's own default applies.
 export async function mountThemeEditor(container, options, host) {
-    const { mountThemeEditor } = await import('./plainkit/theme-editor/theme-editor.js');
+    const { mountThemeEditor } = await import('./plainkit/modules/theme-editor/theme-editor.js');
     destroy(container);
     let timer = 0;
     let armed = false;   // the editor reports its starting state while it mounts: only later changes are the user's
@@ -70,7 +70,7 @@ export async function mountThemeEditor(container, options, host) {
 // The dev tools: a dock on the page (the container is only the component's marker; the dock is JS's, appended to the body) or inline in the container.
 // host is a DotNetObjectReference of PkDevToolsHost: when given, the Blazor panels (blazor-devtools.js) are added to the tabs.
 export async function mountDevTools(container, options, host) {
-    const { mountDevTools } = await import('./plainkit/devtools/devtools.js');
+    const { mountDevTools } = await import('./plainkit/modules/devtools/devtools.js');
     destroy(container);
     const panels = host ? (await import('./blazor-devtools.js')).blazorPanels(host) : [];
     // a null option means "not set" (.NET sends null for it): leave it out so the module's own default applies

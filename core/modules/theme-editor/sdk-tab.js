@@ -10,9 +10,10 @@ import { validateBreakpoints, deltaRows, readSettings, RANGE } from '../../js/cu
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
+import { runtimeUrl } from '../../js/mount-support.js';
 const log = createLogger('theme-editor.sdk');
 
-/** The dist folder next to this module in the release layout; the source tree points at core/dist (the build rewrites this line for dist). */
+/** The runtime dist folder (two levels above this module in the release layout, where the modules sit in dist/modules/); the source tree points at core/dist (the build rewrites this line). */
 export const DIST = '../../dist/';
 
 function h(doc, tag, props = {}, ...children) {
@@ -26,7 +27,7 @@ function h(doc, tag, props = {}, ...children) {
  * createSdkTab({ doc, win, theme, importTheme, dist }) -> { panel, refresh(), widths(), include(), setWidths(w), destroy() }.
  * theme() gives { overrides, css } (the editor's edits and the override block it writes); importTheme(overrides) replaces the edits; dist is the folder URL of the shipped files.
  */
-export function createSdkTab({ doc, win, theme, importTheme, dist = new URL(DIST, import.meta.url).href }) {
+export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(DIST, import.meta.url) }) {
     const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null };
     const listeners = [];
     const on = (el, type, fn) => { el.addEventListener(type, fn); listeners.push(() => el.removeEventListener(type, fn)); };

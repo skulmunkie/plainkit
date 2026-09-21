@@ -2,7 +2,8 @@
 //
 //   node scripts/check-package.mjs <folder-or-.nupkg>     e.g. after: dotnet pack blazor/src/PlainKit.Blazor -c Release -o <folder>
 //
-// The package must have: the DLL and its XML docs, the README, the toolkit as static web assets (staticwebassets/plainkit/) with both agent skills,
+// The package must have: the DLL and its XML docs, the README, the toolkit as static web assets (staticwebassets/plainkit/, the runtime, with the dev-tool modules as their own
+// unit under modules/, which the Blazor wrappers import) with both agent skills,
 // and the version of core/VERSION (in the file name and in the nuspec). It must NOT declare a frameworkReference (Blazor WebAssembly cannot use one) and must NOT have content/ or contentFiles/ entries (they would be copied
 // into a consumer's project; the generator manifest belongs to the repository, see PlainKit.Blazor.csproj).
 // Exit code: 0 ok, 1 the package is wrong (each problem says what to change), 2 could not read it.
@@ -19,6 +20,9 @@ export const REQUIRED = [
     [/^README\.md$/, 'README.md (PackageReadmeFile)'],
     [/^staticwebassets\/plainkit\/manifest\.json$/, 'the toolkit as static web assets (run node scripts/bootstrap.mjs before packing: wwwroot/plainkit is generated)'],
     [/^staticwebassets\/plainkit\/plainkit\.css$/, 'staticwebassets/plainkit/plainkit.css'],
+    // The dev tools (dock, theme editor, log viewer, layout builder) are the modules unit, dist/modules/ with its own manifest: the wrappers import them from here.
+    [/^staticwebassets\/plainkit\/modules\/manifest\.json$/, 'the modules unit manifest (staticwebassets/plainkit/modules/manifest.json)'],
+    ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => [new RegExp(`^staticwebassets/plainkit/modules/${f.replace(/[.]/g, '\\.')}$`), `the ${f.split('/')[0]} module (staticwebassets/plainkit/modules/${f})`]),
     [/^staticwebassets\/plainkit\/skills\/plainkit-sdk\/SKILL\.md$/, 'the plainkit-sdk skill'],
     [/^staticwebassets\/plainkit\/skills\/plainkit-blazor\/SKILL\.md$/, 'the plainkit-blazor skill'],
 ];

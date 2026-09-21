@@ -16,28 +16,39 @@ const safe = p => typeof p === 'string' && p !== '' && !p.startsWith('/') && !p.
 /**
  * Reads dist/manifest.json under `base` (a URL of the dist folder, ending in a slash) and every file it lists, with `concurrency` requests at a time; each file's SRI hash must equal
  * the manifest's, so a truncated or substituted file is refused. The files are the release the page itself runs from. Throws with the path on the first failure.
+ * The dev-tool modules are their own unit with their own manifest (modules/manifest.json, under `modulesBase`, default modules/ next to the runtime): when it is there its files are
+ * read and verified the same way and appear in the map as modules/<path>; when the server has none (the modules are not deployed) the runtime alone is fetched.
  */
-export async function fetchDist(base, { fetchImpl = globalThis.fetch.bind(globalThis), onprogress, concurrency = 8 } = {}) {
+export async function fetchDist(base, { fetchImpl = globalThis.fetch.bind(globalThis), onprogress, concurrency = 8, modulesBase } = {}) {
     const root = new URL(base, globalThis.location?.href);
-    const get = async path => { const r = await fetchImpl(new URL(path, root).href); if (!r.ok) throw new Error(`${path}: ${r.status}`); return new Uint8Array(await r.arrayBuffer()); };
-    const manifestBytes = await get('manifest.json');
-    const manifest = JSON.parse(dec.decode(manifestBytes));
-    if (!Array.isArray(manifest.files) || !manifest.version) throw new Error('manifest.json is not a Plainkit manifest');
-    const files = new Map([['manifest.json', manifestBytes]]);
-    const queue = manifest.files.filter(f => f.path !== 'manifest.json');
-    for (const f of queue) if (!safe(f.path)) throw new Error(`the manifest lists an unsafe path: ${f.path}`);
-    let done = 0;
+    const modulesRoot = new URL(modulesBase ?? 'modules/', root);
+    const get = async (from, path) => { const r = await fetchImpl(new URL(path, from).href); if (!r.ok) throw Object.assign(new Error(`${path}: ${r.status}`), { status: r.status }); return new Uint8Array(await r.arrayBuffer()); };
+    const readManifest = async (from, prefix, optional) => {
+        let bytes;
+        try { bytes = await get(from, 'manifest.json'); } catch (e) { if (optional && e.status === 404) return null; throw e; }
+        const manifest = JSON.parse(dec.decode(bytes));
+        if (!Array.isArray(manifest.files) || !manifest.version) throw new Error(`${prefix}manifest.json is not a Plainkit manifest`);
+        for (const f of manifest.files) if (!safe(f.path)) throw new Error(`the manifest lists an unsafe path: ${f.path}`);
+        return { from, prefix, bytes, manifest };
+    };
+    const units = [await readManifest(root, '', false), await readManifest(modulesRoot, 'modules/', true)].filter(Boolean);
+    const runtime = units[0].manifest;
+    if (units[1] && units[1].manifest.version !== runtime.version) throw new Error(`modules/manifest.json is release ${units[1].manifest.version} but the runtime is ${runtime.version}`);
+    const files = new Map(units.map(u => [`${u.prefix}manifest.json`, u.bytes]));
+    const queue = units.flatMap(u => u.manifest.files.filter(f => f.path !== 'manifest.json').map(f => ({ ...f, from: u.from, key: u.prefix + f.path })));
+    const total = queue.length + units.length;
+    let done = units.length;
     async function worker() {
         for (let f = queue.shift(); f; f = queue.shift()) {
-            const bytes = await get(f.path);
-            if (bytes.length !== f.bytes || (await integrityOf(bytes)) !== f.integrity) throw new Error(`${f.path}: does not match its hash in manifest.json (a different release, or the file was changed)`);
-            files.set(f.path, bytes);
-            onprogress?.(++done, manifest.files.length);
+            const bytes = await get(f.from, f.path);
+            if (bytes.length !== f.bytes || (await integrityOf(bytes)) !== f.integrity) throw new Error(`${f.key}: does not match its hash in manifest.json (a different release, or the file was changed)`);
+            files.set(f.key, bytes);
+            onprogress?.(++done, total);
         }
     }
     await Promise.all(Array.from({ length: concurrency }, worker));
-    log.debug('fetched the dist', { version: manifest.version, files: files.size });
-    return { version: manifest.version, files, report: files.has('breakpoints.report.json') ? JSON.parse(dec.decode(files.get('breakpoints.report.json'))) : null };
+    log.debug('fetched the dist', { version: runtime.version, files: files.size, modules: units.length > 1 });
+    return { version: runtime.version, files, report: files.has('breakpoints.report.json') ? JSON.parse(dec.decode(files.get('breakpoints.report.json'))) : null };
 }
 
 const toZip = files => zipStore([...files].map(([path, data]) => ({ path, data })));

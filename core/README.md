@@ -16,7 +16,7 @@ Copy `dist/` (or the whole folder) to any static host and link one stylesheet an
 ```
 
 Themes are token sets: set `data-theme="dark"` or `"light"` (and optionally `data-density="compact"`) on any element. Each element is one module in
-`dist/elements/<name>.js`, loaded on demand; `dist/manifest.json` lists every file with an SRI hash.
+`dist/elements/<name>.js`, loaded on demand; `dist/manifest.json` lists every file of the runtime with an SRI hash. The dev tools (below) are a separate unit, `dist/modules/`, with its own manifest and zip: the runtime never fetches one.
 
 ## Serve and explore
 
@@ -43,7 +43,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (its `content/*.md` are the guides; `spacing/` only redirects to the gallery) |
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
-| `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/<tool>/`; the site pages are thin hosts on them |
+| `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/modules/<tool>/` (their own unit, see "Tool modules"); the site pages are thin hosts on them |
 | `tools/` | `build.mjs`, `breakpoints.mjs` (named breakpoints resolved at build), `breakpoint-report.mjs` (what changes at each), `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs`, `markdown.mjs` and `guides.mjs` (the Guides' Markdown converter and loader) |
 | `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab, attested by `report.json`) |
 | `dist/` | Generated output (not in git; `node scripts/bootstrap.mjs` from the repository root writes it); never edit |
@@ -122,12 +122,34 @@ The section is static per element: it cannot follow the live markup (use `create
 
 ## Tool modules: code explorer, scorecard, theme editor, performance, console, logs, log settings, dev tools
 
-Each tool ships as a JavaScript module in `dist/<tool>/` with one function, `mountX(container, options)`, that you call from your own page. The document needs no setup beyond the module: it adds `dist/plainkit.css` if it is not already loaded (it styles the whole page, like any SDK page).
+Each tool ships as a JavaScript module in `dist/modules/<tool>/` with one function, `mountX(container, options)`, that you call from your own page. The document needs no setup beyond the module: it adds `dist/plainkit.css` if it is not already loaded (it styles the whole page, like any SDK page).
+
+### The two units: runtime and modules
+
+The build makes two units, each with its own manifest (sizes and SRI hashes) and its own release zip:
+
+| Unit | Folder | Manifest | Release asset | Holds |
+| --- | --- | --- | --- | --- |
+| Runtime SDK | `dist/` (without `modules/`) | `dist/manifest.json` | `plainkit-dist-<version>.zip` | `plainkit.css`, `plainkit.min.css`, `plainkit.js`, `js/`, `elements/`, `icons.svg`, the gallery, the editor-support files, `skills/` |
+| Dev-tool modules | `dist/modules/` | `dist/modules/manifest.json` | `plainkit-modules-<version>.zip` | one self-contained folder per tool: code-explorer, console, devtools, layout-builder, log-settings, logs, performance, quality, scorecard, theme-editor |
+
+A page that only uses `pk-*` elements needs the runtime zip and never fetches a module. The modules zip has `modules/` at its top: unzip it into the runtime folder and it lands at `dist/modules/`. The unit sits two folders below the runtime root, as `modules/<tool>/` sits two folders below `core/` in the source, so a module's imports (`../../js/log.js`) and its page stylesheet (`../../plainkit.css`) are the same text in both places. A module names the runtime by these relative paths and nothing else.
+
+**Hosting the modules apart from the runtime** (the modules on one origin or folder, the runtime on another): the scripts' own imports are remapped with an import map, and the runtime's assets (`plainkit.css`, `elements/api.json`, the release files the theme editor exports) are named once with a meta tag. Both are read by the browser, so there is nothing to rebuild:
+
+```html
+<meta name="plainkit-runtime" content="https://cdn.example/plainkit/dist/">
+<script type="importmap">{ "imports": { "https://tools.example/dist/js/": "https://cdn.example/plainkit/dist/js/" } }</script>
+```
+
+(With the modules at `https://tools.example/dist/modules/`, their `../../js/` resolves to `https://tools.example/dist/js/`: that trailing-slash key is what the import map remaps.) The modules still make only same-origin reads unless you configure this, and each unit's manifest is what you pin (`integrity`) against. The theme editor's Custom SDK export reads the runtime manifest and, when it is reachable, `modules/manifest.json`, and rewrites each unit with its own recomputed manifest.
+
+Blazor: PlainKit.Blazor packs both units under `_content/PlainKit.Blazor/plainkit/` (`plainkit/modules/<tool>/` is where the `PkDevTools`, `PkThemeEditor`, `PkLogs`, `PkLogSettings`, `PkPerformance`, `PkConsole`, `PkQuality`, `PkScorecard` and `PkCodeExplorer` wrappers import them from); `scripts/check-package.mjs` asserts they are there. The npm package (`plainkit`) is the runtime only.
 
 ### Code explorer
 
 ```js
-import { mountCodeExplorer } from './dist/code-explorer/code-explorer.js';
+import { mountCodeExplorer } from './dist/modules/code-explorer/code-explorer.js';
 const explorer = await mountCodeExplorer(document.getElementById('code'), { snapshot: 'code.json', file: 'src/app.js', line: 12, search: 'TODO', theme: 'light', height: '32rem' });
 ```
 
@@ -136,7 +158,7 @@ Options: `snapshot` (URL of a snapshot JSON, or the parsed object), `provider` (
 ### Scorecard
 
 ```js
-import { mountScorecard } from './dist/scorecard/scorecard.js';
+import { mountScorecard } from './dist/modules/scorecard/scorecard.js';
 const card = await mountScorecard(el, { targets: ['/', '/pricing.html', { name: 'Card', html: '<div class="card">...</div>' }], checks: ['accessibility'], historyKey: 'my-scorecard' });
 ```
 
@@ -145,7 +167,7 @@ Renders every target at each theme and width in off-screen frames, runs the SDK 
 ### Theme editor
 
 ```js
-import { mountThemeEditor } from './dist/theme-editor/theme-editor.js';
+import { mountThemeEditor } from './dist/modules/theme-editor/theme-editor.js';
 const editor = await mountThemeEditor(el, { storageKey: 'my-theme', onchange: ({ css, overrides }) => save(css) });
 editor.export();   // the override CSS block
 ```
@@ -165,7 +187,7 @@ The element inspector, `createElementInspector(container)` in `dist/js/element-i
 ### Layout builder
 
 ```js
-import { mountLayoutBuilder } from './dist/layout-builder/layout-builder.js';
+import { mountLayoutBuilder } from './dist/modules/layout-builder/layout-builder.js';
 const builder = await mountLayoutBuilder(el, { html: '<pk-card heading="Hi">Body</pk-card>', onchange: ({ model }) => draft(model), onsave: ({ model, html }) => save(model, html) });
 builder.getModel(); builder.toHtml(); builder.destroy();
 ```

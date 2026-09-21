@@ -109,12 +109,12 @@ test('the theme editor module reports a refused import through the alert and the
     assert.match(body, /note\('error', read\.error\); return;/);
 });
 
-test('dist/theme-editor ships its own token stylesheet and the module reads it from its own folder', () => {
+test('dist/modules/theme-editor ships its own token stylesheet and the module reads it from its own folder', () => {
     const { out } = build({ write: false });
-    assert.equal(out.get('dist/theme-editor/tokens.css'), fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
-    const js = out.get('dist/theme-editor/theme-editor.js');
+    assert.equal(out.get('dist/modules/theme-editor/tokens.css'), fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
+    const js = out.get('dist/modules/theme-editor/theme-editor.js');
     assert.match(js, /const TOKENS = '\.\/tokens\.css';/);
-    assert.ok(out.has('dist/theme-editor/theme-editor.css'));
+    assert.ok(out.has('dist/modules/theme-editor/theme-editor.css'));
     assert.ok(out.has('dist/js/theme-editor-logic.js'));
 });
 

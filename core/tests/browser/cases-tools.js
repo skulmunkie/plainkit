@@ -1,7 +1,7 @@
 // Browser cases for the tool modules shipped in dist (mountCodeExplorer, mountScorecard, mountThemeEditor, mountLayoutBuilder). Same shape as cases.js.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
-const dist = name => import(new URL(`../../dist/${name}/${name}.js`, import.meta.url).href);
+const dist = name => import(new URL(`../../dist/modules/${name}/${name}.js`, import.meta.url).href);
 
 // A store-only zip read back: Map of name -> text (or bytes with raw), from the central directory.
 function unzip(bytes, raw = false) {
@@ -356,6 +356,12 @@ export const toolCases = [
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get(`dist/${p}`)));
             t.eq(manifest.files.find(f => f.path === p).integrity, 'sha384-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
         }
+        // the modules unit travels with its own manifest, whose hashes match the rewritten tool files
+        const tools = JSON.parse(text('dist/modules/manifest.json'));
+        t.ok(tools.name === 'plainkit-modules' && tools.files.length > 20 && !manifest.files.some(f => f.path.startsWith('modules/')), 'the modules are a unit of their own in the export');
+        const themeCss = tools.files.find(f => f.path === 'theme-editor/theme-editor.css');
+        const themeDigest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get('dist/modules/theme-editor/theme-editor.css')));
+        t.eq(themeCss.integrity, 'sha384-' + btoa(String.fromCharCode(...themeDigest)), 'a tool file hash matches the modules manifest');
         // the exported page layer works in a real document: the widths are on :root and the theme wins
         const frame = document.createElement('iframe'); frame.style.width = '680px'; document.body.append(frame);
         try {

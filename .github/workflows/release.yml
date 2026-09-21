@@ -1,7 +1,8 @@
 name: Release
 
-# Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to create a GitHub release carrying core/dist as a zip, its integrity
-# manifest, the .nupkg and the agent skills as plainkit-skills-<version>.zip, and then to publish the NuGet package (PlainKit.Blazor). The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
+# Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to create a GitHub release carrying the runtime SDK (core/dist without
+# modules/) as plainkit-dist-<version>.zip, the dev-tool modules (core/dist/modules) as plainkit-modules-<version>.zip, the two integrity manifests, the .nupkg (both units) and the
+# agent skills as plainkit-skills-<version>.zip, and then to publish the NuGet package (PlainKit.Blazor). The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
 # Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
 # The tag does not carry core/dist (generated files are not in git): pinned versions are the release assets and the NuGet package, built here.
 # NuGet uses Trusted Publishing (OIDC): no API key is stored. A policy on nuget.org trusts this repository and this workflow file
@@ -34,7 +35,7 @@ jobs:
         run: echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
 
       # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and publishes what this step produces: npm's
-      # `files: [dist]` in core/package.json, the NuGet static web assets and both zips.
+      # `files` in core/package.json (the runtime only), the NuGet static web assets (both units) and the zips.
       - name: Bootstrap (generate everything)
         run: node scripts/bootstrap.mjs --quiet
 
@@ -58,8 +59,13 @@ jobs:
           dotnet test PlainKit.slnx --configuration Release
           dotnet pack blazor/src/PlainKit.Blazor --configuration Release -p:Version="$VERSION" -o nupkg
 
-      - name: Zip dist for the release
-        run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip .
+      # Two units, two zips. The runtime zip holds everything in core/dist except modules/ (its manifest.json lists the same set). The modules zip holds modules/ (its own
+      # manifest.json inside), with the folder name at the top: unzip it into the runtime folder and it lands at dist/modules/, next to the runtime it imports.
+      - name: Zip dist (the runtime) for the release
+        run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip . -x 'modules/*'
+
+      - name: Zip the modules for the release
+        run: cd core/dist && zip -r ../../plainkit-modules-$VERSION.zip modules
 
       # The agent skills as their own asset: the skill folders (plainkit-sdk/, plainkit-blazor/) at the top of the zip, ready to unzip into .claude/skills/.
       - name: Zip the agent skills for the release
@@ -71,7 +77,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          files=("plainkit-dist-$VERSION.zip" "plainkit-skills-$VERSION.zip" "nupkg/PlainKit.Blazor.$VERSION.nupkg" core/dist/manifest.json)
+          cp core/dist/modules/manifest.json "plainkit-modules-manifest-$VERSION.json"
+          files=("plainkit-dist-$VERSION.zip" "plainkit-modules-$VERSION.zip" "plainkit-skills-$VERSION.zip" "nupkg/PlainKit.Blazor.$VERSION.nupkg" core/dist/manifest.json "plainkit-modules-manifest-$VERSION.json")
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
           else
@@ -81,7 +88,7 @@ jobs:
             gh release create "$GITHUB_REF_NAME" "${files[@]}" --title "$GITHUB_REF_NAME" "${flags[@]}"
           fi
 
-      # The registries come after the GitHub release, so a problem with one of them never keeps the dist zip, the skills zip, the .nupkg and the
+      # The registries come after the GitHub release, so a problem with one of them never keeps the dist zip, the modules zip, the skills zip, the .nupkg and the
       # manifest from being attached. A failed step still turns the run red,
       # and a re-run of the failed job picks up where it stopped (the release step updates the existing release; the NuGet push skips a duplicate).
 

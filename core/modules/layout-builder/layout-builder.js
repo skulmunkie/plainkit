@@ -24,7 +24,7 @@
 import * as M from '../../js/layout-model.js';
 import * as L from '../../js/layout-builder-logic.js';
 import { createElementInspector } from '../../js/element-inspector.js';
-import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, runtimeUrl } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { setTheme } from '../../js/theme.js';
 import { createLogger } from '../../js/log.js';
@@ -32,7 +32,7 @@ const log = createLogger('layout-builder');
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./layout-builder.css'];
-const DEFAULT_API = '../elements/api.json';
+const DEFAULT_API = '../../dist/elements/api.json';
 const isText = c => typeof c === 'string';
 const EDIT_EVENTS = ['input', 'change', 'pk-value-change', 'pk-change'];
 const MOVES = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'out', ArrowRight: 'in' };
@@ -48,7 +48,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     if (!container) { log.error('mountLayoutBuilder needs a container element'); throw new TypeError('mountLayoutBuilder: container is required'); }
     const doc = container.ownerDocument;
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
-    const api = await loadJson(options.registry ?? new URL(DEFAULT_API, import.meta.url).href);
+    const api = await loadJson(options.registry ?? runtimeUrl(DEFAULT_API, import.meta.url));
     if (!Array.isArray(api)) { log.error('the registry must be the element API array (dist/elements/api.json)'); throw new TypeError('mountLayoutBuilder: registry must be an array or the URL of one'); }
     const registry = M.createRegistry(api);
     if (options.blocks) log.info('reusable blocks are not part of this version of the builder yet: the option is ignored', { blocks: options.blocks.length });

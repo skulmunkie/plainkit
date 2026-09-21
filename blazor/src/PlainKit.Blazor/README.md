@@ -2,7 +2,7 @@
 
 Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the dependency-free HTML, CSS and JavaScript toolkit. Targets .NET 10.
 
-The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
+The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN. It holds the toolkit's two units: the runtime (`plainkit/`) and the dev-tool modules under `plainkit/modules/` (dev tools dock, theme editor, log viewer and the other tools the components mount; they are only requested when a tool is opened, never by a page that just uses the elements).
 
 ## Alpha status
 
