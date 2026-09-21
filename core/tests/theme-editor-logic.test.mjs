@@ -122,7 +122,9 @@ test('dist/theme-editor ships its own token stylesheet and the module reads it f
 // muted text on the other page surfaces. A new documented pair belongs here; a token change that drops one below 4.5 fails this test (issue 58).
 const AA_PAIRS = [...DEFAULT_PAIRS, ['--color-link', '--color-bg'], ['--color-text', '--color-flyout'], ['--color-text', '--color-surface'], ['--color-text', '--color-surface-alt'],
     // Text on a fill (issue 69): white on the primary button, badge and selected fills, and on their hover fill.
-    ['--btn-primary-fg', '--color-accent-fill'], ['--btn-primary-fg', '--color-accent-fill-hover']];
+    ['--btn-primary-fg', '--color-accent-fill'], ['--btn-primary-fg', '--color-accent-fill-hover'],
+    // The warn button (issue 92): its hover fill darkens, like the accent fill's, so white text keeps 4.5:1 in every state; the small (mini) button too.
+    ['--btn-warn-fg', '--btn-warn-bg'], ['--btn-warn-fg', '--btn-warn-hover-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-hover-bg']];
 
 for (const theme of ['dark', 'light']) {
     test(`contrast: every documented text pair meets 4.5:1 in the ${theme} theme`, () => {
