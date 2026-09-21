@@ -28,17 +28,19 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      # The tag must name exactly core/VERSION, and the release pull request must have refreshed the API baseline for it. The version comes
-      # from core/VERSION (the one version of the SDK and the Blazor package), not from the tag.
-      - name: Check the tag and take the version
-        run: |
-          node core/tools/versioning.mjs check --release --tag "$GITHUB_REF_NAME"
-          echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
+      # The version comes from core/VERSION (the one version of the SDK and the Blazor package), not from the tag. The tag must equal it, and the
+      # release pull request must have refreshed the API baseline for it: both are checked below, after the bootstrap.
+      - name: Take the version
+        run: echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
 
       # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and publishes what this step produces: npm's
       # `files: [dist]` in core/package.json, the NuGet static web assets and both zips.
       - name: Bootstrap (generate everything)
         run: node scripts/bootstrap.mjs --quiet
+
+      # After the bootstrap, so the stamps in the generated files (js/version.js, dist/manifest.json, the package copy) are checked as well.
+      - name: Check the tag and the stamps
+        run: node core/tools/versioning.mjs check --release --tag "$GITHUB_REF_NAME"
 
       - name: Tests
         run: |
