@@ -1,4 +1,5 @@
 // Plainkit stat tile logic: the change between two numbers and how it reads. Pure functions.
+import { safeHref } from '../../js/safe-url.js';
 
 // Direction and percentage of a change: { direction: 'up' | 'down' | 'flat', pct } (pct is null when there is no previous value to compare).
 export function delta(current, previous, flatBelow = 0.05) {
@@ -44,9 +45,11 @@ export default Base => class extends Base {
         const doc = this.ownerDocument;
         const link = this.part('link');
         link.querySelector('.sr').textContent = `${this.label}: ${this.value}`;
-        if (this.href) link.setAttribute('href', this.href); else link.removeAttribute('href');
-        const button = this.interactive && !this.href;
-        link.hidden = !this.href && !button;
+        const href = safeHref(this.href);
+        if (this.href && !href) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the tile has no link`, { href: this.href });
+        if (href) link.setAttribute('href', href); else link.removeAttribute('href');
+        const button = this.interactive && !href;
+        link.hidden = !href && !button;
         if (button) { link.setAttribute('role', 'button'); link.tabIndex = 0; } else { link.removeAttribute('role'); link.removeAttribute('tabindex'); }
         const chip = this.part('delta');
         const pct = this.delta === '' ? null : Number(this.delta);

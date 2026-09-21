@@ -1,4 +1,5 @@
 import { place, onOutside, unplace } from '../../js/positioning.js';
+import { safeHref } from '../../js/safe-url.js';
 
 // pk-nav-item: a link row, or a branch (no href) that folds its `children`; in the icon rail a branch opens as a flyout beside the rail.
 export default Base => class extends Base {
@@ -24,7 +25,9 @@ export default Base => class extends Base {
     updated() {
         const row = this.row; if (!row) return;
         if (this.group) { for (const a of ['href', 'tabindex', 'aria-current', 'aria-disabled', 'aria-expanded', 'title']) row.removeAttribute(a); row.setAttribute('role', 'presentation'); return; }
-        if (this.href) { row.setAttribute('href', this.href); row.removeAttribute('role'); row.removeAttribute('tabindex'); } else { row.removeAttribute('href'); row.setAttribute('role', 'button'); row.tabIndex = 0; }
+        const href = safeHref(this.href);
+        if (this.href && !href) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the row has no link`, { href: this.href });
+        if (href) { row.setAttribute('href', href); row.removeAttribute('role'); row.removeAttribute('tabindex'); } else { row.removeAttribute('href'); row.setAttribute('role', 'button'); row.tabIndex = 0; }
         if (this.current) row.setAttribute('aria-current', 'page'); else row.removeAttribute('aria-current');
         if (this.disabled) row.setAttribute('aria-disabled', 'true'); else row.removeAttribute('aria-disabled');
         const label = this.textContent.trim().split('\n')[0];

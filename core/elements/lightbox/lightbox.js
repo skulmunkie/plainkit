@@ -20,8 +20,7 @@ export function safeSrc(src) {
     if (typeof src !== 'string' || !src.trim()) return null;
     const s = src.trim();
     if (/^data:image\/(png|jpe?g|gif|webp|avif);/i.test(s)) return s;
-    if (/^[\w+.-]+:/.test(s) && !/^https?:/i.test(s)) return null;
-    return s;
+    return safeLink(s) ? s : null;
 }
 
 // Images to warm up: the neighbours on each side, so a step is instant.
@@ -30,6 +29,7 @@ export const preloadIndexes = (index, count) => (count <= 1 ? [] : [...new Set([
 export const counterText = (index, count) => (count > 1 ? `${index + 1} / ${count}` : '');
 
 import { syncDialog, wireDialog } from '../../js/menu-logic.js';
+import { safeLink } from '../../js/safe-url.js';
 
 // pk-lightbox: a full-screen viewer on a native modal dialog. `items` ({ src, alt, caption }[]) is a property; the default slot is the trigger.
 export default Base => class extends Base {

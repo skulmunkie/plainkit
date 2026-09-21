@@ -78,7 +78,8 @@ export function moveFocus(event, items, state, label = labelOf, focus = el => el
 }
 
 // Only a same-site path or an http(s) link may be navigated to from a menu row or a command.
-export const safeLink = href => (typeof href === 'string' && href && !(/^[\w+.-]+:/.test(href) && !/^https?:/i.test(href)) ? href : null);
+// (js/safe-url.js reads the scheme the way the browser does: a tab, a newline or a leading space does not hide a script address.)
+export { safeLink } from './safe-url.js';
 
 // Shared by the elements that host a native <dialog> (dialog, drawer, command palette, lightbox): keep the dialog in step with the `open`
 // prop, ask before closing (a cancelable pk-close the Blazor side may veto), and clean up the top layer when the element leaves the page.
