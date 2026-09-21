@@ -8,18 +8,18 @@
   "files": [
     {
       "path": "code-explorer/code-explorer.css",
-      "bytes": 8476,
-      "integrity": "sha384-ERmRfd1m+cYZhg5/d6XHSihYcJB6S8lmAskdEsUBMreKNqX3ExihP9YkibLr26wU"
+      "bytes": 8494,
+      "integrity": "sha384-G7QBQukcAAbGE86ljAh05UPU9/28tfHA3nvsgZMkAPu+xMR2UjZ2pf4EMzBRMFfW"
     },
     {
       "path": "code-explorer/code-explorer.js",
-      "bytes": 2329,
-      "integrity": "sha384-TGdi1nVwtlGaL0HTxO9DUlMKnUZZNImeokDtU1vjxT5C+rARzVEETdXYn16CZoED"
+      "bytes": 2332,
+      "integrity": "sha384-+fLfsGNInNQdfMDZi8LFpBwbz3MLSuzC8PU9Eja/JHJf4xyUTmxJlcl21YkK4UCC"
     },
     {
       "path": "code-explorer/element.js",
-      "bytes": 22908,
-      "integrity": "sha384-+4jbiowbmz3Z5/76kbak2B7q4ewCETXvq413qeFpZ4BXXXWvaIDDkHqaGJU0VTGi"
+      "bytes": 22953,
+      "integrity": "sha384-o9xyY0O8UJTt1LxGEl5kKx3d0eHBnRUlXdROluNCZwhiDtJ9TaJMtYD/vkbAGQWi"
     },
     {
       "path": "code-explorer/providers.js",
@@ -513,8 +513,8 @@
     },
     {
       "path": "gallery/boots/code-explorer.js",
-      "bytes": 397,
-      "integrity": "sha384-ebjog2nU7za7Lo0ffzxWN8PBLwgHuwy0pdPb83DA//ouDzJJX3SiAYEFwtdsT4nP"
+      "bytes": 403,
+      "integrity": "sha384-mj21WBDIUpuQ8A/WEt1xs8TZerAUCzzn/5qImXMJCoM/rtumV8eiQM39g404FYQO"
     },
     {
       "path": "gallery/elements-view.js",

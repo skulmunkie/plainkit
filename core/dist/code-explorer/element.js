@@ -1,15 +1,15 @@
-// <code-explorer> custom element: a file tree, a tab strip of open files, a line-numbered code viewer and a docked
+// <pk-code-explorer> custom element: a file tree, a tab strip of open files, a line-numbered code viewer and a docked
 // outline / usages inspector, fed by one provider (see providers.js). Light DOM: the panes, tabs, tree, inputs, buttons and badges
 // are pk-* elements (loaded on demand); code-explorer.css, loaded here, styles the viewer, outline and search results.
 //
-//   <code-explorer source="snapshot" src="snapshot.json"></code-explorer>
-//   <code-explorer source="api" src="./api/code" theme="light" height="40rem"></code-explorer>
-//   <code-explorer source="feed" src="./api/code/events" base="./api/code" feed-interval="5000"></code-explorer>
+//   <pk-code-explorer source="snapshot" src="snapshot.json"></pk-code-explorer>
+//   <pk-code-explorer source="api" src="./api/code" theme="light" height="40rem"></pk-code-explorer>
+//   <pk-code-explorer source="feed" src="./api/code/events" base="./api/code" feed-interval="5000"></pk-code-explorer>
 //
 // Attributes (all optional except source/src unless a provider is assigned): source, src, base (feed only), theme
 // (light|dark, sets data-theme), height (any CSS length, or "fill"; default 32rem), initial (a path to open first; initial-line focuses a row),
 // search (a query to run once the files are listed), max-lines (rows drawn per file, default 2000), feed-interval (ms; polls instead of SSE). Property `provider` accepts
-// a ready provider object. Events: "code-explorer-open" (detail { path }), "code-explorer-error" (detail { error }).
+// a ready provider object. Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
 import { createProvider, wordSpans, matcherFor } from './providers.js';
@@ -81,7 +81,7 @@ export class CodeExplorerElement extends Base {
         const theme = this.getAttribute('theme');
         if (theme) this.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
         const h = this.getAttribute('height');
-        if (h) this.style.setProperty('--code-explorer-height', h === 'fill' ? '100%' : h);
+        if (h) this.style.setProperty('--pk-code-explorer-height', h === 'fill' ? '100%' : h);
     }
 
     // Load the modules of any pk-* element that was just written and is not defined yet (a no-op once they all are).
@@ -152,7 +152,7 @@ export class CodeExplorerElement extends Base {
         } catch (error) {
             log.error('the code explorer could not start', error);
             fill(this.querySelector('[data-ce-tree]'), `<p class="ce-error" role="alert">${esc(error.message)}</p>`);
-            this.dispatchEvent(new CustomEvent('code-explorer-error', { detail: { error } }));
+            this.dispatchEvent(new CustomEvent('pk-code-explorer-error', { detail: { error } }));
         }
     }
 
@@ -291,7 +291,7 @@ export class CodeExplorerElement extends Base {
             }
         } catch (error) {
             log.warn(`could not open ${path}`, error);
-            this.dispatchEvent(new CustomEvent('code-explorer-error', { detail: { error } }));
+            this.dispatchEvent(new CustomEvent('pk-code-explorer-error', { detail: { error } }));
             return;
         }
         const isNew = !this.#open.includes(path);
@@ -300,7 +300,7 @@ export class CodeExplorerElement extends Base {
         if (isNew) this.#renderTabs(); else this.querySelector('[data-ce-tabs]').setAttribute('value', path);
         this.#renderPane(); this.#syncTree(); this.#showPane('main');
         if (this.#inspector?.kind === 'outline') this.#showOutline(false);
-        this.dispatchEvent(new CustomEvent('code-explorer-open', { detail: { path } }));
+        this.dispatchEvent(new CustomEvent('pk-code-explorer-open', { detail: { path } }));
     }
 
     // ---- viewer ----------------------------------------------------------
@@ -377,7 +377,7 @@ export class CodeExplorerElement extends Base {
 }
 
 export function defineCodeExplorer(registry = globalThis.customElements) {
-    if (globalThis.HTMLElement && registry && !registry.get('code-explorer')) registry.define('code-explorer', CodeExplorerElement);
+    if (globalThis.HTMLElement && registry && !registry.get('pk-code-explorer')) registry.define('pk-code-explorer', CodeExplorerElement);
 }
 
 defineCodeExplorer();

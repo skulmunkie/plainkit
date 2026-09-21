@@ -1,6 +1,6 @@
-// Sample boot: gives the <code-explorer> element an in-memory snapshot. Loaded by frame-boot.js when a sample says @boot code-explorer.
+// Sample boot: gives the <pk-code-explorer> element an in-memory snapshot. Loaded by frame-boot.js when a sample says @boot code-explorer.
 import '../../../modules/code-explorer/element.js';
 import { SnapshotProvider } from '../../../modules/code-explorer/providers.js';
 import { SAMPLE_SNAPSHOT } from '../sample-tree.js';
 
-document.querySelector('code-explorer').provider = new SnapshotProvider(SAMPLE_SNAPSHOT);
+document.querySelector('pk-code-explorer').provider = new SnapshotProvider(SAMPLE_SNAPSHOT);
