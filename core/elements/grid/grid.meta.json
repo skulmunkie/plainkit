@@ -19,6 +19,13 @@
       "description": "The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min."
     },
     {
+      "name": "ratio",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks."
+    },
+    {
       "name": "gap",
       "type": "enum",
       "default": "md",
@@ -50,6 +57,11 @@
       "name": "--pk-grid-columns",
       "description": "The column cap; set by the columns prop.",
       "default": "unset (no cap)"
+    },
+    {
+      "name": "--pk-grid-ratio",
+      "description": "The explicit column list; set by the ratio prop.",
+      "default": "unset (auto-fit columns)"
     }
   ],
   "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
@@ -57,6 +69,10 @@
     {
       "title": "Auto columns",
       "html": "<pk-grid min=\"10rem\"><pk-card heading=\"One\">A</pk-card><pk-card heading=\"Two\">B</pk-card><pk-card heading=\"Three\">C</pk-card><pk-card heading=\"Four\">D</pk-card></pk-grid>"
+    },
+    {
+      "title": "A 2:1 split",
+      "html": "<pk-grid ratio=\"2:1\"><pk-card heading=\"Main\">Wide</pk-card><pk-card heading=\"Side\">Narrow</pk-card></pk-grid>"
     },
     {
       "title": "At most three columns",

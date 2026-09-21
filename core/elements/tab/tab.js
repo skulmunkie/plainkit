@@ -4,5 +4,5 @@ export default Base => class extends Base {
         if (!this.$x) { this.$x = true; this.part('close').addEventListener('click', e => { e.stopPropagation(); this.emit('pk-tab-close', { value: this.value }); }); }
         this.updated();
     }
-    updated() { this.aria({ role: 'tab', ariaSelected: String(this.selected), ariaDisabled: this.disabled ? 'true' : null }); }
+    updated() { this.part('close').tabIndex = this.selected ? 0 : -1; this.aria({ role: 'tab', ariaSelected: String(this.selected), ariaDisabled: this.disabled ? 'true' : null }); }
 };

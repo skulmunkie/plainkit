@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { percent, segments, levelFor } from './progress.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 test('percent rounds, clamps and survives a zero max', () => {
     assert.equal(percent(30, 120), 25);
@@ -28,4 +30,15 @@ test('levelFor steps from ok to warn to danger at the thresholds', () => {
     assert.equal(levelFor(70), 'warn');
     assert.equal(levelFor(90), 'danger');
     assert.equal(levelFor(80, 50, 80), 'danger');
+});
+const read = ext => fs.readFileSync(fileURLToPath(new URL(`./progress.${ext}`, import.meta.url)), 'utf8');
+const meta = JSON.parse(read('meta.json'));
+const prop = name => meta.props.find(p => p.name === name);
+
+test('inline puts the label, the bar and the value on one line', () => {
+    assert.equal(prop('inline').type, 'boolean'); assert.equal(prop('inline').default, false);
+    const css = read('css');
+    assert.ok(css.includes(':host([inline]) [part="row"] { display: contents; }'));
+    for (const part of ['label', 'bar', 'value']) assert.ok(new RegExp(`:host\\(\\[inline\\]\\) \\[part="${part}"\\] \\{ grid-area`).test(css), part);
+    assert.ok(!/#[0-9a-f]{3,8}\b|\brgba?\(/i.test(css));
 });

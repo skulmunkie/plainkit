@@ -45,6 +45,13 @@
       "default": false,
       "reflect": true,
       "description": "In the icon rail, the branch is open as a flyout beside the rail."
+    },
+    {
+      "name": "group",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider."
     }
   ],
   "slots": [
@@ -102,12 +109,12 @@
   ],
   "cssProperties": [],
   "methods": [],
-  "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys.",
+  "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys. A group title is plain text (role presentation), not in the tab order.",
   "mobile": "44px tall.",
   "examples": [
     {
       "title": "Row states",
-      "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item></div>"
+      "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item><pk-nav-item group>Group title</pk-nav-item><pk-nav-item href=\"#\">Under the title</pk-nav-item></div>"
     }
   ]
 }

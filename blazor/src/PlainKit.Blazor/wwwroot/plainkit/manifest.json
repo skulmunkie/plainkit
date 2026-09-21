@@ -43,8 +43,8 @@
     },
     {
       "path": "custom-elements.json",
-      "bytes": 556769,
-      "integrity": "sha384-NV4iUlCVvvIVNCDd4MiXh3UL4lW39/SWRfZdnZN+rMWtGLZmO03K1wDlVBMki36e"
+      "bytes": 562307,
+      "integrity": "sha384-PDWtINWB6OiLlABBIOhiKae53SUHt+obzdM//tjSRVFL4z56xf3yTrCdVXhbo30S"
     },
     {
       "path": "devtools/devtools.css",
@@ -63,13 +63,13 @@
     },
     {
       "path": "elements.d.ts",
-      "bytes": 75329,
-      "integrity": "sha384-zCGHfjn7tqjCkWOIPTgxIWqjl4xO5GRT8uoFERUaJTAEb81O2aPkHWXo7G7uxdUK"
+      "bytes": 76400,
+      "integrity": "sha384-WAcmiLfV6x7MmLaP7vZVQuOw/OKSjTG0hgp7Cd41DAfzUo/bbLYAVN6Vjf3ZZPyJ"
     },
     {
       "path": "elements.vue.d.ts",
-      "bytes": 12719,
-      "integrity": "sha384-aWOk/d4bvJ+uHNalTKIgcepVq5tYJhJb4JrhujcerI4hE/dt6Vx40snl94xH+xZ1"
+      "bytes": 12774,
+      "integrity": "sha384-N+lV2PInmyT4rc0lKg5rlgwWsHj690APFKGSRjudIjyM/iBFXif08srMZzYgJ59T"
     },
     {
       "path": "elements/accordion-item.js",
@@ -88,13 +88,13 @@
     },
     {
       "path": "elements/api.json",
-      "bytes": 304507,
-      "integrity": "sha384-7tmacc/GkccsSVz8r2I4/dc3FzyBaW+NsLxgcPAxbTV+Uba+Vb/gdhsFJVYx4I4n"
+      "bytes": 307713,
+      "integrity": "sha384-pyNsD6jNw7FHnBxlE1k+v6uoEGiJqeI31QPmZXLfsk/x+OrAav+1rqaJDuDq1vn8"
     },
     {
       "path": "elements/app-shell.js",
-      "bytes": 2962,
-      "integrity": "sha384-eoFG8WziayiuKOwoBKhrBDBE6HQrv91A+sEfnNSHitAmIDJDtOWgu/eQZhmWmT3z"
+      "bytes": 3131,
+      "integrity": "sha384-l7rZpq7Qm+mhgsid6Z5yVmeh25F9s+euyoWelm/fyZPuTGakarbT99jbbRtChFdr"
     },
     {
       "path": "elements/avatar-group.js",
@@ -138,8 +138,8 @@
     },
     {
       "path": "elements/card.js",
-      "bytes": 3857,
-      "integrity": "sha384-mfxiz7tUGEjF8irAMJ6KOvoqH/k/3A82ivD5ovApEXm/WuJ8ExV00cq9b6CTB5Fh"
+      "bytes": 3988,
+      "integrity": "sha384-i0nFbVh+d2JcF/ilUXwy6TxEdIa4vYWZU5EPtd8kKxqDeu3AfMPEzfWrmrw2Xxe4"
     },
     {
       "path": "elements/chart.js",
@@ -248,8 +248,8 @@
     },
     {
       "path": "elements/grid.js",
-      "bytes": 1635,
-      "integrity": "sha384-8K6PVaqHlhrI3E2mpCHU6SWFTV2EWkni7itAhcYSJ3dfoufi7xl44gu6+u7fsP8X"
+      "bytes": 2345,
+      "integrity": "sha384-IZgS7D0ZPNioYIjWmpxas2ks0tEVy5Bk5W3L+KFMUK9eYhDjMbmx9+5CvnzD/32j"
     },
     {
       "path": "elements/hint.js",
@@ -268,8 +268,8 @@
     },
     {
       "path": "elements/input.js",
-      "bytes": 13336,
-      "integrity": "sha384-HpdUakBId1xvka9RohdXDJBLbn4s3B5voJbNpDY7tMBdk3TGgxJ7ypBtxE7sId3L"
+      "bytes": 13162,
+      "integrity": "sha384-0nFH2fk20LMYxN7PiPmemv5phgIiZbbZ95I69BE9s0L9Et8epa+8iIaHWuNTiqyd"
     },
     {
       "path": "elements/lightbox.js",
@@ -303,8 +303,8 @@
     },
     {
       "path": "elements/nav-item.js",
-      "bytes": 5860,
-      "integrity": "sha384-mfHJxPbe+IGCh8LNVX/AM50odju24vr9/6EGd1xwfovJxZZDN0//0sL9Ubwtwnoq"
+      "bytes": 6591,
+      "integrity": "sha384-SYZNttcn3IV5Hy6pTzqs6v94FQaHRzpyf+vbJBV7sQLanGo7pz1Gs1f8m/LxnrrO"
     },
     {
       "path": "elements/navbar.js",
@@ -313,8 +313,8 @@
     },
     {
       "path": "elements/otp-input.js",
-      "bytes": 6402,
-      "integrity": "sha384-IZ/P3ERAAz7bkZvfRD4PtAGLJ/duN2rkxz8A8UIXLJ5zUDGfCa76RUV0x/3uRSmp"
+      "bytes": 6503,
+      "integrity": "sha384-WY7h12q9k95gM8ur9CKYELMxFWn7E8wvol2/p9D7CjsF0S6OXN9hfmcLavEhxj3D"
     },
     {
       "path": "elements/page-header.js",
@@ -338,8 +338,8 @@
     },
     {
       "path": "elements/progress.js",
-      "bytes": 4677,
-      "integrity": "sha384-/6PqEiGA1yqVGT1Bqpo4YwDShhk610UCHXl93yJ4l4mKdrXLYNk/EJmjFoadxCG0"
+      "bytes": 5057,
+      "integrity": "sha384-5AD2ooqMdHcddJc6bppKu8bQSka8KWySO5g1RT69NevX2SOc/BW6xxS/8ezpzbFt"
     },
     {
       "path": "elements/radio-group.js",
@@ -378,8 +378,8 @@
     },
     {
       "path": "elements/side-nav.js",
-      "bytes": 9398,
-      "integrity": "sha384-IP7LpuUcsPsGqPEx6dLT0tY7fFBW71vgiOmG7dCYS+L3W5F8rf3KHMOhs+wGpi9Y"
+      "bytes": 9554,
+      "integrity": "sha384-LABpUkkUUqLaBFordCYngpQnFKU/IttUsHDYPeGA9jT9fWSLReN1adN8qTwpl2C/"
     },
     {
       "path": "elements/skeleton.js",
@@ -433,8 +433,8 @@
     },
     {
       "path": "elements/tab.js",
-      "bytes": 2374,
-      "integrity": "sha384-soxPOnq0NUii1TZ868cORcdIWHbxCw7Zc9BJfOemk+H7evaJXaSRIC7xKvQ3uZoC"
+      "bytes": 2412,
+      "integrity": "sha384-JQyEe16YYyihNAW+qu9DF87Qd7kIt8ioBrcNwtIqmhGZB56SeYlguqJzJ2KBMequ"
     },
     {
       "path": "elements/table.js",
@@ -503,13 +503,13 @@
     },
     {
       "path": "elements/tree.js",
-      "bytes": 5729,
-      "integrity": "sha384-3q8Zw9hsyxEbEXyZJirFDyNeglrqaqOaFBFSGxvyfWqtzDnL3x98ODd1TN/MBZws"
+      "bytes": 5878,
+      "integrity": "sha384-HtH+TI7zkjVKDrtL2ZmApcABDt6DmqkFmOrktz9bLrub6VtVzsMnVGJWs4DYz/73"
     },
     {
       "path": "elements/workspace.js",
-      "bytes": 8357,
-      "integrity": "sha384-mAfL/A2RjoEz33e7eggLw5+A4X6256lh+PFP6AH3xos3caLWcTv7/rkvPC62n8RZ"
+      "bytes": 8522,
+      "integrity": "sha384-MAyAFL74o0rkk97XSLpcf2LLCGeBR68sDmMqyikCYbXXhQKIEMXk1HLPxWH/nTXd"
     },
     {
       "path": "gallery/boots/code-explorer.js",
@@ -553,8 +553,8 @@
     },
     {
       "path": "gallery/gallery.data.js",
-      "bytes": 410076,
-      "integrity": "sha384-9E4QLLhC+1MvMmdfY1jKIwuFlhaxREiEUNrHO887QDuA51sofVVINzf0pfYUE9Uc"
+      "bytes": 413798,
+      "integrity": "sha384-rdgY+SX7pTitsm7JIA9QUJU1xYYXIOm7mF0b0jtoOeusiGsYmXXICZeBAyaFGQSN"
     },
     {
       "path": "gallery/gallery.js",
@@ -968,13 +968,13 @@
     },
     {
       "path": "vscode.html-custom-data.json",
-      "bytes": 115789,
-      "integrity": "sha384-jvO5JZPAscKzTQ36S/REc5DzYTDSDOt623wOFgIhYIfGTQvQYnlhi0pxBJQaW/7k"
+      "bytes": 117149,
+      "integrity": "sha384-ARCwDW+2cFT/TIimLsT5ug2Gkj/g3cTtEMUEkp8ueQu5tiOFaRbKWJ0Bq2sT14v2"
     },
     {
       "path": "web-types.json",
-      "bytes": 209160,
-      "integrity": "sha384-iTtS4jjj1noqkPQZAsCsm9rOoP0p1qP3uy/gShPevxiBh4XnPFxsH1X+EZr7eOjE"
+      "bytes": 211123,
+      "integrity": "sha384-7BkvAOEPbbe2322L14Sh2Ngcg8M4pgG0UZ3n8ibocl9seLamSj+jRpOFzNo6S2iz"
     }
   ]
 }

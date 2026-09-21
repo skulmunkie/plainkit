@@ -48,6 +48,11 @@
       "prop": "flyout"
     },
     {
+      "name": "Group",
+      "prop": "group",
+      "type": "bool"
+    },
+    {
       "name": "ChildContent",
       "type": "RenderFragment?",
       "map": "slot",

@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { visiblePanels, showsNav, availablePanes, resolvePane, paneKey, PANES } from './workspace.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 test('workspace: visiblePanels and showsNav are pure', () => {
     assert.deepEqual(visiblePanels(['a', 'b'], 'b'), [{ id: 'a', visible: false }, { id: 'b', visible: true }]);
@@ -39,4 +41,18 @@ test('workspace: arrow keys, Home and End move between the panes that exist and 
     assert.equal(paneKey('x', p, 'nav'), null);
     assert.equal(paneKey('ArrowRight', p, 'gone'), null);
     assert.equal(paneKey('ArrowRight', [], 'main'), null);
+});
+const read = ext => fs.readFileSync(fileURLToPath(new URL(`./workspace.${ext}`, import.meta.url)), 'utf8');
+const meta = JSON.parse(read('meta.json'));
+const prop = name => meta.props.find(p => p.name === name);
+
+// Issue #21: one padding variable for every pane; each pane now has its own hook that falls back to it.
+test('each pane has its own padding hook, falling back to the shared one, and all are in the meta', () => {
+    const css = read('css'); const names = meta.cssProperties.map(p => p.name);
+    for (const pane of ['nav', 'main', 'aside']) {
+        assert.ok(names.includes(`--pk-workspace-${pane}-pad`), pane);
+        assert.ok(css.includes(`[part="${pane}"] { padding: var(--pk-workspace-${pane}-pad, var(--_pad))`), pane);
+    }
+    assert.ok(css.includes('--_pad: var(--pk-workspace-pad, var(--pad-panel))'));
+    assert.ok(names.includes('--pk-workspace-pad'));
 });

@@ -45,7 +45,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "No padding around the content, for a table or an edge-to-edge body."
+      "description": "No padding around the body, for a table or an edge-to-edge body; the heading row keeps its padding."
     },
     {
       "name": "href",

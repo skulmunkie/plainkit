@@ -47,6 +47,11 @@
         "event": "pk-nav-toggle",
         "value": "detail.open"
       }
+    },
+    {
+      "name": "Flush",
+      "prop": "flush",
+      "type": "bool"
     }
   ]
 }

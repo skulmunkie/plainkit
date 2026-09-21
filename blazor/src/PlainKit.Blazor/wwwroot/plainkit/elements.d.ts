@@ -37,6 +37,8 @@ export interface PkAlertElement extends HTMLElement {
 export interface PkAppShellElement extends HTMLElement {
     /** Drawer state, mirrors the side nav. */
     navOpen: boolean;
+    /** Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay). */
+    flush: boolean;
 }
 
 export interface PkAvatarElement extends HTMLElement {
@@ -174,7 +176,7 @@ export interface PkCardElement extends HTMLElement {
     tone: "default" | "error";
     /** Horizontal puts the media beside the content; it stacks when the card is narrower than 30rem (a container query, not the viewport). */
     orientation: "vertical" | "horizontal";
-    /** No padding around the content, for a table or an edge-to-edge body. */
+    /** No padding around the body, for a table or an edge-to-edge body; the heading row keeps its padding. */
     flush: boolean;
     /** Makes the whole card one link (a single tab stop named by the heading). */
     href: string;
@@ -550,6 +552,8 @@ export interface PkGridElement extends HTMLElement {
     min: string;
     /** The most columns to use, 0 for no limit. The grid still drops columns when they would be narrower than min. */
     columns: number;
+    /** Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks. */
+    ratio: string;
     /** Space between children, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default md (the card gap). */
     gap: "none" | "xs" | "sm" | "md" | "lg" | "xl";
 }
@@ -606,6 +610,8 @@ export interface PkInputElement extends HTMLElement {
     placeholder: string;
     /** The accessible name (aria-label). pk-field fills it from its own label when this is empty. */
     label: string;
+    /** Shows label as visible text above the field (linked to it), for use without a pk-field. Ignored by a floating label. */
+    showLabel: boolean;
     /** Help and error text, exposed as aria-description; pk-field fills it. */
     description: string;
     /** Blocks interaction; also set by a disabled fieldset. */
@@ -753,6 +759,8 @@ export interface PkNavItemElement extends HTMLElement {
     rail: boolean;
     /** In the icon rail, the branch is open as a flyout beside the rail. */
     flyout: boolean;
+    /** A group title instead of a row: static muted text that introduces the rows below it. Not focusable, skipped by the arrow keys and hidden while the filter is used; in the icon rail it shows as a divider. */
+    group: boolean;
 }
 
 export interface PkNavbarElement extends HTMLElement {
@@ -880,6 +888,8 @@ export interface PkProgressElement extends HTMLElement {
     label: string;
     /** Append the percentage next to the label. */
     showValue: boolean;
+    /** Puts the label before the bar and the value after it on one line, instead of a row above the bar. */
+    inline: boolean;
     /** Two percentages, for example "70,90": the bar turns warn then danger. */
     levelThresholds: string;
 }
@@ -1177,7 +1187,7 @@ export interface PkTabElement extends HTMLElement {
     disabled: boolean;
     /** A badge shown in muted parentheses after the label (a queue count); empty shows none. */
     count: string;
-    /** Shows a close button; pk-tab-close is raised when it is clicked and the page removes the tab. */
+    /** Shows a close button, keyboard reachable on the selected tab; pk-tab-close is raised when it is activated and the page removes the tab. */
     closable: boolean;
     /** all shows the tab everywhere; phone only at phone width (640px and below); desktop hides it at phone width. */
     only: "all" | "phone" | "desktop";
@@ -1602,7 +1612,7 @@ declare global {
             'pk-accordion': PkJsx<PkAccordionElement, "exclusive" | "flush">;
             'pk-accordion-item': PkJsx<PkAccordionItemElement, "heading" | "open">;
             'pk-alert': PkJsx<PkAlertElement, "kind" | "heading" | "dismissible" | "banner" | "plain" | "inline" | "compact">;
-            'pk-app-shell': PkJsx<PkAppShellElement, "navOpen">;
+            'pk-app-shell': PkJsx<PkAppShellElement, "navOpen" | "flush">;
             'pk-avatar': PkJsx<PkAvatarElement, "name" | "src" | "size" | "shape" | "status" | "colour">;
             'pk-avatar-group': PkJsx<PkAvatarGroupElement, "max" | "label">;
             'pk-back-to-top': PkJsx<PkBackToTopElement, "for" | "threshold" | "label" | "visible">;
@@ -1633,25 +1643,25 @@ declare global {
             'pk-form-actions': PkJsx<PkFormActionsElement, "sticky" | "align">;
             'pk-form-section': PkJsx<PkFormSectionElement, "heading" | "description">;
             'pk-gallery': PkJsx<PkGalleryElement, "kind" | "group" | "control" | "theme" | "width" | "filter" | "chrome" | "height" | "src">;
-            'pk-grid': PkJsx<PkGridElement, "min" | "columns" | "gap">;
+            'pk-grid': PkJsx<PkGridElement, "min" | "columns" | "ratio" | "gap">;
             'pk-hint': PkJsx<PkHintElement, "label" | "open" | "tone">;
             'pk-icon': PkJsx<PkIconElement, "name" | "size" | "label">;
             'pk-image-gallery': PkJsx<PkImageGalleryElement, "images" | "primary" | "columns" | "min" | "editable" | "addLabel" | "accept">;
-            'pk-input': PkJsx<PkInputElement, "type" | "name" | "value" | "placeholder" | "label" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "min" | "max" | "step" | "minlength" | "maxlength" | "pattern" | "autocomplete" | "inputmode" | "size" | "clearable" | "reveal" | "stepper" | "format" | "decimals" | "currency" | "locale" | "floating" | "autohide" | "debounce">;
+            'pk-input': PkJsx<PkInputElement, "type" | "name" | "value" | "placeholder" | "label" | "showLabel" | "description" | "disabled" | "readonly" | "required" | "invalid" | "warning" | "valid" | "min" | "max" | "step" | "minlength" | "maxlength" | "pattern" | "autocomplete" | "inputmode" | "size" | "clearable" | "reveal" | "stepper" | "format" | "decimals" | "currency" | "locale" | "floating" | "autohide" | "debounce">;
             'pk-lightbox': PkJsx<PkLightboxElement, "index" | "label" | "open">;
             'pk-list-group': PkJsx<PkListGroupElement, "variant" | "checklist" | "label">;
             'pk-loading-overlay': PkJsx<PkLoadingOverlayElement, "busy" | "label" | "fullscreen">;
             'pk-local-time': PkJsx<PkLocalTimeElement, "datetime" | "format" | "length" | "locale" | "timeZone">;
             'pk-media': PkJsx<PkMediaElement, "ratio" | "fit" | "caption" | "lightbox" | "square">;
             'pk-menu-item': PkJsx<PkMenuItemElement, "type" | "checked" | "disabled" | "danger" | "value" | "href" | "open">;
-            'pk-nav-item': PkJsx<PkNavItemElement, "href" | "current" | "disabled" | "expanded" | "rail" | "flyout">;
+            'pk-nav-item': PkJsx<PkNavItemElement, "href" | "current" | "disabled" | "expanded" | "rail" | "flyout" | "group">;
             'pk-navbar': PkJsx<PkNavbarElement, "label" | "open" | "sticky">;
             'pk-otp-input': PkJsx<PkOtpInputElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid" | "length" | "type" | "separatorAt">;
             'pk-page-header': PkJsx<PkPageHeaderElement, "heading" | "level" | "variant">;
             'pk-pager': PkJsx<PkPagerElement, "label">;
             'pk-pagination': PkJsx<PkPaginationElement, "page" | "pages" | "total" | "pageSize" | "sizes" | "siblings" | "boundary" | "mode" | "label" | "loading" | "edges">;
             'pk-popover': PkJsx<PkPopoverElement, "open" | "placement" | "trigger" | "heading" | "label" | "variant" | "message" | "confirmLabel" | "cancelLabel" | "danger">;
-            'pk-progress': PkJsx<PkProgressElement, "value" | "max" | "variant" | "size" | "striped" | "indeterminate" | "label" | "showValue" | "levelThresholds">;
+            'pk-progress': PkJsx<PkProgressElement, "value" | "max" | "variant" | "size" | "striped" | "indeterminate" | "label" | "showValue" | "inline" | "levelThresholds">;
             'pk-radio-group': PkJsx<PkRadioGroupElement, "name" | "value" | "label" | "description" | "disabled" | "required" | "invalid" | "variant" | "direction" | "fill">;
             'pk-range': PkJsx<PkRangeElement, "name" | "min" | "max" | "step" | "value" | "valueLow" | "valueHigh" | "dual" | "label" | "description" | "disabled" | "output">;
             'pk-rating': PkJsx<PkRatingElement, "name" | "value" | "max" | "readonly" | "label" | "disabled">;
