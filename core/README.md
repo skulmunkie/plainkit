@@ -38,6 +38,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `base/` | The page layer for the light DOM: `base.css` (element baselines, spacing rhythm), `spacing.css`, `typography.css`, `table-content.css`, `utilities.css` and `a11y.css` (focus and phone rules; loads last) |
 | `js/` | Shared modules: `element.js` (the base class), `loader.js` (on-demand loading), `plainkit.js` (entry), `theme.js`, `colour.js`, `quality.js`, `scoring.js`, `audit.js`, `code-explorer/` |
 | `elements/<name>/` | The custom elements: `<name>.html` (template), `.css`, `.js` (behaviour, optional), `.meta.json` (the API); `.element.js` is generated. `registry.js` maps tag to module |
+| `icons/` | The icon sprite's design language (`README.md`) and source: `src/<name>.svg`, one shape per icon; `build.mjs` lints and generates `icons.svg`, `icons.json` and `icons.d.ts` (all generated, not in git) |
 | `layouts/<id>/` | Page anatomies (list, record, setup, tool, wizard): `<id>.html` + `<id>.meta.json` listing the elements used |
 | `samples/templates/<id>/`, `samples/patterns/<id>/` | Full-page templates and composed patterns, each in its own folder with `.html`, `.meta.json` (and `.js`: a template's page script, a pattern's optional `mount(root)` script) |
 | `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (its `content/*.md` are the guides; `spacing/` only redirects to the gallery) |

@@ -13,7 +13,7 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '
 const elementNames = elementFolders(root);
 
 test('the top level holds only the documented layers and entry files', () => {
-    const allowed = new Set(['tokens', 'base', 'elements', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'README.md', 'LICENSE', 'package.json', 'VERSION', 'HANDOFF.md', 'STANDARDS.md', 'index.html', 'icons.svg', 'plainkit.css']);
+    const allowed = new Set(['tokens', 'base', 'elements', 'layouts', 'samples', 'js', 'modules', 'site', 'tools', 'tests', 'dist', 'icons', 'README.md', 'LICENSE', 'package.json', 'VERSION', 'HANDOFF.md', 'STANDARDS.md', 'index.html', 'icons.svg', 'plainkit.css']);
     const extra = fs.readdirSync(root).filter(n => !allowed.has(n));
     assert.deepEqual(extra, [], 'a new top-level entry needs a place in the layer list (README and STANDARDS.md)');
 });

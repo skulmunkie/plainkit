@@ -28,6 +28,9 @@ export const GENERATED_PATTERNS = [
     ['/core/site/guides/guides.data.js', /^core\/site\/guides\/guides\.data\.js$/, 'core/tools/build.mjs (from core/site/guides/content/*.md)'],
     ['/core/site/files/snapshot.json', /^core\/site\/files\/snapshot\.json$/, 'core/tools/build.mjs'],
     ['/core/site/scorecard/api.current.json', /^core\/site\/scorecard\/api\.current\.json$/, 'core/tools/build.mjs'],
+    ['/core/icons.svg', /^core\/icons\.svg$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
+    ['/core/icons/icons.json', /^core\/icons\/icons\.json$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
+    ['/core/icons/icons.d.ts', /^core\/icons\/icons\.d\.ts$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
     ['/blazor/src/PlainKit.Blazor/Generated/', /^blazor\/src\/PlainKit\.Blazor\/Generated\//, 'scripts/generate-blazor.mjs'],
     ['/blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js', /^blazor\/src\/PlainKit\.Blazor\/wwwroot\/PlainKit\.Blazor\.lib\.module\.js$/, 'scripts/generate-blazor.mjs'],
     ['/blazor/src/PlainKit.Blazor/wwwroot/plainkit/', /^blazor\/src\/PlainKit\.Blazor\/wwwroot\/plainkit\//, 'scripts/publish-dist.mjs (a copy of core/dist)'],
@@ -37,6 +40,7 @@ export const isGenerated = rel => GENERATED_PATTERNS.some(([, re]) => re.test(re
 
 // One file from each step: when they all exist the bootstrap has run to the end. (publish-dist writes its manifest last.)
 export const SENTINELS = [
+    'core/icons.svg',
     'core/plainkit.css',
     'core/dist/manifest.json',
     'core/dist/skills/plainkit-sdk/SKILL.md',
@@ -57,10 +61,10 @@ export function requireGenerated(rootDir = root) {
 }
 
 // Source folders and files the generators read. A generated file older than the newest of these is stale (used by bootstrap --if-missing).
-const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'blazor/mappings',
-    'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
-const SOURCE_FILES = ['core/VERSION', 'core/icons.svg', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
-const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs'];
+const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'core/icons/src',
+    'blazor/mappings', 'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
+const SOURCE_FILES = ['core/VERSION', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
+const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs', 'core/icons/build.mjs'];
 
 function newestMtime(rootDir) {
     let newest = 0;

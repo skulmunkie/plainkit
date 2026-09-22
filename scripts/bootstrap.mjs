@@ -1,11 +1,12 @@
 // One command that produces every generated file (they are not in git): node scripts/bootstrap.mjs   (Node only, no dependencies)
 //
 // Runs, in this order (each reads the previous one's output) and stops at the first failure:
-//   1. node core/tools/build.mjs           core/dist, core/plainkit.css, the element modules, the gallery data, the Files snapshot, api.current.json
-//   2. node scripts/generate-blazor.mjs    the Pk* components (blazor/src/PlainKit.Blazor/Generated) and wwwroot/PlainKit.Blazor.lib.module.js
-//   3. node scripts/build-skills.mjs       the agent skills (core/dist/skills), then the dist manifest again
-//   4. node scripts/build-agent-refs.mjs   the same skills, exported as core/dist/AGENTS.md and the llms.txt / llms-full.txt pair (issue #36)
-//   5. node scripts/publish-dist.mjs       the copy of core/dist inside the Blazor package (wwwroot/plainkit)
+//   1. node core/icons/build.mjs           core/icons.svg, core/icons/icons.json, core/icons/icons.d.ts from core/icons/src/*.svg (issue #111)
+//   2. node core/tools/build.mjs           core/dist, core/plainkit.css, the element modules, the gallery data, the Files snapshot, api.current.json (copies core/icons.svg into core/dist/icons.svg)
+//   3. node scripts/generate-blazor.mjs    the Pk* components (blazor/src/PlainKit.Blazor/Generated) and wwwroot/PlainKit.Blazor.lib.module.js
+//   4. node scripts/build-skills.mjs       the agent skills (core/dist/skills), then the dist manifest again
+//   5. node scripts/build-agent-refs.mjs   the same skills, exported as core/dist/AGENTS.md and the llms.txt / llms-full.txt pair (issue #36)
+//   6. node scripts/publish-dist.mjs       the copy of core/dist inside the Blazor package (wwwroot/plainkit)
 //
 //   --quiet        print only failures and the final line (what CI uses)
 //   --if-missing   do nothing when the generated files exist and are newer than their sources (cheap enough for a tool to call every time)
@@ -18,6 +19,7 @@ import { generatedCurrent } from './generated.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const STEPS = [
+    ['core/icons/build.mjs', 'core/icons/build.mjs'],
     ['core/tools/build.mjs', 'core/tools/build.mjs'],
     ['scripts/generate-blazor.mjs', 'scripts/generate-blazor.mjs'],
     ['scripts/build-skills.mjs', 'scripts/build-skills.mjs'],

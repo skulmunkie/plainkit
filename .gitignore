@@ -43,6 +43,9 @@ _site/
 /core/site/guides/guides.data.js
 /core/site/files/snapshot.json
 /core/site/scorecard/api.current.json
+/core/icons.svg
+/core/icons/icons.json
+/core/icons/icons.d.ts
 /blazor/src/PlainKit.Blazor/Generated/
 /blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js
 /blazor/src/PlainKit.Blazor/wwwroot/plainkit/
