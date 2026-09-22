@@ -48,9 +48,11 @@ Below, `plainkit/` is a copy of `dist` next to your page (see `references/loadin
 
 ```js
 // app.js
-import { initPlainkit } from './plainkit/js/plainkit.js';
+import { initPlainkit } from './plainkit/js/init.js';
 initPlainkit();
 ```
+
+`js/init.js` is the small entry, `initPlainkit` alone. `js/plainkit.js` is the same plus the dynamic-value, theming and colour helpers; import it instead if the page uses those too (see `references/loading.md`).
 
 ### Add a page
 

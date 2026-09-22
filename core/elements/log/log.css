@@ -1,7 +1,8 @@
 /* pk-log: a monospace log in a scroller. The rows are its own (shadow tree); the resume button floats over the bottom edge while auto-scroll is paused. */
 :host { display: block; }
 .root { position: relative; overflow: hidden; border: 1px solid var(--cv-border); border-radius: var(--radius-md); background: var(--pk-log-bg, var(--cv-bg)); color: var(--pk-log-fg, var(--cv-text)); }
-.scroller { block-size: var(--pk-log-height, 20rem); overflow: auto; overscroll-behavior: contain; padding-block: var(--space-2); font: 0.86rem/1.5 ui-monospace, Consolas, monospace; }
+.scroller { block-size: var(--pk-log-height, 20rem); overflow: auto; overflow-anchor: none; overscroll-behavior: contain; padding-block: var(--space-2); font: 0.86rem/1.5 ui-monospace, Consolas, monospace; }
+.scroller.paused { overflow-anchor: auto; }
 .scroller:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 .empty { padding-inline: var(--space-3); color: var(--cv-muted); }
 .row { display: flex; gap: var(--space-3); padding-inline: var(--space-3); border-inline-start: 3px solid transparent; white-space: pre-wrap; overflow-wrap: anywhere; }

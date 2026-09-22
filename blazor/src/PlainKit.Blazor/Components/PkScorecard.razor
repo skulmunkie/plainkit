@@ -31,7 +31,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (Targets.Count == 0) return;
-        _bridge ??= await Runtime.BridgeAsync();
+        _bridge ??= await Runtime.BridgeAsync(Assets);
         var key = JsonSerializer.Serialize(new { Targets, Checks, HistoryKey, AutoRun, Theme, Height });
         if (key == _mounted) return;
         _mounted = key;

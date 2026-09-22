@@ -16,9 +16,14 @@ export const PROFILES = {
     'slow-4g-4x-cpu': { cpu: 4, network: { latency: 150, down: 1.6 * 1024 * 1024 / 8, up: 750 * 1024 / 8 }, compress: 'gzip' },
 };
 
+// The recommended wiring (see the "Wire a page" guide): the small entry (js/init.js has initPlainkit alone, not the theming and colour
+// helpers) and modulepreload hints for the loader, its logger, the element registry and the base every element shares, so the browser
+// fetches them in parallel with the entry instead of one at a time as each is discovered.
+const PRELOAD = ['/dist/js/loader.js', '/dist/js/log.js', '/dist/elements/registry.js', '/dist/js/element.js', '/dist/js/element-core.js'];
 const pageFor = tags => shell({
+    head: PRELOAD.map(f => `<link rel="modulepreload" href="${f}">`).join(''),
     body: tags.map(t => `<${t}></${t}>`).join(''),
-    script: `import { initPlainkit } from '/dist/plainkit.js'; initPlainkit();
+    script: `import { initPlainkit } from '/dist/js/init.js'; initPlainkit();
 const tags = ${JSON.stringify(tags)};
 const marks = {};
 new PerformanceObserver(l => { for (const e of l.getEntries()) if (e.name === 'first-contentful-paint') marks.fcp = e.startTime; }).observe({ type: 'paint', buffered: true });
@@ -73,7 +78,7 @@ export async function run({ runs = 5 } = {}) {
 export async function staticSizes() {
     const { gz, br } = await import('./lib.mjs');
     const dist = path.join(coreDir, 'dist');
-    const files = ['plainkit.min.css', 'plainkit.css', 'plainkit.js', 'js/plainkit.js', 'js/element.js', 'js/loader.js', 'js/log.js', 'elements/registry.js', 'elements/button.js', 'elements/table.js', 'elements/combobox.js'].filter(f => fs.existsSync(path.join(dist, f)) || fs.existsSync(path.join(coreDir, f)));
+    const files = ['plainkit.min.css', 'plainkit.css', 'plainkit.js', 'js/init.js', 'js/plainkit.js', 'js/element.js', 'js/loader.js', 'js/log.js', 'elements/registry.js', 'elements/button.js', 'elements/table.js', 'elements/combobox.js'].filter(f => fs.existsSync(path.join(dist, f)) || fs.existsSync(path.join(coreDir, f)));
     const rows = files.map(f => { const p = fs.existsSync(path.join(dist, f)) ? path.join(dist, f) : path.join(coreDir, f); const b = fs.readFileSync(p); return { file: f, raw: b.length, gzip: gz(b), brotli: br(b) }; });
     return rows;
 }

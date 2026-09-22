@@ -60,7 +60,10 @@ export function mountShell({ page, title, search = null }) {
                 h('pk-button', { slot: 'trigger', variant: 'ghost', icon: true, label: 'Settings menu' }, h('pk-icon', { name: 'settings' })),
                 themeItem,
                 h('pk-menu-item', { href: '../settings/index.html', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
-    document.body.prepend(header);
+    // A page that reserves the bar's space with a .site-boot-bar placeholder (site.css) gets it swapped in place, so the swap itself never
+    // shifts anything (#135); a page without one falls back to the old prepend.
+    const bootBar = document.querySelector('.site-boot-bar');
+    if (bootBar) bootBar.replaceWith(header); else document.body.prepend(header);
     if (title) { const h1 = h('h1', { class: 'u-sr-only' }, title); header.after(h1); }
     // The label follows the theme attribute on <html>, whoever changes it (this item, the Settings page, the theme editor's own switch): one
     // MutationObserver, no polling. destroy() disconnects it for a host that unmounts the shell.

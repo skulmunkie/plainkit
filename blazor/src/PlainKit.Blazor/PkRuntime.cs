@@ -15,11 +15,12 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
     private Task? _init;
     private Task? _logging;
     private DotNetObjectReference<PkLogForwarder>? _forwarder;
+    private ResourceAssetCollection? _bridgeAssets;
 
     // The bridge is wrapped so the calls PlainKit.Blazor makes into it are counted and timed (PkInteropLog); the import itself is not a bridge call.
     private Task<IJSObjectReference> Bridge => _bridge ??= ImportAsync();
 
-    private async Task<IJSObjectReference> ImportAsync() => new PkTrackedBridge(await js.InvokeAsync<IJSObjectReference>("import", PkAssets.Bridge), _interop);
+    private async Task<IJSObjectReference> ImportAsync() => new PkTrackedBridge(await js.InvokeAsync<IJSObjectReference>("import", PkAssets.BridgeUrl(_bridgeAssets)), _interop);
 
     /// <summary>The calls made through the bridge so far: count, duration and errors per function.</summary>
     public PkInteropLog Interop => _interop;
@@ -27,8 +28,18 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
     /// <summary>True once <see cref="EnsureInitializedAsync"/> has finished.</summary>
     public bool IsInitialized => _init is { IsCompletedSuccessfully: true };
 
-    /// <summary>Wires the <c>pk-*</c> elements and behaviours for the page once, however many components ask.</summary>
-    public Task EnsureInitializedAsync() => _init ??= InitAsync();
+    /// <summary>
+    /// Wires the <c>pk-*</c> elements and behaviours for the page once, however many components ask. Pass a component's own <c>Assets</c> (from
+    /// <c>Microsoft.AspNetCore.Components.Web</c>, a <see cref="ComponentBase"/> member) when you have one: the bridge is then imported from its
+    /// fingerprinted URL, which the host serves with a year-long, immutable <c>Cache-Control</c> once it calls <c>app.MapStaticAssets()</c>. The
+    /// first caller's value wins (later, differing calls do not re-import). Omitted, the bridge loads from its plain path (still correct, just
+    /// revalidated on every warm visit).
+    /// </summary>
+    public Task EnsureInitializedAsync(ResourceAssetCollection? assets = null)
+    {
+        _bridgeAssets ??= assets;
+        return _init ??= InitAsync();
+    }
 
     private async Task InitAsync()
     {
@@ -72,7 +83,12 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
         }
     }
 
-    internal async ValueTask<IJSObjectReference> BridgeAsync() => await Bridge;
+    /// <summary>The bridge, importing it first if needed. Pass <paramref name="assets"/> as in <see cref="EnsureInitializedAsync"/> when you have a component's own <c>Assets</c> and no other call has set it yet.</summary>
+    internal async ValueTask<IJSObjectReference> BridgeAsync(ResourceAssetCollection? assets = null)
+    {
+        _bridgeAssets ??= assets;
+        return await Bridge;
+    }
 
     /// <summary>The version of the Plainkit JavaScript the page loaded (<c>PK_VERSION</c> in <c>js/version.js</c>). It equals <see cref="PkAssets.Version"/> unless the app serves an older or newer copy of the assets.</summary>
     public async ValueTask<string> GetSdkVersionAsync() => await (await Bridge).InvokeAsync<string>("version");

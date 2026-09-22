@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using PlainKit.Blazor;
 
@@ -87,5 +88,47 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
         var cut = Render<PkStyles>(p => p.Add(x => x.InHead, true));
 
         Assert.Empty(cut.FindAll("link"));
+    }
+
+    [Fact]
+    public void PkStyles_Preload_adds_a_modulepreload_link_per_PreloadPaths_after_the_stylesheet()
+    {
+        var cut = Render<PkStyles>(p => p.Add(x => x.Preload, true));
+        var links = cut.FindAll("link");
+
+        Assert.Equal(PkAssets.PreloadPaths.Length + 1, links.Count);
+        Assert.Equal("stylesheet", links[0].GetAttribute("rel"));
+        for (var i = 0; i < PkAssets.PreloadPaths.Length; i++)
+        {
+            Assert.Equal("modulepreload", links[i + 1].GetAttribute("rel"));
+            Assert.Equal(PkAssets.Versioned(PkAssets.PreloadPaths[i]), links[i + 1].GetAttribute("href"));
+        }
+    }
+
+    [Fact]
+    public void PkStyles_Preload_is_off_by_default()
+    {
+        Assert.Single(Render<PkStyles>().FindAll("link"));
+    }
+
+    // The host's Assets (Microsoft.AspNetCore.Components.Web, populated when it calls app.MapStaticAssets()) maps the plain path to the
+    // fingerprinted one it serves with a year-long, immutable Cache-Control; PkAssets.BridgeUrl is the piece of PkRuntime that reads it. #134.
+    [Fact]
+    public void BridgeUrl_prefers_the_hosts_fingerprinted_asset_and_keeps_it_import_relative()
+    {
+        var assets = new ResourceAssetCollection(new List<ResourceAsset>
+        {
+            new("_content/PlainKit.Blazor/plainkit.blazor.pf3nd6yn05.js",
+                new List<ResourceAssetProperty> { new("label", "_content/PlainKit.Blazor/plainkit.blazor.js") }),
+        });
+
+        Assert.Equal("./_content/PlainKit.Blazor/plainkit.blazor.pf3nd6yn05.js", PkAssets.BridgeUrl(assets));
+    }
+
+    [Fact]
+    public void BridgeUrl_falls_back_to_the_plain_path_without_a_host_asset_collection()
+    {
+        Assert.Equal(PkAssets.Bridge, PkAssets.BridgeUrl(null));
+        Assert.Equal(PkAssets.Bridge, PkAssets.BridgeUrl(ResourceAssetCollection.Empty));
     }
 }

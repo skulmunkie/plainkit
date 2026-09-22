@@ -160,6 +160,51 @@ test('Enter and Space on the row itself activate a clickable row; keys on contro
     assert.equal(X.activates({ key: 'Enter', target: row }, { clickable: false }), false);
 });
 
+// ---- windowing (js/table-vw.js, issue 131): THRESHOLD is one named constant, loaded by table.js only once a table needs it.
+// view() memoizes so a scroll-driven re-render does not re-sort every frame; body() draws only the rows near the scroll position, with
+// spacer rows standing in for the ones it skips.
+
+const { default: V, THRESHOLD } = await import('../../js/table-vw.js');
+const hv = (tag, attrs = {}, ...kids) => ({ tag, attrs, kids, style: { setProperty(k, v) { attrs[k] = v; } } });
+
+test('THRESHOLD is one named constant, not a magic number scattered across the source', () => {
+    assert.equal(THRESHOLD, 500);
+});
+
+test('view() memoizes the table\'s sorted/filtered rows: unchanged inputs skip the underlying getter, a changed one recomputes', () => {
+    let calls = 0;
+    const el = { rows, columns: [{ key: 't' }], filters: {}, sort: 't', sortDir: 'ascending', get view() { calls++; return sortRows(filterRows(this.rows, this.filters), this.columns.find(c => c.key === this.sort), this.sortDir); } };
+    const a = V.view(el), b = V.view(el);
+    assert.equal(a, b, 'same rows/columns/filters/sort: the cached array, not a call to the getter');
+    assert.equal(calls, 1);
+    el.rows = rows.slice();
+    const c = V.view(el);
+    assert.equal(calls, 2, 'a new rows reference invalidates the cache');
+    assert.deepEqual(c.map(r => r.id), [2, 1, 3], 'still correctly sorted after the cache miss');
+});
+
+test('body() draws only the rows near the scroll position, flanked by spacer rows sized for the ones it skips', () => {
+    const total = THRESHOLD + 100, data = Array.from({ length: total }, (_, i) => ({ id: i + 1 }));
+    const el = { rowKey: 'id', clickable: false, selectable: false, currentRow: '', selected: [], expandable: false, columns: [{ key: 'id' }], list: n => el[n], $rowH: 20, part: n => (n === 'scroll' ? { scrollTop: 1000, clientHeight: 100, addEventListener() {} } : { querySelector: () => null }), querySelector: () => null };
+    const out = V.body(el, data, hv);
+    assert.equal(out[0].attrs['data-spacer'], 'top');
+    assert.equal(out.at(-1).attrs['data-spacer'], 'bottom');
+    const drawn = out.slice(1, -1);
+    assert.equal(drawn.length, 25, '(scrollTop / rowH - overscan) to (+ viewport rows + 2 * overscan)');
+    assert.equal(drawn[0].attrs['data-id'], '41', 'the first drawn row is the one at the start of the window, not the top of the data');
+    assert.equal(out[0].kids[0].attrs['block-size'], '800px', '40 skipped rows above, at 20px each');
+    assert.equal(out.at(-1).kids[0].attrs['block-size'], `${(total - 65) * 20}px`, 'the rest of the rows below');
+    assert.equal(el.$virtual, true);
+});
+
+test('body() returns null (table.js then draws every row itself) under THRESHOLD, and always for an expandable table', () => {
+    const small = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
+    const big = Array.from({ length: THRESHOLD + 100 }, (_, i) => ({ id: i + 1 }));
+    const base = { rowKey: 'id', selected: [], columns: [], list: () => [], part: () => ({ querySelector: () => null }), querySelector: () => null };
+    assert.equal(V.body({ ...base, expandable: false }, small, hv), null, 'under the threshold');
+    assert.equal(V.body({ ...base, expandable: true }, big, hv), null, 'expandable never windows, however many rows');
+});
+
 test('currentRow marks one row with aria-current and a tint and is a host-set string', async () => {
     const { readFileSync } = await import('node:fs');
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));

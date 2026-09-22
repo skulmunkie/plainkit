@@ -24,7 +24,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _bridge ??= await Runtime.BridgeAsync();
+        _bridge ??= await Runtime.BridgeAsync(Assets);
         var key = $"{Phone}|{AutoRun}|{Theme}|{Height}";
         if (key == _mounted) return;
         _mounted = key;

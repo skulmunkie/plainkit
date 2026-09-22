@@ -1,7 +1,7 @@
 // The size sweep's pure parts: the count of level-1 headings (real h1 elements and role="heading" aria-level="1", inside shadow trees too) and the routes it visits.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { countH1, routes, WIDTHS, THEMES, items, signature, settled, QUIET_POLLS } from '../site/scorecard/sweep.js';
+import { countH1, routes, WIDTHS, THEMES, items, signature, settled, QUIET_POLLS, closestDeep } from '../site/scorecard/sweep.js';
 
 const flatten = kids => kids.flatMap(k => [k, ...k.querySelectorAll('*')]);
 const el = (localName, attrs = {}, kids = [], shadow = null) => ({ localName, getAttribute: n => attrs[n] ?? null, shadowRoot: shadow, querySelectorAll: () => flatten(kids) });
@@ -64,6 +64,19 @@ test('a frame is ready when loaded, styled, with every toolkit element defined a
     assert.notEqual(signature(fakeDoc({ tags: ['div'], width: 320 })).text, same, 'a resize shows');
     assert.notEqual(signature(fakeDoc({ tags: ['div'], tall: 900 })).text, same);
     assert.notEqual(signature(fakeDoc({ tags: ['pk-page-header'], shadowTags: ['h1'], defined })).text, signature(fakeDoc({ tags: ['pk-page-header'], defined })).text, 'a late render in a shadow tree shows');
+});
+
+test('closestDeep finds a match in one tree like closest(), and keeps going past a shadow boundary via the host', () => {
+    const lightRoot = { host: null }; // a plain document has no host to hop to
+    const light = { closest: sel => (sel === '.match' ? light : null), getRootNode: () => lightRoot };
+    assert.equal(closestDeep(light, '.match'), light);
+    assert.equal(closestDeep(light, '.nope'), null, 'no match anywhere, and nothing to hop to');
+
+    const host = { closest: sel => (sel === '[hidden]' ? host : null), getRootNode: () => lightRoot };
+    const shadowRoot = { host };
+    const inner = { closest: () => null, getRootNode: () => shadowRoot };
+    assert.equal(closestDeep(inner, '[hidden]'), host, 'not found inside the shadow tree; found on the host once the search crosses the boundary');
+    assert.equal(closestDeep(inner, '.nowhere'), null, 'still not found after reaching the host, with no further boundary to cross');
 });
 
 test('settled waits for the frame to be ready and quiet, and gives up with the reading at the timeout', async () => {

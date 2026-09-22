@@ -6,18 +6,25 @@
 {
     <HeadContent>
         <link rel="stylesheet" href="@Href" />
+        @if (Preload) { foreach (var path in PkAssets.PreloadPaths) { <link rel="modulepreload" href="@PkAssets.Versioned(path)" /> } }
     </HeadContent>
 }
 else
 {
     <link rel="stylesheet" href="@Href" />
+    @if (Preload) { foreach (var path in PkAssets.PreloadPaths) { <link rel="modulepreload" href="@PkAssets.Versioned(path)" /> } }
 }
 
 @code {
     /// <summary>The minified stylesheet (<see cref="PkAssets.CssMin"/>) instead of <see cref="PkAssets.Css"/>. Same rules.</summary>
     [Parameter] public bool Minified { get; set; }
 
-    /// <summary>Adds <c>?v=</c> and a content hash of the file (see <see cref="PkAssets.Versioned"/>), so a browser fetches the file again exactly when it changed. On by default.</summary>
+    /// <summary>
+    /// Links a versioned URL, so a browser fetches the file again exactly when it changed: the host's fingerprinted static asset URL
+    /// (<c>Assets[...]</c>, from <c>Microsoft.AspNetCore.Components.Web</c>) when the app calls <c>app.MapStaticAssets()</c> (the default since
+    /// ASP.NET Core 9; served with a year-long, immutable <c>Cache-Control</c>), or a content-hash <c>?v=</c> query (<see cref="PkAssets.Versioned"/>,
+    /// still revalidated every visit) otherwise. On by default.
+    /// </summary>
     [Parameter] public bool Versioned { get; set; } = true;
 
     /// <summary>
@@ -26,7 +33,23 @@ else
     /// </summary>
     [Parameter] public bool InHead { get; set; }
 
-    private string Href => Minified
-        ? (Versioned ? PkAssets.CssMinVersioned : PkAssets.CssMin)
-        : (Versioned ? PkAssets.CssVersioned : PkAssets.Css);
+    /// <summary>
+    /// Also emit a <c>&lt;link rel="modulepreload"&gt;</c> for each of <see cref="PkAssets.PreloadPaths"/> (the loader, its logger, the element
+    /// registry and the base every element shares): the browser fetches them in parallel with the entry module instead of one round trip at a
+    /// time as each is discovered. Off by default; worth turning on for a page that uses <c>pk-*</c> elements.
+    /// </summary>
+    [Parameter] public bool Preload { get; set; }
+
+    private string Href
+    {
+        get
+        {
+            var path = Minified ? PkAssets.CssMin : PkAssets.Css;
+            if (!Versioned) return path;
+            var fingerprinted = Assets[path];
+            // Assets[...] returns the path unchanged when the host has no fingerprinted URL for it (MapStaticAssets not called, or an older host):
+            // fall back to the content-hash query so the link is still versioned.
+            return fingerprinted != path ? fingerprinted : (Minified ? PkAssets.CssMinVersioned : PkAssets.CssVersioned);
+        }
+    }
 }

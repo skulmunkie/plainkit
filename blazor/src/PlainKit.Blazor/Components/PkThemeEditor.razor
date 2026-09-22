@@ -40,7 +40,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _bridge ??= await Runtime.BridgeAsync();
+        _bridge ??= await Runtime.BridgeAsync(Assets);
         var presetKey = Presets is null ? "" : string.Join("", Presets.Select(p => $"{p.Name}{p.Theme}{p.Description}"));
         var key = $"{StorageKey}|{Preview}|{Theme}|{Height}|{InitialTheme}|{presetKey}|{OnThemeChanged.HasDelegate}";
         if (key == _mounted) return;
