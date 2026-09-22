@@ -230,11 +230,19 @@ function fullView(fp) {
     return box;
 }
 
+// The pagebar's title is the page's only heading in a full view (a template, pattern or layout preview has no pk-page-header): it should carry
+// level-1 heading semantics only while that bar is actually showing, or a route that is not full would carry a second, invisible h1 in the DOM
+// (the sweep's h1 count does not look at [hidden] or display: none). Pure, so it is tested without a document.
+export const pagebarTitleAttrs = isFull => (isFull ? { role: 'heading', 'aria-level': '1' } : {});
+
 // The slim bar: back to the list, the title, the template nav variant, viewport, text size, theme, open in a new page.
 function paintPagebar() {
     const shell = $('#gx-shell');
     if (!shell || !$('#gx-pagebar')) return;
     shell.classList.toggle('gx-full', Boolean(full));
+    const titleEl = $('#gx-title');
+    const attrs = pagebarTitleAttrs(Boolean(full));
+    for (const name of ['role', 'aria-level']) { if (attrs[name] !== undefined) titleEl.setAttribute(name, attrs[name]); else titleEl.removeAttribute(name); }
     if (!full) return;
     const label = KIND_LABEL[full.kind];
     $('#gx-title').textContent = full.title;

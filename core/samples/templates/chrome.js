@@ -46,7 +46,10 @@ export function mountChrome({ title, page, crumbs = [], actions = '', fill = fal
     const search = slot => `<pk-button slot="${slot}" variant="ghost" size="mini" icon data-open="#palette" label="Search"><pk-icon name="search"></pk-icon></pk-button>`;
     const footer = '<span slot="footer">Plainkit example</span><span slot="footer" class="u-ml-auto">v1.0</span>';
     document.body.replaceChildren();
+    // A fill page (a workspace) reaches its own edges and needs no page gutter: flush drops the shell body's padding
+    // so pk-workspace[fill] lands flush against the header, footer and sides instead of stopping short by --pad-page.
     const shell = document.createElement('pk-app-shell');
+    if (fill) shell.setAttribute('flush', '');
     const items = NAV.map(([i, l, h]) => `<pk-nav-item href="${href(h)}${q}"${h === page + '.html' ? ' current' : ''}><pk-icon slot="icon" name="${i}"></pk-icon>${l}</pk-nav-item>`).join('');
     if (variant === 'top') {
         const links = NAV.map(([, l, h]) => `<a href="${href(h)}${q}"${h === page + '.html' ? ' aria-current="page"' : ''}>${l}</a>`).join('');

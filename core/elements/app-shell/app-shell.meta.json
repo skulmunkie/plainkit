@@ -100,11 +100,11 @@
   "examples": [
     {
       "title": "App shell with a sticky footer",
-      "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h1>Home</h1><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+      "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h2>Home</h2><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
     },
     {
       "title": "Title and back link",
-      "html": "<pk-app-shell back-href=\"#invoices\" back-label=\"Back to Invoices\"><h1 slot=\"title\">Invoice 1042</h1><pk-button slot=\"header\" variant=\"ghost\">Edit</pk-button><pk-stack><p>The title is the page heading; the back link goes to the list.</p></pk-stack></pk-app-shell>"
+      "html": "<pk-app-shell back-href=\"#invoices\" back-label=\"Back to Invoices\"><h2 slot=\"title\">Invoice 1042</h2><pk-button slot=\"header\" variant=\"ghost\">Edit</pk-button><pk-stack><p>The title is the page heading; the back link goes to the list.</p></pk-stack></pk-app-shell>"
     }
   ]
 }
