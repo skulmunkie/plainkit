@@ -2,7 +2,7 @@
 // The DOM behaviour (tiles, badge, events, lightbox) is in tests/browser/cases-workspace.js. Run: node --test core
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, primaryIndex, applyPrimary, removeAt, gridRule, safeSrc, DEFAULT_MIN } from './image-gallery.js';
+import { normalize, primaryIndex, applyPrimary, removeAt, reorderAt, gridRule, safeSrc, DEFAULT_MIN } from './image-gallery.js';
 
 const three = normalize([{ src: 'a.png', alt: 'A' }, { src: 'b.png', alt: 'B', status: 'Staged' }, { src: 'c.png' }]);
 
@@ -38,6 +38,18 @@ test('image gallery: removing an image keeps the primary on the same picture, an
     const last = removeAt(normalize([{ src: 'a' }]), 0, 0);
     assert.deepEqual([last.images.length, last.primary], [0, -1]);
     assert.equal(removeAt(three, 7, 1).images, three, 'an index that does not exist changes nothing');
+});
+
+test('image gallery: reordering moves the image (pk-sortable\'s own moveOrder) and keeps the primary flag on the same picture', () => {
+    const moved = reorderAt(three, 0, 2, 0);
+    assert.deepEqual(moved.images.map(i => i.src), ['b.png', 'c.png', 'a.png'], 'the moved image lands at the target index');
+    assert.equal(moved.primary, 2, 'the primary index tracks the same picture, wherever it lands');
+    const untouched = reorderAt(three, 2, 0, 1);
+    assert.deepEqual(untouched.images.map(i => i.src), ['c.png', 'a.png', 'b.png']);
+    assert.equal(untouched.primary, 2, 'a picture that was not moved still tracks correctly when others shift around it');
+    assert.equal(reorderAt(three, -1, 1, 0).images, three, 'an index that does not exist changes nothing');
+    assert.equal(reorderAt(three, 1, 1, 0).images, three, 'moving to the same place changes nothing');
+    assert.equal(reorderAt(three, 0, 1, -1).primary, -1, 'no primary stays none');
 });
 
 test('image gallery: the column rule uses fixed columns, or as many as fit a plain css length', () => {

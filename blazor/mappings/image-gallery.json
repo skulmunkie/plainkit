@@ -73,6 +73,13 @@
       "type": "EventCallback<ImageGalleryAddEventArgs>",
       "map": "event",
       "event": "pk-add"
+    },
+    {
+      "name": "OnReorder",
+      "type": "EventCallback<ImageGalleryReorderEventArgs>",
+      "map": "event",
+      "event": "pk-reorder",
+      "cancelable": true
     }
   ]
 }

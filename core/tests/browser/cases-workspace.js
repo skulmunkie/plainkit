@@ -168,6 +168,35 @@ export const workspaceCases = [
         t.eq(tiles(g).length, 0); t.eq(g.primary, -1); t.ok(shown(g.part('add-tile')), 'the add tile remains');
     }],
 
+    ['image gallery: read-only tiles are disabled sortable-items (no drag handle, Alt+Up/Alt+Down does nothing)', async t => {
+        const g = await gallery(t, '');
+        t.ok(tiles(g)[0].hasAttribute('disabled'), 'read-only: the tile cannot be dragged or moved');
+        t.ok(!shown(tiles(g)[0].part('handle')), 'the drag handle is hidden when not editable');
+        const seen = []; g.addEventListener('pk-reorder', e => seen.push(e.detail));
+        tiles(g)[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.eq(seen.length, 0, 'a disabled gallery never reorders');
+    }],
+
+    ['image gallery: editable, Alt+Down on the focused tile moves it and raises pk-reorder (cancelable) with the new src order', async t => {
+        const g = await gallery(t);
+        t.ok(!tiles(g)[0].hasAttribute('disabled'), 'editable: tiles can be dragged or moved');
+        t.ok(shown(tiles(g)[0].part('handle')), 'the drag handle shows when editable');
+        const seen = []; g.addEventListener('pk-reorder', e => seen.push(e.detail));
+        tiles(g)[0].focus();
+        tiles(g)[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.eq(seen.length, 1); t.eq(seen[0].from, 0); t.eq(seen[0].to, 1); t.eq(seen[0].item, PNG);
+        t.eq(g.images.map(i => i.alt).join(), 'Back view,Front view,Detail', 'the front image moved to the second slot');
+        t.ok(tiles(g)[1].hasAttribute('data-primary'), 'the primary flag followed the same picture');
+        t.eq(g.primary, 1);
+        g.addEventListener('pk-reorder', e => e.preventDefault(), { once: true });
+        tiles(g)[1].focus();
+        tiles(g)[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.eq(g.images.map(i => i.alt).join(), 'Back view,Front view,Detail', 'a cancelled reorder keeps the order');
+    }],
+
     ['image gallery: the add tile is a real file input and raises pk-add with the chosen files', async t => {
         const g = await gallery(t);
         const input = g.part('file'); t.eq(input.type, 'file'); t.ok(input.multiple); t.eq(input.getAttribute('accept'), 'image/*');
