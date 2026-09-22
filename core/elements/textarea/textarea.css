@@ -14,7 +14,7 @@ label { display: none; margin-block-end: var(--space-1); }
 :host([size="lg"]) .box { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-4); }
 input, textarea, select { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
 ::placeholder { color: var(--color-muted); opacity: 1; }
-@media (max-width: 640px) { .box { min-height: var(--touch-target); } input, textarea, select { font-size: 16px; } }
+@media (--phone) { .box { min-height: var(--touch-target); } input, textarea, select { font-size: 16px; } }
 .box { align-items: stretch; }
 textarea { min-height: calc(var(--ctl-h) * 1.6); resize: vertical; }
 :host([autogrow]) textarea { min-height: var(--ctl-h); resize: none; field-sizing: content; max-height: var(--pk-textarea-max-height, none); }

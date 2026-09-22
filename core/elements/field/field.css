@@ -1,5 +1,6 @@
 :host { display: block; }
-.field { display: grid; gap: var(--gap-label-input); min-width: 0; }
+::slotted(input), ::slotted(select), ::slotted(textarea) { box-sizing: border-box; max-width: 100%; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-label-input); min-width: 0; }
 .lab { color: var(--pk-field-label, var(--color-text)); font-size: var(--text-read); font-weight: 500; cursor: default; }
 ::slotted([slot="label-action"]) { margin-inline-start: var(--space-2); vertical-align: middle; }
 .req { margin-inline-start: 0.2em; color: var(--field-error); }
@@ -14,7 +15,7 @@
 .count[data-state="over"] { color: var(--field-error); font-weight: 600; }
 :host([layout="row"]) .field { grid-template-columns: var(--pk-field-label-width, 9rem) minmax(0, 1fr); align-items: center; column-gap: var(--space-4); }
 :host([layout="row"]) .foot { grid-column: 2; }
-@media (max-width: 640px) { :host([layout="row"]) .field { grid-template-columns: minmax(0, 1fr); } :host([layout="row"]) .foot { grid-column: 1; } }
+@media (--phone) { :host([layout="row"]) .field { grid-template-columns: minmax(0, 1fr); } :host([layout="row"]) .foot { grid-column: 1; } }
 :host([layout="inline"]) .field { display: flex; align-items: center; gap: var(--space-2); }
 :host([size="sm"]) .field { gap: var(--space-1); }
 :host([size="sm"]) .lab { font-size: var(--text-meta); }

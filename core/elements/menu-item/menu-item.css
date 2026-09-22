@@ -53,7 +53,7 @@
 
 :host([type="divider"]) > * { display: none; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     :host { min-height: var(--touch-target); }
     :host([type="header"]) { min-height: 0; }
     :host([type="divider"]) { min-height: 0; }
@@ -64,7 +64,7 @@
 
 :host([open]) [part="submenu"] { display: block; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     :host { flex-wrap: wrap; }
     [part="submenu"] { position: static; flex: 1 0 100%; border: 0; box-shadow: none; padding-inline-start: var(--space-4); }
 }

@@ -1,13 +1,14 @@
 @implements IAsyncDisposable
 @inject PkRuntime Runtime
 
-@* The toolkit's theme editor: every design token with an input, edits applied live to the page, contrast graded, and the override block exported.
-   JavaScript owns everything inside the container; Blazor renders nothing in it. *@
+@* The toolkit's theme editor: every design token with an input, a brand palette generator, presets and saved themes, undo and redo, a change list, export
+   and shareable links, and a live contrast audit; edits applied live to the page. JavaScript owns everything inside the container; Blazor renders nothing in it. *@
 <div @ref="_host"></div>
 
 @code {
     private ElementReference _host;
     private IJSObjectReference? _bridge;
+    private DotNetObjectReference<PkThemeEditorHost>? _callbacks;
     private string? _mounted;
 
     /// <summary>A localStorage key that keeps the edits between visits. Null keeps none.</summary>
@@ -22,13 +23,32 @@
     /// <summary>Any CSS length: the token list scrolls inside it.</summary>
     [Parameter] public string? Height { get; set; }
 
+    /// <summary>
+    /// The theme to start from: the override block CSS the editor exports, or its JSON <c>{ "shared": {}, "dark": {}, "light": {} }</c>. Used when nothing was kept for
+    /// the viewer under <see cref="StorageKey"/>; the edits are ordinary ones the user can change and undo. Text that holds no usable token is logged and ignored.
+    /// </summary>
+    [Parameter] public string? InitialTheme { get; set; }
+
+    /// <summary>Presets of your own, listed after the built-in ones (default, high contrast, compact and roomy) in the Presets tab. A bad entry is logged and left out.</summary>
+    [Parameter] public IReadOnlyList<PkThemePreset>? Presets { get; set; }
+
+    /// <summary>
+    /// Raised after every change (a moment after typing stops) with the override block CSS for the edits made so far: the text to save as the app's theme file
+    /// and load after the SDK stylesheets (see the package README, "Shipping an exported theme").
+    /// </summary>
+    [Parameter] public EventCallback<string> OnThemeChanged { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _bridge ??= await Runtime.BridgeAsync();
-        var key = $"{StorageKey}|{Preview}|{Theme}|{Height}";
+        var presetKey = Presets is null ? "" : string.Join("", Presets.Select(p => $"{p.Name}{p.Theme}{p.Description}"));
+        var key = $"{StorageKey}|{Preview}|{Theme}|{Height}|{InitialTheme}|{presetKey}|{OnThemeChanged.HasDelegate}";
         if (key == _mounted) return;
         _mounted = key;
-        await _bridge.InvokeVoidAsync("mountThemeEditor", _host, new { storageKey = StorageKey, preview = Preview, theme = Theme.Attr(), height = Height });
+        _callbacks?.Dispose();
+        _callbacks = OnThemeChanged.HasDelegate ? DotNetObjectReference.Create(new PkThemeEditorHost(css => InvokeAsync(() => OnThemeChanged.InvokeAsync(css)))) : null;
+        var presets = Presets?.Select(p => new { name = p.Name, description = p.Description, theme = p.Theme }).ToArray();
+        await _bridge.InvokeVoidAsync("mountThemeEditor", _host, new { storageKey = StorageKey, preview = Preview, theme = Theme.Attr(), height = Height, initial = InitialTheme, presets }, _callbacks);
     }
 
     /// <summary>The override block (CSS) for the edits made so far.</summary>
@@ -49,6 +69,7 @@
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        _callbacks?.Dispose();
         if (_bridge is null) return;
         try { await _bridge.InvokeVoidAsync("destroy", _host); }
         catch (JSDisconnectedException) { /* the circuit is gone */ }

@@ -1,6 +1,7 @@
 // Plainkit breadcrumb logic: which crumbs collapse behind the "..." button. Pure, so it can be tested without a DOM.
 // The element (<pk-breadcrumb>) keeps the first crumb and the last `tail`, and folds the middle ones when there are more than `max`;
 // on a phone the limit is lower. The "..." button reveals them in place.
+import { mediaBelow } from '../../js/breakpoints.js';
 
 export const DEFAULT_MAX = 4;
 export const PHONE_MAX = 3;
@@ -25,7 +26,7 @@ export default Base => class extends Base {
             this.$w = true;
             this.watchSlot('', () => this.fold());
             this.part('more').addEventListener('click', () => { this.$open = true; this.part('more').setAttribute('aria-expanded', 'true'); this.fold(); this.emit('pk-expand', null); });
-            this.$mq = globalThis.matchMedia('(max-width: 640px)'); this.$fold = () => this.fold();
+            this.$mq = mediaBelow('phone'); this.$fold = () => this.fold();
         }
         this.$mq.addEventListener('change', this.$fold);
         this.fold();

@@ -43,7 +43,7 @@ figure > .quote + figcaption,
 .quote > footer { margin-block-start: var(--space-2); color: var(--color-muted); font-size: var(--text-meta); font-style: normal; }
 
 /* Inline code, and keys next to each other. */
-:where(code):not(pre code) { padding: 0.1em 0.4em; border-radius: var(--radius-xs); background: var(--color-surface-alt); font-family: ui-monospace, Consolas, monospace; font-size: 0.92em; }
+:where(code):not(pre code) { padding: 0.1em 0.4em; border-radius: var(--radius-xs); background: var(--color-surface-alt); font-family: ui-monospace, Consolas, monospace; font-size: max(0.92em, var(--text-meta)); }
 
 kbd + kbd { margin-inline-start: var(--space-1); }
 

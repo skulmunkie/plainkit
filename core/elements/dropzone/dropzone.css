@@ -10,7 +10,7 @@
 .browse:hover { border-color: var(--color-accent); }
 .browse:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 .browse:disabled { cursor: not-allowed; }
-@media (pointer: coarse), (max-width: 640px) { .browse { min-block-size: var(--touch-target); } }
+@media (pointer: coarse), (--phone) { .browse { min-block-size: var(--touch-target); } }
 .title { color: var(--color-text); font-size: var(--text-read); font-weight: 500; }
 .hint { font-size: var(--text-meta); }
 .list { display: grid; gap: var(--space-1); margin: var(--space-3) 0 0; padding: 0; list-style: none; }

@@ -9,7 +9,7 @@ import { TEXT_PAIRS } from '../scorecard/scoring.data.js';
 async function main() {
     mountShell({ page: 'theme', title: 'Theme editor' });
     const host = document.getElementById('te-host');
-    await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides' });
+    await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides', readHash: true });
     document.getElementById('boot-notice')?.remove();
     new MutationObserver(() => writeSetting('pk-site-theme', document.documentElement.getAttribute('data-theme'))).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }

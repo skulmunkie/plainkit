@@ -13,6 +13,7 @@ export const PAGES = [
     { key: 'files', title: 'Files', href: '../files/index.html' },
     { key: 'scorecard', title: 'Scorecard', href: '../scorecard/index.html' },
     { key: 'theme', title: 'Theme editor', href: '../theme/index.html' },
+    { key: 'layout-builder', title: 'Layout builder', href: '../layout-builder/index.html' },
     { key: 'guides', title: 'Guides', href: '../guides/index.html' },
     { key: 'devtools', title: 'Dev tools', href: '../devtools/index.html' },
 ];

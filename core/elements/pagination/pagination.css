@@ -16,7 +16,7 @@ button:focus-visible, select:focus-visible { outline: var(--focus-ring); outline
 :host([mode="simple"]) [part="status"] { display: block; }
 :host([mode="load-more"]) [part="pages"], :host([mode="load-more"]) [part="summary"] { display: none; }
 :host([mode="load-more"]) [part="more"] { display: inline-block; }
-@media (max-width: 640px) {
+@media (--phone) {
     :host { --_s: var(--pk-pagination-size, var(--touch-target)); }
     [part="numbers"] { display: none; }
     [part="status"] { display: block; }

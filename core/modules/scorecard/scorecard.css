@@ -12,11 +12,11 @@
 
 .sc-tile-big { grid-column: 1 / -1; }
 
-.sc-good { color: var(--stat-card-positive-fg); }
+.sc-good { color: var(--color-positive); }
 
-.sc-warn { color: var(--stat-card-warning-fg); }
+.sc-warn { color: var(--color-warning); }
 
-.sc-bad { color: var(--stat-card-critical-fg); }
+.sc-bad { color: var(--color-critical); }
 
 .sc-section { margin-top: var(--space-4); }
 

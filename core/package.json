@@ -1,11 +1,12 @@
 {
   "name": "plainkit",
-  "version": "0.2.0-alpha.1",
+  "version": "0.3.0-alpha.1",
   "description": "A dependency-free UI toolkit: plain HTML, CSS custom properties and small ES modules, with pk-* custom elements.",
+  "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/skulmunkie/plainkit",
   "repository": { "type": "git", "url": "git+https://github.com/skulmunkie/plainkit.git", "directory": "core" },
   "keywords": ["ui", "design-system", "web-components", "custom-elements", "css", "no-dependencies"],
-  "files": ["dist", "LICENSE", "README.md"],
+  "files": ["dist", "!dist/modules", "LICENSE", "README.md"],
   "sideEffects": false
 }

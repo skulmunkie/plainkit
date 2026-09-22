@@ -1,0 +1,50 @@
+@page "/bench"
+@using System.Text.Json
+
+@* Benchmark page, driven by scripts/bench/blazor.mjs (see scripts/bench/README.md). ?rows=N renders a PkTable<Row> with N rows over the circuit
+   (selectable with ?select=1); ?buttons=N renders N PkButton components. The outputs carry ids so the script reads the state the SERVER holds. *@
+<div style="padding:1rem;display:grid;gap:1rem">
+    @if (Rows > 0)
+    {
+        <PkTable TItem="Row" Columns="_columns" Items="_items" IdOf="r => r.Id.ToString()" Selectable="@(Select == 1)" Label="Bench" MaxHeight="400px"
+                 SelectedChanged="OnSelected" />
+        <p>Selected on the server: <code id="out-selected">@_selected</code></p>
+        <PkButton id="bench-rerender" OnClick="@(() => _tick++)">Re-render @_tick</PkButton>
+    }
+    @if (Buttons > 0)
+    {
+        @for (var i = 0; i < Buttons; i++)
+        {
+            <PkButton Variant="ButtonVariant.Ghost">Button @i</PkButton>
+        }
+    }
+</div>
+
+@code {
+    private sealed record Row(int Id, string Name, string City, string Status, int Qty);
+
+    [SupplyParameterFromQuery] private int Rows { get; set; }
+    [SupplyParameterFromQuery] private int Buttons { get; set; }
+    [SupplyParameterFromQuery] private int Select { get; set; }
+
+    private IReadOnlyList<Row> _items = [];
+    private IReadOnlyList<PkTableColumn<Row>> _columns = [];
+    private int _selected = -1;
+    private int _tick;
+
+    protected override void OnInitialized()
+    {
+        _columns =
+        [
+            new() { Key = "id", Label = "ID", Type = PkTableColumnType.Number, Sortable = true },
+            new() { Key = "name", Label = "Name", Sortable = true },
+            new() { Key = "city", Label = "City" },
+            new() { Key = "status", Label = "Status" },
+            new() { Key = "qty", Label = "Qty", Type = PkTableColumnType.Number },
+        ];
+        var cities = new[] { "London", "New York", "Portland", "Berlin", "Tokyo" };
+        _items = Enumerable.Range(1, Rows).Select(i => new Row(i, "Person " + i, cities[i % 5], i % 3 == 0 ? "Active" : "Draft", i * 7 % 1000)).ToList();
+    }
+
+    private void OnSelected(IReadOnlyList<string>? ids) => _selected = ids?.Count ?? 0;
+}

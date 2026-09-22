@@ -96,7 +96,7 @@
   "examples": [
     {
       "title": "Validated form with summary",
-      "html": "<pk-form summary>\n  <form>\n    <pk-field label=\"Name\" required><pk-input name=\"name\" required data-msg-required=\"Enter a name.\"></pk-input></pk-field>\n    <pk-field label=\"Email\" required><pk-input name=\"email\" type=\"email\" required data-msg-type=\"Use the form name@example.com.\"></pk-input></pk-field>\n    <pk-button type=\"submit\">Save</pk-button>\n  </form>\n</pk-form>"
+      "html": "<pk-form summary>\n  <form>\n    <pk-stack>\n    <pk-field label=\"Name\" required><pk-input name=\"name\" required data-msg-required=\"Enter a name.\"></pk-input></pk-field>\n    <pk-field label=\"Email\" required><pk-input name=\"email\" type=\"email\" required data-msg-type=\"Use the form name@example.com.\"></pk-input></pk-field>\n    <pk-button type=\"submit\">Save</pk-button>\n    </pk-stack>\n  </form>\n</pk-form>"
     }
   ]
 }

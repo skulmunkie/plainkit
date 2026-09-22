@@ -117,7 +117,7 @@
 /* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
 .gx-pagebar .gx-compact-only { display: none; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
     .gx-pagebar .gx-wide-only { display: none; }
     .gx-pagebar .gx-compact-only { display: inline-flex; }
     .gx-pagebar > .gx-linkbtn, .gx-pagebar > pk-button { min-width: var(--touch-target); }

@@ -4,6 +4,7 @@
 // itself is made of pk-* elements (page header, cards, accordions, tables, fields, code blocks).
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -13,7 +14,7 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 const code = text => h('code', {}, text);
 // Reference sections fold on a phone (open on a wide screen) so the page opens on the playground, not on six tables.
-const compact = () => matchMedia('(max-width: 640px)').matches;
+const compact = () => mediaBelow('phone').matches;
 const fold = (title, ...body) => h('pk-card', { class: 'gx-entry' }, h('pk-accordion-item', { heading: title, open: !compact() }, ...body));
 const disclose = (title, ...body) => h('pk-accordion-item', { class: 'gx-disclose', heading: title }, ...body);
 const section = (title, ...body) => h('pk-card', { class: 'gx-entry', heading: title }, ...body);

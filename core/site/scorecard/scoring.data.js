@@ -67,8 +67,6 @@ export const TEXT_PAIRS = [
 
 // Documented exceptions: a score that is below 100 on purpose, with the reason. Never silent; the report lists these.
 export const EXCEPTIONS = [
-    { metric: 'literalSizes', reason: 'Component CSS still carries many literal rem and px sizes that predate the spacing scale; they are being moved onto tokens as each file is touched. The share only goes down.' },
-    { metric: 'contrastFail', reason: 'Text pairs measured against the panel: the muted and accent text on the light theme sit just under 4.5:1. Changing them restyles the whole app, so it needs an owner colour decision.' },
     { metric: 'touch-target', reason: 'Dense controls (mini buttons, tree rows, tab close, crumbs) are below 44px on a phone by design; the a11y layer raises the common ones. Reported per control by the scorecard run.' },
 ];
 
@@ -88,13 +86,40 @@ export const BUDGETS = {
 };
 
 // Text policy, two tiers (px at the 14px root). Reading text (body, cells, labels, inputs, buttons, nav items, help) is at least
-// 14px. Secondary text (the selectors below) is at least 12px. Anything under 12px, or reading text under 14px, is a defect.
-// Mini buttons are 12px and stay a desktop-density control: above 640px only.
+// 14px. Secondary text (META_TEXT below) is at least 12px. Anything under 12px, or reading text under 14px, is a defect.
+//
+// Decision (issue #141): the policy follows the elements. The elements draw their captions, chips and counts at --text-meta on purpose, and the token
+// agrees with the tier: --text-meta is 0.86rem = 12.04px at the 14px root (a floor, not a target: 12px passes), and 13.02px on a phone, where it is
+// larger for legibility. Nothing here lowers a limit; the 14px reading floor and the 12px secondary floor are the same numbers as before. What changed is
+// which text counts as secondary: the list used to name classes of the removed class-based components, so every pk-badge, nav group heading and shell
+// footer read as reading text under 14px. Each entry names the current element or part that carries secondary text, with the reason, and
+// tests/text-tiers.test.mjs keeps the list honest (every named element exists and sets its own text at the meta size; every class exists).
+// Nav item labels stay reading text (14px); an inline `code` is 0.92em of its context and counts as secondary (a smaller x-height is what makes code sit
+// evenly in a line); a column header (th) is a caption. Mini buttons are 12px (13px on a phone) and are secondary text too.
+export const META_TEXT = [
+    ['pk-badge, pk-tag, pk-divider', 'chips and captions: each sets font-size to --text-meta on its host'],
+    ['pk-nav-item[group]', 'a nav group heading is a caption (nav-item.css, the [group] link)'],
+    ['pk-nav-item [slot="badge"]', 'the count at the end of a nav row (nav-item.css [part="badge"])'],
+    ['.gx-nav-title', "the gallery's own nav group heading, the same caption as pk-nav-item[group]"],
+    ['pk-app-shell [slot="footer"]', 'the shell footer strip (app-shell.css [part="footer"])'],
+    ['pk-form-actions [slot="status"]', 'the status text beside the form buttons (form-actions.css .status)'],
+    ['pk-pager span', 'the range note of the pager (pager.css [part="note"])'],
+    ['pk-menu-item[type="header"], pk-menu-item [slot="description"], pk-menu-item [slot="suffix"]', 'menu group headings, descriptions and shortcuts (menu-item.css)'],
+    ['pk-dropzone [slot="hint"]', 'the hint under the drop area (dropzone.css .hint)'],
+    ['pk-field-list[dense]', 'a dense field list (field-list.css [dense])'],
+    ['pk-alert[compact], pk-alert[compact] *', 'the compact alert (alert.css [compact])'],
+    ['pk-button[size="mini"]', 'mini buttons (button.css [size="mini"])'],
+    [':not(pre) > code', 'inline code is 0.92em of its context'],
+    ['th, kbd, time', 'column headers, key caps and timestamps are captions'],
+    ['.u-text-xs, .u-text-sm', 'the utilities that set the meta size'],
+    ['.cv-scroll, .cv-scroll *, .cv-no, .cv-meta, .cv-meta *, .cv-notice, .csr-text, .csr-text *, .csr-no, .co-kind, .co-line', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
+    ['.gx-icon, .gx-icon *, .gx-box *, .gx-z *', 'gallery demo swatches: an icon grid, a box-model and a z-index sample, where the text is a caption for the thing shown'],
+];
 export const TEXT_TIERS = {
     readingPx: 14,
     metaPx: 12,
     demoSelectors: '.gx-effect *, .gx-demo *',
-    metaSelectors: '.infotip__icon, .gal-add-hint, .gx-code, .gx-code *, .tab-close, .csr-text, .csr-text *, .gx-effect *, .gx-demo *, .shell-footer, .shell-footer *, .gx-icon, .gx-icon *, .gx-box *, .gx-z *, .cv-scroll, .cv-scroll *, .chip, .badge, .snav-badge, .snav-group-title, .cv-no, .csr-no, .co-kind, .co-line, .ft-lines, .ft-count, .u-text-xs, .u-text-sm, .field-help, .field-error, .ff-hint, .page-crumbs, .page-crumbs *, .toolbar-note, .stat-card-label, .stat-card-subtext, .infotip__panel, .infotip__panel *, th, .gx-group-label, .gx-param-type, .section-header-note, .cv-meta, .cv-meta *, .cv-notice, .gal-badge, .combo-empty, .pd-reset, .btn-mini, kbd, time, .tag-pill, .tag-pill *, .stepper li::before',
+    metaSelectors: META_TEXT.map(([selector]) => selector).join(', '),
 };
 // Phone touch targets that are exempt, each with its reason (the scorecard lists these; a target not matching one is a defect).
 export const TARGET_EXCEPTIONS = [

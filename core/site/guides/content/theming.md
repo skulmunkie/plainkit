@@ -85,15 +85,49 @@ Each element also exposes a few hooks of its own, named `--pk-<element>-<part>`.
 
 Prefer a token when you want to change something everywhere and a hook when you want one element to differ.
 
-## Edit and export with the theme editor
+## Build a theme with the theme editor
 
-The [Theme editor](../theme/index.html) lists every token with an input for it, applies your edits to the page live, grades the text pairs for contrast, and exports the changes as a block of CSS you can paste into your stylesheet. The same tool is available for your own pages:
+The [Theme editor](../theme/index.html) is the quickest way to a theme of your own. It lists every token with an input for it and applies your edits to the page live. On top of that it can:
+
+- **Generate a palette from one brand colour** (the Palette tab). Give it a colour, and optionally a neutral tint and a warn colour, and it writes the accent, fill, hover and link colours and the text and surface ramps of both themes so that every documented text pair is 4.5:1 or better. Each pair is shown as a swatch with its ratio. If your colour is too light or too dark to be text or a button fill it is moved, and the tab says how far. Apply turns the result into ordinary edits you can still change.
+- **Start from a preset or a saved theme** (the Presets tab): the default, a high-contrast theme, a compact and a roomy density, and themes you save by name in this browser.
+- **Undo and redo** every change, and list what differs from the stylesheet (the Changes tab), with a reset for each edit and each group of tokens.
+- **Audit contrast** (the Contrast tab) for every documented pair in both themes under your edits, with a jump to the token that sets each side.
+- **Export** the edits as CSS, as a snippet for a `theme.css` file, as JSON, or as a link: the edits travel in the link's fragment, compressed where the browser can, and are checked like pasted JSON, so a link is text only and never markup.
+- **Export a custom SDK** (the Custom SDK tab): a theme-only zip, or the prebuilt `dist` with your theme and your breakpoint widths (see below).
+
+The same tool is available for your own pages:
 
 ```js
-import { mountThemeEditor } from './plainkit/theme-editor/theme-editor.js';
+import { mountThemeEditor } from './plainkit/modules/theme-editor/theme-editor.js';
 
-const editor = await mountThemeEditor(document.getElementById('editor'), { storageKey: 'my-theme', height: '32rem' });
+const editor = await mountThemeEditor(document.getElementById('editor'), { storageKey: 'my-theme', height: '32rem', readHash: true });
+editor.applyBrand('#0d9488');
+const { url } = await editor.share();
 ```
 
 An imported override block is validated: names must be lowercase custom properties and values may use only letters, digits and `# % . , ( ) - + /`, so `url()` and comments are refused.
+
+### Ship the exported theme
+
+The export is plain override blocks and needs no runtime. Save it as `theme.css` (the editor's Copy snippet is exactly that file) and link it **after** Plainkit's stylesheet, as a file: a strict `style-src 'self'` refuses an inline `<style>` block. In Blazor the editor takes your saved theme and reports each change with the CSS to save:
+
+```razor
+<PkThemeEditor StorageKey="my-theme" InitialTheme="@_theme" OnThemeChanged="css => _theme = css" />
+
+@code {
+    private string? _theme;
+}
+```
+
+### Export a custom SDK
+
+The editor's **Custom SDK** tab makes a download from your theme and your breakpoint widths, and you tick what goes in. The two parts are independent:
+
+- **Theme only** (a small zip): `plainkit-theme.css`, the settings file `plainkit.custom.json` and a `README.md`. No SDK file is touched. Load it after `plainkit.css` as a file, `<link rel="stylesheet" href="plainkit-theme.css">`; in Blazor put it in `wwwroot` and link it after the PlainKit stylesheet in `App.razor` or `_Host.cshtml`. The **Download plainkit-theme.css** button gives just the stylesheet.
+- **Breakpoints only**: the release `dist` with the widths of `phone`, `tablet` and `wide` rewritten (in the page layer, in every element module and in the tools' stylesheets), the `--pk-bp-*` properties following, and `dist/manifest.json` recomputed so every file has its size and SRI hash again. The widths are whole pixels from 320 to 2560, ascending, at least 64 apart, and a table lists the elements and properties that change at each breakpoint and the viewport widths whose behaviour flips.
+- **Both**: the same `dist` with your theme also written into `plainkit.css` and `plainkit.min.css`, after the token blocks.
+
+Everything happens in the page. The only requests are same-origin reads of the shipped files, and each is checked against its hash in the release manifest before it is used. The zip has the release layout (`dist/`, so it drops in where `dist` is used), the settings and a README naming the version and the settings; paste `plainkit.custom.json` into the tab's Import box to change and export again. Turn the tab off in your own page with `mountThemeEditor(el, { sdk: false })`, or point it at another copy of the files with `dist: '/assets/plainkit/'` (a folder on the same origin).
+
 The [Scorecard](../scorecard/index.html) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.

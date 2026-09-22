@@ -14,8 +14,20 @@ export function ensureStyles(hrefs, doc = document) {
     })));
 }
 
-// Resolve stylesheet paths written relative to a module against that module's own address.
-export const styleUrls = (paths, base) => paths.map(p => new URL(p, base).href);
+// Where the runtime (js/, plainkit.css, elements/api.json) is for a tool module. The modules ship in <dist>/modules/<tool>/ and write their runtime paths relative to that,
+// so by default the runtime is the folder two levels up. When the modules are hosted apart from the runtime, name the runtime once on the page:
+//   <meta name="plainkit-runtime" content="https://host/plainkit/">   (the folder that holds plainkit.css, js/ and elements/; the module scripts' own imports are remapped with an import map)
+// A path that stays inside the modules folder (a tool's own stylesheet, tokens.css) is never remapped.
+export function runtimeUrl(path, base, doc = globalThis.document) {
+    const url = new URL(path, base).href;
+    const configured = doc?.querySelector?.('meta[name="plainkit-runtime"]')?.content;
+    const root = new URL('../../', base).href;
+    if (!configured || url.startsWith(new URL('../', base).href) || !url.startsWith(root)) return url;
+    return new URL(url.slice(root.length), new URL(configured, doc.baseURI)).href;
+}
+
+// Resolve stylesheet paths written relative to a module against that module's own address (through runtimeUrl).
+export const styleUrls = (paths, base, doc) => paths.map(p => runtimeUrl(p, base, doc));
 
 // A string option is a URL to fetch JSON from; anything else is the value itself.
 export async function loadJson(value, fetchFn = globalThis.fetch) {

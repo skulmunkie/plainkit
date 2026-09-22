@@ -24,4 +24,13 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
+  <!-- Provenance and reproducibility: the package records the repository and the exact commit it was built from (SourceLink is part of the .NET SDK), and a build on
+       GitHub Actions is deterministic (paths are normalised), so the same commit gives the same assembly. The tag-and-CI-only release path does the rest. -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
 </Project>

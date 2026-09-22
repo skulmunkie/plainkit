@@ -19,4 +19,4 @@ select { flex: none; padding-inline: var(--space-3) var(--space-6); border-inlin
 select:disabled { cursor: not-allowed; }
 select option { background: var(--color-flyout); color: var(--color-text); }
 .chev { position: absolute; inset-inline-end: var(--space-3); top: calc(50% - 0.35em); width: 0.4em; height: 0.4em; border: solid var(--color-muted); border-width: 0 2px 2px 0; transform: rotate(45deg); pointer-events: none; }
-@media (max-width: 640px) { .box { min-height: var(--touch-target); } input, select { font-size: 16px; } }
+@media (--phone) { .box { min-height: var(--touch-target); } input, select { font-size: 16px; } }

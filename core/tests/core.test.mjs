@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, blend, contrast, grade } from '../js/colour.js';
 import { buildOverrides, parseOverrides, nameProblem, valueProblem, parseTokenBlocks, tokenKind, splitLength, colourToHex } from '../js/theme.js';
-import { evaluate, literalColours, literalSizes, cssStats } from '../js/quality.js';
+import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
 import { scoreMetric, scoreCategory, scoreAll, scoreFindings, rankWorstFirst, groupFindings, pushRun, readHistory, deltas, importHistory, exportHistory } from '../js/scoring.js';
 import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
@@ -105,6 +105,41 @@ test('evaluate flags an unnamed control, a small touch target only on a phone, n
     const phone = evaluate(m, { phone: true }).map(f => f.check).sort();
     assert.deepEqual(phone, ['horizontal-overflow', 'image-alt', 'literal-colour', 'nested-scroll', 'positive-tabindex', 'touch-target', 'unnamed-input']);
     assert.equal(evaluate(m, { phone: false }).some(f => f.check === 'touch-target'), false);
+});
+
+test('an exempt control (an inline link, a tab panel) is not a touch target; unnamed and positive tabindex still count', () => {
+    const c = over => ({ selector: 'a', tag: 'a', name: 'x', width: 40, height: 19, tabindex: null, ...over });
+    assert.deepEqual(evaluate(measures({ controls: [c({ exempt: true })] }), { phone: true }), []);
+    assert.deepEqual(evaluate(measures({ controls: [c({})] }), { phone: true }).map(f => f.check), ['touch-target']);
+    assert.deepEqual(evaluate(measures({ controls: [c({ exempt: true, name: '' })] }), { phone: true }).map(f => f.check), ['unnamed-input']);
+    const win = { getComputedStyle: el => ({ display: el.display }) };
+    assert.equal(touchExempt({ tagName: 'A', localName: 'a', display: 'inline' }, win), true);
+    assert.equal(touchExempt({ tagName: 'A', localName: 'a', display: 'block' }, win), false, 'a block link (a nav row) is a real target');
+    assert.equal(touchExempt({ tagName: 'PK-TAB-PANEL', localName: 'pk-tab-panel' }, win), true);
+    assert.equal(touchExempt({ tagName: 'BUTTON', localName: 'button' }, win), false);
+});
+
+test('an element whose label is drawn in its shadow tree has an accessible name; an empty one still has none', () => {
+    const el = over => ({ ownerDocument: { getElementById: () => null }, getAttribute: () => null, labels: [], textContent: '', tagName: 'PK-TREE-ITEM', ...over });
+    assert.equal(accessibleName(el({ shadowRoot: { textContent: ' Books ' } })), 'Books');
+    assert.equal(accessibleName(el({ textContent: 'Light', shadowRoot: { textContent: 'Shadow' } })), 'Light');
+    assert.equal(accessibleName(el({ shadowRoot: { textContent: '  ' } })), '');
+    assert.equal(accessibleName(el({})), '');
+});
+
+test('an element with no box of its own but a visible child (display: contents) still counts as content', () => {
+    const box = (w, h, display = 'block', kids = [], shadow = []) => ({ tagName: 'DIV', getBoundingClientRect: () => ({ width: w, height: h }), _d: display, children: kids, shadowRoot: shadow.length ? { children: shadow } : null });
+    const win = { getComputedStyle: el => ({ display: el._d }) };
+    assert.equal(hasBox(box(10, 10), win), true);
+    assert.equal(hasBox(box(0, 0), win), false, 'a closed dialog: nothing to see');
+    assert.equal(hasBox(box(0, 0, 'contents', [box(50, 20)]), win), true, 'a lightbox trigger inside a display: contents host');
+    assert.equal(hasBox(box(0, 0, 'contents', [], [box(40, 40)]), win), true, 'a control drawn in the shadow tree');
+    assert.equal(hasBox(box(0, 0, 'contents', [box(0, 0)]), win), false);
+    assert.equal(hasBox(box(0, 0, 'block', [box(50, 20)]), win), false, 'only display: contents looks through');
+});
+
+test('the flush containers include the element equivalents of the rows that are flush by design', () => {
+    for (const tag of ['pk-tree', 'pk-side-nav', 'pk-list-group', 'pk-timeline', 'pk-stepper', 'pk-field-list']) assert.ok(QUALITY_DEFAULTS.flush.split(/,\s*/).includes(tag), tag);
 });
 
 test('an empty preview stage is an error, a stage with visible content is not', () => {
@@ -289,4 +324,14 @@ test('the gallery data file loads and every element and sample has the documente
     }
     assert.equal(new Set(mod.ELEMENTS.map(m => m.tag)).size, mod.ELEMENTS.length);
     for (const list of [mod.TEMPLATES, mod.PATTERNS, mod.LAYOUTS]) for (const x of list) assert.ok(x.id && x.title && x.summary, x.id + ': id, title and summary');
+});
+
+test('tokenPx reads a length token as pixels, so the minimum control gap is the page token (0.25rem = 3.5px at the 14px root), not a copied 4', () => {
+    const win = tokens => ({ getComputedStyle: () => ({ fontSize: '14px', getPropertyValue: n => tokens[n] ?? '' }) });
+    const doc = { documentElement: {} };
+    assert.equal(tokenPx(win({ '--gap-min': '0.25rem' }), doc, '--gap-min', 4), 3.5);
+    assert.equal(tokenPx(win({ '--gap-min': ' 6px' }), doc, '--gap-min', 4), 6);
+    assert.equal(tokenPx(win({}), doc, '--gap-min', 4), 4, 'no token on the page: the default');
+    assert.equal(tokenPx(win({ '--gap-min': 'calc(1px + 2px)' }), doc, '--gap-min', 4), 4, 'a value it cannot read: the default');
+    assert.equal(QUALITY_DEFAULTS.minGapPx, 4);
 });

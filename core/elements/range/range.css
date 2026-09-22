@@ -19,4 +19,4 @@ input:focus-visible::-moz-range-thumb { outline: var(--focus-ring); outline-offs
 :host([disabled]) input { cursor: not-allowed; }
 .out { display: none; margin-top: var(--space-1); color: var(--field-muted); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
 :host([output]) .out { display: block; }
-@media (max-width: 640px) { .wrap { height: var(--touch-target); } }
+@media (--phone) { .wrap { height: var(--touch-target); } }

@@ -22,17 +22,17 @@
 [part="tab"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
 /* A narrower screen: a slimmer nav column. */
-@media (max-width: 1280px) { [part="root"] { --_nav-w: var(--pk-workspace-nav-w, 13.75rem); } }
+@media (--wide) { [part="root"] { --_nav-w: var(--pk-workspace-nav-w, 13.75rem); } }
 
 /* A tablet: the aside floats over the main pane's edge instead of taking a column. */
-@media (max-width: 1024px) {
+@media (--tablet) {
     [part="root"][data-aside] { grid-template-columns: var(--_nav-w) minmax(0, 1fr); }
     [part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr); }
     [part="aside"] { position: absolute; inset-block: 0; inset-inline-end: 0; inline-size: min(var(--_aside-w), 85%); z-index: 1; box-shadow: var(--shadow-flyout); }
 }
 
 /* A phone: one pane at a time, switched by the strip. */
-@media (max-width: 640px) {
+@media (--phone) {
     [part="root"], [part="root"][data-aside], [part="root"]:not([data-nav]), [part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
     [part="strip"] { display: flex; }
     [part="strip"][hidden] { display: none; }

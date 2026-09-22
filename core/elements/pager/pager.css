@@ -13,7 +13,7 @@
 
 ::slotted(a:focus-visible) { outline: var(--focus-ring); outline-offset: 2px; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     [part="nav"] { grid-template-columns: 1fr; }
     [part="next"], [part="prev"] { justify-self: stretch; }
     ::slotted(a) { display: flex; justify-content: center; }

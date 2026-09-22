@@ -8,11 +8,13 @@ export const DEFAULTS = Object.freeze({
     maxNestedScrollers: 0,      // a scroll container inside another scroll container
     literalColour: /#[0-9a-fA-F]{3,8}\b|\brgba?\(/,
     interactive: 'a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="tab"], [tabindex]:not([tabindex="-1"])',
+    // Custom elements whose control lives in a shadow root, so none of the selectors above reach it: measured and named here (a pk-button's ring is drawn inside its shadow root, so they are not focus-probed).
+    hosts: 'pk-button',
     maxFocusProbe: 40,
-    minGapPx: 4,                // controls in a row or stack closer than this fail (the --gap-min token)
+    minGapPx: 4,                // controls closer than this fail (the --gap-min token wins)
     minPaddingPx: 4,            // text closer than this to the edge of a bordered or filled box fails
     gapTolerancepx: 6,          // gaps within one stack may differ by at most this
-    flush: '.cv-scroll, .cv-row, .input-group, .btn-group, .ft-list, .co, .csr-group, .tabs, .pagination, .list-group, .gal-item, .dg-body, .flyout-panel--docked, .stat-card-value-row, .workspace, .workspace-main, .ft-row, .combo-popup, .tag-input',
+    flush: '.cv-scroll, .cv-row, .input-group, .btn-group, .ft-list, .co, .csr-group, .tabs, .pagination, .list-group, .gal-item, .dg-body, .flyout-panel--docked, .stat-card-value-row, .workspace, .workspace-main, .ft-row, .combo-popup, .tag-input, pk-tree, pk-side-nav, pk-list-group, pk-timeline, pk-stepper, pk-field-list',
 });
 
 const cssPath = el => {
@@ -29,11 +31,13 @@ export function accessibleName(el) {
     const doc = el.ownerDocument;
     const attr = n => (el.getAttribute(n) ?? '').trim();
     if (attr('aria-label')) return attr('aria-label');
+    if (el.localName === 'pk-button' && attr('label')) return attr('label'); // pk-button: the label prop wins over its text, as its inner button says
     const by = attr('aria-labelledby');
     if (by) { const t = by.split(/\s+/).map(id => doc.getElementById(id)?.textContent ?? '').join(' ').trim(); if (t) return t; }
     if (el.labels?.length) { const t = [...el.labels].map(l => l.textContent).join(' ').trim(); if (t) return t; }
     if (attr('alt')) return attr('alt');
-    const text = (el.textContent ?? '').trim();
+    // The rendered label of an element (a tree row, a step) lives in its shadow tree and its name is set through ElementInternals, which a page cannot read back.
+    const text = (el.textContent ?? '').trim() || (el.shadowRoot?.textContent ?? '').trim();
     if (text) return text;
     if (el.tagName === 'INPUT' && ['button', 'submit', 'reset'].includes(el.type) && el.value) return el.value;
     return attr('title') || attr('placeholder');
@@ -42,11 +46,21 @@ export function accessibleName(el) {
 const INLINE = /^(SPAN|A|CODE|STRONG|EM|B|I|SMALL|LABEL|SUP|SUB|MARK|BR|SVG|USE|IMG|KBD|TIME|ABBR)$/;
 const CONTROL = /^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/;
 
+// Controls the phone touch-target check leaves out: a link inside running text (WCAG 2.5.8 exempts it; the size sweep applies the same rule)
+// and a tab panel, which is focusable for the keyboard but is not something a finger taps.
+export const touchExempt = (el, win) => el.localName === 'pk-tab-panel' || (el.tagName === 'A' && win.getComputedStyle(el).display === 'inline');
+
+export const tokenPx = (win, doc, name, fb) => {
+    const cs = win.getComputedStyle(doc.documentElement); const v = cs.getPropertyValue(name).trim();
+    return v.endsWith('rem') ? parseFloat(v) * parseFloat(cs.fontSize) : v.endsWith('px') ? parseFloat(v) : fb;
+};
+
 // Spacing measures: consecutive block siblings with no gap, controls sitting closer than the minimum gap, text touching the
 // edge of a box that has its own border or fill, and containers whose gaps disagree. Containers marked data-flush, or matching
 // cfg.flush (rows that are flush by design: code lines, tree rows, joined groups), are skipped.
 export function spacingMeasures(scope, win, cfg) {
     const out = [];
+    cfg = { ...cfg, minGapPx: tokenPx(win, scope.ownerDocument ?? scope, '--gap-min', cfg.minGapPx) };
     const skip = el => el.closest?.(cfg.flush) || el.closest?.('[data-flush]');
     const visible = el => { const s = win.getComputedStyle(el); if (s.position === 'absolute' || s.position === 'fixed' || s.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? r : null; };
     for (const el of scope.querySelectorAll('*')) {
@@ -54,7 +68,8 @@ export function spacingMeasures(scope, win, cfg) {
         const cs = win.getComputedStyle(el);
         // Text (or an inline control) sitting hard against the edge of a box that has its own border or fill.
         const hasText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
-        if (hasText && !INLINE.test(el.tagName) && !/^(TD|TH|LI|BUTTON|SUMMARY|OPTION|CODE)$/.test(el.tagName)) {
+        // A host with a shadow tree slots its text into parts that carry their own padding (an accordion item, a code block): the host's own padding is not the edge.
+        if (hasText && !el.shadowRoot && !INLINE.test(el.tagName) && !/^(TD|TH|LI|BUTTON|SUMMARY|OPTION|CODE)$/.test(el.tagName)) {
             const boxed = parseFloat(cs.borderLeftWidth) > 0 || !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor);
             const left = parseFloat(cs.paddingLeft);
             if (boxed && left < cfg.minPaddingPx) out.push({ kind: 'text-at-edge', selector: cssPath(el), value: left, min: cfg.minPaddingPx });
@@ -77,18 +92,25 @@ export function spacingMeasures(scope, win, cfg) {
     return out;
 }
 
+// True when an element takes up room, or is display: contents (a lightbox, a back-to-top button) and something inside it, in its light or shadow tree, does.
+export function hasBox(el, win) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return true;
+    return win.getComputedStyle(el).display === 'contents' && [...el.children, ...(el.shadowRoot?.children ?? [])].some(k => !/^(SCRIPT|STYLE)$/.test(k.tagName) && hasBox(k, win));
+}
+
 export function collect(root, options = {}) {
     const cfg = { ...DEFAULTS, ...options };
     const doc = root.ownerDocument ?? root;
     const win = doc.defaultView;
     const scope = root.querySelectorAll ? root : doc;
     const controls = [];
-    for (const el of scope.querySelectorAll(cfg.interactive)) {
+    for (const el of scope.querySelectorAll(`${cfg.interactive}, ${cfg.hosts}`)) {
         if (el.disabled || el.hidden || el.closest('[hidden]')) continue;
         // A checkbox or radio is tapped through its label, so the label is the target that counts.
         const r = (el.type === 'checkbox' || el.type === 'radio') && el.labels?.length ? el.labels[0].getBoundingClientRect() : el.getBoundingClientRect();
         if (r.width === 0 && r.height === 0) continue;
-        controls.push({ selector: cssPath(el), tag: el.tagName.toLowerCase(), role: el.getAttribute('role'), name: accessibleName(el), width: r.width, height: r.height, tabindex: el.hasAttribute('tabindex') ? Number(el.getAttribute('tabindex')) : null });
+        controls.push({ selector: cssPath(el), tag: el.tagName.toLowerCase(), role: el.getAttribute('role'), name: accessibleName(el), width: r.width, height: r.height, tabindex: el.hasAttribute('tabindex') ? Number(el.getAttribute('tabindex')) : null, exempt: touchExempt(el, win) });
     }
     const images = [...scope.querySelectorAll('img')].map(el => ({ selector: cssPath(el), alt: el.getAttribute('alt') }));
     const scrollers = [];
@@ -109,7 +131,7 @@ export function collect(root, options = {}) {
         if (cfg.literalColour.test(v)) literals.push({ selector: cssPath(el), value: v });
     }
     const de = doc.documentElement;
-    const visibleChildren = [...(scope.children ?? [])].filter(el => !/^(SCRIPT|STYLE)$/.test(el.tagName) && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0).length;
+    const visibleChildren = [...(scope.children ?? [])].filter(el => !/^(SCRIPT|STYLE)$/.test(el.tagName) && hasBox(el, win)).length;
     const spacing = spacingMeasures(scope, win, cfg);
     return { controls, images, scrollers, literals, spacing, visibleChildren, overflowX: de.scrollWidth - de.clientWidth, width: win.innerWidth, nodes: scope.querySelectorAll('*').length };
 }
@@ -122,7 +144,7 @@ export function evaluate(m, options = {}) {
     for (const c of m.controls) {
         if (!c.name) add('unnamed-input', 'accessibility', 'error', c.selector, `${c.tag} has no accessible name`);
         if (c.tabindex !== null && c.tabindex > 0) add('positive-tabindex', 'accessibility', 'warn', c.selector, 'positive tabindex overrides the natural tab order');
-        if (cfg.phone && (c.width < cfg.touchTargetPx - 0.5 || c.height < cfg.touchTargetPx - 0.5)) add('touch-target', 'look', 'warn', c.selector, `${Math.round(c.width)}x${Math.round(c.height)}px is under ${cfg.touchTargetPx}px on a phone`);
+        if (cfg.phone && !c.exempt && (c.width < cfg.touchTargetPx - 0.5 || c.height < cfg.touchTargetPx - 0.5)) add('touch-target', 'look', 'warn', c.selector, `${Math.round(c.width)}x${Math.round(c.height)}px is under ${cfg.touchTargetPx}px on a phone`);
     }
     for (const i of m.images) if (i.alt === null) add('image-alt', 'accessibility', 'error', i.selector, 'image has no alt attribute');
     for (const s of m.scrollers) if (s.depth > cfg.maxNestedScrollers) add('nested-scroll', 'look', 'error', s.selector, `scroll container nested ${s.depth} deep inside another`);

@@ -1,13 +1,13 @@
 {
- "ran": "2026-09-21T18:47:48.730Z",
+ "ran": "2026-09-22T11:05:12.573Z",
  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
- "passed": 168,
+ "passed": 183,
  "failed": 0,
  "results": [
   {
    "name": "declarative shadow DOM gives a first paint and upgrades in place",
    "ok": true,
-   "ms": 35
+   "ms": 42
   },
   {
    "name": "a not-yet-defined element is hidden, then shown once its module loads (no flash of unstyled content)",
@@ -17,22 +17,22 @@
   {
    "name": "every registered tag is defined by the loader",
    "ok": true,
-   "ms": 323
+   "ms": 405
   },
   {
    "name": "button: defaults, attribute to property, property to attribute, invalid enum falls back",
    "ok": true,
-   "ms": 5
+   "ms": 8
   },
   {
    "name": "button: label, start and end slots are projected; the control part is exposed",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "button: focus goes to the inner button (delegatesFocus) and a disabled button swallows clicks",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "button: type=submit submits and type=reset resets the surrounding form",
@@ -52,12 +52,12 @@
   {
    "name": "card: tone reflects and the ::part hook and custom properties style the shadow tree",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "tabs: first tab is selected, panels follow, roving tabindex and aria wiring are set",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "tabs: clicking selects, emits a composed cancelable event, and preventDefault keeps the old tab",
@@ -67,12 +67,12 @@
   {
    "name": "tabs: arrow keys, Home and End move focus and select; disabled tabs are skipped",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "tabs: manual activation moves focus but selects only on click",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "switch: toggles, emits change, and reflects checked",
@@ -92,12 +92,12 @@
   {
    "name": "strict CSP: no element carries a style attribute or style element, and styles are adopted sheets",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "theme: tokens inherit into shadow roots, so a data-theme ancestor restyles the component",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "props set before the element is defined are upgraded, not lost",
@@ -107,57 +107,57 @@
   {
    "name": "tabs: count badge, close button event, only=phone hidden on desktop, trailing slot",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "tabs: none-active selects nothing and every choice raises the event; scroll mode fades the edge with more tabs",
    "ok": true,
-   "ms": 6
+   "ms": 8
   },
   {
    "name": "mounting 200 buttons is fast enough to be unnoticeable",
    "ok": true,
-   "ms": 23
+   "ms": 21
   },
   {
    "name": "tooltip: focus shows it, the target gets aria-description and no node is added, Escape hides it",
    "ok": true,
-   "ms": 36
+   "ms": 34
   },
   {
    "name": "tooltip: a hint card draws its own help button, a touch tap toggles it, and its links live in the panel",
    "ok": true,
-   "ms": 39
+   "ms": 48
   },
   {
    "name": "popover: a click on the trigger opens it, Escape closes it and returns focus, confirm fires pk-confirm",
    "ok": true,
-   "ms": 11
+   "ms": 5
   },
   {
    "name": "popover: a cancelable pk-close lets the host veto closing",
    "ok": true,
-   "ms": 4
+   "ms": 1
   },
   {
    "name": "dropdown: opens, arrows and typeahead move focus, checkbox toggles and reports, Escape returns focus to the trigger",
    "ok": true,
-   "ms": 12
+   "ms": 6
   },
   {
    "name": "menu-item: a description (attribute or slot) wraps under the label, is the accessible description and stays out of the value and typeahead",
    "ok": true,
-   "ms": 10
+   "ms": 6
   },
   {
    "name": "dropdown: a submenu opens with Right and closes with Left",
    "ok": true,
-   "ms": 8
+   "ms": 4
   },
   {
    "name": "table: the row checkboxes commit selected through pk-select; a host change raises nothing",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "context menu: contextmenu opens it at the pointer; choosing an item closes it",
@@ -167,7 +167,7 @@
   {
    "name": "select-menu: reads its options, opens, chooses with the keyboard, reports pk-change and joins the form",
    "ok": true,
-   "ms": 24
+   "ms": 22
   },
   {
    "name": "drawer: open reflects to a native modal dialog; Escape asks first and can be vetoed; a backdrop click closes unless persistent",
@@ -187,17 +187,17 @@
   {
    "name": "dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport",
    "ok": true,
-   "ms": 252
+   "ms": 226
   },
   {
    "name": "drawer: once open (after its slide) it is flush with its edge and spans the viewport: right, left and bottom",
    "ok": true,
-   "ms": 801
+   "ms": 731
   },
   {
    "name": "dialog: the backdrop never closes it; Escape and the close button do; confirm resolves a promise",
    "ok": true,
-   "ms": 77
+   "ms": 73
   },
   {
    "name": "dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)",
@@ -207,192 +207,192 @@
   {
    "name": "toast: kind sets its role, the timer dismisses it, hover pauses it",
    "ok": true,
-   "ms": 397
+   "ms": 398
   },
   {
    "name": "toast stack: shows at most max toasts and reveals the next as one is dismissed",
    "ok": true,
-   "ms": 6
+   "ms": 7
   },
   {
    "name": "alert: role follows the kind and dismiss hides it unless vetoed",
    "ok": true,
-   "ms": 7
+   "ms": 4
   },
   {
    "name": "loading overlay: busy makes the content inert and announces the label",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "breadcrumb: a long trail folds the middle crumbs behind a button that expands them",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "stepper: states follow current; a linear stepper blocks skipping ahead; events are cancelable",
    "ok": true,
-   "ms": 20
+   "ms": 3
   },
   {
    "name": "toc: lists the headings of its target with generated ids and marks the current one",
    "ok": true,
-   "ms": 10
+   "ms": 11
   },
   {
    "name": "side nav: filter shows matches and opens their branch, tree keys walk the rows, the rail marks items",
    "ok": true,
-   "ms": 17
+   "ms": 9
   },
   {
    "name": "side nav: collapsed state and open branches persist under the persist key",
    "ok": true,
-   "ms": 9
+   "ms": 8
   },
   {
    "name": "nav item: a branch button toggles expanded; current and disabled set ARIA on the row",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "command palette: opens on Ctrl+K, filters as you type, Enter fires pk-select with the item and records a recent",
    "ok": true,
-   "ms": 23
+   "ms": 12
   },
   {
    "name": "lightbox: shows the item at an index, steps with wrap-around, refuses unsafe sources",
    "ok": true,
-   "ms": 16
+   "ms": 7
   },
   {
    "name": "navbar: the hamburger toggles open and Escape closes it; app shell toggles its nav drawer",
    "ok": true,
-   "ms": 11
+   "ms": 13
   },
   {
    "name": "app shell: the title slot and back link fill the top bar; the link is a real 44px link named by back-label, and an unsafe address is dropped",
    "ok": true,
-   "ms": 17
+   "ms": 4
   },
   {
    "name": "scroll aids: progress starts at 0, back-to-top is hidden until scrolled, the skip link points at a same-page fragment",
    "ok": true,
-   "ms": 4
+   "ms": 1
   },
   {
    "name": "pager and step render their slots",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "gallery inline patterns: notifications, unsaved settings and onboarding respond to clicks and edits in the sample frame, at desktop and phone width, with nothing in the log",
    "ok": true,
-   "ms": 5684
+   "ms": 4124
   },
   {
    "name": "gallery inline patterns: live search, master-detail and the filter table respond to typing and clicks in the sample frame, with nothing in the log",
    "ok": true,
-   "ms": 3826
+   "ms": 1939
   },
   {
    "name": "gallery inline patterns: drawing another view ends the old frame's script and starts the new one, a theme change keeps the state, and views do not pile up",
    "ok": true,
-   "ms": 4812
+   "ms": 3067
   },
   {
    "name": "skeleton: text variant sets the line count, circle and block take a size, the label is for assistive tech",
    "ok": true,
-   "ms": 14
+   "ms": 5
   },
   {
    "name": "spinner: is a status region with a label, and each variant shows only its own shape",
    "ok": true,
-   "ms": 8
+   "ms": 2
   },
   {
    "name": "progress: native bar carries value and max, shows the percentage, goes indeterminate and colours by threshold",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "badge: caps a count, lets the slot win, and dot mode shows the dot",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "tag: remove button fires a cancelable pk-remove with the value, and removes the tag unless cancelled",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size",
    "ok": true,
-   "ms": 20
+   "ms": 4
   },
   {
    "name": "table: current-row marks the open record with aria-current and a tint, follows the host, and the element never changes it",
    "ok": true,
-   "ms": 9
+   "ms": 4
   },
   {
    "name": "table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order",
    "ok": true,
-   "ms": 25
+   "ms": 11
   },
   {
    "name": "table: manual mode shows rows as given and only reports; selection, bulk bar, filter event, loading and empty states",
    "ok": true,
-   "ms": 345
+   "ms": 344
   },
   {
    "name": "table: slotted-table mode frames a raw table, hides its own table, and flow drops the scroll container",
    "ok": true,
-   "ms": 7
+   "ms": 2
   },
   {
    "name": "table: filters and sorts locally when not manual, and a slotted cell replaces the text",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "table: one click on a select checkbox raises pk-select once (change and input both fire)",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "table: the same header cycles ascending, descending, cleared; pk-sort reports a null key, also in manual mode",
    "ok": true,
-   "ms": 16
+   "ms": 3
   },
   {
    "name": "table: clickable rows are tab stops and Enter or Space on the row raises pk-row-click; controls inside the row do not",
    "ok": true,
-   "ms": 65
+   "ms": 72
   },
   {
    "name": "table: a click on slotted cell content raises pk-row-click; a slotted button keeps its click",
    "ok": true,
-   "ms": 66
+   "ms": 58
   },
   {
    "name": "table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows",
    "ok": true,
-   "ms": 550
+   "ms": 350
   },
   {
    "name": "stat: shows the change with an arrow, sign, colour and spoken form; an href makes one link; a sparkline draws",
    "ok": true,
-   "ms": 14
+   "ms": 11
   },
   {
    "name": "stat: delta-unit points reads +4 pts and is spoken as points; the default stays percent",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "empty-state: hides what is not given, exposes the heading level, and announces when asked",
@@ -402,132 +402,132 @@
   {
    "name": "field-list: hides an empty heading and lays dt and dd out as a grid",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "card: media slot shows only when used, horizontal lays out in a row, href adds one link",
    "ok": true,
-   "ms": 7
+   "ms": 4
   },
   {
    "name": "timeline: list role on the feed, listitem on each item, and a time element",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "list-group: rows become list items and an actionable row marks the current one",
    "ok": true,
-   "ms": 1
+   "ms": 0
   },
   {
    "name": "accordion: an item toggles its details and reports it; exclusive closes the others",
    "ok": true,
-   "ms": 59
+   "ms": 60
   },
   {
    "name": "tree: roving focus, arrow keys, expand and collapse, selection and aria attributes",
    "ok": true,
-   "ms": 19
+   "ms": 14
   },
   {
    "name": "chart: draws a labelled svg from the table, adds a legend for several series, keeps the table, and takes a data property",
    "ok": true,
-   "ms": 25
+   "ms": 18
   },
   {
    "name": "code-block: one line per source line with numbers, wrap toggle and a copy result",
    "ok": true,
-   "ms": 30
+   "ms": 23
   },
   {
    "name": "calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months",
    "ok": true,
-   "ms": 93
+   "ms": 50
   },
   {
    "name": "divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow",
    "ok": true,
-   "ms": 9
+   "ms": 5
   },
   {
    "name": "gallery: attributes narrow the framed view, theme and width apply, a changed attribute reloads it, the frame follows the content height",
    "ok": true,
-   "ms": 1129
+   "ms": 561
   },
   {
    "name": "gallery: chrome full keeps the contents nav, cut down to the requested control",
    "ok": true,
-   "ms": 366
+   "ms": 230
   },
   {
    "name": "log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised",
    "ok": true,
-   "ms": 96
+   "ms": 85
   },
   {
    "name": "input: typing updates value, reports input and change, and the form receives it",
    "ok": true,
-   "ms": 8
+   "ms": 4
   },
   {
    "name": "input: required and pattern set validity through ElementInternals; invalid reflects to aria-invalid",
    "ok": true,
-   "ms": 5
+   "ms": 2
   },
   {
    "name": "input: clear button, password reveal and the number stepper",
    "ok": true,
-   "ms": 18
+   "ms": 13
   },
   {
    "name": "input: money shows the plain number while editing and the formatted amount when left, and keeps the number in value",
    "ok": true,
-   "ms": 17
+   "ms": 20
   },
   {
    "name": "input: search debounces pk-search, Escape clears, and add-on slots and the floating label render",
    "ok": true,
-   "ms": 107
+   "ms": 100
   },
   {
    "name": "textarea: value, form entry and reset; autogrow reflects",
    "ok": true,
-   "ms": 3
+   "ms": 6
   },
   {
    "name": "select: option children become the choices, value and change flow, multiple submits one entry each",
    "ok": true,
-   "ms": 8
+   "ms": 6
   },
   {
    "name": "field: hands label, description and error to the control; counter follows the value; required marks the control",
    "ok": true,
-   "ms": 14
+   "ms": 7
   },
   {
    "name": "form: an invalid submit is stopped, messages appear in the fields, focus goes to the first problem, and fixing clears it",
    "ok": true,
-   "ms": 26
+   "ms": 20
   },
   {
    "name": "checkbox: toggles, submits its value only when checked, resets, and a master mirrors its group with the mixed state",
    "ok": true,
-   "ms": 8
+   "ms": 5
   },
   {
    "name": "radio-group: options become native radios in one group; choosing sets value and submits it; segmented is a variant",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "range: single value and fill; dual keeps low below high and submits two entries",
    "ok": true,
-   "ms": 9
+   "ms": 2
   },
   {
    "name": "rating: stars are radios, choosing sets value, readonly is an image with a text alternative",
@@ -537,67 +537,67 @@
   {
    "name": "combobox: typing filters, arrows and Enter pick, Escape closes; blur reverts stray text; select mode uses the trigger and typeahead",
    "ok": true,
-   "ms": 28
+   "ms": 16
   },
   {
    "name": "tag-input: Enter and separators add, duplicates and the limit are refused, Backspace and the cross remove, the form gets one entry per tag",
    "ok": true,
-   "ms": 15
+   "ms": 11
   },
   {
    "name": "otp-input: typing advances, a pasted or autofilled code spreads, Backspace steps back, completion is an event",
    "ok": true,
-   "ms": 15
+   "ms": 10
   },
   {
    "name": "colour-input: the swatch and hex field stay in step, short hex is expanded, junk is invalid",
    "ok": true,
-   "ms": 5
+   "ms": 2
   },
   {
    "name": "textarea and colour-input: show-label shows a visible label linked to the control, hidden by default",
    "ok": true,
-   "ms": 6
+   "ms": 4
   },
   {
    "name": "dropzone: accepted files are listed and submitted, rejected ones get a reason, Remove drops a file",
    "ok": true,
-   "ms": 18
+   "ms": 7
   },
   {
    "name": "button: busy ignores clicks without losing focus, a toggle flips pressed and reports it, icon and block reflect",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "button link: href renders an anchor that keeps its slots and takes target, rel and download; disabled and busy drop the href and swallow the click",
    "ok": true,
-   "ms": 10
+   "ms": 2
   },
   {
    "name": "button link: focus lands on the anchor, a link ignores type and toggle, and a submit button still submits its form",
    "ok": true,
-   "ms": 10
+   "ms": 6
   },
   {
    "name": "button-group: single mode keeps exactly one toggle pressed",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "button-group: single mode works as a segmented control (value per button, pk-toggle bubbles to the group)",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "split-button: the caret opens the menu, arrows and Escape work, choosing reports and closes",
    "ok": true,
-   "ms": 15
+   "ms": 11
   },
   {
    "name": "switch: invalid, size and label position reflect and the invalid ring shows",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "form-section and form-actions: heading, description and status render from props and slots",
@@ -607,242 +607,317 @@
   {
    "name": "select: a value set from outside (a Blazor re-render) moves the inner select",
    "ok": true,
-   "ms": 8
+   "ms": 3
   },
   {
    "name": "dropzone: with an input in the input slot the zone only draws the target and drops go into that input",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "dropzone: an input placed directly in the input slot (Blazor InputFile) gets one file unless multiple, and a drop without files changes nothing",
    "ok": true,
-   "ms": 6
+   "ms": 7
   },
   {
    "name": "combobox: typing reports the query even when the client filters, and an option refresh keeps the filter",
    "ok": true,
-   "ms": 12
+   "ms": 6
   },
   {
    "name": "field and checkbox: inline layout, small size and the checkbox custom properties reflect",
    "ok": true,
-   "ms": 4
+   "ms": 2
   },
   {
    "name": "unit-input: the number and unit make one value, the form submits it, the commit event carries it, a foreign unit is kept",
    "ok": true,
-   "ms": 13
+   "ms": 9
   },
   {
    "name": "dropzone: pick() opens the picker for a host button, and browse-label draws a real button that is the zone's one keyboard stop",
    "ok": true,
-   "ms": 14
-  },
-  {
-   "name": "code explorer module: mounts a snapshot object, opens the requested file and runs the search",
-   "ok": true,
-   "ms": 210
-  },
-  {
-   "name": "scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter",
-   "ok": true,
-   "ms": 793
-  },
-  {
-   "name": "theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value",
-   "ok": true,
-   "ms": 556
-  },
-  {
-   "name": "page-header: the title is a heading at the chosen level, slots land in their parts, and empty rows are hidden",
-   "ok": true,
-   "ms": 11
-  },
-  {
-   "name": "page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title",
-   "ok": true,
-   "ms": 13
-  },
-  {
-   "name": "page-header: on a narrow container the actions take the full width and are touch sized",
-   "ok": true,
-   "ms": 5
-  },
-  {
-   "name": "page-header and toolbar: keep their width inside a shrink-to-fit flex parent (size containment must not collapse them)",
-   "ok": true,
-   "ms": 4
-  },
-  {
-   "name": "toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container",
-   "ok": true,
    "ms": 8
   },
   {
-   "name": "cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token",
-   "ok": true,
-   "ms": 5
-  },
-  {
-   "name": "cluster: every gap value maps to its spacing token, and align, justify and vertical map to the flex properties",
-   "ok": true,
-   "ms": 15
-  },
-  {
-   "name": "cluster: the hidden attribute hides it",
-   "ok": true,
-   "ms": 2
-  },
-  {
-   "name": "stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis",
-   "ok": true,
-   "ms": 10
-  },
-  {
-   "name": "stack: dividers draw a rule above every child but the first",
-   "ok": true,
-   "ms": 2
-  },
-  {
-   "name": "grid: auto-fit equal columns of at least min, at two widths, down to one column on a phone",
-   "ok": true,
-   "ms": 6
-  },
-  {
-   "name": "grid: columns caps the count, an unparseable min is ignored, and the default min applies without one",
-   "ok": true,
-   "ms": 9
-  },
-  {
-   "name": "grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)",
-   "ok": true,
-   "ms": 2
-  },
-  {
-   "name": "splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once",
+   "name": "button icon: the words are hidden visually and stay the accessible name; the icon is drawn; the label wins; the title mirrors the name",
    "ok": true,
    "ms": 16
   },
   {
+   "name": "button icon: a link, a busy button and a toggle keep their name and behaviour; an element in the slot stays drawn",
+   "ok": true,
+   "ms": 27
+  },
+  {
+   "name": "button icon (375px): every size is a 44px target and the text takes no room",
+   "ok": true,
+   "ms": 430
+  },
+  {
+   "name": "code explorer module: mounts a snapshot object, opens the requested file and runs the search",
+   "ok": true,
+   "ms": 173
+  },
+  {
+   "name": "scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter",
+   "ok": true,
+   "ms": 439
+  },
+  {
+   "name": "scorecard module: an icon-only pk-button with no accessible name is an unnamed-input failure; one named by its text or its label is not, and none is under 44px on a phone",
+   "ok": true,
+   "ms": 344
+  },
+  {
+   "name": "theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value",
+   "ok": true,
+   "ms": 379
+  },
+  {
+   "name": "theme editor module: a brand colour generates palette swatches at 4.5:1 or better, Apply writes ordinary edits, and a colour it cannot read disables Apply",
+   "ok": true,
+   "ms": 532
+  },
+  {
+   "name": "theme editor module: built-in presets replace the edits, and saved themes are applied, renamed and deleted by name and kept in localStorage",
+   "ok": true,
+   "ms": 863
+  },
+  {
+   "name": "theme editor module: undo and redo walk every change, the Changes tab lists edits against the stylesheet, and resets work per edit and per group",
+   "ok": true,
+   "ms": 1570
+  },
+  {
+   "name": "theme editor module: the export tab has a copy-paste snippet and a text-only theme link that another editor (or the page hash) applies as edits",
+   "ok": true,
+   "ms": 695
+  },
+  {
+   "name": "theme editor module: the Contrast tab audits every pair in both themes under the edits, counts the failures and jumps to the token",
+   "ok": true,
+   "ms": 673
+  },
+  {
+   "name": "theme editor module: an app supplies the initial theme and its own presets (CSS, JSON or object), and reports each change with the exported CSS",
+   "ok": true,
+   "ms": 316
+  },
+  {
+   "name": "theme editor module: blocked storage is logged and saved themes still work until the page closes",
+   "ok": true,
+   "ms": 140
+  },
+  {
+   "name": "theme editor Custom SDK tab: theme only exports a small zip without touching the SDK; the widths are validated and the delta table follows them",
+   "ok": true,
+   "ms": 192
+  },
+  {
+   "name": "theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back",
+   "ok": true,
+   "ms": 1125
+  },
+  {
+   "name": "layout builder module: renders the page live in an inert canvas, selects by click, arrows and the structure tree, and the keyboard moves, duplicates, deletes and undoes",
+   "ok": true,
+   "ms": 252
+  },
+  {
+   "name": "layout builder module: the palette comes from the element API, the inspector edits props (enum, boolean, invalid number) and hostile models and markup are refused",
+   "ok": true,
+   "ms": 128
+  },
+  {
+   "name": "page-header: the title is a heading at the chosen level, slots land in their parts, and empty rows are hidden",
+   "ok": true,
+   "ms": 2
+  },
+  {
+   "name": "page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title",
+   "ok": true,
+   "ms": 6
+  },
+  {
+   "name": "page-header: on a narrow container the actions take the full width and are touch sized",
+   "ok": true,
+   "ms": 2
+  },
+  {
+   "name": "page-header and toolbar: keep their width inside a shrink-to-fit flex parent (size containment must not collapse them)",
+   "ok": true,
+   "ms": 3
+  },
+  {
+   "name": "toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container",
+   "ok": true,
+   "ms": 3
+  },
+  {
+   "name": "cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token",
+   "ok": true,
+   "ms": 2
+  },
+  {
+   "name": "cluster: every gap value maps to its spacing token, and align, justify and vertical map to the flex properties",
+   "ok": true,
+   "ms": 5
+  },
+  {
+   "name": "cluster: the hidden attribute hides it",
+   "ok": true,
+   "ms": 1
+  },
+  {
+   "name": "stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis",
+   "ok": true,
+   "ms": 6
+  },
+  {
+   "name": "stack: dividers draw a rule above every child but the first",
+   "ok": true,
+   "ms": 1
+  },
+  {
+   "name": "grid: auto-fit equal columns of at least min, at two widths, down to one column on a phone",
+   "ok": true,
+   "ms": 2
+  },
+  {
+   "name": "grid: columns caps the count, an unparseable min is ignored, and the default min applies without one",
+   "ok": true,
+   "ms": 3
+  },
+  {
+   "name": "grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)",
+   "ok": true,
+   "ms": 1
+  },
+  {
+   "name": "splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once",
+   "ok": true,
+   "ms": 10
+  },
+  {
    "name": "icon: the use href is an absolute URL to the SDK sprite and the symbol exists there; a label makes it an image, none hides it",
    "ok": true,
-   "ms": 33
+   "ms": 21
   },
   {
    "name": "local time: writes the instant in the given locale and zone inside a time element, falls back to the slot, and relative reads as words",
    "ok": true,
-   "ms": 32
+   "ms": 18
   },
   {
    "name": "field: a label-action slot sits beside the label, shows even without a label, and clicking it does not focus the control",
    "ok": true,
-   "ms": 7
+   "ms": 6
   },
   {
    "name": "workspace (1200px): the nav, main and aside panes sit side by side, the phone strip is hidden, each pane holds its slot",
    "ok": true,
-   "ms": 244
+   "ms": 228
   },
   {
    "name": "workspace (375px, routed list and detail): the host sets the panes from the route, the tab carries the record name, the open row is marked and a tap on the list tab can be vetoed",
    "ok": true,
-   "ms": 329
+   "ms": 192
   },
   {
    "name": "workspace (375px): one pane at a time, the strip switches it, pk-pane-change reports it and can be cancelled",
    "ok": true,
-   "ms": 260
+   "ms": 187
   },
   {
    "name": "workspace (375px): the strip is keyboard operable: roving tabindex, arrows, Home and End select and focus the tab",
    "ok": true,
-   "ms": 256
+   "ms": 191
   },
   {
    "name": "workspace: without a nav there is no nav tab and no column; with no aside the strip is not needed",
    "ok": true,
-   "ms": 233
+   "ms": 178
   },
   {
    "name": "workspace: fill takes the height of its parent and drops the frame; without it the height is a viewport share",
    "ok": true,
-   "ms": 9
+   "ms": 6
   },
   {
    "name": "image gallery: one tile per image, the primary one carries the Primary badge, status shows, read-only has no buttons or add tile",
    "ok": true,
-   "ms": 18
+   "ms": 7
   },
   {
    "name": "image gallery: make primary moves the badge and raises pk-primary-change (cancelable); the primary has no make-primary button",
    "ok": true,
-   "ms": 30
+   "ms": 12
   },
   {
    "name": "image gallery: remove raises pk-remove (cancelable), drops the image, and removing the primary makes the first image primary",
    "ok": true,
-   "ms": 30
+   "ms": 22
   },
   {
    "name": "image gallery: the add tile is a real file input and raises pk-add with the chosen files",
    "ok": true,
-   "ms": 17
+   "ms": 7
   },
   {
    "name": "image gallery: clicking a thumbnail opens the lightbox on that image",
    "ok": true,
-   "ms": 66
+   "ms": 57
   },
   {
    "name": "image gallery: columns fixes the count; min sets how many fit",
    "ok": true,
-   "ms": 25
+   "ms": 15
   },
   {
    "name": "image gallery (375px): three thumbnails fit a row, nothing overflows sideways, buttons and the add tile are touch sized",
    "ok": true,
-   "ms": 542
+   "ms": 501
   },
   {
    "name": "guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem",
    "ok": true,
-   "ms": 898
+   "ms": 639
   },
   {
    "name": "guides: the previous and next links walk the guides in order, the address follows, and focus lands on the new title",
    "ok": true,
-   "ms": 898
+   "ms": 666
   },
   {
    "name": "guides: a table of contents link scrolls the article and not the page shell, marks the heading in view, and makes the address one that reloads to the same place",
    "ok": true,
-   "ms": 1786
+   "ms": 1303
   },
   {
    "name": "guides: a heading has a permalink (named, empty until drawn) that copies to a deep link, and a deep link opens at its heading",
    "ok": true,
-   "ms": 723
+   "ms": 576
   },
   {
    "name": "guides: keyboard: the arrow keys move between the guides in the nav, an activated row opens its guide, and the toc links are in the tab order",
    "ok": true,
-   "ms": 785
+   "ms": 653
   },
   {
    "name": "guides (375px): no sideways scroll, the nav is a drawer opened by the Guides button, Escape closes it and choosing a guide closes it and opens the guide",
    "ok": true,
-   "ms": 1148
+   "ms": 713
   },
   {
    "name": "guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning",
    "ok": true,
-   "ms": 1740
+   "ms": 1219
   },
   {
    "name": "guides: in both themes the article text and its code stay readable (4.5:1) and the page follows the theme",
    "ok": true,
-   "ms": 1810
+   "ms": 1187
   }
  ],
  "sources": {
@@ -854,11 +929,11 @@
   "elements/accordion/accordion.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/accordion/accordion.js": "d7f1e079c63a66945094c9f521864648e976bb17849cb608e8b45e7afe088f10",
   "elements/accordion/accordion.meta.json": "30e6c8dbf7a5023cd813c361fc44a63bbaab147c1d6218fd6fbe9c53e578c330",
-  "elements/alert/alert.css": "7cde7246dac2f011fc395c3c5f60b86cf81d0a252ff616c37625100b92cce5bd",
+  "elements/alert/alert.css": "51b5979008e41d7edb4bb3092dcfce3fd8fdddf92965a9efeab33d81780287b1",
   "elements/alert/alert.html": "cd4b7b74087e823d84e4a2f2884046d634228acc48b3fdfe62ee3100a6991324",
   "elements/alert/alert.js": "b72d2c55346a1f8ae7f7294e9055ab136dca7632f5cddf2cb70e10d488114186",
   "elements/alert/alert.meta.json": "03c74fb4adb1c73e05b439ea719dbc4c27dde28568b3591d7271bf03a69b0e42",
-  "elements/app-shell/app-shell.css": "31a742f070156560be8e3907a98a5f7b9183f59a3fdca9f506f783f03545c3a2",
+  "elements/app-shell/app-shell.css": "7da27a8c88151aa250a392a27ab225315904928c8b087d5af16109f4f3c8431e",
   "elements/app-shell/app-shell.html": "8efdaae21f4d0c41e37d4ac7874cc768bbce399974451afa15e296b843edfa7d",
   "elements/app-shell/app-shell.js": "194c6ad013584e528366d29ce450bcf23ad263239a43a6c6d847522b191c899b",
   "elements/app-shell/app-shell.meta.json": "a867642d2011f070b3d7960a24981e70843e88406a7ba96a55a61322e7e720e8",
@@ -873,24 +948,24 @@
   "elements/back-to-top/back-to-top.css": "f887728f0e46e897e15433d69b4a6e10e517f3f70896379eaff360f0df278414",
   "elements/back-to-top/back-to-top.html": "ad5fbcc420cbe203f62d675f1dc4595c8a4bfe41a6d52ea41ced0b8bd639f76a",
   "elements/back-to-top/back-to-top.js": "67ce011190ba8f3eaeae14baceb1663aaf7887f4ed8f2eea6ab35fd36ca447a7",
-  "elements/back-to-top/back-to-top.meta.json": "2e24e67acc1c767c1f2bad1fe2866a4f2b43c1c911c9d87d4be31f19d01e02c8",
+  "elements/back-to-top/back-to-top.meta.json": "543cc3da7baf6e50f7346b594801bdd1dd444d0a71b353adc0be997dff7d6116",
   "elements/badge/badge.css": "3cf4625d37c52bdaa6691da75c2a85cc330700686643a62d6c6f77f9e3d5a252",
   "elements/badge/badge.html": "39b985ffd7c8991d274bb2dbf1bfcdd43a3df23189497f815654d67e6102c06f",
   "elements/badge/badge.js": "9a0b219909673e21e38787f89f45a3da9863b7d7abd7ad3b49e286993f267a1c",
   "elements/badge/badge.meta.json": "3ebfaefdd3cf0a17a1052ee30c2307ba5d8002e541a5c67f2c536dfa2aa666d0",
-  "elements/breadcrumb/breadcrumb.css": "8714d535ac35697ed23e1a9404c025eb2b6d7c56b7d428a900247cf4e3b105cb",
+  "elements/breadcrumb/breadcrumb.css": "8fc9ecfa4bb84c9b30032f1f9e08109d71fb9dffdfe425e02efb63eb648d7ea9",
   "elements/breadcrumb/breadcrumb.html": "640019d840493d6ad130996cbadf0227da8785cf8db43fc776c1eb1b79e027a3",
-  "elements/breadcrumb/breadcrumb.js": "4e0755630467e3038e9d88f98d9c9256f46cb8d9bbdcdce936788caf393eb176",
+  "elements/breadcrumb/breadcrumb.js": "e6b1ab59b7c61ba3e3d24f75c4fca95e98d240d15d6a37c34dca5e48d26a0cb8",
   "elements/breadcrumb/breadcrumb.meta.json": "80522679b9828feb5dc69caf6bd4e63eee2360a6ad5e1900071ea96f9de1c513",
   "elements/button-group/button-group.css": "aa63aefa4047370b2752084b3a4e8463ff909db7115ca1bd932c3c8144bacb12",
   "elements/button-group/button-group.html": "2db6a13c80c78d4b91b68a23b39a025af9ba32ced06645a493345e59900284d3",
   "elements/button-group/button-group.js": "3f1ce946a6a1ea0bdfff352e9a128d1ad7a9223dfb32df18abd020be46a0492b",
   "elements/button-group/button-group.meta.json": "3435660b9548cee2f939834a944763ee8e09b3b987bd1e9b3be77d9e738e72c7",
-  "elements/button/button.css": "4443f883f286abb58accdb679be2c8bf26a8b8400b80796ff68d3026d0b42294",
-  "elements/button/button.html": "7e659f98bed5d110e436a9f8f634b79b00f637213c99ac5298043262c957dc44",
-  "elements/button/button.js": "d3b3ce5e1c9703daab1783a0ad06b96291b5b84704cdd82f822d001ac3918197",
-  "elements/button/button.meta.json": "411fbef8d50c1127e78d11b07514e3c8ba6e093d41f18e424d8cee1b22267669",
-  "elements/calendar/calendar.css": "cab2d6148d0b386b06fd745b7466912ba3cb36a28432366c232b84ddc915bd7f",
+  "elements/button/button.css": "70d3456f58e840ae825604c098c9e043e301a2829ee284a3ffc2081ff6816136",
+  "elements/button/button.html": "8d8bbdad45ef1d1b582a2874aef5f607165bac5a262a261617fbf3cfbd57b90e",
+  "elements/button/button.js": "344b0b0e74e8a9d898355976598e2159e4d8816cdd46b4f8e65f2e0f4f071233",
+  "elements/button/button.meta.json": "fc30188bdf1b06e2af8df0a551476161ffc3b732741a88d3737c1242b0176be3",
+  "elements/calendar/calendar.css": "eb12b4cea1e214e84d74bab510c41b8486cfe309c2b65ca17302bbc7eef2e1c3",
   "elements/calendar/calendar.html": "1df8abd72d68a4d34fb925776a991f7ceb621f6073185fed0baea0ee77403fb2",
   "elements/calendar/calendar.js": "54e7ed2afb56d2f0aa911be906a0eeac3b1984f54631b9c52cd66bfa75e428f7",
   "elements/calendar/calendar.meta.json": "87e301b238abd859a20e78dfb9474b970352b83413c96cc1617de9070ab4947f",
@@ -898,54 +973,54 @@
   "elements/card/card.html": "e5d53a35c402c28a22662daca86397b97c4ff65e5fa7ffa494a2ad3eb8ba2408",
   "elements/card/card.js": "2c915538bd646078163e1e12610403aae2473e2d14220fcad062ee6e446ced1d",
   "elements/card/card.meta.json": "57c52f3f201ad7204c0f5c95b1e91b5bbfa2405a64e645e6fe235f3d54d2221c",
-  "elements/chart/chart.css": "be5ecb97b849fa60517adb9cd3e573209eb237f7b993e983ce88dedbccdb9b50",
+  "elements/chart/chart.css": "9ea9cabf161c4d3b68b173b565d1ad6a61f4161774b3dacf78cd3db2404dd9b6",
   "elements/chart/chart.html": "0b78b8b49eced5732d5931c46ba80af1c4a2aaea6e36db605cbd2923a39fefbd",
   "elements/chart/chart.js": "3a95e1536ec3207ce416a5f59c1467957c76d693b095d30e63d50bdf9f2beb0c",
   "elements/chart/chart.meta.json": "8f1672d31022dea85513bd15feae8b4be3329350011f03117f49290bf1e2c616",
-  "elements/checkbox/checkbox.css": "8e3e878a820fa450ca3193794a472dad870923f84758fe826c628dda93e9766c",
+  "elements/checkbox/checkbox.css": "63683044a2c96e15df66dc9c675b67184c57a68c490886a1581bc535fb5ec388",
   "elements/checkbox/checkbox.html": "338cc959e506f683498111f6e63cf864a4be00def053e25dfd29321c58213b59",
   "elements/checkbox/checkbox.js": "2bc2cda50b9717167ca93e8dadc85c6799587c0566c0e1416813fe5d50057356",
   "elements/checkbox/checkbox.meta.json": "60d1f710ce084cee751d544484d7d1fdbf6715d3d5880e71b8ac4bb4194bcee2",
   "elements/cluster/cluster.css": "b8d3d87fa182169cc4b09f57c36a786a733c33ad11f6308a122f7624634ff97f",
   "elements/cluster/cluster.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/cluster/cluster.meta.json": "cc9b3cfef948c34d14316e87ac15deb8797fbe1cd0a3fe92dffae8f34f1f1ae0",
-  "elements/code-block/code-block.css": "516500907fd14452c56b745ed34982a85fbd1317d8879395b11f80bf2e7b2877",
+  "elements/code-block/code-block.css": "283c765097deaa166e64c7a7dabf55acc0127fc447d2acd24e7e74a42b36bf85",
   "elements/code-block/code-block.html": "17f47910a039f7eb3a278e91c103250507038822b9169ef9c755186f526ad5d3",
   "elements/code-block/code-block.js": "0b4b5d27c758272fa4696b54a72a5d8b93dfb1019cd3d81d3e1cf2b0473cb70a",
   "elements/code-block/code-block.meta.json": "3166ab6dbdd312a9b3c3dceeee8f84d2ad0db6d4d90760e1e21dbab6c4b5ca71",
-  "elements/colour-input/colour-input.css": "8a920b850554a5a5411ecfc4080b3155e0331782b636ddd031e7426166ec8909",
+  "elements/colour-input/colour-input.css": "f6d3fb3efd15e153f2fd1f98dcca9d834e8f353844342746b7c9b832df0d84ae",
   "elements/colour-input/colour-input.html": "6ebc35380b93d1e76a696d3854a440449fc03471c6b5caabecc482c276845ee3",
   "elements/colour-input/colour-input.js": "d473ffe9bce0fa669b5ca7984b0370269295586ab2b114b98b015daba1d11be0",
   "elements/colour-input/colour-input.meta.json": "5fd0117e2178ac2168ed8d897695947961d1350053c699e0cf58a50d8a7c86d3",
-  "elements/combobox/combobox.css": "84ee66e5e32f2a1202ed59d9da1989c45e02db28525d2e2d3d8b8c32e067cc44",
+  "elements/combobox/combobox.css": "6c2dab14dd7fa6caeb2d2f351921ad9ac706dba94f14b98fc3b3095b3d77e88b",
   "elements/combobox/combobox.html": "799d2f5d72b804851ab6dd9962129702300a26e30020fa8f2c302702bd52c091",
-  "elements/combobox/combobox.js": "67ec4efab5033b4c04353e6d31490f63e2c08cd0dbadd4d32aca12f6bc0c8246",
+  "elements/combobox/combobox.js": "68185a6b6fd3152b4f1bc8a0158717093b34bdb0b18ebedef729a5908b5e3684",
   "elements/combobox/combobox.meta.json": "f85303c0198e76e0b87c40f59ba9581101c6e6918d7c888d11f4678bebaf10ac",
-  "elements/command-palette/command-palette.css": "cda19b6a90d15d2152e87fd1c778a28d6c739aacf4289fcfabf6ee528905465c",
+  "elements/command-palette/command-palette.css": "07a33b698478fa343b5f572996919a4e60a19a7d2bd22a75fd80a922419d8dbb",
   "elements/command-palette/command-palette.html": "a3601a63717761611debf6a04846a7c18c7d5fe320877fd1c6397d6b8f2e743f",
   "elements/command-palette/command-palette.js": "71cd804d0a0fb0005350e03d429506f729b1ea9bdba271d64e95f32712a95f01",
-  "elements/command-palette/command-palette.meta.json": "0b78ba26dab5e728968fe800bd1a71f85dff7f664ca73932f415be1bbe56397b",
+  "elements/command-palette/command-palette.meta.json": "4dd6db295eebb6c41555609656bf53e4d2749f47120b588b6ba7803b05aa33b9",
   "elements/context-menu/context-menu.css": "6cba9a94f63234990eb3ab393b17ceebd0235d7cb1b98cb741e2098637b27f3c",
   "elements/context-menu/context-menu.html": "37430c2152695a63e3fde89ab90a47ebae2e30472bcb51aef310e289aed1f054",
   "elements/context-menu/context-menu.js": "dbe5e3f76f1c96a93880485d81cc8d553c104837c33ee0a05c906ccf075a2d3b",
   "elements/context-menu/context-menu.meta.json": "69e874cf30d08fa4ce0729ad9a380558f609d2ec8a26fdec3f05004856209f96",
-  "elements/dialog/dialog.css": "6722ec0e244ecb7ecf8e00bc88cf3f6cecc91d78d02f35e6e221cb58bbecab4c",
+  "elements/dialog/dialog.css": "beea5038066bf1dfe2d6850f1dd4dbc33bf7c9c6de483f8585791f1936240be1",
   "elements/dialog/dialog.html": "b3f5f968de3d421563725274fdf1842171a3069ec751f33b9bfcf30b3d35546c",
   "elements/dialog/dialog.js": "daa6698d1d1b437062704eb46e9f9f5624bb2bae846ae50b94789e17ed13ce91",
-  "elements/dialog/dialog.meta.json": "25a18e05d0a6b4feac76d3cd36d4377d35c901fb846f9ec2cc79ca2fff073d43",
+  "elements/dialog/dialog.meta.json": "8811c13f199cd2d2b81970dfe9b0ef38d1baaf0372a3208763b3e3f95401ddcb",
   "elements/divider/divider.css": "613a8a14104aa467aeaa647ad95c6ffbacb61a3f68767e05f7d053a23dd13303",
   "elements/divider/divider.html": "0788cb17311ec99ea681784a05474f7d685e8f44dd348de2e5636fbad4f46ae7",
   "elements/divider/divider.js": "09cfc130b064b7392aade7711fe6a9edd5ac117d3a21d358e8ff28eac5217605",
   "elements/divider/divider.meta.json": "2d6744143302c4f6cd06a08c6de5dcbacfabc407ff6a020127e920dc106af266",
-  "elements/drawer/drawer.css": "5dd5ef98959859bc07f6974a7ff0e8fd85f80124529dc35a18175f759eef8baa",
+  "elements/drawer/drawer.css": "095baa7c8bac74a7da93989f1b6a49a5d1be2615179f2f88d05067a83ec01edf",
   "elements/drawer/drawer.html": "a7175acfca5bd0b2093cdc573a3beba84f24beba6c2f8e2f4c85c88a6ec761f7",
   "elements/drawer/drawer.js": "9d73b9f95a14e71b67d7c1521f0da318dd8b363435b29fb5ec00ff34465019f6",
-  "elements/drawer/drawer.meta.json": "29eb615166a2d59c980cbc672c79628dca7a8ed000d1037d764281adfaa30cf0",
+  "elements/drawer/drawer.meta.json": "bfc7cd1ac210623fb8f54dc95cc511c2475e07d42121079cdf2642e51a854e47",
   "elements/dropdown/dropdown.css": "a31d2f5c3460cb5c1e7b77df42a3a72eaa9bcd215781a2354c522bdcb97bf0f0",
   "elements/dropdown/dropdown.html": "f21067cf93fcf5ff2561d465947145414e130664c6d88c0970db2c0b21019ff0",
   "elements/dropdown/dropdown.js": "9c5cbee35ca952b362dd73eebc0a5b35c2703a6de4182e950f9c42663de42242",
   "elements/dropdown/dropdown.meta.json": "4fb8352c6ae7cbba7c5cb78a540413b6b6f529ab4b6523dc857ef911628f45d3",
-  "elements/dropzone/dropzone.css": "fa0c272ae442623d0378cf76d8c2db1ad525e0226c2fd889b08a94e15c3b0509",
+  "elements/dropzone/dropzone.css": "ffc7c4c7652214012608b687a8bc4a6b16f74070031bb8d5e3dc3abe951aef0d",
   "elements/dropzone/dropzone.html": "35400a3ebe315548dcb0872dd69252e786f9a5346024941e1893181f892d1f33",
   "elements/dropzone/dropzone.js": "df906ad20060011297a1486092315edbeb7beb6ce5b42cae7caec85e52394c0b",
   "elements/dropzone/dropzone.meta.json": "fb46de4898562d008451e76b04c6df9bf037fb6508c8745bda94ba2168117993",
@@ -953,32 +1028,32 @@
   "elements/empty-state/empty-state.html": "54339c921a4481a133929ad49d0f6e86c4f6ee3464224d64d86c1474ce6a4214",
   "elements/empty-state/empty-state.js": "8d74d66173b5d9102f56231a5b538e59b2062c9ffa65721b8635cded532c1698",
   "elements/empty-state/empty-state.meta.json": "6f7b83088361d021a8f1a77d07c8e31ffd3e67b4dc9ff6442abae3fca12fdafe",
-  "elements/field-list/field-list.css": "8be20d28ab0db1b5f229f29733c8082841a49ee9e3d82477022d534f5923d2ea",
+  "elements/field-list/field-list.css": "7be03810d7a080ada73bfc47460cdd87a20cd847186975026be6239161b9ed56",
   "elements/field-list/field-list.html": "c437cdffd373783ff79a21cffe7ed6cd8b21d6799f67705c4a08bff19efb2d1a",
   "elements/field-list/field-list.js": "eaa540f80bb6f002325d68650d4eb6f2756eadc4d1d1e4a267c49d52b77bc377",
   "elements/field-list/field-list.meta.json": "25eb856407f4ce072d0164ee3beee3fe69bc74700987acde34d1f49cb050d727",
   "elements/field-row/field-row.css": "4215f2994f724e12288d788964029bcbb0321897d963aada3f7b43ccdb0360c9",
   "elements/field-row/field-row.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
-  "elements/field-row/field-row.meta.json": "d9c42101f67e6148fe7848803807587d5e3bf0e68019641f6b0a7fbb2466243a",
-  "elements/field/field.css": "29d4bb1dbd009bedd0b54be4d1fa4d939d8acb75d0d429df90d0c1ee62c8c259",
+  "elements/field-row/field-row.meta.json": "217f5b9423054555a349b564a5289014cb17d1b2ae2aa2285cc18aac023f437b",
+  "elements/field/field.css": "d2b25063fa274d7b7249e07414882ecc9666fc3f5f346b4375caa7511241424f",
   "elements/field/field.html": "01d5ba68152f13583e81e4d7b9d118db08e9b1ab71d4d0fb5e5e21f222418e45",
   "elements/field/field.js": "8cda6d42ceb9e5ef7971c44d0f32b74513304938ece34905abb8080f4944ed60",
   "elements/field/field.meta.json": "a1c729ebc0afa266431fd9f7e3f837a5c47a87d095ce4866ed75ea9701fbf49c",
-  "elements/form-actions/form-actions.css": "3a1aefd3baab3d700617e5757610bbdd45917a359924d0a7a5ce13c486db3ae9",
+  "elements/form-actions/form-actions.css": "c533f57ba7df5b2098d469f462a55a1a05ab3c8578c87a05544f0c273684b939",
   "elements/form-actions/form-actions.html": "a0cb585c24464b454e9ea96269649ac601f36e19e0555debd5b6fd61c344bf47",
   "elements/form-actions/form-actions.meta.json": "9df019f34b3069777f4952fb377c147ecf9f1ca160fa85f2e3c225728dec908c",
-  "elements/form-section/form-section.css": "e635b7ab7f087ff4cb33d87d2915f51a89ef6d487c1b3a2fd52767675b840141",
+  "elements/form-section/form-section.css": "6597a8b9899b3b969cfdb92997ba708fa228498fb1f96d15df32bfea53abe26b",
   "elements/form-section/form-section.html": "e71ba91ed8ac9a907de84f06f3decf48f567a4ca8301f049733e039181b9e801",
-  "elements/form-section/form-section.meta.json": "76b76f9418c5d65e49a75ef17fda6462dc64d36708dc3b82be49417798c84514",
+  "elements/form-section/form-section.meta.json": "7a8655e7d3a9eb47d3c9c82c8f2a427d3c0a4190bb841639598aaca3e4609ada",
   "elements/form/form.css": "cdc36a5f05af01c6e46fc54ff5d78802e3dbfc5c41e12c6941f84a98937544a0",
   "elements/form/form.html": "bca2e3c792d85c3732883cbfa5fcf5dd56886df34d8147e16efd3871595209be",
   "elements/form/form.js": "0bf91d741bd46b0088e2797136df57a9c2ace5298b59ace1966b052586d26db4",
-  "elements/form/form.meta.json": "9040bf7be1bc48fd7c7e72868255a5106ebd4ab781afad985b6004d050c377bc",
+  "elements/form/form.meta.json": "6448ec680c8a16ef027f797280970f52e7b53c44f82d054a3f18ea9d92635c44",
   "elements/gallery/gallery.css": "ec2eeb9cc7fb321395fbcd8ad8c16cdacd0f4d6fc6455c2571a66468aecf7349",
   "elements/gallery/gallery.html": "e23bacec0c45967064c9155f3a7ee45f7195fbffb4436996ccee7f2cc9e6ffe1",
   "elements/gallery/gallery.js": "b8019c2d262b0bb5112239ace9cec63d1035edb11dfb45e79effa65d1d661f94",
   "elements/gallery/gallery.meta.json": "01f5f48793c64c50f7a0bd935986f2c399f6dfdf317e3e31fa10a9b51dbe1ba7",
-  "elements/grid/grid.css": "daa1457d2618217b3fac599d354188515c2ff1fc45d2a926e63537322d89d4e6",
+  "elements/grid/grid.css": "b68848a520fa3e7965eda17ac46b6ec5a5fbeb64b70a5799df3b5b9ef6e316da",
   "elements/grid/grid.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/grid/grid.js": "4077d3a9f5d8a2c3263850ca081c303efe342e2939c0f908c93def7ddbfdb8a8",
   "elements/grid/grid.meta.json": "bd184acf9f44c7bda96615db1da4a2b7b4b8dcb73ecc15898200489a7f741cb0",
@@ -988,17 +1063,17 @@
   "elements/hint/hint.meta.json": "bee2cbe232ce4f5864e3fa4b74ccb2c473d0b21646c0a5333e9abbcd4f8aebd3",
   "elements/icon/icon.css": "8a3ed46dcd8c36ce1d91e155c9c3b00bd89b6d37ae43d06c10d2809dea4c866e",
   "elements/icon/icon.html": "0cc21c3ed6ea31e8a58b13d5b366a2fb99eb3c2d4fbfcc7341a092f2d28ea46e",
-  "elements/icon/icon.js": "dc1de947383fee30d8c9dd9b51d1b1161da736254cd71f5bc4efafd9962234c6",
+  "elements/icon/icon.js": "6fed8965c965130e6a053e9f9f6d7e43deb9fa29ea4eec478e2861f5c956adf1",
   "elements/icon/icon.meta.json": "e3f3a917d419c2beb1d029262de9d1a683df46c5699830e6cfadc059c1ea5223",
-  "elements/image-gallery/image-gallery.css": "1f6a2d2aaf9117742efddf4eedb1678179a75a08ec23fc5e61b5689bec63e645",
-  "elements/image-gallery/image-gallery.html": "fdfc62638bfa3418eccf6bb3ed8b8e572f579ca1f9d096d6211f95cc3450c342",
+  "elements/image-gallery/image-gallery.css": "03d227c709d97b7f04b8380a6aa2631fd8aa72b897ed2e4a596c3f2d46cd4a09",
+  "elements/image-gallery/image-gallery.html": "e1a42b54a23b03f581771dfd7966c866929fe24ca8d58dd1d7ee2ab81d389576",
   "elements/image-gallery/image-gallery.js": "36d76f6ad9b9af01d5cbdc483820c0d533ddf96fb71acd92273eafa40a5fe50d",
   "elements/image-gallery/image-gallery.meta.json": "db64fb9c6cbb32f0b40526bd9c768351e8794f7467fa52ec3fe9ded874897062",
-  "elements/input/input.css": "6fca2a3fb8e4b6214a8bbbecb7b487983c5afa3cf39affec66dd201f78d90fa0",
+  "elements/input/input.css": "3162c50e0a45b53c6af735e9be5ae7fed44dd60e9df1da10c8c13c226d8646c5",
   "elements/input/input.html": "a5d7edd50efa8192001c45ba0dfaff1c43b7421f0e4a81e16d3952113226cc1a",
   "elements/input/input.js": "dc40f92f21e7e0975292b7a7dbfa9cdfedc2dbc40808ae7c4f070c90dce65154",
   "elements/input/input.meta.json": "aeda62c824e675cb3f65843808dfe33992cac80ad393ffea49a1ee4eada6cf5e",
-  "elements/lightbox/lightbox.css": "dcd470f6d1457686377346da1a9f47c4e89fa6ca13f63736cd60864fe3545f26",
+  "elements/lightbox/lightbox.css": "becc42640cbea090197d2ab0ab225e68fe06e4abfae1a9c712ad6f5efa536413",
   "elements/lightbox/lightbox.html": "08554192f3c400472f931b0b56591a285573c4ba828c1282d13c206b6f7d6a65",
   "elements/lightbox/lightbox.js": "2dc655e200a6c923d34516e4ff56a02df9c1cd8c4ec7506c48bf7da24f9d13bc",
   "elements/lightbox/lightbox.meta.json": "03110139605f5d99c8af85e2dddcfc29d7a427bbcdbb55ad5cdb77c618a5ff8f",
@@ -1014,7 +1089,7 @@
   "elements/local-time/local-time.html": "9059dda849d8c6c74d4d67e0a167929b68738c5ab94b5ec59bbce524238621ae",
   "elements/local-time/local-time.js": "c4f01bcddc5a889cc187ef99888c0fa40aa81891f06c0f8fc8a738488313f7fd",
   "elements/local-time/local-time.meta.json": "1ca779a865b6a89cdc9ccbc6dada5534a0d1ea8314d5be03d433c16649c20dd2",
-  "elements/log/log.css": "dba631bef13071a7fcafc155ed48b1f8c0e89a5d892664dc56c4e994e60c9013",
+  "elements/log/log.css": "51d275f41c2d526058adbefba861de05ed07d1c33889bc037e21e72b76d03663",
   "elements/log/log.html": "775073b8dd3059a35b3967f7dd88e6a369daa52e676ffb3e78fcf0bd6908be7f",
   "elements/log/log.js": "548fc196bd3671dbb1e58ac2772740e263678375da6e3ffd7bb5ac517c9b1a68",
   "elements/log/log.meta.json": "f12d7b2c4e54db5a5dbddf1f9b20b5b185c2bb03af5e4ddb8789f1ae2304366e",
@@ -1022,19 +1097,19 @@
   "elements/media/media.html": "bc54dbd0899f505ab078a21a68b47d68e571b81c558772a0dae5a32d5f4d10e9",
   "elements/media/media.js": "4a17b905192bcc6bb5f02f07235571ab739c2e7e20dd8fcf3a6e96ddb0ba30a2",
   "elements/media/media.meta.json": "e1d575acf1f5bf41521eb8eac8e06f6df16dd2d7bc8831beb4932764d9160501",
-  "elements/menu-item/menu-item.css": "f9baedb5a7b7d85084b9b7dba4eb78325a3cb556f73ca1e680bc6f25a63c5074",
+  "elements/menu-item/menu-item.css": "892f30fa584edfcf22b9f0925aff16cccf2bc2135d026ecfbdd2c8bd66eb131d",
   "elements/menu-item/menu-item.html": "0ae9b9502a63819c38bba5c9b6052da6b111d3e3c0c2d147fe75b2eb4b940c70",
-  "elements/menu-item/menu-item.js": "9a665d248d616a674ee84488e497de88967dd9b2bf6dfdb351943443dbf64b0e",
+  "elements/menu-item/menu-item.js": "8905a2b8d4bfdab3304bd91ab76a1b8760fc3e6101864654761cdb9e3b655846",
   "elements/menu-item/menu-item.meta.json": "c73a04c164c12dc758e0a2f31b9700fde1b01858c94fa0a63caf07bd9c94799d",
-  "elements/nav-item/nav-item.css": "f5d8a8b023ba50c1f50b98c6978fab28f3a606dbc0e0103d88d1a98c3e0c21c5",
+  "elements/nav-item/nav-item.css": "07c03745f159762d966160be8f7b19b4b52e2c74afff4649ecf1720aa405d805",
   "elements/nav-item/nav-item.html": "742fd5dfe084f559bedaeb0339e1a0d715a68cc0400bd35140bae77fde877a46",
   "elements/nav-item/nav-item.js": "fd0091819a0ad7a89dbf4861876ad71d85f5965f5b0adc21537c2fb839b04224",
   "elements/nav-item/nav-item.meta.json": "fbfb88b1fbb7ff400828cfb4abbb37c12fe977b870ba99724c7ea765bce241fc",
-  "elements/navbar/navbar.css": "4204175a291db4cfe58675c79c7bd41e0d8077e5b2197aa7371563842edc0800",
+  "elements/navbar/navbar.css": "736d3f10faedf97f8df0927f78af6a4c7b6e7e7ee98fdc4bfe3149b45cd928ea",
   "elements/navbar/navbar.html": "0a3a644924da9d71f84797ffeb05d198526f7ab41c333922f8fe529a9160105f",
   "elements/navbar/navbar.js": "897c64586e98c03eb05aac113dac1fc1da04c39660f872dedee364794278dcdf",
   "elements/navbar/navbar.meta.json": "22bc0f9426517678014ed3026834ca506d60caa7f908fca1b31db341ae5ee744",
-  "elements/otp-input/otp-input.css": "50cdb7c157df9c221bce3b46861b5acfbd3e6cbfe858f41caafdacdc14f768e2",
+  "elements/otp-input/otp-input.css": "b8df7b2f932b8082cb15ce6158065fe563cefc18c97e531c56a31a8f37772c3a",
   "elements/otp-input/otp-input.html": "14c07969e3739eb5916ece559c9c79aab03178333d0397450aba5cd7c180a380",
   "elements/otp-input/otp-input.js": "a88748024afd60fc2d4a09a276041c254dda29e3cd6ef19af22f639a78ca7322",
   "elements/otp-input/otp-input.meta.json": "c59aa0a7ff1b6b2d99bfdabc9de61176881897f1faa0a25b9a5e80c1c47fd1f9",
@@ -1042,14 +1117,14 @@
   "elements/page-header/page-header.html": "4edc732ce064f9eadab8ea3795506f1d1a865536df27fd2696a63bbb975e3f61",
   "elements/page-header/page-header.js": "271e42513c090ff59fcf1a9c2316cf152f3632d8ca859268a35282f17dde79f0",
   "elements/page-header/page-header.meta.json": "8c78eae0d0a227c6ce8ac0f9c21921c43550fb12b74614c328d240540627b99a",
-  "elements/pager/pager.css": "8d789430cc5e176628129dbad976e4a506aba371523661c2b62ac9af70ec4dc8",
+  "elements/pager/pager.css": "d2da6a8d3453ade51e8f97da49493aaf6676e03cb1c1b8a053369c4e855b27c6",
   "elements/pager/pager.html": "a881f38c732786150760f3d30a4cd1cffc6dcc68001872a76547b6581303635f",
   "elements/pager/pager.meta.json": "abb099197335b1b1cb5549ff21e1a21a4847cad097d0d8edbbd035db4aa0bc43",
-  "elements/pagination/pagination.css": "46329e6945b48e54a595af6e70cbe681fbfd233ff1e556c912f26e3a50e6dc2a",
+  "elements/pagination/pagination.css": "4cd3dd0ffaea0eb469cdb34cbdbb52597175ac886e7d106d4a7c38e8fc833348",
   "elements/pagination/pagination.html": "be11c71d328fc342912d42c6ceb8ad9673fb226628111886f42162c4f501545a",
   "elements/pagination/pagination.js": "c385dd13fc7cabd4b595546c4c682c6bdf53c9f0bf2fc9fb89523de379f654a3",
   "elements/pagination/pagination.meta.json": "e9cc832475d9bb3d720502489f38a5d413376fddcbe4d51befd2c0ef9edc989c",
-  "elements/popover/popover.css": "1785e1aa279b4a835c76d786816fa7f713126e249e2ecd73f60f169e7440c0ea",
+  "elements/popover/popover.css": "c488554998b989ae9b1d84691494be03d358dcfdd829a13a5a46a177f85ab735",
   "elements/popover/popover.html": "c389ed7a0fa9793a833b95b11e70769a94cf02ed1153917047daa93f01704a59",
   "elements/popover/popover.js": "283de994570ab02b917e554f9fd6585bb033e374fb4f29fefbb305b7d6210894",
   "elements/popover/popover.meta.json": "ca6f827b8fc661e05972084944492e5c1c61fc7acc46394ba4a64c1ed5d0a09e",
@@ -1057,15 +1132,15 @@
   "elements/progress/progress.html": "4e13df5ac0d1e8bacfb66ae35e94e64ad2e671d40724cac2efe665fbe53e6843",
   "elements/progress/progress.js": "95f1b7ad96d99112a461f61f670ebddd40a4a7cdafb83c1be150baf0f8523e11",
   "elements/progress/progress.meta.json": "08de47947298d844cbd05afd3540ff22168c29931099007f0e8bd4bc789c01a0",
-  "elements/radio-group/radio-group.css": "bbf60fd78056e202ec0570ae328f1807fe4c9eb95b0ed3f25db191e13253e0d1",
+  "elements/radio-group/radio-group.css": "98162a50d5b3a89b9f617bfaf5b01bee03d80aad92ffc5d8f22171f1d9d35af8",
   "elements/radio-group/radio-group.html": "2372226f5de150a4abcfca0e606d0a2531b17df3d3da4128fa0921db850decc9",
   "elements/radio-group/radio-group.js": "288de7e783a555b3d0496ad0f89897ffc2fbc2baa5b3ecfc62eb0205c489f872",
   "elements/radio-group/radio-group.meta.json": "3b6c58832fbec08396fa6571da6cbe94c2b5424f61d8a3aaccddc50619e016b7",
-  "elements/range/range.css": "cbe24c217e3b4d69699e3bace5101ffa9f349be8dba15f36dcef642364dac5ef",
+  "elements/range/range.css": "c482bf50635491f4a87ec2b903142fc63324811b5c300c10effaa76d9bd5bd67",
   "elements/range/range.html": "54ef45388f2c116cdb3c223d381905370e822ff083b2297e1b1a604b795c2851",
   "elements/range/range.js": "d09732494bc78e71d99f1d7589e1b7417635742fe94549398e418de971e4eb6e",
   "elements/range/range.meta.json": "d4e2bd607794b3ee54b443b50139d8c8dd6c6178b98d89188e2a70be5596248a",
-  "elements/rating/rating.css": "5cc581586a75a23fff260302283573a51514c6685b6f20313403f0f93b2b228e",
+  "elements/rating/rating.css": "e467a706c98dc0c13785f0b4a428a071167b205d401209d40ead30fd3feb7be0",
   "elements/rating/rating.html": "d728abb08966cc5180f7fc090612eeb3b51143cc368c902218b9547dea3d4d0a",
   "elements/rating/rating.js": "cc64777ecba4c2ee1ef8d2cc2edea9f7138a30ba6d49f41d96317066137aeab0",
   "elements/rating/rating.meta.json": "2aa19567409db2a9112b9781690bcfd285132c98f0eb71349681ab75fe6f4acb",
@@ -1073,17 +1148,17 @@
   "elements/scroll-progress/scroll-progress.html": "4036fb30bd36c8a12224a124894e519e1c0cf2ac71da6f807457145f44526c5d",
   "elements/scroll-progress/scroll-progress.js": "aae1c30ba69b34afd8eb1fae8496b52e2c9c69d1068dd59c440957d9c0d63b4f",
   "elements/scroll-progress/scroll-progress.meta.json": "1fb9135e7ee83c8695a1f79ca0668e7da554f62ff6dcaf6e5896c0809c1bff2c",
-  "elements/select-menu/select-menu.css": "494362aca1b8d272cb1006021507858ef6dcbf37e2ed3d663c937947a66de04c",
+  "elements/select-menu/select-menu.css": "07f8f8fac49e8999d90bd6fff99e35ae456175bc29c07ce6c466a9490392f302",
   "elements/select-menu/select-menu.html": "2cfe3b8589c5c05001659a456ba7a1bb3d7063c63ae8851281a85c4a48db84e9",
   "elements/select-menu/select-menu.js": "8e90113562dfc8d499ae418817cad575547038f9d7996c0f650947575e5e63a0",
   "elements/select-menu/select-menu.meta.json": "c79e3e948e59f6ff6ec992e59b4f6ae45a981e45f0c087f7e7009806a6444b5f",
-  "elements/select/select.css": "7365429177fd65b6fce97ad8e1daee77c66b30edd9f2d9ddeaa6b74e12d83c22",
+  "elements/select/select.css": "94287a1de73e91a77aec43043c7039bc24a216061694aeca141bd67df683ce0e",
   "elements/select/select.html": "c2ee2a6c1c20b81f5f63c13728aeeea9e20b205afb7a42ad300927d54eef2cc6",
   "elements/select/select.js": "823c4ca2d5c6725a3c9fc210e25c920d1f8e4cdd8f5f3b969bb19508c323b503",
   "elements/select/select.meta.json": "b8aa0da1405e4982f6e35ee1afee85ea111892d3d977d9eeaee1053a2c541f42",
-  "elements/side-nav/side-nav.css": "34b97ff2cb9de841a4def1ad418d5525a3e8c589968c634dba47b1da92b5e969",
+  "elements/side-nav/side-nav.css": "8ce6aff6924304eaa8e2b17187b16a8031f824008b35d29582bb8df75bf742c4",
   "elements/side-nav/side-nav.html": "b2a924b704b7dfefe75d6e692ce066f47e408d20ae094e525321d59e96fcdbfc",
-  "elements/side-nav/side-nav.js": "9a7e5b19be8335c99f6c5d55634d6062964323effe956e45f2cc568b7a209e50",
+  "elements/side-nav/side-nav.js": "6e5f7c1392f7316bf23a6b5841e45ef27a34b16cd9d0599e81b1f76746ede428",
   "elements/side-nav/side-nav.meta.json": "6addb4de51b4b899a9f4911f08b59d6b8248027d1eab57324e4172ead95657ce",
   "elements/skeleton/skeleton.css": "1ee164a0c989bc3d353e82f27f156e55292936e7bafa74d8b4e0d881ae3d5282",
   "elements/skeleton/skeleton.html": "c07de67e86d61973e606dc18ab37741c7cf046db23da64776a63463cf9dedf2f",
@@ -1097,7 +1172,7 @@
   "elements/spinner/spinner.html": "f6630d6538e36c4e81a90226e6b7d05443608c6614b012dbd787ef4c3863d382",
   "elements/spinner/spinner.js": "6cb71e7066ce2968871bbfad655f84e026d4356988bc4d36d1facb0cb165c42e",
   "elements/spinner/spinner.meta.json": "6d36f99ab4c43266af90c6e6a650d993545271f7aaedc0517dff2bd113b875b3",
-  "elements/split-button/split-button.css": "a5729af63ecb7bd65b8b8b2fdd6efae785c6aab9e886424656774a44df030dc8",
+  "elements/split-button/split-button.css": "7bff038f7934e0af136efc2de83bb5f83ab8bef056fc4f67dc0a8d9b0df334a6",
   "elements/split-button/split-button.html": "9201d189027962eec675dce388f5b89ec5b90ddb6972167f13128af3e4a7f7be",
   "elements/split-button/split-button.js": "31cfcc398e188ea7fe4c98240cdf177dbe7458a2200a46de065f2d8013b6ee5e",
   "elements/split-button/split-button.meta.json": "276fa3076214b86ca09238beda5b13605dd8400820f2cbb8c9e2e473f9017caa",
@@ -1112,14 +1187,14 @@
   "elements/stat/stat.html": "ddf826b3fa1056475e9e5d1377d42c5e65d1d93be6bcd63a566ed60242b740d1",
   "elements/stat/stat.js": "cd16dd48f238fb723ea804946bffcb0507683407b221f5d99b66a79f986142cc",
   "elements/stat/stat.meta.json": "32c8d3753e635a0ba60557668f87c3395bdbdcd18f14402aff8a2582c5c76887",
-  "elements/step/step.css": "4333f00bccd5ab4595ba8fb02a0a449e7d62cc88e45dcbc9baf3f02cfabcd453",
+  "elements/step/step.css": "cbfcffd874a2905f7d2948be1611cacb559cbf7f48235b3d9194596faa91a567",
   "elements/step/step.html": "01770198d49fe6cc47dd08e06b72d9789f5fa566f7c1ee29ad5d06f7f72056e6",
   "elements/step/step.meta.json": "a48d8724e28a128e9761c7a470c880041518f22572b5a90c6c2286144fb30a28",
   "elements/stepper/stepper.css": "774f01ccec2115730dff72cb81d7e941262b1e7571293cafff0bd85115295250",
   "elements/stepper/stepper.html": "15d5c9b4e934ad5dc7e5d38d645df09d148dd64b91c116b0a34ca399aa7814dc",
   "elements/stepper/stepper.js": "8b910107f1a7188a2ef5a5c3acbe64a124d5a4c530151781dd05259c28689595",
   "elements/stepper/stepper.meta.json": "81397517745103c3d3f201087d7e6cddb791a0729b99f00e36bf82a1259f18ed",
-  "elements/switch/switch.css": "fc5b253ec5781371e95dff87fa97f6947022702070a9e2901b0c8082bab764af",
+  "elements/switch/switch.css": "09030e8fe35ef3bb67bfb81407b8b8ff2a5978f894a02d6a8953317321679155",
   "elements/switch/switch.html": "ee259b877f0c7d201931b8e75354172a3b1d17718ad644101e9144218d363ace",
   "elements/switch/switch.js": "b98f44d76968a3ad3c01194ebd3c06f1fd252b58b0a5ab425d76b30ed2096d35",
   "elements/switch/switch.meta.json": "d849524fd21daeb6de2bc4cd11c8b01de7b63b108a6578e0846da66b19de569c",
@@ -1127,11 +1202,11 @@
   "elements/tab-panel/tab-panel.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/tab-panel/tab-panel.js": "05546d5dc35653ee4d8a758d3720570d26ca441941b678d5da63b43b6bb0d364",
   "elements/tab-panel/tab-panel.meta.json": "0f4db24f9925465301a17f6d68159c49d8881a59fb7a17c6d118bab46a13717f",
-  "elements/tab/tab.css": "5d4af7da9030d9849a747393847e9388b6089a57c0a661d7525d6f73bd712089",
+  "elements/tab/tab.css": "b9931a0cf832ccc416ebcbdda3fe1f30f1300379e74589238d8e39f64ad5ddef",
   "elements/tab/tab.html": "5f8da59427b37701a9f1f01bea1c8e0ca01487ed1406127add2678bce353029c",
   "elements/tab/tab.js": "b881958194f7b3396325eb58d510350e671dec397bdb38f7daa3d67cf85dfbea",
   "elements/tab/tab.meta.json": "7632625867c66336a1d5ee1becb9464acdb95265b2938f529568741e4839f11a",
-  "elements/table/table.css": "c97475541cf9f021bfc6a27e852c0d35a30cc30883d2b7d838ab8f14c0de1e6f",
+  "elements/table/table.css": "8bafae93003307e708e5e304828672d89a016c83f0baaf6e0cde7b66572833e0",
   "elements/table/table.html": "347d94a2fd8aae99b895c660d5a9c9be29c792046084e71f92cdd41791688501",
   "elements/table/table.js": "e178f68cd34a7c456132c648d9419a7e0b1bee3f3bca6bbaf81d00d0d5e871c3",
   "elements/table/table.meta.json": "bdc831c228be0dd6c3a1d8e4dfac7ea1611664a4d1975c6307f833112557b97e",
@@ -1139,15 +1214,15 @@
   "elements/tabs/tabs.html": "e4f9235c005532d66dc1a74bbea02519a34c4e255401165a703b71a43982b834",
   "elements/tabs/tabs.js": "4e9b8343f3bcc2babec8e42ebd3f11b5a8635b38ec11d4fd922934fcebcadc9a",
   "elements/tabs/tabs.meta.json": "db5fe69ded46ded055c7af697ef477b91ee413ff2f7fafcadd8a8784eeed2685",
-  "elements/tag-input/tag-input.css": "2c95db94059776f9785c6f89ce102f78126a99ce01b175ea5878e1d281774ae0",
+  "elements/tag-input/tag-input.css": "1f860d936adf69dbea62ef2873e17002135213e84aa8b683aa28c8cc41d66851",
   "elements/tag-input/tag-input.html": "ae6851185e8425694dd4b89aa421b0b3798fa542c6620fcf5535248dca27b665",
   "elements/tag-input/tag-input.js": "b98ae3e23f1d372c324869ffa6bc609f7a5afe20dda4f5075fcfb9ab6b2029c3",
   "elements/tag-input/tag-input.meta.json": "a9bb4e05574d87b87cdde139d07c9165357be4ed72a77a19e984af23b4e54500",
-  "elements/tag/tag.css": "d5bf5bb3579a520539db3854fa9332568411b4e564be0cf0c2cf263a74e9cbc5",
+  "elements/tag/tag.css": "2e872e76fa99a59c4c98fbab085399de8f89520d4297e1ababb17ccdb9204847",
   "elements/tag/tag.html": "47d0331d07c20b440aaee8fc81953786c704db664ae726d06c0cee50e51eaead",
   "elements/tag/tag.js": "48a1210d546bd6c4069da2b2f653d16741c32af347775dbcfdfb63025f2698ae",
   "elements/tag/tag.meta.json": "e39ce0e5066c0c697a8869e32c88529b10dbb65cccfadb8101f98a68c85e47d5",
-  "elements/textarea/textarea.css": "31f05b4fd6c1b01737cec95f6825bb69eee6173a1f078fd477dae62e73a040fc",
+  "elements/textarea/textarea.css": "8af69bc7890d3e78755e64ce327f6a454654dfa23fcf38bcd53604641df7e261",
   "elements/textarea/textarea.html": "c14a0fef1185c295f011cd492111e2fdc192117676af694169343c84675bd92f",
   "elements/textarea/textarea.js": "52072c985714864ba2c3786933259044745d082338a38668fbbd13a074b6a03b",
   "elements/textarea/textarea.meta.json": "bba11a97f65c00260c02142a6158388e98ab2ada32978ebb1880f854a16370b9",
@@ -1159,15 +1234,15 @@
   "elements/timeline/timeline.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/timeline/timeline.js": "f2dcc2d20383e8ea71d751da258e05cdc32deb1ef9135c138cc8b6f370c817cf",
   "elements/timeline/timeline.meta.json": "27375f6264b965602df7dac581e182a55ef49852e812b0c1758b0bd74c2c4758",
-  "elements/toast-stack/toast-stack.css": "621a78dc10abb1939af8f2a2eb8cbda2872787d7062fb30034794c34fc9e69d3",
+  "elements/toast-stack/toast-stack.css": "5be93face116b5f036811782a9a612321385ff0f0955c40be4550cfcbe67779e",
   "elements/toast-stack/toast-stack.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/toast-stack/toast-stack.js": "16b215f88b91f9982a4e115d2fdfa8882e07eb80c6e149930a1a6a0d1c7890e1",
   "elements/toast-stack/toast-stack.meta.json": "330daf9d8c115ae7e3d2d659dac36023b2d5874f69cbc0abaf4b2f96011ea830",
-  "elements/toast/toast.css": "87792bd0fae549ff55294ee30fa698c1faf106e8b1fab0223104b9de96c26422",
+  "elements/toast/toast.css": "2b801d9d2fa16edfc0383dbfdb8145e9a91aca139e9067b8470e2a6c464d634e",
   "elements/toast/toast.html": "90a05f43155d6c44a5a2817495e27810d06e1ce2070c50cec8d5e538964380ca",
   "elements/toast/toast.js": "c4d8c2a27994b5637eed6b1aa35626cf746185b4faaaed45d060d521b250b6e5",
   "elements/toast/toast.meta.json": "038315c2e11e5452003c9af298b722f91c65ba16130c03bae87f75858afada2b",
-  "elements/toc/toc.css": "e148bb2f99e20b1cac43d589dec53104f566a7f680b2891e7a3d376b7fa8e2a4",
+  "elements/toc/toc.css": "fefd6350c43b93c44b39f6e26311b597ba2a78dd693ad6bb40998d0246fb3b0d",
   "elements/toc/toc.html": "bed74cc71ed9e66ec4f50e6dbe347e1e99400fea5e30119034e9b045e9683c07",
   "elements/toc/toc.js": "dad60134044c5cb5ad2ce4f5ef9a5cde23c8af48ea7b4ebd4c408f40831613a9",
   "elements/toc/toc.meta.json": "b4800700fb5bc51c7f20b19c64592edf87658060d95de91d68b86c1effe70ea4",
@@ -1175,11 +1250,11 @@
   "elements/toolbar/toolbar.html": "5be7a43a69912d2adf9dc1e8c6f694d5940a4ebb6b8aadfe51f861fe3e70327c",
   "elements/toolbar/toolbar.js": "34c157119cb8996b985a608cd3917902e4aff7f7b1fe6ec71e17c5b46e89fd44",
   "elements/toolbar/toolbar.meta.json": "1fc48f55d01db1af313d95d9a9e9e33d0326876682f503fbc45b4cb03e11c49f",
-  "elements/tooltip/tooltip.css": "9eb4219a16ea4d41cfa9507c1cdc027869cb975cc782871e1ad65a74f002887c",
+  "elements/tooltip/tooltip.css": "c63e4acf89d35ea58d558301212d872e9b1a6b00489399792f5114eebe2e2fe9",
   "elements/tooltip/tooltip.html": "a05757d751cc73dc0f5710b5e9506852e77402fef6d35d1e1c8981d0f6164cf2",
   "elements/tooltip/tooltip.js": "72982ce12bb2cc3c6be19556afee0fbe545b4217ef3d161c76ce9c255e767fb1",
   "elements/tooltip/tooltip.meta.json": "39fb4b87eb1f61a413d678ba41577ef79044f1489c69b412b6d12d9a4fcaca97",
-  "elements/tree-item/tree-item.css": "356ede1f71da50f137d2a0c0add4044e4ef37c844d8e6e25fe9586b2ba687770",
+  "elements/tree-item/tree-item.css": "3530c390aa8e7484c9ea8fac73f94023c78291049b6e8384f9de8748789028a8",
   "elements/tree-item/tree-item.html": "d507a4a38c2bf886c21188d5ff56f0c855671590baa08ef20479fb7ad9b3cff9",
   "elements/tree-item/tree-item.js": "f97cdf8d06101c0f705af86c541796416bb1e6068002140014d67eff52421ccb",
   "elements/tree-item/tree-item.meta.json": "cfccd0fd65b74176f63b1c250537a7a2573bac7eafde074da4a6ebcdd13bc962",
@@ -1187,27 +1262,27 @@
   "elements/tree/tree.html": "20aeb15d31a7e0ccbff02db14bb93ec671cd85dcc7a38bb30c194421824b01ae",
   "elements/tree/tree.js": "6d4a860609d36dc46cc878b172868a66f9ab9d0432f2009b13259932ef86593c",
   "elements/tree/tree.meta.json": "f422f29f334fee95055e5ab64dfb1ecf05841c37bf62533884a5c93dd909a0ce",
-  "elements/unit-input/unit-input.css": "33707e612a1c43ba68721e99d936e34272bb8306d7c8e715a90e6a0c03dbd382",
+  "elements/unit-input/unit-input.css": "7a4068db10e8b2051afbd2fb0b40819c45d7cbd93dcb6957be51c1f47af925c6",
   "elements/unit-input/unit-input.html": "05cb3e1c5bef4dc5397f198b805d5acc604e78ed5425d7463b027f76e9e36325",
   "elements/unit-input/unit-input.js": "caf381e6258217ea14451a01703896037ee02cee2c5eeb7ddaccd984c67f4e9f",
   "elements/unit-input/unit-input.meta.json": "69efbdefca53e5a865531476838ed6d6c446754f2959d3239fbe15e990a3bcea",
-  "elements/workspace/workspace.css": "c387aea07b7648a749c8519022b3c9162c3bccbeac191dd7f798957e4956de23",
+  "elements/workspace/workspace.css": "490d0017b634d1323f10a89097c42d1429dbc310acc932828179bf897c774638",
   "elements/workspace/workspace.html": "68a2252d41089e6798bb05a63cc6dfb4323c1b85481b12dd9a424e6b2817e199",
-  "elements/workspace/workspace.js": "123b97919ef785a2bca39c10296d80b6741a00f8350b9215e3929b62974d3d8d",
+  "elements/workspace/workspace.js": "ff55732149c1cf6fb9f992fb9f053fcf76103311eab8b3c40e21159b1cff9cc4",
   "elements/workspace/workspace.meta.json": "e3b02d2a6b01ba8fcfb27d416ee421a293c2beae1d860c92696aec834e065a8d",
   "js/element-core.js": "37c527b73e86890f3de774ae134d8f0a2e78ce7890f231ba1a0df529ea34fcc4",
   "js/element.js": "6f4ff0701a6baabb385726a5f718c522b7ecfe89ed5cb607717651a5ffc794b6",
   "js/loader.js": "0d9fb1168dfc846b86c35f6c41e3c671c9b0d51786ab98214a53155d4c09aa49",
-  "tests/browser/cases-data-display.js": "f82534dd05443211e234351909c6c6e613062cc679e285747b2fedc90a432564",
-  "tests/browser/cases-forms.js": "b87395f20bd41d8e1ff9405432d883a83061dec55a5458415a82ae7191586429",
-  "tests/browser/cases-guides.js": "3e675f803c1f008aeeb2796c13955b9fbf99523b55f2f5e63dc08e66b5fa8989",
+  "tests/browser/cases-data-display.js": "3e7404b3babbadbe86dd623368ceb8bdc8dcd2604087ee11fb67b92cac24d051",
+  "tests/browser/cases-forms.js": "825d9eb9021b08fdf96e2c221b20a06641dc70d03007f65a939c18c387ede226",
+  "tests/browser/cases-guides.js": "1ee27bc8e7daab78e300247768eef17581f36112192e92e3c20622bc97246d28",
   "tests/browser/cases-headers.js": "41dc79ee8de1e214e501ead0b45aacfc3a36faa40d0890f281f8c3a4755a17de",
   "tests/browser/cases-icon-time.js": "d3f4cfa796abd1327c37067630b97b8ca06881a5e9784e62515af210f6f17293",
   "tests/browser/cases-layout.js": "9cf1f0182bebbc891d10eb448e42086f6eb52565c26780581805d12e0113c030",
-  "tests/browser/cases-overlays.js": "721831163c69700d45424de8ba2cc18cb9cb062a254e7367d8749e5a40efca76",
-  "tests/browser/cases-tools.js": "79c2067e77b31ce63ddbe73ce764cd3e6ed1235bdac6812b13ab089d11642dab",
+  "tests/browser/cases-overlays.js": "fb98eb4d1d293ddc8956c2a06f16560e253a2e77c0575dd9e280f580313ee44a",
+  "tests/browser/cases-tools.js": "21a1122424843b8405f814609b3c34ed6bde372cc10a40744520d56ce8391028",
   "tests/browser/cases-workspace.js": "a52e45cf533e0020f2d97f8c5a5eb44cf42efaecdfe2cbbaf91aad7264187159",
   "tests/browser/cases.js": "b35376135368c84d4f3cd617cfb95b8d04a21866f3686474360734fa0d2cc4a3",
-  "tests/browser/runner.js": "a58f1c2f11fa40433c156250488e00d439728f2d80e55617906ad609d746be01"
+  "tests/browser/runner.js": "3c93675d1d882b324fdf098fa0ca7300379032b789e5c5398ffc1f222e2429b5"
  }
 }

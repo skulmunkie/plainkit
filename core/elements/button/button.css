@@ -15,13 +15,19 @@
 :host([disabled]) [part="control"] { opacity: 0.45; cursor: not-allowed; }
 :host([size="mini"]) [part="control"] { min-height: 0; font-size: var(--text-meta); padding: 0.2rem 0.55rem; line-height: 1.25; }
 :host([size="lg"]) [part="control"] { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-6); }
-:host([icon]) [part="control"] { width: var(--ctl-h); padding: 0; }
+:host([icon]) [part="control"] { width: var(--ctl-h); padding: 0; gap: 0; }
+:host([icon][size="lg"]) [part="control"] { width: calc(var(--ctl-h) * 1.2); }
 :host([icon][size="mini"]) [part="control"] { width: auto; padding: 0.2rem; }
 :host([busy]) [part="control"] { pointer-events: none; cursor: progress; }
 .spin { flex: none; width: 1em; height: 1em; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: var(--radius-round); animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .bt { display: none; }
 :host([has-busy-text]) .bt { display: inline; }
-:host([has-busy-text]) slot:not([name]) { display: none; }
-@media (max-width: 640px) { [part="control"], :host([size]) [part="control"], :host([icon]) [part="control"] { min-height: var(--touch-target); } :host([icon]) [part="control"] { min-width: var(--touch-target); } }
+:host([has-busy-text]) .lbl { display: none; }
+.ic { display: block; flex: none; inline-size: 1.25em; block-size: 1.25em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+:host([icon]) .lbl { font-size: 0; line-height: 0; }
+:host([icon]) ::slotted(*) { font-size: var(--text-read); }
+:host([icon][size="mini"]) ::slotted(*) { font-size: var(--text-meta); }
+:host([icon][busy]) .ic, :host([icon][busy]) ::slotted(*) { display: none; }
+@media (--phone) { [part="control"], :host([size]) [part="control"], :host([icon]) [part="control"] { min-height: var(--touch-target); } :host([icon]) [part="control"], :host([size="mini"]) [part="control"] { min-width: var(--touch-target); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

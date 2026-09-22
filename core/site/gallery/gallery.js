@@ -24,6 +24,7 @@ import { initPlainkit } from '../../js/plainkit.js';
 import { renderElement } from './elements-view.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -295,7 +296,7 @@ function viewFoundation(id) {
             case 'typography':
                 return heading('Typography', 'Font stack, headings, body text and the size scale.')
                     + section('Type', `<p class="muted">Font stack <code>--font-sans</code>: <code>${esc(val(dark, '--font-sans'))}</code></p><p class="u-fs-1p1r u-m0">Heading 1 (the page title uses h1)</p><h2>Heading 2</h2><h3>Heading 3</h3><h4>Heading 4</h4><p>Body text. The quick brown fox jumps over the lazy dog.</p><p class="muted">Muted text for secondary notes.</p><p><a href="#/foundations/typography">A link</a> and <code>inline code</code>.</p>`)
-                    + section('Text scale', `<pk-cluster gap="md" align="baseline">${scale('--text-').map(([n, v]) => `<span data-dyn="font-size:var(${n})">Aa <span class="muted u-text-xs">${n} ${esc(v)}</span></span>`).join('')}</pk-cluster>`);
+                    + section('Text scale', `<pk-cluster class="gx-demo" gap="md" align="baseline">${scale('--text-').map(([n, v]) => `<span data-dyn="font-size:var(${n})">Aa <span class="muted u-text-xs">${n} ${esc(v)}</span></span>`).join('')}</pk-cluster>`);
             case 'spacing': {
                 const roles = Object.entries(tokens.root).filter(([n]) => /^--(gap|pad|flow)-/.test(n));
                 return heading('Spacing', 'One scale, and named roles built on it. Components and utilities read the roles, never a literal, so a density mode moves the whole rhythm.')
@@ -440,7 +441,7 @@ function render() {
     }
 }
 
-const phone = () => matchMedia('(max-width: 640px)').matches;
+const phone = () => mediaBelow('phone').matches;
 
 function renderInspector() {
     const box = $('#gx-inspector'); const toggle = $('#gx-inspect');

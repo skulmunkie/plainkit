@@ -6,4 +6,4 @@
 :host([align="start"]) .status { margin-inline-end: 0; }
 :host([sticky]) { position: sticky; bottom: 0; z-index: var(--z-sticky); }
 :host([sticky]) .bar { padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom)); background: var(--pk-form-actions-bg, var(--color-panel)); box-shadow: 0 -1px 0 var(--color-border); }
-@media (max-width: 640px) { :host([sticky]) ::slotted(*) { flex: 1 1 auto; } }
+@media (--phone) { :host([sticky]) ::slotted(*) { flex: 1 1 auto; } }

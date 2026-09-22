@@ -1,0 +1,203 @@
+{
+ "accordion-item": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "alert": [
+  "(max-width: 640px)"
+ ],
+ "app-shell": [
+  "(max-width: 1024px)",
+  "(max-width: 640px)"
+ ],
+ "breadcrumb": [
+  "(max-width: 640px)"
+ ],
+ "button": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "calendar": [
+  "(min-width: 641px)",
+  "(max-width: 640px)"
+ ],
+ "chart": [
+  "(max-width: 640px)"
+ ],
+ "checkbox": [
+  "(max-width: 640px)"
+ ],
+ "code-block": [
+  "(max-width: 640px)"
+ ],
+ "colour-input": [
+  "(max-width: 640px)"
+ ],
+ "combobox": [
+  "(max-width: 640px)",
+  "(max-width: 640px)"
+ ],
+ "command-palette": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
+ "dialog": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
+ "drawer": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
+ "dropdown": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "dropzone": [
+  "(pointer: coarse),(max-width: 640px)"
+ ],
+ "field-list": [
+  "(max-width: 640px)"
+ ],
+ "field": [
+  "(max-width: 640px)"
+ ],
+ "form-actions": [
+  "(max-width: 640px)"
+ ],
+ "form-section": [
+  "(min-width: 1024px)"
+ ],
+ "grid": [
+  "(width <= 640px)"
+ ],
+ "image-gallery": [
+  "(max-width: 640px)"
+ ],
+ "input": [
+  "(max-width: 640px)"
+ ],
+ "lightbox": [
+  "(max-width: 640px)"
+ ],
+ "loading-overlay": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "log": [
+  "(pointer: coarse),(max-width: 640px)"
+ ],
+ "menu-item": [
+  "(max-width: 640px)",
+  "(max-width: 640px)"
+ ],
+ "nav-item": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "navbar": [
+  "(max-width: 1024px)"
+ ],
+ "otp-input": [
+  "(max-width: 640px)"
+ ],
+ "pager": [
+  "(max-width: 640px)"
+ ],
+ "pagination": [
+  "(max-width: 640px)"
+ ],
+ "popover": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
+ "progress": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "radio-group": [
+  "(max-width: 640px)"
+ ],
+ "range": [
+  "(max-width: 640px)"
+ ],
+ "rating": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "scroll-progress": [
+  "(prefers-reduced-motion: no-preference)"
+ ],
+ "select-menu": [
+  "(max-width: 640px)"
+ ],
+ "select": [
+  "(max-width: 640px)"
+ ],
+ "side-nav": [
+  "(max-width: 1024px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "skeleton": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "spinner": [
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "split-button": [
+  "(max-width: 640px)"
+ ],
+ "splitter": [
+  "(pointer: coarse)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "step": [
+  "(max-width: 640px)"
+ ],
+ "switch": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "tab": [
+  "(max-width: 640px)"
+ ],
+ "table": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
+ "tag-input": [
+  "(max-width: 640px)"
+ ],
+ "tag": [
+  "(max-width: 640px)"
+ ],
+ "textarea": [
+  "(max-width: 640px)"
+ ],
+ "toast-stack": [
+  "(max-width: 640px)"
+ ],
+ "toast": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "toc": [
+  "(max-width: 1024px)"
+ ],
+ "tooltip": [
+  "(max-width: 640px)"
+ ],
+ "tree-item": [
+  "(min-width: 641px)",
+  "(prefers-reduced-motion: reduce)"
+ ],
+ "unit-input": [
+  "(max-width: 640px)"
+ ],
+ "workspace": [
+  "(max-width: 1280px)",
+  "(max-width: 1024px)",
+  "(max-width: 640px)"
+ ],
+ "plainkit.css": [
+  "(max-width: 640px)",
+  "(max-width: 640px)",
+  "(max-width: 640px)"
+ ]
+}

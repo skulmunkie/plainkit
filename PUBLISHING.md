@@ -24,9 +24,10 @@ nuget.org versions cannot be deleted, only unlisted, so a release is cut when a 
 | Way | Version | Notes |
 |---|---|---|
 | Link from the Pages site: `https://skulmunkie.github.io/plainkit/dist/plainkit.min.css` (modules, elements and the gallery sit next to it) | latest `main` | Pages serves one deployment, so it is "latest", not pinned |
-| Download `plainkit-dist-<version>.zip` from the GitHub release and copy it anywhere | pinned | `manifest.json` (attached too) lists every file with an SRI hash |
-| `dotnet add package PlainKit.Blazor` | pinned | the package carries `dist` as static web assets |
-| `npm install plainkit` | pinned | only if an npm token is configured (below); not needed for any of the above |
+| Download `plainkit-dist-<version>.zip` from the GitHub release and copy it anywhere | pinned | the runtime SDK; `manifest.json` (attached too) lists every file with an SRI hash |
+| Download `plainkit-modules-<version>.zip` too when you want the dev tools (theme editor, logs, dock, ...) | pinned | its own unit, `modules/` at the top of the zip: unzip it into the runtime folder so it lands at `dist/modules/`; `dist/modules/manifest.json` (attached as `plainkit-modules-manifest-<version>.json`) lists its files with SRI hashes |
+| `dotnet add package PlainKit.Blazor` | pinned | the package carries `dist` (the runtime, and the modules under `dist/modules/`, which the dock, theme editor and log viewer wrappers use) as static web assets |
+| `npm install plainkit` | pinned | the runtime only (`dist` without `dist/modules`; the tools are the modules zip or the NuGet package, which need the layout the zip has); only if an npm token is configured (below) |
 
 The tag does not carry `core/dist` (it is generated, not committed), so there is no CDN link by tag and none is advertised. Pinned versions are the GitHub release zip and the NuGet package; the Pages site is the latest `main`. (A CDN over the npm package may come later.)
 
