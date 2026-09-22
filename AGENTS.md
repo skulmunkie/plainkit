@@ -25,7 +25,7 @@ order (the first produces every generated file, which are not in source control)
 ```
 node scripts/bootstrap.mjs
 node core/tools/versioning.mjs check
-node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
+node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "core/icons/*.test.mjs" "scripts/tests/*.test.mjs"
 dotnet test PlainKit.slnx --configuration Release
 node scripts/changelog.mjs check
 node scripts/generated.mjs check
