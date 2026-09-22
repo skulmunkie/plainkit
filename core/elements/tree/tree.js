@@ -59,12 +59,16 @@ export default Base => class extends Base {
         this.$k = e => this.onKey(e);
         this.addEventListener('keydown', this.$k);
         this.addEventListener('pk-select', e => { if (e.target !== this) this.choose(e.target); });
-        this.addEventListener('pk-toggle', e => { if (e.target !== this) this.requestUpdate(); });
-        this.watchSlot('', () => this.requestUpdate());
+        this.addEventListener('pk-toggle', e => { if (e.target !== this) { this.$nodes = null; this.requestUpdate(); } });
+        this.watchSlot('', () => { this.$nodes = null; this.requestUpdate(); });
         this.$text = ''; this.$timer = 0;
+        this.$nodes = null; this.$current = null; this.$currentIndex = -1;
     }
-    // Visible items in document order with the fields the pure logic needs.
+    // Visible items in document order with the fields the pure logic needs. Cached: a full DOM walk is O(n) over every slotted
+    // descendant, so recomputing it on every keydown made a keyboard step O(n) at scale (issue #136). The cache is invalidated
+    // only on a structural change (slot mutation, or an expand/collapse through pk-toggle), never on plain focus movement.
     get nodes() {
+        if (this.$nodes) return this.$nodes;
         const out = []; const walk = (el, level, parent) => {
             for (const it of Array.from(el.children).filter(c => c.localName === 'pk-tree-item')) {
                 const kids = Array.from(it.children).filter(c => c.localName === 'pk-tree-item');
@@ -74,6 +78,7 @@ export default Base => class extends Base {
             }
         };
         walk(this, 1, -1);
+        this.$nodes = out;
         return out;
     }
     choose(item) {
@@ -82,18 +87,28 @@ export default Base => class extends Base {
         this.requestUpdate();
     }
     onKey(e) {
-        const items = this.nodes, i = items.findIndex(n => n.el === e.target);
+        const items = this.nodes;
+        // The common case (arrow-key repeat with no structural change since the last focus move) is an O(1) lookup of the
+        // current item's index instead of a scan; a stale or missing cached index (a click, or a change to items) falls back to one.
+        const i = (this.$currentIndex >= 0 && items[this.$currentIndex]?.el === e.target) ? this.$currentIndex : items.findIndex(n => n.el === e.target);
         if (i < 0 || e.ctrlKey || e.metaKey || e.altKey) return;
         let act = treeKey(items, i, e.key);
         if (!act && e.key.length === 1) { clearTimeout(this.$timer); this.$text += e.key; this.$timer = setTimeout(() => { this.$text = ''; }, 500); const j = typeahead(items, i, this.$text); if (j >= 0) act = { action: 'focus', index: j }; }
         if (!act) return;
         e.preventDefault();
         const t = items[act.index].el;
-        if (act.action === 'focus') { this.focusItem(t); return; }
+        if (act.action === 'focus') { this.focusItem(t, act.index); return; }
         if (act.action === 'select') { t.select(); return; }
         t.setExpanded(act.action === 'expand');
     }
-    focusItem(item) { for (const n of this.nodes) n.el.tabIndex = n.el === item ? 0 : -1; item.focus(); }
+    // Roving tabindex: move it between the previous current item and the new one instead of rewriting every item's tabIndex.
+    focusItem(item, index = -1) {
+        if (this.$current && this.$current !== item) this.$current.tabIndex = -1;
+        item.tabIndex = 0;
+        this.$current = item;
+        this.$currentIndex = index >= 0 ? index : this.nodes.findIndex(n => n.el === item);
+        item.focus();
+    }
     updated() {
         this.aria({ role: 'tree', ariaLabel: this.label || null });
         const all = Array.from(this.querySelectorAll('pk-tree-item'));
@@ -101,9 +116,9 @@ export default Base => class extends Base {
         if (all.some(it => typeof it.aria !== 'function')) { customElements.whenDefined('pk-tree-item').then(() => this.requestUpdate()); return; }
         const items = this.nodes, pos = ariaPositions(items);
         for (const it of all) { const sel = this.selection !== 'none' && this.value !== '' && (it.value || it.label) === this.value; if (it.selected !== sel) it.selected = sel; }
-        const current = items.find(n => n.el.tabIndex === 0)?.el ?? items.find(n => n.el.selected)?.el ?? items[0]?.el;
+        const cur = items.find(n => n.el.tabIndex === 0) ?? items.find(n => n.el.selected) ?? items[0];
         for (const n of all) n.tabIndex = -1;
-        if (current) current.tabIndex = 0;
+        if (cur) { cur.el.tabIndex = 0; this.$current = cur.el; this.$currentIndex = items.indexOf(cur); }
         items.forEach((n, i) => n.el.aria({ role: 'treeitem', ariaLevel: String(pos[i].level), ariaSetSize: String(pos[i].setsize), ariaPosInSet: String(pos[i].posinset), ariaExpanded: n.expandable ? String(n.expanded) : null, ariaSelected: this.selection === 'none' ? null : String(n.el.selected) }));
     }
 };
