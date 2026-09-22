@@ -3,8 +3,8 @@
 Status: decided (owner decision D2: build it now, minimal, no search first) and partly built. The first slice differs from the proposal below in one way: a guide is a Markdown file
 (`content/<id>.md`, front matter `title`, `order`, `summary`) that the build converts to sanitised HTML (`tools/markdown.mjs`, `tools/guides.mjs`), instead of JSON blocks with HTML fragments, so an
 author writes plain text and the converter, not the author, decides what markup can appear. The page (`page.js`) is built from `pk-side-nav`, `pk-toc`, `pk-breadcrumb`, `pk-pager`, `pk-code-block`
-and `pk-alert`; heading anchors (gap 2) and the authoring check (gap 5, as build errors) are done. Still open: full-text search, versions, tabs for HTML and Blazor alternatives. What follows is the
-original proposal, kept for the reasoning.
+and `pk-alert`; heading anchors (gap 2), the authoring check (gap 5, as build errors) and full-text search (gap 1) are done. Still open: versions, tabs for HTML and Blazor alternatives. What follows
+is the original proposal, kept for the reasoning.
 
 ## Goal
 
@@ -47,7 +47,12 @@ A guide is data, not text to be parsed. One JSON file per guide, blocks in order
 
 ## Gaps (not built, owner decides)
 
-1. **Full-text search**: title search is free; searching body text needs an index built at build time (a JSON of words per guide) and a matcher. Small, but new code in `tools/` and `js/`.
+1. ~~**Full-text search**: title search is free; searching body text needs an index built at build time (a JSON of words per guide) and a matcher. Small, but new code in `tools/` and `js/`.~~
+   Done: each guide's title, summary and body text (stripped of markup) is reduced to a small, deduplicated word list at build time (`tools/guides.mjs`, stored as `words` in `guides.data.js`, a
+   single space-separated string so it stays on one line). `site/guides/guides-search.js` holds the pure indexer and matcher (`searchGuides`, node-tested without a DOM); the page's search box
+   (`pk-input type="search"` in the side nav) calls it on every keystroke and narrows the nav to what matched, marking each shown guide `data-match="title"` or `data-match="body"` and saying, for
+   screen readers too, which guides were found by title and which only mention the word. No dependency, no fuzzy matching: a query's words must each appear (in the title or the index) for a guide
+   to qualify, title hits outrank body-only hits.
 2. **Heading anchors and copy-link**: `pk-toc` lists headings; giving every heading an `id` and a permalink button is not a component today.
 3. **Versioned docs**: a version switch would be a `pk-select` plus a folder per version; nothing in core models versions.
 4. **Guide-level metadata** (last updated, edit link): plain fields in the JSON, rendered as text; no component needed, but a convention.

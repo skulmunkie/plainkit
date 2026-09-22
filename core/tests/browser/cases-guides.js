@@ -138,6 +138,29 @@ export const guidesCases = [
         t.ok(gone.problems().some(m => /no guide named "no-such-guide"/.test(m)), 'the mistake is logged, not silent');
     }],
 
+    ['guides: the search box filters the nav to a title match instantly and to a body-only match (from the build\'s word index) too, says which guides matched, and clearing it shows every guide again', async t => {
+        const p = await open(t, '#/', { toc: false });
+        const input = p.$('gd-search'), control = input.part('control'), status = p.$('gd-search-status');
+        const type = value => { control.value = value; control.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        type('Theming');
+        await until(() => p.items.find(i => i.dataset.guide === 'theming')?.getAttribute('data-match') === 'title', 'the title match to be marked');
+        t.ok(!p.items.find(i => i.dataset.guide === 'theming').hidden, 'the guide titled "Theming and tokens" is shown');
+        t.ok(status.textContent.includes('titled') && status.textContent.includes('Theming and tokens'), 'the status names it as a title match');
+        type('swatch'); // only in theming's body text (the theme editor section), not in any guide's title
+        await until(() => p.items.filter(i => !i.hidden).length === 1, 'the body-only match to narrow the nav');
+        const shownItem = p.items.find(i => !i.hidden);
+        t.eq(shownItem.dataset.guide, 'theming', 'the guide whose text mentions "swatch" is found');
+        t.eq(shownItem.getAttribute('data-match'), 'body', 'found by its text, not its title');
+        t.ok(status.textContent.includes('mentioned in') && status.textContent.includes('Theming and tokens'), 'the status says it was found in the text');
+        type('there-is-no-such-word-in-any-guide');
+        await until(() => p.items.every(i => i.hidden), 'no guide to match a nonsense query');
+        t.ok(status.textContent.includes('No guides match'));
+        type('');
+        await until(() => p.items.every(i => !i.hidden), 'clearing the box to show every guide again');
+        t.eq(status.textContent, '');
+        t.eq(p.problems().join('; '), '');
+    }],
+
     ['guides: in both themes the article text and its code stay readable (4.5:1) and the page follows the theme', async t => {
         for (const theme of ['dark', 'light']) {
             const p = await open(t, '#/theming', { theme });
