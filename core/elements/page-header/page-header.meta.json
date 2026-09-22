@@ -97,7 +97,7 @@
   "examples": [
     {
       "title": "Page: crumbs, title and actions",
-      "html": "<pk-page-header heading=\"PO 1042\" level=\"1\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
+      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Section: title, action and note",

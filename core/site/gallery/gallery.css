@@ -159,5 +159,8 @@
     .gx-bar pk-button { --pk-button-padding: var(--space-2); }
     .gx-bar > pk-button, .gx-bar pk-dropdown > pk-button { min-height: var(--touch-target); white-space: nowrap; }
 
+    /* The nav's section-title links: a 44px tap target on a phone, same as the slotted brand link (pk-side-nav's own ::slotted rule). */
+    .gx-nav-title { display: flex; align-items: center; box-sizing: border-box; min-height: var(--touch-target); }
+
     .gx-resize { display: none; }
 }
