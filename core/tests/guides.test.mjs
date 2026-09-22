@@ -9,6 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGuides, guidesModule } from '../tools/guides.mjs';
 import { parseHash, neighbours, routeHash } from '../site/guides/guides-logic.js';
+import { htmlToText, indexWords, guideWords, searchGuides } from '../site/guides/guides-search.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
@@ -23,13 +24,18 @@ function withGuides(files, fn) {
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
-test('guides are read from Markdown, ordered by `order`, with their headings and HTML', () => {
-    withGuides({ 'b.md': front('Second', 2) + '## Two\n', 'a.md': front('First', 1) + '## One\n\nText.\n' }, dir => {
+test('guides are read from Markdown, ordered by `order`, with their headings, HTML and a search index', () => {
+    withGuides({ 'b.md': front('Second', 2) + '## Two\n', 'a.md': front('First', 1) + '## One\n\nRabbits are nocturnal.\n' }, dir => {
         const { guides, problems } = loadGuides(dir);
         assert.deepEqual(problems, []);
         assert.deepEqual(guides.map(g => [g.id, g.title, g.order, g.summary]), [['a', 'First', 1, 'A summary.'], ['b', 'Second', 2, 'A summary.']]);
         assert.deepEqual(guides[0].headings, [{ level: 2, id: 'one', text: 'One' }]);
         assert.match(guides[0].html, /^<h2 id="one">One<a class="anchor"/);
+        assert.equal(typeof guides[0].words, 'string', 'a single-line string, so it never splits across lines in the generated file');
+        assert.ok(guides[0].words.includes('rabbits'), 'the body text is indexed');
+        assert.ok(guides[0].words.includes('first') && guides[0].words.includes('summary'), 'the title and summary are indexed too');
+        const list = guides[0].words.split(' ');
+        assert.deepEqual(list, [...new Set(list)].sort(), 'the index is deduplicated and sorted');
     });
 });
 
@@ -100,6 +106,49 @@ test('the shipped guides are valid, ordered, and the generated module is exactly
     const { GUIDES } = await import('../site/guides/guides.data.js');
     assert.deepEqual(JSON.parse(JSON.stringify(GUIDES)), guides);
     assert.equal(read('site/guides/guides.data.js'), guidesModule().replace(/\r?\n/g, '\n'));
+});
+
+test('htmlToText strips tags and decodes the entities the converter writes; indexWords lowercases, dedupes, sorts and drops single letters', () => {
+    const text = htmlToText('<h2 id="a">Tom &amp; Jerry<a class="anchor" href="#a"></a></h2><p>&lt;b&gt; &quot;ok&quot; &#39;go&#39;</p>');
+    assert.equal(text.replace(/\s+/g, ' ').trim(), 'Tom & Jerry <b> "ok" \'go\'', 'no tag is left, its entities are decoded back to text');
+    assert.deepEqual(indexWords('Tabs, Tabs, and TABS! A cat. Don’t stop.'), ['and', 'cat', 'don’t', 'stop', 'tabs']);
+    assert.deepEqual(indexWords(''), []);
+});
+
+test('guideWords indexes the title, summary and the plain text of the body, not its markup', () => {
+    const words = guideWords('Theming', 'How to change a token', '<h2 id="x">Colours<a class="anchor" href="#x"></a></h2><pk-code-block>--color-accent</pk-code-block>');
+    for (const w of ['theming', 'change', 'token', 'colours', 'color', 'accent']) assert.ok(words.includes(w), `"${w}" is indexed`);
+    assert.ok(!words.includes('h2') && !words.includes('id') && !words.includes('anchor'), 'markup itself is not indexed');
+});
+
+test('searchGuides: a title hit outranks a body-only hit, every word of the query must match, and an empty query matches nothing', () => {
+    const guides = [
+        { id: 'a', title: 'Theming and tokens', words: ['theming', 'and', 'tokens', 'colour', 'radius'] },
+        { id: 'b', title: 'Logging', words: ['logging', 'colour', 'scope'] },
+        { id: 'c', title: 'Getting started', words: ['getting', 'started', 'colour', 'radius'] },
+    ];
+    assert.deepEqual(searchGuides(guides, '').map(r => r.guide.id), [], 'nothing matches an empty query');
+    const byColour = searchGuides(guides, 'colour');
+    assert.deepEqual(byColour.map(r => r.guide.id), ['c', 'b', 'a'], 'tied scores break alphabetically by title ("Getting started" < "Logging" < "Theming and tokens")');
+    assert.ok(byColour.every(r => r.bodyMatch && !r.titleMatch), 'none of these guides has "colour" in its title');
+    const byTheming = searchGuides(guides, 'theming');
+    assert.deepEqual(byTheming.map(r => r.guide.id), ['a'], 'a title hit is found');
+    assert.ok(byTheming[0].titleMatch && !byTheming[0].bodyMatch);
+    const ranked = searchGuides(guides, 'colour radius');
+    assert.deepEqual(ranked.map(r => r.guide.id), ['c', 'a'], 'only guides matching every word of the query qualify');
+    const [scoreA, scoreB] = ['a', 'b'].map(id => byColour.find(r => r.guide.id === id).score);
+    assert.equal(scoreA, scoreB, 'two body-only matches with one matched word score the same');
+    assert.deepEqual(searchGuides(guides, 'nope').map(r => r.guide.id), [], 'no guide has this word anywhere');
+});
+
+test('a query that only appears in a guide\'s body finds it without matching any title: "swatch" is only in theming\'s text', () => {
+    const { guides } = loadGuides();
+    const theming = guides.find(g => g.id === 'theming');
+    assert.ok(theming.words.includes('swatch'), 'the shipped theming guide mentions a swatch');
+    assert.ok(!guides.some(g => g.title.toLowerCase().includes('swatch')), 'no guide title mentions it');
+    const results = searchGuides(guides, 'swatch');
+    assert.deepEqual(results.map(r => r.guide.id), ['theming']);
+    assert.equal(results[0].titleMatch, false); assert.equal(results[0].bodyMatch, true);
 });
 
 test('the Guides page is real: no "coming soon" left in the page or the shell, and its scripts and styles are files', () => {

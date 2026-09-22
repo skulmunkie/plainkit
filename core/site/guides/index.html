@@ -12,7 +12,13 @@
 <body>
 <div class="site-body">
     <div class="gd-shell">
-        <pk-side-nav id="gd-nav" class="gd-nav" label="Guides"><a slot="brand" href="#/">Guides</a></pk-side-nav>
+        <pk-side-nav id="gd-nav" class="gd-nav" label="Guides">
+            <a slot="brand" href="#/">Guides</a>
+            <div class="gd-search">
+                <pk-input type="search" id="gd-search" placeholder="Search guides" aria-label="Search guides by title or text"></pk-input>
+                <p class="gd-search-status" id="gd-search-status" aria-live="polite"></p>
+            </div>
+        </pk-side-nav>
         <div class="gd-scroll" id="gd-scroll">
             <div class="gd-bar">
                 <pk-button variant="ghost" toggle class="gd-contents" id="gd-contents">Guides</pk-button>

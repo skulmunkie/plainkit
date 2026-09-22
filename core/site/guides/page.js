@@ -4,11 +4,13 @@ import { mountShell } from '../shell.js';
 import { createLogger } from '../../js/log.js';
 import { GUIDES } from './guides.data.js';
 import { parseHash, neighbours, routeHash } from './guides-logic.js';
+import { searchGuides } from './guides-search.js';
 
 const log = createLogger('guides');
 const $ = id => document.getElementById(id);
 const ids = GUIDES.map(g => g.id);
 const nav = $('gd-nav'), body = $('gd-body'), scroller = $('gd-scroll'), contents = $('gd-contents');
+const searchInput = $('gd-search'), searchStatus = $('gd-search-status');
 
 function el(tag, attrs = {}, ...kids) {
     const n = document.createElement(tag);
@@ -31,6 +33,31 @@ function buildNav() {
 
 const paintNav = current => { for (const n of nav.querySelectorAll('pk-nav-item')) n.toggleAttribute('current', n.dataset.guide === current); };
 const closeNav = () => { nav.removeAttribute('open'); contents.removeAttribute('pressed'); };
+
+// Full-text search of the nav: title search is instant (checked live against GUIDES), body search reads the word index the build made (guides-search.js,
+// guides.data.js). Every guide item stays in the DOM; a search just hides the ones that do not match and says, for screen readers too, which did and how
+// (its title, or only its text). Clearing the box shows every guide again.
+function applySearch(query) {
+    const q = query.trim();
+    const items = [...nav.querySelectorAll('pk-nav-item[data-guide]')];
+    if (!q) {
+        for (const item of items) { item.hidden = false; item.removeAttribute('data-match'); }
+        searchStatus.textContent = '';
+        return;
+    }
+    const results = searchGuides(GUIDES, q);
+    const byId = new Map(results.map(r => [r.guide.id, r]));
+    for (const item of items) {
+        const r = byId.get(item.dataset.guide);
+        item.hidden = !r;
+        if (r) item.setAttribute('data-match', r.titleMatch ? 'title' : 'body'); else item.removeAttribute('data-match');
+    }
+    const titled = results.filter(r => r.titleMatch).map(r => r.guide.title);
+    const mentioned = results.filter(r => !r.titleMatch && r.bodyMatch).map(r => r.guide.title);
+    searchStatus.textContent = results.length
+        ? [titled.length && `${titled.length} guide${titled.length === 1 ? '' : 's'} titled “${q}”: ${titled.join(', ')}`, mentioned.length && `mentioned in ${mentioned.join(', ')}`].filter(Boolean).join('; ')
+        : `No guides match “${q}”.`;
+}
 
 function paintCrumbs(title) {
     $('gd-crumbs').replaceChildren(...(title ? [el('a', { href: '#/' }, 'Guides'), el('span', { 'aria-current': 'page' }, title)] : [el('span', { 'aria-current': 'page' }, 'Guides')]));
@@ -111,6 +138,9 @@ function route() {
 
 mountShell({ page: 'guides', title: null });
 buildNav();
+// pk-input's own 'input' event (native, bubbling and composed) reaches the nav as soon as the box changes, typed or cleared (Escape); no debounce needed
+// for this few guides.
+searchInput.addEventListener('input', () => applySearch(searchInput.value));
 // On the bar, not on the button: the toggle button flips its own `pressed` first, and this sets it to what the drawer really is afterwards.
 contents.parentElement.addEventListener('click', e => { if (!e.target.closest('#gd-contents')) return; const on = !nav.hasAttribute('open'); nav.toggleAttribute('open', on); contents.toggleAttribute('pressed', on); });
 nav.addEventListener('pk-close', () => contents.removeAttribute('pressed')); // Escape or a tap on the backdrop closed the drawer
