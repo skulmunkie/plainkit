@@ -27,15 +27,22 @@ A page needs one stylesheet and one call. Put the call in a script file, not in 
 
 ```html
 <link rel="stylesheet" href="plainkit/plainkit.min.css">
+<link rel="modulepreload" href="plainkit/js/loader.js">
+<link rel="modulepreload" href="plainkit/js/log.js">
+<link rel="modulepreload" href="plainkit/elements/registry.js">
+<link rel="modulepreload" href="plainkit/js/element.js">
+<link rel="modulepreload" href="plainkit/js/element-core.js">
 <script type="module" src="app.js"></script>
 ```
 
 ```js
-import { initPlainkit } from './plainkit/js/plainkit.js';
+import { initPlainkit } from './plainkit/js/init.js';
 initPlainkit();
 ```
 
 Importing the module is not enough: `initPlainkit()` has to be called. It installs the declarative openers (`data-open`, `data-toggle`, `data-close`), finds the `pk-*` tags on the page, loads the module of each element it finds, and keeps watching for tags added later.
+
+`js/init.js` is the small entry: `initPlainkit` and nothing else it does not need. `js/plainkit.js` is the same, plus the dynamic-value, theming and colour helpers, in case you use those too; import it instead of `js/init.js` if you do. The five `modulepreload` links are optional: without them the browser still finds and fetches the same files, but one at a time, each after the last one that named it (the loader, then the registry, then an element's own module, then the two modules every element shares). The links let the browser fetch them in parallel instead, so the first element on the page upgrades sooner. `elements/registry.js` and the loader are worth preloading on every page that uses elements; the exact element modules are not, since which ones a page needs depends on its markup.
 
 ## A first page
 
@@ -49,6 +56,11 @@ This page has a card, a switch and a dialog. Nothing in it needs code except rea
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My first page</title>
   <link rel="stylesheet" href="plainkit/plainkit.min.css">
+  <link rel="modulepreload" href="plainkit/js/loader.js">
+  <link rel="modulepreload" href="plainkit/js/log.js">
+  <link rel="modulepreload" href="plainkit/elements/registry.js">
+  <link rel="modulepreload" href="plainkit/js/element.js">
+  <link rel="modulepreload" href="plainkit/js/element-core.js">
 </head>
 <body>
   <main>
@@ -69,7 +81,7 @@ This page has a card, a switch and a dialog. Nothing in it needs code except rea
 ```
 
 ```js
-import { initPlainkit } from './plainkit/js/plainkit.js';
+import { initPlainkit } from './plainkit/js/init.js';
 
 initPlainkit();
 
