@@ -29,6 +29,11 @@ export const REQUIRED = [
 export const FORBIDDEN = [
     [/^content\//, 'content/ (an MSBuild Content item is being packed; see the Content Remove in PlainKit.Blazor.csproj)'],
     [/^contentFiles\//, 'contentFiles/ (an MSBuild Content item is being packed; see the Content Remove in PlainKit.Blazor.csproj)'],
+    // Design-time/editor files (#186): IDE tooling metadata and the exported agent docs are useful to npm/CDN consumers' editors and are shipped
+    // separately as skills/dist release assets (#36), but nothing at runtime (no Blazor component, PkRuntime or dev tool) ever fetches them, so
+    // scripts/publish-dist.mjs excludes them from the wwwroot/plainkit copy entirely; they must never come back as static web assets here.
+    ...['custom-elements.json', 'web-types.json', 'vscode.html-custom-data.json', 'elements.d.ts', 'elements.vue.d.ts', 'AGENTS.md', 'llms.txt', 'llms-full.txt']
+        .map(f => [new RegExp(`^staticwebassets/plainkit/${f.replace(/[.]/g, '\\.')}$`), `staticwebassets/plainkit/${f} (design-time/editor file, must be excluded by scripts/publish-dist.mjs; see #186)`]),
 ];
 
 /** Problems with a package, from its entry names, its nuspec text, its file name and the expected version. Pure. */
