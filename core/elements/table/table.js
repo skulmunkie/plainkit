@@ -1,6 +1,7 @@
-// <pk-table> behaviour. The sorting and filtering it applies to the rows is in js/table-data.js (the same exports are kept here).
+// <pk-table> behaviour. The sorting and filtering it applies to the rows is in js/table-data.js (the same exports are kept here,
+// re-exported through js/table-vw.js so table.js needs only one import for both).
 
-import { sortKey, sortRows, filterRows, nextSort } from '../../js/table-data.js';
+import V, { sortKey, sortRows, filterRows, nextSort } from '../../js/table-vw.js';
 export { sortKey, sortRows, filterRows };
 
 // h('td', { 'data-x': 1 }, 'text' | node ...) builds an element; null, undefined and false attributes are skipped.
@@ -44,7 +45,7 @@ export default Base => class extends Base {
         this.part('toolbar').hidden = this.slotted('toolbar').length === 0;
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        const cols = this.list('columns'), rows = this.view, sel = new Set(this.selected.map(String));
+        const k = this.list('columns'), r = V.view(this), s = new Set(this.selected.map(String));
         if (this.expandable || this.clickable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
@@ -52,23 +53,26 @@ export default Base => class extends Base {
         if (this.maxHeight) this.style.setProperty('--pk-table-max-height', this.maxHeight); else this.style.removeProperty('--pk-table-max-height');
 
         const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
-        box.checked = rows.length > 0 && sel.size >= rows.length; box.indeterminate = sel.size > 0 && sel.size < rows.length;
+        box.checked = r.length > 0 && s.size >= r.length; box.indeterminate = s.size > 0 && s.size < r.length;
         const head = [h('tr', {}, ...(this.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-            ...cols.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': ph(c), scope: 'col', 'aria-sort': c.sortable ? (this.sort === c.key ? this.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
-        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...cols.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
+            ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': ph(c), scope: 'col', 'aria-sort': c.sortable ? (this.sort === c.key ? this.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
+        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
         this.part('head').replaceChildren(...head);
 
-        const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: cols.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : rows.flatMap((row, i) => {
+        // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js: only the rows
+        // near the scroll frame's viewport, plus a buffer). Never for an expandable table (a detail row changes its row's height, which
+        // windowing assumes is fixed) or a host-supplied one (already returned above, at `if (own)`).
+        const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: k.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, r, h) ?? r.flatMap((row, i) => {
             const id = String(row[this.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
-            pick.checked = sel.has(id);
-            const tr = h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
+            pick.checked = s.has(id);
+            const tr = h('tr', { 'data-id': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-                ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
-            return x ? x.rows(this, tr, id, i, cols.length + lead, h) : [tr];
+                ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+            return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
         this.$m?.after(this);
-        this.part('empty').hidden = this.loading || rows.length > 0;
-        this.part('bulk').hidden = sel.size === 0; this.part('bulk-count').textContent = `${sel.size} selected`;
+        this.part('empty').hidden = this.loading || r.length > 0;
+        this.part('bulk').hidden = s.size === 0; this.part('bulk-count').textContent = `${s.size} selected`;
     }
 };

@@ -10,7 +10,9 @@
    through JavaScript. They are rebuilt only when Items (reference or count), Columns or IdOf changed (or Refresh() is called). Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
    PlainKit.Blazor.lib.module.js). Cell templates, the detail template and the slots are ordinary Blazor children of the element (the element
    reads them, it never rewrites them): a cell template is a <span slot="cell-<id>-<key>"> per row, so a change of rows re-renders them together
-   with the rows attribute. *@
+   with the rows attribute. Windowing (issue 131): at 500 rows or more, a non-expandable table draws only the rows near the scroll frame's
+   viewport (core/js/table-vw.js); the threshold is a fixed constant, not a parameter, to keep the element's own module inside its
+   gzip budget. Sort, filter and selection still act on every row. *@
 <pk-table data-pk-ranges columns="@_columns"
           rows="@_rows"
           row-key="id"
