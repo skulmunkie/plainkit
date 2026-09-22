@@ -5,8 +5,11 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-public sealed class ComponentTests : TestContext
+public sealed class ComponentTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public ComponentTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -16,7 +19,7 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Gallery_renders_the_pk_gallery_element_with_only_the_attributes_that_were_set()
     {
-        var cut = RenderComponent<PkGallery>(p => p.Add(x => x.Kind, PkGalleryKind.Controls).Add(x => x.Theme, PkTheme.Light).Add(x => x.Height, 500));
+        var cut = Render<PkGallery>(p => p.Add(x => x.Kind, PkGalleryKind.Controls).Add(x => x.Theme, PkTheme.Light).Add(x => x.Height, 500));
         var el = cut.Find("pk-gallery");
 
         Assert.Equal("controls", el.GetAttribute("kind"));
@@ -30,10 +33,10 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Gallery_sends_its_sections_as_json_text_and_none_when_there_are_none()
     {
-        Assert.Null(RenderComponent<PkGallery>().Find("pk-gallery").GetAttribute("sections"));
+        Assert.Null(Render<PkGallery>().Find("pk-gallery").GetAttribute("sections"));
 
         var sections = new[] { new PkGallerySection { Tag = "pk-button", Title = "Blazor", Open = true, Lines = ["Component PkButton"], Rows = [["Variant", "string"]] } };
-        var json = RenderComponent<PkGallery>(p => p.Add(x => x.Sections, sections)).Find("pk-gallery").GetAttribute("sections");
+        var json = Render<PkGallery>(p => p.Add(x => x.Sections, sections)).Find("pk-gallery").GetAttribute("sections");
 
         using var doc = JsonDocument.Parse(json!);
         var first = doc.RootElement[0];
@@ -57,7 +60,7 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Dev_tools_page_offers_the_three_workspaces_and_marks_the_current_one()
     {
-        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
+        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
         var tabs = cut.FindAll("pk-tab");
 
         Assert.Equal(["Gallery", "Files", "Scorecard"], tabs.Select(t => t.TextContent.Trim()));
@@ -68,7 +71,7 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Dev_tools_page_mounts_the_dev_tools_dock_instead_of_its_own_tool_tabs()
     {
-        var cut = RenderComponent<PkDevToolsPage>();
+        var cut = Render<PkDevToolsPage>();
         var tools = Assert.Single(cut.FindComponents<PkDevTools>()).Instance;
 
         Assert.Equal(PkDevToolsMode.Dock, tools.Mode);
@@ -86,7 +89,7 @@ public sealed class ComponentTests : TestContext
     [InlineData("nonsense", null, "gallery")]
     public void Dev_tools_page_opens_the_dock_on_a_tool_tab_and_keeps_workspaces_for_the_rest(string route, string? dockTab, string workspace)
     {
-        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, route));
+        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, route));
 
         Assert.Equal(dockTab, cut.FindComponent<PkDevTools>().Instance.Tab);
         Assert.Equal(workspace, cut.Find("pk-tabs").GetAttribute("value"));
@@ -95,7 +98,7 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Dev_tools_page_falls_back_to_the_gallery_for_an_unknown_tab()
     {
-        var cut = RenderComponent<PkDevToolsPage>(p => p.Add(x => x.Tab, "nonsense"));
+        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "nonsense"));
 
         Assert.Equal("gallery", cut.Find("pk-tabs").GetAttribute("value"));
         Assert.NotNull(cut.Find("pk-gallery"));
@@ -104,10 +107,10 @@ public sealed class ComponentTests : TestContext
     [Fact]
     public void Dev_tools_page_says_it_is_off_when_disabled()
     {
-        var ctx = new TestContext();
+        var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddPlainKit(o => o.DevTools = false);
-        var cut = ctx.RenderComponent<PkDevToolsPage>();
+        var cut = ctx.Render<PkDevToolsPage>();
 
         Assert.Empty(cut.FindAll("pk-tab"));
         Assert.Contains("Dev tools are off", cut.Markup);

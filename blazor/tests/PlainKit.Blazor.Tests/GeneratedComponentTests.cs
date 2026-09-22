@@ -8,8 +8,11 @@ namespace PlainKit.Blazor.Tests;
 
 // A representative sample of the generated wrappers (Generated/): a plain prop, an enum, a two-way bound input, a slot, an event.
 // scripts/tests/generate-blazor.test.mjs covers the generator itself; these check what it writes renders and behaves.
-public sealed class GeneratedComponentTests : TestContext
+public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public GeneratedComponentTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -19,7 +22,7 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void A_plain_prop_becomes_an_attribute_and_an_unset_one_is_left_off()
     {
-        var cut = RenderComponent<PkAvatar>(p => p.Add(x => x.Name, "Ada Lovelace"));
+        var cut = Render<PkAvatar>(p => p.Add(x => x.Name, "Ada Lovelace"));
         var el = cut.Find("pk-avatar");
 
         Assert.Equal("Ada Lovelace", el.GetAttribute("name"));
@@ -29,8 +32,8 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void A_boolean_is_present_when_true_and_absent_when_false()
     {
-        var on = RenderComponent<PkButton>(p => p.Add(x => x.Disabled, true));
-        var off = RenderComponent<PkButton>();
+        var on = Render<PkButton>(p => p.Add(x => x.Disabled, true));
+        var off = Render<PkButton>();
 
         Assert.NotNull(on.Find("pk-button").GetAttribute("disabled"));
         Assert.Null(off.Find("pk-button").GetAttribute("disabled"));
@@ -39,8 +42,8 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void An_enum_is_sent_as_its_attribute_value_and_left_off_when_null()
     {
-        var set = RenderComponent<PkButton>(p => p.Add(x => x.Variant, ButtonVariant.Secondary));
-        var unset = RenderComponent<PkButton>();
+        var set = Render<PkButton>(p => p.Add(x => x.Variant, ButtonVariant.Secondary));
+        var unset = Render<PkButton>();
 
         Assert.Equal("secondary", set.Find("pk-button").GetAttribute("variant"));
         Assert.Null(unset.Find("pk-button").GetAttribute("variant"));
@@ -50,7 +53,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_link_button_sends_href_target_rel_and_download_and_still_raises_click()
     {
         MouseEventArgs? got = null;
-        var cut = RenderComponent<PkButton>(p => p
+        var cut = Render<PkButton>(p => p
             .Add(x => x.Href, "/reports").Add(x => x.Target, "_blank").Add(x => x.Rel, "noopener").Add(x => x.Download, "r.csv")
             .Add(x => x.OnClick, EventCallback.Factory.Create<MouseEventArgs>(this, e => got = e)));
         var el = cut.Find("pk-button");
@@ -61,23 +64,23 @@ public sealed class GeneratedComponentTests : TestContext
         Assert.Equal("r.csv", el.GetAttribute("download"));
         await el.ClickAsync(new MouseEventArgs { Button = 0, Detail = 1 });
         Assert.NotNull(got);
-        Assert.Null(RenderComponent<PkButton>().Find("pk-button").GetAttribute("href"));
+        Assert.Null(Render<PkButton>().Find("pk-button").GetAttribute("href"));
     }
 
     [Fact]
     public void An_enum_with_a_default_always_sends_it()
     {
-        var cut = RenderComponent<PkAlert>();
+        var cut = Render<PkAlert>();
         Assert.Equal("danger", cut.Find("pk-alert").GetAttribute("kind"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Kind, PkAlertKind.Warning));
+        cut.Render(p => p.Add(x => x.Kind, PkAlertKind.Warning));
         Assert.Equal("warning", cut.Find("pk-alert").GetAttribute("kind"));
     }
 
     [Fact]
     public void A_number_is_sent_in_invariant_culture_and_a_plain_int_starts_at_the_element_default()
     {
-        var cut = RenderComponent<PkPagination>(p => p.Add(x => x.Total, 120));
+        var cut = Render<PkPagination>(p => p.Add(x => x.Total, 120));
         var el = cut.Find("pk-pagination");
 
         Assert.Equal("120", el.GetAttribute("total"));
@@ -89,7 +92,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_bound_input_follows_the_value_change_event_and_reports_it()
     {
         string? bound = "before";
-        var cut = RenderComponent<PkInput>(p => p
+        var cut = Render<PkInput>(p => p
             .Add(x => x.Value, bound)
             .Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, v => bound = v)));
         Assert.Equal("before", cut.Find("pk-input").GetAttribute("value"));
@@ -103,7 +106,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_checkbox_binds_its_checked_state_through_the_change_event()
     {
         var value = false;
-        var cut = RenderComponent<PkCheckbox>(p => p
+        var cut = Render<PkCheckbox>(p => p
             .Add(x => x.Checked, value)
             .Add(x => x.CheckedChanged, EventCallback.Factory.Create<bool>(this, v => value = v)));
 
@@ -116,7 +119,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_dialog_closes_itself_from_pk_close_and_still_raises_OnClose()
     {
         var open = true; PkCloseEventArgs? closed = null;
-        var cut = RenderComponent<PkDialog>(p => p
+        var cut = Render<PkDialog>(p => p
             .Add(x => x.IsOpen, open)
             .Add(x => x.IsOpenChanged, EventCallback.Factory.Create<bool>(this, v => open = v))
             .Add(x => x.OnClose, EventCallback.Factory.Create<PkCloseEventArgs>(this, e => closed = e)));
@@ -131,13 +134,13 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void A_default_slot_is_the_content_and_a_named_slot_is_a_slotted_child()
     {
-        var cut = RenderComponent<PkInput>(p => p.Add(x => x.PrefixContent, b => b.AddMarkupContent(0, "<b>$</b>")));
+        var cut = Render<PkInput>(p => p.Add(x => x.PrefixContent, b => b.AddMarkupContent(0, "<b>$</b>")));
         var slotted = cut.Find("pk-input > span[slot=prefix]");
 
         Assert.Equal("<b>$</b>", slotted.InnerHtml);
         Assert.Empty(cut.FindAll("span[slot=suffix]"));
 
-        var alert = RenderComponent<PkAlert>(p => p.Add(x => x.Message, "Saved."));
+        var alert = Render<PkAlert>(p => p.Add(x => x.Message, "Saved."));
         Assert.Equal("Saved.", alert.Find("pk-alert").TextContent);
     }
 
@@ -145,7 +148,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task An_event_with_no_detail_raises_a_plain_callback()
     {
         var dismissed = 0;
-        var cut = RenderComponent<PkAlert>(p => p.Add(x => x.OnDismiss, EventCallback.Factory.Create(this, () => dismissed++)));
+        var cut = Render<PkAlert>(p => p.Add(x => x.OnDismiss, EventCallback.Factory.Create(this, () => dismissed++)));
 
         await cut.Find("pk-alert").TriggerEventAsync("onpk-dismiss", new EventArgs());
 
@@ -156,7 +159,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task An_event_with_a_detail_passes_it_typed()
     {
         PkSearchEventArgs? got = null;
-        var cut = RenderComponent<PkInput>(p => p.Add(x => x.OnSearch, EventCallback.Factory.Create<PkSearchEventArgs>(this, e => got = e)));
+        var cut = Render<PkInput>(p => p.Add(x => x.OnSearch, EventCallback.Factory.Create<PkSearchEventArgs>(this, e => got = e)));
 
         await cut.Find("pk-input").TriggerEventAsync("onpk-search", new PkSearchEventArgs { Value = "plainkit" });
 
@@ -167,7 +170,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_native_click_passes_the_mouse_event()
     {
         MouseEventArgs? got = null;
-        var cut = RenderComponent<PkButton>(p => p.Add(x => x.OnClick, EventCallback.Factory.Create<MouseEventArgs>(this, e => got = e)));
+        var cut = Render<PkButton>(p => p.Add(x => x.OnClick, EventCallback.Factory.Create<MouseEventArgs>(this, e => got = e)));
 
         await cut.Find("pk-button").ClickAsync(new MouseEventArgs { Button = 0, Detail = 1 });
 
@@ -178,7 +181,7 @@ public sealed class GeneratedComponentTests : TestContext
     public async Task A_date_is_sent_as_an_iso_string_and_read_back_from_the_select_event()
     {
         DateOnly? picked = null;
-        var cut = RenderComponent<PkCalendar>(p => p
+        var cut = Render<PkCalendar>(p => p
             .Add(x => x.Value, new DateOnly(2026, 9, 19))
             .Add(x => x.ValueChanged, EventCallback.Factory.Create<DateOnly?>(this, d => picked = d)));
         Assert.Equal("2026-09-19", cut.Find("pk-calendar").GetAttribute("value"));
@@ -191,7 +194,7 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void Extra_class_and_unmatched_attributes_land_on_the_element()
     {
-        var cut = RenderComponent<PkAlert>(p => p
+        var cut = Render<PkAlert>(p => p
             .Add(x => x.ExtraClass, "mt-2")
             .AddUnmatched("data-test", "alert-1"));
         var el = cut.Find("pk-alert");
@@ -203,7 +206,7 @@ public sealed class GeneratedComponentTests : TestContext
     [Fact]
     public void A_generated_component_loads_the_toolkit_once_it_is_on_the_page()
     {
-        RenderComponent<PkBadge>();
+        Render<PkBadge>();
 
         Assert.Contains(JSInterop.Invocations, i => i.Identifier == "import");
     }

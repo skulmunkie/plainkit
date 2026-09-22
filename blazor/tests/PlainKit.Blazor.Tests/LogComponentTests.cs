@@ -4,8 +4,11 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-public sealed class LogComponentTests : TestContext
+public sealed class LogComponentTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public LogComponentTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -15,7 +18,7 @@ public sealed class LogComponentTests : TestContext
     [Fact]
     public void Logs_renders_its_host_element()
     {
-        var cut = RenderComponent<PkLogs>(p => p.Add(x => x.Level, "warn").Add(x => x.Height, "20rem"));
+        var cut = Render<PkLogs>(p => p.Add(x => x.Level, "warn").Add(x => x.Height, "20rem"));
 
         Assert.Single(cut.FindAll("div"));
     }
@@ -23,7 +26,7 @@ public sealed class LogComponentTests : TestContext
     [Fact]
     public void Log_settings_renders_its_host_element()
     {
-        var cut = RenderComponent<PkLogSettings>(p => p.Add(x => x.Theme, PkTheme.Dark));
+        var cut = Render<PkLogSettings>(p => p.Add(x => x.Theme, PkTheme.Dark));
 
         Assert.Single(cut.FindAll("div"));
     }

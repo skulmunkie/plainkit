@@ -9,8 +9,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 /// <summary>Findings of the security audit (issue #106): the dev tools are off outside Development wherever they are mounted, the Files tab never lists credential files or follows links out of the source root, and a version string from the page cannot forge the log detail.</summary>
-public sealed class SecurityTests : TestContext
+public sealed class SecurityTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed class Env(string name) : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = name;
@@ -39,7 +42,7 @@ public sealed class SecurityTests : TestContext
     {
         var bridge = Register(environment, devTools);
 
-        var cut = RenderComponent<PkDevTools>();
+        var cut = Render<PkDevTools>();
 
         Assert.Equal(mounts, bridge.Invocations.Any(i => i.Identifier == "mountDevTools"));
         Assert.Equal(mounts, cut.FindAll("div").Count == 1);
@@ -51,7 +54,7 @@ public sealed class SecurityTests : TestContext
     {
         Register("Production", null);
 
-        var cut = RenderComponent<PkDevToolsPage>();
+        var cut = Render<PkDevToolsPage>();
 
         Assert.Contains("Dev tools are off", cut.Markup);
         Assert.Empty(cut.FindComponents<PkDevTools>());
@@ -64,7 +67,7 @@ public sealed class SecurityTests : TestContext
         Services.AddPlainKit();
         var clicks = 0;
 
-        var cut = RenderComponent<PkBadge>(p => p
+        var cut = Render<PkBadge>(p => p
             .AddUnmatched("onclick", "alert(1)").AddUnmatched("onmouseover", "alert(2)").AddUnmatched("ONFOCUS", "alert(3)")
             .AddUnmatched("data-order", "42").AddUnmatched("aria-label", "Buy"));
         var el = cut.Find("pk-badge");
@@ -74,7 +77,7 @@ public sealed class SecurityTests : TestContext
         Assert.DoesNotContain("alert(", cut.Markup);
 
         // a real handler (a delegate) still works next to them
-        var handled = RenderComponent<PkBadge>(p => p.AddUnmatched("onclick", Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, () => clicks++)));
+        var handled = Render<PkBadge>(p => p.AddUnmatched("onclick", Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, () => clicks++)));
         handled.Find("pk-badge").Click();
         Assert.Equal(1, clicks);
     }
