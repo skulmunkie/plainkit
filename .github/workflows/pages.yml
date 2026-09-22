@@ -9,8 +9,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # One deployment at a time; a newer push replaces one still waiting.
 concurrency:
@@ -18,8 +16,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Only what it takes to build the artifact: contents to check out the source, pages to let configure-pages read (and, the first time, create) the
+  # Pages site config. No id-token: build never talks to the OIDC-verified deploy-pages endpoint (issue #116: only deploy needs that).
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +49,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
