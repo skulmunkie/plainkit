@@ -1,0 +1,17 @@
+:host { display: block; position: relative; }
+:host([hidden]) { display: none; }
+.root { position: relative; display: flex; align-items: center; gap: var(--space-2); padding-block: var(--space-1); padding-inline: var(--space-2); border-radius: var(--radius-sm); }
+:host(:focus-visible) .root { outline: var(--focus-ring); outline-offset: -2px; }
+:host([disabled]) .root { opacity: 0.55; }
+:host([dragging]) .root { opacity: 0.5; background: var(--color-surface-alt); }
+.handle { flex: none; display: grid; place-items: center; inline-size: var(--space-6); block-size: var(--space-6); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-muted); cursor: grab; touch-action: none; }
+.handle:hover { background: var(--color-surface-alt); color: var(--color-text); }
+:host([disabled]) .handle { cursor: not-allowed; pointer-events: none; }
+[part="grip"] { inline-size: 0.9em; block-size: 0.9em; background-image: radial-gradient(circle, currentColor 1px, transparent 1.4px); background-size: 4px 4px; }
+.content { flex: 1 1 auto; min-inline-size: 0; }
+.indicator { position: absolute; inset-inline: var(--space-2); block-size: 2px; background: var(--pk-sortable-item-indicator, var(--color-accent)); border-radius: var(--radius-pill); opacity: 0; pointer-events: none; }
+:host([drop-indicator="before"]) .indicator { opacity: 1; inset-block-start: 0; }
+:host([drop-indicator="after"]) .indicator { opacity: 1; inset-block-end: 0; }
+@media (pointer: coarse), (--phone) {
+    .handle { inline-size: var(--touch-target); block-size: var(--touch-target); }
+}

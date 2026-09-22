@@ -1,0 +1,35 @@
+{
+  "tag": "pk-sortable-item",
+  "title": "Sortable item",
+  "group": "Layout",
+  "summary": "One row of a pk-sortable: drag its handle (pointer or touch) to reorder, or focus the row and press Alt+Up/Alt+Down. Place it directly inside a pk-sortable.",
+  "props": [
+    { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The identifier pk-sortable reports for this row in a pk-reorder event's order and item." },
+    { "name": "disabled", "type": "boolean", "default": false, "reflect": true, "description": "Cannot be grabbed, dropped on, or moved by the keyboard." },
+    { "name": "dragging", "type": "boolean", "default": false, "reflect": true, "description": "Set by the surrounding pk-sortable while this row is the one being dragged." },
+    { "name": "dropIndicator", "type": "enum", "default": "none", "values": ["none", "before", "after"], "reflect": true, "description": "Set by the surrounding pk-sortable to draw the insertion line above or below this row while another row (or an external drag) hovers next to it." }
+  ],
+  "slots": [
+    { "name": "", "description": "The row's content." }
+  ],
+  "events": [
+    { "name": "pk-sortable-grab", "detail": "{ x, y }", "detailProps": { "x": "number", "y": "number" }, "description": "The handle was pressed (pointerdown); consumed by the parent pk-sortable to start a drag. Not cancelable.", "cancelable": false },
+    { "name": "pk-sortable-drag", "detail": "{ x, y }", "detailProps": { "x": "number", "y": "number" }, "description": "The handle is moving while it holds pointer capture; consumed by the parent pk-sortable to update the drop position. Not cancelable.", "cancelable": false },
+    { "name": "pk-sortable-drop", "detail": "{ cancelled }", "detailProps": { "cancelled": "bool" }, "description": "The handle released the pointer (or the drag was cancelled); consumed by the parent pk-sortable to finish or abandon the drag. Not cancelable.", "cancelable": false }
+  ],
+  "parts": [
+    { "name": "root", "description": "The row: the handle and the content, side by side." },
+    { "name": "indicator", "description": "The drop-indicator line, shown above or below the row by dropIndicator." },
+    { "name": "handle", "description": "The grab handle: a 44px touch target on a touch screen, decorative to assistive technology (the row itself carries the semantics)." },
+    { "name": "grip", "description": "The handle's icon." },
+    { "name": "content", "description": "The row's slotted content." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-sortable-item-indicator", "description": "Colour of the drop-indicator line.", "default": "var(--color-accent)" }
+  ],
+  "methods": [],
+  "a11y": "role=listitem with aria-roledescription=\"Draggable item\" and aria-disabled through ElementInternals. The handle is aria-hidden (decorative, pointer and touch only); the row itself is the tab stop pk-sortable manages (roving tabindex) and the one that responds to Alt+Up and Alt+Down.",
+  "examples": [
+    { "title": "Inside pk-sortable", "html": "<pk-sortable label=\"Steps\">\n  <pk-sortable-item value=\"a\">Mix</pk-sortable-item>\n  <pk-sortable-item value=\"b\">Bake</pk-sortable-item>\n  <pk-sortable-item value=\"c\">Cool</pk-sortable-item>\n</pk-sortable>" }
+  ]
+}

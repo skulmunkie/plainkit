@@ -14,7 +14,8 @@
 //
 // Keyboard (canvas or structure tree focused): arrows select (Up and Down walk the page, Left the parent, Right the first child), Alt+arrows move the selection (Up and
 // Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes.
-// The toolbar and the palette do the same with buttons, so nothing needs a pointer or a drag. Pointer drag and drop is the next step and waits for a sortable element.
+// The toolbar and the palette do the same with buttons, so nothing needs a pointer or a drag. Pointer drag and drop is the next step: the primitive it needs,
+// pk-sortable, exists (core/elements/sortable/); wiring the canvas and structure tree to it is a follow-up (see DESIGN.md).
 //
 // The canvas renders the model in the page inside an inert container (a built page cannot act on the builder); selection is from element rectangles and drawn as an outline.
 // Its width buttons narrow the canvas but media queries still see the real viewport: the iframe device preview is a follow-up (DESIGN.md).

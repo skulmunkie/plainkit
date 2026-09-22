@@ -1,0 +1,13 @@
+{
+  "component": "PkSortable",
+  "params": [
+    { "name": "Label", "prop": "label" },
+    { "name": "Orientation", "prop": "orientation" },
+    { "name": "Disabled", "prop": "disabled" },
+    { "name": "AcceptExternal", "prop": "acceptExternal" },
+    { "name": "Dragging", "prop": "dragging" },
+    { "name": "OnReorder", "event": "pk-reorder", "type": "EventCallback<PkReorderEventArgs>" },
+    { "name": "ChildContent", "slot": "" }
+  ],
+  "notes": "Children are PkSortableItem. pk-sortable never reorders its own children (SDK rule: the element owns its shadow tree, the host owns the light DOM), so OnReorder is the whole contract: handle it and re-render ChildContent in EventArgs.Order (or, when EventArgs.External is true, insert the new item at EventArgs.To), the way any controlled list works. Reference the same primitive from JS with beginExternalDrag / externalDragOver / endExternalDrag for a palette-to-canvas drop."
+}

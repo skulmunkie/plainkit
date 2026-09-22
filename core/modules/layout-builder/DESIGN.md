@@ -150,7 +150,7 @@ and turns them into `pk-tabs` under 720px.
 
 | Gap | Exists? | v1 handling |
 | --- | --- | --- |
-| Drag-and-drop / sortable with a drop indicator | No element | **Flagged.** Add and move are by keyboard and buttons (Alt+arrows reorder, in and out; palette buttons insert). A pointer DnD element (`pk-sortable`: a list that reorders by pointer, touch and keyboard, with a drop indicator and `pk-sort` event) is the next step; the operations it needs (`move`) are already in the model. |
+| Drag-and-drop / sortable with a drop indicator | `pk-sortable`, `pk-sortable-item` exist (#170) | **Not wired up yet.** Add and move are still by keyboard and buttons (Alt+arrows reorder, in and out; palette buttons insert). `pk-sortable` reorders by pointer, touch and keyboard, with a drop indicator and a `pk-reorder` event, and accepts an external drop (`accept-external`, `beginExternalDrag`/`externalDragOver`/`endExternalDrag`) for the palette-to-canvas case; wiring the canvas and the structure tree to it is #174. The operations it needs (`move`, `insertNode` at a position) are already in the model. |
 | Property grid / form from metadata | No element | **Worked around** in the module: a function that draws `pk-field-list` rows of `pk-input`, `pk-select`, `pk-switch` and `pk-textarea` from a prop's `type`, `values` and `default`. Flagged as a candidate for a `pk-property-grid` element. |
 | Canvas selection overlay (outline, handles, drop line) | No element | **Worked around:** the selected node's element gets an outline through an attribute the module's stylesheet styles (tokens only); selection is from rectangles because the page is inert. Handles and drop lines wait for the DnD element. |
 | Tree | `pk-tree` exists | Used for structure; selection is shared with the canvas. |
@@ -164,6 +164,7 @@ and turns them into `pk-tabs` under 720px.
 | 2 | Phase 1, no UI: `js/layout-model.js` (model, validation, `toHtml`/`fromHtml`, ids, operations, history) and its tests. | done |
 | 3 | Phase 2, smallest useful UI in `modules/layout-builder/`: palette from `api.json` with search, inert canvas, selection (click, arrows, tree), structure tree, properties form and element inspector, toolbar and keyboard operations (move, duplicate, wrap, delete, undo, redo), panes become tabs on a phone (`pk-workspace`), HTML export tab, `onchange`, `onsave`, `exporters`; shipped as `dist/modules/layout-builder/` with a page on the SDK site (`site/layout-builder/`). | done |
 | 4 | The dev-tools dock entry (a Layout builder panel in `modules/devtools/panels.js`, added to `BUILT_IN`) and the standalone site page (`site/layout-builder/`), reachable from the site's top nav. | done |
-| 5 | Not built yet: pointer drag-and-drop (a `pk-sortable` element, its own issue and commit), the iframe device preview, the blocks UI (`blocks`, `onblock`), `draftKey`, the Blazor wrapper `PkLayoutBuilder` and its Razor exporter. | later |
+| 5a | `pk-sortable` and `pk-sortable-item` (#170): the pointer/touch/keyboard reorder primitive drag-and-drop needs, and a drop target for a palette-to-canvas insert. | done |
+| 5b | Not built yet: wiring the canvas and structure tree to `pk-sortable` (#174), the iframe device preview, the blocks UI (`blocks`, `onblock`), `draftKey`, the Blazor wrapper `PkLayoutBuilder` and its Razor exporter. | later |
 
 Each step leaves `main` releasable, is tested, and updates the docs and changelog in the same pull request.

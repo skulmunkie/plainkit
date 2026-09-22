@@ -1,0 +1,54 @@
+{
+  "tag": "pk-sortable",
+  "title": "Sortable",
+  "group": "Layout",
+  "summary": "A pointer, touch and keyboard reorder list. Children are pk-sortable-item: drag a row's handle, or focus a row and press Alt+Up or Alt+Down. Never reorders its own children (the host applies the order from pk-reorder); it can also accept a row dragged in from outside it, for a palette-to-canvas drop.",
+  "props": [
+    { "name": "label", "type": "string", "default": "", "reflect": false, "description": "Accessible name for the list (aria-label)." },
+    { "name": "orientation", "type": "enum", "default": "vertical", "values": ["vertical", "horizontal"], "reflect": true, "description": "The axis rows lay out and reorder along; Alt+Up/Alt+Down always means earlier/later in the list, whichever axis that is." },
+    { "name": "disabled", "type": "boolean", "default": false, "reflect": true, "description": "No row can be grabbed, dropped on or moved by the keyboard." },
+    { "name": "acceptExternal", "type": "boolean", "default": false, "reflect": true, "description": "Lets a source outside this list drop a new row in, through beginExternalDrag / externalDragOver / endExternalDrag. Off by default, so a plain reorder list never becomes an accidental drop target." },
+    { "name": "dragging", "type": "boolean", "default": false, "reflect": true, "description": "True while a row of this list, or an external drag, is being dragged over it. A styling hook the element sets itself." }
+  ],
+  "slots": [
+    { "name": "", "description": "pk-sortable-item children, in the current order." }
+  ],
+  "events": [
+    {
+      "name": "pk-reorder",
+      "detail": "{ order, item, from, to, external, payload? }",
+      "detailProps": { "order": "string[]", "item": "string", "from": "number", "to": "number", "external": "bool", "payload": "any" },
+      "description": "A reorder was committed: a drag ended over a new position, or Alt+Up/Alt+Down moved the focused row. order is the new list of every row's value, in order (the host applies it: pk-sortable never moves its own children); item, from and to describe the row that moved. For a drop accepted from outside the list (external: true, through endExternalDrag) order, item and from are null, to is the index to insert at, and payload is whatever beginExternalDrag(payload) was called with. Not cancelable: the gesture already happened.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    { "name": "announcer", "description": "The visually-hidden aria-live region that announces a reorder or a drop for a screen reader." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-sortable-gap", "description": "Gap between rows.", "default": "var(--space-1)" }
+  ],
+  "methods": [
+    { "name": "moveOrder(order, from, to)", "description": "The new order with one item relocated; pure." },
+    { "name": "keyMove(key, index, length)", "description": "The index Alt+Up or Alt+Down asks for." },
+    { "name": "dropIndex(mids, pos)", "description": "The insertion index a pointer position means." },
+    { "name": "beginExternalDrag(payload)", "description": "Called by a source outside the list, on its own pointerdown, to start tracking a drag it owns." },
+    { "name": "externalDragOver(x, y)", "description": "Called on that source's pointermove; updates the drop-indicator and returns whether the point is a valid drop (accept-external must be set)." },
+    { "name": "endExternalDrag(commit)", "description": "Called on that source's pointerup (commit) or pointercancel (commit: false); raises pk-reorder and returns the index, or null when nothing was accepted." }
+  ],
+  "writes": [
+    { "target": "the pk-sortable-item children", "attributes": ["dragging", "drop-indicator", "tabindex"], "why": "dragging marks the row being dragged; drop-indicator marks the neighbour to draw the insertion line against (cleared when the drag ends); tabindex is the roving focus stop. Refreshed on every drag step and every update; none is undone on disconnect (tabindex stays wherever the list last put it, like pk-tree and pk-tabs)." }
+  ],
+  "a11y": "role=list; each pk-sortable-item is role=listitem with aria-roledescription and aria-disabled. One tab stop (roving tabindex, skipping disabled rows); Up, Down, Home and End move it; Alt+Up and Alt+Down move the focused row and keep focus on it (a disabled row cannot be focused or moved). A visually-hidden aria-live=polite region announces a grab, a completed or cancelled reorder, and an accepted external drop.",
+  "mobile": "The handle is a 44px touch target on a touch screen (@media (pointer: coarse), (--phone)); touch-action is off on it so a drag reorders instead of scrolling the page.",
+  "examples": [
+    {
+      "title": "Reorder a checklist",
+      "html": "<pk-sortable label=\"Steps\">\n  <pk-sortable-item value=\"mix\">Mix</pk-sortable-item>\n  <pk-sortable-item value=\"bake\">Bake</pk-sortable-item>\n  <pk-sortable-item value=\"cool\">Cool</pk-sortable-item>\n  <pk-sortable-item value=\"ice\">Ice</pk-sortable-item>\n</pk-sortable>"
+    },
+    {
+      "title": "Horizontal, accepting an external drop",
+      "html": "<pk-sortable label=\"Pinned tags\" orientation=\"horizontal\" accept-external>\n  <pk-sortable-item value=\"urgent\">Urgent</pk-sortable-item>\n  <pk-sortable-item value=\"review\">Needs review</pk-sortable-item>\n</pk-sortable>"
+    }
+  ]
+}

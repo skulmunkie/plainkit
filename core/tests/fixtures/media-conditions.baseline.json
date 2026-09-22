@@ -137,6 +137,9 @@
  "skeleton": [
   "(prefers-reduced-motion: reduce)"
  ],
+ "sortable-item": [
+  "(pointer: coarse),(max-width: 640px)"
+ ],
  "spinner": [
   "(prefers-reduced-motion: reduce)"
  ],

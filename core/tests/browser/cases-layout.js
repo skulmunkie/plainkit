@@ -131,4 +131,60 @@ export const layoutCases = [
         vh.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true })); t.eq(ve.size, 52);
         t.ok(ve.part('start').getBoundingClientRect().height > 0 && ve.getBoundingClientRect().height >= 200, 'stacked panes share a fixed height');
     }],
+
+    ['sortable: role=list, a pointer drag on the handle raises pk-reorder, Alt+arrows reorder by keyboard, and an external drop is accepted', async t => {
+        const same = (a, b, msg) => t.eq(JSON.stringify(a), JSON.stringify(b), msg);
+        const host = t.stage('<pk-sortable label="Steps" accept-external><pk-sortable-item value="a">Mix</pk-sortable-item><pk-sortable-item value="b">Bake</pk-sortable-item><pk-sortable-item value="c">Cool</pk-sortable-item></pk-sortable>');
+        await t.load(host); await t.settle();
+        const el = host.firstElementChild; const [a, b, c] = el.querySelectorAll('pk-sortable-item');
+        t.eq(el.internals.role, 'list'); t.eq(a.internals.role, 'listitem'); t.eq(a.internals.ariaRoleDescription, 'Draggable item');
+        t.eq(a.tabIndex, 0, 'the first row starts the one tab stop'); t.eq(b.tabIndex, -1); t.eq(c.tabIndex, -1);
+
+        const seen = []; el.addEventListener('pk-reorder', e => seen.push(e.detail));
+        const ha = a.part('handle'); const ra = ha.getBoundingClientRect(); const rb = b.getBoundingClientRect(); const rc = c.getBoundingClientRect();
+        const cx = ra.left + ra.width / 2;
+        const ptr = (type, x, y) => ha.dispatchEvent(new PointerEvent(type, { pointerId: 11, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', cx, ra.top + ra.height / 2);
+        t.ok(a.hasAttribute('dragging') && el.hasAttribute('dragging'), 'dragging is pushed onto the grabbed row and the list');
+        ptr('pointermove', cx, rc.bottom - 2); await t.settle();
+        t.eq(c.getAttribute('drop-indicator'), 'after', 'the drop line sits after the last row the pointer passed');
+        ptr('pointerup', cx, rc.bottom - 2); await t.settle();
+        t.eq(seen.length, 1);
+        same(seen[0], { order: ['b', 'c', 'a'], item: 'a', from: 0, to: 2, external: false }, 'a drop past the last row moves it to the end');
+        t.ok(!a.hasAttribute('dragging') && !el.hasAttribute('dragging'), 'dragging is cleared on drop');
+        t.eq(c.getAttribute('drop-indicator'), 'none');
+        t.eq([...el.children].map(x => x.value).join(), 'a,b,c', 'pk-sortable never reorders its own children: the DOM order is unchanged, only pk-reorder carries the new one');
+
+        b.focus();
+        b.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', altKey: true, bubbles: true, composed: true, cancelable: true }));
+        t.eq(seen.length, 2);
+        same(seen[1], { order: ['b', 'a', 'c'], item: 'b', from: 1, to: 0, external: false }, 'Alt+Up moves the focused row earlier (from the unchanged DOM order: pk-sortable never applied the previous pk-reorder itself)');
+
+        el.beginExternalDrag({ tag: 'pk-badge' });
+        t.ok(el.externalDragOver(rb.left + rb.width / 2, rb.top + 2), 'externalDragOver reports a valid drop when accept-external is set');
+        const at = el.endExternalDrag(true);
+        t.eq(typeof at, 'number');
+        t.eq(seen.length, 3); t.eq(seen[2].external, true); t.eq(seen[2].payload.tag, 'pk-badge'); t.eq(seen[2].order, null);
+
+        const off = t.stage('<pk-sortable label="Off"><pk-sortable-item value="x">X</pk-sortable-item></pk-sortable>');
+        await t.load(off); const elOff = off.firstElementChild;
+        elOff.beginExternalDrag('y');
+        t.eq(elOff.externalDragOver(0, 0), false, 'without accept-external the drop is refused');
+        t.eq(elOff.endExternalDrag(true), null);
+    }],
+
+    ['sortable: the handle is a 44px touch target on a phone or a coarse pointer, and plain arrows skip a disabled row', async t => {
+        const el = await t.mount('<pk-sortable label="Rows"><pk-sortable-item value="a">A</pk-sortable-item><pk-sortable-item value="b" disabled>B</pk-sortable-item><pk-sortable-item value="c">C</pk-sortable-item></pk-sortable>');
+        const [a, b, c] = el.querySelectorAll('pk-sortable-item');
+        const r = a.part('handle').getBoundingClientRect();
+        t.ok((r.height >= 43.5 && r.width >= 43.5) || innerWidth > 640, 'the handle is 44px on a phone or a coarse pointer');
+        t.eq(b.internals.ariaDisabled, 'true');
+        a.focus();
+        t.key(a, 'ArrowDown');
+        t.eq(el.shadowRoot.activeElement, null); // focus lands on the light-DOM row, not in pk-sortable's own shadow tree
+        t.eq(document.activeElement, c, 'ArrowDown from the first row skips the disabled second row and lands on the third');
+        const seen = []; el.addEventListener('pk-reorder', e => seen.push(e.detail));
+        b.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, composed: true, cancelable: true }));
+        t.eq(seen.length, 0, 'a disabled row does not reorder even when a script focuses it directly');
+    }],
 ];
