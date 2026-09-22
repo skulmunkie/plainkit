@@ -47,4 +47,6 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     :host([cards]) td { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-1) 0; border: 0; text-align: end; }
     :host([cards]) td[data-hide-phone] { display: none; }
     :host([cards]) td[data-label]::before { content: attr(data-label); color: var(--color-muted); font-size: var(--text-meta); text-align: start; }
+    /* A slotted link is a flex item in the card row and shrinks to its line height; give it a real tap target. */
+    :host([cards]) ::slotted(a) { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
 }
