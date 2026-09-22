@@ -128,7 +128,7 @@ Write an icon button like any other button, with its name as the text, and add `
 
 ### Wire the dev tools
 
-Add the dock to an existing app (Ctrl+` toggles it; tabs: Console, Logs, Logging, Performance, Quality, Inspector, Theme). Do it in development only. The tools are their own unit, the modules (`plainkit-modules-<version>.zip`, or `dist/modules/` in the NuGet package): unzip it into the runtime `dist` folder so it lands at `plainkit/modules/`, and the runtime zip alone (the elements) never carries a tool. Hosting the modules apart from the runtime is documented in `references/tools.md`.
+Add the dock to an existing app (Ctrl+` toggles it; tabs: Console, Logs, Logging, Performance, Quality, Inspector, Theme, Layout builder). Do it in development only. The tools are their own unit, the modules (`plainkit-modules-<version>.zip`, or `dist/modules/` in the NuGet package): unzip it into the runtime `dist` folder so it lands at `plainkit/modules/`, and the runtime zip alone (the elements) never carries a tool. Hosting the modules apart from the runtime is documented in `references/tools.md`.
 
 ```js
 import { mountDevTools } from './plainkit/modules/devtools/devtools.js';
