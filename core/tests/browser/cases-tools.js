@@ -458,4 +458,128 @@ export const toolCases = [
         t.ok(saved && saved.html === builder.toHtml() && saved.model === builder.getModel(), 'Save hands the host the model and the HTML');
         builder.destroy();
     }],
+
+    ['layout builder module: Undo/Redo are icon-only (issue #174), drawing the sprite\'s undo/redo symbols with the words kept as the accessible name', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const builder = await mountLayoutBuilder(host, { html: '<p>A</p>' });
+        await t.load(host);
+        const undo = host.querySelector('.lb pk-button[data-action="undo"]'), redo = host.querySelector('.lb pk-button[data-action="redo"]');
+        t.ok(undo.hasAttribute('icon') && undo.getAttribute('icon-name') === 'undo', 'the undo button is icon-only, drawing "undo"');
+        t.ok(redo.hasAttribute('icon') && redo.getAttribute('icon-name') === 'redo', 'the redo button is icon-only, drawing "redo"');
+        t.eq(undo.textContent.trim(), 'Undo', 'the word stays as the accessible name (hidden visually by icon mode, not removed)');
+        t.eq(undo.part('icon').querySelector('use').getAttribute('href'), await (async () => { const { iconHref } = await import('../../js/icon-sprite.js'); return iconHref('undo'); })(), 'the icon href points at the sprite\'s undo symbol');
+        builder.destroy();
+    }],
+
+    ['layout builder module: each canvas element gets an Edit/Delete chip on hover (touch reaches it through selection, since there is no hover to fall back to), positioned over it', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const builder = await mountLayoutBuilder(host, { html: '<pk-stack gap="md"><h2>Title</h2><p>Body</p></pk-stack>' });
+        await t.load(host);
+        const canvas = host.querySelector('.lb-canvas'), chip = host.querySelector('.lb-node-controls');
+        t.ok(chip.hidden, 'hidden until something is hovered or selected');
+        const p = host.querySelector('.lb-page p'); const r = p.getBoundingClientRect();
+        canvas.dispatchEvent(new PointerEvent('pointermove', { clientX: r.left + 4, clientY: r.top + 4, bubbles: true }));
+        await t.settle();
+        t.ok(!chip.hidden, 'hovering an element shows the chip');
+        t.ok(Math.abs(chip.getBoundingClientRect().top - r.top) < 4, 'the chip is positioned over the hovered element');
+        const edit = chip.querySelector('pk-button[data-node-action="edit"]'), trash = chip.querySelector('pk-button[data-node-action="trash"]');
+        t.ok(edit.getAttribute('icon-name') === 'edit' && trash.getAttribute('icon-name') === 'trash', 'the chip draws edit and trash icons');
+        trash.click(); await t.settle();
+        t.eq(host.querySelectorAll('.lb-page p').length, 0, 'the trash icon deletes the element it is pinned to');
+        // Touch has no hover: the chip is reached through selection instead (a tap already selects via the existing canvas click handler).
+        const h2 = host.querySelector('.lb-page h2'); const rh = h2.getBoundingClientRect();
+        canvas.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+        canvas.dispatchEvent(new MouseEvent('click', { clientX: rh.left + 4, clientY: rh.top + 4, bubbles: true }));
+        await t.settle();
+        t.ok(!chip.hidden, 'selecting (a tap, on touch) shows the chip without needing a hover event');
+        builder.destroy();
+    }],
+
+    ['layout builder module: a pointer drag on a row\'s handle reorders the top-level page through pk-sortable, and the DOM order only changes once the model does', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p><pk-badge>Three</pk-badge>' });
+        await t.load(host);
+        const page = host.querySelector('.lb-page');
+        const items = () => [...page.querySelectorAll(':scope > pk-sortable.lb-canvas-sortable > pk-sortable-item')];
+        t.eq(items().length, 3, 'each top-level node is a draggable pk-sortable-item');
+        const first = items()[0], last = items()[2];
+        const handle = first.part('handle'); const rh = handle.getBoundingClientRect(); const rl = last.getBoundingClientRect();
+        const ptr = (type, x, y) => handle.dispatchEvent(new PointerEvent(type, { pointerId: 21, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', rh.left + rh.width / 2, rh.top + rh.height / 2);
+        ptr('pointermove', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
+        ptr('pointerup', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
+        t.eq(builder.toHtml({ compact: true }), '<p>Two</p><pk-badge>Three</pk-badge><h2>One</h2>', 'the drop landed on the model: the first row moved to the end');
+        builder.destroy();
+    }],
+
+    ['layout builder module: dragging a palette button onto the canvas inserts it there (pointer, not click), between rows at the top level and slot-aware inside a hovered container', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const builder = await mountLayoutBuilder(host, { html: '<pk-card heading="Open"></pk-card>' });
+        await t.load(host);
+        const paletteBadge = () => host.querySelector('.lb-palette pk-button[data-tag="pk-badge"]');
+        const card = host.querySelector('.lb-page pk-card'); const rc = card.getBoundingClientRect();
+        const before = builder.getModel().nodes.length;
+        const b = paletteBadge(); const br = b.getBoundingClientRect();
+        b.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 31, clientX: br.left + 4, clientY: br.top + 4, button: 0, bubbles: true, composed: true }));
+        window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 31, clientX: rc.right + 60, clientY: rc.bottom + 10, bubbles: true, composed: true }));
+        await t.settle();
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 31, clientX: rc.right + 60, clientY: rc.bottom + 10, bubbles: true, composed: true }));
+        await t.settle();
+        t.eq(builder.getModel().nodes.length, before + 1, 'dropping outside any container adds a new top-level row');
+        t.eq(builder.getModel().nodes.at(-1).tag, 'pk-badge', 'the dragged tag is what was inserted');
+        // The first drop repainted the canvas (paintCanvas rebuilds every element): re-query the card, the old reference is detached.
+        const card2 = host.querySelector('.lb-page pk-card'); const rc2 = card2.getBoundingClientRect();
+        const b2 = paletteBadge(); const br2 = b2.getBoundingClientRect();
+        b2.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 32, clientX: br2.left + 4, clientY: br2.top + 4, button: 0, bubbles: true, composed: true }));
+        window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 32, clientX: rc2.left + rc2.width / 2, clientY: rc2.top + rc2.height / 2, bubbles: true, composed: true }));
+        await t.settle();
+        t.ok(card2.hasAttribute('data-lb-drop-target'), 'hovering a container mid-drag marks it as the drop target');
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 32, clientX: rc2.left + rc2.width / 2, clientY: rc2.top + rc2.height / 2, bubbles: true, composed: true }));
+        await t.settle();
+        // The drop committed the insert, which repainted the canvas again: check the outline on the live card, not the now-detached card2.
+        const card3 = host.querySelector('.lb-page pk-card');
+        t.ok(!card3.hasAttribute('data-lb-drop-target'), 'the drop-target outline clears once the drop lands');
+        t.ok(builder.getModel().nodes.find(n => n.tag === 'pk-card').slots[''].some(c => c.tag === 'pk-badge'), 'dropping on the card inserted the badge inside it: the drop is slot-aware');
+        builder.destroy();
+    }],
+
+    ['layout builder module (375px): the toolbar row is gone and a touch-style drag on the handle still reorders the page', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe');
+        f.title = 'layout builder, phone width'; f.style.width = '375px'; f.style.height = '640px'; f.style.border = '0';
+        const base = new URL('../../', import.meta.url).href;
+        host.append(f);
+        f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><base href="${base}"><link rel="stylesheet" href="plainkit.css"></head><body><div id="host"></div>`
+            + `<script type="module">try { const { mountLayoutBuilder } = await import('./dist/modules/layout-builder/layout-builder.js');`
+            + `window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2><p>Two</p>' }); window.__ready = true;`
+            + `} catch (error) { window.__error = String(error && error.stack || error); }</script></body></html>`;
+        // Poll fresh contentDocument/contentWindow each time rather than capturing them once after 'load': a srcdoc iframe can fire an
+        // initial about:blank load before the srcdoc content itself has navigated in, and contentDocument/contentWindow are replaced by
+        // that navigation, so a reference taken too early would be stale.
+        await until(() => f.contentWindow?.__ready || f.contentWindow?.__error, 'the layout builder to mount in the phone frame');
+        const win = f.contentWindow, fdoc = f.contentDocument;
+        if (win.__error) throw new Error(`mountLayoutBuilder failed in the phone frame: ${win.__error}`);
+        try { await until(() => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item'), 'the page to render in the phone frame'); }
+        catch (error) { throw new Error(`${error.message}; .lb present: ${Boolean(fdoc.querySelector('.lb'))}; #host: ${fdoc.getElementById('host')?.innerHTML.slice(0, 300)}`); }
+        await t.settle();
+        t.eq(win.innerWidth, 375, 'the frame really is phone width, so the max-width media query answers to it');
+        const toolbar = fdoc.querySelector('pk-toolbar');
+        t.ok(toolbar, 'the toolbar element exists in the markup');
+        t.eq(win.getComputedStyle(toolbar).display, 'none', 'the whole toolbar row is hidden at phone width: no buttons, drag-and-drop only');
+        await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item').part === 'function', 'pk-sortable-item to upgrade in the phone frame');
+        const items = [...fdoc.querySelectorAll('.lb-canvas-sortable pk-sortable-item')];
+        t.eq(items.length, 2);
+        const handle = items[0].part('handle'); const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
+        t.ok(rh.width >= 43.5 && rh.height >= 43.5, 'the drag handle is a 44px touch target at phone width');
+        const ptr = (type, x, y) => handle.dispatchEvent(new win.PointerEvent(type, { pointerId: 41, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', rh.left + rh.width / 2, rh.top + rh.height / 2);
+        ptr('pointermove', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
+        ptr('pointerup', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
+        t.eq(win.__builder.toHtml({ compact: true }), '<p>Two</p><h2>One</h2>', 'the touch-style drag reordered the page with no toolbar in sight');
+        win.__builder.destroy();
+    }],
 ];
