@@ -1,11 +1,16 @@
 // Size sweep: every gallery view, every template and every element example at 320, 375, 640, 1024, 1280 and 1920px in both themes,
 // measuring horizontal overflow, controls under 44px on a phone, nested scrollers, text under 14px and the number of h1 elements.
+// The touch-target and text-size checks (and the h1 count) walk into every OPEN shadow root in the render tree, not only the light DOM and
+// slotted content, so what a pk-* element draws inside itself (a pk-button's inner button, a field's help text) is measured too (issue #144).
 // Runs in the scorecard page (needs a visible tab: it uses real layout). Results can be POSTed to tools/serve.mjs --write-reports,
 // which stores them in scorecard/sweep-report.json. Framework-free; ES module.
 
 import { LAYOUTS, PATTERNS, TEMPLATES, ELEMENTS } from '../gallery/gallery.data.js';
 import { sampleDoc } from '../gallery/frame.js';
 import { TEXT_TIERS, TARGET_EXCEPTIONS } from './scoring.data.js';
+import { createLogger } from '../../js/log.js';
+
+const log = createLogger('sweep');
 
 // Results collected so far, so an interrupted run loses nothing.
 export const partial = [];
@@ -23,6 +28,11 @@ export function routes() {
     ];
 }
 
+// Every custom element tag the toolkit defines: used both to know when a frame has settled (below) and, in measure(), to notice a defined
+// toolkit element whose shadow root is not open (every pk-* element attaches one with { mode: 'open' } in js/element.js, so this should never
+// fire; it is a safety net, not a normal path).
+const KNOWN_TAGS = new Set(ELEMENTS.map(m => m.tag));
+
 // Level-1 headings in a document: h1 elements and role="heading" aria-level="1", inside shadow trees too (pk-page-header draws its title there).
 export function countH1(root) {
     let n = 0;
@@ -31,32 +41,64 @@ export function countH1(root) {
     return n;
 }
 
+// One element per tag is enough: the same defined-but-closed toolkit element repeats at every width and theme, and would otherwise log thousands
+// of times in one sweep.
+const warnedClosedShadow = new Set();
+
+// Every element in `scope` and, recursively, inside every OPEN shadow root under it (light DOM first, then each host's shadow tree) - what a
+// pk-* element draws for itself, not only what its host renders or what is slotted into it. `visit` runs once per element, host or not.
+// A *defined* toolkit element with no open shadow root is unusual (see KNOWN_TAGS above): its own content cannot be walked into, so it is
+// noted once per tag via the logger rather than treated as if it had no shadow content, or throwing.
+function deepWalk(scope, win, visit) {
+    for (const el of scope.querySelectorAll('*')) {
+        visit(el);
+        if (el.shadowRoot) deepWalk(el.shadowRoot, win, visit);
+        else if (win && KNOWN_TAGS.has(el.localName) && win.customElements.get(el.localName) && !warnedClosedShadow.has(el.localName)) {
+            warnedClosedShadow.add(el.localName);
+            log.warn('a defined toolkit element has no open shadow root; its own content is not measured', { tag: el.localName });
+        }
+    }
+}
+
+// Like Element.closest(), but keeps going past the top of a shadow tree by continuing the search from the shadow host, so an ancestor outside
+// an element's own shadow root (a hidden host, a demo wrapper) is still found.
+export function closestDeep(el, selector) {
+    for (let node = el; node; ) {
+        const found = node.closest?.(selector);
+        if (found) return found;
+        const root = typeof node.getRootNode === 'function' ? node.getRootNode() : null;
+        node = root && root.host ? root.host : null;
+    }
+    return null;
+}
+
 const INTERACTIVE = 'a[href], button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea, summary, [role="tab"]';
 
-// Measures one document at a viewport width. `phone` turns on the touch-target check. Pure over the DOM it is given.
+// Measures one document at a viewport width. `phone` turns on the touch-target check. Pure over the DOM it is given. The touch-target and
+// text-size checks walk the whole render tree (deepWalk, above), so a control or a string of text a pk-* element draws inside its own shadow
+// root is checked exactly like one sitting in the light DOM or slotted in.
 export function measure(doc, width, { checkH1 = true } = {}) {
     const win = doc.defaultView; const de = doc.documentElement; const out = { overflow: 0, smallTargets: 0, nestedScrollers: 0, smallText: 0, metaTooSmall: 0, readingSmall: 0, h1: null };
     out.overflow = Math.max(0, de.scrollWidth - de.clientWidth);
-    if (width <= 640) {
-        for (const el of doc.querySelectorAll(INTERACTIVE)) {
-            if (el.closest('[hidden]') || el.disabled) continue;
-            const r = el.getBoundingClientRect(); if (r.width === 0 || r.height === 0) continue;
-            if (r.height < 43.5 && !(el.tagName === 'A' && win.getComputedStyle(el).display === 'inline') && !el.closest('.ft, .co, .csr, .cv, .page-crumbs, .tab-close') && !TARGET_EXCEPTIONS.some(x => el.matches(x.selector))) out.smallTargets++;
+    const phone = width <= 640;
+    deepWalk(doc.body ?? de, win, el => {
+        if (phone && el.matches?.(INTERACTIVE) && !el.disabled && !closestDeep(el, '[hidden]')) {
+            const r = el.getBoundingClientRect();
+            if (r.width !== 0 && r.height !== 0 && r.height < 43.5 && !(el.tagName === 'A' && win.getComputedStyle(el).display === 'inline') && !closestDeep(el, '.ft, .co, .csr, .cv, .page-crumbs, .tab-close') && !TARGET_EXCEPTIONS.some(x => el.matches(x.selector))) out.smallTargets++;
         }
-    }
+        for (const child of el.childNodes) {
+            if (child.nodeType !== 3 || !child.textContent.trim()) continue;
+            if (closestDeep(el, '[hidden], script, style, .u-sr-only') || el.getBoundingClientRect().width === 0) continue;
+            if (closestDeep(el, TEXT_TIERS.demoSelectors)) continue;
+            const px = parseFloat(win.getComputedStyle(el).fontSize);
+            if (px < TEXT_TIERS.metaPx - 0.5) out.metaTooSmall++;
+            else if (px < TEXT_TIERS.readingPx - 0.5 && !closestDeep(el, TEXT_TIERS.metaSelectors)) out.readingSmall++;
+        }
+    });
     const scrolls = el => { const s = win.getComputedStyle(el); return /(auto|scroll)/.test(s.overflowX + s.overflowY) && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1); };
     for (const el of doc.querySelectorAll('*')) {
         if (!scrolls(el) || el === doc.body || el === de) continue;
         for (let p = el.parentElement; p && p !== doc.body; p = p.parentElement) if (scrolls(p)) { out.nestedScrollers++; break; }
-    }
-    const walker = doc.createTreeWalker(doc.body, 4);
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        if (!n.textContent.trim()) continue;
-        const el = n.parentElement; if (!el || el.closest('[hidden], script, style, .u-sr-only') || el.getBoundingClientRect().width === 0) continue;
-        if (el.closest(TEXT_TIERS.demoSelectors)) continue;
-        const px = parseFloat(win.getComputedStyle(el).fontSize);
-        if (px < TEXT_TIERS.metaPx - 0.5) out.metaTooSmall++;
-        else if (px < TEXT_TIERS.readingPx - 0.5 && !el.closest(TEXT_TIERS.metaSelectors)) out.readingSmall++;
     }
     out.smallText = out.metaTooSmall + out.readingSmall;
     if (checkH1) out.h1 = countH1(doc);
@@ -64,10 +106,6 @@ export function measure(doc, width, { checkH1 = true } = {}) {
 }
 
 // ---- frames: load, settle, resize -----------------------------------------------------------------------------------------
-
-// Every custom element tag the toolkit defines: a frame is not settled while one of these is in it and not yet defined (elements load on demand,
-// and an undefined avatar or page header has no size and no title yet).
-const KNOWN_TAGS = new Set(ELEMENTS.map(m => m.tag));
 export const POLL_MS = 40;
 export const QUIET_POLLS = 4;
 export const SETTLE_TIMEOUT_MS = 20000;
