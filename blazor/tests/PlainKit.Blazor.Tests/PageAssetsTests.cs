@@ -88,4 +88,25 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
 
         Assert.Empty(cut.FindAll("link"));
     }
+
+    [Fact]
+    public void PkStyles_Preload_adds_a_modulepreload_link_per_PreloadPaths_after_the_stylesheet()
+    {
+        var cut = Render<PkStyles>(p => p.Add(x => x.Preload, true));
+        var links = cut.FindAll("link");
+
+        Assert.Equal(PkAssets.PreloadPaths.Length + 1, links.Count);
+        Assert.Equal("stylesheet", links[0].GetAttribute("rel"));
+        for (var i = 0; i < PkAssets.PreloadPaths.Length; i++)
+        {
+            Assert.Equal("modulepreload", links[i + 1].GetAttribute("rel"));
+            Assert.Equal(PkAssets.Versioned(PkAssets.PreloadPaths[i]), links[i + 1].GetAttribute("href"));
+        }
+    }
+
+    [Fact]
+    public void PkStyles_Preload_is_off_by_default()
+    {
+        Assert.Single(Render<PkStyles>().FindAll("link"));
+    }
 }

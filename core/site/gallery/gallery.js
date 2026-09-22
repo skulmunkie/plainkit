@@ -365,7 +365,7 @@ function overviewHtml() {
     ];
     return heading('Plainkit', 'Plain HTML, CSS and JS: no framework, no build step to use it, no runtime dependencies.')
         + grid(cards.filter(([h]) => !h.startsWith('#/') || !narrowed || scope(h.slice(2))).map(([h, t, d]) => cardLink(h, t, d)).join(''))
-        + section('Quick start', `${codeBlock('<link rel="stylesheet" href="plainkit/dist/plainkit.min.css">\n<script type="module">import { initPlainkit } from \'./plainkit/dist/js/plainkit.js\'; initPlainkit();</script>', 'HTML')}<p class="muted">Set <code>data-theme</code> to dark or light and <code>data-density="compact"</code> on any element.</p>`);
+        + section('Quick start', `${codeBlock('<link rel="stylesheet" href="plainkit/dist/plainkit.min.css">\n<script type="module">import { initPlainkit } from \'./plainkit/dist/js/init.js\'; initPlainkit();</script>', 'HTML')}<p class="muted">Set <code>data-theme</code> to dark or light and <code>data-density="compact"</code> on any element.</p>`);
 }
 
 function samplesView(out, put, a, b) {

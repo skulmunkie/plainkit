@@ -15,6 +15,15 @@ public static class PkAssets
     /// <summary>The page <c>&lt;pk-gallery&gt;</c> frames.</summary>
     public const string GalleryEmbed = Root + "gallery/embed.html";
 
+    /// <summary>
+    /// Paths (relative to <see cref="Root"/>) worth a <c>&lt;link rel="modulepreload"&gt;</c> hint on a page that uses <c>pk-*</c> elements: the
+    /// small entry, the loader, its logger, the element registry and the base class every element shares. Without the hint the browser still
+    /// fetches the same files, but only one at a time, each discovered by parsing the one before it; the hint lets it fetch them in parallel
+    /// instead, so the page's first element upgrades sooner. The exact element modules are not here: which ones a page needs depends on its
+    /// markup. See <c>PkStyles</c>'s <c>Preload</c> parameter.
+    /// </summary>
+    public static readonly string[] PreloadPaths = ["js/init.js", "js/loader.js", "js/log.js", "elements/registry.js", "js/element.js", "js/element-core.js"];
+
     /// <summary><see cref="Css"/> with a content-hash cache-busting query (<c>?v=...</c>).</summary>
     public static string CssVersioned => Versioned(Css);
 

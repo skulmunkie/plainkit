@@ -21,9 +21,11 @@ function unmount(container) {
     mounted.delete(container);
 }
 
-// Wires the pk-* elements and behaviours for the current document (idempotent).
+// Wires the pk-* elements and behaviours for the current document (idempotent). js/init.js has initPlainkit alone, so a page that only
+// renders Pk* components does not also fetch the dynamic-value, theming and colour helpers (mountThemeEditor imports theme-editor.js,
+// which brings its own).
 export async function init() {
-    const { initPlainkit } = await import('./plainkit/js/plainkit.js');
+    const { initPlainkit } = await import('./plainkit/js/init.js');
     initPlainkit();
 }
 

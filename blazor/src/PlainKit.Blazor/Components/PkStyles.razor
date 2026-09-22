@@ -6,11 +6,13 @@
 {
     <HeadContent>
         <link rel="stylesheet" href="@Href" />
+        @if (Preload) { foreach (var path in PkAssets.PreloadPaths) { <link rel="modulepreload" href="@PkAssets.Versioned(path)" /> } }
     </HeadContent>
 }
 else
 {
     <link rel="stylesheet" href="@Href" />
+    @if (Preload) { foreach (var path in PkAssets.PreloadPaths) { <link rel="modulepreload" href="@PkAssets.Versioned(path)" /> } }
 }
 
 @code {
@@ -25,6 +27,13 @@ else
     /// standard <c>App.razor</c>, so the toolkit's base layer overrides app rules of equal specificity: leave it off unless you know you want that.
     /// </summary>
     [Parameter] public bool InHead { get; set; }
+
+    /// <summary>
+    /// Also emit a <c>&lt;link rel="modulepreload"&gt;</c> for each of <see cref="PkAssets.PreloadPaths"/> (the loader, its logger, the element
+    /// registry and the base every element shares): the browser fetches them in parallel with the entry module instead of one round trip at a
+    /// time as each is discovered. Off by default; worth turning on for a page that uses <c>pk-*</c> elements.
+    /// </summary>
+    [Parameter] public bool Preload { get; set; }
 
     private string Href => Minified
         ? (Versioned ? PkAssets.CssMinVersioned : PkAssets.CssMin)
