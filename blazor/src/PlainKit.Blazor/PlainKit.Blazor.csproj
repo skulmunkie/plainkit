@@ -24,8 +24,10 @@
            Text="Generated files are missing: run node scripts/bootstrap.mjs from the repository root" />
   </Target>
 
-  <!-- wwwroot/plainkit is a byte-for-byte copy of core/dist (node scripts/publish-dist.mjs, part of node scripts/bootstrap.mjs; not in git). It is served under
-       _content/PlainKit.Blazor/plainkit/. Files outside wwwroot cannot be served by the static web assets runtime, hence the copy. -->
+  <!-- wwwroot/plainkit is a copy of core/dist (node scripts/publish-dist.mjs, part of node scripts/bootstrap.mjs; not in git), minus the design-time/editor files
+       (custom-elements.json, web-types.json, vscode.html-custom-data.json, elements.d.ts, elements.vue.d.ts, AGENTS.md, llms.txt, llms-full.txt) that no Blazor
+       component, PkRuntime or dev tool ever fetches at runtime (#186) — publish-dist.mjs excludes them so they never ship as static web assets. It is served
+       under _content/PlainKit.Blazor/plainkit/. Files outside wwwroot cannot be served by the static web assets runtime, hence the copy. -->
 
   <!-- Generated/generated.manifest.json is a review aid for the generator (the generator's check compares it), not something consumers need (also not in git). The SDK treats
        *.json as Content, which packs it under content/ and contentFiles/ and copies it into a consumer's project, so it is taken out of the package.
