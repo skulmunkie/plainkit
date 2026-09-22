@@ -42,7 +42,7 @@ jobs:
     steps:
       - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -67,7 +67,7 @@ jobs:
     steps:
       - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -76,7 +76,7 @@ jobs:
         run: node scripts/ci-changes.mjs node
 
       # The runner's own Node is older than the 22 the scripts are written for (node --test with globs needs 21+).
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -105,7 +105,7 @@ jobs:
     steps:
       - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -113,14 +113,14 @@ jobs:
         id: gate
         run: node scripts/ci-changes.mjs dotnet
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
 
       # The NuGet cache (~/.nuget/packages) is keyed on the hash of these files. (There is no packages.lock.json: central package management pins the
       # versions in Directory.Packages.props, so the props file and the projects say what would be restored.)
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         if: steps.gate.outputs.run == 'true'
         with:
           global-json-file: global.json
@@ -154,7 +154,7 @@ jobs:
     steps:
       - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -162,7 +162,7 @@ jobs:
         id: gate
         run: node scripts/ci-changes.mjs browser
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -195,7 +195,7 @@ jobs:
 
       - name: Keep the report
         if: always() && steps.gate.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browser-report
           path: core/tests/browser/report.json
@@ -216,7 +216,7 @@ jobs:
     steps:
       - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -224,14 +224,14 @@ jobs:
         id: gate
         run: node scripts/ci-changes.mjs pack
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
 
       # No NuGet cache here: PlainKit.Blazor has no package references, so nothing is restored into ~/.nuget/packages, and setup-dotnet's cache
       # post-step fails ("Cache folder path ... doesn't exist on disk") when that folder is never created. The test project (the dotnet job) has packages.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         if: steps.gate.outputs.run == 'true'
         with:
           global-json-file: global.json
@@ -262,14 +262,14 @@ jobs:
       # The script that runs here holds a token that can write to the pull request, so it is the BASE branch's copy (the merge target's tip), never the
       # pull request's own: a pull request that edits scripts/ci-report.mjs is tested by the other jobs, but cannot run its edit with this job's token.
       # (A change to the report takes effect once it is merged.) persist-credentials is off: nothing after this step needs the checkout's token.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: scripts
           persist-credentials: false
 
       - name: Write the summary and the sticky comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           NEEDS: ${{ toJSON(needs) }}
         with:
