@@ -100,7 +100,9 @@ export async function mountLayoutBuilder(container, options = {}) {
     const inspectorBox = h(doc, 'div', { class: 'lb-inspector' });
     const inspector = createElementInspector(inspectorBox, { emptyHeading: 'Nothing selected', emptyText: 'Select an element on the canvas or in the structure tree to edit it and to see its documentation and markup.' });
     const aside = h(doc, 'div', { slot: 'aside', class: 'lb-aside' }, form, inspectorBox);
-    const workspace = h(doc, 'pk-workspace', { fill: true, 'aside-open': true, 'nav-label': 'Palette', 'main-label': 'Canvas', 'aside-label': 'Properties' }, h(doc, 'div', { slot: 'nav', class: 'lb-nav' }, tabs), main, aside);
+    // aside-open is not set here: it is kept in step with the selection (see syncAside) so the inspector flyout does not sit over the
+    // canvas, uninvited, on a tablet or phone when there is nothing to inspect.
+    const workspace = h(doc, 'pk-workspace', { fill: true, 'nav-label': 'Palette', 'main-label': 'Canvas', 'aside-label': 'Properties' }, h(doc, 'div', { slot: 'nav', class: 'lb-nav' }, tabs), main, aside);
     const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, toolbar, status, hint, workspace);
     if (options.height) root.style.height = options.height;
     container.replaceChildren(root);
@@ -229,8 +231,13 @@ export async function mountLayoutBuilder(container, options = {}) {
         else inspector.show({ meta, element: elements.get(node.id) });
     }
 
+    // The aside (Properties) pane opens only while something is selected: on a wide screen it is otherwise an empty docked column, but on a
+    // tablet the workspace floats it over the canvas, and left permanently open (as it was before) that flyout covered the canvas even with
+    // nothing to inspect. Closing it when the selection is empty is what lets the tablet and phone panes reach the canvas at all.
+    function syncAside() { workspace.toggleAttribute('aside-open', Boolean(state.selected)); }
+
     function paintAll({ formToo = true } = {}) {
-        paintCanvas(); paintTree(); paintToolbar(); paintInspector();
+        paintCanvas(); paintTree(); paintToolbar(); paintInspector(); syncAside();
         if (formToo) paintForm();
         code.textContent = M.toHtml(current());
     }
@@ -249,7 +256,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         const next = id && M.findNode(current(), id) ? id : null;
         if (next === state.selected) return;
         state.selected = next;
-        paintSelection(scroll); paintToolbar(); paintForm(); paintInspector();
+        paintSelection(scroll); paintToolbar(); paintForm(); paintInspector(); syncAside();
         const node = next && M.findNode(current(), next);
         if (node) say(`Selected ${L.nodeLabel(node)}`);
         emit('select', { id: next });
