@@ -38,8 +38,8 @@ test('git ignores every generated sample path and none of the tracked sources', 
         assert.equal(git(['check-ignore', '-q', f]).status, 1, `${f} is not ignored`);
 });
 
-test('the bootstrap runs build, generate-blazor, build-skills, publish-dist in that order', () => {
-    assert.deepEqual(STEPS.map(([f]) => f), ['core/tools/build.mjs', 'scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/publish-dist.mjs']);
+test('the bootstrap runs build, generate-blazor, build-skills, build-agent-refs, publish-dist in that order', () => {
+    assert.deepEqual(STEPS.map(([f]) => f), ['core/tools/build.mjs', 'scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs']);
     for (const [f] of STEPS) assert.ok(fs.existsSync(path.join(root, f)), f);
 });
 

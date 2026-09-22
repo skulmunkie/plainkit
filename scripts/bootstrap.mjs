@@ -4,7 +4,8 @@
 //   1. node core/tools/build.mjs           core/dist, core/plainkit.css, the element modules, the gallery data, the Files snapshot, api.current.json
 //   2. node scripts/generate-blazor.mjs    the Pk* components (blazor/src/PlainKit.Blazor/Generated) and wwwroot/PlainKit.Blazor.lib.module.js
 //   3. node scripts/build-skills.mjs       the agent skills (core/dist/skills), then the dist manifest again
-//   4. node scripts/publish-dist.mjs       the copy of core/dist inside the Blazor package (wwwroot/plainkit)
+//   4. node scripts/build-agent-refs.mjs   the same skills, exported as core/dist/AGENTS.md and the llms.txt / llms-full.txt pair (issue #36)
+//   5. node scripts/publish-dist.mjs       the copy of core/dist inside the Blazor package (wwwroot/plainkit)
 //
 //   --quiet        print only failures and the final line (what CI uses)
 //   --if-missing   do nothing when the generated files exist and are newer than their sources (cheap enough for a tool to call every time)
@@ -20,6 +21,7 @@ export const STEPS = [
     ['core/tools/build.mjs', 'core/tools/build.mjs'],
     ['scripts/generate-blazor.mjs', 'scripts/generate-blazor.mjs'],
     ['scripts/build-skills.mjs', 'scripts/build-skills.mjs'],
+    ['scripts/build-agent-refs.mjs', 'scripts/build-agent-refs.mjs'],
     ['scripts/publish-dist.mjs', 'scripts/publish-dist.mjs'],
 ];
 

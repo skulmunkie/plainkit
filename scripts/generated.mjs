@@ -18,7 +18,7 @@ export const BOOTSTRAP_MESSAGE = 'Generated files are missing: run node scripts/
 
 // [glob as written in .gitignore, regex over repository-relative paths with forward slashes, the script that writes it]
 export const GENERATED_PATTERNS = [
-    ['/core/dist/', /^core\/dist\//, 'core/tools/build.mjs (dist/skills/ by scripts/build-skills.mjs)'],
+    ['/core/dist/', /^core\/dist\//, 'core/tools/build.mjs (dist/skills/ by scripts/build-skills.mjs; dist/AGENTS.md, dist/llms.txt, dist/llms-full.txt by scripts/build-agent-refs.mjs)'],
     ['/core/plainkit.css', /^core\/plainkit\.css$/, 'core/tools/build.mjs'],
     ['/core/elements/elements.css', /^core\/elements\/elements\.css$/, 'core/tools/build.mjs'],
     ['/core/elements/registry.js', /^core\/elements\/registry\.js$/, 'core/tools/build.mjs'],
@@ -40,6 +40,9 @@ export const SENTINELS = [
     'core/plainkit.css',
     'core/dist/manifest.json',
     'core/dist/skills/plainkit-sdk/SKILL.md',
+    'core/dist/AGENTS.md',
+    'core/dist/llms.txt',
+    'core/dist/llms-full.txt',
     'blazor/src/PlainKit.Blazor/Generated/generated.manifest.json',
     'blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js',
     'blazor/src/PlainKit.Blazor/wwwroot/plainkit/manifest.json',
@@ -57,7 +60,7 @@ export function requireGenerated(rootDir = root) {
 const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'blazor/mappings',
     'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
 const SOURCE_FILES = ['core/VERSION', 'core/icons.svg', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
-const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs'];
+const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs'];
 
 function newestMtime(rootDir) {
     let newest = 0;
