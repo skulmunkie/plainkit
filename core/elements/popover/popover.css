@@ -56,7 +56,7 @@
 
 @media (prefers-reduced-motion: reduce) { [part="panel"] { animation: none; } }
 
-@media (max-width: 640px) { [part="cancel"], [part="confirm"] { min-height: var(--touch-target); } }
+@media (--phone) { [part="cancel"], [part="confirm"] { min-height: var(--touch-target); } }
 
 
 :host(:not([variant="confirm"])) [part="actions"] { display: none; }

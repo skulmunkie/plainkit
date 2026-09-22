@@ -370,3 +370,37 @@ test('the real palette and combobox are two-way on Open from the events the elem
     assert.match(razor('PkCommandPalette'), /Open = false;\s+await OpenChanged\.InvokeAsync\(Open\);/);
     assert.match(razor('PkCombobox'), /Open = e\.Open == true;\s+await OpenChanged\.InvokeAsync\(Open\);\s+await OnToggle\.InvokeAsync\(e\);/);
 });
+
+// ---- the pk-select detail of a PkTable is sent as runs of row indexes (a big selection closed the circuit: SignalR's 32 KB receive limit)
+
+function selectArgs(element, detail) {
+    const src = fs.readFileSync(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'PlainKit.Blazor.lib.module.js'), 'utf8');
+    const handlers = {};
+    new Function('exports', src.replace(/export function afterStarted[^\n]*\n/, '').replace(/export function afterWebStarted[^\n]*\n/, '') + '; exports.register = register;')(handlers);
+    const types = {};
+    handlers.register({ registerCustomEventType: (name, o) => { types[name] = o; } });
+    return types['pk-select'].createEventArgs({ target: element, type: 'pk-select', detail });
+}
+
+const tableElement = (n, marked = true) => ({ hasAttribute: a => marked && a === 'data-pk-ranges', rows: Array.from({ length: n }, (_, i) => ({ id: 'id-' + i })), rowKey: 'id' });
+const ids = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => 'id-' + (from + i));
+
+test('a select-all of a marked pk-table is one run, a few bytes instead of every id', () => {
+    const detail = { selected: ids(0, 4999) };
+    const args = selectArgs(tableElement(5000), detail);
+    assert.deepEqual(args, { ranges: [0, 4999], rowCount: 5000, firstId: 'id-0', lastId: 'id-4999' });
+    assert.ok(JSON.stringify(detail).length > 32 * 1024, 'the whole selection is over the SignalR default');
+    assert.ok(JSON.stringify(args).length < 256);
+});
+
+test('a selection with gaps is one run per stretch, in row order whatever the click order', () => {
+    const sel = [...ids(90, 99), 'id-82', ...ids(0, 79)];
+    assert.deepEqual(selectArgs(tableElement(100), { selected: sel }).ranges, [0, 79, 82, 82, 90, 99]);
+});
+
+test('a small selection, an unmarked table, another element and an id the table does not have go as they are', () => {
+    assert.deepEqual(selectArgs(tableElement(100), { selected: ids(0, 9) }), { selected: ids(0, 9) });
+    assert.deepEqual(selectArgs(tableElement(100, false), { selected: ids(0, 99) }), { selected: ids(0, 99) });
+    assert.deepEqual(selectArgs({}, { value: 'x' }), { value: 'x' });
+    assert.deepEqual(selectArgs(tableElement(100), { selected: [...ids(0, 98), 'gone'] }), { selected: [...ids(0, 98), 'gone'] });
+});

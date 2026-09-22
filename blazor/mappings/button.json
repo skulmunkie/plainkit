@@ -67,6 +67,11 @@
       "type": "bool"
     },
     {
+      "name": "IconName",
+      "prop": "iconName",
+      "type": "string"
+    },
+    {
       "name": "Toggle",
       "prop": "toggle",
       "type": "bool"

@@ -154,10 +154,10 @@ public sealed class PkTableTests : TestContext
             .Add(x => x.OnRowExpand, a => expandArgs = a));
         var table = cut.Find("pk-table");
 
-        await table.TriggerEventAsync("onpk-select", new PkSelectEventArgs { Value = "menu item" });   // bubbled from a menu in a slot
+        await table.TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Value = "menu item" });   // bubbled from a menu in a slot
         Assert.Null(selected);
 
-        await table.TriggerEventAsync("onpk-select", new PkSelectEventArgs { Selected = ["1042", "1043"] });
+        await table.TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Selected = ["1042", "1043"] });
         Assert.Equal(["1042", "1043"], selected);
         Assert.Equal("[\"1042\",\"1043\"]", cut.Find("pk-table").GetAttribute("selected"));
 

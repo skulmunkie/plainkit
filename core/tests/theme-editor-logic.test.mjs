@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { build } from '../tools/build.mjs';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, AA_PAIRS, auditPairs, auditSummary, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport } from '../js/theme-editor-logic.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
 
@@ -109,22 +109,16 @@ test('the theme editor module reports a refused import through the alert and the
     assert.match(body, /note\('error', read\.error\); return;/);
 });
 
-test('dist/theme-editor ships its own token stylesheet and the module reads it from its own folder', () => {
+test('dist/modules/theme-editor ships its own token stylesheet and the module reads it from its own folder', () => {
     const { out } = build({ write: false });
-    assert.equal(out.get('dist/theme-editor/tokens.css'), fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
-    const js = out.get('dist/theme-editor/theme-editor.js');
+    assert.equal(out.get('dist/modules/theme-editor/tokens.css'), fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
+    const js = out.get('dist/modules/theme-editor/theme-editor.js');
     assert.match(js, /const TOKENS = '\.\/tokens\.css';/);
-    assert.ok(out.has('dist/theme-editor/theme-editor.css'));
+    assert.ok(out.has('dist/modules/theme-editor/theme-editor.css'));
     assert.ok(out.has('dist/js/theme-editor-logic.js'));
 });
 
-// Text-on-surface pairs the toolkit promises at WCAG AA (4.5:1) in both themes: the editor's default pairs plus the link and the body and
-// muted text on the other page surfaces. A new documented pair belongs here; a token change that drops one below 4.5 fails this test (issue 58).
-const AA_PAIRS = [...DEFAULT_PAIRS, ['--color-link', '--color-bg'], ['--color-text', '--color-flyout'], ['--color-text', '--color-surface'], ['--color-text', '--color-surface-alt'],
-    // Text on a fill (issue 69): white on the primary button, badge and selected fills, and on their hover fill.
-    ['--btn-primary-fg', '--color-accent-fill'], ['--btn-primary-fg', '--color-accent-fill-hover'],
-    // The warn button (issue 92): its hover fill darkens, like the accent fill's, so white text keeps 4.5:1 in every state; the small (mini) button too.
-    ['--btn-warn-fg', '--btn-warn-bg'], ['--btn-warn-fg', '--btn-warn-hover-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-bg'], ['--btn-mini-fg', '--btn-mini-btn-warn-hover-bg']];
+// AA_PAIRS (js/theme-editor-logic.js) lists the text-on-surface pairs the toolkit promises at WCAG AA (4.5:1) in both themes; a token change that drops one below 4.5 fails this test (issue 58).
 
 for (const theme of ['dark', 'light']) {
     test(`contrast: every documented text pair meets 4.5:1 in the ${theme} theme`, () => {
@@ -135,3 +129,20 @@ for (const theme of ['dark', 'light']) {
         }
     });
 }
+
+test('the live audit grades every pair in both themes under the edits in force, and says how many fail and where', () => {
+    const clean = auditPairs(emptyOverrides(), tokens);
+    assert.equal(clean.length, AA_PAIRS.length * 2);
+    assert.ok(clean.every(r => !r.bad && r.ratio >= 4.5));
+    assert.deepEqual(auditSummary(clean), { bad: 0, text: `All ${AA_PAIRS.length} text pairs are 4.5:1 or better in both themes.` });
+    const worse = { shared: {}, dark: { '--color-text': '#3a3a3a' }, light: { '--color-muted': '#eeeeee', '--color-link': 'var(--color-accent)' } };
+    const rows = auditPairs(worse, tokens);
+    const bad = rows.filter(r => r.bad).map(r => `${r.theme} ${r.fg} ${r.bg}`);
+    assert.ok(bad.includes('dark --color-text --color-bg') && bad.includes('light --color-muted --color-bg'), bad.join('; '));
+    assert.ok(!bad.some(b => b.includes('--color-link')), 'a value that is not a literal colour is n/a, not a failure');
+    assert.equal(rows.find(r => r.theme === 'light' && r.fg === '--color-link').ratio, null);
+    const s = auditSummary(rows);
+    assert.equal(s.bad, bad.length); assert.match(s.text, /below 4\.5:1 \(\d+ in dark, \d+ in light\)\./);
+    assert.equal(auditPairs({ shared: { '--color-bg': '#000000' }, dark: {}, light: {} }, tokens).find(r => r.theme === 'light' && r.fg === '--color-text' && r.bg === '--color-bg').bad, true, 'a shared edit applies to both themes');
+    assert.ok(auditPairs(worse, tokens, [['--color-text', '--color-bg']], 21).every(r => r.bad === true || r.ratio >= 21), 'the minimum is a parameter');
+});

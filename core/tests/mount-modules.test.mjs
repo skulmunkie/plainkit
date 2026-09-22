@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ensureStyles, styleUrls, loadJson } from '../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, runtimeUrl } from '../js/mount-support.js';
 import { collectSnapshot, symbolsOf } from '../tools/snapshot.mjs';
 import { SnapshotProvider } from '../modules/code-explorer/providers.js';
 import { mountCodeExplorer } from '../modules/code-explorer/code-explorer.js';
@@ -98,4 +98,16 @@ test('mountCodeExplorer defaults the height and refuses to start with nothing to
     const { element } = await mountCodeExplorer(container, { snapshot: { files: [] } });
     assert.equal(element.attrs.height, '32rem');
     await assert.rejects(mountCodeExplorer(container, {}), /needs a snapshot/);
+});
+
+test('runtimeUrl: relative to the module by default; with the plainkit-runtime meta the runtime paths move and the module\'s own files stay', () => {
+    const base = 'http://tools.example/dist/modules/logs/logs.js';
+    const doc = content => ({ baseURI: 'http://page.example/app/', querySelector: sel => (content && sel === 'meta[name="plainkit-runtime"]' ? { content } : null) });
+    assert.equal(runtimeUrl('../../plainkit.css', base, doc(null)), 'http://tools.example/dist/plainkit.css');
+    assert.equal(runtimeUrl('../../plainkit.css', base, doc('https://cdn.example/pk/dist/')), 'https://cdn.example/pk/dist/plainkit.css');
+    assert.equal(runtimeUrl('../../elements/api.json', base, doc('/pk/')), 'http://page.example/pk/elements/api.json', 'a relative content resolves against the page');
+    assert.equal(runtimeUrl('./logs.css', base, doc('https://cdn.example/pk/dist/')), 'http://tools.example/dist/modules/logs/logs.css');
+    assert.equal(runtimeUrl('./tokens.css', 'http://tools.example/dist/modules/theme-editor/theme-editor.js', doc('https://cdn.example/pk/dist/')), 'http://tools.example/dist/modules/theme-editor/tokens.css');
+    assert.deepEqual(styleUrls(['../../plainkit.css', './logs.css'], base, doc('https://cdn.example/pk/dist/')), ['https://cdn.example/pk/dist/plainkit.css', 'http://tools.example/dist/modules/logs/logs.css']);
+    assert.equal(runtimeUrl('../../plainkit.css', base, undefined), 'http://tools.example/dist/plainkit.css', 'no document: the default');
 });

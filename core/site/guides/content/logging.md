@@ -1,6 +1,6 @@
 ---
 title: Logging
-order: 4
+order: 5
 summary: What the SDK logs and when, how to turn it up, how to write your own entries into the same log, and how to see them.
 ---
 
@@ -83,7 +83,7 @@ The SDK itself makes no request to another origin, so anything you send is your 
 The [Dev tools](../devtools/index.html) page has a Logs tab, and the same viewer is a module you can put in your own page:
 
 ```js
-import { mountLogs } from './plainkit/logs/logs.js';
+import { mountLogs } from './plainkit/modules/logs/logs.js';
 
 const logs = await mountLogs(document.getElementById('logs'), { height: '24rem' });
 ```

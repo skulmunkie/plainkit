@@ -94,8 +94,9 @@ export default Base => class extends Base {
                 const el = tpl.content.firstElementChild.cloneNode(true);
                 el.id = `o${i}`; el.dataset.value = c.getAttribute('value') ?? c.textContent.trim(); el.textContent = c.textContent.trim();
                 if (c.disabled) el.setAttribute('aria-disabled', 'true');
-                pop.insertBefore(el, this.part('empty'));
+                pop.append(el);
             });
+            pop.append(this.part('empty'));
             if (this.open && this.$query && this.mode !== 'select') this.filter();
         }
         const chosen = this.chosen();

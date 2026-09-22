@@ -1,4 +1,5 @@
 // Browser cases for the overlays, feedback and navigation elements. Same contract as cases.js: [name, async (t) => void].
+import { mediaBelow } from '../../js/breakpoints.js';
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const focus = (el, t) => { el.focus(); return t.settle(); };
 // Waits for the entry animation of a panel to finish, so a position is read after the transition and not in the middle of it.
@@ -159,7 +160,7 @@ export const overlaysCases = [
         const dlg = el.part('dialog'); el.open = true; await arrived(dlg, t);
         const r = dlg.getBoundingClientRect(); const vw = document.documentElement.clientWidth; const vh = window.innerHeight;
         t.ok(getComputedStyle(dlg).transform === 'none' || /^matrix\(1, 0, 0, 1, 0, 0\)$/.test(getComputedStyle(dlg).transform), 'the entry transform is gone');
-        if (matchMedia('(max-width: 640px)').matches) {
+        if (mediaBelow('phone').matches) {
             t.ok(near(r.left, 0) && near(r.top, 0) && near(r.width, vw) && near(r.height, vh), `full screen on a phone (${r.left},${r.top} ${r.width}x${r.height} in ${vw}x${vh})`);
         } else {
             t.ok(near(r.left + r.width / 2, vw / 2), `centred horizontally (${r.left + r.width / 2} vs ${vw / 2})`);
@@ -287,7 +288,7 @@ export const overlaysCases = [
         t.key(products, 'ArrowRight'); await t.settle(); t.ok(products.expanded);
         t.key(products, 'ArrowRight'); await t.settle(); t.eq(document.activeElement, drafts, 'enters the branch');
         t.key(drafts, 'ArrowLeft'); await t.settle(); t.eq(document.activeElement, products, 'back to the parent');
-        el.collapsed = true; await t.settle(); t.eq(orders.rail, !matchMedia('(max-width: 1024px)').matches, 'items know they are in the rail (only on wide screens; a drawer ignores collapse)');
+        el.collapsed = true; await t.settle(); t.eq(orders.rail, !mediaBelow('tablet').matches, 'items know they are in the rail (only on wide screens; a drawer ignores collapse)');
     }],
 
     ['side nav: collapsed state and open branches persist under the persist key', async t => {

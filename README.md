@@ -27,7 +27,7 @@ Where you get the files, and which versions are pinned:
 
 | Way | Version |
 |---|---|
-| `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere | pinned |
+| `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere (`plainkit-modules-<version>.zip` is the dev tools, its own unit: unzip it into the same folder) | pinned |
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
 | The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery, guides and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 

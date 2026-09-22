@@ -23,6 +23,9 @@ Thumbs.db
 scratch*/
 *.log
 
+## The last full size sweep (node scripts/scorecard-sweep.mjs --write-report): a local report that goes stale with every gallery edit, so it is not tracked.
+/core/site/scorecard/sweep-report.json
+
 ## GitHub Pages build output, and Claude Code local state
 _site/
 .claude/

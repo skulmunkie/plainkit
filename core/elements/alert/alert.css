@@ -41,6 +41,9 @@
 
 ::slotted(a) { color: var(--color-link); font-weight: 600; }
 
+/* A link in the action slot stands alone (it is not in running text), so it is a tap target: 44px tall, pulled back into the padding so the alert keeps its height. */
+::slotted(a[slot="action"]) { display: inline-flex; align-items: center; min-height: var(--touch-target); min-width: var(--touch-target); margin-block: calc(-1 * var(--space-3)); }
+
 [part="close"] { flex: none; width: var(--touch-target); height: var(--touch-target); margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
 
 [part="close"]::before { content: "\00d7"; font-size: 1.25rem; line-height: 1; }
@@ -49,7 +52,7 @@
 
 [part="close"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-@media (max-width: 640px) { :host { flex-wrap: wrap; } [part="actions"] { flex-basis: 100%; order: 2; } [part="close"] { order: 1; } }
+@media (--phone) { :host { flex-wrap: wrap; } [part="actions"] { flex-basis: 100%; order: 2; } [part="close"] { order: 1; } }
 :host([plain]) { display: block; padding: 0; border: 0; border-radius: 0; background: none; color: var(--pk-alert-c); margin: var(--space-1) 0 var(--space-2); font-size: var(--text-md); }
 :host([plain]) [part="icon"] { display: none; }
 :host([plain]) [part="close"] { width: auto; height: auto; margin: 0 0 0 var(--space-2); padding: 0 var(--space-1); }

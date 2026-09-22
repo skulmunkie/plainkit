@@ -82,6 +82,22 @@ public sealed record PkTableColumn<TItem>
     };
 }
 
+/// <summary>The detail of the <c>pk-select</c> a <see cref="PkTable{TItem}"/> receives. A selection of 64 rows or more does not carry its ids (a big table would send more than SignalR accepts, which closes the circuit): the browser sends runs of row indexes and the table turns them into <see cref="PkSelectEventArgs.Selected"/> before it raises <c>OnSelect</c>.</summary>
+public sealed class PkTableSelectEventArgs : PkSelectEventArgs
+{
+    /// <summary>Runs of selected rows as <c>[first, last, first, last, ...]</c>, indexes into the rows the table sent. Null when the event carries <see cref="PkSelectEventArgs.Selected"/>.</summary>
+    public int[]? Ranges { get; set; }
+
+    /// <summary>How many rows the element held when it raised the event (a check that the indexes match the rows the server sent).</summary>
+    public int RowCount { get; set; }
+
+    /// <summary>The id of the element's first row (a check).</summary>
+    public string? FirstId { get; set; }
+
+    /// <summary>The id of the element's last row (a check).</summary>
+    public string? LastId { get; set; }
+}
+
 /// <summary>A row of a <see cref="PkTable{TItem}"/> was activated (a click on a <c>Clickable</c> table).</summary>
 /// <typeparam name="TItem">The type of a row.</typeparam>
 /// <param name="Id">The row's id, as <c>IdOf</c> gave it (the row's index when there is no <c>IdOf</c>).</param>

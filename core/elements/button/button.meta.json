@@ -84,7 +84,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "An accessible name when the visible content is only an icon."
+      "description": "The accessible name, for a button whose visible content is only an icon. It wins over the words in the slot; leave it off and write the name as the button text with icon set instead."
     },
     {
       "name": "busy",
@@ -112,7 +112,14 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "A square icon-only button (give it a label)."
+      "description": "Icon-only mode: a square button that draws only its icon (icon-name, a pk-icon or an svg in the start slot). The words in the default slot are hidden visually but stay the accessible name, and show as the tooltip on hover. The label prop wins over them when both are given."
+    },
+    {
+      "name": "iconName",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Draws that symbol of the SDK icon sprite inside the control, before the label (the pk-icon names: plus, search, chevron-left and so on), so an icon button needs no child element. A name that is not in the sprite is reported once through the logger and nothing is drawn."
     },
     {
       "name": "toggle",
@@ -140,7 +147,7 @@
   "slots": [
     {
       "name": "",
-      "description": "The label."
+      "description": "The label. With icon set it is hidden visually and kept as the accessible name; an element in it (a pk-icon) stays drawn."
     },
     {
       "name": "start",
@@ -171,6 +178,10 @@
     {
       "name": "control",
       "description": "The inner button element, or the anchor when href is set."
+    },
+    {
+      "name": "icon",
+      "description": "The svg drawn for icon-name."
     },
     {
       "name": "spinner",
@@ -219,7 +230,7 @@
       "description": "Focuses the inner button or link."
     }
   ],
-  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. Give an icon-only button a label. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in.",
+  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. An icon button (icon) hides that text visually (a zero-size font, not display:none, so it stays in the accessibility tree) and it remains the name; label overrides it. Every icon-only button needs a name: from its text, label or aria-label (the scorecard flags one without). The name is also the native title tooltip on hover (skipped inside a pk-tooltip, which gives hover and keyboard focus, or when the host has its own title); the title is never the name. A toggle reports aria-pressed; a busy button reports aria-busy and ignores clicks without dropping focus, and a busy icon button swaps its icon for the spinner and keeps its name; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in.",
   "examples": [
     {
       "title": "Variants",
@@ -234,8 +245,12 @@
       "html": "<pk-button busy busy-text=\"Saving...\">Save</pk-button>\n<pk-button icon variant=\"ghost\" label=\"Add\"><svg slot=\"start\" viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 5v14M5 12h14\"/></svg></pk-button>\n<pk-button toggle variant=\"ghost\" pressed>Bold</pk-button>"
     },
     {
+      "title": "Icon buttons: the text is the name",
+      "html": "<pk-button icon variant=\"ghost\" icon-name=\"plus\">Add item</pk-button>\n<pk-button icon variant=\"ghost\" href=\"#orders\"><pk-icon name=\"chevron-left\"></pk-icon>Back to Orders</pk-button>\n<pk-button icon variant=\"secondary\" icon-name=\"search\" busy>Search</pk-button>\n<pk-button icon variant=\"ghost\" icon-name=\"menu\" toggle pressed>Menu</pk-button>\n<pk-button icon size=\"mini\" variant=\"plain\" icon-name=\"x\">Close</pk-button>\n<pk-tooltip text=\"Add item\"><pk-button icon icon-name=\"plus\">Add item</pk-button></pk-tooltip>"
+    },
+    {
       "title": "Submits a form",
-      "html": "<form>\n  <input name=\"q\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
+      "html": "<form>\n  <input name=\"q\" aria-label=\"Search\" required>\n  <pk-button type=\"submit\">Search</pk-button>\n</form>"
     },
     {
       "title": "A link that looks like a button",

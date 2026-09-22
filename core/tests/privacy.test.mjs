@@ -60,3 +60,28 @@ test('no type names from the old application in core, the Blazor package sources
     }
     assert.deepEqual(hits, []);
 });
+
+// Token and selector names from the old application (issue #78). They were renamed to the toolkit's own (--shadow-pop, --color-critical,
+// --color-positive, --color-warning) and must not come back. Only the API baseline (the previous release's surface, refreshed by the release
+// pull request) and the changelog may still name them; there are no deprecated aliases.
+const OLD_APP_TOKENS = /--infotip-panel-shadow|--stat-card-(?:critical|positive|warning)-fg|\.infotip__icon/g;
+
+test('no token or selector names from the old application in core, the Blazor package sources, mappings, tests or docs', () => {
+    const blazorFiles = walk(path.join(repo, 'blazor')).filter(f => TEXT.test(f));
+    const hits = [];
+    for (const f of [...files, ...blazorFiles]) {
+        const rel = path.relative(repo, f).split(path.sep).join('/');
+        if (rel === 'CHANGELOG.md' || rel === 'core/site/files/snapshot.json' || rel === 'core/site/scorecard/api.baseline.json') continue; // the snapshot is a copy of the sources (this test and the changelog fragment included)
+        fs.readFileSync(f, 'utf8').split('\n').forEach((l, i) => { for (const m of l.matchAll(OLD_APP_TOKENS)) hits.push(`${rel}:${i + 1}: ${m[0]}`); });
+    }
+    assert.deepEqual(hits, []);
+});
+
+test('the renamed tokens exist in both themes', () => {
+    const css = fs.readFileSync(path.join(core, 'tokens/tokens.css'), 'utf8');
+    for (const theme of ['dark', 'light']) {
+        const block = css.split('\n').find(l => l.startsWith(`[data-theme="${theme}"] { color-scheme`)) ?? '';
+        for (const t of ['--color-critical', '--color-warning', '--color-positive']) assert.match(block, new RegExp(`${t}: #[0-9a-f]{6}`), `${t} in ${theme}`);
+    }
+    assert.match(css, /--shadow-pop: 0 4px 16px/);
+});

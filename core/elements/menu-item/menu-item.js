@@ -1,5 +1,6 @@
 import { place, unplace } from '../../js/positioning.js';
 import { moveFocus, checkedAfter, safeLink, labelOf } from '../../js/menu-logic.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 // pk-menu-item: a row of a dropdown or context menu. It carries its own role and state, activates on click, Enter or Space, and opens a slotted submenu.
 const ROLE = { item: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio', header: 'presentation', divider: 'separator' };
@@ -34,7 +35,7 @@ export default Base => class extends Base {
     layer() {
         const sub = this.part('submenu');
         if (!sub) return;
-        if (this.open && !globalThis.matchMedia('(max-width: 640px)').matches) place(this, sub, { placement: 'right-start', offset: 0 });
+        if (this.open && !mediaBelow('phone').matches) place(this, sub, { placement: 'right-start', offset: 0 });
         else unplace(sub);
     }
     activate() {

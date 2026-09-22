@@ -2,7 +2,7 @@
   "tag": "pk-form-section",
   "title": "Form section",
   "group": "Form layout",
-  "summary": "A titled section of a form: heading and description beside a responsive grid of fields (stacked below 1024px).",
+  "summary": "A titled section of a form: heading and description beside a responsive grid of fields (stacked at 1024px and below).",
   "props": [
     {
       "name": "heading",

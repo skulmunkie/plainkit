@@ -64,7 +64,13 @@ internal static class PkAttr
     {
         var merged = new Dictionary<string, object>(handlers);
         foreach (var (name, value) in attributes)
-            if (!string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)) merged[name] = value;
+        {
+            if (string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)) continue;
+            // An inline event handler (onclick="...") is script text in an attribute: Razor would emit it as it is, and a page without a strict CSP would run it. A
+            // handler the component is given as a delegate or EventCallback is not text and passes.
+            if (value is string && name.Length > 2 && name.StartsWith("on", StringComparison.OrdinalIgnoreCase)) continue;
+            merged[name] = value;
+        }
         return merged;
     }
 

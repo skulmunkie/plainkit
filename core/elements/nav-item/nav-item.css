@@ -48,7 +48,7 @@
 
 :host([group][rail]) [part="link"] { padding: 0; margin-block: var(--space-2); border-top: 1px solid var(--color-border); border-radius: 0; }
 
-@media (max-width: 640px) { [part="link"] { min-height: var(--touch-target); } }
+@media (--phone) { [part="link"] { min-height: var(--touch-target); } }
 
 @media (prefers-reduced-motion: reduce) { [part="chevron"]::before { transition: none; } }
 

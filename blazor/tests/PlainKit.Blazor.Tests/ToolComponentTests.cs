@@ -111,6 +111,56 @@ public sealed class ToolComponentTests : TestContext
     }
 
     [Fact]
+    public void Theme_editor_passes_the_initial_theme_and_the_presets_as_text()
+    {
+        var css = ":root, [data-theme=\"dark\"] { --color-accent: #123456; }";
+        var presets = new[] { new PkThemePreset("Brand", css, "Our colours"), new PkThemePreset("Plain", "{\"shared\":{}}") };
+        RenderComponent<PkThemeEditor>(p => p.Add(x => x.InitialTheme, css).Add(x => x.Presets, presets));
+
+        var call = Assert.Single(_bridge.Invocations["mountThemeEditor"]);
+        var options = Options(call);
+        Assert.Equal(css, options.GetProperty("initial").GetString());
+        var sent = options.GetProperty("presets").EnumerateArray().ToArray();
+        Assert.Equal(new[] { "Brand", "Plain" }, sent.Select(x => x.GetProperty("name").GetString()));
+        Assert.Equal(css, sent[0].GetProperty("theme").GetString());
+        Assert.Equal("Our colours", sent[0].GetProperty("description").GetString());
+        Assert.Null(call.Arguments[2]); // no handler: nothing is called back
+    }
+
+    [Fact]
+    public void Theme_editor_leaves_the_initial_theme_and_presets_unset_by_default()
+    {
+        RenderComponent<PkThemeEditor>();
+
+        var options = Options(Assert.Single(_bridge.Invocations["mountThemeEditor"]));
+        Assert.Equal(JsonValueKind.Null, options.GetProperty("initial").ValueKind);
+        Assert.Equal(JsonValueKind.Null, options.GetProperty("presets").ValueKind);
+    }
+
+    [Fact]
+    public async Task Theme_editor_raises_OnThemeChanged_with_the_exported_css()
+    {
+        var received = new List<string>();
+        var cut = RenderComponent<PkThemeEditor>(p => p.Add(x => x.OnThemeChanged, EventCallback.Factory.Create<string>(this, css => received.Add(css))));
+
+        var host = Assert.IsType<DotNetObjectReference<PkThemeEditorHost>>(Assert.Single(_bridge.Invocations["mountThemeEditor"]).Arguments[2]);
+        await cut.InvokeAsync(() => host.Value.OnChange(":root { --color-accent: red; }"));
+
+        Assert.Equal(new[] { ":root { --color-accent: red; }" }, received);
+    }
+
+    [Fact]
+    public void Theme_editor_mounts_again_when_the_initial_theme_or_presets_change()
+    {
+        var cut = RenderComponent<PkThemeEditor>(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
+        cut.SetParametersAndRender(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
+        Assert.Equal(1, Calls("mountThemeEditor"));
+
+        cut.SetParametersAndRender(p => p.Add(x => x.InitialTheme, "{\"shared\":{\"--radius-md\":\"2px\"}}"));
+        Assert.Equal(2, Calls("mountThemeEditor"));
+    }
+
+    [Fact]
     public void Theme_editor_shows_the_preview_by_default()
     {
         RenderComponent<PkThemeEditor>();

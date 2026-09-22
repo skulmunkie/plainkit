@@ -77,14 +77,17 @@ export function securitySummary(report, { limit = 60 } = {}) {
 
 // ---- size sweep -----------------------------------------------------------------------------------------------------------
 
-// The last full size sweep (site/scorecard/sweep-report.json): the headline numbers, the failing cells and any re-measure notes.
+// The last full size sweep (site/scorecard/sweep-report.json, written by node scripts/scorecard-sweep.mjs --write-report; not tracked): the headline numbers,
+// the failing cells per metric and the worst item/metric groups. A report that lists every failing cell (`failures`, the older shape) is read as well.
 export function sweepSummary(report, { limit = 40 } = {}) {
+    const base = { checked: report?.checked ?? 0, widths: report?.widths ?? [], themes: report?.themes ?? [], partial: Boolean(report?.partial), at: report?.at ?? null, by: Object.entries(report?.by ?? {}).map(([metric, cells]) => ({ metric, cells })), notes: (report?.remeasured ?? []).map(x => ({ item: x.item, note: x.note })) };
+    if (Array.isArray(report?.groups)) {
+        const rows = report.groups.slice(0, limit).map((g, i) => ({ id: i + 1, item: g.item, metric: g.metric, cells: g.cells, worst: typeof g.worst === 'number' ? g.worst : String(g.worst ?? ''), where: `${(g.widths ?? []).join('/')}px ${(g.themes ?? []).join('+')}` }));
+        return { ...base, grouped: true, failing: report.failing ?? 0, rows, total: report.groupCount ?? report.groups.length };
+    }
     const failures = report?.failures ?? [];
     const rows = failures.slice(0, limit).map((f, i) => ({ id: i + 1, item: f.item, width: f.width, theme: f.theme, overflow: f.overflow ?? 0, targets: f.smallTargets ?? 0, reading: f.readingSmall ?? 0, meta: f.metaTooSmall ?? 0, nested: f.nestedScrollers ?? 0 }));
-    return {
-        failing: failures.length, checked: report?.checked ?? 0, widths: report?.widths ?? [], themes: report?.themes ?? [], partial: Boolean(report?.partial),
-        rows, total: failures.length, notes: (report?.remeasured ?? []).map(x => ({ item: x.item, note: x.note })),
-    };
+    return { ...base, grouped: false, failing: failures.length, rows, total: failures.length };
 }
 
 // ---- history --------------------------------------------------------------------------------------------------------------

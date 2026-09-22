@@ -57,6 +57,17 @@ test('the sweep summary fills absent counts with zero and keeps the notes', () =
     assert.equal(sweepSummary({ failures: [] }).failing, 0);
 });
 
+test('the sweep summary reads the small grouped report the sweep tool writes: cells per metric, worst groups, how many were left out', () => {
+    const report = { checked: 3648, failing: 1893, at: '2026-01-02T03:04:05.000Z', by: { readingSmall: 1557, smallTargets: 200 }, widths: [320], themes: ['dark', 'light'], groupCount: 3,
+        groups: [{ item: 'sample a#1', metric: 'readingSmall', cells: 12, worst: 4, widths: [320, 375], themes: ['dark'] }, { item: 'x', metric: 'error', cells: 1, worst: 'boom', widths: [320], themes: ['dark'] }] };
+    const s = sweepSummary(report);
+    assert.deepEqual([s.grouped, s.failing, s.checked, s.total, s.rows.length], [true, 1893, 3648, 3, 2]);
+    assert.deepEqual(s.by, [{ metric: 'readingSmall', cells: 1557 }, { metric: 'smallTargets', cells: 200 }]);
+    assert.deepEqual(s.rows[0], { id: 1, item: 'sample a#1', metric: 'readingSmall', cells: 12, worst: 4, where: '320/375px dark' });
+    assert.equal(s.rows[1].worst, 'boom');
+    assert.equal(sweepSummary({ ...report, groups: [] }).rows.length, 0);
+});
+
 test('metric rows and history rows read scores and changes', () => {
     const scoring = { categories: { perf: { label: 'Performance', weight: 1, metrics: { kb: { label: 'Size', good: 10, poor: 50, lowerIsBetter: true, weight: 1 }, lcp: { label: 'LCP', good: 1, poor: 4 } } } } };
     const scores = scoreAll(scoring, { kb: 30 });

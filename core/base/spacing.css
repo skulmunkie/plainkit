@@ -1,5 +1,4 @@
-/* Spacing: the vertical rhythm and the exception utilities. Every value is a token from the one scale; there are no literals here.
-   .flow gives stacked siblings the default rhythm; .stack is the same as a flex column with a gap; .p-* .m-* .gap-* are for the exceptions. */
+/* Spacing: vertical rhythm and exception utilities, all from the token scale. .flow spaces stacked siblings; .stack is a flex column with a gap; .p-* .m-* .gap-* are exceptions. */
 
 .flow > * + * { margin-block-start: var(--flow-space); }
 

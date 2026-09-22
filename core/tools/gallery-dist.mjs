@@ -41,7 +41,7 @@ export function galleryDist(read, root, dataText) {
     for (const f of COPY) files.set(f, relocate(read(path.join(dir, f))));
     files.set('gallery.data.js', dataText);
     files.set('paths.js', paths);
-    files.set('boots/code-explorer.js', relocate(read(path.join(dir, 'boots', 'code-explorer.js')), 1).replaceAll('/modules/code-explorer/', '/code-explorer/'));
+    files.set('boots/code-explorer.js', relocate(read(path.join(dir, 'boots', 'code-explorer.js')), 1)); // -> ../../modules/code-explorer/: the modules unit next to the runtime
     // The gallery's own chrome and pages are pk-* elements, so the embed page needs only the page layer.
     files.set('embed.html', read(path.join(dir, 'embed.html')).replace('href="../../plainkit.css">', 'href="../plainkit.css">').replace('href="../site.css"', 'href="site.css"'));
     // The preview host (patterns and layouts as a whole page) loads the same stylesheet as the embed page.

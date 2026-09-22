@@ -50,7 +50,7 @@
 
 :host([orientation="vertical"]) [part="connector"] { position: absolute; left: calc(0.875rem - 1px); top: 1.75rem; bottom: 0; width: 2px; height: auto; min-width: 0; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     :host(:not([orientation="vertical"])) { flex: 0 1 auto; }
     :host(:not([orientation="vertical"]):not([state="active"])) [part="text"] { display: none; }
     :host([clickable]) { min-height: var(--touch-target); align-items: center; }

@@ -119,7 +119,7 @@
   "examples": [
     {
       "title": "Command palette",
-      "html": "<pk-command-palette></pk-command-palette>"
+      "html": "<pk-button data-open=\"#command-palette\" variant=\"secondary\">Open the palette</pk-button>\n<pk-command-palette id=\"command-palette\"></pk-command-palette>"
     }
   ]
 }

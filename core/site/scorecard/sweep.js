@@ -23,6 +23,14 @@ export function routes() {
     ];
 }
 
+// Level-1 headings in a document: h1 elements and role="heading" aria-level="1", inside shadow trees too (pk-page-header draws its title there).
+export function countH1(root) {
+    let n = 0;
+    const walk = scope => { for (const el of scope.querySelectorAll('*')) { if (el.localName === 'h1' || (el.getAttribute('role') === 'heading' && el.getAttribute('aria-level') === '1')) n++; if (el.shadowRoot) walk(el.shadowRoot); } };
+    walk(root);
+    return n;
+}
+
 const INTERACTIVE = 'a[href], button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea, summary, [role="tab"]';
 
 // Measures one document at a viewport width. `phone` turns on the touch-target check. Pure over the DOM it is given.
@@ -51,27 +59,53 @@ export function measure(doc, width, { checkH1 = true } = {}) {
         else if (px < TEXT_TIERS.readingPx - 0.5 && !el.closest(TEXT_TIERS.metaSelectors)) out.readingSmall++;
     }
     out.smallText = out.metaTooSmall + out.readingSmall;
-    if (checkH1) out.h1 = doc.querySelectorAll('h1').length;
+    if (checkH1) out.h1 = countH1(doc);
     return out;
 }
 
-function frame(src, width, doc) {
-    return new Promise(resolve => {
-        const f = document.createElement('iframe');
-        f.style.cssText = `position:fixed;left:-20000px;top:0;width:${width}px;height:900px;border:0`;
-        if (doc) f.srcdoc = doc; else f.src = src;
-        document.body.append(f);
-        // Settled when the document has content and its node count has stopped changing, or after 6s.
-        const started = Date.now(); let last = -1; let stable = 0;
-        const timer = setInterval(() => {
-            const d = f.contentDocument; const n = d?.body ? d.body.querySelectorAll('*').length : 0;
-            stable = n > 3 && n === last ? stable + 1 : 0; last = n;
-            // Styles must be applied before anything is measured: every stylesheet link loaded (a half-styled frame reads as small targets and text).
-            const styled = !!d && [...d.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet);
-            const ready = styled && (src ? !!d?.querySelector('h1') : true);
-            if ((ready && stable >= (src ? 5 : 3)) || Date.now() - started > 8000) { clearInterval(timer); resolve(f); }
-        }, 120);
-    });
+// ---- frames: load, settle, resize -----------------------------------------------------------------------------------------
+
+// Every custom element tag the toolkit defines: a frame is not settled while one of these is in it and not yet defined (elements load on demand,
+// and an undefined avatar or page header has no size and no title yet).
+const KNOWN_TAGS = new Set(ELEMENTS.map(m => m.tag));
+export const POLL_MS = 40;
+export const QUIET_POLLS = 4;
+export const SETTLE_TIMEOUT_MS = 20000;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// What a document looks like right now: deep node count (shadow trees included), scroll size and font state as one string (`text`), and `ready`:
+// loaded, every stylesheet applied, no toolkit element left undefined, the gallery's boot notice gone (it removes it when its shell is drawn).
+// Two equal readings in a row while ready mean nothing will change without new input. Reading it forces layout, so a resize or a late render shows up.
+export function signature(doc) {
+    if (!doc.documentElement || !doc.defaultView) return { text: '', ready: false }; // mid-navigation: no document yet
+    const win = doc.defaultView; let nodes = 0; let undef = 0;
+    const walk = scope => { for (const el of scope.querySelectorAll('*')) { nodes++; if (KNOWN_TAGS.has(el.localName) && !win.customElements.get(el.localName)) undef++; if (el.shadowRoot) walk(el.shadowRoot); } };
+    if (doc.body) walk(doc.body);
+    const styled = [...doc.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet);
+    const de = doc.documentElement;
+    return { text: [nodes, de.scrollWidth, de.scrollHeight, doc.fonts?.status].join('|'), ready: doc.readyState === 'complete' && !!doc.body && nodes > 0 && undef === 0 && styled && !doc.getElementById('boot-notice') };
+}
+
+// Resolves when the frame's document has been ready and unchanged for QUIET_POLLS polls in a row: a condition, not a fixed sleep. Rejects at the
+// timeout, so a page that never settles is reported as an error cell and not measured half-drawn.
+export async function settled(f, { timeout = SETTLE_TIMEOUT_MS } = {}) {
+    const started = Date.now(); let last = null; let quiet = 0;
+    for (;;) {
+        const d = f.contentDocument;
+        const s = d ? signature(d) : { text: '', ready: false };
+        quiet = s.ready && s.text === last ? quiet + 1 : 0; last = s.text;
+        if (quiet >= QUIET_POLLS) return f;
+        if (Date.now() - started > timeout) throw new Error(`the frame did not settle within ${timeout / 1000} s (${s.ready ? 'still changing' : 'not ready'}: ${s.text})`);
+        await sleep(POLL_MS);
+    }
+}
+
+function makeFrame(item, width, theme) {
+    const f = document.createElement('iframe');
+    f.style.cssText = `position:fixed;left:-20000px;top:0;width:${width}px;height:900px;border:0`;
+    const src = item.src?.(theme); if (src) f.src = src; else f.srcdoc = item.doc(theme);
+    document.body.append(f);
+    return f;
 }
 
 async function pool(jobs, size, onDone) {
@@ -79,16 +113,51 @@ async function pool(jobs, size, onDone) {
     await Promise.all(Array.from({ length: size }, async () => { while (next < jobs.length) { await jobs[next++](); onDone?.(++done, jobs.length); } }));
 }
 
-// kinds: any of 'views', 'templates', 'samples'. Returns { checked, failures: [{ item, width, theme, ...metrics }], results }.
-export async function sweep({ kinds = ['views', 'templates', 'samples'], widths = WIDTHS, themes = THEMES, progress, size = 6 } = {}) {
-    const results = partial; results.length = 0; const jobs = [];
-    const add = (item, run) => { for (const theme of themes) for (const width of widths) jobs.push(async () => { try { const m = await run(width, theme); results.push({ item, width, theme, ...m }); } catch (e) { results.push({ item, width, theme, error: String(e), overflow: 0, smallTargets: 0, nestedScrollers: 0, smallText: 0, h1: null }); } }); };
-    if (kinds.includes('views')) for (const r of routes()) add(`gallery ${r}`, async (w, theme) => { const f = await frame(new URL(`../gallery/index.html?theme=${theme}${r}`, import.meta.url).href, w); try { return measure(f.contentDocument, w); } finally { f.remove(); } });
-    if (kinds.includes('templates')) for (const t of TEMPLATE_FILES) for (const nav of ['side', 'top']) add(`template ${t} (${nav} nav)`, async (w, theme) => { const f = await frame(new URL(`../../samples/templates/${t}?nav=${nav}&theme=${theme}`, import.meta.url).href, w); try { return measure(f.contentDocument, w); } finally { f.remove(); } });
-    if (kinds.includes('samples')) for (const m of ELEMENTS) m.examples.forEach((x, i) => add(`sample ${m.tag}#${i + 1}`, async (w, theme) => { const f = await frame(null, w, sampleDoc(x.html, { theme })); try { return measure(f.contentDocument, w, { checkH1: false }); } finally { f.remove(); } }));
-    await pool(jobs, size, progress);
-    const bad = r => r.error || r.overflow > 0 || r.smallTargets > 0 || r.nestedScrollers > 0 || r.smallText > 0 || (r.h1 !== null && r.h1 !== 1 && !r.item.startsWith('template auth') && !r.item.startsWith('gallery #/foundations/icons'));
-    return { checked: results.length, failures: results.filter(bad), results };
+const KINDS = ['views', 'templates', 'samples'];
+
+// The things to sweep, in a fixed order: { name, kind, src(theme) | doc(theme), checkH1 }. kinds: any of 'views', 'templates', 'samples';
+// filter: a list of substrings, an item is kept when its name contains one of them.
+export function items({ kinds = KINDS, filter = null } = {}) {
+    const out = [];
+    if (kinds.includes('views')) for (const r of routes()) out.push({ name: `gallery ${r}`, kind: 'views', checkH1: true, src: theme => new URL(`../gallery/index.html?theme=${theme}${r}`, import.meta.url).href });
+    if (kinds.includes('templates')) for (const t of TEMPLATE_FILES) for (const nav of ['side', 'top']) out.push({ name: `template ${t} (${nav} nav)`, kind: 'templates', checkH1: true, src: theme => new URL(`../../samples/templates/${t}?nav=${nav}&theme=${theme}`, import.meta.url).href });
+    if (kinds.includes('samples')) for (const m of ELEMENTS) m.examples.forEach((x, i) => out.push({ name: `sample ${m.tag}#${i + 1}`, kind: 'samples', checkH1: false, doc: theme => sampleDoc(x.html, { theme }) }));
+    return filter?.length ? out.filter(i => filter.some(x => i.name.includes(x))) : out;
+}
+
+const failed = r => r.error || r.overflow > 0 || r.smallTargets > 0 || r.nestedScrollers > 0 || r.smallText > 0 || (r.h1 !== null && r.h1 !== 1 && !r.item.startsWith('template auth') && !r.item.startsWith('gallery #/foundations/icons'));
+
+// One item at every width and theme. By default the document is loaded once, then resized (the width) and re-themed (the data-theme attribute, which is how
+// the gallery itself switches theme), and each change is measured once the frame has settled again; { fresh: true } loads a new frame for every cell
+// (slow; the cross-check for the reuse). An error in a cell is recorded and the next cell starts from a new frame.
+async function sweepItem(item, { widths, themes, fresh }, out) {
+    const cell = (theme, width, m) => out.push({ item: item.name, width, theme, ...m });
+    let f = null;
+    try {
+        for (const theme of themes) for (const width of widths) {
+            try {
+                if (fresh || !f) { f?.remove(); f = makeFrame(item, width, theme); }
+                else { f.style.width = width + 'px'; f.contentDocument.documentElement.setAttribute('data-theme', theme); }
+                await settled(f);
+                cell(theme, width, measure(f.contentDocument, width, { checkH1: item.checkH1 }));
+            } catch (e) {
+                cell(theme, width, { error: String(e.message ?? e), overflow: 0, smallTargets: 0, nestedScrollers: 0, smallText: 0, h1: null });
+                f?.remove(); f = null;
+            }
+            if (fresh) { f?.remove(); f = null; }
+        }
+    } finally { f?.remove(); }
+}
+
+// Returns { checked, failures: [{ item, width, theme, ...metrics }], items }, failures in item, theme, width order. shard: { index, count } takes every
+// count-th item, so several tabs (separate render processes) can each run a share; size is the number of items in flight in this tab.
+export async function sweep({ kinds = KINDS, filter = null, widths = WIDTHS, themes = THEMES, progress, size = 3, shard = null, fresh = false } = {}) {
+    const all = items({ kinds, filter }); const mine = shard ? all.filter((_, i) => i % shard.count === shard.index) : all;
+    const results = partial; results.length = 0; const order = new Map(all.map((it, i) => [it.name, i]));
+    await pool(mine.map(it => () => sweepItem(it, { widths, themes, fresh }, results)), size, (d, n) => progress?.(d, n));
+    const rank = r => [order.get(r.item), themes.indexOf(r.theme), widths.indexOf(r.width)];
+    const cmp = (x, y) => { const p = rank(x); const q = rank(y); return p[0] - q[0] || p[1] - q[1] || p[2] - q[2]; };
+    return { checked: results.length, failures: results.filter(failed).sort(cmp), items: mine.length };
 }
 
 export function summarise(report) {

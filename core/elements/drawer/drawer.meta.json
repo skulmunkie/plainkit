@@ -153,7 +153,7 @@
   "examples": [
     {
       "title": "Drawer from the right",
-      "html": "<pk-drawer side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><pk-button slot=\"footer\">Apply</pk-button></pk-drawer>"
+      "html": "<pk-button data-open=\"#filters-drawer\" variant=\"secondary\">Filters</pk-button>\n<pk-drawer id=\"filters-drawer\" side=\"right\" heading=\"Filters\"><p>Filter controls go here.</p><pk-button slot=\"footer\">Apply</pk-button></pk-drawer>"
     }
   ]
 }

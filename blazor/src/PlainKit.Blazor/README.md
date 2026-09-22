@@ -2,7 +2,7 @@
 
 Blazor components over [Plainkit](https://github.com/skulmunkie/plainkit), the dependency-free HTML, CSS and JavaScript toolkit. Targets .NET 10.
 
-The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN.
+The package carries the whole toolkit as static web assets (`_content/PlainKit.Blazor/plainkit/`), so there is nothing else to install and nothing fetched from a CDN. It holds the toolkit's two units: the runtime (`plainkit/`) and the dev-tool modules under `plainkit/modules/` (dev tools dock, theme editor, log viewer and the other tools the components mount; they are only requested when a tool is opened, never by a page that just uses the elements).
 
 ## Alpha status
 
@@ -124,6 +124,24 @@ Rows are keyboard stops, a third click on a sortable header clears the sort, and
 
 What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkGallery`, `PkPageHeader`, `PkStat`, `PkTable`; `PkStyles` and `PkDataList` have no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
 
+## Large tables and the circuit's message limit
+
+Measured (`scripts/bench/blazor.mjs`, Blazor Server, five columns): a `PkTable<T>` sends about 80 bytes per row to the browser (100 rows 11 KB, 1,000 rows 79 KB,
+5,000 rows 387 KB), and `pk-table` draws every row it is given (10,000 rows take about 2 s to render). The limit that bites is the other direction: SignalR
+refuses a message the browser sends that is larger than `MaximumReceiveMessageSize` (32 KB by default) and **closes the circuit**. The `pk-select` event of a
+selectable table carries every selected id (about 6 bytes per number, about 40 per GUID: 5,000 numbers or about 800 GUIDs are enough to lose the circuit), so `PkTable`
+does not let it: the page module sends a selection of 64 rows or more as runs of row indexes (select all is `[0, 4999]`, a few bytes) and `PkTable` turns them
+back into the ids of the rows it sent (`Selected`, `SelectedChanged`, `OnSelect` see the ids, in row order). A raw `<pk-table @onpk-select>` in your own markup, and any other element, still
+gets the whole detail; a selection that alternates row by row (thousands of separate runs) is the one case that can still grow. So:
+
+- Page big data: `PkDataList` (or `PkTable` in `Manual` mode with a `PkPagination`) keeps a page at 10 to 100 rows, sorts and filters on the server, and never
+  approaches the limit. Use it above a few hundred rows.
+- If you send a very large selection some other way, raise the limit for the hub in your app: `builder.Services.AddServerSideBlazor().AddHubOptions(o => o.MaximumReceiveMessageSize = 1024 * 1024);`
+  (Blazor Web App: `AddInteractiveServerComponents(o => ...)` takes hub options), and prefer short row ids.
+- `PkTable` serialises its rows and columns when `Items` (the list reference or its count), `Columns` (compared by value) or `IdOf` change, not on every parent
+  re-render (5,000 rows: an unchanged parameter set took about 70 ms and 9 MB allocated, now about 0.5 ms and 13 KB). Changing an item *inside* the list you already passed is not
+  seen: pass a new list, or call `Refresh()` on the table (`@ref`). Pass the same `IdOf` delegate each time (a lambda that captures something new on every render is a change).
+
 ## Types for structured parameters
 
 An element prop that takes a structure (`data`, `images`, `columns`) has a public C# record here, sent to the element as a JSON attribute in camelCase. The parameter is declared with that type (`PkChart.Data` is a `PkChartData?`, `PkImageGallery.Images` an `IReadOnlyList<PkGalleryImage>?`), so the compiler checks what you pass; the value is serialised for you.
@@ -242,7 +260,7 @@ A page has one `<h1>`, in one place: the header's title, or the app shell's titl
 <PkPageHeader ShellSection="shell-title" Crumbs="@_crumbs" />
 ```
 
-**Back link.** `BackLink="true"` draws a chevron link named `Back to <label>` to the parent page: the last crumb before the current one that has an `Href` (crumbs without an address are skipped; with none there is no link). It is a ghost `PkButton` with `Href` (a real anchor, touch-sized on a phone, focus ring, no inline style). With `ShellSection` it is written into the outlet before the title, so the layout's element around the outlet contains it (an `h1` then names the link too; a wrapper element that is not the heading avoids that); without `ShellSection` it sits just above the header. It is off by default because `pk-app-shell` has its own back link (`BackHref` and `BackLabel`, set in the layout, which a page's header cannot reach): use one or the other, never both. If the layout owns the shell, feed `BackHref` and `BackLabel` from the same crumbs; if it does not, set `BackLink`.
+**Back link.** `BackLink="true"` draws a chevron link to the parent page (icon mode: the text `Back to <label>` is hidden visually and stays its accessible name): the last crumb before the current one that has an `Href` (crumbs without an address are skipped; with none there is no link). It is a ghost `PkButton` with `Href` (a real anchor, touch-sized on a phone, focus ring, no inline style). With `ShellSection` it is written into the outlet before the title, so the layout's element around the outlet contains it (an `h1` then names the link too; a wrapper element that is not the heading avoids that); without `ShellSection` it sits just above the header. It is off by default because `pk-app-shell` has its own back link (`BackHref` and `BackLabel`, set in the layout, which a page's header cannot reach): use one or the other, never both. If the layout owns the shell, feed `BackHref` and `BackLabel` from the same crumbs; if it does not, set `BackLink`.
 
 Apart from the back link the header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). `PkAppShell` has `TitleContent`, `BackHref` and `BackLabel` parameters too; the example uses the element directly so the `h1` sits in the `title` slot itself (a `TitleContent` fragment is wrapped in a `<span slot="title">`).
 
@@ -304,7 +322,12 @@ Serve it outside Development with `AddPlainKit(o => o.DevTools = true)` (keep it
 <PkDevTools Mode="PkDevToolsMode.Inline" Tab="quality" />   @* the same tabs filling this element *@
 <PkQuality AutoRun="true" Height="24rem" />
 <PkThemeEditor StorageKey="my-theme" Preview="false" />
+<PkThemeEditor InitialTheme="@_savedThemeCss" Presets="_presets" OnThemeChanged="css => _savedThemeCss = css" />
 ```
+
+**The theme editor** starts from `InitialTheme` (the override CSS it exports, or its JSON; used when nothing was kept for the viewer under `StorageKey`), lists your `Presets` (`new PkThemePreset("Brand", css, "Our colours")`, CSS or JSON text) after the built-in ones, and raises `OnThemeChanged` with the exported CSS a moment after every change. Everything else (the brand palette generator, saved themes, undo and redo, the change list, the shareable link, the contrast audit) is inside the tool.
+
+**Shipping an exported theme.** The exported CSS is plain override blocks (`:root, [data-theme="dark"] { ... }` and `[data-theme="light"] { ... }`) and needs no runtime. Save it as a file in your app (for example `wwwroot/theme.css`, from `OnThemeChanged` at design time or from the editor's Copy snippet) and link it **after** the toolkit's stylesheet, so its custom properties win: `<PkStyles />` first, then `<link rel="stylesheet" href="theme.css" />`. A file works under a strict `style-src 'self'`; an inline `<style>` block does not. There is nothing to configure in `PkOptions`. Keep the file: the editor's JSON (Export / import tab) is the way back into it, and a link from the editor's "Create link" carries the same edits in its fragment. The editor's **Custom SDK** tab (also in `<PkThemeEditor />`) has a theme-only export: a small zip with `plainkit-theme.css` (put it in `wwwroot` and link it after `<PkStyles />` as above), the settings file for re-import and a README, with no SDK file changed. The same tab can export the whole prebuilt `dist` with your own breakpoint widths (the elements' widths are compiled into their modules); the download is made in the browser from the package's own static files. Exporting from Blazor code and serving a custom `dist` instead of the package's are not built yet.
 
 **The gallery's Details drawer.** `<PkGallery Chrome="PkChrome.Full" Sections="...">` takes a list of `PkGallerySection` (text data only: the gallery runs in its own frame, so the SDK passes the description across by message, never code). `PkGallerySection.ForBlazor()` builds the Blazor section (component, parameters, the Razor for the example), which is what `/_plainkit/gallery` passes. A relative `src` on `<pk-gallery>` resolves against the document's base address, so it also works on a routed page. `blazorInspectorSections(host)` in `wwwroot/blazor-devtools.js` is the same section for `createElementInspector(...).show({ meta, element, extraSections })` in a page of your own.
 

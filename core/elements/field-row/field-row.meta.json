@@ -38,7 +38,7 @@
   "examples": [
     {
       "title": "Two fields",
-      "html": "<pk-field-row><pk-field label=\"First\"><input></pk-field><pk-field label=\"Second\"><input></pk-field></pk-field-row>"
+      "html": "<pk-field-row><pk-field label=\"First\"><pk-input></pk-input></pk-field><pk-field label=\"Second\"><pk-input></pk-input></pk-field></pk-field-row>"
     }
   ]
 }

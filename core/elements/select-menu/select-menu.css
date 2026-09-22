@@ -59,4 +59,4 @@
 
 [part="option"][aria-disabled="true"] { opacity: 0.5; cursor: default; }
 
-@media (max-width: 640px) { [part="trigger"], [part="option"] { min-height: var(--touch-target); } }
+@media (--phone) { [part="trigger"], [part="option"] { min-height: var(--touch-target); } }

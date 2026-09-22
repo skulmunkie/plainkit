@@ -16,4 +16,4 @@
 :host([gap="lg"]) { --_g: var(--space-6); }
 :host([gap="xl"]) { --_g: var(--space-8); }
 ::slotted(*) { min-inline-size: 0; }
-@media (width <= 640px) { :host { grid-template-columns: var(--_cols); } }
+@media (--phone) { :host { grid-template-columns: var(--_cols); } }

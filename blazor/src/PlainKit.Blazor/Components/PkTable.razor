@@ -7,11 +7,11 @@
 
 @* Hand-written (blazor/mappings/table.json marks it "existing"): a typed data table over <pk-table>.
    Attributes down: the columns and the rows are JSON attributes (camelCase), rebuilt when the parameters are set, never per render and never
-   through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
+   through JavaScript. They are rebuilt only when Items (reference or count), Columns or IdOf changed (or Refresh() is called). Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
    PlainKit.Blazor.lib.module.js). Cell templates, the detail template and the slots are ordinary Blazor children of the element (the element
    reads them, it never rewrites them): a cell template is a <span slot="cell-<id>-<key>"> per row, so a change of rows re-renders them together
    with the rows attribute. *@
-<pk-table columns="@_columns"
+<pk-table data-pk-ranges columns="@_columns"
           rows="@_rows"
           row-key="id"
           manual="@Manual"
@@ -61,6 +61,13 @@
     private List<Row> _items = [];
     private List<PkTableColumn<TItem>> _cells = [];
     private readonly Dictionary<string, TItem> _byId = new();
+    private bool _built; // the rows and columns above were built once
+    private IReadOnlyList<TItem>? _builtItems;
+    private int _builtCount;
+    private Func<TItem, string>? _builtIdOf;
+    private PkTableColumn<TItem>[] _builtColumns = [];
+
+    [Inject] private IPkLog Log { get; set; } = default!;
 
     /// <summary>The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a <c>Text</c> or a <c>Cell</c>) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (<c>Sort</c>, <c>OnSort</c>, <c>Filters</c>).</summary>
     [Parameter] public IReadOnlyList<PkTableColumn<TItem>>? Columns { get; set; }
@@ -195,8 +202,41 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        // The columns and the rows are serialised only when what they are made of changed: the Items list (its reference and its count), the Columns (compared by value, so a
+        // new array with the same columns is no change), IdOf. A parent that re-renders for another reason costs nothing here (5,000 rows: 8.9 MB allocated per parameter set before).
+        // An item changed inside the same list is not seen: pass a new list, or call Refresh().
         var columns = Columns ?? [];
         var items = Items ?? [];
+        if (_built && ReferenceEquals(_builtItems, items) && _builtCount == items.Count && _builtIdOf == IdOf && SameColumns(columns)) return;
+        Rebuild(columns, items);
+    }
+
+    /// <summary>Serialises the rows again from <see cref="Items"/> as they are now and re-renders. Call it after changing an item, or adding or removing items, inside the list that <see cref="Items"/> already holds (a new list needs nothing: it is picked up when the parameters are set).</summary>
+    public void Refresh()
+    {
+        Rebuild(Columns ?? [], Items ?? []);
+        StateHasChanged();
+    }
+
+    private bool SameColumns(IReadOnlyList<PkTableColumn<TItem>> columns)
+    {
+        if (columns.Count != _builtColumns.Length) return false;
+        for (var i = 0; i < _builtColumns.Length; i++)
+            if (!_builtColumns[i].Equals(columns[i])) return false;
+        return true;
+    }
+
+    /// <summary>How many times the rows were serialised (a test reads it).</summary>
+    internal int RebuildCount { get; private set; }
+
+    private void Rebuild(IReadOnlyList<PkTableColumn<TItem>> columns, IReadOnlyList<TItem> items)
+    {
+        RebuildCount++;
+        _built = true;
+        _builtItems = items;
+        _builtCount = items.Count;
+        _builtIdOf = IdOf;
+        _builtColumns = columns.ToArray();
         _cells = columns.Where(c => c.Cell is not null).ToList();
         _columns = PkAttr.Json(columns.Select(c => c.ToColumn()).ToList())!;
 
@@ -221,7 +261,7 @@
     {
         handlers["onpk-sort"] = EventCallback.Factory.Create<PkSortEventArgs>(this, HandleSort);
         handlers["onpk-filter"] = EventCallback.Factory.Create<PkFilterEventArgs>(this, HandleFilter);
-        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, HandleSelect);
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelect);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClick);
         handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpand);
     }
@@ -243,13 +283,32 @@
         await OnFilter.InvokeAsync(e);
     }
 
-    private async Task HandleSelect(PkSelectEventArgs e)
+    private async Task HandleSelect(PkTableSelectEventArgs e)
     {
+        // A big selection arrives as runs of row indexes (see PkTableSelectEventArgs): back to the ids of the rows this table sent.
+        if (e.Ranges is not null && !await ExpandAsync(e)) return;
         // pk-select also bubbles up from menus, calendars and trees in the table's own slots: only the table's carries "selected".
         if (e.Selected is null) return;
         Selected = e.Selected;
         await SelectedChanged.InvokeAsync(Selected);
         await OnSelect.InvokeAsync(e);
+    }
+
+    // False when the element's rows are not the rows of the last render (the parameters changed after the element raised the event): the event is dropped
+    // and the next one, raised for the new rows, carries the selection.
+    private async Task<bool> ExpandAsync(PkTableSelectEventArgs e)
+    {
+        var n = _items.Count;
+        if (e.RowCount != n || n == 0 || e.FirstId != _items[0].Id || e.LastId != _items[n - 1].Id || e.Ranges!.Length % 2 != 0)
+        {
+            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {n} rows; it was ignored (the next event carries the selection).");
+            return false;
+        }
+        var ids = new List<string>();
+        for (var r = 0; r < e.Ranges.Length; r += 2)
+            for (var i = Math.Max(0, e.Ranges[r]); i <= Math.Min(n - 1, e.Ranges[r + 1]); i++) ids.Add(_items[i].Id);
+        e.Selected = ids.ToArray();
+        return true;
     }
 
     private async Task HandleRowClick(PkRowClickEventArgs e)

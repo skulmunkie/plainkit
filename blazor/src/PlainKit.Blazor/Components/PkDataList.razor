@@ -166,8 +166,16 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        // The table compares the columns it gets: the wrapped first column is made again only when its inputs changed, so a re-render of the list leaves the table's rows alone.
+        var wrap = CurrentId is not null || OnRowClick.HasDelegate;
+        if (ReferenceEquals(Columns, _columnsFrom) && wrap == _columnsWrapped) return;
+        _columnsFrom = Columns;
+        _columnsWrapped = wrap;
         _columns = Identity(Columns);
     }
+
+    private IReadOnlyList<PkTableColumn<TItem>>? _columnsFrom;
+    private bool _columnsWrapped;
 
     /// <inheritdoc />
     protected override Task OnInitializedAsync() => LoadAsync();

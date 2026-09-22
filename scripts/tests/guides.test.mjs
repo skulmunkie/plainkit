@@ -37,14 +37,14 @@ test('every JavaScript sample parses and imports only real exports of dist, with
 });
 
 test('every CSS sample uses only real tokens or element custom properties', () => {
-    const known = new Set([...Object.keys(src.tokens.dark), ...Object.keys(src.tokens.light), ...Object.keys(src.tokens.root), ...src.api.flatMap(e => e.cssProperties.map(c => c.name))]);
+    const known = new Set([...src.breakpoints.map(b => `--pk-bp-${b.name}`), ...Object.keys(src.tokens.dark), ...Object.keys(src.tokens.light), ...Object.keys(src.tokens.root), ...src.api.flatMap(e => e.cssProperties.map(c => c.name))]);
     let n = 0;
     for (const g of guides) for (const { lang, text } of fencesOf(g.text)) if (lang === 'css') { n++; for (const m of text.matchAll(/(--[a-z0-9-]+)\s*:/g)) assert.ok(known.has(m[1]), `${g.file}: ${m[1]} is not a token`); for (const m of text.matchAll(/var\((--[a-z0-9-]+)/g)) assert.ok(known.has(m[1]), `${g.file}: var(${m[1]}) is not a token`); }
     assert.ok(n >= 2);
 });
 
 test('every token named in a guide\'s prose exists', () => {
-    const known = new Set([...Object.keys(src.tokens.dark), ...Object.keys(src.tokens.light), ...Object.keys(src.tokens.root), ...src.api.flatMap(e => e.cssProperties.map(c => c.name))]);
+    const known = new Set([...src.breakpoints.map(b => `--pk-bp-${b.name}`), ...Object.keys(src.tokens.dark), ...Object.keys(src.tokens.light), ...Object.keys(src.tokens.root), ...src.api.flatMap(e => e.cssProperties.map(c => c.name))]);
     for (const g of guides) for (const m of g.text.replace(/```[\s\S]*?```/g, '').matchAll(/`(--[a-z0-9-]+)`/g)) assert.ok(known.has(m[1]), `${g.file}: ${m[1]} is not a token`);
 });
 

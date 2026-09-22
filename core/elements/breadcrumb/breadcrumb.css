@@ -33,4 +33,4 @@
 
 [part="more"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
-@media (max-width: 640px) { ::slotted(a), [part="more"] { min-height: var(--touch-target); } [part="more"] { min-width: var(--touch-target); } }
+@media (--phone) { ::slotted(a), [part="more"] { min-height: var(--touch-target); } [part="more"] { min-width: var(--touch-target); } }

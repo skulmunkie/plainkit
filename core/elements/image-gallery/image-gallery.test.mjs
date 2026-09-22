@@ -58,3 +58,12 @@ test('image gallery: only safe image sources are shown', () => {
     assert.equal(safeSrc('  '), null);
     assert.equal(safeSrc(5), null);
 });
+
+// Performance guard (audit #106): a gallery of hundreds of images must not fetch them all at once.
+test('image gallery: thumbnails load lazily and decode off the main thread', async () => {
+    const { readFileSync } = await import('node:fs');
+    const html = readFileSync(new URL('./image-gallery.html', import.meta.url), 'utf8');
+    const img = /<img\b[^>]*>/.exec(html)?.[0] ?? '';
+    assert.match(img, /loading="lazy"/);
+    assert.match(img, /decoding="async"/);
+});

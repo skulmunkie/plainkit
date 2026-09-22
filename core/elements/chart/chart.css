@@ -23,5 +23,5 @@ figcaption { font-weight: 600; }
 [part="legend"] li { display: inline-flex; align-items: center; gap: var(--space-2); }
 [part="legend"] li::before { content: ""; inline-size: var(--space-2); block-size: var(--space-2); border-radius: var(--radius-xs); background: var(--c, var(--color-muted)); }
 [part="data-toggle"] { color: var(--color-link); cursor: pointer; font-size: var(--text-meta); }
-@media (max-width: 640px) { [part="data-toggle"] { display: flex; align-items: center; min-block-size: var(--touch-target); } }
+@media (--phone) { [part="data-toggle"] { display: flex; align-items: center; min-block-size: var(--touch-target); } }
 [part="data-toggle"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

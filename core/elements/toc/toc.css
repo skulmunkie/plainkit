@@ -15,4 +15,4 @@
 
 [part="link"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-@media (max-width: 1024px) { :host { position: static; } [part="link"] { min-height: var(--touch-target); display: flex; align-items: center; } }
+@media (--tablet) { :host { position: static; } [part="link"] { min-height: var(--touch-target); display: flex; align-items: center; } }

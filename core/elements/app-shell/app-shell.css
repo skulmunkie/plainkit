@@ -31,6 +31,6 @@
 
 [part="footer"]:not(:has(::slotted(*))) { display: none; }
 
-@media (max-width: 1024px) { :host { grid-template-columns: minmax(0, 1fr); } }
+@media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } }
 
-@media (max-width: 640px) { [part="body"] { padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); } }
+@media (--phone) { [part="body"] { padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); } }

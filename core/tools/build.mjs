@@ -7,8 +7,9 @@
 //   site/gallery/gallery.data.js     the gallery's data: the sample folders and the element API assembled (+ gallery.static.js)
 //   site/guides/guides.data.js       the Guides page's content: site/guides/content/*.md converted to sanitised HTML (tools/guides.mjs)
 //   site/files/snapshot.json         the Files page's snapshot of core/ (no timestamp; it holds every file above, never itself)
-//   dist/<tool>/                     the tool modules (code-explorer, ...) from modules/, paths resolved for the dist layout
-//   dist/plainkit.css, dist/plainkit.min.css, dist/plainkit.js, dist/js/, dist/elements/   what a non-Blazor project consumes
+//   dist/plainkit.css, dist/plainkit.min.css, dist/plainkit.js, dist/js/, dist/elements/   the runtime SDK: what a non-Blazor project consumes (manifest: dist/manifest.json)
+//   dist/modules/<tool>/             the dev-tool modules (code-explorer, ...) from modules/: a unit of their own, with dist/modules/manifest.json (tools/modules-dist.mjs);
+//                                    the runtime manifest lists nothing under modules/, and each unit is zipped and hashed on its own
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,10 +18,13 @@ import { fileURLToPath } from 'node:url';
 import { validateApi, propsObject, deprecationSpec } from './element-api.mjs';
 import { allManifests } from './element-manifests.mjs';
 import { galleryDist } from './gallery-dist.mjs';
-import { modulesDist } from './modules-dist.mjs';
+import { modulesDist, MODULES, MODULES_DIR } from './modules-dist.mjs';
 import { surface } from './api-surface.mjs';
 import { collectSnapshot } from './snapshot.mjs';
 import { guidesModule } from './guides.mjs';
+import { loadBreakpoints, resolveCustomMedia, breakpointProperties } from './breakpoints.mjs';
+import { manifestText, modulesRequires } from '../js/custom-sdk-logic.js';
+import { reportJson as breakpointReport } from './breakpoint-report.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Every generated file goes through w(): kept in `out` (path -> exact text) and written to disk only when build({ write: true }) (the
@@ -57,7 +61,7 @@ export function loadSamples(rootDir = root) {
 export function loadElementSources(rootDir = root) {
     const dir = path.join(rootDir, 'elements');
     if (!fs.existsSync(dir)) return [];
-    const problems = []; const list = [];
+    const problems = []; const list = []; const bps = loadBreakpoints();
     for (const e of fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
         const f = ext => path.join(dir, e.name, `${e.name}.${ext}`);
         for (const need of ['html', 'css', 'meta.json']) if (!fs.existsSync(f(need))) problems.push(`elements/${e.name} is missing ${e.name}.${need}`);
@@ -66,7 +70,8 @@ export function loadElementSources(rootDir = root) {
         const behaviour = fs.existsSync(f('js')) ? read(f('js')) : null;
         problems.push(...validateApi(meta, { template, css, name: `elements/${e.name}` }));
         if (meta.tag !== `pk-${e.name}`) problems.push(`elements/${e.name}: tag must be pk-${e.name}`);
-        list.push({ name: e.name, meta, template, css, behaviour });
+        // Element CSS names its breakpoints (@media (--phone)); the module gets the real queries (tools/breakpoints.mjs). An unknown name fails the build here.
+        list.push({ name: e.name, meta, template, css: resolveCustomMedia(css, bps, `elements/${e.name}/${e.name}.css`), behaviour });
     }
     if (problems.length) throw new Error(problems.join('\n'));
     return list;
@@ -98,13 +103,18 @@ const minify = css => css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').
 
 // Files under dist/js that no source in js/ (or a module's own js) produces any more: a rename or a removal leaves the old copy behind, and
 // nothing else would ever notice it. Paths are relative to rootDir, with forward slashes; `out` is the build's path -> text map.
-export function staleDistJs(out, rootDir = root) {
-    const dir = path.join(rootDir, 'dist', 'js');
+const staleUnder = (out, rootDir, sub) => {
+    const dir = path.join(rootDir, 'dist', sub);
     if (!fs.existsSync(dir)) return [];
     return fs.readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile())
         .map(e => path.relative(rootDir, path.join(e.parentPath, e.name)).replace(/\\/g, '/'))
         .filter(f => !out.has(f)).sort();
-}
+};
+export const staleDistJs = (out, rootDir = root) => staleUnder(out, rootDir, 'js');
+
+// The same for the modules unit (dist/modules), and for the folders the modules had before they became a unit (dist/<name>/, next to js/): a checkout that built
+// the old layout keeps those otherwise, and the runtime dist must hold no module folder.
+export const staleDistModules = (out, rootDir = root) => [...staleUnder(out, rootDir, MODULES_DIR), ...Object.keys(MODULES).flatMap(name => staleUnder(out, rootDir, name))].sort();
 
 // The files under dist/skills on disk, as paths relative to core with forward slashes (the build does not produce them; see the manifest below).
 function skillFiles() {
@@ -116,11 +126,12 @@ function skillFiles() {
 export function build({ write = true } = {}) {
     writing = write; out = new Map();
     const samples = loadSamples();
+    const bps = loadBreakpoints();
     const elements = loadElementSources();
     const foucRule = elements.length ? `${elements.map(e => `${e.meta.tag}:not(:defined)`).join(',')}{visibility:hidden}` : '';
     // The page layer, in cascade order: tokens, base, then spacing, typography, table-content and utilities, the element FOUC guard, a11y last.
     const layer = ['spacing', 'typography', 'table-content', 'utilities'];
-    w('plainkit.css', `/* GENERATED by tools/build.mjs: do not edit. Entry point for a non-Blazor page. base/a11y.css is last on purpose. */\n@import url("tokens/tokens.css");\n@import url("base/base.css");\n${layer.map(n => `@import url("base/${n}.css");`).join('\n')}\n@import url("elements/elements.css");\n@import url("base/a11y.css");\n`);
+    w('plainkit.css', `/* GENERATED by tools/build.mjs: do not edit. Entry point for a non-Blazor page. base/a11y.css is last on purpose. */\n@import url("tokens/tokens.css");\n@import url("base/base.css");\n${layer.map(n => `@import url("base/${n}.css");`).join('\n')}\n@import url("elements/elements.css");\n@import url("base/a11y.css");\n${breakpointProperties(bps)}\n`);
     w('elements/elements.css', `/* GENERATED by tools/build.mjs: hides an pk-* element until its module has defined it, so there is no flash of unstyled content. */\n${foucRule}\n`);
     for (const el of elements) w(`elements/${el.name}/${el.name}.element.js`, elementModule(el, { coreImport: '../../js/element.js' }));
     w('elements/registry.js', `// GENERATED by tools/build.mjs: tag -> module, relative to this file. js/loader.js imports only the modules a page uses.\nexport default ${JSON.stringify(Object.fromEntries(elements.map(e => [e.meta.tag, `./${e.name}/${e.name}.element.js`])), null, 4)};\n`);
@@ -129,13 +140,15 @@ export function build({ write = true } = {}) {
 
     // dist
     const tokens = read(path.join(root, 'tokens', 'tokens.css')); const base = read(path.join(root, 'base', 'base.css')); const a11y = read(path.join(root, 'base', 'a11y.css'));
-    const page = [tokens, base, ...layer.map(n => read(path.join(root, 'base', `${n}.css`))), foucRule, a11y].join('\n');
-    w('dist/plainkit.css', `/* GENERATED by tools/build.mjs: tokens, page-level base and utilities for the light DOM. Components are custom elements, loaded on demand by plainkit.js. */\n${page}`);
+    const page = [tokens, breakpointProperties(bps), base, ...layer.map(n => read(path.join(root, 'base', `${n}.css`))), foucRule, a11y].join('\n');
+    w('dist/plainkit.css', `/* GENERATED by tools/build.mjs: do not edit. Page layer; components load on demand (plainkit.js). */\n${page}`);
     w('dist/plainkit.min.css', minify(page) + '\n');
     for (const el of elements) w(`dist/elements/${el.name}.js`, elementModule(el, { coreImport: '../js/element.js', minifyCss: true }));
     w('dist/elements/registry.js', `// GENERATED by tools/build.mjs: tag -> module, relative to this file.\nexport default ${JSON.stringify(Object.fromEntries(elements.map(e => [e.meta.tag, `./${e.name}.js`])), null, 4)};\n`);
     for (const [name, text] of Object.entries(allManifests(elements.map(e => e.meta)))) w(`dist/${name}`, text);
     w('dist/elements/api.json', JSON.stringify(elements.map(e => e.meta), null, 2) + '\n');
+    // What changes at each named breakpoint (which elements, selectors and properties), from the resolved element CSS and the page layer.
+    w('dist/breakpoints.report.json', breakpointReport(elements, root));
     // The version (core/VERSION) is stamped into js/version.js (and its dist copy) and dist/manifest.json, so a file from a CDN, a zip or the
     // NuGet package can say which release it is. tools/versioning.mjs checks every place agrees.
     const version = read(path.join(root, 'VERSION')).trim();
@@ -146,7 +159,8 @@ export const PK_VERSION = '${version}';
     w('dist/js/version.js', versionModule);
     for (const f of fs.readdirSync(path.join(root, 'js'), { recursive: true })) {
         const src = path.join(root, 'js', f);
-        if (fs.statSync(src).isFile() && f.endsWith('.js')) w(`dist/js/${f.replace(/\\/g, '/')}`, read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'").replace("'../../modules/", "'../../")); // in dist the gallery sits next to js/, not under site/
+        // js/code-explorer/*.js only re-export modules/code-explorer for the old import path: a runtime file must not import from the modules unit, so they stay out of dist.
+        if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f)) w(`dist/js/${f.replace(/\\/g, '/')}`, read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'")); // in dist the gallery sits next to js/, not under site/
     }
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).
@@ -154,15 +168,23 @@ export const PK_VERSION = '${version}';
     for (const [f, text] of galleryDist(read, root, out.get('site/gallery/gallery.data.js'))) w(`dist/gallery/${f}`, text);
     for (const [f, text] of modulesDist(read, root)) w(`dist/${f}`, text);
     w('dist/plainkit.js', '// GENERATED by tools/build.mjs: one import wires every behaviour.\nexport * from \'./js/plainkit.js\';\n');
-    // Supply-chain manifest: every dist file with its size and SRI hash. Deterministic (sorted, no timestamps) so a rebuild of the same
+    // Supply-chain manifests, one per unit: the runtime (dist/manifest.json) and the modules (dist/modules/manifest.json), each file with its size and SRI hash. Deterministic (sorted, no timestamps) so a rebuild of the same
     // sources is byte-identical; consumers pin integrity="sha384-..." from here. The SDK has no runtime dependencies.
     // dist/skills (the agent skills bundle) is written by scripts/build-skills.mjs, which needs the API this build produces, so the build does not
     // produce it; the manifest lists whatever is on disk there (and that script rebuilds the manifest after writing it).
     const bytesOf = f => (out.has(f) ? Buffer.from(out.get(f)) : fs.readFileSync(path.join(root, f)));
-    const files = [...new Set([...out.keys(), ...skillFiles()])].filter(f => f.startsWith('dist/')).sort().map(f => { const data = bytesOf(f); return { path: f.slice(5), bytes: data.length, integrity: 'sha384-' + crypto.createHash('sha384').update(data).digest('base64') }; });
+    const unitFiles = (prefix, own) => [...new Set([...out.keys(), ...skillFiles()])].filter(f => f.startsWith(prefix) && own(f)).sort().map(f => { const data = bytesOf(f); return { path: f.slice(prefix.length), bytes: data.length, integrity: 'sha384-' + crypto.createHash('sha384').update(data).digest('base64') }; });
+    const modulesPrefix = `dist/${MODULES_DIR}/`;
+    const files = unitFiles('dist/', f => !f.startsWith(modulesPrefix) && f !== 'dist/manifest.json');
+    const moduleFiles = unitFiles(modulesPrefix, f => f !== `${modulesPrefix}manifest.json`);
     // The build owns dist/js: whatever it did not just produce is a leftover, and is removed so the folder is exactly the sources.
-    if (write) for (const f of staleDistJs(out)) fs.rmSync(path.join(root, f));
-    w('dist/manifest.json', JSON.stringify({ name: 'plainkit', version, dependencies: [], runtimeRequests: 'none (same-origin only)', licence: 'MIT', provenance: 'Generated by sdk/tools/build.mjs from the sources; reproducible.', files }, null, 2) + '\n');
+    if (write) {
+        for (const f of [...staleDistJs(out), ...staleDistModules(out)]) fs.rmSync(path.join(root, f));
+        for (const name of Object.keys(MODULES)) fs.rmSync(path.join(root, 'dist', name), { recursive: true, force: true }); // the old dist/<name>/ folders, now empty
+    }
+    // The text is js/custom-sdk-logic.js manifestText(), the same function the theme editor's custom SDK export uses to recompute it in the browser.
+    w('dist/manifest.json', manifestText({ version, files }));
+    w(`${modulesPrefix}manifest.json`, manifestText({ version, files: moduleFiles, name: 'plainkit-modules', requires: modulesRequires(version) }));
     // The Files page's snapshot of core/ itself. Written last, from the files on disk with everything generated above laid over them (so a stale
     // generated file never leaks in), no timestamp (deterministic). It skips its own file and dist/, so it never includes itself.
     w('site/files/snapshot.json', JSON.stringify(collectSnapshot(root, { generated: null, overlay: new Map([...out].filter(([f]) => !f.startsWith('dist/'))) })));

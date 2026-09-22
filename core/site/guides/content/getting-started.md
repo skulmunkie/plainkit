@@ -17,7 +17,7 @@ Everything a page needs is one folder, `dist`. It is generated, and it is not co
 | `dotnet add package PlainKit.Blazor` | pinned | a Blazor app (the package carries `dist` as static web assets) |
 | `npm install plainkit` | pinned | only if the maintainers have published to npm |
 
-The release zip comes with `manifest.json`, which lists every file with its size and an SRI hash, so you can pin what you serve. The examples below assume you unzipped the release into a folder called `plainkit/` next to your page. If you serve the Pages site instead, replace `plainkit/` with that URL prefix.
+The release zip comes with `manifest.json`, which lists every file with its size and an SRI hash, so you can pin what you serve. The dev tools (theme editor, logs, the dock) are a separate download, `plainkit-modules-<version>.zip`: unzip it into the same folder and it lands at `plainkit/modules/` with a manifest of its own; a page that only uses elements never needs it. The examples below assume you unzipped the release into a folder called `plainkit/` next to your page. If you serve the Pages site instead, replace `plainkit/` with that URL prefix.
 
 > [!note] The SDK makes no request to any other origin. Every file it loads comes from the folder you host, so it works under a strict Content Security Policy (`script-src 'self'; style-src 'self'`).
 
