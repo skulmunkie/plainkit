@@ -47,15 +47,29 @@ public sealed class LoggingBridgeTests : BunitContext, IAsyncLifetime
     public void Other_levels_are_not_forwarded(string? level) => Assert.Null(PkLogMapping.ToLogLevel(level));
 
     [Fact]
-    public void Scope_becomes_the_category()
+    public void Forwarded_entries_use_a_fixed_category_never_the_clients_scope()
     {
+        // The scope is client-supplied, so it must never become the ILogger category (an operator could route a category to
+        // alerting; a client could then spoof entries into it just by naming a scope after it).
         var capture = new Capture();
         Forwarder(capture, o => o.ForwardMinimumLevel = PkLogLevel.Debug).Forward("info", "pk-dialog", "opened", null);
 
         var entry = Assert.Single(capture.Entries);
-        Assert.Equal("PlainKit.pk-dialog", entry.Category);
+        Assert.Equal(PkLogForwarder.BrowserCategory, entry.Category);
         Assert.Equal(LogLevel.Information, entry.Level);
-        Assert.Equal("opened", entry.Text);
+        Assert.Equal("[browser:pk-dialog] opened", entry.Text);
+    }
+
+    [Fact]
+    public void Entries_are_clearly_attributable_as_browser_origin()
+    {
+        var capture = new Capture();
+        Forwarder(capture).Forward("warn", "checkout", "declined", null);
+
+        var entry = Assert.Single(capture.Entries);
+        Assert.Equal("PlainKit.Browser", entry.Category);
+        Assert.Contains("checkout", entry.Text);
+        Assert.StartsWith("[browser:", entry.Text);
     }
 
     [Fact]
@@ -64,7 +78,43 @@ public sealed class LoggingBridgeTests : BunitContext, IAsyncLifetime
         var capture = new Capture();
         Forwarder(capture).Forward("warn", "loader", "bad value", "{\"a\":1}");
 
-        Assert.Equal("bad value {\"a\":1}", Assert.Single(capture.Entries).Text);
+        Assert.Equal("[browser:loader] bad value {\"a\":1}", Assert.Single(capture.Entries).Text);
+    }
+
+    [Fact]
+    public void Newlines_and_control_characters_cannot_forge_extra_log_lines()
+    {
+        var capture = new Capture();
+        Forwarder(capture).Forward("error", "loader", "line one\r\nline two\nFAKE [Critical] server on fire", "[31mred[0m\tdetail\r\n2");
+
+        var entry = Assert.Single(capture.Entries);
+        Assert.DoesNotContain('\n', entry.Text);
+        Assert.DoesNotContain('\r', entry.Text);
+        Assert.DoesNotContain('', entry.Text);
+    }
+
+    [Fact]
+    public void Overlong_message_scope_and_detail_are_truncated()
+    {
+        var capture = new Capture();
+        var forwarder = Forwarder(capture);
+        forwarder.Forward("error", new string('s', 500), new string('m', 5000), new string('d', 10000));
+
+        var entry = Assert.Single(capture.Entries);
+        Assert.True(entry.Text.Length < 500 + 5000 + 10000);
+    }
+
+    [Fact]
+    public void A_flood_of_calls_is_rate_limited_and_the_drop_count_is_recorded()
+    {
+        var capture = new Capture();
+        var forwarder = Forwarder(capture);
+
+        for (var i = 0; i < 500; i++) forwarder.Forward("error", "loader", $"msg {i}", null);
+
+        Assert.True(forwarder.Forwarded < 500, "some calls should have been dropped by the rate limit");
+        Assert.True(forwarder.Dropped > 0, "the forwarder should record what it dropped");
+        Assert.Equal(forwarder.Forwarded, capture.Entries.Count);
     }
 
     [Fact]
@@ -77,7 +127,7 @@ public sealed class LoggingBridgeTests : BunitContext, IAsyncLifetime
         forwarder.Forward("warn", "loader", "c", null);
         forwarder.Forward("error", "loader", "d", null);
 
-        Assert.Equal(["c", "d"], capture.Entries.Select(e => e.Text));
+        Assert.Equal(["[browser:loader] c", "[browser:loader] d"], capture.Entries.Select(e => e.Text));
     }
 
     [Fact]
@@ -92,7 +142,7 @@ public sealed class LoggingBridgeTests : BunitContext, IAsyncLifetime
         });
         foreach (var scope in new[] { "pk-input", "pk-noisy", "loader", "invokers", "checkout" }) forwarder.Forward("error", scope, "x", null);
 
-        Assert.Equal(["PlainKit.pk-input", "PlainKit.loader"], capture.Entries.Select(e => e.Category));
+        Assert.Equal(["[browser:pk-input] x", "[browser:loader] x"], capture.Entries.Select(e => e.Text));
     }
 
     [Fact]

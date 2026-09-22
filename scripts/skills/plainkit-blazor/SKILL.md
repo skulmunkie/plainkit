@@ -226,7 +226,7 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries use the category `PlainKit.<scope>`. Inject `IPkLog` to write your own entries into the browser-side SDK log (they are not echoed back to `ILogger`); show both with `<PkLogs />`. Details: `references/logging.md`.
+Forwarded entries always use the fixed category `PlainKit.Browser`, rate-limited and stripped of control characters (the browser is untrusted input). Inject `IPkLog` to write your own entries into the browser-side SDK log (they are not echoed back to `ILogger`); show both with `<PkLogs />`. Details: `references/logging.md`.
 
 ### Wire the dev tools
 

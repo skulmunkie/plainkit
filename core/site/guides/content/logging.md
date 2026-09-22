@@ -90,7 +90,9 @@ const logs = await mountLogs(document.getElementById('logs'), { height: '24rem' 
 
 ## In Blazor
 
-Configure the logger through `PkOptions.Logging`, and optionally forward the SDK's entries to `ILogger`. Forwarded entries use the category `PlainKit.<scope>`:
+Configure the logger through `PkOptions.Logging`, and optionally forward the SDK's entries to `ILogger`. The browser is untrusted input to this
+bridge, so forwarded entries always use the fixed category `PlainKit.Browser` (never a category the client picks), with control characters
+stripped, length capped, and calls rate-limited per circuit:
 
 ```csharp
 builder.Services.AddPlainKit(o =>

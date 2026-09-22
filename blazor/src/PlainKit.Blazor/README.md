@@ -351,7 +351,13 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries use the category `PlainKit.<scope>` and map debug, info, warn, error to Debug, Information, Warning, Error. To see the forwarder work, put a misspelt element on a page, for example `<pk-buton></pk-buton>`: the SDK's loader logs the warning "`<pk-buton>` is not a Plainkit element" (scope `loader`, once per tag and page), and it appears in your `ILogger` output as a `Warning` in the category `PlainKit.loader`. The forwarder starts with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It works in Blazor Server and in standalone WebAssembly (both verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
+Forwarded entries map debug, info, warn, error to Debug, Information, Warning, Error. The browser is untrusted input to this bridge (any JavaScript
+on the page can call it), so every forwarded entry is written under the fixed category `PlainKit.Browser` — never a category the client picks — with
+the scope kept in the message (`[browser:<scope>] ...`) instead; control characters are stripped, the scope, message and detail are capped in
+length, and calls are rate-limited per circuit (50/second, with anything dropped logged once the window closes). To see the forwarder work, put a
+misspelt element on a page, for example `<pk-buton></pk-buton>`: the SDK's loader logs the warning "`<pk-buton>` is not a Plainkit element" (scope
+`loader`, once per tag and page), and it appears in your `ILogger` output as a `Warning` in the category `PlainKit.Browser`. The forwarder starts
+with the first PlainKit component (or `IPkLog` call) on a circuit or page and stops with it. Inject `IPkLog` to write your own entries into the SDK log, so the logs viewer (`PkLogs`, the dev tools' Logs tab) shows them beside the SDK's; entries written that way are not echoed back to `ILogger`, so there is no loop. Use `ILogger` for your logs as usual; `IPkLog` is for messages you want in the browser-side log. It works in Blazor Server and in standalone WebAssembly (both verified, see Alpha status), and its calls do not throw while prerendering or after the circuit disconnects.
 
 ```csharp
 @inject IPkLog PkLog
