@@ -82,22 +82,91 @@ internal static class PkLogMapping
     }
 }
 
-/// <summary>Receives the SDK's log entries from the JavaScript sink and writes them to <see cref="ILogger"/>. Entries that .NET wrote into the SDK through <see cref="IPkLog"/> never arrive here (the bridge skips them).</summary>
+/// <summary>
+/// Receives the SDK's log entries from the JavaScript sink and writes them to <see cref="ILogger"/>. Entries that .NET wrote into the SDK through
+/// <see cref="IPkLog"/> never arrive here (the bridge skips them).
+///
+/// <see cref="Forward"/> is <c>[JSInvokable]</c>: the browser of the circuit calls it directly, so its arguments are untrusted client input (a
+/// hostile extension, XSS elsewhere on the page, or a compromised client in a multi-tenant host can call it with anything). To keep that from
+/// forging or flooding the server's log: every forwarded entry is written under the fixed category <c>PlainKit.Browser</c> (never a client-chosen
+/// one, so an operator's alerting routes cannot be spoofed by naming a scope after a real category), the scope, message and detail are stripped
+/// of control characters (no CR/LF/ANSI injection) and capped in length, and calls are rate-limited per instance (one per circuit) with the
+/// count of anything dropped logged once the window closes.
+/// </summary>
 internal sealed class PkLogForwarder(ILoggerFactory factory, PkLoggingOptions options)
 {
+    /// <summary>The fixed category every forwarded entry is written under, regardless of the scope the browser sent: it is never client-chosen, so an operator can filter or distrust it as a group.</summary>
+    internal const string BrowserCategory = "PlainKit.Browser";
+
+    private const int MaxScopeLength = 100;
+    private const int MaxMessageLength = 1000;
+    private const int MaxDetailLength = 4000;
+    private const int MaxEntriesPerWindow = 50;
+    private const long WindowMilliseconds = 1000;
+
     internal int Forwarded { get; private set; }
+
+    /// <summary>Entries dropped by the rate limit so far (across all windows), for tests and diagnostics.</summary>
+    internal int Dropped { get; private set; }
+
+    private long _windowStart = Environment.TickCount64;
+    private int _countInWindow;
+    private int _droppedInWindow;
 
     [JSInvokable]
     public void Forward(string level, string scope, string message, string? detail)
     {
         if (PkLogMapping.ToLogLevel(level) is not { } logLevel) return;
         if (PkLogMapping.Rank(level) < (int)options.ForwardMinimumLevel) return;
-        if (!PkLogMapping.ScopeAllowed(scope ?? "", options.ForwardScopes, options.ForwardExcludeScopes)) return;
-        var logger = factory.CreateLogger(PkLogMapping.Category(scope));
+
+        var safeScope = Sanitize(scope ?? "", MaxScopeLength);
+        if (!PkLogMapping.ScopeAllowed(safeScope, options.ForwardScopes, options.ForwardExcludeScopes)) return;
+
+        var logger = factory.CreateLogger(BrowserCategory);
         if (!logger.IsEnabled(logLevel)) return;
+        if (!AdmitByRateLimit(logger)) { Dropped++; return; }
+
         Forwarded++;
-        if (string.IsNullOrEmpty(detail)) logger.Log(logLevel, "{PkMessage}", message);
-        else logger.Log(logLevel, "{PkMessage} {PkDetail}", message, detail);
+        var safeMessage = Sanitize(message ?? "", MaxMessageLength);
+        var safeDetail = string.IsNullOrEmpty(detail) ? null : Sanitize(detail, MaxDetailLength);
+        if (safeDetail is null) logger.Log(logLevel, "[browser:{PkScope}] {PkMessage}", safeScope, safeMessage);
+        else logger.Log(logLevel, "[browser:{PkScope}] {PkMessage} {PkDetail}", safeScope, safeMessage, safeDetail);
+    }
+
+    /// <summary>A token-bucket-ish per-second cap: at most <see cref="MaxEntriesPerWindow"/> entries per second are admitted. Whatever the window
+    /// dropped is logged as one summary line (never silently discarded) when the next window opens.</summary>
+    private bool AdmitByRateLimit(ILogger logger)
+    {
+        var now = Environment.TickCount64;
+        if (now - _windowStart >= WindowMilliseconds)
+        {
+            if (_droppedInWindow > 0) logger.LogWarning("{PkDropped} browser log entries were dropped in the previous second (rate limit)", _droppedInWindow);
+            _windowStart = now;
+            _countInWindow = 0;
+            _droppedInWindow = 0;
+        }
+
+        if (_countInWindow >= MaxEntriesPerWindow)
+        {
+            _droppedInWindow++;
+            return false;
+        }
+
+        _countInWindow++;
+        return true;
+    }
+
+    /// <summary>Strips control characters (so no CR/LF or ANSI escape can forge lines or move the cursor in a plain-text sink) and caps the length.</summary>
+    private static string Sanitize(string value, int maxLength)
+    {
+        if (value.Length == 0) return value;
+        var chars = value.ToCharArray();
+        for (var i = 0; i < chars.Length; i++)
+        {
+            if (char.IsControl(chars[i])) chars[i] = ' ';
+        }
+        var cleaned = new string(chars).Trim();
+        return cleaned.Length > maxLength ? string.Concat(cleaned.AsSpan(0, maxLength), "…") : cleaned;
     }
 }
 
