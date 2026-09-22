@@ -18,8 +18,11 @@ public sealed class BenchFactAttribute : FactAttribute
 
 // Server-side cost of the Blazor components, measured in-process with bUnit (the same renderer a circuit uses, without the network):
 // the JavaScript interop calls a page makes (a stable count, guarded below) and, as benchmarks, render time, allocations and retained memory.
-public sealed class ScaleTests : TestContext
+public sealed class ScaleTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private readonly ITestOutputHelper _out;
     private sealed record Row(int Id, string Name, string City, string Status, int Qty);
 
@@ -44,7 +47,7 @@ public sealed class ScaleTests : TestContext
 
     private static Row[] Rows(int n) => Enumerable.Range(1, n).Select(i => new Row(i, "Person " + i, "City " + i % 5, i % 3 == 0 ? "Active" : "Draft", i * 7 % 1000)).ToArray();
 
-    private IRenderedComponent<PkTable<Row>> Table(Row[] rows) => RenderComponent<PkTable<Row>>(p => p
+    private IRenderedComponent<PkTable<Row>> Table(Row[] rows) => Render<PkTable<Row>>(p => p
         .Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true));
 
     // ---- guard: interop chatter. However many components a page holds, the toolkit is imported and initialised once. ----
@@ -55,7 +58,7 @@ public sealed class ScaleTests : TestContext
         var bridge = JSInterop.SetupModule(PkAssets.Bridge);
         bridge.Mode = JSRuntimeMode.Loose;
 
-        RenderComponent<Page>(p => p.Add(x => x.Count, 200));
+        Render<Page>(p => p.Add(x => x.Count, 200));
 
         Assert.Equal(1, JSInterop.Invocations.Count(i => i.Identifier == "import"));
         Assert.Equal(1, bridge.Invocations.Count(i => i.Identifier == "init"));
@@ -71,7 +74,7 @@ public sealed class ScaleTests : TestContext
         var cut = Table(rows);
         var before = cut.Find("pk-table").GetAttribute("rows");
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true));
+        cut.Render(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true));
 
         Assert.Equal(before, cut.Find("pk-table").GetAttribute("rows"));
     }
@@ -89,7 +92,7 @@ public sealed class ScaleTests : TestContext
             GC.Collect();
             var (renderMs, renderKb, cut) = Measure(() => Table(rows));
             var attr = cut.Find("pk-table").GetAttribute("rows")!.Length;
-            var (changeMs, changeKb, _) = Measure(() => { cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true)); return cut; });
+            var (changeMs, changeKb, _) = Measure(() => { cut.Render(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow).Add(x => x.Selectable, true)); return cut; });
             sb.AppendLine($"  {n,5} rows | {attr / 1024.0,8:0.0} KB | {renderMs,7:0.0} ms / {renderKb,8:0} KB | {changeMs,7:0.0} ms / {changeKb,8:0} KB");
             cut.Dispose();
         }
@@ -102,9 +105,9 @@ public sealed class ScaleTests : TestContext
         var sb = new StringBuilder("\nMemory retained per mounted component (GC.GetTotalMemory after a full collection; bUnit renderer, one circuit's worth)\n");
         foreach (var count in new[] { 1000 })
         {
-            RenderComponent<Page>(p => p.Add(x => x.Count, 10)); // warm up
+            Render<Page>(p => p.Add(x => x.Count, 10)); // warm up
             var before = Settled();
-            var cut = RenderComponent<Page>(p => p.Add(x => x.Count, count));
+            var cut = Render<Page>(p => p.Add(x => x.Count, count));
             var after = Settled();
             sb.AppendLine($"  {count} PkButton in a page: {(after - before) / 1024.0:0} KB total, {(after - before) / (double)count:0} bytes per component");
             GC.KeepAlive(cut);

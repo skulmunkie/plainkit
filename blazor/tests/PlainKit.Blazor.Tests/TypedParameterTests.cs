@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Structured parameters (issue #9): a public type is sent as a JSON attribute in camelCase, an enum as its attribute value.
-public sealed class TypedParameterTests : TestContext
+public sealed class TypedParameterTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public TypedParameterTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -22,7 +25,7 @@ public sealed class TypedParameterTests : TestContext
             Labels = ["Mon", "Tue"],
             Series = [new PkChartSeries { Name = "Visits", Values = [3, 5.5] }],
         };
-        var cut = RenderComponent<PkChart>(p => p.Add(x => x.Data, data));
+        var cut = Render<PkChart>(p => p.Add(x => x.Data, data));
 
         using var doc = JsonDocument.Parse(cut.Find("pk-chart").GetAttribute("data")!);
         Assert.Equal("Tue", doc.RootElement.GetProperty("labels")[1].GetString());
@@ -34,7 +37,7 @@ public sealed class TypedParameterTests : TestContext
     [Fact]
     public void Chart_data_left_unset_leaves_the_attribute_off()
     {
-        Assert.Null(RenderComponent<PkChart>().Find("pk-chart").GetAttribute("data"));
+        Assert.Null(Render<PkChart>().Find("pk-chart").GetAttribute("data"));
     }
 
     [Fact]
@@ -45,7 +48,7 @@ public sealed class TypedParameterTests : TestContext
             new() { Src = "/a.png", Alt = "A", Primary = true },
             new() { Src = "/b.png", Alt = "B", Status = "Staged" },
         };
-        var cut = RenderComponent<PkImageGallery>(p => p.Add(x => x.Images, images));
+        var cut = Render<PkImageGallery>(p => p.Add(x => x.Images, images));
 
         using var doc = JsonDocument.Parse(cut.Find("pk-image-gallery").GetAttribute("images")!);
         var first = doc.RootElement[0];
@@ -90,18 +93,18 @@ public sealed class TypedParameterTests : TestContext
     [Fact]
     public void The_typed_chart_data_and_images_serialise_exactly_as_before()
     {
-        var chart = RenderComponent<PkChart>(p => p.Add(x => x.Data, new PkChartData { Labels = ["Mon", "Tue"], Series = [new PkChartSeries { Name = "Visits", Values = [3, 5.5] }] }));
+        var chart = Render<PkChart>(p => p.Add(x => x.Data, new PkChartData { Labels = ["Mon", "Tue"], Series = [new PkChartSeries { Name = "Visits", Values = [3, 5.5] }] }));
         Assert.Equal("""{"labels":["Mon","Tue"],"series":[{"name":"Visits","values":[3,5.5]}]}""", chart.Find("pk-chart").GetAttribute("data"));
 
         IReadOnlyList<PkGalleryImage> images = [new PkGalleryImage { Src = "/a.png", Alt = "A", Primary = true }, new PkGalleryImage { Src = "/b.png", Alt = "B", Status = "Staged" }];
-        var gallery = RenderComponent<PkImageGallery>(p => p.Add(x => x.Images, images));
+        var gallery = Render<PkImageGallery>(p => p.Add(x => x.Images, images));
         Assert.Equal("""[{"src":"/a.png","alt":"A","primary":true},{"src":"/b.png","alt":"B","status":"Staged"}]""", gallery.Find("pk-image-gallery").GetAttribute("images"));
     }
 
     [Fact]
     public void The_dialog_tint_is_sent_as_its_attribute_value()
     {
-        var cut = RenderComponent<PkDialog>(p => p.Add(x => x.Tint, PkDialogTint.Archived));
+        var cut = Render<PkDialog>(p => p.Add(x => x.Tint, PkDialogTint.Archived));
 
         Assert.Equal("archived", cut.Find("pk-dialog").GetAttribute("tint"));
     }
@@ -109,7 +112,7 @@ public sealed class TypedParameterTests : TestContext
     [Fact]
     public void The_tooltip_sends_help_enrich_placement_and_title_as_the_elements_props()
     {
-        var cut = RenderComponent<PkTooltip>(p => p
+        var cut = Render<PkTooltip>(p => p
             .Add(x => x.Help, true)
             .Add(x => x.Placement, PkTooltipPlacement.Bottom)
             .Add(x => x.Title, "Tip"));

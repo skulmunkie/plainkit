@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Blazor Server scalability of PkTable<T> (#129: "select all" used to send every id back and SignalR closes the circuit above 32 KB; #130: rows are serialised per change, not per render).
-public sealed class PkTableScaleTests : TestContext
+public sealed class PkTableScaleTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Row(string Id, string Name);
 
     private static readonly PkTableColumn<Row>[] Columns = [new() { Key = "name", Label = "Name" }];
@@ -20,7 +23,7 @@ public sealed class PkTableScaleTests : TestContext
 
     private static Row[] Guids(int n) => Enumerable.Range(0, n).Select(i => new Row(Guid.NewGuid().ToString(), "Person " + i)).ToArray();
 
-    private IRenderedComponent<PkTable<Row>> Table(Row[] rows, Action<Bunit.ComponentParameterCollectionBuilder<PkTable<Row>>>? more = null) => RenderComponent<PkTable<Row>>(p =>
+    private IRenderedComponent<PkTable<Row>> Table(Row[] rows, Action<Bunit.ComponentParameterCollectionBuilder<PkTable<Row>>>? more = null) => Render<PkTable<Row>>(p =>
     {
         p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, r => r.Id).Add(x => x.Selectable, true);
         more?.Invoke(p);
@@ -91,13 +94,13 @@ public sealed class PkTableScaleTests : TestContext
     private static readonly Func<Row, string> IdOfRow = r => r.Id;
 
     private void Same(IRenderedComponent<PkTable<Row>> cut, Row[] rows, IReadOnlyList<PkTableColumn<Row>>? columns = null, Func<Row, string>? idOf = null, bool striped = false) =>
-        cut.SetParametersAndRender(p => p.Add(x => x.Columns, columns ?? Columns).Add(x => x.Items, rows).Add(x => x.IdOf, idOf ?? IdOfRow).Add(x => x.Selectable, true).Add(x => x.Striped, striped));
+        cut.Render(p => p.Add(x => x.Columns, columns ?? Columns).Add(x => x.Items, rows).Add(x => x.IdOf, idOf ?? IdOfRow).Add(x => x.Selectable, true).Add(x => x.Striped, striped));
 
     [Fact]
     public void Unchanged_parameters_do_not_serialise_again_and_the_attribute_is_the_same_string()
     {
         var rows = Guids(500);
-        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+        var cut = Render<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
         Assert.Equal(1, cut.Instance.RebuildCount);
         var before = cut.Find("pk-table").GetAttribute("rows");
 
@@ -114,7 +117,7 @@ public sealed class PkTableScaleTests : TestContext
     public void An_unchanged_parameter_set_of_5000_rows_allocates_next_to_nothing()
     {
         var rows = Guids(5000);
-        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+        var cut = Render<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
         Same(cut, rows); // warm up
         var before = GC.GetAllocatedBytesForCurrentThread();
         Same(cut, rows);
@@ -126,7 +129,7 @@ public sealed class PkTableScaleTests : TestContext
     public void Another_list_columns_or_IdOf_serialise_again()
     {
         var rows = Guids(20);
-        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
+        var cut = Render<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, rows).Add(x => x.IdOf, IdOfRow));
 
         var other = Guids(20);
         Same(cut, other);
@@ -146,14 +149,14 @@ public sealed class PkTableScaleTests : TestContext
     public void A_list_that_grew_is_seen_and_a_changed_item_inside_it_needs_Refresh()
     {
         var list = new List<Row>(Guids(3));
-        var cut = RenderComponent<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+        var cut = Render<PkTable<Row>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
 
         list.Add(new Row("added", "Added"));
-        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+        cut.Render(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
         Assert.Contains("\"added\"", cut.Find("pk-table").GetAttribute("rows"));
 
         list[0] = new Row(list[0].Id, "Renamed");           // same list, same count: not noticed by a parameter set
-        cut.SetParametersAndRender(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
+        cut.Render(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, list).Add(x => x.IdOf, IdOfRow));
         Assert.DoesNotContain("Renamed", cut.Find("pk-table").GetAttribute("rows"));
 
         cut.InvokeAsync(() => cut.Instance.Refresh());
@@ -165,12 +168,12 @@ public sealed class PkTableScaleTests : TestContext
     {
         var rows = Guids(50);
         var columns = new PkTableColumn<Row>[] { new() { Key = "name", Label = "Name" } };
-        var cut = RenderComponent<PkDataList<Row>>(p => p
+        var cut = Render<PkDataList<Row>>(p => p
             .Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "a"));
         var table = cut.FindComponent<PkTable<Row>>();
         var built = table.Instance.RebuildCount;
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "b"));
+        cut.Render(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "b"));
         await cut.InvokeAsync(() => { });
 
         Assert.Equal(built, table.Instance.RebuildCount);

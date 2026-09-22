@@ -7,8 +7,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // PkPageHeader (hand-written, blazor/mappings/page-header.json): the title and a pk-breadcrumb built from PkCrumb records.
-public sealed class PageHeaderTests : TestContext
+public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private static readonly PkCrumb[] Trail =
     [
         new("Stock", "/stock"),
@@ -25,7 +28,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void The_crumbs_become_a_breadcrumb_in_the_breadcrumb_slot_and_the_last_one_is_the_current_page()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
         var nav = cut.Find("pk-breadcrumb");
 
         Assert.Equal("breadcrumb", nav.GetAttribute("slot"));
@@ -44,7 +47,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void A_last_crumb_with_an_address_is_a_link_that_is_still_the_current_page()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, new[] { new PkCrumb("Home", "/"), new PkCrumb("Orders", "/orders") }));
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, new[] { new PkCrumb("Home", "/"), new PkCrumb("Orders", "/orders") }));
         var last = cut.Find("pk-breadcrumb").Children[1];
 
         Assert.Equal("A", last.TagName);
@@ -55,9 +58,9 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void The_title_is_the_last_crumb_unless_a_Title_overrides_it()
     {
-        Assert.Equal("PO 1042", RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).Find("pk-page-header").GetAttribute("heading"));
+        Assert.Equal("PO 1042", Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).Find("pk-page-header").GetAttribute("heading"));
 
-        var named = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Title, "Acme Supply order"));
+        var named = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Title, "Acme Supply order"));
         Assert.Equal("Acme Supply order", named.Find("pk-page-header").GetAttribute("heading"));
         Assert.Equal("PO 1042", named.Find("pk-breadcrumb").Children[2].TextContent);
     }
@@ -65,7 +68,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void Without_crumbs_there_is_no_breadcrumb_and_the_level_starts_at_one()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Title, "Settings"));
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Title, "Settings"));
 
         Assert.Empty(cut.FindAll("pk-breadcrumb"));
         Assert.Equal("Settings", cut.Find("pk-page-header").GetAttribute("heading"));
@@ -75,7 +78,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void The_suffix_actions_and_meta_go_in_their_slots()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p
+        var cut = Render<PkPageHeader>(p => p
             .Add(x => x.Title, "Orders")
             .Add(x => x.SuffixContent, "<pk-badge>Open</pk-badge>")
             .Add(x => x.ActionsContent, "<pk-button>Receive</pk-button>")
@@ -90,17 +93,17 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void A_custom_trail_is_used_only_when_no_crumbs_are_given()
     {
-        var custom = RenderComponent<PkPageHeader>(p => p.Add(x => x.BreadcrumbContent, "<a href=\"/x\">X</a>"));
+        var custom = Render<PkPageHeader>(p => p.Add(x => x.BreadcrumbContent, "<a href=\"/x\">X</a>"));
         Assert.NotNull(custom.Find("span[slot=breadcrumb] a"));
 
-        var both = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BreadcrumbContent, "<a href=\"/x\">X</a>"));
+        var both = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BreadcrumbContent, "<a href=\"/x\">X</a>"));
         Assert.Empty(both.FindAll("span[slot=breadcrumb]"));
     }
 
     [Fact]
     public void Extra_attributes_pass_through_to_the_element()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Title, "T").AddUnmatched("id", "hdr").AddUnmatched("class", "mine"));
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Title, "T").AddUnmatched("id", "hdr").AddUnmatched("class", "mine"));
 
         Assert.Equal("hdr", cut.Find("pk-page-header").Id);
         Assert.Equal("mine", cut.Find("pk-page-header").GetAttribute("class"));
@@ -127,7 +130,7 @@ public sealed class PageHeaderTests : TestContext
         Assert.Equal(3, cut.Find("pk-breadcrumb").Children.Length);
     }
 
-    private IRenderedFragment RenderInShell(bool backLink, IReadOnlyList<PkCrumb> crumbs) => Render(builder =>
+    private IRenderedComponent<IComponent> RenderInShell(bool backLink, IReadOnlyList<PkCrumb> crumbs) => Render(builder =>
     {
         builder.OpenComponent<SectionOutlet>(0);
         builder.AddAttribute(1, nameof(SectionOutlet.SectionName), "shell-title");
@@ -142,7 +145,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void BackLink_is_off_by_default()
     {
-        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-button"));
+        Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-button"));
         Assert.Empty(RenderInShell(false, Trail).FindAll("pk-button"));
     }
 
@@ -170,7 +173,7 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void BackLink_without_a_shell_section_is_drawn_above_the_header()
     {
-        var cut = RenderComponent<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BackLink, true));
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BackLink, true));
         Assert.Equal("Back to Purchase orders", cut.Find("pk-button").TextContent.Trim());
         Assert.True(cut.Markup.IndexOf("<pk-button", StringComparison.Ordinal) < cut.Markup.IndexOf("<pk-page-header", StringComparison.Ordinal));
     }
@@ -178,11 +181,11 @@ public sealed class PageHeaderTests : TestContext
     [Fact]
     public void BackLink_skips_crumbs_without_an_address_and_the_current_page_and_is_absent_without_a_parent()
     {
-        var skipped = RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Home", "/"), new PkCrumb("Section"), new PkCrumb("Record", "/section/record") }));
+        var skipped = Render<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Home", "/"), new PkCrumb("Section"), new PkCrumb("Record", "/section/record") }));
         Assert.Equal("Back to Home", skipped.Find("pk-button").TextContent.Trim());
         Assert.Equal("/", skipped.Find("pk-button").GetAttribute("href"));
 
-        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Only", "/only") })).FindAll("pk-button"));
-        Assert.Empty(RenderComponent<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Title, "No trail")).FindAll("pk-button"));
+        Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Only", "/only") })).FindAll("pk-button"));
+        Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Title, "No trail")).FindAll("pk-button"));
     }
 }

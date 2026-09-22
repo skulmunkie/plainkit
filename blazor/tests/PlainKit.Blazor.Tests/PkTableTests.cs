@@ -7,8 +7,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // The hand-written PkTable<TItem> (issue #49): JSON attributes down, typed events up, cell templates as slot children.
-public sealed class PkTableTests : TestContext
+public sealed class PkTableTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Order(int Number, string Customer, decimal Total, string Status);
 
     private static readonly Order[] Orders =
@@ -31,7 +34,7 @@ public sealed class PkTableTests : TestContext
     }
 
     private IRenderedComponent<PkTable<Order>> Render(Action<ComponentParameterCollectionBuilder<PkTable<Order>>>? more = null) =>
-        RenderComponent<PkTable<Order>>(p =>
+        Render<PkTable<Order>>(p =>
         {
             p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders).Add(x => x.IdOf, o => o.Number.ToString());
             more?.Invoke(p);
@@ -60,7 +63,7 @@ public sealed class PkTableTests : TestContext
     [Fact]
     public void Without_IdOf_the_row_index_is_the_id()
     {
-        var cut = RenderComponent<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders));
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders));
         using var rows = JsonDocument.Parse(cut.Find("pk-table").GetAttribute("rows")!);
         Assert.Equal("1", rows.RootElement[1].GetProperty("id").GetString());
     }
@@ -102,7 +105,7 @@ public sealed class PkTableTests : TestContext
         var cut = Render(p => p.Add(x => x.CurrentRow, "1043"));
         Assert.Equal("1043", cut.Find("pk-table").GetAttribute("current-row"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.CurrentRow, null));
+        cut.Render(p => p.Add(x => x.CurrentRow, null));
         Assert.False(cut.Find("pk-table").HasAttribute("current-row"));
     }
 
@@ -187,7 +190,7 @@ public sealed class PkTableTests : TestContext
         var first = cut.Find("pk-table").GetAttribute("rows");
         var calls = JSInterop.Invocations.Count;
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Items, new[] { Orders[0] }));
+        cut.Render(p => p.Add(x => x.Items, new[] { Orders[0] }));
         var second = cut.Find("pk-table").GetAttribute("rows");
 
         Assert.NotEqual(first, second);
@@ -200,7 +203,7 @@ public sealed class PkTableTests : TestContext
     [Fact]
     public async Task A_method_group_handler_works_with_an_explicit_TItem()
     {
-        var cut = RenderComponent<TableTypeInference>();
+        var cut = Render<TableTypeInference>();
         await cut.Find("pk-table").TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "1" });
         Assert.Equal("Ada", cut.Instance.Opened?.Name);
     }

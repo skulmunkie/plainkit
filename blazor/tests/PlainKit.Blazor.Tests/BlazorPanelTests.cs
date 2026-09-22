@@ -8,8 +8,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 /// <summary>What the dev tools' Blazor panel and the inspector's Blazor section show: real counts from the bridge, the circuit handler, and the mappings.</summary>
-public sealed class BlazorPanelTests : TestContext
+public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private readonly BunitJSModuleInterop _bridge;
 
     public BlazorPanelTests()

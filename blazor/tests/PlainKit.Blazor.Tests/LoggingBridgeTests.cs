@@ -5,8 +5,11 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-public sealed class LoggingBridgeTests : TestContext
+public sealed class LoggingBridgeTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Entry(string Category, LogLevel Level, string Text);
 
     private sealed class Capture : ILoggerProvider, ILogger

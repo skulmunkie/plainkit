@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 /// <summary>The SDK and PlainKit.Blazor share one version (core/VERSION); every place it is stamped must agree.</summary>
-public sealed class VersionTests : TestContext
+public sealed class VersionTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Entry(string Category, LogLevel Level, string Text);
 
     private sealed class Capture(List<Entry> entries, string category = "") : ILoggerProvider, ILogger

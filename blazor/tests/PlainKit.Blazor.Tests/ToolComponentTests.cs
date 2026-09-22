@@ -11,8 +11,11 @@ namespace PlainKit.Blazor.Tests;
 /// The tool components (scorecard, performance, console, logs, log settings, quality, theme editor, dev tools) talk to the bridge module
 /// <c>plainkit.blazor.js</c>: what they call, with which options, when they mount again, and that they let go of the JavaScript side when disposed.
 /// </summary>
-public sealed class ToolComponentTests : TestContext
+public sealed class ToolComponentTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private readonly BunitJSModuleInterop _bridge;
 
     public ToolComponentTests()
@@ -32,7 +35,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Quality_mounts_with_its_options_into_an_empty_container()
     {
-        var cut = RenderComponent<PkQuality>(p => p.Add(x => x.Phone, true).Add(x => x.AutoRun, true).Add(x => x.Theme, PkTheme.Light).Add(x => x.Height, "20rem"));
+        var cut = Render<PkQuality>(p => p.Add(x => x.Phone, true).Add(x => x.AutoRun, true).Add(x => x.Theme, PkTheme.Light).Add(x => x.Height, "20rem"));
 
         var call = Assert.Single(_bridge.Invocations["mountQuality"]);
         Assert.IsType<ElementReference>(call.Arguments[0]);
@@ -47,7 +50,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Quality_leaves_phone_and_theme_unset_by_default()
     {
-        RenderComponent<PkQuality>();
+        Render<PkQuality>();
 
         var options = Options(Assert.Single(_bridge.Invocations["mountQuality"]));
         Assert.Equal(JsonValueKind.Null, options.GetProperty("phone").ValueKind);
@@ -57,7 +60,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public async Task Quality_runs_the_checks_through_the_bridge()
     {
-        var cut = RenderComponent<PkQuality>();
+        var cut = Render<PkQuality>();
 
         await cut.InvokeAsync(() => cut.Instance.RunAsync());
 
@@ -67,32 +70,32 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Quality_mounts_again_only_when_a_parameter_changed()
     {
-        var cut = RenderComponent<PkQuality>(p => p.Add(x => x.Height, "10rem"));
+        var cut = Render<PkQuality>(p => p.Add(x => x.Height, "10rem"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Height, "10rem"));
+        cut.Render(p => p.Add(x => x.Height, "10rem"));
         Assert.Equal(1, Calls("mountQuality"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Height, "12rem"));
+        cut.Render(p => p.Add(x => x.Height, "12rem"));
         Assert.Equal(2, Calls("mountQuality"));
     }
 
     [Fact]
-    public void Quality_destroys_the_javascript_side_when_disposed()
+    public async Task Quality_destroys_the_javascript_side_when_disposed()
     {
-        RenderComponent<PkQuality>();
+        Render<PkQuality>();
 
-        DisposeComponents();
+        await DisposeComponentsAsync();
 
         Assert.Equal(1, Calls("destroy"));
     }
 
     [Fact]
-    public void Disposing_after_the_circuit_is_gone_does_not_throw()
+    public async Task Disposing_after_the_circuit_is_gone_does_not_throw()
     {
         _bridge.SetupVoid("destroy", _ => true).SetException(new JSDisconnectedException("gone"));
-        RenderComponent<PkQuality>();
+        Render<PkQuality>();
 
-        var error = Record.Exception(DisposeComponents);
+        var error = await Record.ExceptionAsync(DisposeComponentsAsync);
 
         Assert.Null(error);
     }
@@ -100,7 +103,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Theme_editor_mounts_with_its_options()
     {
-        var cut = RenderComponent<PkThemeEditor>(p => p.Add(x => x.StorageKey, "my-theme").Add(x => x.Preview, false).Add(x => x.Theme, PkTheme.Dark).Add(x => x.Height, "30rem"));
+        var cut = Render<PkThemeEditor>(p => p.Add(x => x.StorageKey, "my-theme").Add(x => x.Preview, false).Add(x => x.Theme, PkTheme.Dark).Add(x => x.Height, "30rem"));
 
         var options = Options(Assert.Single(_bridge.Invocations["mountThemeEditor"]));
         Assert.Equal("my-theme", options.GetProperty("storageKey").GetString());
@@ -115,7 +118,7 @@ public sealed class ToolComponentTests : TestContext
     {
         var css = ":root, [data-theme=\"dark\"] { --color-accent: #123456; }";
         var presets = new[] { new PkThemePreset("Brand", css, "Our colours"), new PkThemePreset("Plain", "{\"shared\":{}}") };
-        RenderComponent<PkThemeEditor>(p => p.Add(x => x.InitialTheme, css).Add(x => x.Presets, presets));
+        Render<PkThemeEditor>(p => p.Add(x => x.InitialTheme, css).Add(x => x.Presets, presets));
 
         var call = Assert.Single(_bridge.Invocations["mountThemeEditor"]);
         var options = Options(call);
@@ -130,7 +133,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Theme_editor_leaves_the_initial_theme_and_presets_unset_by_default()
     {
-        RenderComponent<PkThemeEditor>();
+        Render<PkThemeEditor>();
 
         var options = Options(Assert.Single(_bridge.Invocations["mountThemeEditor"]));
         Assert.Equal(JsonValueKind.Null, options.GetProperty("initial").ValueKind);
@@ -141,7 +144,7 @@ public sealed class ToolComponentTests : TestContext
     public async Task Theme_editor_raises_OnThemeChanged_with_the_exported_css()
     {
         var received = new List<string>();
-        var cut = RenderComponent<PkThemeEditor>(p => p.Add(x => x.OnThemeChanged, EventCallback.Factory.Create<string>(this, css => received.Add(css))));
+        var cut = Render<PkThemeEditor>(p => p.Add(x => x.OnThemeChanged, EventCallback.Factory.Create<string>(this, css => received.Add(css))));
 
         var host = Assert.IsType<DotNetObjectReference<PkThemeEditorHost>>(Assert.Single(_bridge.Invocations["mountThemeEditor"]).Arguments[2]);
         await cut.InvokeAsync(() => host.Value.OnChange(":root { --color-accent: red; }"));
@@ -152,18 +155,18 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Theme_editor_mounts_again_when_the_initial_theme_or_presets_change()
     {
-        var cut = RenderComponent<PkThemeEditor>(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
-        cut.SetParametersAndRender(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
+        var cut = Render<PkThemeEditor>(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
+        cut.Render(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
         Assert.Equal(1, Calls("mountThemeEditor"));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.InitialTheme, "{\"shared\":{\"--radius-md\":\"2px\"}}"));
+        cut.Render(p => p.Add(x => x.InitialTheme, "{\"shared\":{\"--radius-md\":\"2px\"}}"));
         Assert.Equal(2, Calls("mountThemeEditor"));
     }
 
     [Fact]
     public void Theme_editor_shows_the_preview_by_default()
     {
-        RenderComponent<PkThemeEditor>();
+        Render<PkThemeEditor>();
 
         Assert.True(Options(Assert.Single(_bridge.Invocations["mountThemeEditor"])).GetProperty("preview").GetBoolean());
     }
@@ -172,7 +175,7 @@ public sealed class ToolComponentTests : TestContext
     public async Task Theme_editor_exports_resets_and_switches_theme_through_the_bridge()
     {
         _bridge.Setup<string?>("exportTheme", _ => true).SetResult(":root { --color-accent: red; }");
-        var cut = RenderComponent<PkThemeEditor>();
+        var cut = Render<PkThemeEditor>();
 
         var css = await cut.InvokeAsync(() => cut.Instance.ExportAsync());
         await cut.InvokeAsync(() => cut.Instance.ResetAsync());
@@ -185,22 +188,22 @@ public sealed class ToolComponentTests : TestContext
     }
 
     [Fact]
-    public void Theme_editor_destroys_the_javascript_side_when_disposed()
+    public async Task Theme_editor_destroys_the_javascript_side_when_disposed()
     {
-        RenderComponent<PkThemeEditor>();
+        Render<PkThemeEditor>();
 
-        DisposeComponents();
+        await DisposeComponentsAsync();
 
         Assert.Equal(1, Calls("destroy"));
     }
 
     [Fact]
-    public void Performance_console_logs_and_log_settings_mount_once_and_destroy_on_dispose()
+    public async Task Performance_console_logs_and_log_settings_mount_once_and_destroy_on_dispose()
     {
-        RenderComponent<PkPerformance>(p => p.Add(x => x.Interval, 500).Add(x => x.AutoStart, false));
-        RenderComponent<PkConsole>(p => p.Add(x => x.Tab, "network").Add(x => x.Max, 100));
-        RenderComponent<PkLogs>(p => p.Add(x => x.Level, "warn").Add(x => x.Order, "oldest"));
-        RenderComponent<PkLogSettings>(p => p.Add(x => x.Height, "24rem"));
+        Render<PkPerformance>(p => p.Add(x => x.Interval, 500).Add(x => x.AutoStart, false));
+        Render<PkConsole>(p => p.Add(x => x.Tab, "network").Add(x => x.Max, 100));
+        Render<PkLogs>(p => p.Add(x => x.Level, "warn").Add(x => x.Order, "oldest"));
+        Render<PkLogSettings>(p => p.Add(x => x.Height, "24rem"));
 
         var performance = Options(Assert.Single(_bridge.Invocations["mountPerformance"]));
         Assert.Equal(500, performance.GetProperty("interval").GetInt32());
@@ -211,7 +214,7 @@ public sealed class ToolComponentTests : TestContext
         Assert.Equal("oldest", logs.GetProperty("order").GetString());
         Assert.Equal("24rem", Options(Assert.Single(_bridge.Invocations["mountLogSettings"])).GetProperty("height").GetString());
 
-        DisposeComponents();
+        await DisposeComponentsAsync();
 
         Assert.Equal(4, Calls("destroy"));
     }
@@ -219,8 +222,8 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public async Task Performance_and_logs_pause_and_resume_through_the_bridge()
     {
-        var performance = RenderComponent<PkPerformance>();
-        var logs = RenderComponent<PkLogs>();
+        var performance = Render<PkPerformance>();
+        var logs = Render<PkLogs>();
 
         await performance.InvokeAsync(() => performance.Instance.PauseAsync());
         await performance.InvokeAsync(() => performance.Instance.ResumeAsync());
@@ -235,10 +238,10 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public async Task Scorecard_mounts_its_targets_only_when_it_has_some_and_runs_through_the_bridge()
     {
-        RenderComponent<PkScorecard>();
+        Render<PkScorecard>();
         Assert.Equal(0, Calls("mountScorecard"));
 
-        var cut = RenderComponent<PkScorecard>(p => p.Add(x => x.Targets, [PkScoreTarget.Page("/a", "A"), PkScoreTarget.Markup("B", "<p>b</p>")]).Add(x => x.HistoryKey, "k").Add(x => x.AutoRun, true));
+        var cut = Render<PkScorecard>(p => p.Add(x => x.Targets, [PkScoreTarget.Page("/a", "A"), PkScoreTarget.Markup("B", "<p>b</p>")]).Add(x => x.HistoryKey, "k").Add(x => x.AutoRun, true));
         var options = Options(Assert.Single(_bridge.Invocations["mountScorecard"]));
         Assert.Equal(2, options.GetProperty("targets").GetArrayLength());
         Assert.Equal("k", options.GetProperty("historyKey").GetString());
@@ -253,7 +256,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Dev_tools_dock_mounts_with_the_blazor_callbacks_and_a_hidden_marker()
     {
-        var cut = RenderComponent<PkDevTools>(p => p.Add(x => x.Tab, "blazor").Add(x => x.Open, true).Add(x => x.Size, PkDevToolsSize.Large).Add(x => x.Theme, PkTheme.Dark));
+        var cut = Render<PkDevTools>(p => p.Add(x => x.Tab, "blazor").Add(x => x.Open, true).Add(x => x.Size, PkDevToolsSize.Large).Add(x => x.Theme, PkTheme.Dark));
 
         var call = Assert.Single(_bridge.Invocations["mountDevTools"]);
         var options = Options(call);
@@ -269,7 +272,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Dev_tools_medium_dock_and_default_hotkey_are_left_to_the_module()
     {
-        RenderComponent<PkDevTools>();
+        Render<PkDevTools>();
 
         var options = Options(Assert.Single(_bridge.Invocations["mountDevTools"]));
         Assert.Equal(JsonValueKind.Null, options.GetProperty("size").ValueKind);
@@ -279,7 +282,7 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public void Dev_tools_inline_fills_its_own_element_and_can_leave_the_blazor_tabs_out()
     {
-        var cut = RenderComponent<PkDevTools>(p => p.Add(x => x.Mode, PkDevToolsMode.Inline).Add(x => x.BlazorPanels, false));
+        var cut = Render<PkDevTools>(p => p.Add(x => x.Mode, PkDevToolsMode.Inline).Add(x => x.BlazorPanels, false));
 
         var call = Assert.Single(_bridge.Invocations["mountDevTools"]);
         Assert.Equal("inline", Options(call).GetProperty("mode").GetString());
@@ -290,10 +293,10 @@ public sealed class ToolComponentTests : TestContext
     [Fact]
     public async Task Dev_tools_drives_the_mounted_tools_when_the_tab_or_open_state_changes()
     {
-        var cut = RenderComponent<PkDevTools>(p => p.Add(x => x.Tab, "console").Add(x => x.Open, false));
+        var cut = Render<PkDevTools>(p => p.Add(x => x.Tab, "console").Add(x => x.Open, false));
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Tab, "logs").Add(x => x.Open, true));
-        cut.SetParametersAndRender(p => p.Add(x => x.Tab, "logs").Add(x => x.Open, false));
+        cut.Render(p => p.Add(x => x.Tab, "logs").Add(x => x.Open, true));
+        cut.Render(p => p.Add(x => x.Tab, "logs").Add(x => x.Open, false));
 
         Assert.Equal(1, Calls("mountDevTools")); // not mounted again
         Assert.Equal("logs", Assert.Single(_bridge.Invocations["selectTool"]).Arguments[1]);
@@ -307,21 +310,21 @@ public sealed class ToolComponentTests : TestContext
     }
 
     [Fact]
-    public void Dev_tools_mounts_again_when_the_mode_changes_and_destroys_on_dispose()
+    public async Task Dev_tools_mounts_again_when_the_mode_changes_and_destroys_on_dispose()
     {
-        var cut = RenderComponent<PkDevTools>();
+        var cut = Render<PkDevTools>();
 
-        cut.SetParametersAndRender(p => p.Add(x => x.Mode, PkDevToolsMode.Inline));
+        cut.Render(p => p.Add(x => x.Mode, PkDevToolsMode.Inline));
         Assert.Equal(2, Calls("mountDevTools"));
 
-        DisposeComponents();
+        await DisposeComponentsAsync();
         Assert.Equal(1, Calls("destroy"));
     }
 
     [Fact]
     public void Dev_tools_initializes_the_runtime_once()
     {
-        RenderComponent<PkDevTools>();
+        Render<PkDevTools>();
 
         Assert.Single(_bridge.Invocations["init"]);
     }

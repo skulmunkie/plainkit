@@ -79,8 +79,11 @@ public sealed class PkListStateTests
     }
 }
 
-public sealed class PkDataListTests : TestContext
+public sealed class PkDataListTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Customer(int Id, string Name, string City);
 
     private static readonly PkTableColumn<Customer>[] Columns =
@@ -118,7 +121,7 @@ public sealed class PkDataListTests : TestContext
     }
 
     private IRenderedComponent<PkDataList<Customer>> Render(Func<PkListRequest, Task<PkListResult<Customer>>> load, Action<ComponentParameterCollectionBuilder<PkDataList<Customer>>>? more = null) =>
-        RenderComponent<PkDataList<Customer>>(p =>
+        Render<PkDataList<Customer>>(p =>
         {
             p.Add(x => x.Load, load).Add(x => x.Columns, Columns).Add(x => x.IdOf, c => c.Id.ToString());
             more?.Invoke(p);

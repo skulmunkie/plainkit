@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // PkAssets (the file paths, the content-hash URLs) and PkStyles (an in-place link by default, not HeadContent).
-public sealed class PageAssetsTests : TestContext
+public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public PageAssetsTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -63,7 +66,7 @@ public sealed class PageAssetsTests : TestContext
     [Fact]
     public void PkStyles_renders_a_plain_link_in_place_with_the_content_hash()
     {
-        var cut = RenderComponent<PkStyles>();
+        var cut = Render<PkStyles>();
         var link = cut.Find("link");
 
         Assert.Equal("stylesheet", link.GetAttribute("rel"));
@@ -73,15 +76,15 @@ public sealed class PageAssetsTests : TestContext
     [Fact]
     public void PkStyles_can_link_the_minified_file_and_drop_the_hash()
     {
-        Assert.Equal(PkAssets.CssMinVersioned, RenderComponent<PkStyles>(p => p.Add(x => x.Minified, true)).Find("link").GetAttribute("href"));
-        Assert.Equal(PkAssets.Css, RenderComponent<PkStyles>(p => p.Add(x => x.Versioned, false)).Find("link").GetAttribute("href"));
-        Assert.Equal(PkAssets.CssMin, RenderComponent<PkStyles>(p => p.Add(x => x.Versioned, false).Add(x => x.Minified, true)).Find("link").GetAttribute("href"));
+        Assert.Equal(PkAssets.CssMinVersioned, Render<PkStyles>(p => p.Add(x => x.Minified, true)).Find("link").GetAttribute("href"));
+        Assert.Equal(PkAssets.Css, Render<PkStyles>(p => p.Add(x => x.Versioned, false)).Find("link").GetAttribute("href"));
+        Assert.Equal(PkAssets.CssMin, Render<PkStyles>(p => p.Add(x => x.Versioned, false).Add(x => x.Minified, true)).Find("link").GetAttribute("href"));
     }
 
     [Fact]
     public void PkStyles_InHead_goes_through_HeadContent_and_renders_nothing_in_place()
     {
-        var cut = RenderComponent<PkStyles>(p => p.Add(x => x.InHead, true));
+        var cut = Render<PkStyles>(p => p.Add(x => x.InHead, true));
 
         Assert.Empty(cut.FindAll("link"));
     }

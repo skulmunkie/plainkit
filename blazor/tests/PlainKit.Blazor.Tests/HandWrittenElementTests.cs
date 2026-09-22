@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // PkCard, PkEmptyState, PkFieldList and PkStat: hand-written over their elements (blazor/mappings marks them "existing").
-public sealed class HandWrittenElementTests : TestContext
+public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     public HandWrittenElementTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -17,7 +20,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void Card_sends_its_parameters_as_attributes_and_leaves_unset_ones_off()
     {
-        var cut = RenderComponent<PkCard>(p => p
+        var cut = Render<PkCard>(p => p
             .Add(x => x.Heading, "Plan")
             .Add(x => x.Level, 3)
             .Add(x => x.Flush, true)
@@ -37,7 +40,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void Card_renders_named_fragments_in_their_slots_only_when_set()
     {
-        var cut = RenderComponent<PkCard>(p => p
+        var cut = Render<PkCard>(p => p
             .Add(x => x.ActionsContent, "Edit")
             .Add(x => x.FooterContent, "Foot")
             .Add(x => x.MediaContent, "Pic"));
@@ -45,13 +48,13 @@ public sealed class HandWrittenElementTests : TestContext
         Assert.Equal("Edit", cut.Find("[slot=actions]").TextContent);
         Assert.Equal("Foot", cut.Find("[slot=footer]").TextContent);
         Assert.Equal("Pic", cut.Find("[slot=media]").TextContent);
-        Assert.Empty(RenderComponent<PkCard>().FindAll("[slot]"));
+        Assert.Empty(Render<PkCard>().FindAll("[slot]"));
     }
 
     [Fact]
     public void Card_takes_id_data_aria_and_class_from_the_caller()
     {
-        var cut = RenderComponent<PkCard>(p => p.AddUnmatched("id", "c").AddUnmatched("data-test", "d").AddUnmatched("aria-label", "a").AddUnmatched("class", "wide"));
+        var cut = Render<PkCard>(p => p.AddUnmatched("id", "c").AddUnmatched("data-test", "d").AddUnmatched("aria-label", "a").AddUnmatched("class", "wide"));
         var el = cut.Find("pk-card");
 
         Assert.Equal("c", el.Id);
@@ -63,7 +66,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void EmptyState_maps_Title_to_heading_and_fills_its_slots()
     {
-        var cut = RenderComponent<PkEmptyState>(p => p
+        var cut = Render<PkEmptyState>(p => p
             .Add(x => x.Title, "No rows")
             .Add(x => x.Description, "Add one")
             .Add(x => x.Tone, "compact")
@@ -85,7 +88,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void FieldList_sends_heading_layout_and_flags()
     {
-        var cut = RenderComponent<PkFieldList>(p => p
+        var cut = Render<PkFieldList>(p => p
             .Add(x => x.Title, "Details")
             .Add(x => x.Layout, "stacked")
             .Add(x => x.Dividers, true)
@@ -106,7 +109,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void Stat_sends_the_headline_the_tone_and_the_sparkline()
     {
-        var cut = RenderComponent<PkStat>(p => p
+        var cut = Render<PkStat>(p => p
             .Add(x => x.Label, "Revenue")
             .Add(x => x.Value, "$1.2k")
             .Add(x => x.Subtext, "this week")
@@ -131,7 +134,7 @@ public sealed class HandWrittenElementTests : TestContext
     [Fact]
     public void Stat_leaves_the_neutral_tone_and_an_empty_series_off()
     {
-        var el = RenderComponent<PkStat>(p => p.Add(x => x.Label, "Users")).Find("pk-stat");
+        var el = Render<PkStat>(p => p.Add(x => x.Label, "Users")).Find("pk-stat");
 
         Assert.Null(el.GetAttribute("tone"));
         Assert.Null(el.GetAttribute("values"));
@@ -141,7 +144,7 @@ public sealed class HandWrittenElementTests : TestContext
     public async Task Stat_raises_OnClick_on_pk_activate()
     {
         var clicks = 0;
-        var cut = RenderComponent<PkStat>(p => p
+        var cut = Render<PkStat>(p => p
             .Add(x => x.Interactive, true)
             .Add(x => x.OnClick, EventCallback.Factory.Create(this, () => clicks++))
             .AddUnmatched("data-test", "s"));

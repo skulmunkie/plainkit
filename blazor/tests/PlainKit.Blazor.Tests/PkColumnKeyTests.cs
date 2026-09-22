@@ -6,8 +6,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Issue #104: a column Key is used exactly as given (column definition, row field, cell slot, reported sort and filter keys), in any casing.
-public sealed class PkColumnKeyTests : TestContext
+public sealed class PkColumnKeyTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed record Person(int Id, string Name, string City, string Role);
 
     private static readonly Person[] People = [new(1, "Ada", "Leeds", "Admin"), new(2, "Grace", "York", "User")];
@@ -42,7 +45,7 @@ public sealed class PkColumnKeyTests : TestContext
     [Fact]
     public void Table_columns_and_rows_use_the_same_key_as_given()
     {
-        var cut = RenderComponent<PkTable<Person>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, People).Add(x => x.IdOf, x => x.Id.ToString()));
+        var cut = Render<PkTable<Person>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, People).Add(x => x.IdOf, x => x.Id.ToString()));
         AssertKeysAgree(cut.Find("pk-table"));
         Assert.Equal(["cell-1-Badge", "cell-1-cardId", "cell-2-Badge", "cell-2-cardId"], cut.FindAll("pk-table > span[slot]").Select(s => s.GetAttribute("slot")));
     }
@@ -51,7 +54,7 @@ public sealed class PkColumnKeyTests : TestContext
     public async Task Table_sort_filter_and_row_click_round_trip_with_the_key_as_given()
     {
         string? sort = null; string? direction = null; Dictionary<string, string>? filters = null; Person? clicked = null;
-        var cut = RenderComponent<PkTable<Person>>(p => p
+        var cut = Render<PkTable<Person>>(p => p
             .Add(x => x.Columns, Columns).Add(x => x.Items, People).Add(x => x.IdOf, x => x.Id.ToString()).Add(x => x.Clickable, true)
             .Add(x => x.OnSort, e => { sort = e.Key; direction = e.Direction; })
             .Add(x => x.OnFilter, e => filters = e.Filters)
@@ -71,7 +74,7 @@ public sealed class PkColumnKeyTests : TestContext
     }
 
     private IRenderedComponent<PkDataList<Person>> RenderList(List<PkListRequest> requests, Action<Person>? onClick = null) =>
-        RenderComponent<PkDataList<Person>>(p =>
+        Render<PkDataList<Person>>(p =>
         {
             p.Add(x => x.Columns, Columns).Add(x => x.IdOf, x => x.Id.ToString());
             p.Add(x => x.Load, r => { requests.Add(r); return Task.FromResult(new PkListResult<Person>(People, People.Length)); });
