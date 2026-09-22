@@ -27,6 +27,7 @@ test('describeElement lists every API section of a real element as display rows'
     assert.deepEqual(d.events.map(e => e.name), meta.events.map(e => e.name));
     assert.equal(d.parts.every(p => p.selector.startsWith('pk-alert::part(')), true);
     assert.equal(d.slots.every(s => s.name), true, 'the default slot is named');
+    assert.equal(d.a11y, meta.a11y, 'the accessibility note comes through as text');
 });
 
 test('describeElement is null for anything that is not element meta', () => {
@@ -69,6 +70,8 @@ test('the inspector shows an empty state with nothing selected, then the element
     assert.equal(markup.textContent, '<pk-alert kind="info">Hi</pk-alert>');
     assert.ok(box.find('pk-table').length >= 3, 'the API tables are pk-table');
     assert.doesNotMatch(box.textContent, /Blazor/, 'the SDK inspector knows nothing about Blazor');
+    assert.ok(box.find('pk-accordion-item').some(i => i.getAttribute('heading') === 'Accessibility'), 'the flyout is the only place accessibility notes are drawn');
+    assert.match(box.textContent, new RegExp(meta.a11y.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 
     live.outerHTML = '<pk-alert kind="danger">Hi</pk-alert>';
     inspector.refresh();

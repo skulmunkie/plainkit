@@ -1,10 +1,10 @@
 // The gallery page of a custom element, generated entirely from its meta API: a live playground (props become controls, the slot content
-// is editable markup, events land in a log, custom properties are settable), the usage snippet, the examples
-// rendered live, and the API tables. Built with DOM APIs; the only markup parsed is the element's own examples from its meta. The page
-// itself is made of pk-* elements (page header, cards, accordions, tables, fields, code blocks).
+// is editable markup, events land in a log, custom properties are settable) and the examples rendered live, as two pk-tabs panels. Built
+// with DOM APIs; the only markup parsed is the element's own examples from its meta. The page itself is made of pk-* elements (page header,
+// tabs, cards, accordions, fields, code blocks). The API reference (Properties, Slots, Events, Parts, Custom properties, Methods,
+// Accessibility) is drawn once, by the Details flyout (js/element-inspector.js) - this page does not repeat it.
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
-import { mediaBelow } from '../../js/breakpoints.js';
 
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -13,24 +13,11 @@ const h = (tag, attrs = {}, ...kids) => {
     return el;
 };
 const code = text => h('code', {}, text);
-// Reference sections fold on a phone (open on a wide screen) so the page opens on the playground, not on six tables.
-const compact = () => mediaBelow('phone').matches;
-const fold = (title, ...body) => h('pk-card', { class: 'gx-entry' }, h('pk-accordion-item', { heading: title, open: !compact() }, ...body));
 const disclose = (title, ...body) => h('pk-accordion-item', { class: 'gx-disclose', heading: title }, ...body);
-const section = (title, ...body) => h('pk-card', { class: 'gx-entry', heading: title }, ...body);
 // Parsed with an element of the main document, so an pk-* tag is created against its registry and can be upgraded before it is attached.
 const fromHtml = html => { const d = document.createElement('div'); d.innerHTML = html; const f = document.createDocumentFragment(); f.append(...d.childNodes); return f; };
 // A code viewer: the code is the element's text content, so a change of text is a change of code.
 const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);
-
-// Each cell carries its column name (data-label) so a phone can lay a row out as a labelled card instead of a wide table (gallery.css).
-function table(label, cols, rows) {
-    return h('pk-table', { label }, h('table', { class: 'gx-table' },
-        h('thead', {}, h('tr', {}, ...cols.map(c => h('th', {}, c)))),
-        h('tbody', {}, ...rows.map(r => h('tr', {}, ...r.map((c, i) => h('td', { 'data-label': cols[i] }, c)))))));
-}
-
-const show = v => (v === '' ? '""' : String(v));
 
 // options.onLive(element) hands the playground's live element to the caller (the gallery's inspector shows it); options.onChange() runs after
 // every change of its markup.
@@ -82,27 +69,22 @@ export function renderElement(meta, options = {}) {
         input.addEventListener('input', () => { if (input.value) live.style.setProperty(c.name, input.value); else live.style.removeProperty(c.name); refresh(); });
         theming.append(h('pk-field', { label: c.name }, input));
     }
-    page.append(section('Playground',
+    const playground = h('pk-card', { class: 'gx-entry' },
         h('div', { class: 'gx-el-play' }, h('pk-card', {}, h('div', { class: 'gx-el-live' }, stage)), controls),
         slotField,
         disclose('Markup', snippet),
         meta.events.length ? logBox : null,
-        meta.cssProperties.length ? disclose(`Theme it (${meta.cssProperties.length} custom ${meta.cssProperties.length === 1 ? 'property' : 'properties'})`, theming) : null));
+        meta.cssProperties.length ? disclose(`Theme it (${meta.cssProperties.length} custom ${meta.cssProperties.length === 1 ? 'property' : 'properties'})`, theming) : null);
     refresh();
     customElements.whenDefined(meta.tag).then(refresh);
 
     // ---- examples
-    page.append(section('Examples', ...meta.examples.map(x => h('pk-stack', { gap: 'sm' }, h('h3', {}, x.title), h('pk-card', {}, h('div', { class: 'gx-el-live' }, fromHtml(x.html))), disclose('Markup', codeBlock('HTML', x.html))))));
+    const examples = h('pk-card', { class: 'gx-entry' }, ...meta.examples.map(x => h('pk-stack', { gap: 'sm' }, h('h3', {}, x.title), h('pk-card', {}, h('div', { class: 'gx-el-live' }, fromHtml(x.html))), disclose('Markup', codeBlock('HTML', x.html)))));
 
-    // ---- API
-    page.append(fold('Properties', table('Properties', ['Name', 'Attribute', 'Type', 'Default', 'Reflects', 'Description'],
-        meta.props.map(d => [code(d.name), code(d.name.replace(/[A-Z]/g, c => '-' + c.toLowerCase())), d.type === 'enum' ? d.values.join(' | ') : d.type, code(show(d.default)), d.reflect ? 'yes' : 'no', d.description]))));
-    page.append(fold('Slots', meta.slots.length ? table('Slots', ['Name', 'Description'], meta.slots.map(s => [code(s.name || '(default)'), s.description])) : h('p', { class: 'muted' }, 'None.')));
-    page.append(fold('Events', meta.events.length ? table('Events', ['Name', 'Detail', 'Description'], meta.events.map(e => [code(e.name), code(show(e.detail)), e.description])) : h('p', { class: 'muted' }, 'None beyond the native ones.')));
-    page.append(fold('Styling hooks',
-        h('h3', {}, 'Parts'), meta.parts.length ? table('Parts', ['Selector', 'Description'], meta.parts.map(p => [code(`${meta.tag}::part(${p.name})`), p.description])) : h('p', { class: 'muted' }, 'None.'),
-        h('h3', {}, 'Custom properties'), meta.cssProperties.length ? table('Custom properties', ['Name', 'Default', 'Description'], meta.cssProperties.map(c => [code(c.name), code(c.default ?? ''), c.description])) : h('p', { class: 'muted' }, 'None. Design tokens (--color-*, --space-*, ...) inherit into the element.')));
-    if (meta.methods.length) page.append(fold('Methods', table('Methods', ['Name', 'Description'], meta.methods.map(m => [code(m.name), m.description]))));
-    page.append(fold('Accessibility', h('p', {}, meta.a11y)));
+    // ---- Playground / Examples tabs. The API reference (Properties, Slots, Events, Parts, Custom properties, Methods, Accessibility) lives
+    // only in the Details flyout (js/element-inspector.js): showing it here too would draw every element page's API twice.
+    page.append(h('pk-tabs', { value: 'playground', label: `${meta.title} views` },
+        h('pk-tab', { value: 'playground' }, 'Playground'), h('pk-tab-panel', { value: 'playground' }, playground),
+        h('pk-tab', { value: 'examples' }, 'Examples'), h('pk-tab-panel', { value: 'examples' }, examples)));
     return page;
 }

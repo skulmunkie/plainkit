@@ -26,5 +26,6 @@ export function describeElement(meta) {
         cssProperties: list(meta.cssProperties).map(c => ({ name: c.name, default: show(c.default), description: c.description ?? '' })),
         methods: list(meta.methods).map(m => ({ name: m.name, description: m.description ?? '' })),
         writes: list(meta.writes).map(w => ({ target: w.target ?? '', attributes: list(w.attributes).join(', '), why: w.why ?? '' })),
+        a11y: meta.a11y ?? '',
     };
 }
