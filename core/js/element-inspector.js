@@ -1,6 +1,7 @@
 // The element inspector: shows what an element is, from its API metadata, and what it looks like right now. It draws the element's tag and
-// summary, its live markup (with a copy button), then the properties, slots, events, CSS parts and properties and methods. The gallery's
-// docked Details drawer uses it; a layout builder can use it for the selected element. A host adds its own sections with extraSections.
+// summary, its live markup (with a copy button), then the properties, slots, events, CSS parts and properties, methods and accessibility
+// notes: the single place the gallery's element pages show their API reference. The gallery's docked Details drawer uses it; a layout
+// builder can use it for the selected element. A host adds its own sections with extraSections.
 // Built only from SDK components (pk-stack, pk-accordion, pk-accordion-item, pk-code-block, pk-table, pk-empty-state); it makes no markup
 // strings and loads nothing: the host has already started the elements (initPlainkit) and passes the API data.
 //
@@ -91,6 +92,7 @@ export function createElementInspector(container, options = {}) {
         );
         if (d.methods.length) acc.append(fold(`Methods (${d.methods.length})`, false, table('Methods', ['Name', 'Description'], d.methods.map(m => [code(m.name), m.description]))));
         if (d.writes.length) acc.append(fold(`Writes to host nodes (${d.writes.length})`, false, table('Writes to host nodes', ['Target', 'Attributes', 'Why'], d.writes.map(w => [w.target, code(w.attributes), w.why]))));
+        acc.append(fold('Accessibility', false, h('p', {}, d.a11y || 'Nothing beyond native semantics.')));
         for (const section of state.extra) {
             const body = h('div', {});
             extraBodies.push([section, body]);
