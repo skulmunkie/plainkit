@@ -13,14 +13,30 @@
 // events: change ({ model, reason }), select ({ id }), problem ({ message }).
 //
 // Keyboard (canvas or structure tree focused): arrows select (Up and Down walk the page, Left the parent, Right the first child), Alt+arrows move the selection (Up and
-// Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes.
-// The toolbar and the palette do the same with buttons, so nothing needs a pointer or a drag. Pointer drag and drop is the next step: the primitive it needs,
-// pk-sortable, exists (core/elements/sortable/); wiring the canvas and structure tree to it is a follow-up (see DESIGN.md).
+// Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes,
+// Ctrl+S saves. This stays the accessible fallback, and (desktop/tablet) the toolbar's buttons do the same things: neither is replaced by drag-and-drop (issue #174).
+//
+// Pointer/touch drag-and-drop (issue #174, built on pk-sortable, core/elements/sortable/): the top-level page order is a real pk-sortable of pk-sortable-item rows,
+// each with its own 44px drag handle; dragging one reorders the page for real (a pk-reorder event drives M.moveNode, same as Alt+arrows). A palette button is a second
+// drag source, using pk-sortable's external-drop API (beginExternalDrag/externalDragOver/endExternalDrag): dropped between top-level rows it inserts there; dropped on
+// a container (hit-tested, not nested pk-sortable: wrapping arbitrary slotted content would break the many elements whose shadow CSS keys off ::slotted() directly, for
+// example pk-stack's dividers or pk-card's [slot="media"]) it inserts inside that container's default slot, which is the "slot-aware" half of the drop. Reordering
+// *inside* a container, and moving a node into or out of one, stay keyboard/toolbar-only in this iteration (Alt+Left/Right, Alt+Up/Down, Out/In): a real, but scoped,
+// limitation flagged on #174 rather than pretending a further recursive pk-sortable nesting was built and verified.
+//
+// Each canvas element also gets an Edit/Delete icon chip (issue #174) that follows whichever node is hovered or, since touch has no hover, selected -- a tap already
+// selects (the canvas is inert), so touch reaches the chip through selection alone, with no separate gesture needed. Edit focuses the properties form for that node;
+// Delete removes it. Up/Down/Out/In/Duplicate/Wrap stay toolbar buttons and keyboard shortcuts rather than more icons (a decision recorded on #174): the first four are
+// largely superseded by drag-and-drop, and Duplicate/Wrap are toolbar/keyboard-only, which on a phone (below) means keyboard-only.
+//
+// At phone width (@media max-width: 640px) the whole toolbar row -- Undo/Redo, Up/Down/Out/In, Duplicate/Wrap/Delete, Save -- is hidden: touch drag and the per-element
+// chip are the entire interaction model there, per the issue's "mobile is 100% drag-and-drop" direction. Ctrl+S keeps Save reachable with an attached keyboard; a phone
+// with none has no on-screen way to save once its button is gone with the row, a known gap flagged on #174 for a follow-up (a floating Save action for phone).
 //
 // The canvas renders the model in the page inside an inert container (a built page cannot act on the builder); selection is from element rectangles and drawn as an outline.
 // Its width buttons narrow the canvas but media queries still see the real viewport: the iframe device preview is a follow-up (DESIGN.md).
 // Built only from SDK components (pk-toolbar, pk-workspace, pk-tabs, pk-accordion, pk-tree, pk-button, pk-button-group, pk-input, pk-select, pk-checkbox, pk-textarea, pk-code-block,
-// pk-empty-state) and the element inspector. The pure logic is js/layout-builder-logic.js and js/layout-model.js. Logging scope: layout-builder.
+// pk-empty-state, pk-sortable, pk-sortable-item, pk-icon) and the element inspector. The pure logic is js/layout-builder-logic.js and js/layout-model.js. Logging scope: layout-builder.
 
 import * as M from '../../js/layout-model.js';
 import * as L from '../../js/layout-builder-logic.js';
@@ -57,7 +73,7 @@ export async function mountLayoutBuilder(container, options = {}) {
 
     // ---- state
     let history = M.createHistory(M.emptyDoc());
-    const state = { selected: null, query: '', width: 'full', internal: false };
+    const state = { selected: null, hover: null, dropTarget: null, query: '', width: 'full', internal: false };
     const elements = new Map();
     const listeners = new Map();
     const cleanups = [];
@@ -68,7 +84,8 @@ export async function mountLayoutBuilder(container, options = {}) {
     // ---- interface
     const button = (action, label, extra = {}) => h(doc, 'pk-button', { 'data-action': action, size: 'mini', variant: 'ghost', ...extra }, label);
     const actions = {
-        undo: button('undo', 'Undo'), redo: button('redo', 'Redo'), up: button('up', 'Up'), down: button('down', 'Down'), out: button('out', 'Out'), in: button('in', 'In'),
+        undo: button('undo', 'Undo', { icon: true, 'icon-name': 'undo' }), redo: button('redo', 'Redo', { icon: true, 'icon-name': 'redo' }),
+        up: button('up', 'Up'), down: button('down', 'Down'), out: button('out', 'Out'), in: button('in', 'In'),
         duplicate: button('duplicate', 'Duplicate'), wrap: button('wrap', 'Wrap'), remove: button('remove', 'Delete', { variant: 'warn' }),
         ...(options.onsave ? { save: button('save', 'Save', { variant: 'primary' }) } : {}),
     };
@@ -90,7 +107,15 @@ export async function mountLayoutBuilder(container, options = {}) {
     const empty = h(doc, 'pk-empty-state', { heading: 'An empty page', description: 'Add an element from the palette, or load a page with setModel().', tone: 'compact' });
     const page = h(doc, 'div', { class: 'lb-page' });
     page.inert = true;
-    const canvas = h(doc, 'div', { class: 'lb-canvas', tabindex: '0', role: 'group', 'aria-label': 'Page preview. Select with the arrow keys or the structure tree; the page itself is not interactive here.' }, empty, page);
+    // Per-element controls: a small chip of Edit/Delete icon buttons positioned over whichever node is hovered, focused (selected: the
+    // canvas is inert, so "focused" means selected) or, at phone width, simply selected (there is no hover on touch, so a tap that selects
+    // is what makes the chip appear). Up/Down/Out/In stay keyboard-only (Alt+arrows) and are superseded by drag-and-drop; Duplicate and
+    // Wrap stay toolbar actions (desktop/tablet) and keyboard shortcuts (Ctrl+D) rather than adding more icons here. See DESIGN.md and
+    // the #174 issue comment for the reasoning.
+    const nodeControls = h(doc, 'div', { class: 'lb-node-controls', hidden: true },
+        h(doc, 'pk-button', { size: 'mini', variant: 'ghost', icon: true, 'icon-name': 'edit', 'data-node-action': 'edit', label: 'Edit' }, 'Edit'),
+        h(doc, 'pk-button', { size: 'mini', variant: 'warn', icon: true, 'icon-name': 'trash', 'data-node-action': 'trash', label: 'Delete' }, 'Delete'));
+    const canvas = h(doc, 'div', { class: 'lb-canvas', tabindex: '0', role: 'group', 'aria-label': 'Page preview. Select with the arrow keys or the structure tree; the page itself is not interactive here.' }, empty, page, nodeControls);
     const widths = h(doc, 'pk-button-group', { label: 'Canvas width', mode: 'single' },
         h(doc, 'pk-button', { 'data-width': 'phone', size: 'mini', variant: 'ghost', toggle: true, value: 'phone' }, '375px'),
         h(doc, 'pk-button', { 'data-width': 'tablet', size: 'mini', variant: 'ghost', toggle: true, value: 'tablet' }, '768px'),
@@ -143,14 +168,34 @@ export async function mountLayoutBuilder(container, options = {}) {
         return el;
     }
 
+    // The top-level page order is wired to pk-sortable (its own children are plain divs, not a custom element's shadow slot, so wrapping
+    // them costs nothing: unlike a slot inside a pk-* element, nothing here relies on ::slotted() seeing the wrapped tag directly). A node
+    // nested inside a container (a card's default slot, say) is rendered exactly as before, unwrapped: pk-sortable-item's own content part
+    // would sit between a container and its ::slotted() rules and break the 34-odd element stylesheets that key off the slotted tag or
+    // attribute directly (pk-stack's dividers, pk-card's [slot="media"], and so on). So canvas drag reorders the top level for real; moving
+    // a node into or out of a container, or reordering inside one, stays the keyboard fallback (Alt+Left/Right, Alt+Up/Down) and the
+    // toolbar's Out/In/Up/Down buttons. A palette element dragged onto a container (not between top-level rows) still inserts inside it
+    // (see startExternalDrag/updateExternalHover): that is the "slot-aware" half of the drop, done by hit-testing rather than nesting
+    // pk-sortable, so it does not pay the same ::slotted cost.
     function paintCanvas() {
         elements.clear();
         const d = current();
-        page.replaceChildren(...d.nodes.map(renderNode));
+        const sortable = doc.createElement('pk-sortable');
+        sortable.className = 'lb-canvas-sortable';
+        sortable.toggleAttribute('accept-external', true);
+        sortable.setAttribute('label', 'Page');
+        for (const node of d.nodes) {
+            const item = doc.createElement('pk-sortable-item');
+            item.value = node.id;
+            item.append(renderNode(node));
+            sortable.append(item);
+        }
+        page.replaceChildren(sortable);
         empty.hidden = d.nodes.length > 0;
         loadElements(page);
         paintSelection(false);
     }
+    const canvasSortable = () => page.querySelector(':scope > .lb-canvas-sortable');
 
     function paintSelection(scroll) {
         for (const el of canvas.querySelectorAll('[data-lb-selected]')) el.removeAttribute('data-lb-selected');
@@ -159,6 +204,22 @@ export async function mountLayoutBuilder(container, options = {}) {
         if (el) { el.setAttribute('data-lb-selected', ''); if (scroll) el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }
         if (state.selected && tree.value !== state.selected) tree.value = state.selected;
         if (!state.selected && tree.value) tree.value = '';
+        updateControls();
+    }
+
+    // The node-controls chip follows the hovered node, falling back to the selected one (which is the only thing touch can reach, since
+    // there is no hover on a touchscreen): it tracks whichever id `pointerTarget()` resolves to.
+    function pointerTarget() { return state.hover ?? state.selected; }
+    function updateControls() {
+        const id = pointerTarget();
+        const el = id ? elements.get(id) : null;
+        if (!el) { nodeControls.hidden = true; delete nodeControls.dataset.nodeId; return; }
+        const cRect = canvas.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        nodeControls.style.top = `${r.top - cRect.top + canvas.scrollTop}px`;
+        nodeControls.style.left = `${r.right - cRect.left + canvas.scrollLeft}px`;
+        nodeControls.hidden = false;
+        nodeControls.dataset.nodeId = id;
     }
 
     function treeItem(node) {
@@ -359,12 +420,101 @@ export async function mountLayoutBuilder(container, options = {}) {
         return best;
     }
     on(canvas, 'click', e => selectNode(hit(e.clientX, e.clientY), { from: 'canvas' }));
+    // Hover tracking for the per-element controls chip: moving over the chip itself (not over the underlying element) leaves the target
+    // alone, so the buttons don't vanish out from under the pointer on the way to them.
+    on(canvas, 'pointermove', e => {
+        if (nodeControls.contains(e.target) || canvas.classList.contains('lb-external-dragging')) return;
+        const id = hit(e.clientX, e.clientY);
+        if (id !== state.hover) { state.hover = id; updateControls(); }
+    });
+    on(canvas, 'pointerleave', () => { if (state.hover) { state.hover = null; updateControls(); } });
+    on(canvas, 'scroll', () => updateControls());
+    on(doc.defaultView ?? window, 'resize', () => updateControls());
+    on(nodeControls, 'click', e => {
+        const b = e.target.closest?.('pk-button[data-node-action]');
+        const id = nodeControls.dataset.nodeId;
+        if (!b || !id) return;
+        const action = b.getAttribute('data-node-action');
+        if (action === 'edit') { selectNode(id, { scroll: true }); queueMicrotask(() => aside.querySelector('input, select, textarea, pk-input, pk-select, pk-switch, pk-textarea')?.focus()); }
+        else if (action === 'trash') { selectNode(id); remove(); }
+    });
     on(toolbar, 'click', e => {
         const b = e.target.closest?.('pk-button[data-action]');
         if (!b || b.hasAttribute('disabled')) return;
         ({ undo, redo, duplicate, wrap, remove, save, up: () => move('up'), down: () => move('down'), out: () => move('out'), in: () => move('in') })[b.getAttribute('data-action')]?.();
     });
     on(paletteList, 'click', e => { const b = e.target.closest?.('pk-button[data-tag]'); if (b) insert(b.getAttribute('data-tag')); });
+
+    // ---- drag-and-drop: canvas reorder (the top-level pk-sortable) and palette -> canvas insert (its external-drop API)
+    function clearDropTarget() { const prev = state.dropTarget; state.dropTarget = null; if (prev) elements.get(prev)?.removeAttribute('data-lb-drop-target'); }
+    function setDropTarget(id) {
+        if (id === state.dropTarget) return;
+        clearDropTarget();
+        state.dropTarget = id;
+        if (id) elements.get(id)?.setAttribute('data-lb-drop-target', '');
+    }
+    // A container a dropped element can go inside: it declares a default slot, is not void, and is not the dragged node's own ancestor (checked by the caller).
+    function containerAt(x, y) {
+        const id = hit(x, y);
+        if (!id) return null;
+        const node = M.findNode(current(), id);
+        const entry = node && registry.entry(node.tag);
+        return entry && !entry.void && entry.slots.some(s => s.name === '' && !s.dynamic) ? id : null;
+    }
+    on(page, 'pk-reorder', e => {
+        const { order, item, to, external, payload } = e.detail;
+        if (external) { handleExternalInsert(payload, to); return; }
+        if (order === null || !item) return;
+        const target = { id: item, parent: null, slot: '', index: to };
+        const r = attempt('Cannot move', () => M.moveNode(current(), target, registry));
+        if (r) { commit(r.doc, 'move', { select: item }); say('Moved'); }
+    });
+    function handleExternalInsert(payload, at) {
+        const tag = payload?.tag;
+        if (!tag) return;
+        const entry = registry.entry(tag);
+        if (!entry) { log.warn(`insert: <${tag}> is not an element the builder knows`); say(`<${tag}> is not an element the builder knows`, 'warn'); return; }
+        const parent = state.dropTarget;
+        const seed = L.seedSpec(tag, entry.meta);
+        const r = attempt(`Cannot add <${tag}>`, () => M.insertNode(current(), parent ? { parent, slot: '', node: seed } : { parent: null, slot: '', index: at, node: seed }, registry));
+        if (r) { commit(r.doc, 'insert', { select: r.id }); say(parent ? `Added <${tag}> inside <${M.findNode(current(), parent)?.tag}>` : `Added <${tag}>`); }
+    }
+    function startExternalDrag(tag, downEvent) {
+        const sortable = canvasSortable();
+        if (!sortable) return;
+        let dragging = false;
+        const over = ev => {
+            dragging = true;
+            canvas.classList.add('lb-external-dragging');
+            // The move/up listeners are on the window (a drag started on a palette button, outside the canvas, has to be tracked past its
+            // own bounds), so the event's target is whatever the pointer is really over, or window itself past the document edge: geometry
+            // against the canvas's own rectangle is what decides this, not a Node.contains() check (window is not a Node, and throws one).
+            const r = canvas.getBoundingClientRect();
+            const inCanvas = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+            if (!inCanvas) { clearDropTarget(); return; }
+            sortable.externalDragOver(ev.clientX, ev.clientY);
+            setDropTarget(containerAt(ev.clientX, ev.clientY));
+        };
+        const up = ev => {
+            win.removeEventListener('pointermove', over);
+            win.removeEventListener('pointerup', up);
+            const droppedInContainer = Boolean(state.dropTarget);
+            if (dragging) sortable.endExternalDrag(!droppedInContainer);
+            else sortable.endExternalDrag(false);
+            if (dragging && droppedInContainer) handleExternalInsert({ tag }, null);
+            clearDropTarget();
+            canvas.classList.remove('lb-external-dragging');
+        };
+        const win = doc.defaultView ?? window;
+        sortable.beginExternalDrag({ tag });
+        win.addEventListener('pointermove', over);
+        win.addEventListener('pointerup', up, { once: true });
+    }
+    on(paletteList, 'pointerdown', e => {
+        if (e.button > 0) return;
+        const b = e.target.closest?.('pk-button[data-tag]');
+        if (b) startExternalDrag(b.getAttribute('data-tag'), e);
+    });
     on(search, 'input', () => { state.query = search.value ?? ''; paintPalette(); });
     on(search, 'pk-search', () => { state.query = search.value ?? ''; paintPalette(); });
     on(tree, 'pk-select', e => { const id = e.target.value; if (id) selectNode(id); });
@@ -385,6 +535,9 @@ export async function mountLayoutBuilder(container, options = {}) {
         const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
         if (mod && key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
         if (mod && key === 'y') { e.preventDefault(); redo(); return; }
+        // Ctrl+S keeps Save reachable when the toolbar row is hidden at phone width (below): otherwise a phone would have no way to
+        // trigger it at all, once the row that held its button is gone.
+        if (mod && key === 's') { e.preventDefault(); if (options.onsave) save(); return; }
         const inCanvas = canvas.contains(e.target), inTree = tree.contains(e.target);
         if (!inCanvas && !inTree) return;
         if (e.altKey && MOVES[e.key]) { e.preventDefault(); move(MOVES[e.key]); return; }

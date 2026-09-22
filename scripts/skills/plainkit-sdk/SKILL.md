@@ -155,7 +155,7 @@ const builder = await mountLayoutBuilder(document.getElementById('editor'), {
 });
 ```
 
-The palette lists every element in `elements/api.json`, so a new element appears without a change. Selection, moving (Alt+arrows or the toolbar), duplicate, delete, undo and redo work by keyboard and touch; the inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
+The palette lists every element in `elements/api.json`, so a new element appears without a change. Selection, moving (Alt+arrows or the toolbar), duplicate, delete, undo and redo work by keyboard and touch; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the toolbar row is hidden and dragging plus the chip are the whole interaction model. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
 
 ### Enable logging
 
@@ -188,4 +188,4 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no pointer drag and drop in the layout builder).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).

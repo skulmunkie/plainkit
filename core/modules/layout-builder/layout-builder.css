@@ -35,10 +35,31 @@
 
 .lb-page [data-lb-selected] { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
+/* The per-element Edit/Delete chip: absolutely positioned over whichever node is hovered or selected (js keeps top/left in step with the
+   node's rectangle). It sits outside the inert page, so its buttons stay real, clickable, focusable controls. */
+.lb-node-controls { position: absolute; z-index: 2; display: flex; gap: var(--space-1); padding: var(--space-1); background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); transform: translate(-100%, 0); }
+
+.lb-node-controls[hidden] { display: none; }
+
+.lb-canvas.lb-external-dragging .lb-node-controls { display: none; }
+
+/* The top-level canvas order, wired to pk-sortable (see paintCanvas): a plain flex column with no extra gap of its own, so wrapping the
+   page's top-level nodes in pk-sortable-item does not add spacing the exported HTML never had. */
+.lb-canvas-sortable { --pk-sortable-gap: 0; }
+
+/* A container hit-tested under an external (palette) drag: the drop would land inside it, slot-aware. */
+.lb-page [data-lb-drop-target] { outline: 2px dashed var(--color-accent); outline-offset: 2px; }
+
 @media (max-width: 640px) {
     .lb { height: 75vh; }
     .lb-hint { display: none; }
     .lb-nav, .lb-aside, .lb-main { padding: var(--space-2); }
+    /* Mobile is 100% drag-and-drop (issue #174): the toolbar row (Undo/Redo, Up/Down/Out/In, Duplicate/Wrap/Delete, Save) goes with it.
+       Touch drag (pk-sortable-item's 44px handle) and the per-element Edit/Delete chip are the whole interaction model; Alt+arrows, Ctrl+D,
+       Delete and Ctrl+Z/Y/S stay live for a phone with an attached keyboard, but there is no on-screen fallback for Save specifically once
+       its button is gone with the row -- a phone with no attached keyboard has no way to trigger it in this iteration (flagged on #174 as a
+       follow-up: a floating Save action for phone). */
+    .lb > pk-toolbar { display: none; }
 }
 
 .lb-status:empty { display: none; }
