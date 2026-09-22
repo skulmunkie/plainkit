@@ -443,18 +443,38 @@ export const dataDisplayCases = [
         for (let i = 0; i < 80; i++) el.append(`line ${i}`);
         await t.settle();
         t.eq(rowsIn(), 50, 'the cap drops the oldest rows'); t.eq(el.part('list').lastElementChild.textContent, 'line 79');
-        t.ok(sc.scrollHeight > sc.clientHeight, 'the rows overflow'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'it sticks to the bottom');
+        // The scroll-to-bottom is deferred to the next animation frame (so a stream of separate-tick appends pays for one layout
+        // per frame, not per row), so wait for it rather than assume two message-channel hops span a frame.
+        const atBottom = () => sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4;
+        t.ok(sc.scrollHeight > sc.clientHeight, 'the rows overflow'); await until(atBottom, 'the log to settle at the bottom');
         const kept = el.part('list').firstElementChild;
-        el.append('more'); await t.settle(); t.ok(kept.isConnected === false, 'an old row went'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'still at the bottom');
+        el.append('more'); await t.settle(); t.ok(kept.isConnected === false, 'an old row went'); await until(atBottom, 'still at the bottom');
         sc.scrollTop = 0; await until(() => el.paused, 'the log to pause');
         t.ok(el.paused && seen.join() === 'true', 'scrolling up pauses and says so once'); t.ok(!el.part('resume').hidden, 'the resume button shows');
         const top = sc.scrollTop; el.append('while paused'); await t.settle();
         t.ok(el.part('list').lastElementChild.textContent === 'while paused' && Math.abs(sc.scrollTop - top) < 2, 'new rows arrive without moving the view');
-        const r = el.part('resume'); r.click(); await t.settle(); await t.settle();
-        t.ok(!el.paused && !el.hasAttribute('paused') && r.hidden, 'the button resumes'); t.eq(seen.join(), 'true,false'); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4, 'and jumps to the newest row');
-        el.paused = true; await t.settle(); t.eq(seen.length, 2, 'a host change raises nothing'); el.paused = false; await t.settle(); t.ok(sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4);
+        const r = el.part('resume'); r.click(); await t.settle();
+        t.ok(!el.paused && !el.hasAttribute('paused') && r.hidden, 'the button resumes'); t.eq(seen.join(), 'true,false'); await until(atBottom, 'and jumps to the newest row');
+        el.paused = true; await t.settle(); t.eq(seen.length, 2, 'a host change raises nothing'); el.paused = false; await until(atBottom, 'follows again');
         el.rows = ['x', { text: 'y', level: 'warn' }]; await t.settle(); t.eq(rowsIn(), 2, 'rows replaces the rows'); el.live = 'off'; await t.settle(); t.eq(sc.getAttribute('aria-live'), 'off');
         el.clear(); await t.settle(); t.eq(rowsIn(), 0);
         el.paused = true; await t.settle(); const b = el.part('resume').getBoundingClientRect(); t.ok(b.height >= 44 || innerWidth > 640, 'the resume button is 44px tall on a phone'); t.ok(b.width > 0);
+    }],
+    ['log: a burst of separate-tick appends settles once per frame, not once per row, and keeps following across frames', async t => {
+        const el = await t.mount('<pk-log label="Stream" style="--pk-log-height: 6rem"></pk-log>');
+        const sc = el.part('scroller'); const atBottom = () => sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4;
+        await until(() => !el.$raf, 'the frame requested by mounting to have run, before counting'); // a clean slate to count from
+        let frames = 0; const raf = window.requestAnimationFrame.bind(window);
+        window.requestAnimationFrame = (...a) => { frames++; return raf(...a); };
+        try {
+            // Separate microtask ticks (as a socket message or a SignalR line would arrive), all inside the same task: one frame.
+            for (let i = 0; i < 200; i++) { el.append('line ' + i); await Promise.resolve(); }
+        } finally { window.requestAnimationFrame = raf; }
+        t.eq(frames, 1, 'a burst of separate-tick appends inside one task asks for exactly one frame, not one per append');
+        await until(atBottom, 'the log to settle at the bottom after a burst of separate-tick appends');
+        // Appends that really do land in separate frames (a slow stream) must still end up following, not stuck paused.
+        for (let f = 0; f < 5; f++) { el.append('frame ' + f); await new Promise(r => requestAnimationFrame(r)); await new Promise(r => requestAnimationFrame(r)); }
+        await until(atBottom, 'the log keeps following across separate frames');
+        t.ok(!el.paused, 'never paused itself while it was the one scrolling');
     }],
 ];
