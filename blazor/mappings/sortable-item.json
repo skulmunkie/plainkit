@@ -1,0 +1,11 @@
+{
+  "component": "PkSortableItem",
+  "params": [
+    { "name": "Value", "prop": "value" },
+    { "name": "Disabled", "prop": "disabled" },
+    { "name": "Dragging", "prop": "dragging" },
+    { "name": "DropIndicator", "prop": "dropIndicator" },
+    { "name": "ChildContent", "slot": "" }
+  ],
+  "notes": "Place inside PkSortable. Dragging and DropIndicator are normally left alone: the surrounding pk-sortable sets them while a drag is over this row."
+}

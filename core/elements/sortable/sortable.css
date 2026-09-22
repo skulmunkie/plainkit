@@ -1,0 +1,5 @@
+:host { display: flex; flex-direction: column; gap: var(--pk-sortable-gap, var(--space-1)); position: relative; }
+:host([hidden]) { display: none; }
+:host([orientation="horizontal"]) { flex-direction: row; flex-wrap: wrap; }
+slot { display: contents; }
+[part="announcer"] { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); }

@@ -317,6 +317,7 @@ const NOT_TWO_WAY = {
     'menu-item.value': 'the item\'s identifier, reported by pk-select',
     'nav-item.current': 'the route marker the host sets; the element never changes it',
     'progress.value': 'output only: nothing the user can change',
+    'sortable-item.value': 'the row\'s identifier, reported in pk-sortable\'s pk-reorder event; the user moves the row, not this',
     'step.index': 'the step\'s position, set by its stepper',
     'stat.value': 'output only: a figure the host supplies',
     'stat.values': 'output only: the series the host supplies',
