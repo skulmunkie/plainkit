@@ -8,6 +8,7 @@ import { describeForInspector } from '../../js/inspect-logic.js';
 import { loadElements } from '../../js/loader.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
+import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
 
 function h(doc, tag, props = {}, ...children) {
     const el = doc.createElement(tag);
@@ -74,5 +75,17 @@ export const themePanel = {
     async mount(el, { doc }) {
         const editor = await mountThemeEditor(el, { target: doc, preview: false, storageKey: 'pk-theme-overrides' });
         return { destroy: () => editor.destroy() };
+    },
+};
+
+// The Layout builder tab is a scratch instance of the module (an empty page): mounted once like every other panel, so it keeps whatever the
+// visitor built for as long as the dock stays in the page, but nothing is persisted (the module itself stores no page; a host that wants a
+// draft kept across reloads passes its own onchange, the way site/layout-builder/layout-builder.js does).
+export const layoutBuilderPanel = {
+    id: 'layout-builder',
+    title: 'Layout builder',
+    async mount(el, { theme }) {
+        const builder = await mountLayoutBuilder(el, { height: '100%', theme });
+        return { destroy: () => builder.destroy() };
     },
 };

@@ -1,7 +1,8 @@
 // The dev tools as a module: mountDevTools(container, options) puts the SDK's live tools (console, logs, logging settings, performance, and any panel you add)
 // in one tabbed surface, either docked over the page (Ctrl+` toggles it, like a browser's dev tools) or inline in a container.
 // Built only from SDK components (pk-tabs, pk-button, pk-button-group) around the console, logs, log settings and performance modules, plus the Quality
-// (the SDK page checks on the live page), Inspector (pk-* elements on the page) and Theme (the theme editor, live on this page) panels in panels.js.
+// (the SDK page checks on the live page), Inspector (pk-* elements on the page), Theme (the theme editor, live on this page) and Layout builder
+// (a scratch instance of the layout builder module) panels in panels.js.
 //
 //   const tools = await mountDevTools(null, { mode: 'dock' });      // a floating button and a bottom dock on any page
 //   const page  = await mountDevTools(el, { mode: 'inline' });      // the same tabs, filling a container
@@ -19,7 +20,7 @@ import { mountLogs } from '../logs/logs.js';
 import { mountLogSettings } from '../log-settings/log-settings.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
-import { qualityPanel, inspectorPanel, themePanel } from './panels.js';
+import { qualityPanel, inspectorPanel, themePanel, layoutBuilderPanel } from './panels.js';
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./devtools.css'];
@@ -39,6 +40,7 @@ export const BUILT_IN = Object.freeze([
     qualityPanel,
     inspectorPanel,
     themePanel,
+    layoutBuilderPanel,
 ]);
 
 function h(doc, tag, props = {}, ...children) {
