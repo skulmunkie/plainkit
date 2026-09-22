@@ -138,8 +138,11 @@ gh label create dependencies --repo skulmunkie/plainkit --color 0366d6 --descrip
 - **Actions permissions:** Settings > Actions > General: "Allow actions created by GitHub, and verified creators' actions" or an allow-list (`actions/*`, `github/*`, `NuGet/login`), and
   "Workflow permissions: Read repository contents" as the default, with "Allow GitHub Actions to create and approve pull requests" off. Set "Fork pull request workflows from outside
   collaborators: Require approval for all outside collaborators".
-- **The release environment (optional):** put the release job behind an environment named `release` with the owner as required reviewer and add `environment: release` to the job; then a
-  pushed tag still needs an approval click before NuGet is touched. The NuGet trusted publishing policy can name the environment as well.
+- **The release environment:** `release.yml`'s `publish` job already has `environment: release` (issue #116), so a pushed tag runs `build` (read-only) automatically but then
+  waits at `publish` until this environment exists. Create it and the gate takes effect immediately, no workflow change needed:
+  `gh api -X PUT repos/skulmunkie/plainkit/environments/release` (or Settings > Environments > New environment, name it `release`), then add yourself as a required
+  reviewer (Settings > Environments > release > Required reviewers). Until this exists, `publish` runs without waiting for approval — the environment reference alone is
+  not a gate. The NuGet trusted publishing policy can name the environment as well.
 - **Tags:** section 4 already protects `v*` tags; keep it. It is what keeps a contributor's push from publishing a package.
 - **Package signing:** nuget.org signs every package it hosts (a repository signature). An author signature needs a code-signing certificate (a purchased one, or Azure Trusted Signing);
   consider it for 1.0, together with a `NuGet.config` package source mapping for consumers. Not needed before then.

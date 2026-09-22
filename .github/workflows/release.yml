@@ -7,34 +7,44 @@ name: Release
 # The tag does not carry core/dist (generated files are not in git): pinned versions are the release assets and the NuGet package, built here.
 # NuGet uses Trusted Publishing (OIDC): no API key is stored. A policy on nuget.org trusts this repository and this workflow file
 # (release.yml); the NuGet/login step below swaps GitHub's short-lived token for a one-hour NuGet key just before the push.
+#
+# Least privilege (issue #116): only the steps that actually publish need write access to anything, so the workflow is two jobs. `build` (contents: read) does
+# everything that runs the repository's own scripts and third-party build tooling on the tagged commit — bootstrap, tests, the dotnet pack, the zips — and
+# uploads the results as a workflow artifact. `publish` (contents: write, id-token: write) only downloads that artifact and talks to GitHub releases, NuGet
+# and npm: nothing that runs arbitrary repository code holds a token that can write anything. `publish` also runs behind the `release` environment, so once
+# the owner creates that environment with themselves as a required reviewer (.github/REPO-SETTINGS.md, section 6), a pushed tag needs an approval click
+# before anything is published.
 on:
   push:
     tags: ['v*']
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
-    env:
-      # A secret cannot be tested in an if: expression, so it is copied to an env var the step can test.
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
       # The version comes from core/VERSION (the one version of the SDK and the Blazor package), not from the tag. The tag must equal it, and the
       # release pull request must have refreshed the API baseline for it: both are checked below, after the bootstrap.
       - name: Take the version
-        run: echo "VERSION=$(tr -d '\r\n' < core/VERSION)" >> "$GITHUB_ENV"
+        id: version
+        run: |
+          VERSION=$(tr -d '\r\n' < core/VERSION)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and publishes what this step produces: npm's
+      # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and produces what the publish job later pushes: npm's
       # `files` in core/package.json (the runtime only), the NuGet static web assets (both units) and the zips.
       - name: Bootstrap (generate everything)
         run: node scripts/bootstrap.mjs --quiet
@@ -71,14 +81,58 @@ jobs:
       - name: Zip the agent skills for the release
         run: cd core/dist/skills && zip -r ../../../plainkit-skills-$VERSION.zip .
 
+      - name: Collect the release assets
+        run: |
+          mkdir -p release-assets
+          cp "plainkit-dist-$VERSION.zip" "plainkit-modules-$VERSION.zip" "plainkit-skills-$VERSION.zip" release-assets/
+          cp "nupkg/PlainKit.Blazor.$VERSION.nupkg" release-assets/
+          cp core/dist/manifest.json release-assets/dist-manifest.json
+          cp core/dist/modules/manifest.json "release-assets/plainkit-modules-manifest-$VERSION.json"
+
+      # No token here: this job never holds contents: write or id-token: write. The publish job downloads this artifact and does everything that touches
+      # GitHub releases, NuGet and npm.
+      - name: Upload the release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+      # A secret cannot be tested in an if: expression, so it is copied to an env var the step can test.
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Bootstrap (generate core/dist for npm publish)
+        run: node scripts/bootstrap.mjs --quiet
+
+      - name: Download the release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+
       # The GitHub CLI that the runner already has, not a third-party action: this job holds contents: write and an OIDC token, so nothing outside GitHub's own
       # actions and NuGet's login runs in it. A re-run of the job updates the release that exists (upload --clobber) instead of creating another.
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp core/dist/modules/manifest.json "plainkit-modules-manifest-$VERSION.json"
-          files=("plainkit-dist-$VERSION.zip" "plainkit-modules-$VERSION.zip" "plainkit-skills-$VERSION.zip" "nupkg/PlainKit.Blazor.$VERSION.nupkg" core/dist/manifest.json "plainkit-modules-manifest-$VERSION.json")
+          files=("release-assets/plainkit-dist-$VERSION.zip" "release-assets/plainkit-modules-$VERSION.zip" "release-assets/plainkit-skills-$VERSION.zip" "release-assets/PlainKit.Blazor.$VERSION.nupkg" release-assets/dist-manifest.json "release-assets/plainkit-modules-manifest-$VERSION.json")
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
           else
@@ -103,7 +157,7 @@ jobs:
       - name: Push PlainKit.Blazor to NuGet
         env:
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
-        run: dotnet nuget push "nupkg/PlainKit.Blazor.$VERSION.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "release-assets/PlainKit.Blazor.$VERSION.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Publish to npm (only when NPM_TOKEN is set)
         if: always() && env.NPM_TOKEN != ''
