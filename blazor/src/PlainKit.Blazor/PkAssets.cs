@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace PlainKit.Blazor;
 
 /// <summary>Where the toolkit's files are served from when PlainKit.Blazor is referenced (static web assets).</summary>
@@ -84,6 +86,22 @@ public static class PkAssets
     });
 
     internal const string Bridge = "./_content/PlainKit.Blazor/plainkit.blazor.js";
+
+    /// <summary>
+    /// The bridge's URL. Given a <see cref="ResourceAssetCollection"/> (a component's own <c>Assets</c>, from <c>Microsoft.AspNetCore.Components.Web</c>),
+    /// this is the fingerprinted URL ASP.NET Core's static asset pipeline already builds for it (<c>MapStaticAssets</c>, on by default), which the
+    /// host serves with <c>Cache-Control: max-age=31536000, immutable</c> once it calls <c>app.MapStaticAssets()</c>; a browser then fetches it once
+    /// per version instead of revalidating it on every visit. Without one, this is <see cref="Bridge"/>, the plain path (still correct, always
+    /// revalidated).
+    /// </summary>
+    internal static string BridgeUrl(ResourceAssetCollection? assets)
+    {
+        // A dynamic import() specifier must start with "./", "../" or "/" (or be an absolute URL): a bare "_content/..." is a module specifier the
+        // browser cannot resolve without an import map, and fails with "Failed to resolve module specifier". Assets[...] never returns the "./" prefix.
+        if (assets is null) return Bridge;
+        var url = assets["_content/PlainKit.Blazor/plainkit.blazor.js"];
+        return url.StartsWith('.') || url.StartsWith('/') || url.Contains("://") ? url : "./" + url;
+    }
 
     /// <summary>
     /// The Plainkit release this package is (SemVer with a pre-release part while the SDK is in alpha, such as <c>MAJOR.MINOR.PATCH-alpha.N</c>). The SDK and this package always share one version, taken

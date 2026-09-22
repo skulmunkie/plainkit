@@ -50,7 +50,7 @@ public abstract class PkElementBase : ComponentBase
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) await Runtime.EnsureInitializedAsync();
+        if (firstRender) await Runtime.EnsureInitializedAsync(Assets);
     }
 }
 
