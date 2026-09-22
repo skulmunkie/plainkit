@@ -29,5 +29,5 @@
 :host([icon]) ::slotted(*) { font-size: var(--text-read); }
 :host([icon][size="mini"]) ::slotted(*) { font-size: var(--text-meta); }
 :host([icon][busy]) .ic, :host([icon][busy]) ::slotted(*) { display: none; }
-@media (--phone) { [part="control"], :host([size]) [part="control"], :host([icon]) [part="control"] { min-height: var(--touch-target); } :host([icon]) [part="control"] { min-width: var(--touch-target); } }
+@media (--phone) { [part="control"], :host([size]) [part="control"], :host([icon]) [part="control"] { min-height: var(--touch-target); } :host([icon]) [part="control"], :host([size="mini"]) [part="control"] { min-width: var(--touch-target); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
