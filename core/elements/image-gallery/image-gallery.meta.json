@@ -1,7 +1,7 @@
 {
   "tag": "pk-image-gallery",
   "title": "Image gallery",
-  "summary": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image and an add tile that picks files.",
+  "summary": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image, a drag handle (or Alt+Up/Alt+Down) to reorder them, and an add tile that picks files.",
   "group": "Data display",
   "props": [
     { "name": "images", "type": "json", "default": [], "reflect": false, "description": "The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown." },
@@ -16,7 +16,8 @@
   "events": [
     { "name": "pk-primary-change", "detail": { "index": "number", "src": "string", "previous": "number" }, "description": "Make primary was pressed. Cancelable: preventDefault keeps the current primary (a controlled gallery updates images and primary itself)." },
     { "name": "pk-remove", "detail": { "index": "number", "src": "string" }, "description": "Remove was pressed. Cancelable: preventDefault keeps the image. Otherwise it is taken out of images, and if it was the primary the first image becomes the primary." },
-    { "name": "pk-add", "detail": { "files": "File[]", "names": "string[]" }, "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images." }
+    { "name": "pk-add", "detail": { "files": "File[]", "names": "string[]" }, "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images." },
+    { "name": "pk-reorder", "detail": { "order": "string[]", "from": "number", "to": "number", "item": "string" }, "description": "A tile was dragged by its handle to a new position, or moved with Alt+Up/Alt+Down (built on pk-sortable, core/elements/sortable/). order is every image's src in the new order; item is the moved image's src; from and to are its old and new index. Cancelable: preventDefault keeps the current order (a controlled gallery reorders images itself)." }
   ],
   "parts": [
     { "name": "grid", "description": "The thumbnail list." },
@@ -39,13 +40,14 @@
   "methods": [
     { "name": "view(index)", "description": "Opens the lightbox at an image." },
     { "name": "makePrimary(index)", "description": "Marks an image primary, as the button does (raises pk-primary-change first)." },
-    { "name": "removeImage(index)", "description": "Removes an image, as the button does (raises pk-remove first)." }
+    { "name": "removeImage(index)", "description": "Removes an image, as the button does (raises pk-remove first)." },
+    { "name": "reorder(from, to)", "description": "Moves an image to a new index, as a drag or Alt+Up/Alt+Down does (raises pk-reorder first)." }
   ],
-  "a11y": "The grid is a list. Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
-  "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons and the add tile are 44px high, and there is no hover step.",
+  "a11y": "The grid is a list (pk-sortable, role=list). Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). Editable, each tile is also a pk-sortable-item (role=listitem): its handle drags to reorder, or Alt+Up/Alt+Down on the focused tile moves it and announces the new position through a visually-hidden live region. The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
+  "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons, the add tile and the drag handle are 44px high, and there is no hover step (Alt+Up/Alt+Down reorders without a drag).",
   "examples": [
     {
-      "title": "Thumbnails with a primary image and an add tile",
+      "title": "Editable: make primary, remove, reorder (drag the handle or Alt+Up/Alt+Down) and an add tile",
       "html": "<pk-image-gallery editable images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\",\"primary\":true},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\",\"status\":\"Staged\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
     },
     {

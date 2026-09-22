@@ -4,6 +4,17 @@
 import { loadElements } from '../../js/loader.js';
 import { safeLink } from '../../js/safe-url.js';
 
+// The new order when the item at `from` moves to `to`; the same rule as pk-sortable's own moveOrder (core/elements/sortable/sortable.js) so
+// the two elements never disagree on what a reorder means. Kept local rather than imported: an element only ever imports shared js/ modules
+// (core/tests/elements.test.mjs), never another element.
+function moveOrder(order, from, to) {
+    if (from < 0 || from >= order.length || to < 0 || to >= order.length || from === to) return order.slice();
+    const next = order.slice();
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    return next;
+}
+
 export const DEFAULT_MIN = '6.25rem';
 
 // Only same-site paths, http(s) and raster data are ever given to an <img>; the lightbox holds the same line.
@@ -32,6 +43,14 @@ export function removeAt(images, index, primary) {
     return { images: applyPrimary(rest, next), primary: next };
 }
 
+// Pure: what moving an image from `from` to `to` leaves: the new list (built with pk-sortable's own moveOrder, so the two elements
+// never disagree on what a reorder means) and the primary index, tracking the same picture wherever it lands.
+export function reorderAt(images, from, to, primary) {
+    if (from < 0 || from >= images.length || to < 0 || to >= images.length || from === to) return { images, primary };
+    const next = moveOrder(images, from, to);
+    return { images: next, primary: primary < 0 ? -1 : next.indexOf(images[primary]) };
+}
+
 // Pure: the grid's column rule. With `columns` there are that many equal columns; otherwise as many as fit `min` (a plain css length).
 export function gridRule(columns, min) {
     const n = Number.isInteger(columns) && columns > 0 ? Math.min(columns, 12) : 0;
@@ -51,6 +70,15 @@ export default Base => class extends Base {
             if (b.getAttribute('data-action') === 'primary') this.makePrimary(i); else if (b.getAttribute('data-action') === 'remove') this.removeImage(i);
         });
         grid.addEventListener('pk-open', e => { const li = e.target.closest?.('[data-index]'); if (li) this.view(Number(li.getAttribute('data-index'))); });
+        // The grid is a pk-sortable of pk-sortable-item tiles (core/elements/sortable/): it never reorders them itself, it only reports the
+        // gesture (drag through the handle, or Alt+Up/Alt+Down) as its own pk-reorder. That event is internal wiring, not the gallery's public
+        // contract, so it is stopped here and turned into the gallery's own pk-reorder, which carries image src order like pk-remove and
+        // pk-primary-change carry src, and which the gallery (not pk-sortable) applies to images.
+        grid.addEventListener('pk-reorder', e => {
+            e.stopPropagation();
+            if (e.detail.external || !Number.isInteger(e.detail.from) || !Number.isInteger(e.detail.to)) return;
+            this.reorder(e.detail.from, e.detail.to);
+        });
         this.part('file').addEventListener('change', e => {
             const files = [...(e.target.files ?? [])]; e.target.value = '';
             if (files.length) this.emit('pk-add', { files, names: files.map(f => f.name) });
@@ -62,6 +90,13 @@ export default Base => class extends Base {
         if (index < 0 || index >= list.length || index === previous) return;
         if (!this.emit('pk-primary-change', { index, src: list[index].src, previous })) return;
         this.$focus = index; this.images = applyPrimary(list, index); this.primary = index;
+    }
+    reorder(from, to) {
+        const list = normalize(this.images); const p = primaryIndex(list, this.primary);
+        if (from < 0 || from >= list.length || to < 0 || to >= list.length || from === to) return;
+        const next = reorderAt(list, from, to, p);
+        if (!this.emit('pk-reorder', { order: next.images.map(i => i.src), from, to, item: list[from].src })) return;
+        this.$focus = to; this.images = next.images; this.primary = next.primary;
     }
     removeImage(index) {
         const list = normalize(this.images);
@@ -82,10 +117,15 @@ export default Base => class extends Base {
         const rule = gridRule(this.columns, this.min);
         this.style.setProperty('--_cols', rule.cols); this.style.setProperty('--_min', rule.min);
         const list = this.$list = normalize(this.images); const p = primaryIndex(list, this.primary);
+        grid.toggleAttribute('disabled', !this.editable);
         for (const li of grid.querySelectorAll('[data-index]')) li.remove();
         list.forEach((img, i) => {
             const li = tpl.content.firstElementChild.cloneNode(true);
             li.setAttribute('data-index', String(i)); li.toggleAttribute('data-primary', i === p);
+            // The tile's own reorder identity for this render; pk-sortable reports it back in pk-reorder's order/item. Rebuilt every render,
+            // since the list itself is the source of truth (STANDARDS.md, "Ownership and reactivity": the host, here the gallery's own state,
+            // owns this data, pk-sortable only reports the gesture).
+            li.setAttribute('value', String(i)); li.toggleAttribute('disabled', !this.editable);
             const el = li.querySelector('img'); const src = safeSrc(img.src);
             if (!src && typeof img.src === 'string' && img.src.trim()) this.warnOnce(`src:${i}`, `image ${i + 1} has a source that is not allowed (only same-site paths, http(s) and png/jpeg/gif/webp/avif data URLs are shown): it is left blank`, { src: img.src.slice(0, 80) });
             if (src) el.setAttribute('src', src); el.setAttribute('alt', img.alt);

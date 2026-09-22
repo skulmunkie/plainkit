@@ -70,6 +70,7 @@
   "(width <= 640px)"
  ],
  "image-gallery": [
+  "(pointer: coarse),(max-width: 640px)",
   "(max-width: 640px)"
  ],
  "input": [

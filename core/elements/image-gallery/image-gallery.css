@@ -2,13 +2,22 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
 [part="grid"] { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--_cols, auto-fill), minmax(var(--_min, 6.25rem), 1fr)); gap: var(--space-3); }
 
+/* [part="tile"] is a pk-sortable-item (core/elements/sortable-item/): it owns its own handle and drag/keyboard wiring, so the gallery only
+   restyles its exposed parts to fold the handle into the tile as a small corner overlay instead of pk-sortable-item's own side-by-side row,
+   and to make its content wrapper transparent so the tile's own children (media, badges, actions) lay out exactly as before. */
 [part="tile"] { position: relative; display: grid; grid-template-rows: auto 1fr; min-inline-size: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); }
 [part="tile"][data-primary] { border: 2px solid var(--color-accent); }
+[part="tile"]::part(root) { display: block; padding: 0; gap: 0; min-inline-size: 0; }
+[part="tile"]::part(content) { display: contents; }
+/* The handle sits in the actions bar's own corner, not over the image (where the primary badge and the status badge already live), and the
+   actions row reserves room for it so it never sits under a button. */
+[part="tile"]::part(handle) { position: absolute; z-index: 1; inset-block-end: var(--space-1); inset-inline-start: var(--space-1); border-radius: var(--radius-sm); }
+[part="tile"][disabled]::part(handle) { display: none; }
 [part="media"] { display: block; }
 [part="badge"], [part="status"] { position: absolute; inset-block-start: var(--space-1); }
 [part="badge"] { inset-inline-start: var(--space-1); }
 [part="status"] { inset-inline-end: var(--space-1); }
-[part="actions"] { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-1); padding: var(--space-1); background: var(--color-panel); border-top: 1px solid var(--color-border); }
+[part="actions"] { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-1); padding: var(--space-1); padding-inline-start: calc(var(--space-1) + var(--space-6)); background: var(--color-panel); border-top: 1px solid var(--color-border); }
 [part="action"] { flex: 1 1 auto; }
 
 [part="add-tile"] { position: relative; display: grid; align-self: start; aspect-ratio: 1; min-inline-size: 0; }
@@ -19,6 +28,9 @@
 [part="add-text"] { font-size: var(--text-meta); line-height: 1.2; }
 [part="file"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
 
+@media (pointer: coarse), (--phone) {
+    [part="actions"] { padding-inline-start: calc(var(--space-1) + var(--touch-target)); }
+}
 @media (--phone) {
     [part="action"] { --pk-button-padding: calc((var(--touch-target) - 1.25 * var(--text-meta)) / 2) var(--space-2); }
     [part="add"] { min-block-size: var(--touch-target); }
