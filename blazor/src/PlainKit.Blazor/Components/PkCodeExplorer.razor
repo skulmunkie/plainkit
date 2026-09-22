@@ -34,7 +34,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (Snapshot is null && SnapshotUrl is null) return;
-        _bridge ??= await Runtime.BridgeAsync();
+        _bridge ??= await Runtime.BridgeAsync(Assets);
         // Mount again only when what is shown changes: a re-render with the same parameters leaves the explorer (and its open tabs) alone.
         var key = JsonSerializer.Serialize(new { SnapshotUrl, Snapshot?.Generated, Files = Snapshot?.Files.Count, File, Line, Search, Theme, Height });
         if (key == _mounted) return;

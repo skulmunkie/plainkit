@@ -46,8 +46,8 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!Enabled) return;
-        await Runtime.EnsureInitializedAsync(); // applies the logging options before the tools start listening
-        _bridge ??= await Runtime.BridgeAsync();
+        await Runtime.EnsureInitializedAsync(Assets); // applies the logging options before the tools start listening
+        _bridge ??= await Runtime.BridgeAsync(Assets);
         var key = $"{Mode}|{Hotkey}|{Size}|{Theme}|{BlazorPanels}";
         if (key != _mounted)
         {
