@@ -3,6 +3,11 @@
 
 .site { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
+/* Reserves the top bar's box before the shell script defines pk-navbar and mounts it (shell.js swaps this element for the real bar in
+   place, so the page never grows or shrinks when the swap happens: see #135). Same box as navbar.css's [part="nav"] min-height plus its
+   host border, so the swap is pixel-for-pixel. */
+.site-boot-bar { flex: none; min-height: var(--app-header-h); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+
 .site-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .site-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-4); }
@@ -15,7 +20,9 @@
 
 /* Top bar: a pk-navbar. Brand, search, settings menu and hamburger stay on ONE row at tablet and phone widths (the navbar's parts are reordered
    here), and the page links fold into a panel that overlays the content instead of pushing it down. The theme switch sits in the settings menu. */
-.site > pk-navbar { position: relative; z-index: var(--z-sticky); }
+/* display+min-height apply before pk-navbar is defined too (the FOUC guard only hides it, it does not reserve its box), so the bar never
+   resizes once its shadow tree renders: the placeholder above, the undefined element and the defined element are all the same height. */
+.site > pk-navbar { position: relative; z-index: var(--z-sticky); display: block; flex: none; min-height: var(--app-header-h); }
 
 /* Links in the light DOM answer to the page's link rules before the navbar's own, so the brand and page links are settled here. */
 .site pk-navbar > a { color: inherit; text-decoration: none; }
