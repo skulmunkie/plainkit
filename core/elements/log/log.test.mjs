@@ -39,8 +39,15 @@ test('normalizeRow accepts a string or an object and drops an unknown level', ()
     assert.equal(normalizeRow({ text: 42 }).text, '42');
 });
 
+// A stand-in requestAnimationFrame: queueSettle schedules into it, frame() runs whatever is pending (as one real frame would),
+// and rafCalls counts how many times it was asked for a frame, to check a burst of flushes coalesces to one.
+let rafCalls = 0, rafId = 0; const rafs = new Map();
+globalThis.requestAnimationFrame = cb => { rafCalls++; rafs.set(++rafId, cb); return rafId; };
+globalThis.cancelAnimationFrame = id => rafs.delete(id);
+const frame = () => { const cbs = [...rafs.values()]; rafs.clear(); for (const cb of cbs) cb(); };
+
 // A stand-in for PkElement (as splitter.test.mjs uses) with a tiny node model: enough for the list, the empty text and the scroller.
-const node = () => { const n = { children: [], attrs: {}, classes: [], hidden: false, append(...n) { this.children.push(...n.flatMap(x => (x.frag ? x.children : [x]))); }, replaceChildren() { this.children = []; }, get childElementCount() { return this.children.length; }, get firstElementChild() { return { remove: () => this.children.shift() }; }, setAttribute(k, v) { this.attrs[k] = v; } }; n.classList = { add: c => n.classes.push(c) }; return n; };
+const node = () => { const n = { children: [], attrs: {}, classes: [], hidden: false, append(...n) { this.children.push(...n.flatMap(x => (x.frag ? x.children : [x]))); }, replaceChildren() { this.children = []; }, get childElementCount() { return this.children.length; }, get firstElementChild() { return { remove: () => this.children.shift() }; }, setAttribute(k, v) { this.attrs[k] = v; } }; n.classList = { add: c => n.classes.push(c), toggle: (c, v) => { n.classes = n.classes.filter(x => x !== c); if (v) n.classes.push(c); } }; return n; };
 const make = (props = {}) => {
     const parts = { list: node(), empty: node(), scroller: Object.assign(node(), { scrollTop: 0, scrollHeight: 500, clientHeight: 100, listeners: {}, addEventListener(t, f) { this.listeners[t] = f; } }), resume: Object.assign(node(), { listeners: {}, addEventListener(t, f) { this.listeners[t] = f; } }) };
     const proto = { cloneNode() { const n = () => Object.assign(node(), { remove() { d.children = d.children.filter(c => c !== this); } }); const d = node(); d.children = [n(), n(), n()]; d.cloneNode = undefined; return d; } };
@@ -52,7 +59,7 @@ const make = (props = {}) => {
 };
 const tick = () => new Promise(r => queueMicrotask(r));
 
-test('a burst of appends is drawn once, in order, and the view goes to the bottom', async () => {
+test('a burst of appends is drawn once, in order, and the view goes to the bottom on the next frame', async () => {
     const { el, parts } = make();
     el.append('a'); el.append('b', { text: 'c', level: 'warn' });
     assert.equal(parts.list.children.length, 0, 'nothing is drawn until the microtask');
@@ -60,8 +67,32 @@ test('a burst of appends is drawn once, in order, and the view goes to the botto
     assert.equal(parts.list.children.length, 3);
     assert.equal(parts.list.children[2].classes.join(), 'warn');
     assert.equal(parts.empty.hidden, true);
+    assert.equal(parts.scroller.scrollTop, 0, 'the scroll-to-bottom is deferred to the next frame, not done inside the flush');
+    frame();
     assert.equal(parts.scroller.scrollTop, 500);
     assert.equal(el.events.length, 0, 'a host append raises no event');
+});
+
+test('flushing does not read layout: rows are drawn and trimmed every microtask, but the scroll (which reads scrollHeight) is asked for once no matter how many flushes land before the frame runs', async () => {
+    const { el, parts } = make();
+    const before = rafCalls;
+    el.append('a'); await tick();
+    el.append('b'); await tick();
+    el.append('c'); await tick();
+    assert.equal(parts.list.children.length, 3, 'every flush still drew its rows');
+    assert.equal(rafCalls, before + 1, 'one frame requested for the whole burst, not one per flush');
+    assert.equal(parts.scroller.scrollTop, 0, 'still not scrolled until the frame runs');
+    frame();
+    assert.equal(parts.scroller.scrollTop, 500);
+});
+
+test('disconnected() cancels a scroll still waiting on the next frame', async () => {
+    const { el, parts } = make();
+    el.append('a'); await tick();
+    assert.ok(el.$raf, 'a frame is pending');
+    el.disconnected();
+    assert.equal(rafs.size, 0, 'the pending frame was cancelled');
+    assert.equal(parts.scroller.scrollTop, 0, 'it never ran');
 });
 
 test('rows past max are dropped from the top, and a batch bigger than max keeps only its newest rows', async () => {
