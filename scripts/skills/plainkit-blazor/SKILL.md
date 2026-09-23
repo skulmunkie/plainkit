@@ -223,7 +223,6 @@ Forwarded entries always use the fixed category `PlainKit.Browser`, rate-limited
 In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`. `PkGallery Chrome="PkChrome.Full"` takes `Sections` (a list of `PkGallerySection`: text rows for the Details drawer, per element tag; `PkGallerySection.ForBlazor()` is the component, parameters and Razor section that `/_plainkit` shows), and `Src` may be relative (resolved against the document's base).
 
 ### Share a context menu across targets
-
 Several rows or cards with the same always-visible icon buttons competing for space: wrap the region in one `<PkContextMenu>` instead. `OnOpen`'s `Context` field (on `PkOpenEventArgs`) names what was targeted (the nearest ancestor's `data-pk-context`; `PkTable` sets one per row already), so `OnOpen="@(e => _menu = MenuFor(e.Context))"` can rebuild `<MenuContent>@_menu</MenuContent>` per target before it paints.
 
 ### Upgrade this app to a newer PlainKit.Blazor
