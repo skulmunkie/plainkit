@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Components.Forms
+@* The documented PkImageGallery + InputFile usage (issue #201, same fix as #83 for PkDropzone): the InputFile carries slot="input" and is a direct child of pk-image-gallery. *@
+<PkImageGallery Editable="true">
+    <InputContent>
+        <InputFile multiple OnChange="OnChange" />
+    </InputContent>
+</PkImageGallery>
+
+@code {
+    public List<string> Read { get; } = new();
+
+    private async Task OnChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(5))
+        {
+            using var reader = new StreamReader(file.OpenReadStream(1024));
+            Read.Add(file.Name + ":" + await reader.ReadToEndAsync());
+        }
+    }
+}

@@ -80,6 +80,11 @@
       "map": "event",
       "event": "pk-reorder",
       "cancelable": true
+    },
+    {
+      "name": "InputContent",
+      "slot": "input",
+      "type": "RenderFragment"
     }
   ]
 }

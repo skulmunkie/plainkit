@@ -12,11 +12,16 @@
     { "name": "addLabel", "type": "string", "default": "Add image", "reflect": false, "description": "Text on the add tile." },
     { "name": "accept", "type": "string", "default": "image/*", "reflect": false, "description": "The file types the add tile's picker offers." }
   ],
-  "slots": [],
+  "slots": [
+    {
+      "name": "input",
+      "description": "An existing file input (a Blazor InputFile) that keeps doing the reading: the add tile then only draws the target, and pk-add does not fire for a pick made on it. In plain HTML put slot=\"input\" on the input itself; the generated Blazor InputContent parameter sets it for you (<InputContent><InputFile OnChange=... /></InputContent>)."
+    }
+  ],
   "events": [
     { "name": "pk-primary-change", "detail": { "index": "number", "src": "string", "previous": "number" }, "description": "Make primary was pressed. Cancelable: preventDefault keeps the current primary (a controlled gallery updates images and primary itself)." },
     { "name": "pk-remove", "detail": { "index": "number", "src": "string" }, "description": "Remove was pressed. Cancelable: preventDefault keeps the image. Otherwise it is taken out of images, and if it was the primary the first image becomes the primary." },
-    { "name": "pk-add", "detail": { "files": "File[]", "names": "string[]" }, "description": "Files were chosen on the add tile. The gallery adds nothing itself: read the files (a data URL) and set images." },
+    { "name": "pk-add", "detail": { "files": "File[]", "names": "string[]" }, "description": "Files were chosen on the add tile's own picker (not one made on a slotted input slot=\"input\" input, where the host's own change/OnChange is the read path instead). The gallery adds nothing itself: read the files (a data URL) and set images." },
     { "name": "pk-reorder", "detail": { "order": "string[]", "from": "number", "to": "number", "item": "string" }, "description": "A tile was dragged by its handle to a new position, or moved with Alt+Up/Alt+Down (built on pk-sortable, core/elements/sortable/). order is every image's src in the new order; item is the moved image's src; from and to are its old and new index. Cancelable: preventDefault keeps the current order (a controlled gallery reorders images itself)." }
   ],
   "parts": [

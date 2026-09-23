@@ -208,6 +208,18 @@ export const workspaceCases = [
         g.addLabel = 'Upload photo'; await t.settle(); t.eq(g.part('add-text').textContent.trim(), 'Upload photo');
     }],
 
+    ['image gallery: an input in the input slot (a Blazor InputFile) becomes the add tile\'s own picker; its own change carries the real files, and pk-add does not fire for it', async t => {
+        const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
+        g.images = IMAGES.map(i => ({ ...i })); await t.settle(); await t.load(g.shadowRoot);
+        t.ok(g.hasAttribute('has-input')); t.eq(getComputedStyle(g.part('file')).display, 'none', 'the internal input is hidden once an input is slotted');
+        const input = g.querySelector('input[slot="input"]');
+        let added = null; g.addEventListener('pk-add', e => { added = e.detail; });
+        let changes = 0; input.addEventListener('change', () => changes++);
+        const dt = new DataTransfer(); dt.items.add(new File(['x'], 'a.png', { type: 'image/png' })); input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(changes, 1, 'the slotted input reports its own change so Blazor can read it'); t.eq(added, null, 'the gallery relays nothing of its own for a pick made on the slotted input');
+    }],
+
     ['image gallery: clicking a thumbnail opens the lightbox on that image', async t => {
         const g = await gallery(t);
         const box = tiles(g)[1].querySelector('pk-media').part('box');
