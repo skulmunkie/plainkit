@@ -1,7 +1,13 @@
 // The code explorer as a module: mountCodeExplorer(container, options) puts a file tree, tabs, a code viewer, search and an outline in
-// `container`, fed by a snapshot (see tools/snapshot.mjs for producing one and modules/code-explorer/providers.js for the format).
+// `container`, fed by a snapshot or a ready provider (modules/code-explorer/providers.js: SnapshotProvider, ApiProvider, LazyProvider,
+// FeedProvider; tools/snapshot.mjs produces a snapshot document or, for LazyProvider, a lean file list with no content).
 //
 //   const explorer = await mountCodeExplorer(el, { snapshot: 'snapshot.json', file: 'src/app.js', search: 'TODO', theme: 'light', height: '32rem' });
+//
+//   // Or a lean file list plus same-origin content, fetched lazily (issue 196: the SDK's own site uses this by default, since
+//   // a snapshot embeds every file's full text up front). raw is the base URL real files sit under, resolved however the host likes:
+//   const provider = await LazyProvider.connect('index.json', rawBaseUrl);
+//   const explorer = await mountCodeExplorer(el, { provider, file: 'src/app.js' });
 //
 // Options: snapshot (a URL of a snapshot JSON, or the parsed object), provider (a ready provider instead of a snapshot), file (open
 // this path, `line` picks the row), search (run this query), theme ('dark' | 'light'), height (any CSS length, or 'fill'; default 32rem).

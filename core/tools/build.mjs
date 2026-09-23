@@ -20,7 +20,7 @@ import { allManifests } from './element-manifests.mjs';
 import { galleryDist } from './gallery-dist.mjs';
 import { modulesDist, MODULES, MODULES_DIR } from './modules-dist.mjs';
 import { surface } from './api-surface.mjs';
-import { collectSnapshot } from './snapshot.mjs';
+import { collectSnapshot, collectFileList } from './snapshot.mjs';
 import { guidesModule } from './guides.mjs';
 import { loadBreakpoints, resolveCustomMedia, breakpointProperties } from './breakpoints.mjs';
 import { manifestText, modulesRequires } from '../js/custom-sdk-logic.js';
@@ -190,7 +190,11 @@ export const PK_VERSION = '${version}';
     w(`${modulesPrefix}manifest.json`, manifestText({ version, files: moduleFiles, name: 'plainkit-modules', requires: modulesRequires(version) }));
     // The Files page's snapshot of core/ itself. Written last, from the files on disk with everything generated above laid over them (so a stale
     // generated file never leaks in), no timestamp (deterministic). It skips its own file and dist/, so it never includes itself.
-    w('site/files/snapshot.json', JSON.stringify(collectSnapshot(root, { generated: null, overlay: new Map([...out].filter(([f]) => !f.startsWith('dist/'))) })));
+    const snapshotOverlay = new Map([...out].filter(([f]) => !f.startsWith('dist/')));
+    w('site/files/snapshot.json', JSON.stringify(collectSnapshot(root, { generated: null, overlay: snapshotOverlay })));
+    // The lean file list the live Files page fetches by default (issue 196): path, language and line count only, no content --
+    // each file's own text comes same-origin, on demand, from the Pages deploy's copy of core/ (build-pages.mjs's FULL folders).
+    w('site/files/index.json', JSON.stringify(collectFileList(root, { overlay: snapshotOverlay })));
     return { out, elements: elements.length, samples: Object.values(samples).reduce((n, g) => n + g.length, 0), pageCssKb: Math.round(Buffer.byteLength(page) / 102.4) / 10 };
 }
 

@@ -10,7 +10,7 @@ import path from 'node:path';
 
 // files: what the folder holds.
 export const MODULES = {
-    'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'tokenize.js', 'code-explorer.css'] },
+    'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'symbols.js', 'tokenize.js', 'code-explorer.css'] },
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
     performance: { files: ['performance.js', 'performance.css'] },
     console: { files: ['console.js', 'console.css'] },
