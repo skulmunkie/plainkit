@@ -25,12 +25,12 @@ export default Base => class extends Base {
     sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key ?? ''; this.sortDir = direction ?? 'ascending'; } }
 
     click(e) {
-        const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tbody tr[data-id]');
+        const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tr[data-pk-context]');
         if (this.$m?.click(this, e)) return;
         // The whole checkbox cell is the tap area: a click on the cell (not on the box) toggles the box.
         if (t.matches('[data-check]')) t.firstChild.click();
         else if (th && t.closest('button')) this.sortBy(...nextSort(this.sort, this.sortDir, th.dataset.key));
-        else if (tr && this.clickable && !t.closest('input,button,a,select,label')) this.emit('pk-row-click', { id: tr.dataset.id, row: this.view[this.ids().indexOf(tr.dataset.id)] });
+        else if (tr && this.clickable && !t.closest('input,button,a,select,label')) this.emit('pk-row-click', { id: tr.dataset.pkContext, row: this.view[this.ids().indexOf(tr.dataset.pkContext)] });
     }
     input(e) {
         const t = e.target, d = t.dataset;
@@ -59,13 +59,12 @@ export default Base => class extends Base {
         if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
         this.part('head').replaceChildren(...head);
 
-        // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js: only the rows
-        // near the scroll frame's viewport, plus a buffer). Never for an expandable table (a detail row changes its row's height, which
-        // windowing assumes is fixed) or a host-supplied one (already returned above, at `if (own)`).
+        // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js). Never for an
+        // expandable table (a detail row's height varies) or a host-supplied one (already returned above, at `if (own)`).
         const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: k.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, r, h) ?? r.flatMap((row, i) => {
             const id = String(row[this.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
             pick.checked = s.has(id);
-            const tr = h('tr', { 'data-id': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
+            const tr = h('tr', { 'data-pk-context': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
                 ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];

@@ -3,7 +3,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const cols = '[{"key":"sku","label":"SKU","sortable":true},{"key":"price","label":"Price","type":"number","sortable":true}]';
 const rows = '[{"id":1,"sku":"B","price":"$10"},{"id":2,"sku":"A","price":"$2"},{"id":3,"sku":"C","price":"$5"}]';
-const bodyIds = el => [...el.shadowRoot.querySelectorAll('tbody tr')].map(r => r.dataset.id);
+const bodyIds = el => [...el.shadowRoot.querySelectorAll('tbody tr')].map(r => r.dataset.pkContext);
 
 const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 const key = (el, k) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
@@ -178,9 +178,19 @@ export const dataDisplayCases = [
         t.ok(getComputedStyle(m.part('more')).display !== 'none'); t.eq(getComputedStyle(m.part('pages')).display, 'none'); m.part('more').click(); t.eq(more, 1);
     }],
 
+    ['table: each data-driven row carries data-pk-context, so one wrapping pk-context-menu can name which row was right-clicked', async t => {
+        const el = await t.mount(`<pk-context-menu><pk-table label="P" columns='${cols}' rows='${rows}'></pk-table><pk-menu-item slot="menu">Row menu</pk-menu-item></pk-context-menu>`);
+        const table = el.querySelector('pk-table'); await t.settle();
+        const row2 = table.shadowRoot.querySelector('tbody tr[data-pk-context="2"]');
+        let opened; el.addEventListener('pk-open', e => { opened = e.detail; });
+        row2.querySelector('td').dispatchEvent(new MouseEvent('contextmenu', { clientX: 5, clientY: 5, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.ok(el.open); t.eq(opened.context, '2', 'the context field names the row id from data-pk-context, not internal cell markup');
+    }],
+
     ['table: current-row marks the open record with aria-current and a tint, follows the host, and the element never changes it', async t => {
         const el = await t.mount(`<pk-table label="P" clickable current-row="2" columns='${cols}' rows='${rows}'></pk-table>`);
-        const row = id => el.shadowRoot.querySelector(`tbody tr[data-id="${id}"]`);
+        const row = id => el.shadowRoot.querySelector(`tbody tr[data-pk-context="${id}"]`);
         t.eq(row('2').getAttribute('aria-current'), 'true'); t.ok(!row('1').hasAttribute('aria-current'), 'only the current row is marked');
         t.ok(getComputedStyle(row('2')).backgroundColor !== getComputedStyle(row('1')).backgroundColor, 'and tinted');
         row('3').querySelector('td').click(); await t.settle(); t.eq(el.currentRow, '2', 'a click reports pk-row-click; the host decides what is current');
@@ -226,7 +236,7 @@ export const dataDisplayCases = [
 
     ['table: filters and sorts locally when not manual, and a slotted cell replaces the text', async t => {
         const el = await t.mount(`<pk-table filterable columns='${cols}' rows='${rows}'><b slot="cell-1-sku">custom</b></pk-table>`);
-        t.ok(el.shadowRoot.querySelector('tbody tr[data-id="1"] slot[name="cell-1-sku"]'), 'cell slot rendered');
+        t.ok(el.shadowRoot.querySelector('tbody tr[data-pk-context="1"] slot[name="cell-1-sku"]'), 'cell slot rendered');
         el.filters = { sku: 'a' }; await t.settle(); t.eq(bodyIds(el).join(), '2');
     }],
 

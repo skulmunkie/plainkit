@@ -105,10 +105,27 @@ export const overlaysCases = [
 
     ['context menu: contextmenu opens it at the pointer; choosing an item closes it', async t => {
         const el = await t.mount('<pk-context-menu><div>Area</div><pk-menu-item slot="menu">Rename</pk-menu-item></pk-context-menu>');
+        let opened; el.addEventListener('pk-open', e => { opened = e.detail; });
         el.firstElementChild.dispatchEvent(new MouseEvent('contextmenu', { clientX: 40, clientY: 50, bubbles: true, composed: true, cancelable: true }));
         await t.settle();
         t.ok(el.open); t.eq(getComputedStyle(el.part('menu')).position, 'fixed');
+        t.eq(opened.target, el.firstElementChild, 'pk-open names the element that was right-clicked'); t.eq(opened.context, undefined, 'no ancestor carries data-pk-context');
         el.querySelector('pk-menu-item').click(); await t.settle(); t.ok(!el.open);
+    }],
+
+    ['context menu: Shift+F10 names data-pk-context, and a synchronous slot swap from the pk-open handler is what gets focused', async t => {
+        const el = await t.mount('<pk-context-menu><div data-pk-context="row-2"><button type="button">cell</button></div><pk-menu-item slot="menu">Old</pk-menu-item></pk-context-menu>');
+        let opened;
+        el.addEventListener('pk-open', e => {
+            opened = e.detail;
+            el.querySelectorAll('[slot="menu"]').forEach(n => n.remove());
+            const swapped = document.createElement('pk-menu-item'); swapped.slot = 'menu'; swapped.textContent = 'New'; el.append(swapped);
+        });
+        const button = el.querySelector('button'); button.focus();
+        button.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.ok(el.open); t.eq(opened.context, 'row-2', 'pk-open names the row via data-pk-context');
+        t.eq(document.activeElement.textContent, 'New', 'the item focused is the one the pk-open handler just swapped in, not the pre-swap "Old" one');
     }],
 
     ['select-menu: reads its options, opens, chooses with the keyboard, reports pk-change and joins the form', async t => {

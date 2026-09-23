@@ -44,9 +44,11 @@
       "name": "pk-open",
       "detail": {
         "x": "number",
-        "y": "number"
+        "y": "number",
+        "target": "element",
+        "context": "string"
       },
-      "description": "It opened at the pointer position."
+      "description": "It opened at the pointer position. target is the element that was right-clicked, long-pressed or Shift+F10'd. context is the value of its nearest ancestor's data-pk-context attribute (for example a pk-table row id), unset when none is present; only context reaches Blazor, since a DOM element cannot cross JS interop."
     },
     {
       "name": "pk-close",

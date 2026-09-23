@@ -93,7 +93,7 @@ test('activating a toggle changes expanded and raises pk-row-expand with { id, i
 });
 
 test('a click on slotted cell content raises pk-row-click by the composed path; slotted controls and shadow clicks do not', () => {
-    const events = [], row = { matches: s => s === 'tbody tr[data-id]', dataset: { id: '2' } };
+    const events = [], row = { matches: s => s === 'tbody tr[data-pk-context]', dataset: { pkContext: '2' } };
     const t = table({ clickable: true, shadowRoot: { contains: () => false }, ids: () => ['1', '2'], view: [{ a: 1 }, { a: 2 }], emit: (n, d) => events.push([n, d]) });
     const node = m => ({ matches: s => s.split(',').includes(m) });
     const at = (path, tt = t) => X.click(tt, { target: {}, composedPath: () => path });
@@ -191,7 +191,7 @@ test('body() draws only the rows near the scroll position, flanked by spacer row
     assert.equal(out.at(-1).attrs['data-spacer'], 'bottom');
     const drawn = out.slice(1, -1);
     assert.equal(drawn.length, 25, '(scrollTop / rowH - overscan) to (+ viewport rows + 2 * overscan)');
-    assert.equal(drawn[0].attrs['data-id'], '41', 'the first drawn row is the one at the start of the window, not the top of the data');
+    assert.equal(drawn[0].attrs['data-pk-context'], '41', 'the first drawn row is the one at the start of the window, not the top of the data');
     assert.equal(out[0].kids[0].attrs['block-size'], '800px', '40 skipped rows above, at 20px each');
     assert.equal(out.at(-1).kids[0].attrs['block-size'], `${(total - 65) * 20}px`, 'the rest of the rows below');
     assert.equal(el.$virtual, true);

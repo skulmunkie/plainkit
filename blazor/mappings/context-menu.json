@@ -32,6 +32,18 @@
       "type": "EventCallback<ContextMenuSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
+    },
+    {
+      "name": "OnOpen",
+      "type": "EventCallback<PkOpenEventArgs>",
+      "map": "event",
+      "event": "pk-open"
+    },
+    {
+      "name": "OnClose",
+      "type": "EventCallback<PkCloseEventArgs>",
+      "map": "event",
+      "event": "pk-close"
     }
   ]
 }
