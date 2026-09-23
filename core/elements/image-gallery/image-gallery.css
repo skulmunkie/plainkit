@@ -27,6 +27,7 @@
 [part="add-icon"] { font-size: var(--text-lg); line-height: 1; }
 [part="add-text"] { font-size: var(--text-meta); line-height: 1.2; }
 [part="file"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
+:host([has-input]) [part="file"] { display: none; }
 
 @media (pointer: coarse), (--phone) {
     [part="actions"] { padding-inline-start: calc(var(--space-1) + var(--touch-target)); }
