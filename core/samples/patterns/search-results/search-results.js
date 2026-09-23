@@ -2,6 +2,7 @@
 // match and shows an empty state when nothing is left. Ctrl+K (Cmd+K) focuses the field; ArrowDown moves into the results.
 // mount(root) works on this sample's own DOM and returns { destroy() }; the one listener outside it (the shortcut on the document) is removed there.
 import { createLogger } from '../../../js/log.js';
+import { isPaletteShortcut } from '../../../js/palette-logic.js';
 
 const log = createLogger('pattern:search-results');
 
@@ -55,7 +56,7 @@ export default function mount(root) {
         if (first) { e.preventDefault(); first.focus(); }
     }, { signal: ac.signal });
     document.addEventListener('keydown', e => {
-        if (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey) && !e.altKey) { e.preventDefault(); query.focus(); }
+        if (isPaletteShortcut(e)) { e.preventDefault(); query.focus(); }
     }, { signal: ac.signal });
 
     return { destroy() { ac.abort(); } };
