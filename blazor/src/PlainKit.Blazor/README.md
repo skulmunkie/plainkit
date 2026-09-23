@@ -303,6 +303,38 @@ This is a hand-written component (`blazor/mappings/side-nav.json` marks it `"exi
 
 A future component that needs to know "where is the app right now" (a route-derived breadcrumb) follows the same shape: inject `NavigationManager`, keep the tracked value private, offer an explicit override parameter that always wins, unsubscribe in `Dispose`.
 
+### PageBase: the state a page repeats by hand
+
+A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
+
+```razor
+@page "/orders"
+@inherits PageBase
+
+<PkPageHeader Title="@Title" Crumbs="@Crumbs" />
+@if (StatusMessage is not null)
+{
+    <PkAlert Kind="@StatusKind" Heading="@StatusHeading">@StatusMessage</PkAlert>
+}
+<PkLoadingOverlay Busy="@IsBusy" Label="@BusyLabel">
+    @* orders list *@
+</PkLoadingOverlay>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Title = "Orders";
+        Crumbs = [new PkCrumb("Home", "/"), new PkCrumb("Orders")];
+    }
+
+    private Task LoadAsync() => BusyAsync(async () => Orders = await Client.GetOrdersAsync(), "Loading orders…");
+}
+```
+
+`BusyAsync` sets `IsBusy` around the action; an exception it throws is logged through `IPkLog` (so it lands beside the SDK's own log entries, under a scope named after the page's type by default — override `LogScope` to change it) and shown as a danger status, then rethrown so the caller's own handling still runs. This is the same small model `core/js/page.js`'s `createPage` gives a vanilla page — title, status, busy, breadcrumbs and logging built from elements already on the page — so a Blazor page and a hand-written one wire the same three concerns the same way.
+
+`Crumbs` is host-supplied (`IReadOnlyList<PkCrumb>`, the same shape `PkPageHeader` already takes), not derived from a route tree: core has no router today, and `PkSideNav`/`PkAppBarSearch` above resolve their own route state the same explicit way. A route-derived breadcrumb (and other route-driven page state) is tracked as a separate, later piece of work — see issue 219.
+
 ## How binding works
 
 The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivity"):

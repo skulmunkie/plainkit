@@ -1,0 +1,22 @@
+@* A minimal concrete page (issue #204) so the tests can exercise PageBase's protected members through public wrappers. *@
+@inherits PageBase
+
+<p>@Title</p>
+<p>@StatusMessage / @StatusKind / @StatusHeading</p>
+<p>@IsBusy / @BusyLabel</p>
+
+@code {
+    public new string? Title { get => base.Title; set => base.Title = value; }
+    public new IReadOnlyList<PkCrumb>? Crumbs { get => base.Crumbs; set => base.Crumbs = value; }
+    public new string? StatusMessage => base.StatusMessage;
+    public new string StatusKind => base.StatusKind;
+    public new string? StatusHeading => base.StatusHeading;
+    public new bool IsBusy => base.IsBusy;
+    public new string? BusyLabel => base.BusyLabel;
+
+    public void CallSetStatus(string message, string kind = "info", string? heading = null) => SetStatus(message, kind, heading);
+    public void CallClearStatus() => ClearStatus();
+    public Task CallSetErrorAsync(Exception exception, string? message = null) => SetErrorAsync(exception, message);
+    public Task CallBusyAsync(Func<Task> action, string? label = null) => BusyAsync(action, label);
+    public Task<T> CallBusyAsync<T>(Func<Task<T>> action, string? label = null) => BusyAsync(action, label);
+}
