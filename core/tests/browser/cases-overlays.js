@@ -345,6 +345,11 @@ export const overlaysCases = [
         sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open); t.ok(sh.navOpen);
     }],
 
+    ['app shell: a Blazor-style wrapper span in the nav slot (issue 212) still gets found and toggled', async t => {
+        const sh = await t.mount('<pk-app-shell><span slot="nav" class="u-contents"><pk-side-nav><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav></span><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>');
+        sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open, 'the wrapper span must not hide the side nav from the shell'); t.ok(sh.navOpen);
+    }],
+
     ['app shell: the title slot and back link fill the top bar; the link is a real 44px link named by back-label, and an unsafe address is dropped', async t => {
         const sh = await t.mount('<pk-app-shell back-href="#list" back-label="Back to Things"><h1 slot="title">Thing 7</h1><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>'); await t.settle();
         const back = sh.part('back'); const box = back.getBoundingClientRect();

@@ -17,7 +17,7 @@
                 level="@PkAttr.Num(Level)"
                 variant="@Variant"
                 class="@Css()"
-                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta">@MetaContent</span>}</pk-page-header>
+                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}</pk-page-header>
 
 @code {
     /// <summary>

@@ -19,7 +19,7 @@
              auto-expand-active="@AutoExpandActive"
              @ref="Element"
              class="@Css()"
-             @attributes="Splat">@if (BrandContent is not null) {<span slot="brand">@BrandContent</span>}@ChildContent@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-side-nav>
+             @attributes="Splat">@if (BrandContent is not null) {<span slot="brand" class="u-contents">@BrandContent</span>}@ChildContent@if (FooterContent is not null) {<span slot="footer" class="u-contents">@FooterContent</span>}</pk-side-nav>
 
 @code {
     [Inject] private NavigationManager Nav { get; set; } = default!;

@@ -193,7 +193,7 @@ test('no generated parameter is an unexplained object: each one is in the manife
 test('slots: the default slot is the content, a named slot a slotted span; a dynamic slot is skipped and listed', () => {
     const r = run();
     const razor = r.files.get('PkDemo.razor');
-    assert.match(razor, />@ChildContent@if \(AsideContent is not null\) \{<span slot="aside">@AsideContent<\/span>\}<\/pk-demo>/);
+    assert.match(razor, />@ChildContent@if \(AsideContent is not null\) \{<span slot="aside" class="u-contents">@AsideContent<\/span>\}<\/pk-demo>/);
     assert.ok(r.report.notGenerated.some(n => n.param === 'Cell' && /dynamic slot/.test(n.reason)));
 });
 

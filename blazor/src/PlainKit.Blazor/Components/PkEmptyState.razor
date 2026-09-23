@@ -6,7 +6,7 @@
                 description="@Description"
                 tone="@Tone"
                 class="@Css()"
-                @attributes="Splat">@DescriptionContent@if (IconContent is not null) {<span slot="icon">@IconContent</span>}@if (TitleContent is not null) {<span slot="heading">@TitleContent</span>}@if (ActionContent is not null) {<span slot="actions">@ActionContent</span>}</pk-empty-state>
+                @attributes="Splat">@DescriptionContent@if (IconContent is not null) {<span slot="icon" class="u-contents">@IconContent</span>}@if (TitleContent is not null) {<span slot="heading" class="u-contents">@TitleContent</span>}@if (ActionContent is not null) {<span slot="actions" class="u-contents">@ActionContent</span>}</pk-empty-state>
 
 @code {
     /// <summary>The title, as text (the element's <c>heading</c>).</summary>
