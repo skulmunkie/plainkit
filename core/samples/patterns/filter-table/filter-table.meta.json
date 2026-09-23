@@ -17,7 +17,8 @@
     "select",
     "stack",
     "table",
-    "tag"
+    "tag",
+    "text"
   ],
   "order": 1
 }

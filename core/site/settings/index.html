@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="site-body"><div class="site-scroll"><pk-stack id="settings-root">
-    <pk-page-header heading="Settings" level="1"><span slot="meta" class="muted">Preferences for this browser. They are kept in local storage and apply to every page of the site and to the gallery.</span></pk-page-header>
+    <pk-page-header heading="Settings" level="1"><pk-text inline tone="muted" slot="meta">Preferences for this browser. They are kept in local storage and apply to every page of the site and to the gallery.</pk-text></pk-page-header>
     <pk-card heading="Theme">
         <pk-button-group label="Theme" mode="single"><pk-button toggle variant="ghost" value="dark">Dark</pk-button><pk-button toggle variant="ghost" value="light">Light</pk-button></pk-button-group>
     </pk-card>
@@ -21,7 +21,7 @@
     </pk-card>
     <pk-card heading="Logging">
         <pk-stack gap="sm">
-            <span class="muted">What the SDK and your code log through <code>createLogger</code>: the level, a level per scope and where each level goes. Saved in this browser. The <code>?pk-log=</code> address parameter and <code>&lt;html data-pk-log&gt;</code> still choose the level when a page loads.</span>
+            <pk-text inline tone="muted">What the SDK and your code log through <code>createLogger</code>: the level, a level per scope and where each level goes. Saved in this browser. The <code>?pk-log=</code> address parameter and <code>&lt;html data-pk-log&gt;</code> still choose the level when a page loads.</pk-text>
             <div id="set-logging"></div>
         </pk-stack>
     </pk-card>

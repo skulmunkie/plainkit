@@ -11,7 +11,8 @@
     "progress",
     "stack",
     "step",
-    "stepper"
+    "stepper",
+    "text"
   ],
   "order": 7
 }

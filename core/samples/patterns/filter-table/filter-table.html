@@ -1,7 +1,7 @@
 <pk-table label="Items" caption="Items" striped hover selectable cards filterable sort="name" selected='[1,4]' filters='{"status":"Active"}' data-table columns='[{"key":"name","label":"Name","sortable":true},{"key":"status","label":"Status"},{"key":"amount","label":"Amount","type":"number","sortable":true}]' rows='[{"id":1,"name":"Item one","status":"Active","amount":"$12.00"},{"id":2,"name":"Item two","status":"Draft","amount":"$8.50"},{"id":3,"name":"Item three","status":"Review","amount":"$20.00"},{"id":4,"name":"Item four","status":"Active","amount":"$5.25"}]'>
 <pk-stack slot="toolbar" gap="sm">
 <pk-field-row><pk-field label="Search"><pk-input type="search" placeholder="Name or SKU" data-field="name"></pk-input></pk-field><pk-field label="Status"><pk-select value="Active" data-field="status"><option>Any</option><option>Active</option><option>Draft</option><option>Review</option></pk-select></pk-field></pk-field-row>
-<pk-cluster data-applied><span class="muted">Applied:</span><pk-tag removable data-key="status">Status: Active</pk-tag><pk-button size="mini" variant="ghost" data-clear>Clear all</pk-button></pk-cluster>
+<pk-cluster data-applied><pk-text inline tone="muted">Applied:</pk-text><pk-tag removable data-key="status">Status: Active</pk-tag><pk-button size="mini" variant="ghost" data-clear>Clear all</pk-button></pk-cluster>
 </pk-stack>
 <pk-button-group slot="bulk" label="Bulk actions"><pk-button size="mini" variant="ghost">Archive</pk-button><pk-button size="mini" variant="ghost">Export</pk-button><pk-button size="mini" variant="warn">Delete</pk-button></pk-button-group>
 <pk-empty-state slot="empty" heading="No matching items" description="Remove a filter to see more."></pk-empty-state>

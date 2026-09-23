@@ -11,7 +11,7 @@
 <main id="content">
 <pk-grid min="14rem"><pk-card><pk-empty-state heading="Nothing here yet" description="Say what is missing and what to do."><pk-button slot="actions">Add one</pk-button></pk-empty-state></pk-card>
 <pk-card><pk-stack><pk-alert kind="danger" heading="Something failed.">Explain it and offer a way out.</pk-alert><pk-alert kind="warning" compact>Two items are queued.<pk-button slot="action" size="mini">Retry now</pk-button></pk-alert></pk-stack></pk-card>
-<pk-card aria-busy="true"><pk-stack gap="sm"><pk-cluster gap="sm"><pk-spinner size="sm" label="Loading"></pk-spinner><span class="muted" role="status">Loading…</span></pk-cluster><pk-skeleton></pk-skeleton><pk-skeleton></pk-skeleton></pk-stack></pk-card></pk-grid>
+<pk-card aria-busy="true"><pk-stack gap="sm"><pk-cluster gap="sm"><pk-spinner size="sm" label="Loading"></pk-spinner><pk-text inline tone="muted" role="status">Loading…</pk-text></pk-cluster><pk-skeleton></pk-skeleton><pk-skeleton></pk-skeleton></pk-stack></pk-card></pk-grid>
 </main>
 <script type="module" src="states.js"></script>
 

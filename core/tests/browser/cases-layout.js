@@ -203,4 +203,35 @@ export const layoutCases = [
         t.ok(el.part('main').getBoundingClientRect().top > el.part('sidebar').getBoundingClientRect().top, 'sidebarFirst: the sidebar sits above the main content once stacked');
         t.eq(getComputedStyle(el.part('sidebar')).gridTemplateColumns.trim().split(' ').length, 2, 'sidebarTwoUp: two columns of cards inside the collapsed sidebar');
     }],
+    ['text: a block paragraph by default, a run inside a line when inline, with the paragraph role only as a block', async t => {
+        const host = t.stage('<pk-text>Para</pk-text><p>After</p><pk-text inline>Run</pk-text>');
+        await t.load(host);
+        const [block, , run] = host.children;
+        t.eq(getComputedStyle(block).display, 'block'); t.eq(getComputedStyle(run).display, 'inline');
+        t.eq(block.internals?.role, 'paragraph', 'a block is a paragraph'); t.eq(run.internals?.role ?? null, null, 'an inline run has no role');
+        run.inline = false; await t.settle();
+        t.eq(run.internals?.role, 'paragraph', 'turning inline off makes it a paragraph');
+    }],
+
+    ['text: a heading variant matches the native heading beside it; size, tone, weight and font come from the tokens and override the variant', async t => {
+        const host = t.stage('<h2>Real</h2><pk-text variant="h2">Look</pk-text><h6>Six</h6><pk-text variant="eyebrow">Label</pk-text>');
+        await t.load(host); await t.settle();
+        const [h2, look, h6, eyebrow] = host.children; const cs = el => getComputedStyle(el);
+        t.eq(cs(look).fontSize, cs(h2).fontSize, 'variant h2 is the size of a native h2'); t.eq(cs(look).fontWeight, cs(h2).fontWeight, 'and its weight');
+        t.ok(px(cs(h6).fontSize) >= px(token(host, '--text-meta')) - 0.5, 'a native h6 is not below the meta floor');
+        t.eq(cs(eyebrow).textTransform, 'uppercase');
+        look.size = 'meta'; look.tone = 'muted'; look.weight = 'regular'; look.font = 'mono'; await t.settle();
+        const probe = document.createElement('span'); probe.className = 'muted small'; host.append(probe);
+        t.eq(cs(look).fontSize, cs(probe).fontSize, 'size overrides the variant (--text-meta, as .small)'); t.eq(cs(look).color, cs(probe).color, 'tone muted is --color-muted');
+        t.eq(cs(look).fontWeight, '400', 'weight overrides the variant'); t.ok(/monospace/.test(cs(look).fontFamily), 'font mono');
+    }],
+
+    ['text: truncate keeps a long text on one line with an ellipsis, as a block and inline', async t => {
+        const host = t.stage('<pk-text truncate>A very long line of text that cannot fit in a narrow column at all</pk-text><pk-text inline truncate>Another very long run of text that cannot fit either</pk-text>');
+        host.style.inlineSize = '120px'; await t.load(host); await t.settle();
+        for (const el of host.children) {
+            t.eq(getComputedStyle(el).textOverflow, 'ellipsis'); t.eq(getComputedStyle(el).whiteSpace, 'nowrap');
+            t.ok(el.scrollWidth > el.clientWidth, `${el.inline ? 'inline' : 'block'}: the text overflows its box`); t.ok(el.getBoundingClientRect().width <= 121, 'and the box stays in the column');
+        }
+    }],
 ];
