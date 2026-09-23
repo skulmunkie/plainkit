@@ -20,4 +20,7 @@ public sealed class PkOptions
 
     /// <summary>The SDK logger's settings and the ILogger bridge: level, per-scope levels, routes, and whether SDK entries also go to <see cref="Microsoft.Extensions.Logging.ILogger"/>.</summary>
     public PkLoggingOptions Logging { get; } = new();
+
+    /// <summary>The organization's display timezone (IANA id, Windows id and DST-fallback rules), resolved by <see cref="IPkTimeZoneResolver"/>. Unset, the resolved zone is the synthetic fallback with a zero offset.</summary>
+    public PkTimeZoneOptions TimeZone { get; } = new();
 }
