@@ -167,6 +167,24 @@ An element prop that takes a structure (`data`, `images`, `columns`) has a publi
 
 Fields left at their default are left out of the JSON. Two former parameters became plain element props: `PkDialog.Tint` (`PkDialogTint`: none, product, archived) and the tooltip's `Help` and `Enrich` (booleans) replace the old theme and kind enums. `PkTooltip.Placement` is `PkTooltipPlacement`.
 
+## Showing timestamps in one fixed zone
+
+An app that always renders wall-clock timestamps in one organization zone, regardless of the host's OS zone (a dev box in a local zone, a container that runs UTC), uses `PkDisplayTimeZone` rather than `DateTime.ToLocalTime()`, which answers differently depending on where the process happens to run.
+
+```csharp
+var orgZone = new PkDisplayTimeZone("Europe/Berlin", "W. Europe Standard Time");
+builder.Services.AddSingleton(orgZone); // no AddPlainKit dependency; register it on its own
+```
+
+```csharp
+@inject PkDisplayTimeZone OrgZone
+<PkLocalTime Datetime="@OrgZone.ToDisplay(order.CreatedAtUtc).ToString("o")" />
+```
+
+It looks the zone up by its IANA id (Linux, ICU) first, then the Windows registry id, and only then falls back to a `TimeZoneInfo` you supply (build one with `TimeZoneInfo.CreateCustomTimeZone` and its own `AdjustmentRule`s when the zone's DST transitions matter) or, with none given, to UTC — this is the case a trimmed or globalization-invariant deploy can hit, where neither id resolves. `PkDisplayTimeZone.Resolution` says which of the three happened (`Source`, `ResolvedId`), so a misconfigured host is visible in a log rather than silently rendering the wrong wall clock. `ToDisplay` treats a `DateTime` of `DateTimeKind.Unspecified` (a value read back from a database column that carries no kind) as UTC, never as the host's own local kind.
+
+This is a server-side, app-wide zone; a reader's *own* zone in the browser is `PkLocalTime`/`pk-local-time`'s default `TimeZone` (empty, meaning the reader's zone).
+
 ## Set up
 
 This is the Blazor Server / Web App setup; for a standalone Blazor WebAssembly app see "Blazor WebAssembly" below.
