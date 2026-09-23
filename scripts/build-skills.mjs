@@ -533,9 +533,10 @@ function blazorFiles(src) {
             '## `PkRawTable`', '', table(['Parameter', 'Type', 'Description'], rt.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
     }
 
-    // reading picked files: PkDropzone with Blazor's InputFile (issue #83); a workflow, so no element table
-    files.set('references/file-upload.md', ['# Reading picked files: PkDropzone with InputFile', '', stamp(src, 'the pk-dropzone element and Components/PkDropzone (generated)'), '',
-        'The dropzone element keeps its files in its own shadow-tree input, which Blazor cannot read. To read the bytes use the Blazor `InputFile`: put it in the `input` slot of the dropzone and the zone only draws the target. There is no `IBrowserFile` marshalling in Plainkit and no interop per render; `InputFileChangeEventArgs`, `IBrowserFile` and `OpenReadStream` belong to Blazor and work the same in Blazor Server and Blazor WebAssembly.', '',
+    // reading picked files: PkDropzone and PkImageGallery with Blazor's InputFile (issue #83, then #201 for the gallery); a workflow, so no element table
+    files.set('references/file-upload.md', ['# Reading picked files: PkDropzone and PkImageGallery with InputFile', '', stamp(src, 'the pk-dropzone and pk-image-gallery elements and their generated components'), '',
+        'Both elements keep their files in their own shadow-tree input, which Blazor cannot read. To read the bytes use the Blazor `InputFile`: put it in the `input` slot and the element only draws the target. There is no `IBrowserFile` marshalling in Plainkit and no interop per render; `InputFileChangeEventArgs`, `IBrowserFile` and `OpenReadStream` belong to Blazor and work the same in Blazor Server and Blazor WebAssembly.', '',
+        '## `PkDropzone`', '',
         '```razor', '@using Microsoft.AspNetCore.Components.Forms', '',
         '<PkDropzone Label="Files to upload" BrowseLabel="Choose files" Multiple="true">',
         '    <ChildContent>',
@@ -559,7 +560,28 @@ function blazorFiles(src) {
         '- A drop and the picker (the zone itself, or the `BrowseLabel` button) both end in the `OnChange` of the `InputFile`: a drop puts the dropped files into that input and raises its `change` event. A single-file input (no `multiple`) keeps the first dropped file; a drop without files does nothing.',
         '- `OnChange` is the source of truth. In this mode the zone does not check `Accept`, `MaxFileSizeBytes` or `MaxFiles`, does not draw a file list and does not raise `OnFiles`: use `accept` and `multiple` on the `InputFile`, check `IBrowserFile.Size` and `ContentType` in `OnChange`, and set `maxAllowedSize` in `OpenReadStream` (it throws `IOException` past the limit).',
         '- `BrowseLabel` and `Disabled` keep working (`Disabled` blocks the button and drops). Render the file list yourself from the `IBrowserFile`s.',
-        '- Without an `InputFile` (no slot), `OnFiles` reports counts and the accepted and rejected files stay in the browser: use it for client-side checks, not for reading bytes.', ''].join('\n'));
+        '- Without an `InputFile` (no slot), `OnFiles` reports counts and the accepted and rejected files stay in the browser: use it for client-side checks, not for reading bytes.', '',
+        '## `PkImageGallery`', '',
+        'The add tile works the same way, through its own `InputContent` parameter (a dedicated named slot, not `ChildContent`: `PkImageGallery` has no default slot). The wrapper sets `slot="input"` for you, so the `InputFile` itself needs none.', '',
+        '```razor', '@using Microsoft.AspNetCore.Components.Forms', '',
+        '<PkImageGallery Images="@_images" Editable="true">',
+        '    <InputContent>',
+        '        <InputFile multiple OnChange="OnChange" />',
+        '    </InputContent>',
+        '</PkImageGallery>', '',
+        '@code {',
+        '    private IReadOnlyList<PkGalleryImage> _images = [];',
+        '',
+        '    private async Task OnChange(InputFileChangeEventArgs e)',
+        '    {',
+        '        foreach (var file in e.GetMultipleFiles(10))',
+        '        {',
+        '            using var stream = file.OpenReadStream(5 * 1024 * 1024);',
+        '            // read or copy the stream, then append a PkGalleryImage to _images',
+        '        }',
+        '    }',
+        '}', '```', '',
+        '`OnAdd` (the `pk-add` event) does not fire for a pick made on the slotted `InputFile` — `OnChange` is the only read path, the same split as `PkDropzone`\'s `OnFiles`. Without an `InputFile`, `OnAdd` still reports the chosen files\' names, but never their bytes.', ''].join('\n'));
 
     // tools and setup
     const toolRows = TOOL_COMPONENTS.filter(c => src.razor[c]).map(c => {
@@ -630,7 +652,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
