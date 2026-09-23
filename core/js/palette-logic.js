@@ -4,6 +4,8 @@
 // Item: { id, label, group?, hint?, keywords?: string, href?, shortcut? }. Ranking prefers a match at the start of a word,
 // consecutive letters, and an earlier match; a label match beats a keywords-only match.
 
+import { isShortcut } from './shortcuts.js';
+
 export const MAX_RECENTS = 5;
 export const RECENTS_GROUP = 'Recent';
 
@@ -84,5 +86,7 @@ export function safeHref(href) {
     return href;
 }
 
-// Whether a key event is the palette shortcut: Ctrl+K or Cmd+K, no other modifier.
-export const isPaletteShortcut = e => !!((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K'));
+// Whether a key event is the palette shortcut: Ctrl+K or Cmd+K, no other modifier. The mapping itself (verb "command-palette")
+// lives in the shortcut registry, js/shortcuts.js, alongside every other global trigger shortcut; this is a thin, named wrapper
+// so existing importers (the element, its test) keep working.
+export const isPaletteShortcut = e => isShortcut('command-palette', e);
