@@ -159,11 +159,26 @@ export function collect() {
     const mappings = Object.fromEntries(list(path.join(root, 'blazor', 'mappings'), f => f.endsWith('.json')).map(f => [f.replace(/\.json$/, ''), readJson(path.join(root, 'blazor', 'mappings', f))]));
     const manifest = readJson(path.join(pkg, 'Generated', 'generated.manifest.json'));
     const razor = {};
+    const inherits = {};
     for (const [dir, kind] of [['Generated', 'generated'], ['Components', 'hand-written']]) {
         for (const f of list(path.join(pkg, dir), f => f.endsWith('.razor') && !f.startsWith('_'))) {
             const text = read(path.join(pkg, dir, f));
-            razor[f.replace(/\.razor$/, '')] = { kind, params: razorParams(text), typeParams: [...text.matchAll(/^@typeparam (\w+)/gm)].map(m => m[1]), routes: [...text.matchAll(/^@page "([^"]+)"/gm)].map(m => m[1]) };
+            const name = f.replace(/\.razor$/, '');
+            razor[name] = { kind, params: razorParams(text), typeParams: [...text.matchAll(/^@typeparam (\w+)/gm)].map(m => m[1]), routes: [...text.matchAll(/^@page "([^"]+)"/gm)].map(m => m[1]) };
+            const m = text.match(/^@inherits (\w+)/m);
+            if (m) inherits[name] = m[1];
         }
+    }
+    // A component's own params plus, first, the ones it inherits from a plain C# base class in Components/ (for example PkTableBase, the
+    // chrome pk-table's data-driven and raw modes share, issue 228): the base has no markup of its own so it is never a razor[] entry,
+    // but its [Parameter]s are real API surface and belong in the generated docs.
+    for (const [name, baseName] of Object.entries(inherits)) {
+        const baseFile = path.join(pkg, 'Components', `${baseName}.cs`);
+        if (!fs.existsSync(baseFile)) continue;
+        const baseParams = razorParams(read(baseFile));
+        if (!baseParams.length) continue;
+        const own = new Set(razor[name].params.map(p => p.name));
+        razor[name].params = [...baseParams.filter(p => !own.has(p.name)), ...razor[name].params];
     }
     const cs = f => read(path.join(pkg, f));
     const enums = [...csEnums(cs('PkEnums.cs')), ...csEnums(cs('PkLogging.cs'))];
@@ -492,6 +507,15 @@ function blazorFiles(src) {
             '## `PkFieldKind`', '', 'Text, Number, Email, Password, Date, Time, Url, Tel (all `PkInput`, `Type` set from the member), Textarea, Select, Checkbox (`Get`/`Set` still deal in strings: checked is a non-empty value other than "false").', ''].join('\n'));
     }
 
+    // pk-table's raw/slotted default slot (one complete table) composed from three RenderFragments: no element of its own (issue 228)
+    const rt = src.razor.PkRawTable;
+    if (rt) {
+        files.set('references/raw-table.md', ['# PkRawTable: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', '', stamp(src, 'Components/PkRawTable.razor'), '',
+            'A hand-written component with no element of its own. `pk-table`\'s default slot takes one complete table (`thead`, `tbody`, `tfoot`) when you want to author the markup yourself rather than give the element `Columns`/`Items` (`PkTable<TItem>`) — the right design for the element, but Blazor composes with `RenderFragment` parameters, not one blob of markup. `PkRawTable` composes `HeadContent`, `ChildContent` and `FootContent` into that one blob, so a static header and a `@foreach` body over your own collection do not need a hand-written wrapper. Not a new visual primitive: `pk-table`\'s raw mode already supplies the scroll frame, `ToolbarContent`/`FooterContent` and sticky header/column; this only supplies the missing glue.', '',
+            '```razor', '<PkRawTable Label="Orders" Caption="Recent orders">', '    <HeadContent><tr><th>Number</th><th>Total</th></tr></HeadContent>', '    <ChildContent>', '        @foreach (var order in _orders)', '        {', '            <tr><td>@order.Number</td><td>@order.Total.ToString("C")</td></tr>', '        }', '    </ChildContent>', '</PkRawTable>', '```', '',
+            '## `PkRawTable`', '', table(['Parameter', 'Type', 'Description'], rt.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
+    }
+
     // reading picked files: PkDropzone with Blazor's InputFile (issue #83); a workflow, so no element table
     files.set('references/file-upload.md', ['# Reading picked files: PkDropzone with InputFile', '', stamp(src, 'the pk-dropzone element and Components/PkDropzone (generated)'), '',
         'The dropzone element keeps its files in its own shadow-tree input, which Blazor cannot read. To read the bytes use the Blazor `InputFile`: put it in the `input` slot of the dropzone and the zone only draws the target. There is no `IBrowserFile` marshalling in Plainkit and no interop per render; `InputFileChangeEventArgs`, `IBrowserFile` and `OpenReadStream` belong to Blazor and work the same in Blazor Server and Blazor WebAssembly.', '',
@@ -587,7 +611,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'file-upload.md': '`PkDropzone` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
