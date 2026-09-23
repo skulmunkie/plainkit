@@ -208,6 +208,10 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 `data-theme="dark|light"` and `data-density="compact"` on `<html>` or any element. Override tokens in a stylesheet loaded after `plainkit.css` (`references/theming.md` lists every token).
 
+### Upgrade this app to a newer Plainkit
+
+`references/upgrading.md` is a blast-radius recipe, not a changelog summary: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
+
 ## What is not built
 
 `references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).
