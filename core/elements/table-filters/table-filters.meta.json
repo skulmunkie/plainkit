@@ -1,0 +1,119 @@
+{
+  "tag": "pk-table-filters",
+  "title": "Table filters",
+  "summary": "A debounced global search box plus a Filters trigger (with an active-count badge) that opens a panel around your own filter fields, so a data table or list gets consistent search/filter UI without every page rebuilding the trigger-button-plus-badge-plus-panel shell by hand. Slot your own filter fields (selects, date ranges, whatever the fields are) into the default slot; put the element itself in pk-table's toolbar slot. It never searches, filters or clears anything itself: it only reports pk-search, pk-toggle and pk-clear-filters for the host to act on, the same as pk-table's own pk-sort and pk-filter.",
+  "group": "Data display",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Search",
+      "reflect": true,
+      "description": "The search box's placeholder and accessible name."
+    },
+    {
+      "name": "debounce",
+      "type": "number",
+      "default": 250,
+      "reflect": true,
+      "description": "Milliseconds between the last keystroke and pk-search."
+    },
+    {
+      "name": "filterCount",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Active-filter count shown as a badge on the Filters trigger. The host counts its own slotted fields; 0 hides the badge."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-toggle",
+      "description": "Whether the filter panel is open. The user opens and closes it with the Filters trigger and the panel's close button, and the element raises pk-toggle; a change the host makes raises nothing."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Your own filter fields (selects, date ranges, text inputs), shown in the filter panel. The Filters trigger only appears once this slot has content."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-search",
+      "detail": {
+        "query": "string"
+      },
+      "description": "The search box changed (debounced 250 ms).",
+      "cancelable": true
+    },
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "open": "bool"
+      },
+      "description": "The filter panel was opened or closed. open already holds the new state.",
+      "cancelable": true
+    },
+    {
+      "name": "pk-clear-filters",
+      "detail": null,
+      "description": "Clear filters was activated in the panel. The host owns the slotted fields; it clears their own state.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "search",
+      "description": "The search box"
+    },
+    {
+      "name": "trigger",
+      "description": "The Filters trigger button"
+    },
+    {
+      "name": "count",
+      "description": "The active-filter-count badge"
+    },
+    {
+      "name": "panel",
+      "description": "The filter panel"
+    },
+    {
+      "name": "header",
+      "description": "The panel's header row"
+    },
+    {
+      "name": "heading",
+      "description": "The panel's heading text"
+    },
+    {
+      "name": "close",
+      "description": "The panel's close button"
+    },
+    {
+      "name": "body",
+      "description": "The panel's body, holding the default slot"
+    },
+    {
+      "name": "footer",
+      "description": "The panel's footer, holding Clear filters"
+    },
+    {
+      "name": "clear",
+      "description": "The Clear filters button"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The search box is labelled by label. The Filters trigger reflects aria-expanded; the panel is a normal document region (not a modal: no focus trap, no backdrop), so the page behind stays usable. The close button is labelled Close filters.",
+  "mobile": "The search box grows to full width; the trigger, close and clear buttons are 44px.",
+  "examples": [
+    {
+      "title": "In a table's toolbar",
+      "html": "<pk-table columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' rows='[{\"id\":1,\"sku\":\"AC-001\"}]'>\n  <pk-table-filters slot=\"toolbar\" label=\"Search products\" filter-count=\"1\">\n    <pk-select label=\"Category\"><option>Accessories</option></pk-select>\n  </pk-table-filters>\n</pk-table>"
+    }
+  ]
+}

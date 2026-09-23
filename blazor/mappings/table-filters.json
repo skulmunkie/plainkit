@@ -1,0 +1,39 @@
+{
+  "component": "PkTableFilters",
+  "params": [
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "FilterCount",
+      "prop": "filterCount",
+      "type": "int"
+    },
+    {
+      "name": "Open",
+      "prop": "open",
+      "type": "bool",
+      "bind": {
+        "event": "pk-toggle",
+        "value": "detail.open"
+      }
+    },
+    {
+      "name": "OnSearch",
+      "event": "pk-search",
+      "type": "EventCallback<PkQueryEventArgs>"
+    },
+    {
+      "name": "OnClearFilters",
+      "event": "pk-clear-filters",
+      "type": "EventCallback"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

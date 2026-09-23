@@ -1,0 +1,23 @@
+:host { position: relative; display: contents; }
+[part="search"] { min-inline-size: 0; inline-size: 14rem; min-block-size: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-round); color: var(--color-text); font: inherit; font-size: var(--text-read); }
+[part="search"]:focus-visible { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
+[part="search"]::-webkit-search-cancel-button { display: none; }
+[part="trigger"] { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: var(--ctl-h); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-panel); color: inherit; font: inherit; cursor: pointer; }
+[part="trigger"]:hover { background: var(--color-surface-alt); }
+[part="trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+[part="count"] { min-inline-size: 1.2em; padding: 0 0.3em; border-radius: var(--radius-round); background: var(--color-accent); color: var(--color-panel); font-size: var(--text-meta); line-height: 1.2em; text-align: center; }
+[part="panel"] { flex-basis: 100%; margin-block-start: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-panel); }
+[part="header"] { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); border-block-end: 1px solid var(--color-border); }
+[part="heading"] { font-weight: 600; }
+[part="close"] { all: unset; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm); }
+[part="close"]:hover { background: var(--color-surface-alt); }
+[part="close"]:focus-visible { outline: var(--focus-ring); }
+[part="body"] { padding: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-3); }
+[part="footer"] { display: flex; justify-content: flex-end; padding: var(--space-2) var(--space-3); border-block-start: 1px solid var(--color-border); }
+[part="clear"] { all: unset; cursor: pointer; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--color-accent); }
+[part="clear"]:hover { background: var(--color-surface-alt); }
+[part="clear"]:focus-visible { outline: var(--focus-ring); }
+@media (--phone) {
+    [part="search"] { inline-size: 100%; font-size: 16px; }
+    [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
+}

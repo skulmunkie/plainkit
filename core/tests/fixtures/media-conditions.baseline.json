@@ -168,6 +168,9 @@
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
  ],
+ "table-filters": [
+  "(max-width: 640px)"
+ ],
  "tag-input": [
   "(max-width: 640px)"
  ],

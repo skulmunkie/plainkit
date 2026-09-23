@@ -212,7 +212,7 @@
     },
     {
       "name": "toolbar",
-      "description": "Search, filters and buttons above the table, laid out in a wrapping row. Give the item that should sit at the far end (an action button beside a search box) the attribute data-end: it and the items after it move to the end of the row."
+      "description": "Search, filters and buttons above the table, laid out in a wrapping row. Give the item that should sit at the far end (an action button beside a search box) the attribute data-end: it and the items after it move to the end of the row. pk-table-filters (issue 203) fits here: a debounced search box plus a Filters trigger and panel around your own filter fields, so a table gets consistent search/filter UI without a page rebuilding that shell by hand."
     },
     {
       "name": "bulk",

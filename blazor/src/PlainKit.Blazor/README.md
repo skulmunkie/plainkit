@@ -102,6 +102,17 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 - **Manual** (server-driven) mode: the table shows `Items` exactly as given and reports `OnSort` (`PkSortEventArgs`, `Key` and `Direction`), `OnFilter` and, from the footer, the pager's page events; you load the matching rows. `Sort`, `SortDirection`, `Filters`, `Selected` and `Expanded` are two-way (`@bind-Sort`): while the user interacts the element owns the value, after the event you own it. `OnRowClick` gives a `PkTableRowClickArgs<TItem>` (`Id`, `Item`); `OnRowExpand` and `DetailTemplate` (rendered into `detail-<id>` slots, with `Expandable`) follow the element.
 - **Ownership.** Rows and columns are JSON attributes rebuilt when the parameters are set: no JavaScript per render. Cell and detail templates are ordinary Blazor children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the `rows` attribute; change the rows by changing `Items`. A `pk-select` that bubbles up from a menu in a cell is ignored (only the table's carries `selected`).
 - **Slots**: `ToolbarContent` (in a `pk-cluster`), `BulkContent`, `CaptionContent`, `EmptyContent`, `FooterContent` (put a `PkPagination` here); `EmptyText`, `Loading`, `Cards`, `Striped`, `Hover`, `Bordered`, `Density`, `StickyHeader`, `StickyColumn`, `MaxHeight`, `Label`, `Caption`, `Flow`, `Selectable`, `Clickable`, `Filterable` are the element's own props.
+- **Search and a filter panel in the toolbar** (issue 203): `PkTableFilters` is a generated companion, standalone (it reads and writes nothing on `PkTable`), that goes in `ToolbarContent` — a debounced search box plus a Filters trigger (with a `FilterCount` badge) opening a panel around your own filter fields:
+  ```razor
+  <PkTable TItem="Order" Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual OnFilter="Reload">
+      <ToolbarContent>
+          <PkTableFilters Label="Search orders" FilterCount="_activeFilters" OnSearch="e => { _search = e.Query; Reload(); }" OnClearFilters="ClearFilters">
+              <PkSelect Label="Status" @bind-Value="_status"><option value="">Any</option><option value="open">Open</option></PkSelect>
+          </PkTableFilters>
+      </ToolbarContent>
+  </PkTable>
+  ```
+  The component never filters anything itself: read `OnSearch`/your own field bindings and reload, the same way `PkTable`'s own `OnFilter`/`OnSort` already work in `Manual` mode.
 
 ```razor
 <PkDataList TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
