@@ -83,6 +83,20 @@
       "default": false,
       "reflect": true,
       "description": "Allows the same tag twice (case-insensitive by default)."
+    },
+    {
+      "name": "lockedTags",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Always-present tags, comma-joined, shown before the editable ones. Rendered without a remove button, excluded from value, from the form value and from Backspace removal; a locked tag with the same text as an editable one is still shown twice. Set lockedTitle for why they can't be removed."
+    },
+    {
+      "name": "lockedTitle",
+      "type": "string",
+      "default": "Locked",
+      "reflect": true,
+      "description": "Tooltip (title attribute) on every locked tag."
     }
   ],
   "slots": [],
@@ -121,7 +135,7 @@
     },
     {
       "name": "tag",
-      "description": "One tag pill (dynamic)."
+      "description": "One tag pill (dynamic); a locked tag (from lockedTags) carries data-locked and has no tag-remove."
     },
     {
       "name": "tag-label",
@@ -160,11 +174,18 @@
       "description": "Focuses the text field."
     }
   ],
-  "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag.",
+  "writes": [
+    { "target": "each locked tag's own pill (from lockedTags, a dynamic shadow child)", "attributes": ["data-locked"], "why": "Marks a locked pill for styling (::part(tag)[data-locked]) and so it is skipped by the remove-button query. Not a host attribute; rebuilt every render." }
+  ],
+  "a11y": "Each remove button has an aria-label (\"Remove dc\") and is out of the tab order (Backspace is the keyboard route); adds and removes are announced through a polite status element; a form receives one entry per tag. A locked tag has a title (lockedTitle) and no remove button, so it is not announced as removable.",
   "examples": [
     {
       "title": "Tags",
       "html": "<pk-tag-input label=\"Tags\" value=\"dc,variant\" max=\"8\" placeholder=\"add a tag\"></pk-tag-input>"
+    },
+    {
+      "title": "Locked and editable tags",
+      "html": "<pk-tag-input label=\"Tags\" locked-tags=\"system\" locked-title=\"Inferred from category, not editable here\" value=\"dc,variant\"></pk-tag-input>"
     }
   ]
 }
