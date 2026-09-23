@@ -193,6 +193,18 @@ export const formCases = [
         let changes = 0; el.addEventListener('pk-tags-change', () => changes++); f.value = 'a'; f.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); await t.settle(); t.eq(changes, 1, 'leaving the field adds what is typed');
     }],
 
+    ['tag-input: locked tags render before the editable ones, without a remove button, and Backspace never touches them', async t => {
+        const host = t.stage('<pk-tag-input label="Tags" locked-tags="system" locked-title="Inferred" value="dc,variant"></pk-tag-input>'); await t.load(host); await t.settle();
+        const el = host.querySelector('pk-tag-input'); const f = el.part('field'); const pills = () => [...el.part('box').querySelectorAll('.pill')];
+        t.eq(pills().map(p => p.querySelector('.pl').textContent).join(), 'system,dc,variant');
+        const locked = pills()[0];
+        t.ok(locked.hasAttribute('data-locked')); t.eq(locked.title, 'Inferred'); t.eq(locked.querySelector('.px'), null);
+        t.eq(el.value, 'dc,variant', 'the locked tag never joins value');
+        press(f, 'Backspace'); await t.settle(); t.eq(el.value, 'dc', 'Backspace removes only the last editable tag, never a locked one');
+        for (let i = 0; i < 3; i++) { press(f, 'Backspace'); await t.settle(); }
+        t.eq(pills().map(p => p.querySelector('.pl').textContent).join(), 'system', 'the locked tag survives removing every editable one');
+    }],
+
     ['otp-input: typing advances, a pasted or autofilled code spreads, Backspace steps back, completion is an event', async t => {
         const host = t.stage('<form><pk-otp-input name="code" length="4" label="Code"></pk-otp-input></form>'); await t.load(host); await t.settle();
         const el = host.querySelector('pk-otp-input'); const cells = () => [...el.part('group').querySelectorAll('input')]; t.eq(cells().length, 4); t.eq(cells()[1].getAttribute('aria-label'), 'Digit 2 of 4');

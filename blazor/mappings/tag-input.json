@@ -40,6 +40,16 @@
       "name": "AriaLabel",
       "prop": "label",
       "type": "string"
+    },
+    {
+      "name": "LockedTags",
+      "prop": "lockedTags",
+      "type": "string"
+    },
+    {
+      "name": "LockedTitle",
+      "prop": "lockedTitle",
+      "type": "string"
     }
   ],
   "model": {

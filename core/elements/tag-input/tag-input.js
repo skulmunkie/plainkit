@@ -25,6 +25,7 @@ export default Base => class extends Base {
         this.part('box').addEventListener('click', e => { const x = e.target.closest?.('.px'); if (x) this.removeTag(x.previousElementSibling.textContent); f.focus(); });
     }
     get tags() { return this.value === '' ? [] : this.value.split(','); }
+    get lockedTagList() { return parseTags(this.lockedTags, ','); }
     set tags(list) { this.value = list.join(','); }
     say(text) { this.part('status').textContent = text; }
     commit(list, said) {
@@ -50,7 +51,9 @@ export default Base => class extends Base {
     }
     updated() {
         const box = this.part('box'); const f = this.part('field'); const tpl = this.shadowRoot.querySelector('template'); const holder = box.querySelector('.tags');
-        holder.replaceChildren(...this.tags.map(t => { const p = tpl.content.firstElementChild.cloneNode(true); p.querySelector('.pl').textContent = t; p.querySelector('.px').setAttribute('aria-label', `Remove ${t}`); return p; }));
+        const locked = this.lockedTagList.map(t => { const p = tpl.content.firstElementChild.cloneNode(true); p.querySelector('.pl').textContent = t; p.querySelector('.px').remove(); p.dataset.locked = ''; p.title = this.lockedTitle; return p; });
+        const editable = this.tags.map(t => { const p = tpl.content.firstElementChild.cloneNode(true); p.querySelector('.pl').textContent = t; p.querySelector('.px').setAttribute('aria-label', `Remove ${t}`); return p; });
+        holder.replaceChildren(...locked, ...editable);
         this.setValidity(this.required && this.tags.length === 0 ? { valueMissing: true } : {}, 'Add at least one tag.', f);
         const fd = new FormData(); for (const t of this.tags) fd.append(this.name, t); this.setFormValue(fd);
     }
