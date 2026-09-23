@@ -8,7 +8,8 @@
     "empty-state",
     "input",
     "list-group",
-    "stack"
+    "stack",
+    "text"
   ],
   "order": 6
 }

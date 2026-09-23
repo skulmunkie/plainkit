@@ -15,6 +15,7 @@
     --color-accent-fill-hover: #1f6fca;
     --color-border: #3a3a3a;
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, Consolas, monospace;
 
     /* Card elevation, per theme: dark deepens the edge, light needs the shadow to do the separating. */
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45);
@@ -50,6 +51,12 @@
     --text-md: var(--text-read);
     --text-base: var(--text-read);
     --text-lg: 1.1rem;
+    --text-h1: 2rem;                  /* heading scale: the browser default sizes at the root, h5 and h6 held at the meta floor */
+    --text-h2: 1.5rem;
+    --text-h3: 1.17rem;
+    --text-h4: var(--text-read);
+    --text-h5: var(--text-meta);
+    --text-h6: var(--text-meta);
 
     --shadow-flyout: -4px 0 20px rgba(0, 0, 0, 0.4);
     --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.32);

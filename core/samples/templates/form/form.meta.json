@@ -13,7 +13,8 @@
     "range",
     "select",
     "stack",
-    "switch"
+    "switch",
+    "text"
   ],
   "order": 5
 }

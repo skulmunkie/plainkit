@@ -1,0 +1,45 @@
+{
+  "component": "PkText",
+  "params": [
+    {
+      "name": "Inline",
+      "prop": "inline",
+      "type": "bool"
+    },
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "PkTextVariant"
+    },
+    {
+      "name": "Font",
+      "prop": "font",
+      "type": "PkTextFont"
+    },
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "PkTextSize"
+    },
+    {
+      "name": "Tone",
+      "prop": "tone",
+      "type": "PkTextTone"
+    },
+    {
+      "name": "Weight",
+      "prop": "weight",
+      "type": "PkTextWeight"
+    },
+    {
+      "name": "Truncate",
+      "prop": "truncate",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 <pk-stack>
 <pk-card heading="Section one"><pk-grid min="16rem"><pk-field label="Name" required help="Help text sits below the input."><pk-input value="Example"></pk-input></pk-field><pk-field label="Email" error="Enter a valid email address."><pk-input value="not-an-email"></pk-input></pk-field><pk-field label="Choice"><pk-select><option>One</option></pk-select></pk-field></pk-grid></pk-card>
 <pk-card heading="Section two"><pk-stack gap="sm"><pk-switch checked>Option enabled</pk-switch><pk-range label="Amount" min="0" max="100" value="40" output></pk-range></pk-stack></pk-card>
-<pk-form-actions sticky><pk-button type="submit">Save</pk-button><pk-button variant="ghost">Cancel</pk-button><span slot="status" class="muted">Unsaved changes</span></pk-form-actions>
+<pk-form-actions sticky><pk-button type="submit">Save</pk-button><pk-button variant="ghost">Cancel</pk-button><pk-text inline tone="muted" slot="status">Unsaved changes</pk-text></pk-form-actions>
 </pk-stack>
 </form>
 </main>
