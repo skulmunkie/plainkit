@@ -1,0 +1,104 @@
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using PlainKit.Blazor;
+
+namespace PlainKit.Blazor.Tests;
+
+// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataList).
+public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
+{
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
+    public PkFieldGroupTests()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddPlainKit();
+    }
+
+    private sealed class Order
+    {
+        public string Name { get; set; } = "";
+        public int Qty { get; set; }
+        public bool Active { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    private static IReadOnlyList<PkFieldSpec<Order>> Fields() =>
+    [
+        new() { Key = "name", Label = "Name", Hint = "Full name", Required = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        new() { Key = "qty", Label = "Quantity", Kind = PkFieldKind.Number, Min = "1", Max = "99", Step = "1", Get = o => o.Qty.ToString(), Set = (o, v) => o.Qty = int.Parse(v ?? "0") },
+        new() { Key = "active", Label = "Active", Kind = PkFieldKind.Checkbox, Get = o => o.Active ? "true" : "", Set = (o, v) => o.Active = v == "true" },
+        new() { Key = "status", Label = "Status", Kind = PkFieldKind.Select, Options = [new("open", "Open"), new("closed", "Closed")], Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
+    ];
+
+    [Fact]
+    public void A_plain_field_renders_a_PkField_wrapping_a_pk_input_with_its_label_hint_required_and_initial_value()
+    {
+        var order = new Order { Name = "Acme" };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, order));
+
+        var field = cut.Find("pk-field");
+        Assert.Equal("Name", field.GetAttribute("label"));
+        Assert.Equal("Full name", field.GetAttribute("help"));
+        Assert.NotNull(field.GetAttribute("required"));
+        var input = field.QuerySelector("pk-input");
+        Assert.NotNull(input);
+        Assert.Equal("text", input!.GetAttribute("type"));
+        Assert.Equal("Acme", input.GetAttribute("value"));
+    }
+
+    [Fact]
+    public void Kind_picks_the_control_and_the_input_type()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order()));
+
+        var controls = cut.FindAll("pk-field").Select(f => f.Children.First()).ToList();
+        Assert.Equal("pk-input", controls[0].TagName.ToLowerInvariant());
+        Assert.Equal("number", controls[1].GetAttribute("type"));
+        Assert.Equal("1", controls[1].GetAttribute("min")); Assert.Equal("99", controls[1].GetAttribute("max")); Assert.Equal("1", controls[1].GetAttribute("step"));
+        Assert.Equal("pk-checkbox", controls[2].TagName.ToLowerInvariant());
+        Assert.Equal("pk-select", controls[3].TagName.ToLowerInvariant());
+        var options = controls[3].QuerySelectorAll("option");
+        Assert.Equal(2, options.Length);
+        Assert.Equal("open", options[0].GetAttribute("value")); Assert.Equal("Open", options[0].TextContent);
+    }
+
+    [Fact]
+    public void Checkbox_checked_reflects_a_non_empty_non_false_value_from_Get()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order { Active = true }));
+        var checkbox = cut.Find("pk-checkbox");
+        Assert.NotNull(checkbox.GetAttribute("checked"));
+    }
+
+    [Fact]
+    public async Task A_committed_value_calls_Set_on_the_model_and_raises_ModelChanged()
+    {
+        var order = new Order();
+        var changed = 0;
+        var cut = Render<PkFieldGroup<Order>>(p => p
+            .Add(x => x.Fields, Fields())
+            .Add(x => x.Model, order)
+            .Add(x => x.ModelChanged, EventCallback.Factory.Create(this, () => changed++)));
+
+        await cut.Find("pk-input").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "Ada" });
+
+        Assert.Equal("Ada", order.Name);
+        Assert.Equal(1, changed);
+    }
+
+    [Fact]
+    public async Task A_committed_checkbox_change_calls_Set_with_true_or_empty_string()
+    {
+        var order = new Order();
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, order));
+
+        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = true });
+        Assert.True(order.Active);
+
+        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
+        Assert.False(order.Active);
+    }
+}

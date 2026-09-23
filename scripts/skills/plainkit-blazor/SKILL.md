@@ -29,8 +29,6 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 
 {{references}}
 
-For an element's parts, CSS custom properties, methods and accessibility notes, open the same tag in the `plainkit-sdk` skill.
-
 ## Workflows
 
 ### Set up

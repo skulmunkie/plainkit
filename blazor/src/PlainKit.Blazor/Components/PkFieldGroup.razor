@@ -1,0 +1,66 @@
+@namespace PlainKit.Blazor
+@typeparam TItem
+
+@* Hand-written, no element of its own (issue 222): renders a PkField + the right control for each PkFieldSpec, reading and writing
+   Model through the spec's Get/Set. It never subsumes a conditional field or a computed value; those stay hand-written next to it.
+   Each control's own two-way ValueChanged/CheckedChanged already commits before this component sees it, the same as writing the
+   field by hand -- pk-form's own validation needs nothing extra either, since these are the same real elements a hand-written field
+   would use. *@
+@foreach (var f in Fields)
+{
+    <PkField Label="@f.Label" Hint="@f.Hint" Required="@f.Required">
+        @if (f.Kind == PkFieldKind.Select)
+        {
+            <PkSelect Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required">
+                @foreach (var o in f.Options ?? [])
+                {
+                    <option value="@o.Value">@o.Label</option>
+                }
+            </PkSelect>
+        }
+        else if (f.Kind == PkFieldKind.Textarea)
+        {
+            <PkTextarea Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength" />
+        }
+        else if (f.Kind == PkFieldKind.Checkbox)
+        {
+            <PkCheckbox Checked="@IsChecked(f.Get(Model))" CheckedChanged="@(v => Update(f, v ? "true" : ""))" Required="@f.Required" />
+        }
+        else
+        {
+            <PkInput Type="@InputType(f.Kind)" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required"
+                     Min="@f.Min" Max="@f.Max" Step="@f.Step" MaxLength="@f.MaxLength" Pattern="@f.Pattern" />
+        }
+    </PkField>
+}
+
+@code {
+    /// <summary>The fields to render, in order.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PkFieldSpec<TItem>> Fields { get; set; } = [];
+
+    /// <summary>The bound record; each field's <c>Get</c> reads it, each commit calls <c>Set</c> then <see cref="ModelChanged"/>.</summary>
+    [Parameter, EditorRequired] public TItem Model { get; set; } = default!;
+
+    /// <summary>Raised after any field commits a change (the model was already updated in place through <c>Set</c>).</summary>
+    [Parameter] public EventCallback ModelChanged { get; set; }
+
+    private static string InputType(PkFieldKind kind) => kind switch
+    {
+        PkFieldKind.Number => "number",
+        PkFieldKind.Email => "email",
+        PkFieldKind.Password => "password",
+        PkFieldKind.Date => "date",
+        PkFieldKind.Time => "time",
+        PkFieldKind.Url => "url",
+        PkFieldKind.Tel => "tel",
+        _ => "text",
+    };
+
+    private static bool IsChecked(string? value) => !string.IsNullOrEmpty(value) && value != "false";
+
+    private async Task Update(PkFieldSpec<TItem> f, string? value)
+    {
+        f.Set(Model, value);
+        await ModelChanged.InvokeAsync();
+    }
+}

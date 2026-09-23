@@ -5,6 +5,46 @@ const press = (el, key) => { const e = new KeyboardEvent('keydown', { key, bubbl
 const type = async (t, inner, text) => { inner.value = text; inner.dispatchEvent(ev('input')); await t.settle(); };
 
 export const formCases = [
+    ['field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
+        const { mountFieldGroup } = await import('../../modules/field-group/field-group.js');
+        const host = t.stage('<pk-form><form><div id="fields"></div><pk-button type="submit">Save</pk-button></form></pk-form>'); await t.load(host);
+        const data = { name: 'Ada', qty: 2, active: true, status: 'open' };
+        const changes = [];
+        const group = mountFieldGroup(host.querySelector('#fields'), {
+            fields: [
+                { key: 'name', label: 'Name', required: true },
+                { key: 'qty', label: 'Quantity', kind: 'number', min: '1' },
+                { key: 'active', label: 'Active', kind: 'checkbox' },
+                { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] },
+            ],
+            data,
+            onChange: (key, value) => changes.push([key, value]),
+        });
+        await t.settle();
+        const [nameField, qtyField, activeField, statusField] = host.querySelectorAll('pk-field');
+        const nameInput = nameField.querySelector('pk-input'), qtyInput = qtyField.querySelector('pk-input');
+        const activeBox = activeField.querySelector('pk-checkbox'), statusSelect = statusField.querySelector('pk-select');
+        t.eq(nameInput.value, 'Ada'); t.eq(qtyInput.value, '2'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'open');
+        t.eq(statusSelect.querySelectorAll('option').length, 2);
+
+        await type(t, nameInput.part('control'), 'Grace');
+        nameInput.part('control').dispatchEvent(ev('change')); await t.settle();
+        t.eq(data.name, 'Grace'); t.eq(JSON.stringify(changes.at(-1)), JSON.stringify(['name', 'Grace']));
+
+        activeBox.part('input').click(); await t.settle();
+        t.eq(data.active, false); t.eq(JSON.stringify(changes.at(-1)), JSON.stringify(['active', false]));
+
+        const f = host.querySelector('form'); let invalid = 0; host.querySelector('pk-form').addEventListener('pk-invalid', () => invalid++);
+        await type(t, nameInput.part('control'), ''); f.requestSubmit(); await t.settle();
+        t.eq(invalid, 1, 'a required field this module rendered is validated by pk-form with no extra wiring');
+
+        group.refresh({ name: 'Restored', qty: 9, active: true, status: 'closed' });
+        t.eq(nameInput.value, 'Restored'); t.eq(qtyInput.value, '9'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'closed');
+
+        group.destroy();
+        t.eq(host.querySelectorAll('pk-field').length, 0, 'destroy removes every field it built');
+    }],
+
     ['input: typing updates value, reports input and change, and the form receives it', async t => {
         const host = t.stage('<form><pk-input name="q" label="Query" value="a"></pk-input></form>'); await t.load(host);
         const el = host.querySelector('pk-input'); const inner = el.part('control');
