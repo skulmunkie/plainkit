@@ -1,5 +1,7 @@
 {
   "component": "PkSideNav",
+  "existing": true,
+  "notes": "Hand-written (issue 210): CurrentPath is an explicit override; unset, the component tracks NavigationManager itself instead of the host wiring LocationChanged by hand.",
   "params": [
     {
       "name": "Label",
