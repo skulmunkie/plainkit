@@ -1,0 +1,145 @@
+{
+  "tag": "pk-app-bar-search",
+  "title": "App bar search",
+  "group": "Navigation",
+  "summary": "A search field for a shell's header row: a pill on a wide screen, results in a floating panel below it; below the phone breakpoint the pill collapses to an icon button that expands to a full-width field over the header row. Debounces typing into pk-query; the host supplies items (results) and reads pk-select when one is chosen. Closes itself when the containing pk-app-shell's nav drawer opens, on Escape and on browser navigation.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Search",
+      "reflect": true,
+      "description": "The accessible name of the field and the expand button."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty."
+    },
+    {
+      "name": "debounce",
+      "type": "number",
+      "default": 250,
+      "reflect": true,
+      "description": "Milliseconds to wait after the last keystroke before raising pk-query."
+    },
+    {
+      "name": "expanded",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-toggle",
+      "description": "Below the phone breakpoint, whether the field covers the header row. No effect above it (the field is always shown there)."
+    },
+    {
+      "name": "items",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. A JSON attribute or a property, like pk-table's rows. Adjacent items with the same group get one heading between them; the host is responsible for the order."
+    }
+  ],
+  "slots": [
+    {
+      "name": "empty",
+      "description": "The message shown when items is empty and the field has text."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-query",
+      "detail": {
+        "query": "string"
+      },
+      "description": "The field's text, debounce milliseconds after the last keystroke. The host fetches or filters and sets items in response; this element never searches itself."
+    },
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "object"
+      },
+      "description": "A result was chosen (click or Enter). The host decides what happens; this element does not navigate."
+    },
+    {
+      "name": "pk-toggle",
+      "detail": {
+        "expanded": "bool"
+      },
+      "description": "expanded changed by itself (the expand or collapse button, Escape, the shell's drawer opening, a navigation). Not raised for a change the host made."
+    }
+  ],
+  "parts": [
+    {
+      "name": "expand",
+      "description": "The icon button shown below the phone breakpoint."
+    },
+    {
+      "name": "box",
+      "description": "The bordered field."
+    },
+    {
+      "name": "control",
+      "description": "The input."
+    },
+    {
+      "name": "collapse",
+      "description": "The close button shown while expanded, below the phone breakpoint."
+    },
+    {
+      "name": "popup",
+      "description": "The results panel."
+    },
+    {
+      "name": "empty",
+      "description": "The no-results message."
+    },
+    {
+      "name": "option",
+      "description": "One result row (dynamic)."
+    },
+    {
+      "name": "thumb",
+      "description": "A result's thumbnail (dynamic; shown when the item has one)."
+    },
+    {
+      "name": "badge",
+      "description": "A result's badge text (dynamic; shown when the item has one)."
+    },
+    {
+      "name": "expand-icon",
+      "description": "The expand button's icon."
+    },
+    {
+      "name": "box-icon",
+      "description": "The field's icon."
+    },
+    {
+      "name": "collapse-icon",
+      "description": "The close button's icon."
+    },
+    {
+      "name": "row",
+      "description": "A result row's label and subtitle column (dynamic)."
+    },
+    {
+      "name": "row-label",
+      "description": "A result's label text (dynamic)."
+    },
+    {
+      "name": "row-sub",
+      "description": "A result's subtitle text (dynamic; shown when the item has one)."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "ARIA 1.2 combobox: role=combobox on the input, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input). Arrow keys move, Enter picks, Escape closes the results, then a second Escape collapses the field below the phone breakpoint. The expand and collapse buttons are 44px touch targets.",
+  "mobile": "Below the phone breakpoint the field is an icon button; tapping it covers the header row with a full-width field and a close button. The results panel is full width below it.",
+  "examples": [
+    {
+      "title": "In an app shell header",
+      "html": "<pk-app-shell><pk-app-bar-search slot=\"header\" placeholder=\"Search…\"></pk-app-bar-search></pk-app-shell>"
+    }
+  ]
+}

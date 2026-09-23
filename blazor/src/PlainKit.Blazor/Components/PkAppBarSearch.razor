@@ -1,0 +1,72 @@
+@namespace PlainKit.Blazor
+@using Microsoft.AspNetCore.Components.Routing
+@using System.Globalization
+@inherits PkElementBase
+@implements IDisposable
+
+@* Hand-written (blazor/mappings/app-bar-search.json marks it "existing"): Items is a typed JSON attribute (PkAppBarSearchItem, like
+   PkTable's Columns/Items), and closing on navigation needs NavigationManager, the same pattern PkSideNav established (issue 210) — the
+   element's own popstate listener does not see a Blazor route change that used pushState without a popstate (most in-app navigation). *@
+<pk-app-bar-search label="@Label"
+                    placeholder="@Placeholder"
+                    debounce="@Debounce.ToString(CultureInfo.InvariantCulture)"
+                    expanded="@Expanded"
+                    items="@PkAttr.Json(Items)"
+                    @ref="Element"
+                    class="@Css()"
+                    @attributes="Splat"></pk-app-bar-search>
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    /// <summary>The accessible name of the field and the expand button.</summary>
+    [Parameter] public string Label { get; set; } = "Search";
+
+    /// <summary>Hint shown while empty.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Milliseconds to wait after the last keystroke before raising <see cref="OnQuery"/>.</summary>
+    [Parameter] public int Debounce { get; set; } = 250;
+
+    /// <summary>Below the phone breakpoint, whether the field covers the header row. Cleared automatically on navigation.</summary>
+    [Parameter] public bool Expanded { get; set; }
+
+    /// <summary>Raised when <see cref="Expanded"/> changes (two-way binding: <c>@bind-Expanded</c>).</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    /// <summary>Results: <see cref="PkAppBarSearchItem"/>[]. The host computes them (locally or on the server) in response to <see cref="OnQuery"/>.</summary>
+    [Parameter] public IReadOnlyList<PkAppBarSearchItem>? Items { get; set; }
+
+    /// <summary>The field's text, <see cref="Debounce"/> milliseconds after the last keystroke. This element never searches itself.</summary>
+    [Parameter] public EventCallback<PkQueryEventArgs> OnQuery { get; set; }
+
+    /// <summary>A result was chosen. Deserialize <c>e.Item</c> as <see cref="PkAppBarSearchItem"/> to read it; this element never navigates.</summary>
+    [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Nav.LocationChanged += HandleLocationChanged;
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (!Expanded) return;
+        Expanded = false;
+        await InvokeAsync(async () => { await ExpandedChanged.InvokeAsync(false); StateHasChanged(); });
+    }
+
+    /// <inheritdoc />
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
+    {
+        handlers["onpk-query"] = EventCallback.Factory.Create<PkQueryEventArgs>(this, OnQuery);
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkSelectEventArgs>(this, OnSelect);
+        handlers["onpk-toggle"] = EventCallback.Factory.Create<PkToggleEventArgs>(this, HandleToggle);
+    }
+
+    private async Task HandleToggle(PkToggleEventArgs e)
+    {
+        Expanded = e.Expanded == true;
+        await ExpandedChanged.InvokeAsync(Expanded);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Nav.LocationChanged -= HandleLocationChanged;
+}

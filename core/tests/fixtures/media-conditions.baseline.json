@@ -5,6 +5,9 @@
  "alert": [
   "(max-width: 640px)"
  ],
+ "app-bar-search": [
+  "(max-width: 640px)"
+ ],
  "app-shell": [
   "(max-width: 1024px)",
   "(max-width: 640px)"

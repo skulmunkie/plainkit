@@ -280,7 +280,28 @@ Apart from the back link the header writes plain text into the outlet, so the la
 </PkSideNav>
 ```
 
-This is a hand-written component (`blazor/mappings/side-nav.json` marks it `"existing": true`, the same way `PkTable`'s own event/data logic is hand-written): the generator can express every attribute and event `pk-side-nav` has, but not router interop, so `PkSideNav` owns that part itself instead of asking every app to subscribe to `NavigationManager.LocationChanged` by hand. It is the first component in the package built this way; a future one that needs to know "where is the app right now" (a breadcrumb, a search panel that closes on navigation) follows the same shape: inject `NavigationManager`, keep the tracked value private, offer an explicit override parameter that always wins, unsubscribe in `Dispose`.
+This is a hand-written component (`blazor/mappings/side-nav.json` marks it `"existing": true`, the same way `PkTable`'s own event/data logic is hand-written): the generator can express every attribute and event `pk-side-nav` has, but not router interop, so `PkSideNav` owns that part itself instead of asking every app to subscribe to `NavigationManager.LocationChanged` by hand. It is the first component in the package built this way.
+
+`PkAppBarSearch` (a search field for a shell's header row, issue 213) is the second, following the same shape for a different reason: it collapses itself when the app navigates, so a result panel never sits open over a page the user already left. Slot it into `PkAppShell`'s header, and it closes on Escape, when the shell's nav drawer opens, and on navigation, without you wiring any of the three:
+
+```razor
+<PkAppShell>
+    <SidebarContent><PkSideNav Label="Main" AutoExpandActive="true">...</PkSideNav></SidebarContent>
+    <HeaderContent>
+        <PkAppBarSearch Label="Search" Items="@results" OnQuery="Search" OnSelect="e => Nav.NavigateTo($"/things/{e.Item!.Value.GetProperty("id")}")" />
+    </HeaderContent>
+    <BodyContent>...</BodyContent>
+</PkAppShell>
+
+@code {
+    private IReadOnlyList<PkAppBarSearchItem>? results;
+    private async Task Search(PkQueryEventArgs e) => results = await MyRepo.SearchAsync(e.Query);
+}
+```
+
+`Items` is a typed JSON attribute, like `PkTable`'s `Columns`/`Items` — the host computes results (locally or on the server) and sets it; the element never searches or fetches itself. `OnSelect` carries the chosen `PkAppBarSearchItem` back as JSON (`PkSelectEventArgs.Item`, a `JsonElement?`); the element never navigates, so read it and call `NavigationManager` yourself.
+
+A future component that needs to know "where is the app right now" (a route-derived breadcrumb) follows the same shape: inject `NavigationManager`, keep the tracked value private, offer an explicit override parameter that always wins, unsubscribe in `Dispose`.
 
 ## How binding works
 

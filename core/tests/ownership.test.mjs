@@ -401,6 +401,7 @@ export function writesOf(source) {
 // Receivers the check cannot classify, per source: { receiver: why it is not a node the host owns }.
 const OWN_SHADOW = 'a node in the element\'s own shadow tree (or one it builds for it)';
 const ALLOWED_WRITES = {
+    'elements/app-bar-search/app-bar-search.js': { e: 'a node the el() helper creates' },
     'elements/chart/chart.js': { li: 'a legend item the chart builds itself, inside its shadow tree' },
     'elements/combobox/combobox.js': { 'this.ctl()': OWN_SHADOW + ': ctl() returns the shadow trigger or control', o: 'an option of the popup the element renders in its shadow tree', c: OWN_SHADOW + ' (the control or the trigger)' },
     'elements/command-palette/command-palette.js': { e: 'a node the el() helper creates', r: 'a row of the list the element renders in its shadow tree' },
