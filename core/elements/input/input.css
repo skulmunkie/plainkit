@@ -15,7 +15,7 @@ label { display: none; margin-block-end: var(--space-1); }
 input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
 ::placeholder { color: var(--color-muted); opacity: 1; }
 .ico, .cur, .clear, .reveal, .copy, .step { display: none; flex: none; }
-.ico, .ib svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ico { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .ico { color: var(--color-muted); }
 .ib { width: calc(var(--ctl-h) - 0.6rem); height: calc(var(--ctl-h) - 0.6rem); place-items: center; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--field-muted); font: inherit; font-size: var(--text-lg); cursor: pointer; }
 .ib:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
