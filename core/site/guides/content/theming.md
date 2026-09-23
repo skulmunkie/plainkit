@@ -69,6 +69,7 @@ Order matters in a stylesheet cascade: link Plainkit first and your file after i
 | Space | `--space-1` to `--space-12` | the spacing scale; use it for gaps and padding |
 | Text | `--text-meta`, `--text-read`, `--text-lg` | font sizes for secondary text, reading text and larger text |
 | Shape and depth | `--radius-sm` to `--radius-xl`, `--shadow-card`, `--shadow-modal` | corners and elevation |
+| Motion | `--duration-fast`, `--duration-base`, `--duration-slow`, `--ease` | quick UI feedback: hover/focus state changes, expand/collapse, drawer/flyout slide |
 | Layers | `--z-sticky`, `--z-modal`, `--z-toast` | stacking order, so a toast is always above a dialog |
 
 Use them in your own CSS too, so your parts follow the theme: `padding: var(--space-4); background: var(--color-panel);` is dark in a dark page and light in a light one, with no extra rules.

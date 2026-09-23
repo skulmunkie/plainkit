@@ -106,7 +106,7 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
   the generated files and tests compare bytes. Do not rewrite a whole file with a tool that strips carriage returns; check `git diff --stat` for whole-file diffs.
 - **CSP.** The site runs under `script-src 'self'; style-src 'self'`: no inline scripts, `style` attributes, `<style>` elements, inline handlers, `eval` or
   cross-origin requests. `innerHTML`-style sinks are counted in `core/tools/security.allow.json`; prefer DOM APIs and `textContent`.
-- **Tokens only.** No literal colours or ad-hoc sizes in CSS; use the tokens (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`), and an
+- **Tokens only.** No literal colours or ad-hoc sizes in CSS; use the tokens (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`, `--duration-*`, `--ease-*`), and an
   element's own hooks are `--pk-<element>-<part>`. Tokens live only in `tokens/tokens.css`.
 - **Size budgets are never raised.** Not the page layer's 10 KB gzip, not an element's. If you are over, make the source smaller.
 - **No silent failure.** No empty `catch`, no `.catch(() => {})`, no bare `console.*`: use the SDK logger (`createLogger(scope)` from `js/log.js`; elements have
