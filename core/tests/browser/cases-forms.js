@@ -76,6 +76,22 @@ export const formCases = [
         n.part('step-down').click(); n.part('step-down').click(); await t.settle(); t.eq(n.value, '0'); t.ok(n.part('step-down').disabled);
     }],
 
+    ['input: copyable copies the value, gives transient feedback, and disables itself while empty', async t => {
+        const el = await t.mount('<pk-input type="password" label="API key" reveal copyable value="sk_live_1"></pk-input>');
+        const copy = el.part('copy'); t.ok(!copy.disabled, 'a value makes the button live');
+        let written = null;
+        const original = navigator.clipboard;
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { written = text; } }, configurable: true });
+        try {
+            copy.click(); await t.settle();
+            t.eq(written, 'sk_live_1', 'the current value went to the clipboard');
+            t.eq(copy.getAttribute('aria-label'), 'Copied', 'transient feedback replaces the label');
+            el.value = ''; await t.settle(); t.ok(copy.disabled, 'disabled once the field is empty');
+        } finally {
+            Object.defineProperty(navigator, 'clipboard', { value: original, configurable: true });
+        }
+    }],
+
     ['input: money shows the plain number while editing and the formatted amount when left, and keeps the number in value', async t => {
         const el = await t.mount('<pk-input format="money" value="1234.5"></pk-input>');
         const i = el.part('control'); t.eq(i.value, '1,234.50'); t.eq(el.part('currency').textContent, '$');
