@@ -219,7 +219,6 @@ builder.Services.AddPlainKit(o =>
 Forwarded entries always use the fixed category `PlainKit.Browser`, rate-limited and stripped of control characters (the browser is untrusted input). Inject `IPkLog` to write your own entries into the browser-side SDK log (they are not echoed back to `ILogger`); show both with `<PkLogs />`. Details: `references/logging.md`.
 
 ### Wire the dev tools
-
 In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`. `PkGallery Chrome="PkChrome.Full"` takes `Sections` (a list of `PkGallerySection`: text rows for the Details drawer, per element tag; `PkGallerySection.ForBlazor()` is the component, parameters and Razor section that `/_plainkit` shows), and `Src` may be relative (resolved against the document's base).
 
 ### Share a context menu across targets
