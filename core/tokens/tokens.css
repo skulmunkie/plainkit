@@ -59,6 +59,10 @@
     --duration-slow: 0.3s;
     --ease: ease;
 
+    --content-sm: 40rem;
+    --content-md: 60rem;
+    --content-lg: 75rem;
+
     --z-sticky: 10;
     --z-modal: 1200;
     --z-flyout-backdrop: 1500;

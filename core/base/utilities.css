@@ -1,124 +1,18 @@
-/* Utility classes: the small scale pages use instead of inline style="".
-   Spacing steps are rem: 0=0, 1=.25, 2=.5, 3=.75, 4=1, 6=1.5. Text sizes: xs .72, sm .8, md .85.
-   Literal-value classes: property abbreviation + value with '.' as p and rem as r (u-mt-p6r = margin-top .6rem). */
+/* Utility classes: the small scale pages use instead of inline style="". Before adding a literal-value class, check whether an existing
+   token (--space-*, --content-*, ...) already covers the value; a class every page's own CSS could instead reuse a token for is dead weight
+   here twice over. Unused entries are not free: they ship to every page. Before adding one, grep the SDK for its name; before landing a
+   pull request that removes the last user of one, remove the class too. */
 .u-contents { display: contents !important; }
 .u-m0 { margin: 0 !important; }
-.u-mt-0 { margin-top: 0 !important; }
-.u-mt-2 { margin-top: 0.5rem !important; }
 .u-mt-3 { margin-top: 0.75rem !important; }
-.u-ml-2 { margin-left: 0.5rem !important; }
-.u-ml-4 { margin-left: 1rem !important; }
-.u-pt-3 { padding-top: 0.75rem !important; }
 .u-text-xs { font-size: var(--text-meta) !important; }
 .u-text-sm { font-size: var(--text-read) !important; }
-.u-text-md { font-size: var(--text-read) !important; }
-.u-fw-normal { font-weight: 400 !important; }
-.u-nowrap { white-space: nowrap !important; }
 .u-w-full { width: 100% !important; }
-.u-scroll-x { overflow-x: auto !important; }
-.u-mt-4 { margin-top: 1rem !important; }
-.u-mt-6 { margin-top: 1.5rem !important; }
-.u-mt-neg { margin-top: -0.5rem !important; }
-.u-mb-4 { margin-bottom: 1rem !important; }
-.u-ml-3 { margin-left: 0.75rem !important; }
 .u-ml-auto { margin-left: auto !important; }
-.u-pointer { cursor: pointer !important; }
-.u-cursor-default { cursor: default !important; }
-.u-pre-wrap { white-space: pre-wrap !important; }
-.u-c-border { color: var(--color-border) !important; }
 .u-flex-1 { flex: 1 !important; }
 .u-fs-1p05r { font-size: 1.05rem !important; }
 .u-fs-1p1r { font-size: 1.1rem !important; }
-.u-fs-p75em { font-size: 0.75em !important; }
-.u-fs-p75r { font-size: var(--text-meta) !important; }
-.u-fs-p76r { font-size: var(--text-meta) !important; }
-.u-fs-p78r { font-size: var(--text-meta) !important; }
-.u-fs-p7em { font-size: 0.7em !important; }
-.u-fs-p7r { font-size: var(--text-meta) !important; }
-.u-fs-p82r { font-size: var(--text-read) !important; }
-.u-fs-p85em { font-size: 0.85em !important; }
-.u-fs-p88r { font-size: var(--text-read) !important; }
-.u-fs-p8em { font-size: 0.8em !important; }
-.u-fs-p95r { font-size: var(--text-read) !important; }
-.u-fs-p9r { font-size: var(--text-read) !important; }
 .u-fw-600 { font-weight: 600 !important; }
-.u-fw-700 { font-weight: 700 !important; }
-.u-ls-none { list-style: none !important; }
-.u-m-0-0-p5r { margin: 0 0 0.5rem !important; }
-.u-m-0-0-p6r { margin: 0 0 0.6rem !important; }
-.u-m-0-0-p75r { margin: 0 0 0.75rem !important; }
-.u-m-0-2px { margin: 0 2px !important; }
-.u-m-p25r-0-p75r { margin: 0.25rem 0 0.75rem !important; }
-.u-m-p35r-0-0 { margin: 0.35rem 0 0 !important; }
-.u-m-p4r-0-0 { margin: 0.4rem 0 0 !important; }
-.u-m-p5r-0 { margin: 0.5rem 0 !important; }
-.u-m-p5r-0-0 { margin: 0.5rem 0 0 !important; }
-.u-m-p6r-0-0 { margin: 0.6rem 0 0 !important; }
-.u-m-p75r-0-0 { margin: 0.75rem 0 0 !important; }
-.u-m-p75r-0-p25r { margin: 0.75rem 0 0.25rem !important; }
-.u-mb-0 { margin-bottom: 0 !important; }
-.u-mb-p25r { margin-bottom: 0.25rem !important; }
-.u-mb-p4r { margin-bottom: 0.4rem !important; }
-.u-mb-p5r { margin-bottom: 0.5rem !important; }
-.u-mb-p6r { margin-bottom: 0.6rem !important; }
-.u-mb-p75r { margin-bottom: 0.75rem !important; }
-.u-ml-p25r { margin-left: 0.25rem !important; }
-.u-ml-p35r { margin-left: 0.35rem !important; }
-.u-ml-p3r { margin-left: 0.3rem !important; }
-.u-ml-p4r { margin-left: 0.4rem !important; }
-.u-mr-p25r { margin-right: 0.25rem !important; }
-.u-mr-p4r { margin-right: 0.4rem !important; }
-.u-mt-p25r { margin-top: 0.25rem !important; }
-.u-mt-p2r { margin-top: 0.2rem !important; }
-.u-mt-p35r { margin-top: 0.35rem !important; }
-.u-mt-p4r { margin-top: 0.4rem !important; }
-.u-mt-p6r { margin-top: 0.6rem !important; }
-.u-mw-220px { max-width: 220px !important; }
-.u-ow-anywhere { overflow-wrap: anywhere !important; }
-.u-p-1px-0 { padding: 1px 0 !important; }
-.u-p-p15r-p3r { padding: 0.15rem 0.3rem !important; }
-.u-pl-0 { padding-left: 0 !important; }
-.u-pt-p6r { padding-top: 0.6rem !important; }
-.u-ta-center { text-align: center !important; }
-.u-w-110px { width: 110px !important; }
-.u-w-4r { width: 4rem !important; }
-.u-w-5r { width: 5rem !important; }
-.u-w-6p5r { width: 6.5rem !important; }
-.u-w-6r { width: 6rem !important; }
-.u-w-80px { width: 80px !important; }
-.u-w-90px { width: 90px !important; }
-.u-c-accent { color: var(--color-accent) !important; }
-.u-opacity-55 { opacity: 0.55 !important; }
-.u-m-1r-0 { margin: 1rem 0 !important; }
-.u-mb-1p25r { margin-bottom: 1.25rem !important; }
-.u-mb-1p5r { margin-bottom: 1.5rem !important; }
-.u-p-p75r-1r { padding: 0.75rem 1rem !important; }
-.u-c-888 { color: var(--u-c-888) !important; }
-.u-c-textmuted { color: var(--color-text-muted, var(--color-muted)) !important; }
-.u-fs-p86r { font-size: var(--text-read) !important; }
-.u-m-p25r-0 { margin: 0.25rem 0 !important; }
-.u-m-p2r-0-0 { margin: 0.2rem 0 0 !important; }
-.u-m-p2r-0-p5r { margin: 0.2rem 0 0.5rem !important; }
-.u-mb-p3r { margin-bottom: 0.3rem !important; }
-.u-mb-p8r { margin-bottom: 0.8rem !important; }
-.u-minw-200px { min-width: 200px !important; }
-.u-mt-0p25rem { margin-top: -0.25rem !important; }
-.u-mt-p3r { margin-top: 0.3rem !important; }
 .u-mw-24r { max-width: 24rem !important; }
-.u-mw-40r { max-width: 40rem !important; }
-.u-mw-520px { max-width: 520px !important; }
-.u-p-0 { padding: 0 !important; }
 .u-p-1r-1p25r { padding: 1rem 1.25rem !important; }
-.u-p-3r { padding: 3rem !important; }
-.u-p-p5r { padding: 0.5rem !important; }
-.u-p-p5r-1r-p75r { padding: 0.5rem 1rem 0.75rem !important; }
-.u-p-p5r-p75r-p75r { padding: 0.5rem 0.75rem 0.75rem !important; }
-.u-p-p5r-p7r { padding: 0.5rem 0.7rem !important; }
-.u-p-p6r-p8r { padding: 0.6rem 0.8rem !important; }
-.u-pl-1p1r { padding-left: 1.1rem !important; }
-.u-ta-right { text-align: right !important; }
-.u-td-none { text-decoration: none !important; }
-.u-w-2r { width: 2rem !important; }
-.u-w-3r { width: 3rem !important; }
-.u-w-7r { width: 7rem !important; }
 .u-sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
