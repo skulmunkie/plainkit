@@ -1,0 +1,40 @@
+@namespace PlainKit.Blazor
+@inherits PkTableBase
+
+@* Hand-written, no element of its own (issue 228): pk-table's raw/slotted mode takes one complete table (thead, tbody, tfoot) as its
+   default slot -- the right design for the element itself, but Blazor's own composition model is RenderFragment parameters, not
+   "author one blob of markup". This composes HeadContent/ChildContent/FootContent into that one blob, so a Blazor consumer with a
+   static header and a @foreach body does not hand-write the same ~20-line wrapper every time. The chrome parameters (Striped, Hover,
+   Bordered, Density, sticky header/column, MaxHeight, Caption, Label, Flow, ToolbarContent, CaptionContent, FooterContent) are
+   inherited from PkTableBase, shared with PkTable<TItem>: raw mode wants the same appearance and scroll frame a data-driven table does.
+   BulkContent and EmptyContent are not shared -- pk-table's own "own" (raw/slotted) mode hides the bulk and empty slots outright, since
+   there are no typed rows to select or report empty. *@
+<pk-table label="@Label" caption="@Caption" flow="@Flow"
+          striped="@Striped"
+          hover="@Hover"
+          bordered="@Bordered"
+          density="@(Density?.ToAttr())"
+          sticky-header="@StickyHeader"
+          sticky-column="@StickyColumn"
+          max-height="@MaxHeight"
+          class="@Css()" @ref="Element" @attributes="Splat">
+    <table>
+        @if (HeadContent is not null) { <thead>@HeadContent</thead> }
+        <tbody>@ChildContent</tbody>
+        @if (FootContent is not null) { <tfoot>@FootContent</tfoot> }
+    </table>
+    @if (ToolbarContent is not null) { <pk-cluster slot="toolbar">@ToolbarContent</pk-cluster> }
+    @if (CaptionContent is not null) { <span slot="caption" class="u-contents">@CaptionContent</span> }
+    @if (FooterContent is not null) { <div slot="footer" class="u-contents">@FooterContent</div> }
+</pk-table>
+
+@code {
+    /// <summary>The table's thead, e.g. one &lt;tr&gt; of &lt;th&gt; cells. Left off, the table has no header row.</summary>
+    [Parameter] public RenderFragment? HeadContent { get; set; }
+
+    /// <summary>The table's tbody: the rows, typically a @foreach over your own collection.</summary>
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+
+    /// <summary>The table's tfoot. Left off, the table has no footer row (not to be confused with <see cref="PkTableBase.FooterContent"/>, pk-table's own footer slot below the table).</summary>
+    [Parameter] public RenderFragment? FootContent { get; set; }
+}
