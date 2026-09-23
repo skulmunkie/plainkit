@@ -49,6 +49,20 @@ Nothing in the SDK fails silently. Use `createLogger(scope)` from `js/log.js` (`
 
 `data-open="#id"`, `data-toggle="#id"` and `data-close` (`js/invokers.js`) open, toggle and close a `pk-dialog`, `pk-drawer` or `pk-popover`. The three elements install the one delegated listener themselves the first time one connects (`initInvokers(this.ownerDocument)` in `connected()`), so a page that only uses an overlay needs no script and a page without one pays nothing; `initPlainkit()` calls the same idempotent function. A new overlay element calls `initInvokers` from `connected()` and is added to `OVERLAYS` in `js/invokers.js`. Mistakes (an empty, invalid or unmatched selector, a stray `data-close`) are logged by the `invokers` scope.
 
+## Global trigger shortcuts
+
+A global trigger shortcut is a key combo, usually with a modifier, that opens something from anywhere on the page (not the per-widget ARIA
+navigation keys of `js/menu-logic.js` — ArrowDown/Up, Home/End, typeahead, Escape — which is a different, already-centralized thing). Every
+one Plainkit defines is a named verb in the command-verb registry, `js/shortcuts.js`: `DEFAULT_SHORTCUTS` maps the verb to a predicate
+`(KeyboardEvent) => boolean`, and `isShortcut(verb, event, { pageShortcuts, appShortcuts })` is how anything asks "did the user invoke this
+verb", resolving a page-level override, then an app-level one, then the registry default. No element or sample checks `e.key` for a global
+trigger inline; it calls `isShortcut` (or a thin named wrapper re-exported for an existing importer, like `isPaletteShortcut`). Today's two:
+
+| Verb | Default shortcut | Opens |
+| --- | --- | --- |
+| `command-palette` | Ctrl+K / Cmd+K | `pk-command-palette` |
+| `context-menu` | Shift+F10, or the ContextMenu key | `pk-context-menu`, at the focused element |
+
 ## Ownership and reactivity
 
 Plainkit is a vanilla toolkit with exactly one owner of reactivity at any point: the host (a page, or Blazor) owns what an element is given, the element owns what it draws. There is no reactive system to learn and nothing to garbage-collect by hand. `tests/ownership.test.mjs` and `tests/element-surface.test.mjs` enforce rules 3 (the `writes` declaration), 5 and 8 to 10.
