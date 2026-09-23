@@ -5,7 +5,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 ## Names
 
 - **Elements**: the tag prefix is `pk-`. The folder is `elements/<name>/` and the tag is `pk-<name>` (the build fails otherwise).
-- **Custom properties**: design tokens are plain (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`) and live only in `tokens/tokens.css`. An element's own hooks are `--pk-<element>-<part>` (for example `--pk-button-bg`) and are listed in its `.meta.json`.
+- **Custom properties**: design tokens are plain (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--shadow-*`, `--duration-*`, `--ease-*`) and live only in `tokens/tokens.css`. An element's own hooks are `--pk-<element>-<part>` (for example `--pk-button-bg`) and are listed in its `.meta.json`.
 - **Attributes and events**: data attributes are `data-pk-*`, events are `pk-<name>`.
 - **Blazor components**: `Pk` plus the tag in PascalCase (`pk-alert` is `PkAlert`, `pk-table` is `PkTable`). The SDK's element meta says nothing about Blazor: the name and the parameters live in `blazor/mappings/<name>.json` (`scripts/tests/blazor-mappings.test.mjs` checks them against the meta).
 

@@ -54,6 +54,11 @@
     --shadow-flyout: -4px 0 20px rgba(0, 0, 0, 0.4);
     --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.32);
 
+    --duration-fast: 0.15s;
+    --duration-base: 0.2s;
+    --duration-slow: 0.3s;
+    --ease: ease;
+
     --z-sticky: 10;
     --z-modal: 1200;
     --z-flyout-backdrop: 1500;
