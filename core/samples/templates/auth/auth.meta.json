@@ -9,7 +9,8 @@
     "checkbox",
     "field",
     "input",
-    "stack"
+    "stack",
+    "text"
   ],
   "order": 9
 }

@@ -12,7 +12,8 @@
     "grid",
     "skeleton",
     "spinner",
-    "stack"
+    "stack",
+    "text"
   ],
   "order": 8
 }

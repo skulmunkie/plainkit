@@ -1,0 +1,128 @@
+{
+  "tag": "pk-text",
+  "title": "Text",
+  "group": "Layout",
+  "summary": "A themed paragraph, or a run of text inside a line, on the type scale and colour tokens: the text counterpart of pk-stack and pk-cluster. A variant gives it a heading, lead or eyebrow look; real headings stay native h1 to h6.",
+  "props": [
+    {
+      "name": "inline",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A run of text inside a line (like a span) instead of a paragraph block."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "normal",
+      "values": [
+        "normal",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "lead",
+        "eyebrow"
+      ],
+      "reflect": true,
+      "description": "The type style: normal (the text around it), a heading look h1 to h6 on the --text-h1 to --text-h6 scale, lead (larger, muted intro text) or eyebrow (small uppercase label). A look only: an h1 to h6 variant is not a heading to assistive technology; use a native h1 to h6 for a real heading. size, tone and weight override the variant."
+    },
+    {
+      "name": "font",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "sans",
+        "mono"
+      ],
+      "reflect": true,
+      "description": "Font family: sans (--font-sans) or mono (--font-mono, with tabular figures for ids and amounts). Default inherit."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "meta",
+        "read",
+        "lg"
+      ],
+      "reflect": true,
+      "description": "Font size on the type scale (meta --text-meta, read --text-read, lg --text-lg). Default inherit: the size around it."
+    },
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "default",
+        "muted",
+        "accent",
+        "positive",
+        "warning",
+        "critical"
+      ],
+      "reflect": true,
+      "description": "Text colour from the theme: default is the body text colour (to undo a muted variant), the rest are the status colours. Default inherit: the colour around it. Never the only signal: say it in the words too."
+    },
+    {
+      "name": "weight",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "regular",
+        "medium",
+        "semibold",
+        "bold"
+      ],
+      "reflect": true,
+      "description": "Font weight. Default inherit."
+    },
+    {
+      "name": "truncate",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Keep it to one line and end with an ellipsis when it does not fit."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The text: phrasing content only (text, links, code, badges). Several paragraphs are several pk-text in a pk-stack."
+    }
+  ],
+  "a11y": "A block is exposed with the paragraph role; an inline run has no role, like a span. The h1 to h6 variants only change the look and add no heading role or level: a real heading, one that belongs in the page outline and that a screen reader lists, stays a native h1 to h6, which the base styles size on the same --text-h1 to --text-h6 scale. Use a heading variant for text that should look like one without being one (a figure label, a number in a card). A truncated text keeps its full content in the accessibility tree; put the full value in a tooltip or a detail view for sighted readers.",
+  "examples": [
+    {
+      "title": "Paragraph",
+      "html": "<pk-text>Orders ship within two working days. Anything placed after 3 pm counts as the next day.</pk-text><pk-text size=\"meta\" tone=\"muted\">Last updated 2 June.</pk-text>"
+    },
+    {
+      "title": "Inline runs",
+      "html": "<pk-text>Status: <pk-text inline weight=\"semibold\" tone=\"positive\">Paid</pk-text>, due <pk-text inline tone=\"muted\">14 June</pk-text>.</pk-text>"
+    },
+    {
+      "title": "Lead text under a heading",
+      "html": "<h2>Billing</h2><pk-text variant=\"lead\">Invoices, payment methods and the billing contact.</pk-text>"
+    },
+    {
+      "title": "Variants",
+      "html": "<pk-text variant=\"eyebrow\">Revenue</pk-text><pk-text variant=\"h3\" font=\"mono\">$48,210.00</pk-text><pk-text size=\"meta\" tone=\"muted\">Up 12% on last month</pk-text>"
+    },
+    {
+      "title": "Truncated",
+      "html": "<pk-text truncate>A very long file name that will not fit in a narrow column - quarterly-report-final-v3-reviewed.pdf</pk-text>"
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "methods": [],
+  "cssProperties": []
+}
