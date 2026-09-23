@@ -40,6 +40,18 @@
       "prop": "persist"
     },
     {
+      "name": "CurrentPath",
+      "type": "string?",
+      "map": "prop",
+      "prop": "currentPath"
+    },
+    {
+      "name": "AutoExpandActive",
+      "type": "bool",
+      "map": "prop",
+      "prop": "autoExpandActive"
+    },
+    {
       "name": "BrandContent",
       "type": "RenderFragment?",
       "map": "slot",

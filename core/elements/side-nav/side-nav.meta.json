@@ -40,6 +40,20 @@
       "default": "",
       "reflect": true,
       "description": "localStorage key for collapsed and open branches."
+    },
+    {
+      "name": "currentPath",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The host's current URL path. When set, resolves the deepest-matching pk-nav-item (by href) and sets its `current`, clearing every other row; see resolveActiveRoute in nav-logic.js for the algorithm."
+    },
+    {
+      "name": "autoExpandActive",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "With current-path, also opens every ancestor branch of the active row and collapses every other branch."
     }
   ],
   "slots": [
@@ -135,6 +149,10 @@
     {
       "title": "Side nav with a branch, filter and icon rail",
       "html": "<pk-side-nav label=\"Main\" filterable persist=\"pk-sample-nav\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">12</span>Orders</pk-nav-item><pk-nav-item expanded>Products<pk-nav-item slot=\"children\" href=\"#\">All products</pk-nav-item><pk-nav-item slot=\"children\" href=\"#\">Drafts</pk-nav-item></pk-nav-item><pk-nav-item href=\"#\" disabled>Finance (soon)</pk-nav-item><pk-nav-item slot=\"footer\" href=\"#\">Settings</pk-nav-item></pk-side-nav>"
+    },
+    {
+      "title": "Active route: current-path resolves the current row and, with auto-expand-active, opens its branch",
+      "html": "<pk-side-nav label=\"Main\" current-path=\"/users/settings/profile\" auto-expand-active><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"/dashboard\">Dashboard</pk-nav-item><pk-nav-item href=\"/users-archive\">Archive</pk-nav-item><pk-nav-item>Users<pk-nav-item slot=\"children\" href=\"/users\">All users</pk-nav-item><pk-nav-item slot=\"children\">Settings<pk-nav-item slot=\"children\" href=\"/users/settings/profile\">Profile</pk-nav-item><pk-nav-item slot=\"children\" href=\"/users/settings/security\">Security</pk-nav-item></pk-nav-item></pk-nav-item></pk-side-nav>"
     }
   ]
 }

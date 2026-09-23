@@ -1,6 +1,6 @@
-import { filterNav, treeKey, serializeNav, parseNav } from '../../js/nav-logic.js';
+import { filterNav, treeKey, serializeNav, parseNav, resolveActiveRoute } from '../../js/nav-logic.js';
 import { mediaBelow } from '../../js/breakpoints.js';
-export { filterNav, splitMatch, treeKey, serializeNav, parseNav, railFlyoutPlacement, railRowTooltip, DRAWER_BREAKPOINT, navMode } from '../../js/nav-logic.js';
+export { filterNav, splitMatch, treeKey, serializeNav, parseNav, railFlyoutPlacement, railRowTooltip, DRAWER_BREAKPOINT, navMode, resolveActiveRoute } from '../../js/nav-logic.js';
 
 // pk-side-nav: icon rail, filter, arrow-key tree navigation, persisted state, and an off-canvas drawer on small screens.
 const items = nav => [...nav.querySelectorAll('pk-nav-item')];
@@ -21,12 +21,28 @@ export default Base => class extends Base {
             this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) this.request('escape'); });
             this.watchSlot('', () => this.sync());
             this.$mq = mediaBelow('tablet'); this.$sync = () => this.sync();
-            this.restore(); customElements.whenDefined('pk-nav-item').then(() => this.sync());
+            this.restore(); customElements.whenDefined('pk-nav-item').then(() => { this.sync(); this.route(); });
         }
         this.$mq.addEventListener('change', this.$sync);
-        this.sync();
+        this.sync(); this.route();
     }
-    changed(name) { if (name === 'collapsed') { this.sync(); this.save(); } else if (name === 'open' && this.isConnected) this.drawer(); }
+    changed(name) {
+        if (name === 'collapsed') { this.sync(); this.save(); }
+        else if (name === 'open' && this.isConnected) this.drawer();
+        else if (name === 'currentPath' || name === 'autoExpandActive') this.route();
+    }
+    // Opt-in active-route resolution: the host sets current-path (e.g. from its router) and auto-expand-active; the nav resolves which
+    // pk-nav-item is the active leaf (see resolveActiveRoute in nav-logic.js) and sets `current` on it, clearing every other row. With
+    // auto-expand-active it also opens every ancestor branch of that leaf and collapses every other branch. The host still owns the
+    // pk-nav-item markup (light DOM); this only ever writes to props of the host's own existing nodes, never invents structure.
+    route() {
+        if (!this.currentPath) return;
+        const rows = items(this);
+        const entries = rows.map(i => ({ id: idOf(i), href: i.href || '', parent: i.parentElement?.closest?.('pk-nav-item') ? idOf(i.parentElement) : null }));
+        const { current, open } = resolveActiveRoute(entries, this.currentPath);
+        rows.forEach((i, k) => { if (i.href) i.current = entries[k].id === current; });
+        if (this.autoExpandActive) for (const i of rows) if (i.querySelector('pk-nav-item')) i.expanded = open.has(idOf(i));
+    }
     request(reason) { if (this.emit('pk-close', { reason })) this.open = false; }
     show() { this.open = true; }
     hide() { this.request('method'); }
