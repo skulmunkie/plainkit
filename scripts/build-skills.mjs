@@ -205,7 +205,7 @@ export function collect() {
     return {
         version, api, mappings, manifest, razor, enums,
         events: csEventArgs(read(path.join(pkg, 'Generated', 'PkGeneratedEvents.cs'))),
-        cs: { options: csMembers(cs('PkOptions.cs'), 'PkOptions'), logging: csMembers(cs('PkLogging.cs'), 'PkLoggingOptions'), ipklog: csMembers(cs('PkLogging.cs'), 'IPkLog'), scoreTarget: csMembers(cs('PkScoreTarget.cs'), 'PkScoreTarget'), runtime: csMembers(cs('PkRuntime.cs'), 'PkRuntime'), assets: csMembers(cs('PkAssets.cs'), 'PkAssets'), snapshot: csMembers(cs('DevTools/PkSnapshot.cs'), 'PkSnapshot'), listRequest: csMembers(cs('PkListTypes.cs'), 'PkListRequest'), tableColumn: csMembers(cs('PkTableTypes.cs'), 'PkTableColumn'), listTypesText: cs('PkListTypes.cs'), timeZoneOptions: csMembers(cs('PkTimeZone.cs'), 'PkTimeZoneOptions'), timeZoneResolver: csMembers(cs('PkTimeZone.cs'), 'IPkTimeZoneResolver') },
+        cs: { options: csMembers(cs('PkOptions.cs'), 'PkOptions'), logging: csMembers(cs('PkLogging.cs'), 'PkLoggingOptions'), ipklog: csMembers(cs('PkLogging.cs'), 'IPkLog'), scoreTarget: csMembers(cs('PkScoreTarget.cs'), 'PkScoreTarget'), runtime: csMembers(cs('PkRuntime.cs'), 'PkRuntime'), assets: csMembers(cs('PkAssets.cs'), 'PkAssets'), snapshot: csMembers(cs('DevTools/PkSnapshot.cs'), 'PkSnapshot'), listRequest: csMembers(cs('PkListTypes.cs'), 'PkListRequest'), tableColumn: csMembers(cs('PkTableTypes.cs'), 'PkTableColumn'), listTypesText: cs('PkListTypes.cs'), inputFormat: csMembers(cs('PkInputFormat.cs'), 'PkInputFormat'), timeZoneOptions: csMembers(cs('PkTimeZone.cs'), 'PkTimeZoneOptions'), timeZoneResolver: csMembers(cs('PkTimeZone.cs'), 'IPkTimeZoneResolver') },
         modules: [...modules, gallery],
         // A pattern that ships a script: its source, with the SDK import paths as they are in an app (a copy of dist at ./plainkit/).
         samples: { templates, patterns: samples.patterns.map(p => (p.script ? { ...p, scriptSource: read(path.join(core, 'samples', 'patterns', p.script)).replace(/from '(?:\.\.\/){3}js\//g, "from './plainkit/js/").trim() } : p)), layouts: samples.layouts },
@@ -583,6 +583,18 @@ function blazorFiles(src) {
         '}', '```', '',
         '`OnAdd` (the `pk-add` event) does not fire for a pick made on the slotted `InputFile` — `OnChange` is the only read path, the same split as `PkDropzone`\'s `OnFiles`. Without an `InputFile`, `OnAdd` still reports the chosen files\' names, but never their bytes.', ''].join('\n'));
 
+    // typed round-trip helpers for pk-input type="date"/"number" (issue #208); PkInput's own Value stays plain text, so no razor entry
+    const members2 = (title, ms) => ms.length ? [`## ${title}`, '', table(['Member', 'Description'], ms.map(m => [code(m.decl), m.doc])), ''].join('\n') : '';
+    if (src.cs.inputFormat.length) {
+        files.set('references/input-format.md', ['# PkInputFormat: typed round-trip for pk-input type="date"/"number"', '', stamp(src, 'PkInputFormat.cs'), '',
+            '`PkInput`\'s `Value` stays plain `string` (the same text the element exchanges with the DOM: `yyyy-MM-dd` for `type="date"`, invariant-culture numeric text for `type="number"`) — it is not generic, so it takes no typed `DateTime`/`decimal`/`int` directly. `PkInputFormat` is a small set of pure static helpers for the format/parse glue every consumer of a typed date or amount otherwise re-derives by hand. Each parse method\'s contract: empty or invalid text becomes `null` (or the documented fallback for `ParseInt`), never the previous value — a static method that only takes the text cannot reach for "the previous value" even by accident.', '',
+            '```razor', '<PkInput Type="date" Value="@PkInputFormat.FormatDate(_dueDate)"',
+            '         ValueChanged="@(text => _dueDate = PkInputFormat.ParseDate(text))" />', '',
+            '<PkInput Type="number" Value="@PkInputFormat.FormatNumber(_amount)"',
+            '         ValueChanged="@(text => _amount = PkInputFormat.ParseNumber(text))" />', '```', '',
+            members2('PkInputFormat', src.cs.inputFormat)].join('\n'));
+    }
+
     // tools and setup
     const toolRows = TOOL_COMPONENTS.filter(c => src.razor[c]).map(c => {
         const r = src.razor[c];
@@ -654,7 +666,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
