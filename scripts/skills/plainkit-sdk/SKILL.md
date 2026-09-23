@@ -171,6 +171,26 @@ log.info('order placed', { id: 42 });
 
 Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`.
 
+### Build a page
+
+A page tends to repeat the same bookkeeping: a title, a status/error notice, a busy overlay around an action, a breadcrumb trail. `createPage` is that as one small object, built from elements already in your markup — it never creates or owns them, only drives the props they already have.
+
+```js
+import { createPage } from './plainkit/js/page.js';
+
+const page = createPage({
+    alert: document.getElementById('page-alert'),
+    overlay: document.getElementById('page-overlay'),
+    breadcrumb: document.getElementById('page-crumbs'),
+    scope: 'orders',
+});
+page.setTitle('Orders');
+page.setBreadcrumbs([{ label: 'Home', href: '/' }, { label: 'Orders' }]);
+await page.busy(() => fetchOrders(), 'Loading orders…');
+// a fetchOrders() rejection is logged (through js/log.js under the given scope), shown as a
+// pk-alert danger status, and rethrown so your own error handling still runs
+```
+
 ### Respond to screen size
 
 The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below); do not restyle them there. In your own stylesheet use the literal query with the same width (`@media (max-width: 640px)`); custom properties do not work in `@media`. In a script never write the number: `import { mediaBelow } from './plainkit/js/breakpoints.js'; mediaBelow('phone').matches` (it reads `--pk-bp-phone` from `plainkit.css`). Other widths need a rebuilt `dist`: see "Ship a custom SDK" below; the table of what changes at each width is in `references/theming.md`.
