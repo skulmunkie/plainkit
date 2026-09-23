@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PkSourceProvider>();
         services.AddScoped<IPkLog, PkLogWriter>();
         services.AddScoped<PkInteropLog>();
+        services.AddSingleton<IPkTimeZoneResolver, PkTimeZoneResolver>();
         if (!OperatingSystem.IsBrowser()) AddCircuitState(services);
         return services.AddScoped<PkRuntime>();
     }
