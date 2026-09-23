@@ -268,6 +268,20 @@ A page has one `<h1>`, in one place: the header's title, or the app shell's titl
 
 Apart from the back link the header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). `PkAppShell` has `TitleContent`, `BackHref` and `BackLabel` parameters too; the example uses the element directly so the `h1` sits in the `title` slot itself (a `TitleContent` fragment is wrapped in a `<span slot="title">`).
 
+### Route-aware components
+
+`PkSideNav` knows the app's current route without you wiring it: leave `CurrentPath` unset and it tracks `NavigationManager` itself (subscribing on init, unsubscribing on dispose), resolving the deepest-matching `pk-nav-item` as `current` and, with `AutoExpandActive`, opening its ancestor branches and collapsing every other one. Set `CurrentPath` explicitly only when you want to override that (a pinned/fixed active row, a path that is not the browser's own route).
+
+```razor
+<PkSideNav Label="Main" AutoExpandActive="true">
+    <PkNavItem Href="/stock">Stock</PkNavItem>
+    <PkNavItem Group="true">Purchasing</PkNavItem>
+    <PkNavItem Href="/stock/orders">Purchase orders</PkNavItem>
+</PkSideNav>
+```
+
+This is a hand-written component (`blazor/mappings/side-nav.json` marks it `"existing": true`, the same way `PkTable`'s own event/data logic is hand-written): the generator can express every attribute and event `pk-side-nav` has, but not router interop, so `PkSideNav` owns that part itself instead of asking every app to subscribe to `NavigationManager.LocationChanged` by hand. It is the first component in the package built this way; a future one that needs to know "where is the app right now" (a breadcrumb, a search panel that closes on navigation) follows the same shape: inject `NavigationManager`, keep the tracked value private, offer an explicit override parameter that always wins, unsubscribe in `Dispose`.
+
 ## How binding works
 
 The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivity"):
