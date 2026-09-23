@@ -1,0 +1,67 @@
+{
+  "tag": "pk-detail-layout",
+  "title": "Detail layout",
+  "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, sized minmax(0, 1fr) plus a fixed sidebar width. Below a container width (not the viewport, so it works next to a side nav or inside a narrower pane) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row.",
+  "group": "Layout & structure",
+  "props": [
+    {
+      "name": "sidebarFirst",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Once collapsed to one column, the sidebar comes before the main content instead of after."
+    },
+    {
+      "name": "sidebarTwoUp",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Once collapsed to one column, the sidebar's own cards lay out two per row instead of stacking one-per-row."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The main content."
+    },
+    {
+      "name": "sidebar",
+      "description": "Summary/status cards; pk-card fits. Sticky in the two-column layout."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "grid",
+      "description": "The two-column grid"
+    },
+    {
+      "name": "main",
+      "description": "The main content wrapper"
+    },
+    {
+      "name": "sidebar",
+      "description": "The sidebar wrapper"
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-detail-layout-sidebar",
+      "description": "Sidebar column width in the two-column layout.",
+      "default": "20rem"
+    }
+  ],
+  "methods": [],
+  "a11y": "A layout primitive only: no landmark or role of its own. Give the main content and the sidebar their own headings so assistive technology can navigate between them.",
+  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky, in document order unless sidebarFirst.",
+  "examples": [
+    {
+      "title": "Order detail",
+      "html": "<pk-detail-layout>\n  <pk-page-header heading=\"Order 1042\"></pk-page-header>\n  <p>Line items go here.</p>\n  <div slot=\"sidebar\">\n    <pk-card><h3>Status</h3><p>Shipped</p></pk-card>\n    <pk-card><h3>Customer</h3><p>Ada Lovelace</p></pk-card>\n  </div>\n</pk-detail-layout>"
+    },
+    {
+      "title": "Sidebar first, two-up once collapsed",
+      "html": "<pk-detail-layout sidebar-first sidebar-two-up>\n  <p>Main content.</p>\n  <div slot=\"sidebar\">\n    <pk-card><h3>Total</h3><p>$412.00</p></pk-card>\n    <pk-card><h3>Items</h3><p>3</p></pk-card>\n  </div>\n</pk-detail-layout>"
+    }
+  ]
+}

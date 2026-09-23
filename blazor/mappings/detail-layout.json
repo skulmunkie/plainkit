@@ -1,0 +1,25 @@
+{
+  "component": "PkDetailLayout",
+  "params": [
+    {
+      "name": "SidebarFirst",
+      "prop": "sidebarFirst",
+      "type": "bool"
+    },
+    {
+      "name": "SidebarTwoUp",
+      "prop": "sidebarTwoUp",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    },
+    {
+      "name": "Sidebar",
+      "slot": "sidebar",
+      "type": "RenderFragment"
+    }
+  ]
+}

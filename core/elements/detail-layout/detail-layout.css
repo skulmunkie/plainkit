@@ -1,0 +1,10 @@
+:host { display: block; container-type: inline-size; }
+[part="grid"] { display: grid; grid-template-columns: minmax(0, 1fr) var(--pk-detail-layout-sidebar, 20rem); gap: var(--space-6); align-items: start; }
+[part="main"] { min-width: 0; }
+[part="sidebar"] { display: grid; gap: var(--space-4); align-content: start; position: sticky; top: var(--space-4); }
+@container (max-width: 48rem) {
+    [part="grid"] { grid-template-columns: 1fr; }
+    [part="sidebar"] { position: static; }
+    :host([sidebar-first]) [part="sidebar"] { order: -1; }
+    :host([sidebar-two-up]) [part="sidebar"] { grid-template-columns: 1fr 1fr; }
+}
