@@ -41,11 +41,11 @@
           label="@Label"
           flow="@Flow"
           class="@Css()"
-          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer">@FooterContent</div>}@foreach (var row in _items)
+          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@foreach (var row in _items)
 {
     @foreach (var column in _cells)
     {
-        <span slot="@($"cell-{row.Id}-{column.Key}")" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>
+        <span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>
     }
     @if (Expandable && DetailTemplate is not null)
     {

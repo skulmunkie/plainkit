@@ -10,7 +10,10 @@ export default Base => class extends Base {
         this.addEventListener('pk-open', e => { if (e.target === this.nav) this.navOpen = true; });
         this.watchSlot('title', () => this.requestUpdate());
     }
-    get nav() { return this.slotted('nav')[0]; }
+    // Not slotted('nav')[0]: a host framework's own wrapper element (Blazor's generated <span slot="nav"> for a multi-root RenderFragment,
+    // issue 212) is the assigned element, not the pk-side-nav inside it, so the unfiltered first assigned element would silently be a span
+    // with no `open`. See STANDARDS.md, "Blazor", rule 15.
+    get nav() { const a = this.slotted('nav'); return a.find(e => e.localName === 'pk-side-nav') ?? a[0]?.querySelector('pk-side-nav') ?? null; }
     changed(name) { if (name === 'navOpen' && this.nav) this.nav.open = this.navOpen; }
     // The back link goes only to a same-site path or an http(s) address; anything else (a script or data address) is dropped and said once.
     updated() {

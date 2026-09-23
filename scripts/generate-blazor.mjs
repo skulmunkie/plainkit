@@ -367,7 +367,10 @@ export function renderComponent(m, mappingName) {
     // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).
     attrs.push(`class="@Css(${m.usesClass ? 'ExtraClass' : ''})"`);
     attrs.push('@attributes="Splat"');
-    const children = m.children.map(c => (c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null) {<span slot=${lit(c.slot)}>@${c.name}</span>}`)).join('');
+    // A named slot's wrapper span carries u-contents (core/base/utilities.css) so it never breaks the host element's own flex/grid layout of
+    // its slotted content (issue 211): Razor cannot put a slot attribute on multiple root elements from one RenderFragment independently, so
+    // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
+    const children = m.children.map(c => (c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);

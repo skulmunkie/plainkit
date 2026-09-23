@@ -10,7 +10,7 @@
          href="@Href"
          fill="@Fill"
          class="@Css()"
-         @attributes="Splat">@ChildContent@if (MediaContent is not null) {<span slot="media">@MediaContent</span>}@if (ActionsContent is not null) {<span slot="actions">@ActionsContent</span>}@if (FooterContent is not null) {<span slot="footer">@FooterContent</span>}</pk-card>
+         @attributes="Splat">@ChildContent@if (MediaContent is not null) {<span slot="media" class="u-contents">@MediaContent</span>}@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (FooterContent is not null) {<span slot="footer" class="u-contents">@FooterContent</span>}</pk-card>
 
 @code {
     /// <summary>The card's title.</summary>
