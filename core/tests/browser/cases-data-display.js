@@ -288,6 +288,30 @@ export const dataDisplayCases = [
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
 
+    ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
+        const bare = await t.mount('<pk-table-filters debounce="10" label="Search products"></pk-table-filters>');
+        t.ok(bare.part('trigger').hidden, 'no filter fields slotted: no trigger');
+        const el = await t.mount('<pk-table-filters debounce="10" label="Search products" filter-count="2"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>');
+        let queries = 0, lastQuery = null; el.addEventListener('pk-search', e => { queries++; lastQuery = e.detail.query; });
+        const search = el.part('search');
+        search.value = 'w'; search.dispatchEvent(new Event('input', { bubbles: true }));
+        search.value = 'wi'; search.dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise(r => setTimeout(r, 40));
+        t.eq(queries, 1, 'one debounced pk-search, not one per keystroke'); t.eq(lastQuery, 'wi');
+        t.ok(!el.part('trigger').hidden, 'a slotted filter field shows the trigger'); t.ok(!el.part('count').hidden); t.eq(el.part('count').textContent, '2');
+        t.ok(el.part('panel').hidden, 'closed by default');
+        let toggles = [];
+        el.addEventListener('pk-toggle', e => toggles.push(e.detail.open));
+        el.part('trigger').click(); await t.settle();
+        t.ok(el.open); t.ok(!el.part('panel').hidden); t.eq(el.part('trigger').getAttribute('aria-expanded'), 'true'); t.eq(JSON.stringify(toggles), '[true]');
+        el.part('close').click(); await t.settle();
+        t.ok(!el.open); t.ok(el.part('panel').hidden); t.eq(JSON.stringify(toggles), '[true,false]');
+        let cleared = 0; el.addEventListener('pk-clear-filters', () => cleared++);
+        el.part('trigger').click(); await t.settle();
+        el.part('clear').click();
+        t.eq(cleared, 1, 'Clear filters raises pk-clear-filters; the host owns clearing its own slotted fields');
+    }],
+
     ['stat: shows the change with an arrow, sign, colour and spoken form; an href makes one link; a sparkline draws', async t => {
         const s = await t.mount('<pk-stat label="Sales" value="$18k" delta="12.5" versus="last month" values="[1,3,2,5]" href="#x"></pk-stat>');
         const d = s.part('delta');
