@@ -46,7 +46,7 @@ function attach(el) {
 // el.list('columns') (table.js already validated it once for its own header, so this reads it again rather than take it as a third
 // argument).
 function body(el, rowsAll, h) {
-    const prev = el.part('body').querySelector('tr[data-id]');
+    const prev = el.part('body').querySelector('tr[data-pk-context]');
     if (prev) el.$rowH = prev.getBoundingClientRect().height || el.$rowH;
     if (el.expandable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
@@ -60,7 +60,7 @@ function body(el, rowsAll, h) {
     const drawn = rowsAll.slice(start, end).flatMap((row, j) => {
         const i = start + j, id = String(row[el.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
         pick.checked = sel.has(id);
-        return [h('tr', { 'data-id': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
+        return [h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
             ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
             ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, el.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }))];
     });

@@ -212,6 +212,17 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 `references/upgrading.md` is a blast-radius recipe, not a changelog summary: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
 
+### Share a context menu across targets
+
+A UI with several always-visible per-row or per-card icon buttons competing for space is the signal: wrap the region in one `pk-context-menu` instead of a button row. It opens on right-click, Shift+F10/the Menu key or a touch long-press; `pk-open`'s detail names what was targeted (`context`, the nearest ancestor's `data-pk-context` value; `pk-table` sets one per `<tr>` already) so the handler can rebuild the `menu` slot before it paints.
+
+```js
+menu.addEventListener('pk-open', e => {
+    menu.querySelectorAll('[slot="menu"]').forEach(n => n.remove());
+    for (const item of menuItemsFor(e.detail.context)) { item.slot = 'menu'; menu.append(item); }
+});
+```
+
 ## What is not built
 
 `references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).

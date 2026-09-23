@@ -51,7 +51,7 @@ export const workspaceCases = [
         await until(() => win.customElements.get('pk-table'), 'pk-table to be defined in the frame');
         const ws = doc.querySelector('pk-workspace'); const table = doc.querySelector('pk-table');
         const route = id => { ws.asideOpen = id !== null; ws.activePane = id !== null ? 'aside' : 'main'; ws.asideLabel = id === null ? 'Thing' : table.rows.find(r => r.id === id).name; table.currentRow = id ?? ''; };
-        const rowOf = id => table.shadowRoot.querySelector(`tbody tr[data-id="${id}"]`);
+        const rowOf = id => table.shadowRoot.querySelector(`tbody tr[data-pk-context="${id}"]`);
         t.ok(!shown(tab(ws, 'aside')), 'no record: no record tab'); t.ok(shown(pane(ws, 'main')));
         route('2'); await t.settle();
         t.ok(shown(pane(ws, 'aside')) && !shown(pane(ws, 'main')), 'the record is its own pane on a phone'); t.eq(tab(ws, 'aside').textContent.trim(), 'Red', 'the tab names the record');

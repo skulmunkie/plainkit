@@ -29,9 +29,9 @@ export function rows(table, tr, id, i, span, h) {
 // A click on content the host put in a cell slot: it is light DOM, so closest('tr') cannot reach the row from the target; the composed path can. Only a click on non-interactive content is a row click
 // (a slotted button, link or field keeps its click). Clicks inside the shadow tree stay with the table's own handler.
 export function slotted(table, e) {
-    const p = table.clickable && !table.shadowRoot.contains(e.target) ? e.composedPath?.() ?? [] : [], i = p.findIndex(n => n.matches?.('tbody tr[data-id]'));
+    const p = table.clickable && !table.shadowRoot.contains(e.target) ? e.composedPath?.() ?? [] : [], i = p.findIndex(n => n.matches?.('tbody tr[data-pk-context]'));
     if (i < 0) return false;
-    if (!p.slice(0, i).some(n => n.matches?.('input,button,a,select,label'))) table.emit('pk-row-click', { id: p[i].dataset.id, row: table.view[table.ids().indexOf(p[i].dataset.id)] });
+    if (!p.slice(0, i).some(n => n.matches?.('input,button,a,select,label'))) table.emit('pk-row-click', { id: p[i].dataset.pkContext, row: table.view[table.ids().indexOf(p[i].dataset.pkContext)] });
     return true;
 }
 
