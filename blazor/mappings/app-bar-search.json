@@ -1,0 +1,36 @@
+{
+  "component": "PkAppBarSearch",
+  "existing": true,
+  "notes": "Hand-written (issue 213): Items is a typed JSON attribute (like PkTable's Columns/Items), and closing on navigation needs NavigationManager (the second component built this way, after PkSideNav, issue 210).",
+  "params": [
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "Debounce",
+      "prop": "debounce",
+      "type": "int"
+    },
+    {
+      "name": "Expanded",
+      "prop": "expanded",
+      "type": "bool",
+      "bind": {
+        "event": "pk-toggle",
+        "value": "detail.expanded"
+      }
+    },
+    {
+      "name": "Items",
+      "prop": "items",
+      "type": "IReadOnlyList<PkAppBarSearchItem>"
+    }
+  ]
+}

@@ -350,6 +350,47 @@ export const overlaysCases = [
         sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open, 'the wrapper span must not hide the side nav from the shell'); t.ok(sh.navOpen);
     }],
 
+    ['app-bar-search: typing debounces pk-query, items render as results, arrows and Enter pick one and raise pk-select, Escape closes', async t => {
+        const el = await t.mount('<pk-app-bar-search debounce="10" label="Search"></pk-app-bar-search>');
+        const input = el.part('control');
+        let queries = 0; el.addEventListener('pk-query', () => queries++);
+        input.value = 'wid'; input.dispatchEvent(new Event('input', { bubbles: true }));
+        t.ok(el.part('popup').hidden === false, 'the popup opens while typing, before results arrive');
+        await new Promise(r => setTimeout(r, 60));
+        t.eq(queries, 1, 'one debounced pk-query, not one per keystroke');
+        el.items = [{ id: 'a', label: 'Widget A', group: 'Products', sub: 'AC-1001' }, { id: 'b', label: 'Widget B', group: 'Products', badge: 'New' }];
+        await t.settle();
+        const rows = [...el.part('popup').querySelectorAll('[role="option"]')];
+        t.eq(rows.length, 2); t.eq(rows[0].querySelector('[part="row-label"]').textContent, 'Widget A'); t.eq(rows[0].querySelector('[part="row-sub"]').textContent, 'AC-1001');
+        t.ok(!rows[1].querySelector('[part="badge"]').hidden, 'a badge shows when the item has one');
+        t.ok(el.part('popup').querySelector('[role="presentation"]'), 'a group heading renders once for the shared group');
+        let picked = null; el.addEventListener('pk-select', e => { picked = e.detail.item; });
+        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown'); t.key(input, 'Enter');
+        t.eq(picked?.id, 'b', 'two ArrowDown from nothing highlighted lands on the second row');
+        t.ok(el.part('popup').hidden, 'picking a result closes the popup');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        t.key(input, 'Escape'); t.ok(el.part('popup').hidden, 'Escape closes the results');
+    }],
+
+    ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '400px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        const until = async fn => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await new Promise(r => setTimeout(r, 50)); } throw new Error('did not upgrade'); };
+        const search = await until(() => f.contentDocument.querySelector('pk-app-bar-search')?.shadowRoot?.querySelector('[part="expand"]') && f.contentDocument.querySelector('pk-app-bar-search'));
+        await new Promise(r => setTimeout(r, 100));
+        t.eq(f.contentWindow.innerWidth, 375);
+        const expandBtn = search.part('expand'), box = search.part('box');
+        t.ok(expandBtn.getBoundingClientRect().width > 0, 'the icon button shows on a phone'); t.ok(box.getBoundingClientRect().width === 0, 'the pill is hidden');
+        expandBtn.click(); await t.settle();
+        t.ok(search.expanded, 'expand() sets expanded'); t.ok(box.getBoundingClientRect().width > 0, 'the pill shows once expanded');
+        const shell = f.contentDocument.querySelector('pk-app-shell');
+        shell.querySelector('button').click(); await t.settle();
+        t.ok(!search.expanded, 'the drawer opening collapses the search field, so two overlays never show at once');
+    }],
+
     ['app shell: the title slot and back link fill the top bar; the link is a real 44px link named by back-label, and an unsafe address is dropped', async t => {
         const sh = await t.mount('<pk-app-shell back-href="#list" back-label="Back to Things"><h1 slot="title">Thing 7</h1><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>'); await t.settle();
         const back = sh.part('back'); const box = back.getBoundingClientRect();
