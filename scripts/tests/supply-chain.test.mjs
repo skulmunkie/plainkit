@@ -21,16 +21,14 @@ test('NuGet audit: no advisory is suppressed, and AngleSharp (bunit\'s parser) i
 const workflows = fs.readdirSync(path.join(root, '.github', 'workflows')).filter(f => /\.ya?ml$/.test(f));
 const workflow = f => read(`.github/workflows/${f}`);
 
-test('every action outside actions/* and github/* is pinned to a full commit SHA with its version in a comment', () => {
+test('every action, first-party or not, is pinned to a full commit SHA with its version in a comment (issue 195: apply the audit\'s own standard consistently)', () => {
     const problems = [];
     for (const f of workflows) for (const [n, line] of workflow(f).split('\n').entries()) {
         const m = /^\s*(?:-\s*)?uses:\s*([^\s#]+)(.*)$/.exec(line);
         if (!m || m[1].startsWith('./')) continue;
-        const [name] = m[1].split('@');
-        if (/^(actions|github)\//.test(name)) continue; // first-party: pinned by tag, Dependabot keeps them current
         if (!/@[0-9a-f]{40}$/.test(m[1]) || !/#\s*v?\d/.test(m[2])) problems.push(`${f}:${n + 1} ${m[1]}`);
     }
-    assert.deepEqual(problems, [], 'pin third-party actions to a commit SHA and say the version in a comment, or use the gh CLI in a step');
+    assert.deepEqual(problems, [], 'pin every action to a commit SHA and say the version in a comment; Dependabot resolves the tag to a SHA at bump time');
 });
 
 test('no workflow splices a ${{ }} expression into a run script (script injection); values go through env', () => {
@@ -57,7 +55,7 @@ test('the summary job that writes to pull requests runs the reporting script fro
     const job = /^  ci-summary:\n([\s\S]*)$/m.exec(ci)?.[1];
     assert.ok(job, 'ci.yml has a ci-summary job');
     assert.match(job, /pull-requests: write/);
-    const checkout = /uses: actions\/checkout@v4\n((?:\s+.*\n)+?)\s*\n/.exec(job)?.[1] ?? '';
+    const checkout = /uses: actions\/checkout@[0-9a-f]{40} # v\d[^\n]*\n((?:\s+.*\n)+?)\s*\n/.exec(job)?.[1] ?? '';
     assert.match(checkout, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, 'the checkout is the base commit');
     assert.match(checkout, /sparse-checkout: scripts/);
     assert.match(checkout, /persist-credentials: false/);

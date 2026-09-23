@@ -53,13 +53,13 @@ test('concurrency cancels superseded runs; permissions are minimal and only the 
     assert.ok(job('ci-summary').includes('pull-requests: write'));
     assert.match(job('ci-summary'), /if: always\(\) && github\.event_name == 'pull_request'/);
     assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, browser, pack\]/);
-    assert.ok(job('ci-summary').includes('actions/github-script@v7'));
+    assert.match(job('ci-summary'), /actions\/github-script@[0-9a-f]{40} # v7\.\d+\.\d+/);
 });
 
-test('only first-party actions are used (actions/*)', () => {
+test('only first-party actions are used (actions/*), pinned to a commit SHA', () => {
     const uses = [...ci.matchAll(/uses: ([^\s]+)/g)].map(m => m[1]);
     assert.ok(uses.length > 0);
-    for (const u of uses) assert.match(u, /^actions\/[a-z-]+@v\d+$/, u);
+    for (const u of uses) assert.match(u, /^actions\/[a-z-]+@[0-9a-f]{40}$/, u);
 });
 
 test('the jobs that need generated files bootstrap through verify, the path gate comes before the work', () => {
@@ -83,7 +83,8 @@ test('the browser job reruns once, reports flaky, keeps the report and is not re
     const b = job('browser');
     assert.ok(b.includes('id: first') && b.includes('id: second') && b.includes('flaky=true'));
     assert.ok(b.includes('continue-on-error: true'));
-    assert.ok(b.includes('actions/upload-artifact@v4') && b.includes('core/tests/browser/report.json'));
+    assert.match(b, /actions\/upload-artifact@[0-9a-f]{40} # v4\.\d+\.\d+/);
+    assert.ok(b.includes('core/tests/browser/report.json'));
     assert.ok(b.includes('PK_CHROME: /usr/bin/google-chrome'));
     assert.equal(JOBS.browser.required, false);
 });
