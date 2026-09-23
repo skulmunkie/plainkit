@@ -1,7 +1,7 @@
 // Unit tests for the side nav's filter, tree keys and persisted state. Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filterNav, splitMatch, treeKey, serializeNav, parseNav, navMode, railRowTooltip } from './side-nav.js';
+import { filterNav, splitMatch, treeKey, serializeNav, parseNav, navMode, railRowTooltip, resolveActiveRoute } from './side-nav.js';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sideNav, { rowsOf } from './side-nav.js';
@@ -52,6 +52,49 @@ test('arrow keys walk the tree: Right opens then enters, Left folds then goes up
     assert.equal(treeKey('ArrowLeft', { isChild: true }), 'focus-parent');
     assert.equal(treeKey('ArrowLeft', {}), null);
     assert.equal(treeKey('x'), null);
+});
+
+const routeEntries = [
+    { id: 'dashboard', href: '/dashboard', parent: null },
+    { id: 'users', href: '/users', parent: null },
+    { id: 'users-archive', href: '/users-archive', parent: null },
+    { id: 'settings', href: '/users/settings', parent: 'users' },
+    { id: 'profile', href: '/users/settings/profile', parent: 'settings' },
+];
+
+test('active route: an exact href match wins over nothing else', () => {
+    const r = resolveActiveRoute(routeEntries, '/dashboard');
+    assert.equal(r.current, 'dashboard');
+    assert.deepEqual([...r.open], []);
+});
+
+test('active route: the deepest matching branch wins, not the first prefix hit', () => {
+    const r = resolveActiveRoute(routeEntries, '/users/settings/profile');
+    assert.equal(r.current, 'profile');
+    assert.deepEqual([...r.open].sort(), ['settings', 'users']);
+});
+
+test('active route: a sibling that is a literal string prefix of another route is not a false match', () => {
+    const r = resolveActiveRoute(routeEntries, '/users-archive');
+    assert.equal(r.current, 'users-archive');
+    assert.deepEqual([...r.open], []);
+});
+
+test('active route: a detail page not literally in the tree falls back to the deepest segment-prefix match', () => {
+    const r = resolveActiveRoute(routeEntries, '/users/42');
+    assert.equal(r.current, 'users');
+    assert.deepEqual([...r.open], []);
+});
+
+test('active route: the fallback still prefers the deepest ancestor, never a shallower one', () => {
+    const r = resolveActiveRoute(routeEntries, '/users/settings/42');
+    assert.equal(r.current, 'settings');
+    assert.deepEqual([...r.open], ['users']);
+});
+
+test('active route: a path outside the tree, or an empty tree, resolves to nothing', () => {
+    assert.equal(resolveActiveRoute(routeEntries, '/nowhere').current, null);
+    assert.equal(resolveActiveRoute([], '/dashboard').current, null);
 });
 
 test('persisted state round-trips and survives garbage', () => {
