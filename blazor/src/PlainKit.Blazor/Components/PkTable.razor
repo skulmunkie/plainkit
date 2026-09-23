@@ -3,7 +3,7 @@
 @using System.Globalization
 @using System.Text.Json
 @using System.Text.Json.Nodes
-@inherits PkElementBase
+@inherits PkTableBase
 
 @* Hand-written (blazor/mappings/table.json marks it "existing"): a typed data table over <pk-table>.
    Attributes down: the columns and the rows are JSON attributes (camelCase), rebuilt when the parameters are set, never per render and never
@@ -122,50 +122,11 @@
     /// <summary>Each row becomes a card below 640px.</summary>
     [Parameter] public bool Cards { get; set; }
 
-    /// <summary>Alternate row tint.</summary>
-    [Parameter] public bool Striped { get; set; }
-
-    /// <summary>Tint the row under the pointer.</summary>
-    [Parameter] public bool Hover { get; set; }
-
-    /// <summary>Border on every cell.</summary>
-    [Parameter] public bool Bordered { get; set; }
-
-    /// <summary>The cell padding step; null leaves the element's default.</summary>
-    [Parameter] public PkTableDensity? Density { get; set; }
-
-    /// <summary>Pin the header row (give the table a <see cref="MaxHeight"/>).</summary>
-    [Parameter] public bool StickyHeader { get; set; }
-
-    /// <summary>Pin the first column.</summary>
-    [Parameter] public bool StickyColumn { get; set; }
-
-    /// <summary>Bounds the scrolling frame (a CSS length, for example <c>24rem</c>); sticky header and column need it.</summary>
-    [Parameter] public string? MaxHeight { get; set; }
-
-    /// <summary>The table caption, as text.</summary>
-    [Parameter] public string? Caption { get; set; }
-
-    /// <summary>The accessible name of the table's scrolling region. Give every table one.</summary>
-    [Parameter] public string? Label { get; set; }
-
-    /// <summary>No scroll frame, for a table inside a container that already scrolls.</summary>
-    [Parameter] public bool Flow { get; set; }
-
-    /// <summary>Search, filters and buttons above the table (the element's <c>toolbar</c> slot; rendered in a <c>pk-cluster</c>).</summary>
-    [Parameter] public RenderFragment? ToolbarContent { get; set; }
-
-    /// <summary>Actions shown while rows are selected (the <c>bulk</c> slot).</summary>
+    /// <summary>Actions shown while rows are selected (the <c>bulk</c> slot; raw mode has no rows to select, so it stays here rather than in <see cref="PkTableBase"/>).</summary>
     [Parameter] public RenderFragment? BulkContent { get; set; }
 
-    /// <summary>A caption with markup (the <c>caption</c> slot).</summary>
-    [Parameter] public RenderFragment? CaptionContent { get; set; }
-
-    /// <summary>The empty state, for example a <c>PkEmptyState</c> (the <c>empty</c> slot). It replaces <see cref="EmptyText"/>.</summary>
+    /// <summary>The empty state, for example a <c>PkEmptyState</c> (the <c>empty</c> slot). It replaces <see cref="EmptyText"/> (raw mode has no empty state of its own, so this stays here rather than in <see cref="PkTableBase"/>).</summary>
     [Parameter] public RenderFragment? EmptyContent { get; set; }
-
-    /// <summary>Below the table (the <c>footer</c> slot): put a <c>PkPagination</c> here.</summary>
-    [Parameter] public RenderFragment? FooterContent { get; set; }
 
     /// <summary>The detail of one row, shown under it when the user expands it (the element's <c>detail-&lt;rowId&gt;</c> slot). Needs <see cref="Expandable"/>.</summary>
     [Parameter] public RenderFragment<TItem>? DetailTemplate { get; set; }
