@@ -92,6 +92,11 @@
       "type": "bool"
     },
     {
+      "name": "Copyable",
+      "prop": "copyable",
+      "type": "bool"
+    },
+    {
       "name": "Stepper",
       "prop": "stepper",
       "type": "bool"

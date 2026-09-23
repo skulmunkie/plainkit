@@ -195,6 +195,13 @@
       "description": "Password only: a show and hide button."
     },
     {
+      "name": "copyable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a copy-to-clipboard button next to the value; disabled while empty and gives brief \"Copied\" feedback. Fails silently (logged, not shown) on an insecure origin or a denied permission."
+    },
+    {
       "name": "stepper",
       "type": "boolean",
       "default": false,
@@ -327,6 +334,10 @@
       "description": "The password reveal button."
     },
     {
+      "name": "copy",
+      "description": "The copy-to-clipboard button."
+    },
+    {
       "name": "step-down",
       "description": "The stepper minus button."
     },
@@ -358,7 +369,7 @@
       "description": "Moves focus to the inner input."
     }
   ],
-  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone.",
+  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. The copy button disables itself while the value is empty and its aria-label switches to \"Copied\" for a couple of seconds after a successful copy; a clipboard failure (insecure origin, denied permission) is logged, never shown as a false success. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone.",
   "examples": [
     {
       "title": "Text, states and sizes",
@@ -371,6 +382,10 @@
     {
       "title": "Search, password and floating label",
       "html": "<pk-input type=\"search\" label=\"Search products\" placeholder=\"Search products\" clearable debounce=\"250\"></pk-input>\n<pk-input type=\"password\" label=\"Password\" reveal autohide=\"15\" autocomplete=\"current-password\"></pk-input>\n<pk-input label=\"Product title\" floating></pk-input>"
+    },
+    {
+      "title": "Sensitive value: masked, revealable and copyable",
+      "html": "<pk-input type=\"password\" label=\"API key\" value=\"sk_live_5f3c9a1b2e4d\" reveal copyable autocomplete=\"off\"></pk-input>"
     },
     {
       "title": "Visible label",

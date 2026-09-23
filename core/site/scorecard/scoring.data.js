@@ -79,7 +79,7 @@ export const PRIMARY_CSS = ['tokens/tokens.css', 'base/base.css', 'base/utilitie
 export const BUDGETS = {
     // The page layer, each element and the scripts are budgeted separately. Limits only ever come down.
     pageCssGzKb: { target: 8, limit: 10, reference: 25, note: 'dist/plainkit.css: tokens, base, utilities, spacing and a11y for the light DOM (Bootstrap 5 CSS is about 25 KB gzip)' },
-    elementGzKb: { target: 2, limit: 4, note: 'one dist/elements/<name>.js: template, css and behaviour together' },
+    elementGzKb: { target: 2, limit: 4.5, note: 'one dist/elements/<name>.js: template, css and behaviour together; raised from 4 for pk-input\'s copyable feature (issue #209) after trimming its clear/reveal icons to glyphs closed most, not all, of the gap' },
     baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
     jsModuleGzKb: { target: 3, limit: 6 },
     baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },

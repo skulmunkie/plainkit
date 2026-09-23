@@ -25,6 +25,12 @@ export function stepValue(current, step, direction, min = -Infinity, max = Infin
 }
 const num = (s, d = null) => (s === '' || isNaN(s) ? d : Number(s));
 
+// True once on the clipboard; false when unavailable or refused. Never throws.
+export async function copyValue(text, clip = globalThis.navigator?.clipboard) {
+    if (!clip?.writeText) return false;
+    try { await clip.writeText(text); return true; } catch { return false; }
+}
+
 export default Base => class extends Base {
     connected() {
         if (this.$init) return;
@@ -35,7 +41,7 @@ export default Base => class extends Base {
         i.addEventListener('focus', () => this.edit(true));
         i.addEventListener('blur', () => this.edit(false));
         i.addEventListener('keydown', e => this.keys(e));
-        for (const [p, fn] of [['clear', () => this.clear()], ['reveal', () => this.showText(!this.$rev)], ['step-down', () => this.stepBy(-1)], ['step-up', () => this.stepBy(1)]]) this.part(p).addEventListener('click', fn);
+        for (const [p, fn] of [['clear', () => this.clear()], ['reveal', () => this.showText(!this.$rev)], ['copy', () => this.copy()], ['step-down', () => this.stepBy(-1)], ['step-up', () => this.stepBy(1)]]) this.part(p).addEventListener('click', fn);
     }
     money() { return this.format === 'money'; }
     n() { return this.value === '' ? NaN : Number(this.value); }
@@ -51,6 +57,7 @@ export default Base => class extends Base {
         this.toggleAttribute('has-value', this.value !== '');
         if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch { this.warnOnce('c', 'bad currency'); } this.part('currency').textContent = c; }
         if (this.stepper) { this.part('step-down').disabled = this.disabled || this.n() <= num(this.min, -Infinity); this.part('step-up').disabled = this.disabled || this.n() >= num(this.max, Infinity); }
+        if (this.copyable) this.part('copy').disabled = this.disabled || this.value === '';
         this.check();
     }
     check() {
@@ -83,6 +90,12 @@ export default Base => class extends Base {
         clearTimeout(this.$hide);
         if (on && this.autohide > 0) this.$hide = setTimeout(() => this.showText(false), this.autohide * 1000);
         this.requestUpdate();
+    }
+    async copy() {
+        if (this.value === '') return;
+        if (!(await copyValue(this.value))) return this.log.warn('clipboard copy failed');
+        const b = this.part('copy'); b.setAttribute('aria-label', 'Copied');
+        clearTimeout(this.$copyT); this.$copyT = setTimeout(() => b.setAttribute('aria-label', 'Copy'), 1600);
     }
     search(now) {
         if (this.type !== 'search') return;

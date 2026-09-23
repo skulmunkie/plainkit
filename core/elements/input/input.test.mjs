@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { flagsOf, parseMoney, formatMoney, moneyProblem, stepValue } from './input.js';
+import { flagsOf, parseMoney, formatMoney, moneyProblem, stepValue, copyValue } from './input.js';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -45,6 +45,13 @@ test('stepValue steps, rounds float noise, clamps and treats empty as zero', () 
     assert.equal(stepValue(NaN, 1, 1), 1);
     assert.equal(stepValue(3, 0, 1), 4);
 });
+test('copyValue resolves true once writeText resolves, and never throws when it is missing or rejects', async () => {
+    assert.equal(await copyValue('x', { writeText: async () => {} }), true);
+    assert.equal(await copyValue('x', undefined), false);
+    assert.equal(await copyValue('x', {}), false);
+    assert.equal(await copyValue('x', { writeText: async () => { throw new DOMException('denied', 'NotAllowedError'); } }), false);
+});
+
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./input.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json'));
 const prop = name => meta.props.find(p => p.name === name);
@@ -57,4 +64,13 @@ test('showLabel renders a label element for the control, off by default and not 
     assert.match(html, /<input part="control" id="c" /);
     assert.ok(meta.parts.some(p => p.name === 'label'), 'the label part is documented');
     assert.ok(css.includes(':host([show-label]:not([floating])) label { display: block; }'));
+});
+
+// Issue #209: masked, revealable, sensitive-but-readable values (client id, API key) need a copy action too.
+test('copyable adds a disabled-while-empty copy button, off by default', () => {
+    assert.equal(prop('copyable').type, 'boolean'); assert.equal(prop('copyable').default, false);
+    const html = read('html'); const css = read('css');
+    assert.match(html, /<button part="copy" class="ib copy" type="button" aria-label="Copy">/);
+    assert.ok(meta.parts.some(p => p.name === 'copy'), 'the copy part is documented');
+    assert.ok(css.includes(':host([copyable]) .copy { display: grid; }'));
 });
