@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { ensureStyles, styleUrls, loadJson, runtimeUrl } from '../js/mount-support.js';
-import { collectSnapshot, symbolsOf } from '../tools/snapshot.mjs';
+import { collectSnapshot, collectFileList, symbolsOf } from '../tools/snapshot.mjs';
 import { SnapshotProvider } from '../modules/code-explorer/providers.js';
 import { mountCodeExplorer } from '../modules/code-explorer/code-explorer.js';
 
@@ -75,6 +75,20 @@ test('collectSnapshot reads a folder into the explorer format and the explorer r
         const provider = new SnapshotProvider(snap);
         assert.equal((await provider.readFile('src/app.js')).lines[1], '  return 1;');
         assert.equal((await provider.search('return')).length, 1);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('collectFileList reads the same folder and filter as collectSnapshot but carries no content, just path, language and line count', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'snap-'));
+    try {
+        fs.mkdirSync(path.join(dir, 'src')); fs.mkdirSync(path.join(dir, 'node_modules'));
+        fs.writeFileSync(path.join(dir, 'src', 'app.js'), 'export function run() {\r\n  return 1;\r\n}\r\n');
+        fs.writeFileSync(path.join(dir, 'README.md'), '# Title\n');
+        fs.writeFileSync(path.join(dir, 'logo.png'), 'x');
+        fs.writeFileSync(path.join(dir, 'node_modules', 'skip.js'), 'x');
+        const list = collectFileList(dir);
+        assert.deepEqual(list, { version: 1, files: [{ path: 'README.md', language: 'md', lines: 2 }, { path: 'src/app.js', language: 'js', lines: 4 }] });
+        assert.deepEqual(list.files.map(f => f.path), collectSnapshot(dir, { generated: 'now' }).files.map(f => f.path), 'the same files, in the same order, as the full snapshot');
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

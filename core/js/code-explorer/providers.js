@@ -6,6 +6,7 @@ export const unsafeRegex = m.unsafeRegex;
 export const matcherFor = m.matcherFor;
 export const SnapshotProvider = m.SnapshotProvider;
 export const ApiProvider = m.ApiProvider;
+export const LazyProvider = m.LazyProvider;
 export const FeedProvider = m.FeedProvider;
 export const contractProblems = m.contractProblems;
 export const createProvider = m.createProvider;

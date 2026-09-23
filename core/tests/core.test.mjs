@@ -10,7 +10,7 @@ import { buildOverrides, parseOverrides, nameProblem, valueProblem, parseTokenBl
 import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
 import { scoreMetric, scoreCategory, scoreAll, scoreFindings, rankWorstFirst, groupFindings, pushRun, readHistory, deltas, importHistory, exportHistory } from '../js/scoring.js';
 import { contrastFailures, staticMetrics } from '../js/audit.js';
-import { SnapshotProvider, ApiProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
+import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
 import { tokenize, buildSegments, wordAt, languageOf } from '../js/code-explorer/tokenize.js';
 import { buildTree } from '../js/code-explorer/element.js';
 import { SCORING, TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
@@ -261,6 +261,44 @@ test('api provider without a capabilities endpoint is list and read only', async
     assert.deepEqual(p.capabilities, NO_CAPABILITIES);
 });
 
+test('lazy provider lists from the lean list alone, fetches a file\'s real text only once it is opened, and caches it', async () => {
+    const calls = [];
+    const fetch = async url => { calls.push(url); return { ok: true, text: async () => (url.endsWith('one.js') ? 'const Foo = 1;\nfoo(Foo);' : '.x { color: red; }') }; };
+    const p = new LazyProvider([{ path: 'a/one.js', language: 'js', lines: 2 }, { path: 'a/two.css', language: 'css', lines: 1 }], 'https://h/raw', { fetch });
+    assert.deepEqual(contractProblems(p), []);
+    assert.deepEqual(await p.listFiles(), [{ path: 'a/one.js', lines: 2, language: 'js' }, { path: 'a/two.css', lines: 1, language: 'css' }]);
+    assert.deepEqual(calls, [], 'no content fetched just from listing');
+    assert.deepEqual((await p.readFile('a/one.js')).lines, ['const Foo = 1;', 'foo(Foo);']);
+    await p.readFile('a/one.js');
+    assert.deepEqual(calls, ['https://h/raw/a/one.js'], 'a second read of the same file does not fetch again');
+    await assert.rejects(p.readFile('nope'));
+});
+
+test('lazy provider connects from a lean list URL', async () => {
+    const list = { files: [{ path: 'a', language: 'js', lines: 1 }] };
+    const fetch = async url => (url === '/index.json' ? { ok: true, json: async () => list } : { ok: true, text: async () => 'x' });
+    const p = await LazyProvider.connect('/index.json', '/raw', { fetch });
+    assert.deepEqual(await p.listFiles(), [{ path: 'a', lines: 1, language: 'js' }]);
+    await assert.rejects(LazyProvider.connect('/nope', '/raw', { fetch: async () => ({ ok: false, status: 404 }) }));
+});
+
+test('lazy provider search and references fetch every not-yet-cached file once, then work like a snapshot', async () => {
+    let fetches = 0;
+    const fetch = async url => { fetches++; return { ok: true, text: async () => (url.endsWith('one.js') ? 'const Foo = 1;\nfoo(Foo);' : '.x { color: red; }') }; };
+    const p = new LazyProvider([{ path: 'a/one.js', language: 'js', lines: 2 }, { path: 'a/two.css', language: 'css', lines: 1 }], '/raw', { fetch });
+    assert.equal((await p.search('foo')).find(g => g.path === 'a/one.js').hits.length, 2);
+    assert.equal(fetches, 2, 'both files fetched to search across them');
+    fetches = 0;
+    assert.deepEqual((await p.references('a/one.js', 'Foo')).map(r => r.line), [1, 2]);
+    assert.equal(fetches, 0, 'a second capability-wide call fetches nothing new');
+});
+
+test('lazy provider outline computes symbols client-side from the fetched file, the same function tools/snapshot.mjs uses at build time', async () => {
+    const fetch = async () => ({ ok: true, text: async () => 'const Foo = 1;\nfoo(Foo);' });
+    const p = new LazyProvider([{ path: 'a/one.js', language: 'js', lines: 2 }], '/raw', { fetch });
+    assert.deepEqual(await p.outline('a/one.js'), [{ kind: 'const', name: 'Foo', line: 1, depth: 0 }]);
+});
+
 test('feed provider wraps a provider, claims live and delivers events until unsubscribed', () => {
     let es;
     class FakeES { constructor(url) { es = this; this.url = url; this.closed = false; } close() { this.closed = true; } }
@@ -281,6 +319,8 @@ test('contractProblems reports a claimed capability with no method', () => {
 test('createProvider picks by source and rejects an unknown one', async () => {
     const fetch = async () => ({ ok: true, json: async () => SNAP });
     assert.ok((await createProvider({ source: 'snapshot', src: 's.json', fetch })) instanceof SnapshotProvider);
+    const lazyFetch = async () => ({ ok: true, json: async () => ({ files: [] }) });
+    assert.ok((await createProvider({ source: 'lazy', src: 'index.json', raw: '/raw', fetch: lazyFetch })) instanceof LazyProvider);
     await assert.rejects(createProvider({ source: 'ftp', src: 'x' }), /unknown code-explorer source/);
 });
 

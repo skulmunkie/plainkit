@@ -38,6 +38,22 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
+    ['code explorer module: LazyProvider (issue 196) fetches real files same-origin, not an object snapshot -- a real fetch(), unlike the SNAPSHOT case above, which never calls it', async t => {
+        const { LazyProvider } = await import(new URL('../../dist/modules/code-explorer/providers.js', import.meta.url).href);
+        // This test file (tests/browser/) sits two folders below core/, the same distance site/files/page.js is: '../../' reaches
+        // core/ from either, so real source files are fetchable the same same-origin way the live Files page reaches them.
+        const raw = new URL('../../', import.meta.url);
+        const p = new LazyProvider([{ path: 'plainkit.css', language: 'css', lines: 1 }], raw);
+        const file = await p.readFile('plainkit.css'); // a detached/rebound fetch call throws "Illegal invocation" in a real browser; a fake fetch in a node test cannot catch that
+        t.ok(file.lines.length > 0, 'a real file was fetched and split into lines');
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { provider: p, file: 'plainkit.css', height: '20rem' });
+        await until(() => handle.element.querySelector('.cv-row'), 'the opened file');
+        t.ok(handle.element.querySelectorAll('.cv-row').length > 1, 'openFile through the element also fetched real content, not an error page');
+        handle.destroy();
+    }],
+
     ['scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter', async t => {
         const { mountScorecard } = await dist('scorecard');
         const host = t.stage('');

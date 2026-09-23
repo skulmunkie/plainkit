@@ -1,4 +1,4 @@
-// Code explorer data providers. One interface, three sources; the UI asks the provider what it can do and hides the rest.
+// Code explorer data providers. One interface, four sources; the UI asks the provider what it can do and hides the rest.
 //
 //   provider.capabilities  { search, outline, references, live }   booleans; list and read are always available
 //   provider.listFiles()   -> [{ path, lines, language? }]
@@ -22,9 +22,17 @@
 // Feed: a Server-Sent Events URL (or, with interval, a polled JSON URL) that emits { type, path? } messages; reads still
 // come from the wrapped provider.
 //
+// Lazy (issue 196): the live site's own default. A lean file list (site/files/index.json: path, language, line count, no
+// content) fetched once up front, plus a same-origin `raw` base (the Pages deploy's own copy of the source tree, resolved with
+// a URL object against the calling page's own module in site/files/page.js) each file's real text is fetched from on demand
+// and cached -- STANDARDS.md, "Security (CSP)": no runtime request to another origin, so this only ever works same-origin,
+// unlike an ApiProvider pointed at someone else's host. search/outline/references need a file's content, so the first call to
+// any of them fetches whatever is not cached yet.
+//
 // Framework-free; `fetch` and `EventSource` are injectable so the contract can be tested without a browser.
 
 import { createLogger } from '../../js/log.js';
+import { symbolsOf } from './symbols.js';
 
 const log = createLogger('code-explorer');
 
@@ -71,6 +79,24 @@ export function matcherFor(query) {
 
 const toLines = text => String(text).replace(/\r\n/g, '\n').split('\n');
 
+// Shared by SnapshotProvider and LazyProvider: both hold `files: Map<path, { path, language?, lines }>` once a file's content is
+// in hand, so search/references need only one definition each.
+function searchIn(files, query) {
+    const match = matcherFor(query);
+    const groups = [];
+    for (const f of files.values()) {
+        const hits = [];
+        f.lines.forEach((text, i) => { const spans = match(text); if (spans.length) hits.push({ line: i + 1, text, spans }); });
+        if (hits.length) groups.push({ path: f.path, hits });
+    }
+    return groups;
+}
+function referencesIn(files, word) {
+    const out = [];
+    for (const f of files.values()) f.lines.forEach((text, i) => { if (wordSpans(text, word).length) out.push({ path: f.path, line: i + 1, text }); });
+    return out;
+}
+
 export class SnapshotProvider {
     constructor(snapshot) {
         this.files = new Map((snapshot.files ?? []).map(f => [f.path, { ...f, lines: f.lines ?? toLines(f.content ?? '') }]));
@@ -93,28 +119,69 @@ export class SnapshotProvider {
         return { path: f.path, language: f.language, lines: f.lines };
     }
 
-    async search(query) {
-        const match = matcherFor(query);
-        const groups = [];
-        for (const f of this.files.values()) {
-            const hits = [];
-            f.lines.forEach((text, i) => { const spans = match(text); if (spans.length) hits.push({ line: i + 1, text, spans }); });
-            if (hits.length) groups.push({ path: f.path, hits });
-        }
-        return groups;
-    }
+    async search(query) { return searchIn(this.files, query); }
 
     async outline(path) { return this.files.get(path)?.symbols ?? []; }
 
-    async references(path, word) {
-        const out = [];
-        for (const f of this.files.values()) f.lines.forEach((text, i) => { if (wordSpans(text, word).length) out.push({ path: f.path, line: i + 1, text }); });
-        return out;
+    async references(path, word) { return referencesIn(this.files, word); }
+}
+
+// A lean file list up front (path, language, line count -- no content), each file's real text fetched same-origin, lazily, only
+// once it is opened, searched or referenced-in, and cached from then on (issue 196: the live site no longer ships a multi-megabyte
+// snapshot to browse one file). STANDARDS.md, "Security (CSP)": no runtime request to another origin, so `raw` is always same-origin
+// with the page (the Pages deploy's own copy of the source tree; build-pages.mjs's FULL folders). search/outline/references need
+// every file's content, so the first call to any of them fetches whatever is not cached yet -- one file at a time, not Promise.all,
+// so a large tree does not open hundreds of connections at once just because the user typed one search; a second search is free.
+export class LazyProvider {
+    constructor(files, raw, { fetch: fetchFn = globalThis.fetch.bind(globalThis) } = {}) {
+        this.raw = String(raw).replace(/\/+$/, '');
+        this.fetch = fetchFn;
+        this.files = new Map(files.map(f => [f.path, { path: f.path, language: f.language, lineCount: f.lines, lines: null }]));
+        this.capabilities = { search: true, outline: true, references: true, live: false };
     }
+
+    // list: the URL of the lean file list (site/files/index.json). raw: the same-origin base the real files sit under (the page's
+    // own core/ copy, resolved from the caller's own module URL; see site/files/page.js).
+    static async connect(list, raw, options = {}) {
+        const fetchFn = options.fetch ?? globalThis.fetch;
+        const res = await fetchFn(list);
+        if (!res.ok) throw new Error(`file list ${list}: ${res.status}`);
+        const { files } = await res.json();
+        return new LazyProvider(files ?? [], raw, options);
+    }
+
+    async listFiles() { return [...this.files.values()].map(f => ({ path: f.path, lines: f.lines?.length ?? f.lineCount, language: f.language })); }
+
+    async #need(path) {
+        const f = this.files.get(path);
+        if (!f) throw new Error(`no such file: ${path}`);
+        if (f.lines === null) {
+            const res = await this.fetch(`${this.raw}/${path}`);
+            if (!res.ok) throw new Error(`${path}: ${res.status}`);
+            f.lines = toLines(await res.text());
+        }
+        return f;
+    }
+
+    async readFile(path) {
+        const f = await this.#need(path);
+        return { path: f.path, language: f.language, lines: f.lines };
+    }
+
+    async #needAll() { for (const f of this.files.values()) if (f.lines === null) await this.#need(f.path); }
+
+    async search(query) { await this.#needAll(); return searchIn(this.files, query); }
+
+    async outline(path) {
+        const f = await this.#need(path);
+        return symbolsOf(f.lines.join('\n'), f.language);
+    }
+
+    async references(path, word) { await this.#needAll(); return referencesIn(this.files, word); }
 }
 
 export class ApiProvider {
-    constructor(base, { fetch: fetchFn = globalThis.fetch, capabilities } = {}) {
+    constructor(base, { fetch: fetchFn = globalThis.fetch.bind(globalThis), capabilities } = {}) {
         this.base = String(base).replace(/\/+$/, '');
         this.fetch = fetchFn;
         this.capabilities = { ...NO_CAPABILITIES, ...capabilities };
@@ -147,7 +214,7 @@ export class ApiProvider {
 
 // Wraps another provider and adds live updates from a feed (SSE by default, polling when `interval` ms is given).
 export class FeedProvider {
-    constructor(inner, feedUrl, { EventSource: ES = globalThis.EventSource, fetch: fetchFn = globalThis.fetch, interval = 0 } = {}) {
+    constructor(inner, feedUrl, { EventSource: ES = globalThis.EventSource, fetch: fetchFn = globalThis.fetch.bind(globalThis), interval = 0 } = {}) {
         this.inner = inner;
         this.feedUrl = feedUrl;
         this.ES = ES;
@@ -184,12 +251,14 @@ export function contractProblems(provider) {
     return problems;
 }
 
-// source: "snapshot" | "api" | "feed"; src: the snapshot URL, the API base URL, or the feed URL (feed wraps `base`, an API base URL, via options.base).
+// source: "snapshot" | "api" | "lazy" | "feed"; src: the snapshot URL, the API base URL, the lean file-list URL (lazy; pair with
+// options.raw), or the feed URL (feed wraps `base`, an API base URL, via options.base).
 export async function createProvider({ source, src, ...options }) {
     switch (source) {
         case 'snapshot': return SnapshotProvider.load(src, options.fetch);
         case 'api': return ApiProvider.connect(src, options);
+        case 'lazy': return LazyProvider.connect(src, options.raw, options);
         case 'feed': return new FeedProvider(await ApiProvider.connect(options.base ?? src, options), src, options);
-        default: throw new Error(`unknown code-explorer source "${source}" (use snapshot, api or feed)`);
+        default: throw new Error(`unknown code-explorer source "${source}" (use snapshot, api, lazy or feed)`);
     }
 }
