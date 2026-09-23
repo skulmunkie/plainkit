@@ -1,0 +1,15 @@
+{
+  "id": "record-detail",
+  "title": "Record detail (sidebar)",
+  "summary": "One record's body plus a sticky sidebar of summary cards, collapsing to one column below the container's own width, not the viewport.",
+  "built": "Detail layout, Page header (record), Badge, Card, Field list.",
+  "mobile": "Below the container's 48rem the sidebar stacks under the main content, no longer sticky.",
+  "used": [
+    "badge",
+    "card",
+    "detail-layout",
+    "field-list",
+    "page-header"
+  ],
+  "order": 6
+}

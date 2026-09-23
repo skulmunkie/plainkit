@@ -187,4 +187,20 @@ export const layoutCases = [
         b.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, composed: true, cancelable: true }));
         t.eq(seen.length, 0, 'a disabled row does not reorder even when a script focuses it directly');
     }],
+
+    ['detail-layout: two columns above the 48rem container width, one column (sidebar static, not sticky) below it, by the container\'s own width not the viewport', async t => {
+        const el = await t.mount('<pk-detail-layout><p>Main</p><div slot="sidebar"><p>Card</p></div></pk-detail-layout>');
+        const cols = () => getComputedStyle(el.part('grid')).gridTemplateColumns.trim().split(' ').length;
+        size(el, rem(60)); await t.settle();
+        t.eq(cols(), 2, 'wide container: two columns'); t.eq(getComputedStyle(el.part('sidebar')).position, 'sticky');
+        size(el, rem(30)); await t.settle();
+        t.eq(cols(), 1, 'narrow container: one column'); t.eq(getComputedStyle(el.part('sidebar')).position, 'static');
+    }],
+
+    ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
+        const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
+        size(el, rem(30)); await t.settle();
+        t.ok(el.part('main').getBoundingClientRect().top > el.part('sidebar').getBoundingClientRect().top, 'sidebarFirst: the sidebar sits above the main content once stacked');
+        t.eq(getComputedStyle(el.part('sidebar')).gridTemplateColumns.trim().split(' ').length, 2, 'sidebarTwoUp: two columns of cards inside the collapsed sidebar');
+    }],
 ];
