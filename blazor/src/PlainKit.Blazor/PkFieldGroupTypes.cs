@@ -92,7 +92,7 @@ public sealed record PkFieldSpec<TItem>
     /// <summary><c>PkTextarea.Rows</c>; <see cref="PkFieldKind.Textarea"/> only, the control's own default (3) when unset.</summary>
     public int? Rows { get; init; }
 
-    /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button (accessible name "Help for <see cref="Label"/>") in the field's label slot (<c>PkField.LabelExtra</c>); for a checkbox, whose label is the field label, that is the same place. For text that belongs under the control use <see cref="Hint"/>.</summary>
+    /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button (accessible name "Help for <see cref="Label"/>") beside the label text (<c>PkField.LabelAction</c>, so the label itself stays); for a checkbox, whose label is the field label, that is the same place. For text that belongs under the control use <see cref="Hint"/>.</summary>
     public string? Help { get; init; }
 
     /// <summary>The options of a <see cref="PkFieldKind.Select"/> field, read at every render; wins over <see cref="Options"/> when set. For options that load after the specs are built.</summary>

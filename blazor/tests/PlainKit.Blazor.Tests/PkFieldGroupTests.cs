@@ -176,7 +176,7 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Help_renders_a_help_tooltip_in_the_label_slot_and_is_absent_when_unset()
+    public void Help_renders_a_help_tooltip_beside_the_label_text_and_is_absent_when_unset()
     {
         PkFieldSpec<Order>[] fields =
         [
@@ -185,9 +185,12 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         ];
         var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
 
-        var tip = cut.Find("pk-field [slot=label] pk-tooltip");
+        var tip = cut.Find("pk-field [slot=label-action] pk-tooltip");
         Assert.NotNull(tip.GetAttribute("help"));
         Assert.Equal("Why we ask", tip.GetAttribute("text"));
+        // Issue 268: the tooltip must not take over the label slot, which would replace the label text.
+        Assert.Equal("A", cut.Find("pk-field").GetAttribute("label"));
+        Assert.Empty(cut.FindAll("pk-field [slot=label]"));
         Assert.Single(cut.FindAll("pk-tooltip"));
     }
 

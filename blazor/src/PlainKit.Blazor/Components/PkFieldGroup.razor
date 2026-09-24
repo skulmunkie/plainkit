@@ -13,7 +13,7 @@
    would use. *@
 @foreach (var f in Fields.Where(f => f.When is null || f.When(Model)))
 {
-    <PkField Label="@(f.HideLabel ? null : f.Label)" class="@(f.Span ? "form-span" : null)" Hint="@f.Hint" Required="@f.Required" LabelExtra="@HelpFor(f, Model)">
+    <PkField Label="@(f.HideLabel ? null : f.Label)" class="@(f.Span ? "form-span" : null)" Hint="@f.Hint" Required="@f.Required" LabelAction="@HelpFor(f, Model)">
         @if (f.Kind == PkFieldKind.Select)
         {
             <PkSelect Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" Label="@Accessible(f)" Disabled="@(IsDisabled(f) || IsReadOnly(f))">
