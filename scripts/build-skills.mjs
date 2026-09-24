@@ -613,7 +613,7 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
     const rf = src.razor.PkRecordForm;
     if (rf) {
         files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Components/PkRecordForm.razor'), '',
-            'A hand-written component with no element of its own, composed of existing components: a `PkForm` (`Summary`) around a native form, and in it a `PkStack` of the toolbar, your `Tabs`, the error alert and the body. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs. The body is your `PkCard`s in `ChildContent` and, when `Sidebar` is given, a `PkDetailLayout` with the status cards beside them; without `Sidebar` it is the main column alone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours: this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
+            'A hand-written component with no element of its own, composed of existing components: a `PkForm` (`Summary`) around a native form, and in it a `PkStack` of the toolbar, your `Tabs`, the error alert and the body. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs. The body is your `PkCard`s in `ChildContent` and, when `Sidebar` is given, a `PkDetailLayout` with the status cards beside them; without `Sidebar` it is the main column alone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours, or `PkRecordEditor`\'s (`references/record-editor.md`): this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
             '`OnDelete` is an `EventCallback`, and an unset one (`default`) hides Delete: to offer it only for an existing record keep a field, `private EventCallback _delete;`, assign `_delete = EventCallback.Factory.Create(this, DeleteAsync);` when the record is loaded, and pass `OnDelete="_delete"`.', '',
             '## Routed list and record page', '',
             'A list page and a record page are two routes, and the route is the only state. The list navigates on a row click and on Add; the record page loads by the route parameter, draws itself with `PkRecordForm`, and navigates back to the list after Save, Cancel and Delete. This is a full page per record; the `routed-list-detail` template of the `plainkit-sdk` skill (`PkWorkspace`) is the list and record side by side.', '',
@@ -690,6 +690,55 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
         '    }',
         '}', '```', '',
         '`OnAdd` (the `pk-add` event) does not fire for a pick made on the slotted `InputFile` — `OnChange` is the only read path, the same split as `PkDropzone`\'s `OnFiles`. Without an `InputFile`, `OnAdd` still reports the chosen files\' names, but never their bytes.', ''].join('\n'));
+
+    // the state half of a create-or-edit record page: a plain C# class, no razor entry (issue 261)
+    const RECORD_EDITOR_SAMPLE = String.raw`@* LocationEdit.razor: the record page over PkRecordEditor; the list page is the one in record-form.md *@
+@page "/locations/new"
+@page "/locations/{Id:int}"
+@inject NavigationManager Nav
+@inject ILocationRepository Repo
+@inject ILogger<LocationEdit> Log
+
+@if (_editor.Form is { } form)
+{
+    <PkPageHeader Crumbs="_crumbs" Title="@Title" />
+    <PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_editor.Busy" Error="@_editor.Error">
+        <PkCard Heading="Details">
+            <PkField Label="Name" Required><PkInput @bind-Value="form.Name" Name="name" Required /></PkField>
+        </PkCard>
+    </PkRecordForm>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private PkRecordEditor<Location, LocationForm, int> _editor = default!;
+    private EventCallback _delete;
+    private readonly PkCrumb[] _crumbs = [new PkCrumb("Locations", "/locations"), new PkCrumb("Location")];
+    private string Title => _editor.IsNew ? "New location" : _editor.Record!.Name;
+
+    protected override void OnInitialized() =>
+        _editor = new(Log, "location", Repo.GetAsync, l => l is null ? new LocationForm() : LocationForm.From(l),
+                      (form, location) => Repo.SaveAsync(location?.Id, form), location => Repo.DeleteAsync(location.Id));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is { } id) await _editor.LoadAsync(id); else _editor.StartNew();
+        if (_editor.NotFound) Nav.NavigateTo("/locations", replace: true);
+        _delete = _editor.CanDelete ? EventCallback.Factory.Create(this, DeleteAsync) : default;
+    }
+
+    private async Task SaveAsync() { if (await _editor.SaveAsync()) Back(); }
+    private async Task DeleteAsync() { if (await _editor.DeleteAsync()) Back(); }
+    private void Back() => Nav.NavigateTo("/locations");
+}`;
+
+    files.set('references/record-editor.md', ['# PkRecordEditor: the state of a create-or-edit record page', '', stamp(src, 'PkRecordEditor.cs'), '',
+        'A plain C# class (no component, no element) holding what every record page repeats: load a record by id or start a blank one, a not-found flag, DataAnnotations validation, save, delete, `Busy` and `Error`. The page declares what is specific to its record with delegates; it pairs with `PkRecordForm`, which draws the page (`references/record-form.md`), but neither needs the other. `PkRecordEditor<TRecord, TForm, TKey>`: `TRecord` is the stored thing (null while adding), `TForm` the editable copy the fields bind to, `TKey` the id type (`int`, `Guid`, `string`). Write the three type arguments once, on the field, and construct with target-typed `new(...)`.', '',
+        '```razor', RECORD_EDITOR_SAMPLE, '```', '',
+        '## Constructor', '', table(['Argument', 'Description'], [['`ILogger logger`', 'receives unexpected failures (the app\'s own logger; this is not `IPkLog`, the browser-side log)'], ['`string noun`', 'what the record is called in the log ("location")'], ['`Func<TKey, Task<TRecord?>> load`', 'loads a record by id; null when there is none'], ['`Func<TRecord?, TForm> toForm`', 'makes the form, from the record or from null for a new one'], ['`Func<TForm, TRecord?, Task> save`', 'stores the form; the record is null for a new one'], ['`Func<TRecord, Task>? delete`', 'deletes a record; without it `CanDelete` stays false']]), '',
+        '## Members', '', table(['Member', 'Description'], [['`StartNew()`', 'a blank form for a new record'], ['`LoadAsync(TKey id)`', 'loads a record into the form; none found sets `NotFound` and clears `Form` and `Record` (redirect to the list). A `load` that throws propagates: it is a page error, not a form error'], ['`SaveAsync()`', 'validates `Form` with DataAnnotations (`IValidatableObject` too; the messages are joined into `Error`), then calls `save`; true when saved. A second call while `Busy` is refused'], ['`DeleteAsync()`', 'calls `delete` for the loaded record; true when deleted'], ['`Form`, `Record`, `IsNew`, `NotFound`, `Busy`, `Error`, `CanDelete`', 'the state the page reads; `CanDelete` is a delete delegate and a loaded record'], ['`ClearError()`', 'clears `Error`']]), '',
+        '## Which errors the user sees', '', 'An exception thrown by `save` or `delete` that implements the marker interface `IPkUserFacingException` (no members) shows its `Message` as it is: a domain rule written for the person ("Only one location can be primary."). Put the marker on the exception base type the app already has (`class AppException(string message) : Exception(message), IPkUserFacingException;`), so every rule that derives from it is shown. Any other exception is logged (`LogError` with the verb and noun) and the user sees "Unexpected error while saving. See log for details." (or "deleting"): an exception message is not written for users and can leak internals.', ''].join('\n'));
 
     // typed round-trip helpers for pk-input type="date"/"number" (issue #208); PkInput's own Value stays plain text, so no razor entry
     const members2 = (title, ms) => ms.length ? [`## ${title}`, '', table(['Member', 'Description'], ms.map(m => [code(m.decl), m.doc])), ''].join('\n') : '';
@@ -774,7 +823,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'record-form.md': '`PkRecordForm`: the page template of a create-or-edit record page (toolbar, tabs, error, cards and sidebar)', 'field-list-row.md':'`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'record-editor.md': '`PkRecordEditor`: the load, validate, save and delete state of a record page, and `IPkUserFacingException`', 'record-form.md': '`PkRecordForm`: the page template of a create-or-edit record page (toolbar, tabs, error, cards and sidebar)', 'field-list-row.md':'`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
