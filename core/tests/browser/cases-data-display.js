@@ -373,6 +373,12 @@ export const dataDisplayCases = [
         t.eq(el.internals.role, 'list'); t.ok([...el.children].every(c => c.getAttribute('role') === 'listitem'));
     }],
 
+    ['accordion-item: an actions button is outside the summary and does not toggle', async t => {
+        const el = await t.mount('<pk-accordion-item heading="A"><button slot="actions">Go</button>a</pk-accordion-item>');
+        const btn = el.querySelector('button'); btn.click();
+        t.ok(!el.part('details').open, 'clicking an action leaves the item closed');
+        t.ok(!el.part('summary').contains(el.part('actions')), 'the actions are not inside the summary');
+    }],
     ['accordion: an item toggles its details and reports it; exclusive closes the others', async t => {
         const el = await t.mount('<pk-accordion exclusive><pk-accordion-item heading="A" open>a</pk-accordion-item><pk-accordion-item heading="B">b</pk-accordion-item></pk-accordion>');
         const [a, b] = el.querySelectorAll('pk-accordion-item'); t.ok(a.part('details').open);

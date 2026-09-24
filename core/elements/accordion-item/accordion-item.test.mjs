@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import behaviour from './accordion-item.js';
 
 const make = (open = false) => {
-    const details = { open, listeners: {}, addEventListener(t, fn) { this.listeners[t] = fn; } }; const emitted = [];
-    const el = new (behaviour(class { part(n) { return n === 'details' ? details : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
+    const details = { open, listeners: {}, addEventListener(t, fn) { this.listeners[t] = fn; } }; const emitted = []; const props = {}; const actions = { offsetWidth: 80, firstChild: { addEventListener(t, fn) { actions.slot = fn; } } };
+    const el = new (behaviour(class { part(n) { return n === 'details' ? details : n === 'actions' ? actions : n === 'summary' ? { style: { setProperty: (k, v) => { props[k] = v; } } } : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
     el.open = open;
-    return { el, details, emitted };
+    return { el, details, emitted, actions, props };
 };
 
 test('a toggle the user made updates open and announces it with pk-toggle', () => {
@@ -40,4 +40,10 @@ test('connecting twice registers one listener', () => {
     el.connected(); const first = details.listeners.toggle;
     el.connected();
     assert.equal(details.listeners.toggle, first);
+});
+
+test('actions slot changes reserve room in the summary', () => {
+    const { el, actions, props } = make();
+    el.connected(); actions.slot();
+    assert.equal(props['--pk-accordion-actions'], '80px');
 });

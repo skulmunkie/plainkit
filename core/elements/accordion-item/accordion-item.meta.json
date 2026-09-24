@@ -32,6 +32,10 @@
     {
       "name": "icon",
       "description": "An icon before the heading."
+    },
+    {
+      "name": "actions",
+      "description": "Controls in the header, beside the chevron, that do not toggle the section (for example a Re-check button). They sit outside the toggle, so they are separate tab stops."
     }
   ],
   "events": [
@@ -58,6 +62,10 @@
       "description": "The heading text."
     },
     {
+      "name": "actions",
+      "description": "The header actions area."
+    },
+    {
       "name": "chevron",
       "description": "The chevron."
     },
@@ -67,6 +75,11 @@
     }
   ],
   "cssProperties": [
+    {
+      "name": "--pk-accordion-actions",
+      "description": "Header room reserved for the actions slot; the element sets it from the slotted width.",
+      "default": "0px"
+    },
     {
       "name": "--pk-accordion-duration",
       "description": "Open and close time.",
@@ -79,6 +92,10 @@
     {
       "title": "Open by default",
       "html": "<pk-accordion-item heading=\"Returns\" open>30 days, unopened.</pk-accordion-item>"
+    },
+    {
+      "title": "Header action",
+      "html": "<pk-accordion-item heading=\"Checks\" open><pk-button slot=\"actions\" size=\"sm\">Re-check</pk-button>Last run passed.</pk-accordion-item>"
     }
   ]
 }
