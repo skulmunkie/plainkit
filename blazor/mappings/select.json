@@ -7,6 +7,11 @@
       "type": "string"
     },
     {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"

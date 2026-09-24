@@ -8,6 +8,12 @@
       "prop": "text"
     },
     {
+      "name": "Label",
+      "type": "string?",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
       "name": "TooltipContent",
       "type": "RenderFragment?",
       "map": "slot",
