@@ -9,6 +9,12 @@
    inherited from PkTableBase, shared with PkTable<TItem>: raw mode wants the same appearance and scroll frame a data-driven table does.
    BulkContent and EmptyContent are not shared -- pk-table's own "own" (raw/slotted) mode hides the bulk and empty slots outright, since
    there are no typed rows to select or report empty. *@
+@if (IsEmpty && (EmptyContent is not null || EmptyText is not null))
+{
+    <div class="u-contents">@if (EmptyContent is not null) { @EmptyContent } else { @EmptyText }</div>
+}
+else
+{
 <pk-table label="@Label" caption="@Caption" flow="@Flow"
           striped="@Striped"
           hover="@Hover"
@@ -18,7 +24,7 @@
           sticky-column="@StickyColumn"
           max-height="@MaxHeight"
           class="@Css()" @ref="Element" @attributes="Splat">
-    <table>
+    <table class="@TableClass">
         @if (HeadContent is not null) { <thead>@HeadContent</thead> }
         <tbody>@ChildContent</tbody>
         @if (FootContent is not null) { <tfoot>@FootContent</tfoot> }
@@ -27,6 +33,7 @@
     @if (CaptionContent is not null) { <span slot="caption" class="u-contents">@CaptionContent</span> }
     @if (FooterContent is not null) { <div slot="footer" class="u-contents">@FooterContent</div> }
 </pk-table>
+}
 
 @code {
     /// <summary>The table's thead, e.g. one &lt;tr&gt; of &lt;th&gt; cells. Left off, the table has no header row.</summary>
@@ -34,6 +41,18 @@
 
     /// <summary>The table's tbody: the rows, typically a @foreach over your own collection.</summary>
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+
+    /// <summary>A class for the inner &lt;table&gt; (the frame takes <c>class</c> and any other attribute directly).</summary>
+    [Parameter] public string? TableClass { get; set; }
+
+    /// <summary>True when the table has no rows. With <see cref="EmptyContent"/> or <see cref="EmptyText"/> set, that is shown instead of the table.</summary>
+    [Parameter] public bool IsEmpty { get; set; }
+
+    /// <summary>Plain text shown instead of the table while <see cref="IsEmpty"/> is true.</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>Markup shown instead of the table while <see cref="IsEmpty"/> is true (wins over <see cref="EmptyText"/>).</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
 
     /// <summary>The table's tfoot. Left off, the table has no footer row (not to be confused with <see cref="PkTableBase.FooterContent"/>, pk-table's own footer slot below the table).</summary>
     [Parameter] public RenderFragment? FootContent { get; set; }
