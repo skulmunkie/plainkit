@@ -97,7 +97,7 @@ test('previous and next follow the reading order and stop at the ends', () => {
 test('the shipped guides are valid, ordered, and the generated module is exactly what they convert to', async () => {
     const { guides, problems } = loadGuides();
     assert.deepEqual(problems, []);
-    assert.deepEqual(guides.map(g => g.id), ['getting-started', 'getting-started-blazor', 'theming', 'responsive-design', 'logging']);
+    assert.deepEqual(guides.map(g => g.id), ['getting-started', 'getting-started-blazor', 'theming', 'responsive-design', 'logging', 'migrating-from-compat']);
     for (const g of guides) {
         assert.ok(g.title && g.summary, `${g.id} has a title and a summary`);
         assert.ok(g.headings.filter(h => h.level === 2).length >= 3, `${g.id} has sections`);
