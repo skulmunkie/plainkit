@@ -5,7 +5,7 @@ import behaviour from './accordion-item.js';
 
 const make = (open = false) => {
     const details = { open, listeners: {}, addEventListener(t, fn) { this.listeners[t] = fn; } }; const emitted = []; const props = {}; const actions = { offsetWidth: 80, firstChild: { addEventListener(t, fn) { actions.slot = fn; } } };
-    const el = new (behaviour(class { part(n) { return n === 'details' ? details : n === 'actions' ? actions : n === 'summary' ? { style: { setProperty: (k, v) => { props[k] = v; } } } : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
+    const el = new (behaviour(class { part(n) { return n === 'details' ? details : n === 'actions' ? actions : n === 'summary' ? { style: props } : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
     el.open = open;
     return { el, details, emitted, actions, props };
 };
@@ -45,5 +45,5 @@ test('connecting twice registers one listener', () => {
 test('actions slot changes reserve room in the summary', () => {
     const { el, actions, props } = make();
     el.connected(); actions.slot();
-    assert.equal(props['--pk-accordion-actions'], '80px');
+    assert.equal(props.paddingInlineEnd, 'calc(var(--space-4) + 80px)');
 });

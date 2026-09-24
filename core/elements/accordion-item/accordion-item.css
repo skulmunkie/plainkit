@@ -2,7 +2,7 @@
 details { interpolate-size: allow-keywords; }
 details::details-content { block-size: 0; overflow: hidden; transition: block-size var(--pk-accordion-duration, 0.2s) ease, content-visibility var(--pk-accordion-duration, 0.2s) allow-discrete; }
 details[open]::details-content { block-size: auto; }
-summary { display: flex; align-items: center; gap: var(--space-3); min-block-size: var(--touch-target); padding: var(--space-3) var(--space-4); padding-inline-end: calc(var(--space-4) + var(--pk-accordion-actions, 0px)); font-weight: 600; cursor: pointer; list-style: none; }
+summary { display: flex; align-items: center; gap: var(--space-3); min-block-size: var(--touch-target); padding: var(--space-3) var(--space-4); font-weight: 600; cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
 summary:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 [part="heading"] { flex: 1; }
