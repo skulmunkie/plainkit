@@ -13,10 +13,10 @@
    would use. *@
 @foreach (var f in Fields.Where(f => f.When is null || f.When(Model)))
 {
-    <PkField Label="@f.Label" Hint="@f.Hint" Required="@f.Required">
+    <PkField Label="@f.Label" Hint="@f.Hint" Required="@f.Required" LabelExtra="@HelpFor(f)">
         @if (f.Kind == PkFieldKind.Select)
         {
-            <PkSelect Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required">
+            <PkSelect name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required">
                 @foreach (var o in f.Options ?? [])
                 {
                     <option value="@o.Value">@o.Label</option>
@@ -25,15 +25,16 @@
         }
         else if (f.Kind == PkFieldKind.Textarea)
         {
-            <PkTextarea Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength" />
+            <PkTextarea Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength"
+                        Placeholder="@f.Placeholder" Rows="@(f.Rows ?? 3)" />
         }
         else if (f.Kind == PkFieldKind.Checkbox)
         {
-            <PkCheckbox Checked="@IsChecked(f.Get(Model))" CheckedChanged="@(v => Update(f, v ? "true" : ""))" Required="@f.Required" />
+            <PkCheckbox name="@f.Key" Checked="@IsChecked(f.Get(Model))" CheckedChanged="@(v => Update(f, v ? "true" : ""))" Required="@f.Required" />
         }
         else
         {
-            <PkInput Type="@InputType(f.Kind)" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required"
+            <PkInput Name="@f.Key" Placeholder="@f.Placeholder" Type="@InputType(f.Kind)" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required"
                      Min="@f.Min" Max="@f.Max" Step="@f.Step" MaxLength="@f.MaxLength" Pattern="@f.Pattern" />
         }
     </PkField>
@@ -60,6 +61,14 @@
         PkFieldKind.Tel => "tel",
         _ => "text",
     };
+
+    private static RenderFragment? HelpFor(PkFieldSpec<TItem> f) => string.IsNullOrEmpty(f.Help) ? null : (builder =>
+    {
+        builder.OpenComponent<PkTooltip>(0);
+        builder.AddAttribute(1, nameof(PkTooltip.Help), true);
+        builder.AddAttribute(2, nameof(PkTooltip.Text), f.Help);
+        builder.CloseComponent();
+    });
 
     private static bool IsChecked(string? value) => !string.IsNullOrEmpty(value) && value != "false";
 

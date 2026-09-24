@@ -145,4 +145,64 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Single(fields);
         Assert.DoesNotContain(fields, f => f.GetAttribute("label") == "Closing note");
     }
+
+    // Issue 258: Placeholder, Rows, Help, Key as Name, and a typed bool factory.
+    [Fact]
+    public void Key_is_emitted_as_the_control_name_on_every_kind()
+    {
+        var fields = new List<PkFieldSpec<Order>>(Fields()) { new() { Key = "notes", Label = "Notes", Kind = PkFieldKind.Textarea, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" } };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
+
+        Assert.Equal("name", cut.Find("pk-input[type=text]").GetAttribute("name"));
+        Assert.Equal("active", cut.Find("pk-checkbox").GetAttribute("name"));
+        Assert.Equal("status", cut.Find("pk-select").GetAttribute("name"));
+        Assert.Equal("notes", cut.Find("pk-textarea").GetAttribute("name"));
+    }
+
+    [Fact]
+    public void Placeholder_and_Rows_reach_the_input_and_the_textarea()
+    {
+        PkFieldSpec<Order>[] fields =
+        [
+            new() { Key = "a", Label = "A", Placeholder = "Your name", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "b", Label = "B", Kind = PkFieldKind.Textarea, Placeholder = "Notes", Rows = 6, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        ];
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
+
+        Assert.Equal("Your name", cut.Find("pk-input").GetAttribute("placeholder"));
+        var ta = cut.Find("pk-textarea");
+        Assert.Equal("Notes", ta.GetAttribute("placeholder"));
+        Assert.Equal("6", ta.GetAttribute("rows"));
+    }
+
+    [Fact]
+    public void Help_renders_a_help_tooltip_in_the_label_slot_and_is_absent_when_unset()
+    {
+        PkFieldSpec<Order>[] fields =
+        [
+            new() { Key = "a", Label = "A", Help = "Why we ask", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "b", Label = "B", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        ];
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
+
+        var tip = cut.Find("pk-field [slot=label] pk-tooltip");
+        Assert.NotNull(tip.GetAttribute("help"));
+        Assert.Equal("Why we ask", tip.GetAttribute("text"));
+        Assert.Single(cut.FindAll("pk-tooltip"));
+    }
+
+    [Fact]
+    public async Task Bool_wraps_a_bool_property_as_a_checkbox()
+    {
+        var order = new Order();
+        PkFieldSpec<Order>[] fields = [PkFieldSpec<Order>.Bool("active", "Active", o => o.Active, (o, v) => o.Active = v) with { Hint = "On or off" }];
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, order));
+
+        Assert.Null(cut.Find("pk-checkbox").GetAttribute("checked"));
+        Assert.Equal("On or off", cut.Find("pk-field").GetAttribute("help"));
+        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = true });
+        Assert.True(order.Active);
+        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
+        Assert.False(order.Active);
+    }
 }
