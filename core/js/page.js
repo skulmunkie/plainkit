@@ -26,9 +26,11 @@ export function messageFor(input) {
     try { return String(input); } catch { return 'Something went wrong.'; }
 }
 
-// { title?, alert?, overlay?, breadcrumb?, scope? } — each of title/alert/overlay/breadcrumb is an element already in the host's
-// markup (or null to skip that concern); scope names the logger (createLogger(scope), default 'page').
-export function createPage({ title = null, alert = null, overlay = null, breadcrumb = null, scope = 'page' } = {}) {
+// { title?, alert?, overlay?, breadcrumb?, router?, scope? } — each of title/alert/overlay/breadcrumb is an element already in the host's
+// markup (or null to skip that concern); scope names the logger (createLogger(scope), default 'page'). `router` is a route-tree router
+// (modules/router/router.js, duck-typed: crumbs() and subscribe(fn)): the page then derives its breadcrumbs and title from the current
+// route now and on every route change, and destroy() stops following it. setBreadcrumbs/setTitle still override by hand.
+export function createPage({ title = null, alert = null, overlay = null, breadcrumb = null, router = null, scope = 'page' } = {}) {
     const log = createLogger(scope);
 
     function setTitle(text) {
@@ -80,5 +82,14 @@ export function createPage({ title = null, alert = null, overlay = null, breadcr
         }
     }
 
-    return { log, setTitle, setStatus, clearStatus, setError, setBreadcrumbs, busy };
+    function followRoute() {
+        const crumbs = router.crumbs();
+        setBreadcrumbs(crumbs);
+        if (crumbs.length) setTitle(crumbs[crumbs.length - 1].label);
+    }
+    const unfollow = router ? (followRoute(), router.subscribe(followRoute)) : null;
+
+    function destroy() { if (unfollow) unfollow(); }
+
+    return { log, setTitle, setStatus, clearStatus, setError, setBreadcrumbs, busy, destroy };
 }

@@ -192,6 +192,8 @@ await page.busy(() => fetchOrders(), 'Loading orders…');
 // pk-alert danger status, and rethrown so your own error handling still runs
 ```
 
+Do not hand-build the trail on every page: declare a route tree once with the vanilla router module and pass it in. `import { mountRouter } from './plainkit/modules/router/router.js'; const router = mountRouter(document.body, { routes: [{ path: '/', label: 'Home', children: [{ path: '/orders/:id', label: p => `Order ${p.id}` }] }], intercept: true }); createPage({ breadcrumb: crumbsEl, router })` sets the breadcrumbs (`Home > Order 7`, last crumb without `href`) and the title on `/orders/7` and on every route change; `page.destroy()` stops following. `label` is a string or `(params) => string`, `crumb: false` skips a route, and `router.navigate(path)`, `crumbs()`, `current()`, `subscribe(fn)` and `destroy()` are the handle. A Blazor app keeps `NavigationManager`; this is for the vanilla SDK.
+
 ### Respond to screen size
 
 The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below); do not restyle them there. In your own stylesheet use the literal query with the same width (`@media (max-width: 640px)`); custom properties do not work in `@media`. In a script never write the number: `import { mediaBelow } from './plainkit/js/breakpoints.js'; mediaBelow('phone').matches` (it reads `--pk-bp-phone` from `plainkit.css`). Other widths need a rebuilt `dist`: see "Ship a custom SDK" below; the table of what changes at each width is in `references/theming.md`.
