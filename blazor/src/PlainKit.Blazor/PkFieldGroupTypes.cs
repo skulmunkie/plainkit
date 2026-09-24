@@ -85,4 +85,23 @@ public sealed record PkFieldSpec<TItem>
     /// and whenever the group re-renders. A hidden field's markup is not emitted at all, so a hidden <see cref="Required"/> field never
     /// blocks <c>PkForm</c> validation (issue 226's own recommendation) — there is nothing left in the DOM for the form to check.</summary>
     public Func<TItem, bool>? When { get; init; }
+
+    /// <summary><c>PkInput.Placeholder</c> or <c>PkTextarea.Placeholder</c>.</summary>
+    public string? Placeholder { get; init; }
+
+    /// <summary><c>PkTextarea.Rows</c>; <see cref="PkFieldKind.Textarea"/> only, the control's own default (3) when unset.</summary>
+    public int? Rows { get; init; }
+
+    /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button next to the label (<c>PkField.LabelExtra</c>). For text that belongs under the control use <see cref="Hint"/>.</summary>
+    public string? Help { get; init; }
+
+    /// <summary>A <see cref="PkFieldKind.Checkbox"/> spec over a <see cref="bool"/> property: wraps the string <see cref="Get"/>/<see cref="Set"/> so the caller does not translate "true"/"" by hand. Set the other members with <c>with</c>: <c>PkFieldSpec&lt;T&gt;.Bool("active", "Active", o =&gt; o.Active, (o, v) =&gt; o.Active = v) with { Hint = "..." }</c>.</summary>
+    public static PkFieldSpec<TItem> Bool(string key, string label, Func<TItem, bool> get, Action<TItem, bool> set) => new()
+    {
+        Key = key,
+        Label = label,
+        Kind = PkFieldKind.Checkbox,
+        Get = item => get(item) ? "true" : "",
+        Set = (item, value) => set(item, !string.IsNullOrEmpty(value) && value != "false"),
+    };
 }
