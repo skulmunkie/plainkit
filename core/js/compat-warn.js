@@ -218,12 +218,67 @@ export const RETIRED_CLASSES = {
     'workspace--fill': 'pk-workspace',
 };
 
+// Utility classes removed in 0.5.0-alpha.1 (issue #254): `core/base/utilities.css` kept only these; every other `u-*` class
+// is gone. The name encodes the CSS (`u-mt-p6r` = margin-top .6rem; `p` = decimal point, `r` = rem), so the hint is computed
+// from the name instead of listed 107 times: spacing snaps to the nearest step of the space scale, the rest says what to write.
+const KEPT_UTILITIES = new Set(['u-contents', 'u-m0', 'u-mt-3', 'u-text-xs', 'u-text-sm', 'u-w-full', 'u-ml-auto', 'u-flex-1', 'u-fs-1p05r', 'u-fs-1p1r', 'u-fw-600', 'u-mw-24r', 'u-p-1r-1p25r', 'u-sr-only']);
+const SPACE_STEPS = { 1: 0.25, 2: 0.5, 3: 0.75, 4: 1, 5: 1.25, 6: 1.5, 8: 2, 12: 3 };
+const TEXT_TOKENS = { meta: 0.86, read: 1, lg: 1.1 };
+const SIDES = { m: 'margin', mt: 'margin-top', mb: 'margin-bottom', ml: 'margin-left', mr: 'margin-right', p: 'padding', pt: 'padding-top', pb: 'padding-bottom', pl: 'padding-left', pr: 'padding-right' };
+const OWN_CSS = { c: 'color', fs: 'font-size', fw: 'font-weight', ls: 'list-style', w: 'width', minw: 'min-width', mw: 'max-width', cursor: 'cursor', opacity: 'opacity', ow: 'overflow-wrap', pre: 'white-space', scroll: 'overflow', ta: 'text-align', td: 'text-decoration' };
+
+// One value token to rem: "0", "p6r" (.6rem), "1p25r", "3r", or a bare step number ("2" = space-2); null when it is not a rem value.
+function remOf(t) {
+    if (t === '0') return 0;
+    const m = /^(\d*)(?:p(\d+))?r(?:em)?$/.exec(t);
+    if (m && (m[1] || m[2])) return Number(`${m[1] || 0}.${m[2] || 0}`);
+    return /^\d+$/.test(t) && SPACE_STEPS[t] ? SPACE_STEPS[t] : null;
+}
+function stepFor(rem) {
+    let best = 1;
+    for (const k of Object.keys(SPACE_STEPS)) if (Math.abs(SPACE_STEPS[k] - rem) < Math.abs(SPACE_STEPS[best] - rem)) best = Number(k);
+    return best;
+}
+
+export function utilityReplacement(cls) {
+    const parts = cls.slice(2).split('-');
+    const prop = parts[0];
+    const values = parts.slice(1);
+    const css = `${cls} was removed in 0.5.0-alpha.1`;
+    if (cls === 'u-nowrap') return '.nowrap';
+    if (cls === 'u-text-md') return 'the --text-read token (font-size: var(--text-read)) in your own stylesheet';
+    if (SIDES[prop]) {
+        const rems = values.map(remOf);
+        if (!values.length || rems.some(r => r === null)) return `${SIDES[prop]} in your own stylesheet (${css}; no scale value fits)`;
+        const steps = rems.map(r => (r === 0 ? '0' : `var(--space-${stepFor(r)})`));
+        const decl = `${SIDES[prop]}: ${steps.join(' ')}`;
+        if ((prop === 'mt' || prop === 'mb') && rems[0] > 0) return `${prop}-${stepFor(rems[0])} (or ${decl})`;
+        return `${decl} in your own stylesheet`;
+    }
+    if (prop === 'mw' && values.length === 1) {
+        const named = { 40: 'sm', 60: 'md', 75: 'lg' }[remOf(values[0])];
+        if (named) return `max-width: var(--content-${named}) in your own stylesheet`;
+    }
+    if (prop === 'fs' && values.length === 1 && /r$/.test(values[0])) {
+        const rem = remOf(values[0]);
+        if (rem !== null) {
+            const [name] = Object.entries(TEXT_TOKENS).reduce((best, e) => (Math.abs(e[1] - rem) < Math.abs(best[1] - rem) ? e : best));
+            return `font-size: var(--text-${name}) in your own stylesheet (the nearest text token to ${rem}rem)`;
+        }
+    }
+    if (OWN_CSS[prop]) return `${OWN_CSS[prop]} in your own stylesheet (${css}); use a design token where one matches`;
+    return `your own stylesheet (${css})`;
+}
+
 const reported = new Set();
 const observed = new WeakSet();
 
+const isRemovedUtility = c => c.startsWith('u-') && !KEPT_UTILITIES.has(c);
+const hintFor = c => (Object.prototype.hasOwnProperty.call(RETIRED_CLASSES, c) ? RETIRED_CLASSES[c] : utilityReplacement(c));
+
 function classesOf(el) {
     const out = [];
-    for (const c of el.classList) if (Object.prototype.hasOwnProperty.call(RETIRED_CLASSES, c)) out.push(c);
+    for (const c of el.classList) if (Object.prototype.hasOwnProperty.call(RETIRED_CLASSES, c) || isRemovedUtility(c)) out.push(c);
     return out;
 }
 
@@ -233,7 +288,9 @@ function reportIn(root) {
         for (const cls of classesOf(el)) {
             if (reported.has(cls)) continue;
             reported.add(cls);
-            log.warn(`.${cls} is a retired Plainkit class (removed with the class-based components): use ${RETIRED_CLASSES[cls]} instead`, { class: cls, replacement: RETIRED_CLASSES[cls] });
+            const replacement = hintFor(cls);
+            const what = isRemovedUtility(cls) ? 'a removed Plainkit utility class (0.5.0-alpha.1)' : 'a retired Plainkit class (removed with the class-based components)';
+            log.warn(`.${cls} is ${what}: use ${replacement} instead`, { class: cls, replacement });
         }
     }
 }

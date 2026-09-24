@@ -43,9 +43,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - A Blazor component's generated wrapper for a multi-root `RenderFragment` in a named slot (`<span slot="...">`, needed because Razor cannot put a `slot` attribute on several sibling root elements from one fragment) is now `display: contents`, so it no longer breaks out of a shell's flex or grid layout of its slotted content. Every hand-written component with the same wrapper (`PkCard`, `PkEmptyState`, `PkPageHeader`, `PkSideNav`, `PkStat`, `PkTable`) gets it too. (#211)
 - `pk-app-shell` finds its `pk-side-nav` even when a host framework wraps it (a Blazor component's generated `<span slot="nav">` for a multi-root `RenderFragment`). Before this, the nav drawer's `open` state silently never changed on a phone: the shell toggled its own `nav-open` attribute, but the direct assigned element (the wrapper span, not the side nav) had no `open` to set, with no error. (#212)
 
-### Removed
+### Breaking
 
-- `core/base/utilities.css` drops 107 of its 121 literal-value utility classes (undocumented, never referenced by any SDK page, sample or component — leftover debris from an inline-style-to-class migration); the page-level stylesheet shrinks by about 750 bytes gzip. A page that used one of these classes on its own markup needs to replace it with an equivalent rule in its own stylesheet; `u-contents`, `u-sr-only` and the dozen other classes with a real caller in the SDK are unaffected. (#229)
+- **Breaking, and it shipped without a deprecation warning:** `core/base/utilities.css` drops 107 of its 121 literal-value utility classes (undocumented, never referenced by any SDK page, sample or component — leftover debris from an inline-style-to-class migration); the page-level stylesheet shrinks by about 750 bytes gzip. A page that used one of these classes on its own markup needs to replace it with an equivalent rule in its own stylesheet; `u-contents`, `u-sr-only` and the dozen other classes with a real caller in the SDK are unaffected. (#229) In one real consumer app about 91 distinct classes at 300+ call sites broke. Call `checkCompatClasses()` from `js/compat-warn.js`: since the follow-up to #254 it names every removed `u-*` class with a replacement. (#229, #254)
 
 ### Notes
 
