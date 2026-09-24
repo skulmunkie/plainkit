@@ -1,6 +1,6 @@
 {
   "name": "plainkit",
-  "version": "0.5.0-alpha.1",
+  "version": "0.6.0-alpha.1",
   "description": "A dependency-free UI toolkit: plain HTML, CSS custom properties and small ES modules, with pk-* custom elements.",
   "type": "module",
   "license": "MIT",

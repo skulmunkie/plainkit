@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.6.0-alpha.1] - 2026-09-24
+
+### Added
+
+- A router module (`modules/router/router.js`, `mountRouter`) holds one route tree and derives the breadcrumb trail from the current path, and `createPage` takes it as `router` to set its breadcrumbs and title now and on every route change. Vanilla SDK only; a Blazor route-tree wrapper is a follow-up. (#219)
+- `checkCompatClasses()` also flags the `u-*` utility classes removed in 0.5.0-alpha.1 and names a replacement computed from the class name (spacing snaps to the space scale; other values say what to write), and the migration guide has a section for them. (#254)
+- The space scale has named aliases: `--space-2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` and `3xl` map onto the steps 1, 2, 3, 4, 5, 6, 8 and 12, and the numeric tokens keep working. The compat-class warnings mention the names too. (#257)
+- `PkFieldSpec<TItem>` gains `Placeholder`, `Rows` (textarea) and `Help` (a help tooltip beside the label), `PkFieldGroup` now emits `Key` as each control's `name` (as documented), and `PkFieldSpec<TItem>.Bool(key, label, get, set)` builds a checkbox spec over a `bool` property. The string `Get`/`Set` API is unchanged. (#258)
+- PkFieldSpec gains Disabled and ReadOnly (per record), Span, OptionsSource, HideLabel and HelpWhen; the help button is named Help for <Label>; PkTooltip maps its Label, and PkSelect and PkCheckbox get a typed Name. The field-group reference documents that ModelChanged fires after Set. Async Set and input Format are deferred. (#264)
+
+### Changed
+
+- Both agent skills' Upgrade recipe gains a step that runs `checkCompatClasses()` in a dev build, so removed CSS classes (which fail silently) reach the checklist. (#254)
+
 ## [0.5.0-alpha.1] - 2026-09-23
 
 ### Added
