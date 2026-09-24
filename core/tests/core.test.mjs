@@ -375,3 +375,9 @@ test('tokenPx reads a length token as pixels, so the minimum control gap is the 
     assert.equal(tokenPx(win({ '--gap-min': 'calc(1px + 2px)' }), doc, '--gap-min', 4), 4, 'a value it cannot read: the default');
     assert.equal(QUALITY_DEFAULTS.minGapPx, 4);
 });
+
+test('tokens.css: the named space aliases map onto the numeric steps', () => {
+    const b = parseTokenBlocks(read('tokens/tokens.css'));
+    const map = { '2xs': 1, xs: 2, sm: 3, md: 4, lg: 5, xl: 6, '2xl': 8, '3xl': 12 };
+    for (const [name, step] of Object.entries(map)) assert.equal(b.root[`--space-${name}`], `var(--space-${step})`);
+});

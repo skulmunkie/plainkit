@@ -32,7 +32,7 @@ Like every other Plainkit warning, this goes through the logger (see the [Loggin
 
 `core/base/utilities.css` dropped 107 of its 121 one-off `u-*` classes. Only `u-contents u-m0 u-mt-3 u-text-xs u-text-sm u-w-full u-ml-auto u-flex-1 u-fs-1p05r u-fs-1p1r u-fw-600 u-mw-24r u-p-1r-1p25r u-sr-only` remain. `checkCompatClasses()` flags every other `u-*` class and computes the replacement from its name (`p` = decimal point, `r` = rem, so `u-mt-p6r` is `margin-top: .6rem`):
 
-- Spacing (`u-m*`, `u-p*`) snaps to the space scale (`--space-1..6, 8, 12` = .25 to 3rem): `u-mt-p6r` becomes `mt-2`, `u-mb-p75r` becomes `mb-3`; shorthands and left/right sides become a declaration in your own stylesheet, e.g. `margin: var(--space-3) 0 var(--space-1)`.
+- Spacing (`u-m*`, `u-p*`) snaps to the space scale (`--space-1..6, 8, 12` = .25 to 3rem): `u-mt-p6r` becomes `mt-2`, `u-mb-p75r` becomes `mb-3`; shorthands and left/right sides become a declaration in your own stylesheet, e.g. `margin: var(--space-3) 0 var(--space-1)` (the steps also have names: `--space-2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl` = 1, 2, 3, 4, 5, 6, 8, 12).
 - `u-nowrap` is `.nowrap`; `u-text-md` is `font-size: var(--text-read)`.
 - Colour, width, max-width, font size and weight, alignment, cursor and the rest have no scale: write the one declaration in your own stylesheet, using a token where one matches.
 

@@ -91,3 +91,8 @@ test('checkCompatClasses flags removed u-* classes, not the ones utilities.css s
     assert.deepEqual(flagged, ['u-mb-p5r', 'u-w-6r']);
     clearLogBuffer();
 });
+
+test('utilityReplacement: spacing hints also mention the named space aliases, numeric hints stay', async () => {
+    const { utilityReplacement } = await freshModule();
+    assert.match(utilityReplacement('u-m-p75r-0-p25r'), /var\(--space-3\) 0 var\(--space-1\).*named alias: margin: var\(--space-sm\) 0 var\(--space-2xs\)/);
+});
