@@ -1,12 +1,17 @@
 @namespace PlainKit.Blazor
 @typeparam TItem
+@using System.Linq
 
 @* Hand-written, no element of its own (issue 222): renders a PkField + the right control for each PkFieldSpec, reading and writing
-   Model through the spec's Get/Set. It never subsumes a conditional field or a computed value; those stay hand-written next to it.
+   Model through the spec's Get/Set. It never subsumes a computed value; that stays hand-written next to it. A field with a When
+   predicate (issue 226) re-evaluates it on every render -- Blazor re-renders this component after every commit (Update calls
+   ModelChanged, which the caller's own state update normally triggers a re-render from), so a field that gates another one just
+   works without extra wiring. A field whose When is false renders nothing at all, so a hidden Required field is not in the DOM for
+   PkForm's validation to see.
    Each control's own two-way ValueChanged/CheckedChanged already commits before this component sees it, the same as writing the
    field by hand -- pk-form's own validation needs nothing extra either, since these are the same real elements a hand-written field
    would use. *@
-@foreach (var f in Fields)
+@foreach (var f in Fields.Where(f => f.When is null || f.When(Model)))
 {
     <PkField Label="@f.Label" Hint="@f.Hint" Required="@f.Required">
         @if (f.Kind == PkFieldKind.Select)

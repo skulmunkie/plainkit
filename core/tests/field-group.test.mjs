@@ -4,12 +4,20 @@ import assert from 'node:assert/strict';
 import { mountFieldGroup } from '../modules/field-group/field-group.js';
 
 class El {
-    constructor(tag) { this.localName = tag; this.attrs = new Map(); this.children = []; this.listeners = new Map(); this.value = ''; this.checked = false; }
+    constructor(tag) { this.localName = tag; this.attrs = new Map(); this.children = []; this.listeners = new Map(); this.value = ''; this.checked = false; this.parent = null; }
     get ownerDocument() { return doc; }
     setAttribute(k, v) { this.attrs.set(k, String(v)); }
     getAttribute(k) { return this.attrs.has(k) ? this.attrs.get(k) : null; }
-    append(...kids) { this.children.push(...kids); }
-    remove() { this.removed = true; }
+    // Mirrors real DOM append(): appending an already-attached node moves it (removes it from its current parent first).
+    append(...kids) {
+        for (const kid of kids) {
+            if (!(kid instanceof El)) { this.children.push(kid); continue; }
+            if (kid.parent) kid.parent.children.splice(kid.parent.children.indexOf(kid), 1);
+            this.children.push(kid);
+            kid.parent = this;
+        }
+    }
+    remove() { if (this.parent) { this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; } this.removed = true; }
     addEventListener(type, fn) { (this.listeners.get(type) ?? this.listeners.set(type, new Set()).get(type)).add(fn); }
     removeEventListener(type, fn) { this.listeners.get(type)?.delete(fn); }
     dispatchEvent(e) { for (const fn of this.listeners.get(e.type) ?? []) fn(e); }
@@ -94,6 +102,65 @@ test('refresh(newData) re-syncs every control from the new object without rebuil
     group.refresh({ name: 'Grace' });
     assert.equal(control.value, 'Grace');
     assert.equal(c.children.length, 1, 'the same field element, not a new one');
+    group.destroy();
+});
+
+test('a field with `when` starts hidden (removed from the container) when the predicate is false for the initial data', () => {
+    const c = new El('div');
+    const group = mountFieldGroup(c, {
+        fields: [
+            { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] },
+            { key: 'note', label: 'Note', required: true, when: data => data.status === 'closed' },
+        ],
+        data: { status: 'open' },
+    });
+    assert.equal(c.children.length, 1, 'the gated field is not in the DOM');
+    assert.equal(c.children[0].getAttribute('label'), 'Status');
+    group.destroy();
+});
+
+test('committing a value re-evaluates `when` for every field (not just the one that changed) and shows/hides accordingly', () => {
+    const c = new El('div');
+    const data = { status: 'open', note: '' };
+    const group = mountFieldGroup(c, {
+        fields: [
+            { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] },
+            { key: 'note', label: 'Note', required: true, when: d => d.status === 'closed' },
+        ],
+        data,
+    });
+    const status = c.children[0].children[0];
+    assert.equal(c.children.length, 1);
+    commit(status, 'pk-value-change', { value: 'closed' });
+    assert.equal(data.status, 'closed');
+    assert.equal(c.children.length, 2, 'note is now shown');
+    assert.equal(c.children[1].getAttribute('label'), 'Note');
+    commit(status, 'pk-value-change', { value: 'open' });
+    assert.equal(c.children.length, 1, 'note is hidden again');
+});
+
+test('refresh(newData) re-evaluates `when` against the new data', () => {
+    const c = new El('div');
+    const group = mountFieldGroup(c, {
+        fields: [
+            { key: 'status', label: 'Status' },
+            { key: 'note', label: 'Note', when: d => d.status === 'closed' },
+        ],
+        data: { status: 'open' },
+    });
+    assert.equal(c.children.length, 1);
+    group.refresh({ status: 'closed' });
+    assert.equal(c.children.length, 2);
+    assert.equal(c.children[1].getAttribute('label'), 'Note');
+    group.destroy();
+});
+
+test('a field with no `when` is always visible', () => {
+    const c = new El('div');
+    const group = mountFieldGroup(c, { fields: [{ key: 'name', label: 'Name' }], data: {} });
+    assert.equal(c.children.length, 1);
+    group.refresh({ name: 'Ada' });
+    assert.equal(c.children.length, 1);
     group.destroy();
 });
 
