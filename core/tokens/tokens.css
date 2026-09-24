@@ -36,6 +36,16 @@
     --space-8: 2rem;
     --space-12: 3rem;
 
+    /* Named aliases over the numeric steps (additive: the numbers keep working). 2xs=1, xs=2, sm=3, md=4, lg=5, xl=6, 2xl=8, 3xl=12. */
+    --space-2xs: var(--space-1);
+    --space-xs: var(--space-2);
+    --space-sm: var(--space-3);
+    --space-md: var(--space-4);
+    --space-lg: var(--space-5);
+    --space-xl: var(--space-6);
+    --space-2xl: var(--space-8);
+    --space-3xl: var(--space-12);
+
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
