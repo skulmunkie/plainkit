@@ -92,8 +92,26 @@ public sealed record PkFieldSpec<TItem>
     /// <summary><c>PkTextarea.Rows</c>; <see cref="PkFieldKind.Textarea"/> only, the control's own default (3) when unset.</summary>
     public int? Rows { get; init; }
 
-    /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button next to the label (<c>PkField.LabelExtra</c>). For text that belongs under the control use <see cref="Hint"/>.</summary>
+    /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button (accessible name "Help for <see cref="Label"/>") in the field's label slot (<c>PkField.LabelExtra</c>); for a checkbox, whose label is the field label, that is the same place. For text that belongs under the control use <see cref="Hint"/>.</summary>
     public string? Help { get; init; }
+
+    /// <summary>The options of a <see cref="PkFieldKind.Select"/> field, read at every render; wins over <see cref="Options"/> when set. For options that load after the specs are built.</summary>
+    public Func<IReadOnlyList<PkFieldOption>>? OptionsSource { get; init; }
+
+    /// <summary>Whether the control is disabled, evaluated per render against the current <typeparamref name="TItem"/> (for example editable while the record is new, locked once it exists).</summary>
+    public Func<TItem, bool>? Disabled { get; init; }
+
+    /// <summary>Whether the control is read-only, evaluated per render: selectable and copyable but not editable. <c>PkInput</c> and <c>PkTextarea</c> only; <c>PkSelect</c> and <c>PkCheckbox</c> have no read-only state, so there it disables the control.</summary>
+    public Func<TItem, bool>? ReadOnly { get; init; }
+
+    /// <summary>The field takes every column of the <c>pk-form-section</c> grid it sits in (the <c>form-span</c> class on its <c>pk-field</c>).</summary>
+    public bool Span { get; init; }
+
+    /// <summary>Hides the label visually (a single-field card whose heading already says it) but keeps it as the control's accessible name.</summary>
+    public bool HideLabel { get; init; }
+
+    /// <summary>Help text chosen per record; used instead of <see cref="Help"/> when it returns a non-empty string, so a locked and an editable state need one spec, not two guarded by <see cref="When"/>.</summary>
+    public Func<TItem, string?>? HelpWhen { get; init; }
 
     /// <summary>A <see cref="PkFieldKind.Checkbox"/> spec over a <see cref="bool"/> property: wraps the string <see cref="Get"/>/<see cref="Set"/> so the caller does not translate "true"/"" by hand. Set the other members with <c>with</c>: <c>PkFieldSpec&lt;T&gt;.Bool("active", "Active", o =&gt; o.Active, (o, v) =&gt; o.Active = v) with { Hint = "..." }</c>.</summary>
     public static PkFieldSpec<TItem> Bool(string key, string label, Func<TItem, bool> get, Action<TItem, bool> set) => new()

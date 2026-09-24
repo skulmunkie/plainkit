@@ -205,4 +205,76 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
         Assert.False(order.Active);
     }
+
+    // Issue 264: per-render Disabled/ReadOnly, Span, OptionsSource, HideLabel, HelpWhen and the help button's accessible name.
+    [Fact]
+    public void Disabled_and_ReadOnly_are_evaluated_against_the_model_on_every_render()
+    {
+        var order = new Order();
+        var spec = new PkFieldSpec<Order> { Key = "name", Label = "Name", Disabled = o => o.Qty > 0, ReadOnly = o => o.Status == "locked", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, order));
+        Assert.Null(cut.Find("pk-input").GetAttribute("disabled"));
+        Assert.Null(cut.Find("pk-input").GetAttribute("readonly"));
+
+        order.Qty = 1; order.Status = "locked";
+        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, order));
+        Assert.NotNull(cut.Find("pk-input").GetAttribute("disabled"));
+        Assert.NotNull(cut.Find("pk-input").GetAttribute("readonly"));
+    }
+
+    [Fact]
+    public void ReadOnly_disables_a_select_and_a_checkbox_which_have_no_read_only_state()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
+            new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, ReadOnly = _ => true, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
+            PkFieldSpec<Order>.Bool("a", "A", o => o.Active, (o, v) => o.Active = v) with { ReadOnly = _ => true }]).Add(x => x.Model, new Order()));
+        Assert.NotNull(cut.Find("pk-select").GetAttribute("disabled"));
+        Assert.NotNull(cut.Find("pk-checkbox").GetAttribute("disabled"));
+    }
+
+    [Fact]
+    public void Span_puts_form_span_on_the_field_wrapper_and_Name_is_a_typed_attribute_on_select_and_checkbox()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
+            new PkFieldSpec<Order> { Key = "name", Label = "Name", Span = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
+            PkFieldSpec<Order>.Bool("a", "A", o => o.Active, (o, v) => o.Active = v)]).Add(x => x.Model, new Order()));
+        var fields = cut.FindAll("pk-field");
+        Assert.Contains("form-span", fields[0].ClassList);
+        Assert.DoesNotContain("form-span", fields[1].ClassList);
+        Assert.Equal("s", cut.Find("pk-select").GetAttribute("name"));
+        Assert.Equal("a", cut.Find("pk-checkbox").GetAttribute("name"));
+    }
+
+    [Fact]
+    public void OptionsSource_is_read_at_every_render_and_wins_over_Options()
+    {
+        var loaded = new List<PkFieldOption>();
+        var spec = new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, Options = [new("x", "X")], OptionsSource = () => loaded, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
+        Assert.Empty(cut.FindAll("option"));
+        loaded.Add(new("a", "A"));
+        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
+        Assert.Equal("a", cut.Find("option").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void HideLabel_drops_the_visible_label_and_keeps_it_as_the_controls_accessible_name()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
+            new PkFieldSpec<Order> { Key = "n", Label = "Notes", Kind = PkFieldKind.Textarea, HideLabel = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" }]).Add(x => x.Model, new Order()));
+        Assert.Null(cut.Find("pk-field").GetAttribute("label"));
+        Assert.Equal("Notes", cut.Find("pk-textarea").GetAttribute("label"));
+    }
+
+    [Fact]
+    public void HelpWhen_overrides_Help_per_record_and_the_help_button_is_named_for_the_field()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "n", Label = "Code", Help = "Editable", HelpWhen = o => o.Qty > 0 ? "Locked" : null, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
+        Assert.Equal("Editable", cut.Find("pk-tooltip").GetAttribute("text"));
+        Assert.Equal("Help for Code", cut.Find("pk-tooltip").GetAttribute("label"));
+        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order { Qty = 1 }));
+        Assert.Equal("Locked", cut.Find("pk-tooltip").GetAttribute("text"));
+    }
 }

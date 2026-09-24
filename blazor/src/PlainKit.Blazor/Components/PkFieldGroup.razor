@@ -13,11 +13,11 @@
    would use. *@
 @foreach (var f in Fields.Where(f => f.When is null || f.When(Model)))
 {
-    <PkField Label="@f.Label" Hint="@f.Hint" Required="@f.Required" LabelExtra="@HelpFor(f)">
+    <PkField Label="@(f.HideLabel ? null : f.Label)" class="@(f.Span ? "form-span" : null)" Hint="@f.Hint" Required="@f.Required" LabelExtra="@HelpFor(f, Model)">
         @if (f.Kind == PkFieldKind.Select)
         {
-            <PkSelect name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required">
-                @foreach (var o in f.Options ?? [])
+            <PkSelect Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" Label="@Accessible(f)" Disabled="@(IsDisabled(f) || IsReadOnly(f))">
+                @foreach (var o in f.OptionsSource?.Invoke() ?? f.Options ?? [])
                 {
                     <option value="@o.Value">@o.Label</option>
                 }
@@ -25,17 +25,17 @@
         }
         else if (f.Kind == PkFieldKind.Textarea)
         {
-            <PkTextarea Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength"
+            <PkTextarea Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength" AriaLabel="@Accessible(f)" Disabled="@IsDisabled(f)" ReadOnly="@IsReadOnly(f)"
                         Placeholder="@f.Placeholder" Rows="@(f.Rows ?? 3)" />
         }
         else if (f.Kind == PkFieldKind.Checkbox)
         {
-            <PkCheckbox name="@f.Key" Checked="@IsChecked(f.Get(Model))" CheckedChanged="@(v => Update(f, v ? "true" : ""))" Required="@f.Required" />
+            <PkCheckbox Name="@f.Key" Checked="@IsChecked(f.Get(Model))" CheckedChanged="@(v => Update(f, v ? "true" : ""))" Required="@f.Required" Label="@Accessible(f)" Disabled="@(IsDisabled(f) || IsReadOnly(f))" />
         }
         else
         {
             <PkInput Name="@f.Key" Placeholder="@f.Placeholder" Type="@InputType(f.Kind)" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required"
-                     Min="@f.Min" Max="@f.Max" Step="@f.Step" MaxLength="@f.MaxLength" Pattern="@f.Pattern" />
+                     Min="@f.Min" Max="@f.Max" Step="@f.Step" MaxLength="@f.MaxLength" Pattern="@f.Pattern" AriaLabel="@Accessible(f)" Disabled="@IsDisabled(f)" ReadOnly="@IsReadOnly(f)" />
         }
     </PkField>
 }
@@ -47,7 +47,10 @@
     /// <summary>The bound record; each field's <c>Get</c> reads it, each commit calls <c>Set</c> then <see cref="ModelChanged"/>.</summary>
     [Parameter, EditorRequired] public TItem Model { get; set; } = default!;
 
-    /// <summary>Raised after any field commits a change (the model was already updated in place through <c>Set</c>).</summary>
+    /// <summary>Raised after any field commits a change (the model was already updated in place through <c>Set</c>). It is an
+    /// <see cref="EventCallback"/>, so a handler on the parent re-renders the parent, and with it this group (its <c>Get</c>, <c>When</c>,
+    /// <c>Disabled</c> and <c>HelpWhen</c> are re-evaluated); a page whose other UI depends on a field needs no extra refresh. Without a handler
+    /// nothing re-renders the parent.</summary>
     [Parameter] public EventCallback ModelChanged { get; set; }
 
     private static string InputType(PkFieldKind kind) => kind switch
@@ -62,13 +65,26 @@
         _ => "text",
     };
 
-    private static RenderFragment? HelpFor(PkFieldSpec<TItem> f) => string.IsNullOrEmpty(f.Help) ? null : (builder =>
+    private bool IsDisabled(PkFieldSpec<TItem> f) => f.Disabled?.Invoke(Model) ?? false;
+
+    private bool IsReadOnly(PkFieldSpec<TItem> f) => f.ReadOnly?.Invoke(Model) ?? false;
+
+    // A hidden label is passed to the control as its accessible name instead.
+    private static string? Accessible(PkFieldSpec<TItem> f) => f.HideLabel ? f.Label : null;
+
+    private static RenderFragment? HelpFor(PkFieldSpec<TItem> f, TItem model)
+    {
+        var help = f.HelpWhen?.Invoke(model);
+        if (string.IsNullOrEmpty(help)) help = f.Help;
+        return string.IsNullOrEmpty(help) ? null : (builder =>
     {
         builder.OpenComponent<PkTooltip>(0);
         builder.AddAttribute(1, nameof(PkTooltip.Help), true);
-        builder.AddAttribute(2, nameof(PkTooltip.Text), f.Help);
+        builder.AddAttribute(2, nameof(PkTooltip.Text), help);
+        builder.AddAttribute(3, nameof(PkTooltip.Label), "Help for " + f.Label);
         builder.CloseComponent();
     });
+    }
 
     private static bool IsChecked(string? value) => !string.IsNullOrEmpty(value) && value != "false";
 
