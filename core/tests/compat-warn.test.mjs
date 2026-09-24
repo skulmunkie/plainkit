@@ -75,6 +75,8 @@ test('utilityReplacement: every removed u-* class yields a hint, spacing snaps t
     assert.match(utilityReplacement('u-mt-p6r'), /^mt-2 /);
     assert.match(utilityReplacement('u-m-p75r-0-p25r'), /margin: var\(--space-3\) 0 var\(--space-1\)/);
     assert.equal(utilityReplacement('u-nowrap'), '.nowrap');
+    assert.match(utilityReplacement('u-mw-40r'), /var\(--content-sm\)/);
+    assert.match(utilityReplacement('u-fs-p86r'), /var\(--text-meta\)/);
 });
 
 test('checkCompatClasses flags removed u-* classes, not the ones utilities.css still defines', async () => {

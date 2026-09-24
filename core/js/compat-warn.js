@@ -223,6 +223,7 @@ export const RETIRED_CLASSES = {
 // from the name instead of listed 107 times: spacing snaps to the nearest step of the space scale, the rest says what to write.
 const KEPT_UTILITIES = new Set(['u-contents', 'u-m0', 'u-mt-3', 'u-text-xs', 'u-text-sm', 'u-w-full', 'u-ml-auto', 'u-flex-1', 'u-fs-1p05r', 'u-fs-1p1r', 'u-fw-600', 'u-mw-24r', 'u-p-1r-1p25r', 'u-sr-only']);
 const SPACE_STEPS = { 1: 0.25, 2: 0.5, 3: 0.75, 4: 1, 5: 1.25, 6: 1.5, 8: 2, 12: 3 };
+const TEXT_TOKENS = { meta: 0.86, read: 1, lg: 1.1 };
 const SIDES = { m: 'margin', mt: 'margin-top', mb: 'margin-bottom', ml: 'margin-left', mr: 'margin-right', p: 'padding', pt: 'padding-top', pb: 'padding-bottom', pl: 'padding-left', pr: 'padding-right' };
 const OWN_CSS = { c: 'color', fs: 'font-size', fw: 'font-weight', ls: 'list-style', w: 'width', minw: 'min-width', mw: 'max-width', cursor: 'cursor', opacity: 'opacity', ow: 'overflow-wrap', pre: 'white-space', scroll: 'overflow', ta: 'text-align', td: 'text-decoration' };
 
@@ -253,6 +254,17 @@ export function utilityReplacement(cls) {
         const decl = `${SIDES[prop]}: ${steps.join(' ')}`;
         if ((prop === 'mt' || prop === 'mb') && rems[0] > 0) return `${prop}-${stepFor(rems[0])} (or ${decl})`;
         return `${decl} in your own stylesheet`;
+    }
+    if (prop === 'mw' && values.length === 1) {
+        const named = { 40: 'sm', 60: 'md', 75: 'lg' }[remOf(values[0])];
+        if (named) return `max-width: var(--content-${named}) in your own stylesheet`;
+    }
+    if (prop === 'fs' && values.length === 1 && /r$/.test(values[0])) {
+        const rem = remOf(values[0]);
+        if (rem !== null) {
+            const [name] = Object.entries(TEXT_TOKENS).reduce((best, e) => (Math.abs(e[1] - rem) < Math.abs(best[1] - rem) ? e : best));
+            return `font-size: var(--text-${name}) in your own stylesheet (the nearest text token to ${rem}rem)`;
+        }
     }
     if (OWN_CSS[prop]) return `${OWN_CSS[prop]} in your own stylesheet (${css}); use a design token where one matches`;
     return `your own stylesheet (${css})`;
