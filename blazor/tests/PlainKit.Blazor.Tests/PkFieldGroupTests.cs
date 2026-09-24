@@ -101,4 +101,48 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
         Assert.False(order.Active);
     }
+
+    // Issue 226: a field spec's When gates whether it renders at all, re-evaluated on every render (so a field that gates another
+    // field just works), and a hidden Required field has no markup left for PkForm to validate.
+    private static IReadOnlyList<PkFieldSpec<Order>> FieldsWithConditionalNote() =>
+    [
+        new() { Key = "status", Label = "Status", Kind = PkFieldKind.Select, Options = [new("open", "Open"), new("closed", "Closed")], Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
+        new() { Key = "name", Label = "Closing note", Required = true, When = o => o.Status == "closed", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+    ];
+
+    [Fact]
+    public void A_field_whose_When_is_false_for_the_current_model_is_not_rendered()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, new Order { Status = "open" }));
+
+        Assert.Single(cut.FindAll("pk-field"));
+        Assert.Null(cut.Find("pk-field").GetAttribute("required"));
+    }
+
+    [Fact]
+    public async Task Committing_a_value_that_flips_another_fields_When_shows_or_hides_it_on_the_next_render()
+    {
+        var order = new Order { Status = "open" };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, order));
+        Assert.Single(cut.FindAll("pk-field"));
+
+        await cut.Find("pk-select").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "closed" });
+
+        var fields = cut.FindAll("pk-field");
+        Assert.Equal(2, fields.Count);
+        Assert.NotNull(fields[1].GetAttribute("required"));
+    }
+
+    [Fact]
+    public void A_hidden_Required_field_renders_no_markup_so_PkForm_has_nothing_to_validate_for_it()
+    {
+        // PkForm's own validity check is native HTML5 constraint validation in the browser, not something bUnit's virtual DOM runs;
+        // what this component controls -- and what issue 226 asks for -- is that a hidden field's `required` control is not emitted
+        // at all, so there is nothing left in the form for a real browser to check.
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, new Order { Status = "open" }));
+
+        var fields = cut.FindAll("pk-field");
+        Assert.Single(fields);
+        Assert.DoesNotContain(fields, f => f.GetAttribute("label") == "Closing note");
+    }
 }

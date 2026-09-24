@@ -35,8 +35,9 @@ public sealed record PkFieldOption(string Value, string Label);
 /// One field of a <see cref="PkFieldGroup{TItem}"/>: everything a plain field needs to render itself and read/write one property of
 /// <typeparamref name="TItem"/> through <see cref="Get"/>/<see cref="Set"/> — the string form of the value, the same shape every
 /// control's own <c>Value</c> parameter already takes (<c>PkInput.Min</c>/<c>Max</c>/<c>Step</c>/<c>MaxLength</c> are strings for the
-/// same reason: the element does its own coercion). A field whose visibility depends on the current data, or whose value is computed
-/// rather than a plain property mirror, is not spec-able here — write it by hand next to the group, the same way issue 222 scoped it.
+/// same reason: the element does its own coercion). A field can gate its own rendering with <see cref="When"/> (issue 226); a field
+/// whose value is computed rather than a plain property mirror is still not spec-able here — write it by hand next to the group, the
+/// same way issue 222 scoped it.
 /// </summary>
 public sealed record PkFieldSpec<TItem>
 {
@@ -78,4 +79,10 @@ public sealed record PkFieldSpec<TItem>
 
     /// <summary>The options of a <see cref="PkFieldKind.Select"/> field; ignored otherwise.</summary>
     public IReadOnlyList<PkFieldOption>? Options { get; init; }
+
+    /// <summary>Whether this field renders at all, evaluated against the current <typeparamref name="TItem"/>; unset means always. Re-run
+    /// for every field (not just the one that just changed, since one field's value can gate another's visibility) after every commit
+    /// and whenever the group re-renders. A hidden field's markup is not emitted at all, so a hidden <see cref="Required"/> field never
+    /// blocks <c>PkForm</c> validation (issue 226's own recommendation) — there is nothing left in the DOM for the form to check.</summary>
+    public Func<TItem, bool>? When { get; init; }
 }
