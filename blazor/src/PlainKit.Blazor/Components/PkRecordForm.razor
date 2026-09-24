@@ -1,0 +1,82 @@
+@namespace PlainKit.Blazor
+
+@* Hand-written, no element of its own (issue 261): the page template of a create-or-edit record page, composed only of existing components.
+   A PkForm (with its validation summary) around a native form, and inside it a PkStack of: the toolbar (Cancel, the caller's Actions,
+   Delete, Save) under the page's breadcrumbs, the caller's Tabs, the error alert, and the body. The body is the caller's PkCards in the main
+   column and, when a Sidebar is given, a PkDetailLayout with the status cards beside them; without a Sidebar it is the main column alone.
+   The state half (load, validate, save, delete) is not here: the page keeps that, or uses PkRecordEditor. *@
+<PkForm Summary OnValid="OnValid">
+    <form @onsubmit:preventDefault>
+        <PkStack>
+            <PkCluster Justify="end">
+                @if (OnCancel.HasDelegate)
+                {
+                    <PkButton Variant="ButtonVariant.Ghost" OnClick="OnCancel">Cancel</PkButton>
+                }
+                @Actions
+                @if (OnDelete.HasDelegate)
+                {
+                    <PkButton Variant="ButtonVariant.Warn" OnClick="OnDelete" Disabled="Busy">@DeleteLabel</PkButton>
+                }
+                <PkButton Type="submit" Variant="ButtonVariant.Primary" Busy="Busy" BusyText="@BusyText" Disabled="SaveDisabled">@SaveLabel</PkButton>
+            </PkCluster>
+            @Tabs
+            @if (!string.IsNullOrEmpty(Error))
+            {
+                <PkAlert Kind="PkAlertKind.Error">@Error</PkAlert>
+            }
+            @if (Sidebar is null)
+            {
+                <PkStack>@ChildContent</PkStack>
+            }
+            else
+            {
+                <PkDetailLayout>
+                    <ChildContent><PkStack>@ChildContent</PkStack></ChildContent>
+                    <Sidebar>@Sidebar</Sidebar>
+                </PkDetailLayout>
+            }
+        </PkStack>
+    </form>
+</PkForm>
+
+@code {
+    /// <summary>The main column: <c>PkCard</c>s, one per section, each holding its fields.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The sidebar: status and flag cards. Left off, the page is the main column alone.</summary>
+    [Parameter] public RenderFragment? Sidebar { get; set; }
+
+    /// <summary>Extra toolbar buttons for a page that needs more than Cancel, Delete and Save; they sit between Cancel and Delete.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>A <c>PkTabs</c> strip for a record with more than one job; it sits under the toolbar. The page renders the chosen tab into <see cref="ChildContent"/>.</summary>
+    [Parameter] public RenderFragment? Tabs { get; set; }
+
+    /// <summary>Runs when the form validates: the page saves and navigates.</summary>
+    [Parameter, EditorRequired] public EventCallback OnValid { get; set; }
+
+    /// <summary>When set, a Cancel button shows first in the toolbar.</summary>
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>When set, a Delete button (warn variant, disabled while <see cref="Busy"/>) shows before Save.</summary>
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    /// <summary>The Save button's text. "Save" on a record page; change it only for a page whose submit is an action ("Record payout").</summary>
+    [Parameter] public string SaveLabel { get; set; } = "Save";
+
+    /// <summary>The Delete button's text.</summary>
+    [Parameter] public string DeleteLabel { get; set; } = "Delete";
+
+    /// <summary>Disables Save (a locked record, or nothing to save yet). Independent of <see cref="Busy"/>.</summary>
+    [Parameter] public bool SaveDisabled { get; set; }
+
+    /// <summary>Save shows its busy state and Delete is disabled while the page saves or deletes.</summary>
+    [Parameter] public bool Busy { get; set; }
+
+    /// <summary>The Save button's text while <see cref="Busy"/>.</summary>
+    [Parameter] public string BusyText { get; set; } = "Saving…";
+
+    /// <summary>A message shown in an error alert above the body; empty or null shows none.</summary>
+    [Parameter] public string? Error { get; set; }
+}

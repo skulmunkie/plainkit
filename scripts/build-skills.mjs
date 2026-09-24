@@ -528,6 +528,100 @@ function blazorFiles(src) {
             '## `PkFieldKind`', '', 'Text, Number, Email, Password, Date, Time, Url, Tel (all `PkInput`, `Type` set from the member), Textarea, Select, Checkbox (`Get`/`Set` still deal in strings: checked is a non-empty value other than "false").', ''].join('\n'));
     }
 
+// The routed list and record page recipe of references/record-form.md (issue 261). Plain strings, so no escaping and the samples checker reads them like any other Razor.
+const RECORD_LIST_SAMPLE = String.raw`@* Locations.razor: the list *@
+@page "/locations"
+@inject NavigationManager Nav
+
+<PkPageHeader Crumbs="_crumbs" />
+<PkDataList TItem="Location" Load="LoadAsync" Columns="_columns" IdOf="l => l.Id.ToString()" Label="Locations"
+            AddLabel="+ Add location" OnAdd="Add" OnRowClick="Open" />
+
+@code {
+    private readonly PkCrumb[] _crumbs = [new PkCrumb("Locations")];
+    private readonly IReadOnlyList<PkTableColumn<Location>> _columns = [new() { Key = "name", Label = "Name" }];
+
+    private void Add() => Nav.NavigateTo("/locations/new");
+    private void Open(PkTableRowClickArgs<Location> row) => Nav.NavigateTo($"/locations/{row.Item.Id}");
+    // LoadAsync as in the server-paged list workflow of the skill.
+}`;
+
+const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, one component for both routes *@
+@page "/locations/new"
+@page "/locations/{Id:int}"
+@inject NavigationManager Nav
+@inject ILocationRepository Repo
+@inject ILogger<LocationEdit> Log
+
+<PkPageHeader Crumbs="_crumbs" Title="@_title" />
+<PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_busy" Error="@_error" SaveLabel="Save location">
+    <PkCard Heading="Details">
+        <PkField Label="Name" Required>
+            <PkInput @bind-Value="_form.Name" Name="name" Required />
+        </PkField>
+    </PkCard>
+    <Sidebar>
+        <PkCard Heading="Status"><PkBadge>@_status</PkBadge></PkCard>
+    </Sidebar>
+</PkRecordForm>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private LocationForm _form = new();
+    private EventCallback _delete;      // unset means no Delete button: only an existing record has one
+    private bool _busy;
+    private string? _error;
+    private string _title = "New location";
+    private string _status = "New";
+    private readonly PkCrumb[] _crumbs = [new PkCrumb("Locations", "/locations"), new PkCrumb("Location")];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _error = null;
+        if (Id is not { } id)
+        {
+            _form = new LocationForm();
+            _delete = default;
+            return;
+        }
+        var location = await Repo.GetAsync(id);
+        if (location is null) { Nav.NavigateTo("/locations", replace: true); return; }
+        _form = LocationForm.From(location);
+        _title = location.Name;
+        _status = "Saved";
+        _delete = EventCallback.Factory.Create(this, DeleteAsync);
+    }
+
+    private Task SaveAsync() => RunAsync(() => Repo.SaveAsync(Id, _form));
+    private Task DeleteAsync() => RunAsync(() => Repo.DeleteAsync(Id!.Value));
+    private void Back() => Nav.NavigateTo("/locations");
+
+    // Busy while it runs, back to the list on success, a fixed line in the form's alert on failure (the exception goes to the log).
+    private async Task RunAsync(Func<Task> action)
+    {
+        if (_busy) return;
+        _busy = true;
+        _error = null;
+        try { await action(); Back(); }
+        catch (Exception ex) { Log.LogError(ex, "Location save or delete failed"); _error = "Could not complete that. See the log for details."; }
+        finally { _busy = false; }
+    }
+}`;
+
+    // the page template of a create-or-edit record page: no element of its own (issue 261)
+    const rf = src.razor.PkRecordForm;
+    if (rf) {
+        files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Components/PkRecordForm.razor'), '',
+            'A hand-written component with no element of its own, composed of existing components: a `PkForm` (`Summary`) around a native form, and in it a `PkStack` of the toolbar, your `Tabs`, the error alert and the body. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs. The body is your `PkCard`s in `ChildContent` and, when `Sidebar` is given, a `PkDetailLayout` with the status cards beside them; without `Sidebar` it is the main column alone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours: this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
+            '`OnDelete` is an `EventCallback`, and an unset one (`default`) hides Delete: to offer it only for an existing record keep a field, `private EventCallback _delete;`, assign `_delete = EventCallback.Factory.Create(this, DeleteAsync);` when the record is loaded, and pass `OnDelete="_delete"`.', '',
+            '## Routed list and record page', '',
+            'A list page and a record page are two routes, and the route is the only state. The list navigates on a row click and on Add; the record page loads by the route parameter, draws itself with `PkRecordForm`, and navigates back to the list after Save, Cancel and Delete. This is a full page per record; the `routed-list-detail` template of the `plainkit-sdk` skill (`PkWorkspace`) is the list and record side by side.', '',
+            '```razor', RECORD_LIST_SAMPLE, '```', '', '```razor', RECORD_PAGE_SAMPLE, '```', '',
+            '`PkForm` blocks a submit the browser\'s own validation rejects (its summary lists why), so `OnValid` only runs for a valid form. A caught exception\'s text is not for the user: log it and show a fixed line, unless it is your own domain error meant to be shown. Give the list a `CurrentId` when the record page is shown beside it. The alert, toolbar and layout come with the component: do not add another error `PkAlert` or a `PkFormActions` inside it.', '',
+            '## `PkRecordForm`', '', table(['Parameter', 'Type', 'Description'], rf.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
+    }
+
     // one dt/dd pair for PkFieldList that can hide itself: no element of its own (issue 207)
     const flr = src.razor.PkFieldListRow;
     if (flr) {
@@ -680,7 +774,7 @@ export function generate(src = collect()) {
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'field-list-row.md': '`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
+    const bzDescribe = { 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'record-form.md': '`PkRecordForm`: the page template of a create-or-edit record page (toolbar, tabs, error, cards and sidebar)', 'field-list-row.md':'`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
