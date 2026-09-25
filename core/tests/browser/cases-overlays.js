@@ -389,6 +389,18 @@ export const overlaysCases = [
         t.key(input, 'Escape'); t.ok(el.part('popup').hidden, 'Escape closes the results');
     }],
 
+    ['app-bar-search: a pill that grows to the room it is given, and compact keeps the icon button at any width', async t => {
+        const row = await t.mount('<div><pk-app-bar-search label="Search" placeholder="Search products, orders"></pk-app-bar-search></div>');
+        row.style.display = 'flex'; row.style.width = '900px';
+        const el = row.firstElementChild, box = el.part('box'), r = box.getBoundingClientRect();
+        t.ok(r.width > 300 && r.width <= 34 * 16 + 1, 'the field fills the row up to 34rem, not a fixed 14rem');
+        t.ok(getComputedStyle(box).borderTopLeftRadius === '999px' && getComputedStyle(box).borderTopLeftRadius !== '50%', 'a pill, not an oval');
+        el.compact = true; await t.settle();
+        t.ok(el.part('expand').getBoundingClientRect().width > 0 && box.getBoundingClientRect().width === 0, 'compact shows only the icon button on a wide row');
+        el.part('expand').click(); await t.settle();
+        t.ok(el.expanded && box.getBoundingClientRect().width > 0, 'pressing it expands the field over the header row');
+        t.key(el.part('control'), 'Escape'); t.ok(!el.expanded, 'Escape collapses it');
+    }],
     ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';

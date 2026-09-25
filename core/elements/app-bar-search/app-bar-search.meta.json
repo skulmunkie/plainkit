@@ -2,7 +2,7 @@
   "tag": "pk-app-bar-search",
   "title": "App bar search",
   "group": "Navigation",
-  "summary": "A search field for a shell's header row: a pill on a wide screen, results in a floating panel below it; below the phone breakpoint the pill collapses to an icon button that expands to a full-width field over the header row. Debounces typing into pk-query; the host supplies items (results) and reads pk-select when one is chosen. Closes itself when the containing pk-app-shell's nav drawer opens, on Escape and on browser navigation.",
+  "summary": "A search field for a shell's header row: a pill that fills the space it is given, results in a panel below it; an icon button that expands over the header row below the phone breakpoint or with compact. The host supplies items and reads pk-query and pk-select.",
   "props": [
     {
       "name": "label",
@@ -26,19 +26,26 @@
       "description": "Milliseconds to wait after the last keystroke before raising pk-query."
     },
     {
+      "name": "compact",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Icon button at any width; expands over the header row."
+    },
+    {
       "name": "expanded",
       "type": "boolean",
       "default": false,
       "reflect": true,
       "commit": "pk-toggle",
-      "description": "Below the phone breakpoint, whether the field covers the header row. No effect above it (the field is always shown there)."
+      "description": "Whether the field covers the header row (phone breakpoint, or compact)."
     },
     {
       "name": "items",
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. A JSON attribute or a property, like pk-table's rows. Adjacent items with the same group get one heading between them; the host is responsible for the order."
+      "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. Adjacent items with the same group share a heading; the host sets the order."
     }
   ],
   "slots": [
@@ -73,7 +80,7 @@
   "parts": [
     {
       "name": "expand",
-      "description": "The icon button shown below the phone breakpoint."
+      "description": "The icon button (phone breakpoint, or compact)."
     },
     {
       "name": "box",
@@ -85,7 +92,7 @@
     },
     {
       "name": "collapse",
-      "description": "The close button shown while expanded, below the phone breakpoint."
+      "description": "The close button while expanded."
     },
     {
       "name": "popup",
@@ -132,10 +139,16 @@
       "description": "A result's subtitle text (dynamic; shown when the item has one)."
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-app-bar-search-width",
+      "description": "Maximum width of the field.",
+      "default": "34rem"
+    }
+  ],
   "methods": [],
-  "a11y": "ARIA 1.2 combobox: role=combobox on the input, aria-expanded, aria-controls and aria-activedescendant (focus stays on the input). Arrow keys move, Enter picks, Escape closes the results, then a second Escape collapses the field below the phone breakpoint. The expand and collapse buttons are 44px touch targets.",
-  "mobile": "Below the phone breakpoint the field is an icon button; tapping it covers the header row with a full-width field and a close button. The results panel is full width below it.",
+  "a11y": "ARIA 1.2 combobox with aria-activedescendant (focus stays on the input). Arrow keys move, Enter picks, Escape closes the results, then collapses the field. The buttons are 44px touch targets.",
+  "mobile": "Below the phone breakpoint (or with compact) the field is an icon button that expands over the header row.",
   "examples": [
     {
       "title": "In an app shell header",

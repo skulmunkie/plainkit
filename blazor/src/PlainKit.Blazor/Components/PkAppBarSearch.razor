@@ -10,6 +10,7 @@
 <pk-app-bar-search label="@Label"
                     placeholder="@Placeholder"
                     debounce="@Debounce.ToString(CultureInfo.InvariantCulture)"
+                    compact="@Compact"
                     expanded="@Expanded"
                     items="@PkAttr.Json(Items)"
                     @ref="Element"
@@ -28,7 +29,10 @@
     /// <summary>Milliseconds to wait after the last keystroke before raising <see cref="OnQuery"/>.</summary>
     [Parameter] public int Debounce { get; set; } = 250;
 
-    /// <summary>Below the phone breakpoint, whether the field covers the header row. Cleared automatically on navigation.</summary>
+    /// <summary>Keeps the icon button at any width; it expands over the header row (see <see cref="Expanded"/>).</summary>
+    [Parameter] public bool Compact { get; set; }
+
+    /// <summary>Whether the field covers the header row (below the phone breakpoint, or at any width with <see cref="Compact"/>). Cleared automatically on navigation.</summary>
     [Parameter] public bool Expanded { get; set; }
 
     /// <summary>Raised when <see cref="Expanded"/> changes (two-way binding: <c>@bind-Expanded</c>).</summary>

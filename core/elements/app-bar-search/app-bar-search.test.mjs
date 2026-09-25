@@ -48,3 +48,20 @@ test('the phone breakpoint is named, not a literal, and collapses the pill to th
     assert.doesNotMatch(css, /@media \(max-width: \d+px\)/, 'a literal breakpoint would fail core/tests/breakpoints.test.mjs too');
     assert.match(css, /@media \(--phone\) \{[\s\S]*\.exp \{ display: inline-flex/);
 });
+
+test('the field is a pill (the pill token, not the 50% round token) that grows to the host, capped by the documented --pk-app-bar-search-width hook', () => {
+    const css = read('css');
+    assert.match(css, /\.box \{[^}]*border-radius: var\(--radius-pill\)/);
+    assert.doesNotMatch(css, /\.box \{[^}]*\swidth: \d/, 'no fixed width on the field');
+    assert.match(css, /:host \{[^}]*flex: 1 1 auto[^}]*max-width: var\(--pk-app-bar-search-width, 34rem\)/);
+    assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-bar-search-width'));
+});
+
+test('compact is a reflected boolean that keeps the icon button and the expanded overlay at any width', () => {
+    assert.equal(prop('compact').type, 'boolean');
+    assert.equal(prop('compact').reflect, true);
+    const css = read('css');
+    assert.match(css, /:host\(\[compact\]\) \.exp \{ display: inline-flex/);
+    assert.match(css, /:host\(\[compact\]\) \.box \{ display: none/);
+    assert.match(css, /:host\(\[compact\]\[expanded\]\) \.box \{ display: flex/);
+});
