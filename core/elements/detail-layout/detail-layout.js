@@ -1,3 +1,4 @@
+import { loadElements } from '../../js/loader.js';
 // Sticky sidebar: measure it so a sidebar taller than the viewport docks by its bottom edge instead of its top (issue 281).
 // Phone tabs (issue 272): elements carrying data-pk-section are grouped into tabs when the layout has collapsed to one column and names two or more sections.
 export default Base => class extends Base {
@@ -5,6 +6,7 @@ export default Base => class extends Base {
         const side = this.part('sidebar');
         if (!this.$w) {
             this.$w = true;
+            loadElements(this.shadowRoot); // the strip and the Next button are pk-* elements in this shadow tree: define them even when the host page uses none itself
             this.part('tabs').addEventListener('pk-tab-change', e => this.pick(e.detail.value));
             this.part('next').addEventListener('click', () => { this.pick(this.$next); this.part('tabs').scrollIntoView({ block: 'start' }); });
             this.addEventListener('invalid', e => { const c = e.target.closest?.('[data-pk-section-hidden]'); if (c) this.pick(c.dataset.pkSection); }, true);
@@ -39,6 +41,7 @@ export default Base => class extends Base {
         if (on && tabs.$key !== key) {
             tabs.$key = key;
             tabs.replaceChildren(...names.map(n => { const t = document.createElement('pk-tab'); t.value = n; t.textContent = cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || n[0].toUpperCase() + n.slice(1); return t; }));
+            loadElements(tabs);
         }
         if (on) tabs.value = active;
         const after = names[names.indexOf(active) + 1];
