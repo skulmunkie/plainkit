@@ -47,6 +47,39 @@ export const overlaysCases = [
         t.eq(got, 1); t.ok(!c.open);
     }],
 
+    ['badge-popover: the pill is a disclosure button, opens an anchored panel, Escape closes and returns focus, an outside press closes without moving it, data-close closes', async t => {
+        const host = await t.mount('<div><pk-badge-popover variant="warn" heading="5 failing checks">5 failing<div slot="details">Price is missing</div><pk-button slot="actions" data-close>Dismiss</pk-button></pk-badge-popover><button id="pk-bp-out">Elsewhere</button></div>');
+        const el = host.querySelector('pk-badge-popover'), pill = el.part('trigger'), panel = el.part('panel');
+        t.eq(pill.localName, 'button'); t.eq(pill.getAttribute('aria-expanded'), 'false'); t.eq(pill.getAttribute('aria-controls'), panel.id);
+        t.eq(getComputedStyle(panel).display, 'none');
+        t.ok(getComputedStyle(pill).backgroundColor !== 'rgba(0, 0, 0, 0)', 'the pill is filled');
+        pill.focus(); pill.click(); await t.settle();
+        t.ok(el.open && el.hasAttribute('open'), 'open reflected'); t.eq(pill.getAttribute('aria-expanded'), 'true');
+        t.eq(getComputedStyle(panel).position, 'fixed'); t.eq(panel.getAttribute('aria-labelledby'), el.part('title').id); t.eq(el.part('title').textContent, '5 failing checks');
+        t.ok(!el.part('actions').hidden, 'actions shown when slotted');
+        await arrived(panel, t);
+        const a = pill.getBoundingClientRect(), b = panel.getBoundingClientRect();
+        t.ok(near(b.top, a.bottom + 6, 8), `directly under the pill (${Math.round(a.bottom)}, ${Math.round(b.top)})`);
+        t.key(document, 'Escape'); await t.settle();
+        t.ok(!el.open, 'Escape closes'); t.eq(el.shadowRoot.activeElement, pill, 'focus returns to the pill');
+        pill.click(); await t.settle(); t.ok(el.open);
+        host.querySelector('pk-button').click(); await t.settle();
+        t.ok(!el.open, 'a slotted data-close closes it'); t.eq(el.shadowRoot.activeElement, pill);
+        pill.click(); await t.settle(); t.ok(el.open);
+        let reason; el.addEventListener('pk-close', e => { reason = e.detail.reason; });
+        document.getElementById('pk-bp-out').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true })); await t.settle();
+        t.ok(!el.open && reason === 'outside', 'an outside press closes it');
+        pill.click(); pill.click(); await t.settle(); t.ok(!el.open, 'a second press on the pill closes it');
+    }],
+
+    ['badge-popover: a cancelable pk-close vetoes closing, and no heading names the panel by label or pill text', async t => {
+        const el = await t.mount('<pk-badge-popover open>Stale<div slot="details">Body</div></pk-badge-popover>');
+        await t.settle(); t.eq(el.part('panel').getAttribute('aria-label'), 'Stale');
+        el.addEventListener('pk-close', e => e.preventDefault());
+        t.key(document, 'Escape'); await t.settle(); t.ok(el.open, 'vetoed');
+        t.ok(el.part('actions').hidden, 'no actions, no row');
+    }],
+
     ['popover: a cancelable pk-close lets the host veto closing', async t => {
         const el = await t.mount('<pk-popover open><button slot="trigger">Open</button>Body</pk-popover>');
         el.addEventListener('pk-close', e => e.preventDefault());
