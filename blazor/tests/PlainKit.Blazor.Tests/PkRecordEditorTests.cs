@@ -27,6 +27,10 @@ public sealed class PkRecordEditorTests
             Entries.Add((logLevel, formatter(state, exception), exception));
     }
 
+    private static PkRecordEditor<Row, RowForm, int> New(Func<Exception, bool> isUserFacing, Func<RowForm, Row?, Task> save, ILogger? logger = null) =>
+        new(logger ?? NullLogger.Instance, "row", id => Task.FromResult<Row?>(new Row { Id = id, Name = "one" }), r => new RowForm { Name = r?.Name ?? "" }, save)
+        { IsUserFacing = isUserFacing };
+
     private static PkRecordEditor<Row, RowForm, int> New(
         Func<int, Task<Row?>>? load = null,
         Func<RowForm, Row?, Task>? save = null,
@@ -145,6 +149,40 @@ public sealed class PkRecordEditorTests
         Assert.Equal("Only one location can be primary.", e.Error);
         Assert.Empty(log.Entries);
         Assert.False(e.Busy);
+    }
+
+    [Fact]
+    public async Task IsUserFacing_shows_the_message_of_an_exception_without_the_marker()
+    {
+        var log = new ListLogger();
+        var e = New(ex => ex is ArgumentException, (_, _) => throw new ArgumentException("Name is taken."), log);
+        await e.LoadAsync(1);
+
+        Assert.False(await e.SaveAsync());
+        Assert.Equal("Name is taken.", e.Error);
+        Assert.Empty(log.Entries);
+    }
+
+    [Fact]
+    public async Task IsUserFacing_is_consulted_in_addition_to_the_marker()
+    {
+        var e = New(_ => false, (_, _) => throw new RuleException("Marked."));
+        await e.LoadAsync(1);
+
+        Assert.False(await e.SaveAsync());
+        Assert.Equal("Marked.", e.Error);
+    }
+
+    [Fact]
+    public async Task IsUserFacing_throwing_keeps_the_generic_line()
+    {
+        var log = new ListLogger();
+        var e = New(_ => throw new InvalidOperationException("bad predicate"), (_, _) => throw new ArgumentException("secret"), log);
+        await e.LoadAsync(1);
+
+        Assert.False(await e.SaveAsync());
+        Assert.Equal("Unexpected error while saving. See log for details.", e.Error);
+        Assert.Equal(2, log.Entries.Count);
     }
 
     [Fact]
