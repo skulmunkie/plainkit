@@ -30,6 +30,39 @@ export const headerCases = [
         t.ok(rect(b.querySelector('pk-breadcrumb')).bottom <= rect(b.part('title')).top + 1, 'the trail is above the title');
     }],
 
+    ['breadcrumb: the separator chevron is not part of the link (no underline, no hit area, hidden from assistive tech)', async t => {
+        const b = await t.mount('<pk-breadcrumb><a href="#" style="text-decoration: underline">Products</a><span aria-current="page">Blue mug</span></pk-breadcrumb>'); await t.settle();
+        const after = getComputedStyle(b.querySelector('a'), '::after');
+        t.eq(after.pointerEvents, 'none', 'a click on the chevron does not follow the link');
+        t.eq(after.position, 'absolute', 'the chevron is out of the link text flow, so the link underline cannot run under it');
+        t.ok(after.content.includes('/ ""'), 'the chevron has empty alternative text, so assistive tech skips it');
+    }],
+
+    ['page-header: a record titled by its last crumb keeps the chips and the actions on the crumbs row, and only the chips drop under it when narrow', async t => {
+        const html = '<pk-page-header variant="record"><pk-breadcrumb slot="breadcrumb"><a href="#">Products</a><span aria-current="page">Blue mug</span></pk-breadcrumb><pk-badge id="chip">Active</pk-badge><button slot="actions" id="act">Save</button></pk-page-header>';
+        const host = t.stage(html); host.style.width = '1000px'; await t.load(host); await t.settle();
+        const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
+        const crumb = h.querySelector('pk-breadcrumb'), chip = h.querySelector('#chip'), act = h.querySelector('#act');
+        t.ok(Math.abs(mid(chip) - mid(crumb)) < 6, 'wide: the chips are on the crumbs row');
+        t.ok(Math.abs(mid(act) - mid(crumb)) < 6, 'wide: the actions are on the crumbs row');
+        t.ok(rect(act).left > rect(chip).right, 'wide: the actions are at the end');
+        host.style.width = '360px'; await t.settle();
+        t.ok(Math.abs(mid(act) - mid(crumb)) < 6, 'narrow: the actions stay on the crumbs row');
+        t.ok(rect(chip).top >= rect(crumb).bottom - 1, 'narrow: only the chips drop under the crumbs');
+        t.ok(h.scrollWidth <= h.clientWidth + 1, 'no horizontal overflow');
+    }],
+
+    ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
+        const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
+        const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
+        for (const w of ['1000px', '360px']) {
+            host.style.width = w; await t.load(host); await t.settle();
+            const chip = h.querySelector('#chip'), act = h.querySelector('#act');
+            t.ok(Math.abs(mid(chip) - mid(act)) < 30, `${w}: the chips and the actions share a row`);
+            t.ok(rect(act).left > rect(chip).right, `${w}: the actions are at the end`);
+        }
+    }],
+
     ['page-header: on a narrow container the actions take the full width and are touch sized', async t => {
         const host = t.stage('<pk-page-header heading="Wrapped"><button slot="actions">One</button><button slot="actions">Two</button></pk-page-header>');
         host.style.width = '320px'; await t.load(host); await t.settle();
