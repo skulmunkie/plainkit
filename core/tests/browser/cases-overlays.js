@@ -55,6 +55,19 @@ export const overlaysCases = [
         t.ok(el.open, 'vetoed');
     }],
 
+    ['dropdown and popover: a display: contents trigger wrapper still anchors the menu next to the trigger', async t => {
+        const host = await t.mount('<div><pk-dropdown><span slot="trigger" style="display: contents"><button>Actions</button></span><pk-menu-item>Edit</pk-menu-item></pk-dropdown><pk-popover><span slot="trigger" style="display: contents"><button>Info</button></span><p>Body</p></pk-popover></div>');
+        for (const b of host.querySelectorAll('button')) b.style.marginTop = '200px';
+        for (const el of host.children) el.open = true;
+        await t.settle();
+        for (const [el, name] of [[host.querySelector('pk-dropdown'), 'dropdown'], [host.querySelector('pk-popover'), 'popover']]) {
+            const b = el.querySelector('button').getBoundingClientRect();
+            const panel = el.part(name === 'dropdown' ? 'menu' : 'panel'); await arrived(panel, t);
+            const m = panel.getBoundingClientRect();
+            t.ok(b.top > 150 && near(m.top, b.bottom + 4, 8), `${name} sits next to its trigger (trigger ${Math.round(b.left)},${Math.round(b.bottom)} panel ${Math.round(m.left)},${Math.round(m.top)})`);
+        }
+    }],
+
     ['dropdown: opens, arrows and typeahead move focus, checkbox toggles and reports, Escape returns focus to the trigger', async t => {
         const el = await t.mount('<pk-dropdown><button slot="trigger">Actions</button><pk-menu-item>Edit</pk-menu-item><pk-menu-item disabled>Copy</pk-menu-item><pk-menu-item type="checkbox" checked>Archived</pk-menu-item><pk-menu-item>Delete</pk-menu-item></pk-dropdown>');
         const trig = el.querySelector('button'); const items = [...el.querySelectorAll('pk-menu-item')];
