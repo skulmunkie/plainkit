@@ -47,3 +47,13 @@ test('the sidebar sticks by its bottom edge when taller than the viewport, and d
     assert.ok(meta.cssProperties.some(p => p.name === '--pk-detail-layout-main-max'));
     assert.match(fs.readFileSync(fileURLToPath(new URL('./detail-layout.js', import.meta.url)), 'utf8'), /disconnect\(\)/);
 });
+
+test('phone tabs: the section prop and event, the collapsed-only strip and the ownership write are declared (issue 272)', () => {
+    assert.equal(prop('section').commit, 'pk-section-change');
+    assert.ok(meta.events.some(e => e.name === 'pk-section-change'));
+    assert.deepEqual(meta.parts.map(p => p.name).filter(n => n === 'tabs' || n === 'next').sort(), ['next', 'tabs']);
+    assert.ok(meta.writes.some(w => w.attributes.includes('data-pk-section-hidden')));
+    const css = read('css');
+    assert.match(css.slice(css.indexOf('@container')), /\[part="tabs"\]:not\(\[hidden\]\)/, 'the strip only shows inside the collapsed container block');
+    assert.doesNotMatch(read('html'), /style=/);
+});

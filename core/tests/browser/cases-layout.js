@@ -207,6 +207,24 @@ export const layoutCases = [
         t.eq(Math.round(side.getBoundingClientRect().right), Math.round(el.part('grid').getBoundingClientRect().right), 'flush with the right edge of the content area');
     }],
 
+    ['detail-layout: data-pk-section groups cards into tabs only once collapsed, with Next, a commit event and reveal-on-invalid (issue 272)', async t => {
+        const el = await t.mount('<pk-detail-layout><div><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing" data-pk-section-label="Prices"><input required></pk-card></div><div slot="sidebar"><pk-card heading="C" data-pk-section="pricing">c</pk-card></div></pk-detail-layout>');
+        const [a, b, c] = el.querySelectorAll('pk-card'); const shown = x => getComputedStyle(x).display !== 'none';
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        size(el, rem(60)); await settle();
+        t.ok(shown(a) && shown(b) && shown(c), 'wide: every card shows'); t.ok(getComputedStyle(el.part('tabs')).display === 'none', 'wide: no strip');
+        size(el, rem(30)); await settle();
+        t.ok(shown(a) && !shown(b) && !shown(c), 'collapsed: only the first section shows');
+        const tabs = [...el.part('tabs').querySelectorAll('pk-tab')]; t.eq(tabs.map(x => x.textContent).join(), 'Details,Prices', 'tabs come from the cards, labelled from data-pk-section-label');
+        const seen = []; el.addEventListener('pk-section-change', e => seen.push(e.detail.section));
+        el.part('next').click(); await settle();
+        t.ok(!shown(a) && shown(b) && shown(c), 'Next selects the next section'); t.eq(seen.join(), 'pricing'); t.eq(el.section, 'pricing');
+        el.section = 'details'; await settle(); t.eq(seen.length, 1, 'a host change raises no event'); t.ok(shown(a) && !shown(b));
+        el.querySelector('input').dispatchEvent(new Event('invalid')); await settle();
+        t.ok(shown(b), 'an invalid control in a hidden section reveals it');
+        size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();
