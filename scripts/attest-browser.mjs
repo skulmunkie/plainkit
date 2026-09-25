@@ -81,13 +81,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const readReport = () => { try { return JSON.parse(fs.readFileSync(reportFile, 'utf8')); } catch { return null; } }; // missing or half-written: not there yet
 
 // Stops a process and everything it started (a browser has many children; Windows keeps a profile folder locked until they are gone).
-function killTree(child) {
+export function killTree(child) {
     if (!child || child.exitCode !== null || !child.pid) return;
     if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
     else { try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); } }
 }
 
-async function removeDir(dir) {
+export async function removeDir(dir) {
     for (let i = 0; i < 20; i++) {
         try { fs.rmSync(dir, { recursive: true, force: true }); return true; } catch { await sleep(500); } // a browser child may still hold a file: retry
     }

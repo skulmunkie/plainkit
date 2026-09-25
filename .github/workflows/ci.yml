@@ -209,6 +209,44 @@ jobs:
         if: always() && steps.gate.outputs.run == 'true'
         run: node scripts/verify.mjs --budget browser
 
+  # The UI review (node scripts/ui-review.mjs): screenshots of the changed elements (desktop and phone, light and dark) and the audit findings, kept as
+  # the artifact `ui-review` for the reviewer. Not required, not part of verify.mjs (it is not a pass or fail gate: the screenshots are looked at), and it
+  # calls no model: an automatic AI review needs a secret and a repository setting, which is the owner's decision (issue on the review).
+  ui-review:
+    name: UI review (screenshots)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs browser
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+
+      - name: Render and audit the changed elements (HEAD^1 is the merge target)
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/ui-review.mjs --base HEAD^1
+
+      - name: Keep the screenshots
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-review
+          path: review-output/
+          if-no-files-found: ignore
+
   # The NuGet package, only when what goes into it changed: dotnet pack, then scripts/check-package.mjs (no content/ or contentFiles/, static web
   # assets and skills present, the version stamped). Nothing is pushed anywhere. Not required.
   pack:
