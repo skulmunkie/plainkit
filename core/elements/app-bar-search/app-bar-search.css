@@ -1,4 +1,4 @@
-:host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); }
+:host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); margin-inline: var(--pk-app-bar-search-align, auto); }
 .i { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; }
 .exp { display: none; flex: none; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
 .exp:hover { background: var(--color-surface-alt); }
@@ -24,7 +24,7 @@
 .lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sb { color: var(--color-muted); font-size: var(--text-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bd { flex: none; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--color-surface-alt); color: var(--color-muted); font-size: var(--text-meta); }
-:host([compact]) { flex: none; max-width: none; }
+:host([compact]) { flex: none; max-width: none; margin-inline: 0; }
 :host([compact]) .exp { display: inline-flex; }
 :host([compact]) .box { display: none; }
 :host([compact][expanded]) { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }
@@ -32,7 +32,7 @@
 :host([compact][expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
 :host([compact][expanded]) .col { display: inline-flex; }
 @media (--phone) {
-    :host { flex: none; }
+    :host { flex: none; margin-inline: 0; }
     .exp { display: inline-flex; }
     .box { display: none; }
     :host([expanded]) { position: fixed; max-width: none; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }

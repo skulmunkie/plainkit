@@ -414,6 +414,20 @@ export const overlaysCases = [
         t.ok(el.expanded && box.getBoundingClientRect().width > 0, 'pressing it expands the field over the header row');
         t.key(el.part('control'), 'Escape'); t.ok(!el.expanded, 'Escape collapses it');
     }],
+    ['app-bar-search: centred in the free space of the shell header on a wide screen, and --pk-app-bar-search-align moves it (issue 295)', async t => {
+        if (mediaBelow('phone').matches) return;
+        const sh = await t.mount('<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><button slot="header" data-nav-toggle>Menu</button><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header">Account</button><p>Body</p></pk-app-shell>');
+        await t.settle();
+        const [menu, account] = sh.querySelectorAll('button'), el = sh.querySelector('pk-app-bar-search');
+        const free = () => { const a = menu.getBoundingClientRect().right, b = account.getBoundingClientRect().left, r = el.getBoundingClientRect(); return { mid: (a + b) / 2, centre: (r.left + r.right) / 2, gapL: r.left - a, gapR: b - r.right, w: r.width }; };
+        let f = free();
+        t.ok(f.w > 300, 'the field is still a wide pill'); t.ok(Math.abs(f.mid - f.centre) <= 2, 'centred between the toggle and the actions');
+        el.style.setProperty('--pk-app-bar-search-width', '16rem'); el.style.setProperty('--pk-app-bar-search-align', '0 auto'); await t.settle(); f = free();
+        t.ok(f.w <= 16 * 16 + 1, 'the width hook still caps it'); t.ok(f.gapL < 20 && f.gapR > 40, 'the hook keeps it at the start (only the header gap after the toggle)');
+        el.compact = true; await t.settle(); f = free();
+        t.ok(f.gapL < 20, 'the icon button is not centred');
+    }],
+
     ['app-bar-search: the popup is wider than a narrow field, a footer slot shows, and an item without an id is an unselectable note', async t => {
         const row = await t.mount('<div><pk-app-bar-search label="Search"><a slot="footer" href="#all">Full search</a></pk-app-bar-search></div>');
         row.style.display = 'flex'; row.style.width = '120px';
