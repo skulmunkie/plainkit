@@ -42,8 +42,16 @@ export function computePosition(anchor, size, viewport, options = {}) {
     return { x: placed.x, y: placed.y, side };
 }
 
+// A node with display: contents (a slot wrapper) has no box and reports 0,0,0,0: use the union of its descendants' boxes.
+export const boxOf = el => {
+    const r = el.getBoundingClientRect();
+    if (r.width || r.height || !el.children?.length) return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    const boxes = Array.from(el.children, boxOf).filter(b => b.right > b.left || b.bottom > b.top);
+    if (!boxes.length) return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    return { left: Math.min(...boxes.map(b => b.left)), top: Math.min(...boxes.map(b => b.top)), right: Math.max(...boxes.map(b => b.right)), bottom: Math.max(...boxes.map(b => b.bottom)) };
+};
 const rectOf = anchor => {
-    if (typeof anchor.getBoundingClientRect === 'function') { const r = anchor.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; }
+    if (typeof anchor.getBoundingClientRect === 'function') return boxOf(anchor);
     return { left: anchor.x, top: anchor.y, right: anchor.x + (anchor.width ?? 0), bottom: anchor.y + (anchor.height ?? 0) };
 };
 

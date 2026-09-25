@@ -13,7 +13,7 @@
    would use. *@
 @foreach (var f in Fields.Where(f => f.When is null || f.When(Model)))
 {
-    <PkField Label="@(f.HideLabel ? null : f.Label)" class="@(f.Span ? "form-span" : null)" Hint="@f.Hint" Required="@f.Required" LabelAction="@HelpFor(f, Model)">
+    <PkField Label="@(f.HideLabel ? null : f.Label)" class="@(f.Span ? "form-span" : null)" Hint="@f.Hint" Required="@f.Required" LabelAction="@LabelActionFor(f, Model)">
         @if (f.Kind == PkFieldKind.Select)
         {
             <PkSelect Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" Label="@Accessible(f)" Disabled="@(IsDisabled(f) || IsReadOnly(f))">
@@ -71,6 +71,20 @@
 
     // A hidden label is passed to the control as its accessible name instead.
     private static string? Accessible(PkFieldSpec<TItem> f) => f.HideLabel ? f.Label : null;
+
+    // Help tooltip first, then the spec's own LabelAction, both in PkField's label-action slot (the label text stays).
+    private static RenderFragment? LabelActionFor(PkFieldSpec<TItem> f, TItem model)
+    {
+        var help = HelpFor(f, model);
+        var extra = f.LabelAction?.Invoke(model);
+        if (extra is null) return help;
+        if (help is null) return extra;
+        return builder =>
+        {
+            builder.AddContent(0, help);
+            builder.AddContent(1, extra);
+        };
+    }
 
     private static RenderFragment? HelpFor(PkFieldSpec<TItem> f, TItem model)
     {

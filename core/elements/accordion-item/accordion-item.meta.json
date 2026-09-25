@@ -2,7 +2,7 @@
   "tag": "pk-accordion-item",
   "title": "Accordion item",
   "group": "Containers",
-  "summary": "One collapsible section on a native details element, with an animated panel where the browser supports it.",
+  "summary": "A collapsible section on a native details element.",
   "props": [
     {
       "name": "heading",
@@ -27,11 +27,15 @@
     },
     {
       "name": "heading",
-      "description": "A rich heading; overrides heading."
+      "description": "Rich heading."
     },
     {
       "name": "icon",
-      "description": "An icon before the heading."
+      "description": "Icon before the heading."
+    },
+    {
+      "name": "actions",
+      "description": "Header controls that do not toggle."
     }
   ],
   "events": [
@@ -40,7 +44,7 @@
       "detail": {
         "open": "bool"
       },
-      "description": "The section opened or closed.",
+      "description": "Opened or closed.",
       "cancelable": false
     }
   ],
@@ -51,11 +55,15 @@
     },
     {
       "name": "summary",
-      "description": "The clickable header."
+      "description": "The header."
     },
     {
       "name": "heading",
       "description": "The heading text."
+    },
+    {
+      "name": "actions",
+      "description": "The actions."
     },
     {
       "name": "chevron",
@@ -63,18 +71,18 @@
     },
     {
       "name": "panel",
-      "description": "The content wrapper."
+      "description": "The panel wrapper."
     }
   ],
   "cssProperties": [
     {
       "name": "--pk-accordion-duration",
-      "description": "Open and close time.",
+      "description": "Open/close time.",
       "default": "0.2s"
     }
   ],
   "methods": [],
-  "a11y": "Native details and summary semantics with a 44px header; the chevron is decorative. The animation is skipped under prefers-reduced-motion.",
+  "a11y": "Native details and summary, 44px header; decorative chevron; no animation under reduced motion.",
   "examples": [
     {
       "title": "Open by default",

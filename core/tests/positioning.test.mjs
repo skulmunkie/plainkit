@@ -1,7 +1,7 @@
 // Unit tests for the placement geometry. Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { computePosition, isInside } from '../js/positioning.js';
+import { computePosition, isInside, boxOf } from '../js/positioning.js';
 
 const view = { width: 400, height: 300 };
 const rect = (left, top, w = 40, h = 20) => ({ left, top, right: left + w, bottom: top + h });
@@ -61,4 +61,12 @@ test('isInside is true for a descendant and false for an outsider', () => {
     const inside = { contains: t => t === 'a' };
     assert.equal(isInside('a', [inside, null]), true);
     assert.equal(isInside('b', [inside]), false);
+});
+
+test('boxOf uses the union of the children for a box-less display: contents wrapper', () => {
+    const box = (l, t, r, b, children) => ({ getBoundingClientRect: () => ({ left: l, top: t, right: r, bottom: b, width: r - l, height: b - t }), children });
+    const wrapper = box(0, 0, 0, 0, [box(100, 40, 160, 60), box(170, 40, 200, 60)]);
+    assert.deepEqual(boxOf(wrapper), { left: 100, top: 40, right: 200, bottom: 60 });
+    assert.deepEqual(boxOf(box(5, 5, 25, 15, [box(0, 0, 1, 1)])), { left: 5, top: 5, right: 25, bottom: 15 });
+    assert.deepEqual(boxOf(box(0, 0, 0, 0, [])), { left: 0, top: 0, right: 0, bottom: 0 });
 });
