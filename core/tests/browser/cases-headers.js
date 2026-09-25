@@ -34,7 +34,7 @@ export const headerCases = [
         const b = await t.mount('<pk-breadcrumb><a href="#" style="text-decoration: underline">Products</a><span aria-current="page">Blue mug</span></pk-breadcrumb>'); await t.settle();
         const after = getComputedStyle(b.querySelector('a'), '::after');
         t.eq(after.pointerEvents, 'none', 'a click on the chevron does not follow the link');
-        t.eq(after.textDecorationLine, 'none', 'the link underline does not run under the chevron');
+        t.eq(after.position, 'absolute', 'the chevron is out of the link text flow, so the link underline cannot run under it');
         t.ok(after.content.includes('/ ""'), 'the chevron has empty alternative text, so assistive tech skips it');
     }],
 
