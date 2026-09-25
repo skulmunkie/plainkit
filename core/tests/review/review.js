@@ -10,14 +10,16 @@ import { createLogger } from '../../js/log.js';
 const log = createLogger('review');
 const params = new URLSearchParams(location.search);
 const tag = params.get('tag') ?? '';
+if (params.get('scenario')) document.body.classList.add('rv-scenario');
 document.documentElement.dataset.theme = params.get('theme') === 'light' ? 'light' : 'dark';
 const registry = new URL('../../elements/registry.js', import.meta.url).href;
 const root = document.getElementById('rv-root');
-const state = { ready: false, error: null, tag, examples: [] };
+const state = { ready: false, error: null, tag, examples: [], viewport: { width: innerWidth, height: innerHeight } };
 window.__review = state;
 
 const hop = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
-const settle = async () => { await hop(); await hop(); await document.fonts?.ready; await new Promise(r => setTimeout(r, 120)); };
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const settle = async () => { await hop(); await hop(); await document.fonts?.ready; await frame(); await frame(); await new Promise(r => setTimeout(r, 150)); };
 
 const canvas = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
 canvas.canvas.width = canvas.canvas.height = 1;
@@ -86,13 +88,23 @@ function nameOf(el) {
     return '';
 }
 
+// A selector-like path a person can find in the page: tag, #id, .classes, [slot] and [part], with the accessible name of the last box in quotes.
+const label = el => {
+    const bits = [el.localName];
+    if (el.id) bits.push(`#${el.id}`);
+    const cls = [...el.classList].filter(c => c.length < 24).slice(0, 2);
+    if (cls.length) bits.push(`.${cls.join('.')}`);
+    for (const a of ['slot', 'part']) if (el.getAttribute(a)) bits.push(`[${a}=${el.getAttribute(a)}]`);
+    return bits.join('');
+};
 const pathOf = (el, top) => {
     const parts = [];
     for (let n = el; n && n !== top; n = n.parentElement ?? n.getRootNode()?.host ?? null) {
         const sibs = n.parentElement ? [...n.parentElement.children].filter(c => c.localName === n.localName) : [n];
-        parts.push(n.localName + (sibs.length > 1 ? `[${sibs.indexOf(n) + 1}]` : ''));
+        parts.push(label(n) + (sibs.length > 1 ? `:nth(${sibs.indexOf(n) + 1})` : ''));
     }
-    return parts.reverse().join(' > ') || el.localName;
+    const hint = (el.getAttribute?.('aria-label') || textOf(el)).replace(/\s+/g, ' ').trim().slice(0, 24);
+    return (parts.reverse().join(' > ') || label(el)) + (hint ? ` "${hint}"` : '');
 };
 
 function* flat(node) {
@@ -117,7 +129,7 @@ function measure(stage) {
         ids.set(el, id);
         const ownText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
         const pseudo = [];
-        if (inter || el.closest?.('a') || el.getAttribute('role') === 'link') for (const which of ['before', 'after']) { const p = getComputedStyle(el, `::${which}`); pseudo.push({ which, content: p.content, pointerEvents: p.pointerEvents }); }
+        if (inter || el.closest?.('a[href]') || el.getAttribute('role') === 'link') for (const which of ['before', 'after']) { const p = getComputedStyle(el, `::${which}`); pseudo.push({ which, content: p.content, pointerEvents: p.pointerEvents }); }
         const clampedLines = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
         const clipX = ['hidden', 'clip'].includes(cs.overflowX) && el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0 && cs.textOverflow !== 'ellipsis';
         const clipY = ['hidden', 'clip'].includes(cs.overflowY) && el.scrollHeight > el.clientHeight + 1 && el.clientHeight > 0 && !clampedLines && cs.textOverflow !== 'ellipsis';
@@ -127,13 +139,17 @@ function measure(stage) {
             inFlow: !['absolute', 'fixed'].includes(cs.position) && cs.float === 'none' && !el.hasAttribute('popover'),
             clipX, clipY, interactive: inter, inlineLink: el.localName === 'a' && cs.display === 'inline', name: inter ? nameOf(el) : '',
             textColor: ownText && bg && Number(cs.opacity) === 1 ? rgba(cs.color) : null, bg, fontSize: parseFloat(cs.fontSize), bold: Number(cs.fontWeight) >= 700,
-            media, inLink: Boolean(el.closest?.('a')) || el.getAttribute('role') === 'link', pseudo,
+            media, inLink: Boolean(el.closest?.('a[href]')) || el.getAttribute('role') === 'link', pseudo,
         });
     }
     return boxes;
 }
 
 try {
+    if (params.get('scenario')) {
+        const { startScenario } = await import('./scenario-page.js');
+        await startScenario({ name: params.get('scenario'), root, state, measure, settle, loadElements, applyDynamic, registry, log });
+    } else {
     const meta = await loadElement(tag);
     for (const [i, ex] of (meta.examples ?? []).entries()) {
         const title = document.createElement('p');
@@ -158,6 +174,7 @@ try {
             rect: { x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height },
             facts: { viewport: { width: innerWidth }, touchTarget, docScrollWidth: document.documentElement.scrollWidth, exampleWidth: Math.round(r.width), boxes: measure(stage) },
         });
+    }
     }
 } catch (error) {
     log.error(`could not review ${tag}`, error);

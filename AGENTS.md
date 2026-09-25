@@ -46,6 +46,13 @@ Green CI does not say a layout looks right (the record header in #311 and a chev
 - **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
   into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).
   Attach the shots to the pull request (CI also keeps them as the `ui-review` artifact), fix every error, and say why a warning is fine.
+- **Scenarios for states a still example cannot show.** A gallery example is a resting element; the states issues describe (a menu open, a page scrolled 800px, a collapsed rail with a flyout,
+  a hover or focus ring, right-to-left) are **scenarios**: `core/tests/review/scenarios/<name>.js`, plain ES modules (format and helpers: `core/tests/review/scenario.js`) with the markup, declarative
+  `steps` (`click`, `hover`, `focus`, `key`, `type`, `scroll`, `set`, `resize`, `wait`, and `shot: 'name'` to take a screenshot) and an `expect(t)` that measures the state
+  (`t.within`, `t.noOverlap`, `t.flushBelow`, `t.inViewport`, `t.ringUnclipped`...). A failed expectation is an error with a `FIX:` line, like the audits; `t.known(issue, cond, message)` marks a defect
+  that is already filed (a warning, turned into `t.ok` when it is fixed). `node scripts/ui-review.mjs` also runs the scenarios whose `elements` include a changed element (`--scenarios [a,b]` runs named ones or all,
+  `--scenarios-only` skips the gallery examples); screenshots are `scenario-<name>__<shot>__<desktop|phone>__<light|dark>.png`. **A UI change adds or extends the scenario for the state it fixes**, and you open every screenshot
+  of it with the Read tool; a defect you see is filed as an issue (screenshot name and steps), not fixed in the same pull request.
 - **Not merged on green CI alone.** The owner, or the orchestrating agent after *looking at the screenshots*, checks them against the issue's stated expectations first. The `ui-reviewer` subagent
   (`.claude/agents/ui-reviewer.md`; give it the pull request number or the folder) writes advice on them; it never approves or merges.
 - **Every layout expectation in an issue is a measuring browser case** (`core/tests/browser/`): "chips share the crumbs row" is a rect comparison, not a sentence. Write the case before the CSS.
