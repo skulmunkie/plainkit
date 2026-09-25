@@ -5,6 +5,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.7.0-alpha.1] - 2026-09-25
+
+### Added
+
+- `PkRawTable` gains `TableClass` (a class for the inner table), and `IsEmpty` with `EmptyText` or `EmptyContent`, shown instead of the table when there are no rows. Attributes and `class` already reach the `pk-table` frame. (#255)
+- `PkRecordEditor<TRecord, TForm, TKey>` in PlainKit.Blazor, the state of a create-or-edit record page: `LoadAsync(id)` or `StartNew()`, `NotFound`, DataAnnotations validation, `SaveAsync`, `DeleteAsync`, `Busy` and `Error`. An exception that implements the new marker interface `IPkUserFacingException` shows its message; any other is logged to the `ILogger` you pass and shown as a generic line. It pairs with `PkRecordForm`, and the `plainkit-blazor` skill has a `record-editor.md` reference. (#261)
+- `PkRecordForm`, the page template of a create-or-edit record page in PlainKit.Blazor: a `PkForm` with a validation summary, a Cancel / `Actions` / Delete / Save toolbar under the breadcrumbs and above `Tabs`, an error alert, and the caller's `PkCard`s in the main column with an optional `Sidebar`. Cancel and Delete show only when `OnCancel` / `OnDelete` are set; `SaveDisabled`, `Busy` and `BusyText` control Save. The `plainkit-blazor` skill gains a `record-form.md` reference and a routed list-to-record-page recipe (`PkDataList` `OnRowClick` to `/x/{id}`, `/x/new`, save navigates back). (#261)
+- `PkFieldSpec<TItem>` gains `LabelAction` (`RenderFragment<TItem>?`): extra content in the field's label-action slot beside the label text, after the Help tooltip when both are set, re-evaluated each render. Adopt-from-source buttons and flag badges no longer need a hand-written `PkField` wrapper. (#270)
+- `pk-accordion-item` and `PkAccordionItem` have an `actions` slot (`ActionsContent` in Blazor): controls in the header, beside the chevron, that do not toggle the section. They sit outside the toggle button, so they are separate tab stops and valid for screen readers. (#273)
+- `pk-app-bar-search` has a `compact` attribute (`Compact` in Blazor) that keeps the icon button at any width and expands the field over the header row, as it does on a phone. (#280)
+
+### Fixed
+
+- `PkFieldGroup` no longer loses the label text on a field with `Help` or `HelpWhen`: the help tooltip goes in the label-action slot beside the label instead of replacing the label slot. (#268)
+- A dropdown or popover whose trigger sits in a display: contents wrapper (as PkDropdown in Blazor renders it) opens next to the trigger, not at the top-left of the viewport. (#283)
+- `pk-app-bar-search` is a pill again, not an oval, and fills the space its header row gives it (up to 34rem, or the new `--pk-app-bar-search-width`) instead of a fixed 14rem, so the placeholder is no longer cut off. The SDK site header search is now this element (a pill, an icon button on a phone) instead of its own hand-built field. (#284)
+
+### Changed
+
+- The gallery data is split: `gallery.data.js` now holds an element index (`ELEMENTS`: tag, name, title, group, summary) and each element's full API and examples live in `site/gallery/elements/<name>.data.js`, loaded on demand with `loadElement(tag)` or `loadAllElements()`. The gallery loads only the element page it shows, and the snapshot size cap no longer limits how much documentation an element can carry. (#282)
+
 ## [0.6.0-alpha.1] - 2026-09-24
 
 ### Added
