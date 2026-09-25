@@ -36,6 +36,16 @@
       "name": "Items",
       "prop": "items",
       "type": "IReadOnlyList<PkAppBarSearchItem>"
+    },
+    {
+      "name": "EmptyContent",
+      "slot": "empty",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "FooterContent",
+      "slot": "footer",
+      "type": "RenderFragment?"
     }
   ]
 }

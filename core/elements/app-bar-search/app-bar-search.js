@@ -24,6 +24,7 @@ export default Base => class extends Base {
             this.$t = setTimeout(() => this.emit('pk-query', { query: input.value }, { cancelable: false }), this.debounce);
             this.setOpen(input.value !== '');
         });
+        pop.addEventListener('slotchange', () => this.part('footer').hidden = !this.slotted('footer').length);
         pop.addEventListener('mousedown', e => e.preventDefault());
         pop.addEventListener('click', e => { const o = e.target.closest('.op'); if (o) this.select(this.$rows[Number(o.dataset.i)]); });
         this.addEventListener('keydown', e => this.keys(e));
@@ -58,13 +59,15 @@ export default Base => class extends Base {
     setOpen(open) { if (this.$open === open) return; this.$open = open; this.part('popup').hidden = !open; this.part('control').setAttribute('aria-expanded', String(open)); this.highlight(-1); }
 
     paint() {
+        const foot = this.part('footer');
         const items = Array.isArray(this.items) ? this.items : [];
         const pop = this.part('popup'), tpl = this.shadowRoot.querySelector('template');
-        for (const o of pop.querySelectorAll('.op, .group')) o.remove();
+        for (const o of pop.querySelectorAll('.op, .group, .note')) o.remove();
         this.$rows = [];
         let group = null;
         for (const item of items) {
-            if (item.group && item.group !== group) { group = item.group; const g = el('div', 'group', group); g.setAttribute('role', 'presentation'); pop.append(g); }
+            if (item.group && item.group !== group) { group = item.group; const g = el('div', 'group', group); g.setAttribute('role', 'presentation'); foot.before(g); }
+            if (item.id == null || item.id === '') { const n = el('div', 'note', item.label ?? ''); n.setAttribute('role', 'presentation'); foot.before(n); continue; }
             const i = this.$rows.push(item) - 1;
             const row = tpl.content.firstElementChild.cloneNode(true);
             row.id = `pk-abs-${i}`; row.dataset.i = String(i);
@@ -72,8 +75,9 @@ export default Base => class extends Base {
             const sub = row.querySelector('[part="row-sub"]'); if (item.sub) { sub.textContent = item.sub; sub.hidden = false; }
             const th = row.querySelector('[part="thumb"]'); if (item.thumbnail) { th.style.backgroundImage = `url("${item.thumbnail}")`; th.hidden = false; }
             const bd = row.querySelector('[part="badge"]'); if (item.badge) { bd.textContent = item.badge; bd.hidden = false; }
-            pop.append(row);
+            foot.before(row);
         }
+        foot.hidden = !this.slotted('footer').length;
         this.part('empty').hidden = this.$rows.length > 0;
         if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; }
     }

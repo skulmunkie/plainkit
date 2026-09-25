@@ -23,6 +23,14 @@ public sealed class PkAppBarSearchTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void EmptyContent_and_FooterContent_render_into_their_named_slots()
+    {
+        var cut = Render<PkAppBarSearch>(p => p.Add(x => x.EmptyContent, "Nothing here").Add(x => x.FooterContent, "Full search"));
+        Assert.Contains("Nothing here", cut.Find("span[slot=empty]").TextContent);
+        Assert.Contains("Full search", cut.Find("span[slot=footer]").TextContent);
+    }
+
+    [Fact]
     public void Items_reaches_the_element_as_a_JSON_attribute()
     {
         var items = new[] { new PkAppBarSearchItem { Id = "a", Label = "Widget A", Group = "Products" } };
