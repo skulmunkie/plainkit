@@ -27,6 +27,11 @@
       "type": "RenderFragment?"
     },
     {
+      "name": "ActionsContent",
+      "slot": "actions",
+      "type": "RenderFragment?"
+    },
+    {
       "name": "IconContent",
       "slot": "icon",
       "type": "RenderFragment?"
