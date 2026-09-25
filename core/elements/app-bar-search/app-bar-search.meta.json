@@ -154,6 +154,11 @@
       "default": "34rem"
     },
     {
+      "name": "--pk-app-bar-search-align",
+      "description": "The field's inline margin in a flex row such as the shell header: auto centres it in the free space between the nav toggle and the actions; 0 auto keeps it at the start and auto 0 pushes it to the end. Not applied to the icon button (compact, or a phone).",
+      "default": "auto"
+    },
+    {
       "name": "--pk-app-bar-search-popup-width",
       "description": "Minimum width of the results panel, which may be wider than the field (never wider than the viewport).",
       "default": "24rem"
@@ -161,7 +166,7 @@
   ],
   "methods": [],
   "a11y": "ARIA 1.2 combobox with aria-activedescendant (focus stays on the input). Arrow keys move, Enter picks, Escape closes the results, then collapses the field. The buttons are 44px touch targets.",
-  "mobile": "Below the phone breakpoint (or with compact) the field is an icon button that expands over the header row.",
+  "mobile": "Below the phone breakpoint (or with compact) the field is an icon button that expands over the header row; on a wider screen the field is centred in the free space of the header row.",
   "examples": [
     {
       "title": "In an app shell header",
