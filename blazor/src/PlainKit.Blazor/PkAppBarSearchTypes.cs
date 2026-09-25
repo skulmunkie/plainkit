@@ -4,7 +4,7 @@ namespace PlainKit.Blazor;
 /// as JSON (<c>PkSelectEventArgs.Item</c>); deserialize it as this type to read it back.</summary>
 public sealed record PkAppBarSearchItem
 {
-    /// <summary>Identifies the result; not shown.</summary>
+    /// <summary>Identifies the result; not shown. Leave it empty for a note (a group's "+12 more"): the row shows its <see cref="Label"/> and cannot be chosen.</summary>
     public string Id { get; init; } = "";
     /// <summary>The row's main text.</summary>
     public string Label { get; init; } = "";

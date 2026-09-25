@@ -11,9 +11,11 @@
 .col { display: none; flex: none; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); margin-inline-end: calc(var(--space-2) * -1); border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
 .col:hover { background: var(--color-surface-alt); }
 .col:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
-.pop { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
+.pop { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 .pop[data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
 .group { padding: var(--space-2) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
+.note { padding: var(--space-1) var(--space-3) var(--space-2); color: var(--color-muted); font-size: var(--text-meta); }
+.ft { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }
 .em { padding: var(--space-3); color: var(--color-muted); }
 .op { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
 .op:hover, .op.hl { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
@@ -37,6 +39,7 @@
     :host([expanded]) .exp { display: none; }
     :host([expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
     :host([expanded]) .col { display: inline-flex; }
+    .pop { min-width: 0; }
     .in { font-size: 16px; }
     .op { min-height: var(--touch-target); }
 }

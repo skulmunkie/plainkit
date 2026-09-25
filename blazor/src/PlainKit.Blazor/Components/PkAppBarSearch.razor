@@ -15,7 +15,7 @@
                     items="@PkAttr.Json(Items)"
                     @ref="Element"
                     class="@Css()"
-                    @attributes="Splat"></pk-app-bar-search>
+                    @attributes="Splat">@if (EmptyContent is not null) {<span slot="empty" class="u-contents">@EmptyContent</span>}@if (FooterContent is not null) {<span slot="footer" class="u-contents">@FooterContent</span>}</pk-app-bar-search>
 
 @code {
     [Inject] private NavigationManager Nav { get; set; } = default!;
@@ -40,6 +40,12 @@
 
     /// <summary>Results: <see cref="PkAppBarSearchItem"/>[]. The host computes them (locally or on the server) in response to <see cref="OnQuery"/>.</summary>
     [Parameter] public IReadOnlyList<PkAppBarSearchItem>? Items { get; set; }
+
+    /// <summary>The message shown when <see cref="Items"/> is empty and the field has text (default: "No results").</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>An action pinned to the bottom of the results panel, such as a "Full search" link.</summary>
+    [Parameter] public RenderFragment? FooterContent { get; set; }
 
     /// <summary>The field's text, <see cref="Debounce"/> milliseconds after the last keystroke. This element never searches itself.</summary>
     [Parameter] public EventCallback<PkQueryEventArgs> OnQuery { get; set; }

@@ -414,6 +414,17 @@ export const overlaysCases = [
         t.ok(el.expanded && box.getBoundingClientRect().width > 0, 'pressing it expands the field over the header row');
         t.key(el.part('control'), 'Escape'); t.ok(!el.expanded, 'Escape collapses it');
     }],
+    ['app-bar-search: the popup is wider than a narrow field, a footer slot shows, and an item without an id is an unselectable note', async t => {
+        const row = await t.mount('<div><pk-app-bar-search label="Search"><a slot="footer" href="#all">Full search</a></pk-app-bar-search></div>');
+        row.style.display = 'flex'; row.style.width = '120px';
+        const el = row.firstElementChild, pop = el.part('popup'), input = el.part('control');
+        el.items = [{ id: 'a', label: 'A comic title with a long variant', group: 'Comics' }, { label: '+12 more' }];
+        input.value = 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        t.ok(el.part('box').getBoundingClientRect().width < 300 && pop.getBoundingClientRect().width >= 300, 'the panel keeps its minimum width though the field is narrow');
+        t.ok(!el.part('footer').hidden && el.part('footer').getBoundingClientRect().height > 0, 'the footer slot shows');
+        t.eq(pop.querySelectorAll('[role="option"]').length, 1); t.ok(pop.querySelector('[part="note"]')?.textContent === '+12 more', 'the id-less item is a note, not an option');
+        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown'); t.eq(el.$a, 0, 'the note is skipped by the arrow keys');
+    }],
     ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';
