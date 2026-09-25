@@ -30,12 +30,13 @@ const say = (message, kind = 'danger') => {
 // The sample data is the big module of the gallery: the page says it is loading until the fragment can be drawn, and says why when it cannot.
 let data;
 try { data = await import('./gallery.data.js'); } catch (err) { say(`The preview could not load its data: ${err.message}`); throw err; }
-const { PATTERNS, LAYOUTS, ELEMENTS, TEMPLATES } = data;
+const { PATTERNS, LAYOUTS, TEMPLATES } = data;
+const shell = data.ELEMENTS.some(m => m.tag === 'pk-app-shell') ? await data.loadElement('pk-app-shell') : undefined;
 
 const entry = (() => {
     if (kind === 'patterns') { const p = PATTERNS.find(x => x.id === id); return p && { title: p.title, html: p.html, script: p.script }; }
     if (kind === 'layouts') {
-        const l = id === 'shell' ? { title: 'App shell', html: ELEMENTS.find(m => m.tag === 'pk-app-shell')?.examples[0].html } : LAYOUTS.find(x => x.id === id);
+        const l = id === 'shell' ? { title: 'App shell', html: shell?.examples[0].html } : LAYOUTS.find(x => x.id === id);
         return l && { title: l.title, html: l.html };
     }
     if (kind === 'templates') { const t = TEMPLATES.find(x => x.id === id); return t && { title: t.title, file: t.file.replace(/^.*?templates[/]/, '') }; }

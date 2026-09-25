@@ -25,6 +25,7 @@ export const GENERATED_PATTERNS = [
     ['/core/elements/*/*.element.js', /^core\/elements\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
     ['/core/js/version.js', /^core\/js\/version\.js$/, 'core/tools/build.mjs (from core/VERSION)'],
     ['/core/site/gallery/gallery.data.js', /^core\/site\/gallery\/gallery\.data\.js$/, 'core/tools/build.mjs'],
+    ['/core/site/gallery/elements/*.data.js', /^core\/site\/gallery\/elements\/[^/]+\.data\.js$/, 'core/tools/build.mjs'],
     ['/core/site/guides/guides.data.js', /^core\/site\/guides\/guides\.data\.js$/, 'core/tools/build.mjs (from core/site/guides/content/*.md)'],
     ['/core/site/files/snapshot.json', /^core\/site\/files\/snapshot\.json$/, 'core/tools/build.mjs'],
     ['/core/site/files/index.json', /^core\/site\/files\/index\.json$/, 'core/tools/build.mjs'],

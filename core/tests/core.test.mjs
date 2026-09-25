@@ -357,7 +357,7 @@ test('the gallery data file loads and every element and sample has the documente
     const mod = await import('../site/gallery/gallery.data.js');
     assert.ok(mod.ELEMENTS.length > 40);
     assert.equal(mod.CONTROLS, undefined, 'the class-based controls are gone');
-    for (const m of mod.ELEMENTS) {
+    for (const m of await mod.loadAllElements()) {
         for (const f of ['tag', 'title', 'summary', 'group']) assert.ok(m[f], m.tag + ' has no ' + f);
         assert.ok(m.examples.length > 0 && m.examples.every(x => x.title && x.html), m.tag + ' examples');
         for (const k of ['props', 'slots', 'events']) assert.ok(Array.isArray(m[k]), m.tag + ': ' + k + ' must be an array');

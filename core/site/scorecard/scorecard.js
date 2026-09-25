@@ -5,13 +5,14 @@
 
 import { mountShell } from '../shell.js';
 import { SCORING, TEXT_PAIRS, PRIMARY_CSS, BUDGETS } from './scoring.data.js';
-import { ELEMENTS } from '../gallery/gallery.data.js';
+import { loadAllElements } from '../gallery/gallery.data.js';
 import { sampleDoc } from '../gallery/frame.js';
 import { mountScorecard } from '../../modules/scorecard/scorecard.js';
 
 const here = path => new URL(path, import.meta.url).href;
 
 // Every element is a target: its examples are rendered at every theme and width and scored together.
+const ELEMENTS = await loadAllElements(); // the scorecard reads every element's examples: all the chunks
 const elementTargets = () => ELEMENTS.map(m => ({ id: m.tag, name: m.title, kind: m.group || 'Other', samples: m.examples.map(x => ({ srcdoc: ({ theme }) => sampleDoc(x.html, { theme }) })) }));
 
 // Every template that claims the viewport must reach its bottom edge (minus the footer strip) at each size.
