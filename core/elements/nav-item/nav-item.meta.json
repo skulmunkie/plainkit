@@ -38,7 +38,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Set by the nav in icon-rail mode."
+      "description": "Set by the nav in icon-rail mode, on the top-level rows only: a child inside an open flyout keeps its label."
     },
     {
       "name": "flyout",
@@ -105,7 +105,11 @@
     },
     {
       "name": "sub",
-      "description": "Children of a branch"
+      "description": "Children of a branch (in the icon rail: the flyout, a group named by the branch)"
+    },
+    {
+      "name": "sub-title",
+      "description": "The branch name, shown as the flyout heading in the icon rail"
     }
   ],
   "cssProperties": [],

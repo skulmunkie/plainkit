@@ -141,7 +141,7 @@
     }
   ],
   "writes": [
-    { "target": "the pk-nav-item children (at any depth)", "attributes": ["rail","expanded","flyout","hidden"], "why": "rail is pushed down whenever the collapsed state or the breakpoint changes (an item cannot know it); the filter box sets hidden on rows that do not match and expanded on the parents of a match, and restores the expanded state when the box is cleared; keyboard navigation sets expanded or flyout on the focused row. The one pair of elements whose props are written by the parent. Kept when the element disconnects." }
+    { "target": "the pk-nav-item children (at any depth)", "attributes": ["rail","expanded","flyout","hidden"], "why": "rail is pushed down to the top-level rows (children in a flyout keep their labels) whenever the collapsed state or the breakpoint changes (an item cannot know it); the filter box sets hidden on rows that do not match and expanded on the parents of a match, and restores the expanded state when the box is cleared; keyboard navigation sets expanded or flyout on the focused row. The one pair of elements whose props are written by the parent. Kept when the element disconnects." }
   ],
   "a11y": "A nav landmark; branches are buttons with aria-expanded; Up/Down move between rows, Right opens or enters a branch, Left folds or goes up, Home/End jump; the filter announces its result count; the drawer hides from assistive tech when closed and returns focus to its opener.",
   "mobile": "A drawer at most 88vw wide, hidden from tab order while closed; rows are 44px.",

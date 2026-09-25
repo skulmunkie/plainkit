@@ -379,6 +379,13 @@ export const dataDisplayCases = [
         t.ok(!el.part('details').open, 'clicking an action leaves the item closed');
         t.ok(!el.part('summary').contains(el.part('actions')), 'the actions are not inside the summary');
     }],
+    ['accordion-item: the chevron and the actions do not overlap, in LTR and RTL', async t => {
+        for (const dir of ['ltr', 'rtl']) {
+            const el = await t.mount(`<div dir="${dir}"><pk-accordion-item heading="A long heading that needs the room"><button slot="actions">Re-check now</button>a</pk-accordion-item></div>`);
+            const item = el.querySelector('pk-accordion-item'), c = item.part('chevron').getBoundingClientRect(), a = item.querySelector('button').getBoundingClientRect();
+            t.ok(c.right <= a.left || a.right <= c.left, `${dir}: the chevron and the actions side by side`);
+        }
+    }],
     ['accordion: an item toggles its details and reports it; exclusive closes the others', async t => {
         const el = await t.mount('<pk-accordion exclusive><pk-accordion-item heading="A" open>a</pk-accordion-item><pk-accordion-item heading="B">b</pk-accordion-item></pk-accordion>');
         const [a, b] = el.querySelectorAll('pk-accordion-item'); t.ok(a.part('details').open);
