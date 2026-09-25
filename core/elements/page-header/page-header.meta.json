@@ -29,6 +29,13 @@
       ],
       "reflect": true,
       "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right)."
+    },
+    {
+      "name": "sticky",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pins the header to the top of the scrolling page body while the content scrolls: in pk-app-shell flush under the app bar (the body is the scroller), in a plain page at the top of the viewport."
     }
   ],
   "slots": [
@@ -90,6 +97,11 @@
       "name": "--pk-page-header-title-size",
       "description": "Title font size.",
       "default": "var(--text-lg)"
+    },
+    {
+      "name": "--pk-page-header-sticky-top",
+      "description": "Offset from the top of the scroller when sticky. 0 is flush under the app bar inside pk-app-shell; on a plain page under a fixed bar of your own set it to that bar's height (for example var(--app-header-h)).",
+      "default": "0"
     }
   ],
   "methods": [],

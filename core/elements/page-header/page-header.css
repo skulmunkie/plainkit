@@ -17,3 +17,4 @@
     [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
     ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
 }
+:host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: var(--z-sticky); background: var(--color-bg); }

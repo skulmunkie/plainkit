@@ -17,6 +17,11 @@
       "type": "string"
     },
     {
+      "name": "Sticky",
+      "prop": "sticky",
+      "type": "bool"
+    },
+    {
       "name": "SuffixContent",
       "slot": "",
       "type": "RenderFragment?"

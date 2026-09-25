@@ -48,6 +48,20 @@ export const headerCases = [
         for (const el of host.firstElementChild.children) t.ok(rect(el).width >= 499, el.localName + ' is ' + rect(el).width);
     }],
 
+    ['page-header: sticky keeps it flush under the app bar while the app shell body scrolls, and pins in a plain scroller too', async t => {
+        const sh = await t.mount('<pk-app-shell style="height:400px"><span slot="title">App</span><pk-page-header sticky heading="Record"><button slot="actions">Sync</button></pk-page-header><div style="height:1500px">Long</div></pk-app-shell>');
+        await t.settle();
+        const body = sh.part('body'), h = sh.querySelector('pk-page-header');
+        body.scrollTop = 600; await t.settle();
+        t.ok(body.scrollTop > 0, 'the body scrolled');
+        t.ok(Math.abs(rect(h).top - rect(body).top) < 2, 'the header stays at the top of the body: ' + rect(h).top + ' vs ' + rect(body).top);
+        t.ok(rect(h.querySelector('button')).height > 0 && rect(h).bottom > rect(body).top, 'its actions are in view');
+        const plain = t.stage('<div style="height:200px;overflow:auto"><pk-page-header heading="P"></pk-page-header><div style="height:900px">x</div></div>');
+        const ph = plain.firstElementChild.firstElementChild, sc = plain.firstElementChild; await t.load(plain);
+        sc.scrollTop = 300; await t.settle(); t.ok(rect(ph).top < rect(sc).top, 'without sticky it scrolls away');
+        ph.setAttribute('sticky', ''); await t.settle(); t.ok(Math.abs(rect(ph).top - rect(sc).top) < 2, 'with sticky it stays');
+    }],
+
     ['toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container', async t => {
         const host = t.stage('<pk-toolbar heading="Lines" note="12 lines"><button slot="actions">Export</button><button slot="actions">Add</button></pk-toolbar>');
         host.style.width = '900px'; await t.load(host); await t.settle();
