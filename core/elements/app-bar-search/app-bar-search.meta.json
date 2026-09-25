@@ -45,10 +45,14 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. Adjacent items with the same group share a heading; the host sets the order."
+      "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. Adjacent items with the same group share a heading; the host sets the order. An item with no id is a note (a group's \"+12 more\"): shown, never selectable. The host clears items while the query is too short."
     }
   ],
   "slots": [
+    {
+      "name": "footer",
+      "description": "An action pinned to the bottom of the results panel (a Full search link). Hidden when empty."
+    },
     {
       "name": "empty",
       "description": "The message shown when items is empty and the field has text."
@@ -103,6 +107,10 @@
       "description": "The no-results message."
     },
     {
+      "name": "footer",
+      "description": "The footer slot's container."
+    },
+    {
       "name": "option",
       "description": "One result row (dynamic)."
     },
@@ -144,6 +152,11 @@
       "name": "--pk-app-bar-search-width",
       "description": "Maximum width of the field.",
       "default": "34rem"
+    },
+    {
+      "name": "--pk-app-bar-search-popup-width",
+      "description": "Minimum width of the results panel, which may be wider than the field (never wider than the viewport).",
+      "default": "24rem"
     }
   ],
   "methods": [],
