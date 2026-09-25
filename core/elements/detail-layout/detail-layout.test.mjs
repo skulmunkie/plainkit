@@ -39,3 +39,11 @@ test('sidebarFirst reorders the sidebar and sidebarTwoUp changes its grid only i
     const beforeCollapse = css.slice(0, css.indexOf('@container'));
     assert.doesNotMatch(beforeCollapse, /sidebar-first|sidebar-two-up/);
 });
+
+test('the sidebar sticks by its bottom edge when taller than the viewport, and docks flush right (issue 281)', () => {
+    const css = read('css');
+    assert.match(css, /top: min\(var\(--space-4\), calc\(100dvh - var\(--pk-detail-layout-height, 0px\) - var\(--space-4\)\)\)/);
+    assert.match(css, /justify-self: end/);
+    assert.ok(meta.cssProperties.some(p => p.name === '--pk-detail-layout-main-max'));
+    assert.match(fs.readFileSync(fileURLToPath(new URL('./detail-layout.js', import.meta.url)), 'utf8'), /disconnect\(\)/);
+});

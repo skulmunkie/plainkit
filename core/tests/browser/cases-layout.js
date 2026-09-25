@@ -197,6 +197,16 @@ export const layoutCases = [
         t.eq(cols(), 1, 'narrow container: one column'); t.eq(getComputedStyle(el.part('sidebar')).position, 'static');
     }],
 
+    ['detail-layout: a sidebar taller than the viewport sticks by its bottom edge (negative top), a short one by its top (issue 281)', async t => {
+        const el = await t.mount('<pk-detail-layout><p>Main</p><div slot="sidebar"><div id="h">Tall</div></div></pk-detail-layout>');
+        el.querySelector('#h').style.height = '4000px'; size(el, rem(60)); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const side = el.part('sidebar'); const top = () => parseFloat(getComputedStyle(side).top);
+        t.ok(top() < 0, 'taller than the viewport: top is negative so the bottom edge docks: ' + top());
+        el.querySelector('#h').style.height = '40px'; await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        t.ok(top() > 0, 'shorter than the viewport: sticks by its top: ' + top());
+        t.eq(Math.round(side.getBoundingClientRect().right), Math.round(el.part('grid').getBoundingClientRect().right), 'flush with the right edge of the content area');
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();
