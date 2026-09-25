@@ -38,6 +38,18 @@ Also part of done, in the same pull request (owner directive): the **agent skill
 option or workflow appears in the docs, the gallery samples and the skills' workflows in `scripts/skills/`), the SDK and Blazor change together
 (an element change updates `blazor/mappings/<name>.json`), and a **changelog fragment** is added.
 
+### Reviewing what it looks like
+
+Green CI does not say a layout looks right (the record header in #311 and a chevron inside a breadcrumb link merged green and were wrong on screen). A change to how an element **looks**
+(`core/elements/**/*.css`, `*.html`, the layout or tokens, Blazor razor markup) therefore also needs:
+
+- **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
+  into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).
+  Attach the shots to the pull request (CI also keeps them as the `ui-review` artifact), fix every error, and say why a warning is fine.
+- **Not merged on green CI alone.** The owner, or the orchestrating agent after *looking at the screenshots*, checks them against the issue's stated expectations first. The `ui-reviewer` subagent
+  (`.claude/agents/ui-reviewer.md`; give it the pull request number or the folder) writes advice on them; it never approves or merges.
+- **Every layout expectation in an issue is a measuring browser case** (`core/tests/browser/`): "chips share the crumbs row" is a rect comparison, not a sentence. Write the case before the CSS.
+
 ### Browser attestation
 
 Required when an element source or a browser case changed (`core/elements/**`, `core/js/**`, `core/tests/browser/**`): the in-browser suite must be

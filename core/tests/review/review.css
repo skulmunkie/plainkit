@@ -1,0 +1,4 @@
+/* Layout for the UI review page only (scripts/ui-review.mjs); not part of the SDK. */
+.rv-root { padding: var(--space-4); }
+.rv-title { margin: var(--space-4) 0 var(--space-2); font-size: var(--text-sm); color: var(--color-muted); }
+.rv-stage { padding: var(--space-4); background: var(--color-bg); }
