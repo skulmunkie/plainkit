@@ -35,11 +35,12 @@ export const PATTERNS_DIR = 'patterns/';
 export const PREVIEW = 'preview.html';
 `;
 
-export function galleryDist(read, root, dataText) {
+export function galleryDist(read, root, dataText, chunks = []) {
     const dir = path.join(root, 'site', 'gallery');
     const files = new Map();
     for (const f of COPY) files.set(f, relocate(read(path.join(dir, f))));
     files.set('gallery.data.js', dataText);
+    for (const [f, text] of chunks) files.set(f, text); // the per-element data modules (elements/<name>.data.js), no imports to rewrite
     files.set('paths.js', paths);
     files.set('boots/code-explorer.js', relocate(read(path.join(dir, 'boots', 'code-explorer.js')), 1)); // -> ../../modules/code-explorer/: the modules unit next to the runtime
     // The gallery's own chrome and pages are pk-* elements, so the embed page needs only the page layer.

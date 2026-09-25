@@ -5,7 +5,9 @@
 // Runs in the scorecard page (needs a visible tab: it uses real layout). Results can be POSTed to tools/serve.mjs --write-reports,
 // which stores them in scorecard/sweep-report.json. Framework-free; ES module.
 
-import { LAYOUTS, PATTERNS, TEMPLATES, ELEMENTS } from '../gallery/gallery.data.js';
+import { LAYOUTS, PATTERNS, TEMPLATES, loadAllElements } from '../gallery/gallery.data.js';
+
+const ELEMENTS = await loadAllElements(); // the sweep opens every element's examples: all the chunks
 import { sampleDoc } from '../gallery/frame.js';
 import { TEXT_TIERS, TARGET_EXCEPTIONS } from './scoring.data.js';
 import { createLogger } from '../../js/log.js';

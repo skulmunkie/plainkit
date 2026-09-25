@@ -15,7 +15,7 @@
 import { readSetting, writeSetting } from './settings.js';
 import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, PREVIEW, HAS_SITE } from './paths.js';
 import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../../js/gallery-options.js';
-import { BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS } from './gallery.data.js';
+import { BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES, ELEMENTS, loadElement } from './gallery.data.js';
 import { makeFrame, applyToFrame, applyToPage, destroyFrame, PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind, currentTheme, setTheme } from '../../js/theme.js';
 import { contrast, grade } from '../../js/colour.js';
@@ -394,7 +394,7 @@ function samplesView(out, put, a, b) {
     if (a === 'layouts') {
         if (!b) return put(heading('Layouts', 'How the elements compose into pages.', crumbs(['Samples', '#/samples'], ['Layouts'])) + grid(LAYOUT_ITEMS().filter(([id]) => keeps('samples', 'layouts', id)).map(([id, t]) => cardLink(`#/samples/layouts/${id}`, t, '')).join('')));
         if (b === 'responsive') return put(heading('Responsive rules', '', groupCrumb('layouts', 'Responsive rules')) + section('Width steps', `${dataTable('Responsive width steps', ['Width', 'What changes'], RESPONSIVE_RULES.map(r => [r.width, esc(r.change)]))}<p class="muted">Design mobile-first: write the phone layout, then add the multi-column layout above it.</p>`));
-        if (b === 'shell') { put(heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.', groupCrumb('layouts', 'App shell')) + '<pk-card class="gx-entry"><div class="gx-samples"></div></pk-card>'); $('.gx-samples', out).append(slot({ title: 'App shell', html: ELEMENTS.find(m => m.tag === 'pk-app-shell').examples[0].html }, 'app-shell')); return out; }
+        if (b === 'shell') { put(heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.', groupCrumb('layouts', 'App shell')) + '<pk-card class="gx-entry"><div class="gx-samples"></div></pk-card>'); const box = $('.gx-samples', out); loadElement('pk-app-shell').then(m => { if (box.isConnected) box.append(slot({ title: 'App shell', html: m.examples[0].html }, 'app-shell')); }); return out; }
         const l = LAYOUTS.find(x => x.id === b);
         if (!l) return put(notFound('Not found', '', ['Back to layouts', '#/samples/layouts']));
         put(`${heading(l.title, l.summary, groupCrumb('layouts', l.title))}<pk-card class="gx-entry"><p class="muted"><strong>Built from:</strong> ${esc(l.built)}</p><p class="muted"><strong>Mobile:</strong> ${esc(l.mobile)}</p><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div></pk-card>`);
@@ -403,6 +403,18 @@ function samplesView(out, put, a, b) {
         return out;
     }
     return put(notFound('Not found', '', ['Back to samples', '#/samples']));
+}
+
+// An element page's data is its own module (issue 282): a placeholder stands in until the chunk arrives, then the playground replaces it. `live` marks the
+// page the inspector follows; a route change before the chunk lands drops the result (the placeholder has left the page).
+function elementSlot(tag, live = false) {
+    const holder = document.createElement('div'); holder.setAttribute('aria-busy', 'true');
+    loadElement(tag).then(meta => {
+        if (!holder.isConnected) return;
+        holder.replaceWith(renderElement(meta, live ? { onLive: element => { inspecting = { meta, element }; }, onChange: () => inspector?.refresh() } : {}));
+        if (live) renderInspector();
+    }, err => { holder.textContent = `Could not load ${tag}: ${err.message}`; });
+    return holder;
 }
 
 function view() {
@@ -416,7 +428,7 @@ function view() {
     if (collection()) {
         const shown = filterLeaves(leaves(tree()), opts.filter).filter(l => l.section.id === 'elements');
         if (!shown.length) return put(nothing());
-        for (const l of shown) out.append(renderElement(ELEMENTS.find(m => m.tag === l.id)));
+        for (const l of shown) out.append(elementSlot(l.id));
         return out;
     }
     // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
@@ -427,8 +439,7 @@ function view() {
     }
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {
-        const meta = ELEMENTS.find(m => m.tag === a);
-        if (meta) { out.append(renderElement(meta, { onLive: element => { inspecting = { meta, element }; }, onChange: () => inspector?.refresh() })); return out; }
+        if (ELEMENTS.some(m => m.tag === a)) { out.append(elementSlot(a, true)); return out; }
         return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <span class="muted">${g.items.length}</span></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);

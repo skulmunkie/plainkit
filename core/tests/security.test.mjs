@@ -32,7 +32,8 @@ test('no markup anywhere carries an inline style, so the whole site runs under a
 });
 
 test('the gallery data (element examples and pattern and layout markup) carries no style attribute or style element', async () => {
-    const { ELEMENTS, PATTERNS, LAYOUTS } = await import('../site/gallery/gallery.data.js');
+    const { loadAllElements, PATTERNS, LAYOUTS } = await import('../site/gallery/gallery.data.js');
+    const ELEMENTS = await loadAllElements();
     const text = JSON.stringify([ELEMENTS, PATTERNS, LAYOUTS]);
     assert.doesNotMatch(text, /\sstyle\s*=|<style[\s>]/);
 });
