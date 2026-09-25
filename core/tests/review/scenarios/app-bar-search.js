@@ -11,7 +11,7 @@ const HEADER = 'pk-app-shell >>> [part=header]';
 const BOX = '#q >>> [part=box]';
 const POP = '#q >>> [part=popup]';
 // Defects found by this scenario that are filed as issues (t.known: a warning; change to t.ok when fixed).
-const CENTRE_ISSUE = 0, GROUP_ISSUE = 0, CONTRAST_ISSUE = 0;
+const CENTRE_ISSUE = 318, GROUP_ISSUE = 317; // contrast of the sub text and badge (319) is reported by the audit
 
 export default {
     name: 'app-bar-search',

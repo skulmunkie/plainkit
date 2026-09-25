@@ -17,6 +17,23 @@ export function findIn(frame, sel, all = false) {
     return all ? [...scope.querySelectorAll(last)] : scope.querySelector(last);
 }
 
+// Everything the frame shows, as one string: every element (through shadow roots) with its attributes and box. Two equal readings a frame apart mean
+// the page has stopped changing (an element reflects its properties to attributes and lays out a beat after it is asked to).
+function signature(frame) {
+    const out = [];
+    const walk = node => {
+        for (const c of node.children) {
+            const r = c.getBoundingClientRect();
+            out.push(`${c.localName}${[...c.attributes].map(a => `${a.name}=${a.value}`).join(',')}@${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`);
+            if (c.shadowRoot) walk(c.shadowRoot);
+            walk(c);
+        }
+    };
+    walk(frame);
+    return out.join('|');
+}
+const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 60)));
+
 export async function startScenario({ name, root, state, measure, settle, loadElements, applyDynamic, registry, log }) {
     if (!/^[a-z][a-z0-9-]*$/.test(name)) throw new Error(`"${name}" is not a scenario name`);
     try { localStorage.clear(); } catch (e) { log.debug('storage blocked; scenarios start without saved state', e); }
@@ -29,7 +46,13 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
     applyDynamic(frame);
     await loadElements(frame, { registry });
     await Promise.all([...new Set([...frame.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
-    await settle();
+    const quiet = async () => {
+        await settle();
+        let prev = signature(frame);
+        for (let i = 0; i < 40; i++) { await tick(); const now = signature(frame); if (now === prev) return; prev = now; }
+        log.warn(`scenario ${name}: the page was still changing after 40 frames`);
+    };
+    await quiet();
 
     const find = sel => findIn(frame, sel);
     const boxed = el => el && el.getClientRects().length > 0;
@@ -78,13 +101,13 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
                 if (!el) return { error: `${step.set} was not found` };
                 if ('attr' in step) { if (step.value === null || step.value === false) el.removeAttribute(step.attr); else el.setAttribute(step.attr, step.value === true ? '' : String(step.value)); } else el[step.prop] = step.value;
             } else if ('focus' in step) { const el = find(step.focus); if (!el) return { error: `${step.focus} was not found` }; el.focus(); }
-            await settle();
+            await quiet();
             return {};
         },
-        settle,
+        settle: quiet,
         /** Runs the scenario's expectations for one shot and measures the frame. */
         async check(shot, ctx) {
-            await settle();
+            await quiet();
             const { t, failures } = createExpectations(env, { shot, viewport: ctx.viewport, theme: ctx.theme, frame });
             try { scenario.expect(t); } catch (error) { log.error(`scenario ${name}: expect threw at ${shot}`, error); failures.push({ message: `expect(t) threw at "${shot}": ${error?.message ?? error}` }); }
             const touchTarget = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--touch-target')) || undefined;

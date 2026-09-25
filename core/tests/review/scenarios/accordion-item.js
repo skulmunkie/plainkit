@@ -4,7 +4,7 @@ const HEAD = '#a1 >>> [part=heading]';
 const ACT = '#a1 >>> [part=actions]';
 const CHEV = '#a1 >>> [part=chevron]';
 const SUMMARY = '#a1 >>> [part=summary]';
-const PHONE_ISSUE = 0; // filed defect (t.known: a warning); change to t.ok when fixed
+const PHONE_ISSUE = 323; // filed defect (t.known: a warning); change to t.ok when fixed
 
 export default {
     name: 'accordion-item',

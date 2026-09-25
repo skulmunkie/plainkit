@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { groupFindings, loadScenarios, parseArgs } from '../ui-review.mjs';
@@ -177,6 +178,7 @@ test('every scenario file in core/tests/review/scenarios is valid and about a re
     assert.ok(all.length >= 7, 'the scenarios for the states that shipped unseen are there');
     for (const s of all) {
         assert.ok(s.steps.some(x => 'shot' in x), `${s.name} takes a screenshot`);
-        assert.doesNotMatch(JSON.stringify(s.expect.toString()), /known\(0,/, `${s.name} has a t.known with no issue number`);
+        const source = fs.readFileSync(path.join(root, 'core', 'tests', 'review', 'scenarios', `${s.name}.js`), 'utf8');
+        assert.doesNotMatch(source, /_ISSUE = 0|known\(0,/, `${s.name} has a t.known with no issue number`);
     }
 });

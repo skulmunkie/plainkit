@@ -146,6 +146,14 @@ async function waitReady(cdp, timeout) {
     }
     return null;
 }
+// Opens a review page at a viewport. The page before it is dropped first (about:blank) and the viewport is set before the real page loads, so no
+// element ever reads the previous combination's width (a side nav that saw the phone breakpoint once stayed a drawer at desktop width).
+async function openReview(cdp, vp, url) {
+    await cdp.send('Page.navigate', { url: 'about:blank' });
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
+    await sleep(100);
+    await cdp.send('Page.navigate', { url });
+}
 async function evaluate(cdp, expression) {
     const r = await cdp.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
@@ -160,8 +168,7 @@ const WIDTH_FIX = 'the emulated viewport was not applied; re-run, and report it 
  */
 async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout }) {
     const tag = `scenario-${sc.name}`;
-    await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
-    await cdp.send('Page.navigate', { url: `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}` });
+    await openReview(cdp, vp, `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}`);
     const state = await waitReady(cdp, timeout);
     if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${timeout} s` }); return; }
     if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
@@ -262,8 +269,7 @@ async function main() {
         let t0 = Date.now();
         for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) {
             const tag = `pk-${name}`;
-            await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
-            await cdp.send('Page.navigate', { url: `http://localhost:${port}/tests/review/?tag=${tag}&theme=${theme}` });
+            await openReview(cdp, vp, `http://localhost:${port}/tests/review/?tag=${tag}&theme=${theme}`);
             const state = await waitReady(cdp, o.timeout);
             if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${o.timeout} s` }); continue; }
             if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); continue; }

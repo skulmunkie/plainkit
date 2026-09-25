@@ -5,7 +5,7 @@ const lines = (n, what) => Array.from({ length: n }, (_, i) => `<p>${what} line 
 const BODY = 'pk-app-shell >>> [part=body]';
 const SIDEBAR = '#dl >>> [part=sidebar]';
 const MAIN = '#dl >>> [part=main]';
-const GAP_ISSUE = 0, DOCK_ISSUE = 0, TABS_PR = 316;
+const GAP_ISSUE = 321, DOCK_ISSUE = 322, TABS_PR = 316;
 
 export default {
     name: 'detail-layout',
