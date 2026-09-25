@@ -10,4 +10,4 @@ summary:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 details[open] [part="chevron"] { transform: rotate(-135deg); }
 [part="panel"] { padding: 0 var(--space-4) var(--space-4); }
 @media (prefers-reduced-motion: reduce) { details::details-content, [part="chevron"] { transition: none; } }
-[part="actions"] { position: absolute; inset-block-start: 0; inset-inline-end: calc(var(--space-4) + var(--space-3) + 0.5em); z-index: 1; display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); }
+[part="actions"] { position: absolute; inset-block-start: 0; inset-inline-end: calc(var(--space-4) + var(--space-3) + 0.5em); z-index: 1; /* just inside the chevron (far end); the heading reserves the same width */ display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); }

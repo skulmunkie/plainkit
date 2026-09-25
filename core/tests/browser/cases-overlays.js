@@ -336,6 +336,15 @@ export const overlaysCases = [
         t.key(drafts, 'ArrowLeft'); await t.settle(); t.eq(document.activeElement, products, 'ArrowLeft returns to the branch');
     }],
 
+    ['side nav: the brand hides in the icon rail even inside a Blazor-style display: contents wrapper (issue 297)', async t => {
+        const el = await t.mount('<pk-side-nav open><span slot="brand" class="u-contents"><a href="#">App</a></span><pk-nav-item href="#">Orders</pk-nav-item></pk-side-nav>');
+        const brand = el.querySelector('span[slot="brand"]'); await t.settle();
+        t.ok(brand.firstElementChild.getBoundingClientRect().width > 0, 'expanded: the brand shows');
+        el.collapsed = true; await t.settle();
+        t.eq(brand.firstElementChild.getBoundingClientRect().width, 0, 'collapsed: the brand has no box in the rail although its wrapper is display: contents');
+        t.ok(el.part('collapse').getBoundingClientRect().right <= el.getBoundingClientRect().right, 'the collapse button stays inside the rail');
+    }],
+
     ['side nav: collapsed state and open branches persist under the persist key', async t => {
         const key = 'pk-test-nav';
         try { localStorage.removeItem(key); } catch { /* blocked */ }

@@ -17,7 +17,7 @@ public interface IPkUserFacingException;
 /// <remarks>
 /// <typeparamref name="TRecord"/> is the stored thing (null while adding); <typeparamref name="TForm"/> is the editable copy the fields bind to,
 /// validated with its DataAnnotations (<c>IValidatableObject</c> too). A failure that is an <see cref="IPkUserFacingException"/> shows its own
-/// message; any other exception is logged with <paramref name="noun"/> and shown as a generic line.
+/// message (so does one the optional <see cref="IsUserFacing"/> predicate accepts); any other exception is logged with <paramref name="noun"/> and shown as a generic line.
 /// </remarks>
 /// <typeparam name="TRecord">The stored record.</typeparam>
 /// <typeparam name="TForm">The editable copy the fields bind to.</typeparam>
@@ -39,6 +39,13 @@ public sealed class PkRecordEditor<TRecord, TForm, TKey>(
     where TForm : class
     where TKey : notnull
 {
+    /// <summary>
+    /// Optional: decides that an exception is written for the user even though it does not implement <see cref="IPkUserFacingException"/>, so an
+    /// app whose domain layer must not reference this library needs no wrapper. Consulted in addition to the marker (either one shows the message);
+    /// leaving it null keeps the marker as the only rule. A predicate that throws is logged and treated as false.
+    /// </summary>
+    public Func<Exception, bool>? IsUserFacing { get; init; }
+
     /// <summary>The form the fields bind to; null until <see cref="LoadAsync"/> or <see cref="StartNew"/> has run, and after a not-found load.</summary>
     public TForm? Form { get; private set; }
 
@@ -114,6 +121,17 @@ public sealed class PkRecordEditor<TRecord, TForm, TKey>(
     /// <summary>Clears <see cref="Error"/>.</summary>
     public void ClearError() => Error = null;
 
+    private bool Decides(Exception ex)
+    {
+        if (IsUserFacing is null) return false;
+        try { return IsUserFacing(ex); }
+        catch (Exception inner)
+        {
+            logger.LogWarning(inner, "IsUserFacing threw for {Noun}", noun);
+            return false;
+        }
+    }
+
     private async Task<bool> RunAsync(Func<Task> action, string verb)
     {
         Busy = true;
@@ -122,7 +140,7 @@ public sealed class PkRecordEditor<TRecord, TForm, TKey>(
             await action();
             return true;
         }
-        catch (Exception ex) when (ex is IPkUserFacingException)
+        catch (Exception ex) when (ex is IPkUserFacingException || Decides(ex))
         {
             Error = ex.Message;
             return false;
