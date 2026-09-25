@@ -26,7 +26,7 @@
     },
     {
       "name": "sidebar",
-      "description": "Summary/status cards; pk-card fits. Sticky in the two-column layout."
+      "description": "Summary/status cards; pk-card fits. Sticky in the two-column layout: it sticks by its top edge, or by its bottom edge when it is taller than the viewport, so every card can be reached."
     }
   ],
   "events": [],
@@ -49,11 +49,21 @@
       "name": "--pk-detail-layout-sidebar",
       "description": "Sidebar column width in the two-column layout.",
       "default": "20rem"
+    },
+    {
+      "name": "--pk-detail-layout-main-max",
+      "description": "Maximum width of the main column. The sidebar stays flush right in the content area, so a capped main column does not pull it inward.",
+      "default": "none"
+    },
+    {
+      "name": "--pk-detail-layout-height",
+      "description": "Set by the element on the sidebar part: its measured height, used to dock a sidebar taller than the viewport by its bottom edge. Not for authors to set.",
+      "default": "0px"
     }
   ],
   "methods": [],
   "a11y": "A layout primitive only: no landmark or role of its own. Give the main content and the sidebar their own headings so assistive technology can navigate between them.",
-  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky, in document order unless sidebarFirst.",
+  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst.",
   "examples": [
     {
       "title": "Order detail",
