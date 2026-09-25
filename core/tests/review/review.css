@@ -2,3 +2,6 @@
 .rv-root { padding: var(--space-4); }
 .rv-title { margin: var(--space-4) 0 var(--space-2); font-size: var(--text-sm); color: var(--color-muted); }
 .rv-stage { padding: var(--space-4); background: var(--color-bg); }
+/* A scenario fills the viewport: the page under review sits in the frame with no review chrome around it. */
+.rv-scenario .rv-root { padding: 0; }
+.rv-frame { background: var(--color-bg); }

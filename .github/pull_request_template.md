@@ -17,5 +17,5 @@ Closes #
 - [ ] The issue has a comment saying what changed and what remains, and its checklist items are ticked (a merged `Closes #n` closes the issue; use `Refs #n` when it only advances it)
 - [ ] Ownership and reactivity rules respected (`core/STANDARDS.md`); only existing components used
 - [ ] No size budget raised
-- [ ] Changes how an element looks (CSS, templates, layout, tokens, razor markup): review screenshots attached (`node scripts/ui-review.mjs`: desktop 1280 and phone 375, light and dark), audit errors fixed, every layout expectation of the issue is a measuring browser case, and it is **not** merged on green CI alone: the owner (or the orchestrating agent, after looking) checks the screenshots against the issue first
+- [ ] Changes how an element looks (CSS, templates, layout, tokens, razor markup): review screenshots attached (`node scripts/ui-review.mjs`: desktop 1280 and phone 375, light and dark, plus the scenario for the state that changed), audit and scenario errors fixed, every layout expectation of the issue is a measuring browser case, and it is **not** merged on green CI alone: the owner (or the orchestrating agent, after looking) checks the screenshots against the issue first
 - [ ] Element sources or browser cases changed: the browser attestation was re-run (`core/tests/browser/report.json`)
