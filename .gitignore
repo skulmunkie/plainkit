@@ -40,6 +40,7 @@ _site/
 /core/elements/*/*.element.js
 /core/js/version.js
 /core/site/gallery/gallery.data.js
+/core/site/gallery/elements/*.data.js
 /core/site/guides/guides.data.js
 /core/site/files/snapshot.json
 /core/site/files/index.json
