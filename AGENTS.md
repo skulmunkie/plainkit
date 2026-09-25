@@ -118,10 +118,11 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 
 - Commit messages: a short imperative subject and a body saying why. End with the attribution the tool gives you (the `Co-Authored-By` line); do the
   same in the pull request description when the tool gives one. Do not invent your own.
-- Pull request: use `.github/pull_request_template.md`. One `Closes #n` per issue, each on its own line (GitHub closes only the first of a list); `Refs #n` for
-  issues it only advances. The description says what changed and why, and how you verified it.
-- **Issue hygiene.** Comment on the issue with what changed and what remains, and tick the checklist items the pull request completes. **Do not close
-  issues**: the owner closes them.
+- Pull request: use `.github/pull_request_template.md`. One `Closes #n` per issue, each on its own line (GitHub closes only the first of a list), **when the pull
+  request finishes the issue: merging closes it automatically** (owner directive). `Refs #n` only for an issue the pull request merely advances, and then say on the issue
+  what remains. The description says what changed and why, and how you verified it.
+- **Issue hygiene.** Comment on the issue with what changed and what remains, and tick the checklist items the pull request completes. Never close an issue by
+  hand: the merge of a `Closes #n` pull request does it (an issue decided against is closed by the owner as "not planned").
 
 ## Releases
 
@@ -135,5 +136,5 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 ## Never, without the owner
 
 Push tags (a tag publishes), publish to any registry, change repository settings (branch protection, merge settings, secrets, Pages),
-close issues, force-push (to any shared branch), delete branches you did not create. If the task seems to need one of these,
+close issues by hand, force-push (to any shared branch), delete branches you did not create. If the task seems to need one of these,
 stop and say so on the issue or in your report.
