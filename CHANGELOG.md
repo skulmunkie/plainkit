@@ -22,6 +22,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - A dropdown or popover whose trigger sits in a display: contents wrapper (as PkDropdown in Blazor renders it) opens next to the trigger, not at the top-left of the viewport. (#283)
 - `pk-app-bar-search` is a pill again, not an oval, and fills the space its header row gives it (up to 34rem, or the new `--pk-app-bar-search-width`) instead of a fixed 14rem, so the placeholder is no longer cut off. The SDK site header search is now this element (a pill, an icon button on a phone) instead of its own hand-built field. (#284)
 
+### Changed
+
+- The gallery data is split: `gallery.data.js` now holds an element index (`ELEMENTS`: tag, name, title, group, summary) and each element's full API and examples live in `site/gallery/elements/<name>.data.js`, loaded on demand with `loadElement(tag)` or `loadAllElements()`. The gallery loads only the element page it shows, and the snapshot size cap no longer limits how much documentation an element can carry. (#282)
+
 ## [0.6.0-alpha.1] - 2026-09-24
 
 ### Added
