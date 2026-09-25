@@ -19,6 +19,11 @@
       "type": "int"
     },
     {
+      "name": "Compact",
+      "prop": "compact",
+      "type": "bool"
+    },
+    {
       "name": "Expanded",
       "prop": "expanded",
       "type": "bool",

@@ -1,6 +1,6 @@
 // pk-app-bar-search: a search field for a shell's header row. Wide: a pill in the header, results in a floating panel below it (the same
 // positioning as pk-combobox's popup). Phone (--phone): the pill collapses to an icon button; tapping it covers the header row with a
-// full-width field and a close button, mirroring core/site/site.css's .site-search pattern generalised into an element.
+// full-width field and a close button, the pattern the SDK site's own header search (core/site/shell.js) uses.
 //
 // items is a JSON attribute or property (like pk-table's rows/columns), data-driven: { id, label, group?, sub?, thumbnail?, badge? }[].
 // The host computes results (locally or on the server) in response to the debounced pk-query event; this element never filters or fetches
