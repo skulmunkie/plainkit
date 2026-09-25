@@ -28,20 +28,20 @@
         "record"
       ],
       "reflect": true,
-      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right)."
+      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right); on a narrow container the actions stay on the first row and the chips move to a row below."
     },
     {
       "name": "sticky",
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Pins the header to the top of the scrolling page body while the content scrolls: in pk-app-shell flush under the app bar (the body is the scroller), in a plain page at the top of the viewport."
+      "description": "Pins the header to the top of the scrolling page body while the content scrolls: in pk-app-shell flush under the app bar (the body is the scroller), in a plain page at the top of the viewport. It is its own stacking context one above in-body sticky strips, so a popover opened from the header draws over them."
     }
   ],
   "slots": [
     {
       "name": "",
-      "description": "Beside the title: status chips, badges or your own heading element."
+      "description": "Beside the title: status chips, badges or your own heading element. In the record variant on a narrow container they drop to their own row under the title and actions."
     },
     {
       "name": "breadcrumb",
@@ -54,6 +54,10 @@
     {
       "name": "meta",
       "description": "A note or metadata line under the title bar; hidden when empty."
+    },
+    {
+      "name": "tabs",
+      "description": "A tab strip (pk-tabs with tabs only, or your own) docked at the foot of the header, so with sticky it stays in view with the bar; hidden when empty."
     }
   ],
   "events": [],
@@ -85,6 +89,14 @@
     {
       "name": "meta",
       "description": "The note line."
+    },
+    {
+      "name": "chips",
+      "description": "Wraps the default slot; a plain pass-through except in a narrow record, where it is its own row."
+    },
+    {
+      "name": "tabs",
+      "description": "The docked tabs row."
     }
   ],
   "cssProperties": [
@@ -105,7 +117,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark.",
+  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics.",
   "examples": [
     {
       "title": "Page: crumbs, title and actions",
@@ -114,6 +126,10 @@
     {
       "title": "Section: title, action and note",
       "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
+    },
+    {
+      "title": "Record: home crumb, chips, actions and docked tabs",
+      "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
     },
     {
       "title": "Record: status chips and actions",

@@ -1,83 +1,83 @@
 {
- "ran": "2026-09-25T16:37:44.978Z",
+ "ran": "2026-09-25T17:25:49.111Z",
  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
- "passed": 222,
+ "passed": 224,
  "failed": 0,
  "results": [
   {
    "name": "declarative shadow DOM gives a first paint and upgrades in place",
    "ok": true,
-   "ms": 35
+   "ms": 53
   },
   {
    "name": "a not-yet-defined element is hidden, then shown once its module loads (no flash of unstyled content)",
    "ok": true,
-   "ms": 7
+   "ms": 14
   },
   {
    "name": "every registered tag is defined by the loader",
    "ok": true,
-   "ms": 272
+   "ms": 553
   },
   {
    "name": "button: defaults, attribute to property, property to attribute, invalid enum falls back",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "button: label, start and end slots are projected; the control part is exposed",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "button: focus goes to the inner button (delegatesFocus) and a disabled button swallows clicks",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "button: type=submit submits and type=reset resets the surrounding form",
    "ok": true,
-   "ms": 5
+   "ms": 8
   },
   {
    "name": "card: heading is bound, aria-level follows level, header hides when empty",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "card: an actions child reveals the header and a footer child reveals the footer (slotchange)",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "card: tone reflects and the ::part hook and custom properties style the shadow tree",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "tabs: first tab is selected, panels follow, roving tabindex and aria wiring are set",
    "ok": true,
-   "ms": 3
+   "ms": 5
   },
   {
    "name": "tabs: clicking selects, emits a composed cancelable event, and preventDefault keeps the old tab",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "tabs: arrow keys, Home and End move focus and select; disabled tabs are skipped",
    "ok": true,
-   "ms": 3
+   "ms": 7
   },
   {
    "name": "tabs: manual activation moves focus but selects only on click",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "switch: toggles, emits change, and reflects checked",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "switch: takes part in the form (value when on, absent when off), resets and follows a disabled fieldset",
@@ -87,47 +87,47 @@
   {
    "name": "switch: exposes the switch role to assistive technology and is named by its label",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "strict CSP: no element carries a style attribute or style element, and styles are adopted sheets",
    "ok": true,
-   "ms": 3
+   "ms": 5
   },
   {
    "name": "theme: tokens inherit into shadow roots, so a data-theme ancestor restyles the component",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "props set before the element is defined are upgraded, not lost",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "tabs: count badge, close button event, only=phone hidden on desktop, trailing slot",
    "ok": true,
-   "ms": 3
+   "ms": 8
   },
   {
    "name": "tabs: none-active selects nothing and every choice raises the event; scroll mode fades the edge with more tabs",
    "ok": true,
-   "ms": 6
+   "ms": 11
   },
   {
    "name": "mounting 200 buttons is fast enough to be unnoticeable",
    "ok": true,
-   "ms": 18
+   "ms": 33
   },
   {
    "name": "tooltip: focus shows it, the target gets aria-description and no node is added, Escape hides it",
    "ok": true,
-   "ms": 35
+   "ms": 36
   },
   {
    "name": "tooltip: a hint card draws its own help button, a touch tap toggles it, and its links live in the panel",
    "ok": true,
-   "ms": 37
+   "ms": 33
   },
   {
    "name": "popover: a click on the trigger opens it, Escape closes it and returns focus, confirm fires pk-confirm",
@@ -137,92 +137,92 @@
   {
    "name": "popover: a cancelable pk-close lets the host veto closing",
    "ok": true,
-   "ms": 3
+   "ms": 4
   },
   {
    "name": "dropdown and popover: a display: contents trigger wrapper still anchors the menu next to the trigger",
    "ok": true,
-   "ms": 208
+   "ms": 225
   },
   {
    "name": "dropdown: opens, arrows and typeahead move focus, checkbox toggles and reports, Escape returns focus to the trigger",
    "ok": true,
-   "ms": 25
+   "ms": 14
   },
   {
    "name": "menu-item: a description (attribute or slot) wraps under the label, is the accessible description and stays out of the value and typeahead",
    "ok": true,
-   "ms": 12
+   "ms": 11
   },
   {
    "name": "dropdown: a submenu opens with Right and closes with Left",
    "ok": true,
-   "ms": 10
+   "ms": 11
   },
   {
    "name": "table: the row checkboxes commit selected through pk-select; a host change raises nothing",
    "ok": true,
-   "ms": 11
+   "ms": 10
   },
   {
    "name": "context menu: contextmenu opens it at the pointer; choosing an item closes it",
    "ok": true,
-   "ms": 4
+   "ms": 3
   },
   {
    "name": "context menu: Shift+F10 names data-pk-context, and a synchronous slot swap from the pk-open handler is what gets focused",
    "ok": true,
-   "ms": 5
+   "ms": 4
   },
   {
    "name": "select-menu: reads its options, opens, chooses with the keyboard, reports pk-change and joins the form",
    "ok": true,
-   "ms": 24
+   "ms": 27
   },
   {
    "name": "drawer: open reflects to a native modal dialog; Escape asks first and can be vetoed; a backdrop click closes unless persistent",
    "ok": true,
-   "ms": 6
+   "ms": 11
   },
   {
    "name": "drawer: docked is non-modal, sits inside its positioned ancestor, and Escape still asks before closing",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "drawer: sides, the wide flag and the actions slot are part of the API",
    "ok": true,
-   "ms": 3
+   "ms": 2
   },
   {
    "name": "dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport",
    "ok": true,
-   "ms": 231
+   "ms": 260
   },
   {
    "name": "drawer: once open (after its slide) it is flush with its edge and spans the viewport: right, left and bottom",
    "ok": true,
-   "ms": 781
+   "ms": 809
   },
   {
    "name": "dialog: the backdrop never closes it; Escape and the close button do; confirm resolves a promise",
    "ok": true,
-   "ms": 78
+   "ms": 81
   },
   {
    "name": "dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)",
    "ok": true,
-   "ms": 8
+   "ms": 12
   },
   {
    "name": "toast: kind sets its role, the timer dismisses it, hover pauses it",
    "ok": true,
-   "ms": 409
+   "ms": 401
   },
   {
    "name": "toast stack: shows at most max toasts and reveals the next as one is dismissed",
    "ok": true,
-   "ms": 2
+   "ms": 6
   },
   {
    "name": "alert: role follows the kind and dismiss hides it unless vetoed",
@@ -237,127 +237,127 @@
   {
    "name": "breadcrumb: a long trail folds the middle crumbs behind a button that expands them",
    "ok": true,
-   "ms": 2
+   "ms": 5
   },
   {
    "name": "stepper: states follow current; a linear stepper blocks skipping ahead; events are cancelable",
    "ok": true,
-   "ms": 8
+   "ms": 2
   },
   {
    "name": "toc: lists the headings of its target with generated ids and marks the current one",
    "ok": true,
-   "ms": 5
+   "ms": 9
   },
   {
    "name": "side nav: filter shows matches and opens their branch, tree keys walk the rows, the rail marks items",
    "ok": true,
-   "ms": 9
+   "ms": 16
   },
   {
    "name": "side nav rail: flyout children keep their labels and the flyout is named by its branch (issue 299)",
    "ok": true,
-   "ms": 4
+   "ms": 12
   },
   {
    "name": "side nav: the brand hides in the icon rail even inside a Blazor-style display: contents wrapper (issue 297)",
    "ok": true,
-   "ms": 3
+   "ms": 4
   },
   {
    "name": "side nav: collapsed state and open branches persist under the persist key",
    "ok": true,
-   "ms": 3
+   "ms": 9
   },
   {
    "name": "nav item: a branch button toggles expanded; current and disabled set ARIA on the row",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "command palette: opens on Ctrl+K, filters as you type, Enter fires pk-select with the item and records a recent",
    "ok": true,
-   "ms": 10
+   "ms": 15
   },
   {
    "name": "lightbox: shows the item at an index, steps with wrap-around, refuses unsafe sources",
    "ok": true,
-   "ms": 7
+   "ms": 10
   },
   {
    "name": "navbar: the hamburger toggles open and Escape closes it; app shell toggles its nav drawer",
    "ok": true,
-   "ms": 3
+   "ms": 13
   },
   {
    "name": "app shell: a Blazor-style wrapper span in the nav slot (issue 212) still gets found and toggled",
    "ok": true,
-   "ms": 6
+   "ms": 3
   },
   {
    "name": "app shell: on a wide screen the nav toggle hides and shows the nav, keeps its icon-rail state and remembers the choice under the nav persist key (issue 298)",
    "ok": true,
-   "ms": 6
+   "ms": 8
   },
   {
    "name": "app-bar-search: typing debounces pk-query, items render as results, arrows and Enter pick one and raise pk-select, Escape closes",
    "ok": true,
-   "ms": 64
+   "ms": 76
   },
   {
    "name": "app-bar-search: a pill that grows to the room it is given, and compact keeps the icon button at any width",
    "ok": true,
-   "ms": 3
+   "ms": 8
   },
   {
    "name": "app-bar-search: centred in the free space of the shell header on a wide screen, and --pk-app-bar-search-align moves it (issue 295)",
    "ok": true,
-   "ms": 8
+   "ms": 14
   },
   {
    "name": "app-bar-search: the popup is wider than a narrow field, a footer slot shows, and an item without an id is an unselectable note",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it",
    "ok": true,
-   "ms": 237
+   "ms": 295
   },
   {
    "name": "app shell: the title slot and back link fill the top bar; the link is a real 44px link named by back-label, and an unsafe address is dropped",
    "ok": true,
-   "ms": 14
+   "ms": 9
   },
   {
    "name": "scroll aids: progress starts at 0, back-to-top is hidden until scrolled, the skip link points at a same-page fragment",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "pager and step render their slots",
    "ok": true,
-   "ms": 0
+   "ms": 4
   },
   {
    "name": "gallery inline patterns: notifications, unsaved settings and onboarding respond to clicks and edits in the sample frame, at desktop and phone width, with nothing in the log",
    "ok": true,
-   "ms": 3775
+   "ms": 4166
   },
   {
    "name": "gallery inline patterns: live search, master-detail and the filter table respond to typing and clicks in the sample frame, with nothing in the log",
    "ok": true,
-   "ms": 2075
+   "ms": 2331
   },
   {
    "name": "gallery inline patterns: drawing another view ends the old frame's script and starts the new one, a theme change keeps the state, and views do not pile up",
    "ok": true,
-   "ms": 3129
+   "ms": 3465
   },
   {
    "name": "skeleton: text variant sets the line count, circle and block take a size, the label is for assistive tech",
    "ok": true,
-   "ms": 8
+   "ms": 7
   },
   {
    "name": "spinner: is a status region with a label, and each variant shows only its own shape",
@@ -372,12 +372,12 @@
   {
    "name": "badge: caps a count, lets the slot win, and dot mode shows the dot",
    "ok": true,
-   "ms": 3
+   "ms": 1
   },
   {
    "name": "tag: remove button fires a cancelable pk-remove with the value, and removes the tag unless cancelled",
    "ok": true,
-   "ms": 2
+   "ms": 1
   },
   {
    "name": "avatar: initials, a stable colour slot, an accessible name with status; the group hides overflow and shows +N",
@@ -387,82 +387,82 @@
   {
    "name": "pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size",
    "ok": true,
-   "ms": 6
+   "ms": 9
   },
   {
    "name": "table: each data-driven row carries data-pk-context, so one wrapping pk-context-menu can name which row was right-clicked",
    "ok": true,
-   "ms": 10
+   "ms": 12
   },
   {
    "name": "table: current-row marks the open record with aria-current and a tint, follows the host, and the element never changes it",
    "ok": true,
-   "ms": 4
+   "ms": 9
   },
   {
    "name": "table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order",
    "ok": true,
-   "ms": 4
+   "ms": 12
   },
   {
    "name": "table: manual mode shows rows as given and only reports; selection, bulk bar, filter event, loading and empty states",
    "ok": true,
-   "ms": 353
+   "ms": 352
   },
   {
    "name": "table: slotted-table mode frames a raw table, hides its own table, and flow drops the scroll container",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "table: filters and sorts locally when not manual, and a slotted cell replaces the text",
    "ok": true,
-   "ms": 2
+   "ms": 5
   },
   {
    "name": "table: one click on a select checkbox raises pk-select once (change and input both fire)",
    "ok": true,
-   "ms": 2
+   "ms": 8
   },
   {
    "name": "table: the same header cycles ascending, descending, cleared; pk-sort reports a null key, also in manual mode",
    "ok": true,
-   "ms": 5
+   "ms": 16
   },
   {
    "name": "table: clickable rows are tab stops and Enter or Space on the row raises pk-row-click; controls inside the row do not",
    "ok": true,
-   "ms": 57
+   "ms": 66
   },
   {
    "name": "table: a click on slotted cell content raises pk-row-click; a slotted button keeps its click",
    "ok": true,
-   "ms": 53
+   "ms": 56
   },
   {
    "name": "table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows",
    "ok": true,
-   "ms": 209
+   "ms": 269
   },
   {
    "name": "table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount",
    "ok": true,
-   "ms": 48
+   "ms": 64
   },
   {
    "name": "stat: shows the change with an arrow, sign, colour and spoken form; an href makes one link; a sparkline draws",
    "ok": true,
-   "ms": 1
+   "ms": 4
   },
   {
    "name": "stat: delta-unit points reads +4 pts and is spoken as points; the default stays percent",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "empty-state: hides what is not given, exposes the heading level, and announces when asked",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "field-list: hides an empty heading and lays dt and dd out as a grid",
@@ -472,12 +472,12 @@
   {
    "name": "field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "card: media slot shows only when used, horizontal lays out in a row, href adds one link",
    "ok": true,
-   "ms": 3
+   "ms": 5
   },
   {
    "name": "timeline: list role on the feed, listitem on each item, and a time element",
@@ -487,72 +487,72 @@
   {
    "name": "list-group: rows become list items and an actionable row marks the current one",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "accordion-item: an actions button is outside the summary and does not toggle",
    "ok": true,
-   "ms": 0
+   "ms": 1
   },
   {
    "name": "accordion-item: the chevron and the actions do not overlap, in LTR and RTL",
    "ok": true,
-   "ms": 5
+   "ms": 6
   },
   {
    "name": "accordion: an item toggles its details and reports it; exclusive closes the others",
    "ok": true,
-   "ms": 56
+   "ms": 53
   },
   {
    "name": "tree: roving focus, arrow keys, expand and collapse, selection and aria attributes",
    "ok": true,
-   "ms": 7
+   "ms": 12
   },
   {
    "name": "chart: draws a labelled svg from the table, adds a legend for several series, keeps the table, and takes a data property",
    "ok": true,
-   "ms": 7
+   "ms": 19
   },
   {
    "name": "code-block: one line per source line with numbers, wrap toggle and a copy result",
    "ok": true,
-   "ms": 23
+   "ms": 31
   },
   {
    "name": "calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months",
    "ok": true,
-   "ms": 24
+   "ms": 42
   },
   {
    "name": "divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "gallery: attributes narrow the framed view, theme and width apply, a changed attribute reloads it, the frame follows the content height",
    "ok": true,
-   "ms": 519
+   "ms": 843
   },
   {
    "name": "gallery: chrome full keeps the contents nav, cut down to the requested control",
    "ok": true,
-   "ms": 118
+   "ms": 219
   },
   {
    "name": "log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised",
    "ok": true,
-   "ms": 121
+   "ms": 140
   },
   {
    "name": "log: a burst of separate-tick appends settles once per frame, not once per row, and keeps following across frames",
    "ok": true,
-   "ms": 249
+   "ms": 274
   },
   {
    "name": "field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form's own validation needs no wiring",
    "ok": true,
-   "ms": 18
+   "ms": 26
   },
   {
    "name": "input: typing updates value, reports input and change, and the form receives it",
@@ -567,17 +567,17 @@
   {
    "name": "input: clear button, password reveal and the number stepper",
    "ok": true,
-   "ms": 7
+   "ms": 15
   },
   {
    "name": "input: copyable copies the value, gives transient feedback, and disables itself while empty",
    "ok": true,
-   "ms": 5
+   "ms": 9
   },
   {
    "name": "input: money shows the plain number while editing and the formatted amount when left, and keeps the number in value",
    "ok": true,
-   "ms": 4
+   "ms": 8
   },
   {
    "name": "input: search debounces pk-search, Escape clears, and add-on slots and the floating label render",
@@ -587,27 +587,27 @@
   {
    "name": "textarea: value, form entry and reset; autogrow reflects",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "select: option children become the choices, value and change flow, multiple submits one entry each",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "field: hands label, description and error to the control; counter follows the value; required marks the control",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "form: an invalid submit is stopped, messages appear in the fields, focus goes to the first problem, and fixing clears it",
    "ok": true,
-   "ms": 12
+   "ms": 11
   },
   {
    "name": "checkbox: toggles, submits its value only when checked, resets, and a master mirrors its group with the mixed state",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "radio-group: options become native radios in one group; choosing sets value and submits it; segmented is a variant",
@@ -627,22 +627,22 @@
   {
    "name": "combobox: typing filters, arrows and Enter pick, Escape closes; blur reverts stray text; select mode uses the trigger and typeahead",
    "ok": true,
-   "ms": 9
+   "ms": 12
   },
   {
    "name": "tag-input: Enter and separators add, duplicates and the limit are refused, Backspace and the cross remove, the form gets one entry per tag",
    "ok": true,
-   "ms": 4
+   "ms": 6
   },
   {
    "name": "tag-input: locked tags render before the editable ones, without a remove button, and Backspace never touches them",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "otp-input: typing advances, a pasted or autofilled code spreads, Backspace steps back, completion is an event",
    "ok": true,
-   "ms": 4
+   "ms": 9
   },
   {
    "name": "colour-input: the swatch and hex field stay in step, short hex is expanded, junk is invalid",
@@ -652,17 +652,17 @@
   {
    "name": "textarea and colour-input: show-label shows a visible label linked to the control, hidden by default",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "dropzone: accepted files are listed and submitted, rejected ones get a reason, Remove drops a file",
    "ok": true,
-   "ms": 5
+   "ms": 9
   },
   {
    "name": "button: busy ignores clicks without losing focus, a toggle flips pressed and reports it, icon and block reflect",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "button link: href renders an anchor that keeps its slots and takes target, rel and download; disabled and busy drop the href and swallow the click",
@@ -672,17 +672,17 @@
   {
    "name": "button link: focus lands on the anchor, a link ignores type and toggle, and a submit button still submits its form",
    "ok": true,
-   "ms": 4
+   "ms": 5
   },
   {
    "name": "button-group: single mode keeps exactly one toggle pressed",
    "ok": true,
-   "ms": 2
+   "ms": 5
   },
   {
    "name": "button-group: single mode works as a segmented control (value per button, pk-toggle bubbles to the group)",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "split-button: the caret opens the menu, arrows and Escape work, choosing reports and closes",
@@ -692,7 +692,7 @@
   {
    "name": "switch: invalid, size and label position reflect and the invalid ring shows",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "form-section and form-actions: heading, description and status render from props and slots",
@@ -712,187 +712,197 @@
   {
    "name": "dropzone: an input placed directly in the input slot (Blazor InputFile) gets one file unless multiple, and a drop without files changes nothing",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "combobox: typing reports the query even when the client filters, and an option refresh keeps the filter",
    "ok": true,
-   "ms": 4
+   "ms": 6
   },
   {
    "name": "field and checkbox: inline layout, small size and the checkbox custom properties reflect",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "unit-input: the number and unit make one value, the form submits it, the commit event carries it, a foreign unit is kept",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "dropzone: pick() opens the picker for a host button, and browse-label draws a real button that is the zone's one keyboard stop",
    "ok": true,
-   "ms": 4
+   "ms": 7
   },
   {
    "name": "button icon: the words are hidden visually and stay the accessible name; the icon is drawn; the label wins; the title mirrors the name",
    "ok": true,
-   "ms": 14
+   "ms": 19
   },
   {
    "name": "button icon: a link, a busy button and a toggle keep their name and behaviour; an element in the slot stays drawn",
    "ok": true,
-   "ms": 14
+   "ms": 21
   },
   {
    "name": "button icon (375px): every size is a 44px target and the text takes no room",
    "ok": true,
-   "ms": 322
+   "ms": 315
   },
   {
    "name": "code explorer module: mounts a snapshot object, opens the requested file and runs the search",
    "ok": true,
-   "ms": 172
+   "ms": 158
   },
   {
    "name": "code explorer module: LazyProvider (issue 196) fetches real files same-origin, not an object snapshot -- a real fetch(), unlike the SNAPSHOT case above, which never calls it",
    "ok": true,
-   "ms": 124
+   "ms": 123
   },
   {
    "name": "scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter",
    "ok": true,
-   "ms": 398
+   "ms": 410
   },
   {
    "name": "scorecard module: an icon-only pk-button with no accessible name is an unnamed-input failure; one named by its text or its label is not, and none is under 44px on a phone",
    "ok": true,
-   "ms": 224
+   "ms": 274
   },
   {
    "name": "theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value",
    "ok": true,
-   "ms": 238
+   "ms": 255
   },
   {
    "name": "theme editor module: a brand colour generates palette swatches at 4.5:1 or better, Apply writes ordinary edits, and a colour it cannot read disables Apply",
    "ok": true,
-   "ms": 302
+   "ms": 376
   },
   {
    "name": "theme editor module: built-in presets replace the edits, and saved themes are applied, renamed and deleted by name and kept in localStorage",
    "ok": true,
-   "ms": 441
+   "ms": 561
   },
   {
    "name": "theme editor module: undo and redo walk every change, the Changes tab lists edits against the stylesheet, and resets work per edit and per group",
    "ok": true,
-   "ms": 1045
+   "ms": 1311
   },
   {
    "name": "theme editor module: the export tab has a copy-paste snippet and a text-only theme link that another editor (or the page hash) applies as edits",
    "ok": true,
-   "ms": 406
+   "ms": 569
   },
   {
    "name": "theme editor module: the Contrast tab audits every pair in both themes under the edits, counts the failures and jumps to the token",
    "ok": true,
-   "ms": 416
+   "ms": 494
   },
   {
    "name": "theme editor module: an app supplies the initial theme and its own presets (CSS, JSON or object), and reports each change with the exported CSS",
    "ok": true,
-   "ms": 175
+   "ms": 282
   },
   {
    "name": "theme editor module: blocked storage is logged and saved themes still work until the page closes",
    "ok": true,
-   "ms": 93
+   "ms": 132
   },
   {
    "name": "theme editor Custom SDK tab: theme only exports a small zip without touching the SDK; the widths are validated and the delta table follows them",
    "ok": true,
-   "ms": 169
+   "ms": 179
   },
   {
    "name": "theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back",
    "ok": true,
-   "ms": 970
+   "ms": 1192
   },
   {
    "name": "layout builder module: renders the page live in an inert canvas, selects by click, arrows and the structure tree, and the keyboard moves, duplicates, deletes and undoes",
    "ok": true,
-   "ms": 144
+   "ms": 219
   },
   {
    "name": "layout builder module: the palette comes from the element API, the inspector edits props (enum, boolean, invalid number) and hostile models and markup are refused",
    "ok": true,
-   "ms": 88
+   "ms": 166
   },
   {
    "name": "layout builder module: Undo/Redo are icon-only (issue #174), drawing the sprite's undo/redo symbols with the words kept as the accessible name",
    "ok": true,
-   "ms": 52
+   "ms": 57
   },
   {
    "name": "layout builder module: each canvas element gets an Edit/Delete chip on hover (touch reaches it through selection, since there is no hover to fall back to), positioned over it",
    "ok": true,
-   "ms": 47
+   "ms": 82
   },
   {
    "name": "layout builder module: a pointer drag on a row's handle reorders the top-level page through pk-sortable, and the DOM order only changes once the model does",
    "ok": true,
-   "ms": 49
+   "ms": 67
   },
   {
    "name": "layout builder module: dragging a palette button onto the canvas inserts it there (pointer, not click), between rows at the top level and slot-aware inside a hovered container",
    "ok": true,
-   "ms": 62
+   "ms": 99
   },
   {
    "name": "layout builder module (375px): the toolbar row is gone and a touch-style drag on the handle still reorders the page",
    "ok": true,
-   "ms": 221
+   "ms": 443
   },
   {
    "name": "page-header: the title is a heading at the chosen level, slots land in their parts, and empty rows are hidden",
    "ok": true,
-   "ms": 5
+   "ms": 4
   },
   {
    "name": "page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title",
    "ok": true,
-   "ms": 5
+   "ms": 9
   },
   {
    "name": "page-header: on a narrow container the actions take the full width and are touch sized",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "page-header and toolbar: keep their width inside a shrink-to-fit flex parent (size containment must not collapse them)",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "page-header: sticky keeps it flush under the app bar while the app shell body scrolls, and pins in a plain scroller too",
+   "ok": true,
+   "ms": 7
+  },
+  {
+   "name": "page-header: a narrow record keeps the actions on row one and drops the badges to their own row, badges stay pills, and the tabs slot is docked",
+   "ok": true,
+   "ms": 6
+  },
+  {
+   "name": "page-header: a sticky header draws above an in-body sticky strip",
    "ok": true,
    "ms": 2
   },
   {
    "name": "toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "cluster: every gap value maps to its spacing token, and align, justify and vertical map to the flex properties",
    "ok": true,
-   "ms": 2
+   "ms": 7
   },
   {
    "name": "cluster: the hidden attribute hides it",
@@ -907,12 +917,12 @@
   {
    "name": "stack: dividers draw a rule above every child but the first",
    "ok": true,
-   "ms": 1
+   "ms": 2
   },
   {
    "name": "grid: auto-fit equal columns of at least min, at two widths, down to one column on a phone",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "grid: columns caps the count, an unparseable min is ignored, and the default min applies without one",
@@ -922,37 +932,37 @@
   {
    "name": "grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)",
    "ok": true,
-   "ms": 1
+   "ms": 4
   },
   {
    "name": "splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once",
    "ok": true,
-   "ms": 4
+   "ms": 6
   },
   {
    "name": "sortable: role=list, a pointer drag on the handle raises pk-reorder, Alt+arrows reorder by keyboard, and an external drop is accepted",
    "ok": true,
-   "ms": 3
+   "ms": 6
   },
   {
    "name": "sortable: the handle is a 44px touch target on a phone or a coarse pointer, and plain arrows skip a disabled row",
    "ok": true,
-   "ms": 1
+   "ms": 3
   },
   {
    "name": "detail-layout: two columns above the 48rem container width, one column (sidebar static, not sticky) below it, by the container's own width not the viewport",
    "ok": true,
-   "ms": 4
+   "ms": 7
   },
   {
    "name": "detail-layout: a sidebar taller than the viewport sticks by its bottom edge (negative top), a short one by its top (issue 281)",
    "ok": true,
-   "ms": 130
+   "ms": 132
   },
   {
    "name": "detail-layout: data-pk-section groups cards into tabs only once collapsed, with Next, a commit event and reveal-on-invalid (issue 272)",
    "ok": true,
-   "ms": 405
+   "ms": 390
   },
   {
    "name": "detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row",
@@ -967,7 +977,7 @@
   {
    "name": "text: a heading variant matches the native heading beside it; size, tone, weight and font come from the tokens and override the variant",
    "ok": true,
-   "ms": 10
+   "ms": 3
   },
   {
    "name": "text: truncate keeps a long text on one line with an ellipsis, as a block and inline",
@@ -977,142 +987,142 @@
   {
    "name": "icon: the use href is an absolute URL to the SDK sprite and the symbol exists there; a label makes it an image, none hides it",
    "ok": true,
-   "ms": 22
+   "ms": 13
   },
   {
    "name": "local time: writes the instant in the given locale and zone inside a time element, falls back to the slot, and relative reads as words",
    "ok": true,
-   "ms": 15
+   "ms": 13
   },
   {
    "name": "field: a label-action slot sits beside the label, shows even without a label, and clicking it does not focus the control",
    "ok": true,
-   "ms": 2
+   "ms": 4
   },
   {
    "name": "workspace (1200px): the nav, main and aside panes sit side by side, the phone strip is hidden, each pane holds its slot",
    "ok": true,
-   "ms": 128
+   "ms": 174
   },
   {
    "name": "workspace (375px, routed list and detail): the host sets the panes from the route, the tab carries the record name, the open row is marked and a tap on the list tab can be vetoed",
    "ok": true,
-   "ms": 195
+   "ms": 176
   },
   {
    "name": "workspace (375px): one pane at a time, the strip switches it, pk-pane-change reports it and can be cancelled",
    "ok": true,
-   "ms": 173
+   "ms": 183
   },
   {
    "name": "workspace (375px): the strip is keyboard operable: roving tabindex, arrows, Home and End select and focus the tab",
    "ok": true,
-   "ms": 172
+   "ms": 189
   },
   {
    "name": "workspace: without a nav there is no nav tab and no column; with no aside the strip is not needed",
    "ok": true,
-   "ms": 177
+   "ms": 181
   },
   {
    "name": "workspace: fill takes the height of its parent and drops the frame; without it the height is a viewport share",
    "ok": true,
-   "ms": 12
+   "ms": 6
   },
   {
    "name": "image gallery: one tile per image, the primary one carries the Primary badge, status shows, read-only has no buttons or add tile",
    "ok": true,
-   "ms": 10
+   "ms": 7
   },
   {
    "name": "image gallery: make primary moves the badge and raises pk-primary-change (cancelable); the primary has no make-primary button",
    "ok": true,
-   "ms": 11
+   "ms": 6
   },
   {
    "name": "image gallery: remove raises pk-remove (cancelable), drops the image, and removing the primary makes the first image primary",
    "ok": true,
-   "ms": 9
+   "ms": 13
   },
   {
    "name": "image gallery: read-only tiles are disabled sortable-items (no drag handle, Alt+Up/Alt+Down does nothing)",
    "ok": true,
-   "ms": 2
+   "ms": 3
   },
   {
    "name": "image gallery: editable, Alt+Down on the focused tile moves it and raises pk-reorder (cancelable) with the new src order",
    "ok": true,
-   "ms": 6
+   "ms": 9
   },
   {
    "name": "image gallery: the add tile is a real file input and raises pk-add with the chosen files",
    "ok": true,
-   "ms": 7
+   "ms": 9
   },
   {
    "name": "image gallery: an input in the input slot (a Blazor InputFile) becomes the add tile's own picker; its own change carries the real files, and pk-add does not fire for it",
    "ok": true,
-   "ms": 4
+   "ms": 6
   },
   {
    "name": "image gallery: clicking a thumbnail opens the lightbox on that image",
    "ok": true,
-   "ms": 57
+   "ms": 60
   },
   {
    "name": "image gallery: columns fixes the count; min sets how many fit",
    "ok": true,
-   "ms": 9
+   "ms": 14
   },
   {
    "name": "image gallery (375px): three thumbnails fit a row, nothing overflows sideways, buttons and the add tile are touch sized",
    "ok": true,
-   "ms": 477
+   "ms": 506
   },
   {
    "name": "guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem",
    "ok": true,
-   "ms": 548
+   "ms": 527
   },
   {
    "name": "guides: the previous and next links walk the guides in order, the address follows, and focus lands on the new title",
    "ok": true,
-   "ms": 608
+   "ms": 587
   },
   {
    "name": "guides: a table of contents link scrolls the article and not the page shell, marks the heading in view, and makes the address one that reloads to the same place",
    "ok": true,
-   "ms": 1168
+   "ms": 1118
   },
   {
    "name": "guides: a heading has a permalink (named, empty until drawn) that copies to a deep link, and a deep link opens at its heading",
    "ok": true,
-   "ms": 624
+   "ms": 522
   },
   {
    "name": "guides: keyboard: the arrow keys move between the guides in the nav, an activated row opens its guide, and the toc links are in the tab order",
    "ok": true,
-   "ms": 619
+   "ms": 600
   },
   {
    "name": "guides (375px): no sideways scroll, the nav is a drawer opened by the Guides button, Escape closes it and choosing a guide closes it and opens the guide",
    "ok": true,
-   "ms": 595
+   "ms": 589
   },
   {
    "name": "guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning",
    "ok": true,
-   "ms": 1051
+   "ms": 1029
   },
   {
    "name": "guides: the search box filters the nav to a title match instantly and to a body-only match (from the build's word index) too, says which guides matched, and clearing it shows every guide again",
    "ok": true,
-   "ms": 539
+   "ms": 538
   },
   {
    "name": "guides: in both themes the article text and its code stay readable (4.5:1) and the page follows the theme",
    "ok": true,
-   "ms": 1111
+   "ms": 1117
   }
  ],
  "sources": {
@@ -1316,10 +1326,10 @@
   "elements/otp-input/otp-input.html": "14c07969e3739eb5916ece559c9c79aab03178333d0397450aba5cd7c180a380",
   "elements/otp-input/otp-input.js": "a88748024afd60fc2d4a09a276041c254dda29e3cd6ef19af22f639a78ca7322",
   "elements/otp-input/otp-input.meta.json": "c59aa0a7ff1b6b2d99bfdabc9de61176881897f1faa0a25b9a5e80c1c47fd1f9",
-  "elements/page-header/page-header.css": "dec5cc0d4db89d4df9294591ac7eb13fd9ab4a2b313c0d937655e69284f2bd28",
-  "elements/page-header/page-header.html": "4edc732ce064f9eadab8ea3795506f1d1a865536df27fd2696a63bbb975e3f61",
-  "elements/page-header/page-header.js": "271e42513c090ff59fcf1a9c2316cf152f3632d8ca859268a35282f17dde79f0",
-  "elements/page-header/page-header.meta.json": "f3de8c84a547f47a959c8bb9d6310b9f0ef77e01cdc31e777f2cf4c8eaab322c",
+  "elements/page-header/page-header.css": "52ea8d1756270651944cd89533d7bdecbf3cfed0fff188c19eaf142d304ad7c8",
+  "elements/page-header/page-header.html": "51c32950bf28800630952d066329df263739e716c79ae38956c49ce076cfb859",
+  "elements/page-header/page-header.js": "05063fd9a37384d4e91fedde9f97d350beddbf7cd98e5c20257b500910d274d0",
+  "elements/page-header/page-header.meta.json": "279c09279900ae0caa8edba40f25bed9da018bd565e9c515349c1aae11e5519a",
   "elements/pager/pager.css": "d2da6a8d3453ade51e8f97da49493aaf6676e03cb1c1b8a053369c4e855b27c6",
   "elements/pager/pager.html": "a881f38c732786150760f3d30a4cd1cffc6dcc68001872a76547b6581303635f",
   "elements/pager/pager.meta.json": "abb099197335b1b1cb5549ff21e1a21a4847cad097d0d8edbbd035db4aa0bc43",
@@ -1495,7 +1505,7 @@
   "tests/browser/cases-data-display.js": "0c2295bc5b1b9cbbb55ba960d268351388949b976b7259583257927f7cb85f9d",
   "tests/browser/cases-forms.js": "ad305089a3e88c38cd5b1b1667a9859fd445635a2e581dfd0bdd652a44db1421",
   "tests/browser/cases-guides.js": "a502615a6c8dff6b1c65dfd1ecaa5b6515c837e7e3de6f1172a8112ccf336370",
-  "tests/browser/cases-headers.js": "1e343fbcd1774db7e268612aeced8a0dbc9328ab1274a95aa57868c1dabb3c11",
+  "tests/browser/cases-headers.js": "37f65d3cd6edbe9502a972e41acd316370b18aa84669196637676d1a2f7fc567",
   "tests/browser/cases-icon-time.js": "d3f4cfa796abd1327c37067630b97b8ca06881a5e9784e62515af210f6f17293",
   "tests/browser/cases-layout.js": "7051b0dc5ec63141f1c0d4759bfd7e58a656baac5377c1b2b786f6785ab50010",
   "tests/browser/cases-overlays.js": "fcdb192540b896b3128b318c1f180473fffdfa366a64077cf9815e7233585139",

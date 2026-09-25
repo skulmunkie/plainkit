@@ -62,6 +62,25 @@ export const headerCases = [
         ph.setAttribute('sticky', ''); await t.settle(); t.ok(Math.abs(rect(ph).top - rect(sc).top) < 2, 'with sticky it stays');
     }],
 
+    ['page-header: a narrow record keeps the actions on row one and drops the badges to their own row, badges stay pills, and the tabs slot is docked', async t => {
+        const host = t.stage('<pk-page-header variant="record" heading="Blue mug"><pk-badge>Active</pk-badge><pk-badge variant="muted">On hand 1</pk-badge><button slot="actions">Save</button><div slot="tabs" id="pk-tabs-row">Tabs</div></pk-page-header>');
+        host.style.width = '320px'; await t.load(host); await t.settle();
+        const h = host.firstElementChild, badge = h.querySelector('pk-badge');
+        t.ok(rect(h.querySelector('button')).top < rect(h.part('title')).bottom + 2 && rect(h.querySelector('button')).left > rect(h.part('title')).right - 1, 'the action is on the title row, right of it');
+        t.ok(rect(badge).top >= rect(h.querySelector('button')).bottom - 1, 'the badges are on their own row below');
+        t.ok(Math.abs(rect(badge).width - rect(badge).height) > 4, 'a badge is a pill, not a circle');
+        t.ok(rect(h.part('tabs')).top >= rect(badge).bottom - 1 && h.part('tabs').contains(h.shadowRoot.querySelector('slot[name="tabs"]')) && !h.part('tabs').hidden, 'the tabs row is docked under them');
+        host.style.width = '900px'; await t.settle();
+        t.ok(Math.abs(rect(badge).top - rect(h.part('title')).top) < rect(h.part('titlebar')).height, 'wide: the badges sit beside the title');
+        const bare = await t.mount('<pk-page-header heading="X"></pk-page-header>'); t.ok(bare.part('tabs').hidden && bare.part('chips').hidden, 'empty tabs and chips take no room');
+    }],
+
+    ['page-header: a sticky header draws above an in-body sticky strip', async t => {
+        const sc = t.stage('<div style="height:240px;overflow:auto"><pk-page-header sticky heading="R"></pk-page-header><div style="position:sticky;top:0;z-index:var(--z-sticky);height:80px">strip</div><div style="height:900px">x</div></div>').firstElementChild;
+        await t.load(sc); const h = sc.firstElementChild;
+        t.ok(Number(getComputedStyle(h).zIndex) > Number(getComputedStyle(sc.children[1]).zIndex), 'its z-index is above the strip');
+    }],
+
     ['toolbar: heading and note render, actions hide when empty, and it stacks on a narrow container', async t => {
         const host = t.stage('<pk-toolbar heading="Lines" note="12 lines"><button slot="actions">Export</button><button slot="actions">Add</button></pk-toolbar>');
         host.style.width = '900px'; await t.load(host); await t.settle();

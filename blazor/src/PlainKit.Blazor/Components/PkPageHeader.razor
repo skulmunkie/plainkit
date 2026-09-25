@@ -17,7 +17,7 @@
                 level="@PkAttr.Num(Level)"
                 variant="@Variant"
                 class="@Css()"
-                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}</pk-page-header>
+                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
 
 @code {
     /// <summary>
@@ -62,6 +62,18 @@
     /// <summary>A note or metadata line under the title bar.</summary>
     [Parameter] public RenderFragment? MetaContent { get; set; }
 
+    /// <summary>A tab strip docked at the foot of the header (a <c>PkTabs</c> with tabs only): with the header sticky it stays in view with the bar.</summary>
+    [Parameter] public RenderFragment? TabsContent { get; set; }
+
+    /// <summary>An address for a leading home crumb: an icon-only link (named by <see cref="HomeLabel"/>) first in the trail <see cref="Crumbs"/> draws. Null (the default) draws none.</summary>
+    [Parameter] public string? HomeHref { get; set; }
+
+    /// <summary>The accessible name of the home crumb.</summary>
+    [Parameter] public string HomeLabel { get; set; } = "Home";
+
+    /// <summary>The icon of the home crumb.</summary>
+    [Parameter] public string HomeIcon { get; set; } = "dashboard";
+
     // The breadcrumb, written without whitespace between the crumbs (the element reads its light DOM).
     private RenderFragment Trail => builder =>
     {
@@ -70,6 +82,16 @@
             builder.OpenElement(0, "pk-breadcrumb");
             builder.AddAttribute(1, "slot", "breadcrumb");
             builder.AddAttribute(2, "label", BreadcrumbLabel);
+            if (!string.IsNullOrEmpty(HomeHref))
+            {
+                builder.OpenElement(10, "a");
+                builder.AddAttribute(11, "href", HomeHref);
+                builder.AddAttribute(12, "aria-label", HomeLabel);
+                builder.OpenComponent<PkIcon>(13);
+                builder.AddAttribute(14, nameof(PkIcon.Name), HomeIcon);
+                builder.CloseComponent();
+                builder.CloseElement();
+            }
             for (var i = 0; i < Crumbs!.Count; i++)
             {
                 var crumb = Crumbs[i];

@@ -27,3 +27,19 @@ test('it stacks by its own width and keeps actions touch-sized, with tokens only
     assert.match(css, /@container \(max-width: [\d.]+rem\)[\s\S]*--touch-target/);
     assert.doesNotMatch(css.replace(/var\([^)]*\)/g, ''), /#[0-9a-f]{3,8}\b|rgba?\(/i);
 });
+
+test('the tabs slot is docked inside the header, after the note, and the default slot sits in a chips wrapper', () => {
+    assert.match(html, /<div part="meta"><slot name="meta"><\/slot><\/div><div part="tabs"><slot name="tabs"><\/slot><\/div><\/header>/);
+    assert.match(html, /<div part="chips"><slot><\/slot><\/div>/);
+    assert.ok(meta.slots.some(s => s.name === 'tabs'));
+    assert.ok(meta.examples.some(e => /slot="tabs"/.test(e.html) && /aria-label=/.test(e.html)), 'an example shows tabs and a home crumb');
+});
+
+test('slotted badges do not stretch, the sticky header sits one above the in-body sticky strips, and a narrow record keeps its actions on row one', () => {
+    assert.match(css, /::slotted\(pk-badge\) \{[^}]*align-self: center/);
+    assert.match(css, /:host\(\[sticky\]\)[^}]*z-index: calc\(var\(--z-sticky\) \+ 1\)/);
+    const narrow = css.slice(css.lastIndexOf('@container'));
+    assert.match(narrow, /:host\(\[variant="record"\]\) \[part="actions"\] \{[^}]*inline-size: auto/);
+    assert.match(narrow, /\[part="chips"\]:not\(\[hidden\]\) \{[^}]*flex: 1 0 100%/);
+    assert.doesNotMatch(css, /!important/);
+});

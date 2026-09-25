@@ -188,4 +188,27 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
         Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Crumbs, new[] { new PkCrumb("Only", "/only") })).FindAll("pk-button"));
         Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.BackLink, true).Add(x => x.Title, "No trail")).FindAll("pk-button"));
     }
+    [Fact]
+    public void A_HomeHref_draws_an_icon_only_home_crumb_first_in_the_trail_and_none_by_default()
+    {
+        var plain = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
+        Assert.Equal(3, plain.Find("pk-breadcrumb").Children.Length);
+
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.HomeHref, "/").Add(x => x.HomeLabel, "Dashboard"));
+        var items = cut.Find("pk-breadcrumb").Children;
+        Assert.Equal(4, items.Length);
+        Assert.Equal("A", items[0].TagName);
+        Assert.Equal("/", items[0].GetAttribute("href"));
+        Assert.Equal("Dashboard", items[0].GetAttribute("aria-label"));
+        Assert.Equal("dashboard", items[0].QuerySelector("pk-icon")!.GetAttribute("name"));
+    }
+
+    [Fact]
+    public void TabsContent_renders_in_the_tabs_slot_through_a_transparent_wrapper()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Title, "Record").Add(x => x.TabsContent, "<pk-tabs></pk-tabs>"));
+        var wrap = cut.Find("span[slot=tabs]");
+        Assert.Contains("u-contents", wrap.ClassName);
+        Assert.NotNull(wrap.QuerySelector("pk-tabs"));
+    }
 }
