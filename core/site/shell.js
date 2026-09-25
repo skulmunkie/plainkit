@@ -1,5 +1,5 @@
 // Templates and Spacing are sections of the Gallery's own tree (#/samples/templates, #/foundations/spacing), not top-level pages.
-// The SDK site shell: ONE primary navigation, the top navbar (pk-navbar: brand, page links, search that collapses to a button on a phone, settings
+// The SDK site shell: ONE primary navigation, the top navbar (pk-navbar: brand, page links, pk-app-bar-search, a button on a phone, settings
 // menu, hamburger). Each page owns its own content tree below it (the gallery's side nav is that tree). Built from the SDK's own
 // elements, so the site is the showcase. Framework-free; ES module.
 
@@ -27,22 +27,14 @@ function h(tag, props = {}, ...children) {
     return el;
 }
 
-// The search field: a pk-input (type=search) shown inline on a desktop bar. Up to 640px it collapses to a pk-button (icon); the button turns the
-// field into a full-width row over the bar (site.css, [data-open]) with a close button, and Escape or the close button puts it back.
-// It dispatches "site-search" (detail: the text) on document as the reader types.
+// The search field is the SDK's one reusable header search, pk-app-bar-search, (a pill on a desktop bar; on a phone an icon button that expands over
+// the bar, Escape or its close button puts it back). It dispatches "site-search" (detail: the text) on document as the reader types. The site
+// filters its own page, so the results panel is hidden (site.css).
 function searchField(placeholder) {
-    const field = h('pk-input', { class: 'site-search-field', type: 'search', label: placeholder, placeholder });
-    const toggle = h('pk-button', { class: 'site-search-toggle', variant: 'ghost', icon: true, label: 'Search' }, h('pk-icon', { name: 'search' }));
-    const close = h('pk-button', { class: 'site-search-close', variant: 'ghost', icon: true, label: 'Close search' }, h('pk-icon', { name: 'x' }));
-    const box = h('div', { class: 'site-search' }, toggle, field, close);
-    const set = open => { box.toggleAttribute('data-open', open); (open ? field : toggle).focus(); };
-    toggle.addEventListener('click', () => set(true));
-    close.addEventListener('click', () => set(false));
-    box.addEventListener('keydown', e => { if (e.key === 'Escape' && box.hasAttribute('data-open')) { e.preventDefault(); set(false); } });
-    field.addEventListener('input', () => document.dispatchEvent(new CustomEvent('site-search', { detail: field.value })));
-    return box;
+    const field = h('pk-app-bar-search', { label: placeholder, placeholder, debounce: '0' });
+    field.addEventListener('pk-query', e => document.dispatchEvent(new CustomEvent('site-search', { detail: e.detail.query })));
+    return field;
 }
-
 // The theme switch lives in the settings (profile) menu at the end of the bar, next to a link to the Settings page.
 // options: { page, title, search: { placeholder } | null }. Dispatches "site-search" (detail: string) and "site-theme" (detail: name) on document.
 // Returns { root, destroy() }.
