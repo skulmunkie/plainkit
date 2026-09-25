@@ -28,7 +28,8 @@ scratch*/
 
 ## GitHub Pages build output, and Claude Code local state
 _site/
-.claude/
+.claude/*
+!.claude/agents/
 
 ## Generated output: NOT in git. Produce it with `node scripts/bootstrap.mjs` (build, Blazor wrappers, skills, package copy), and never commit it.
 ## The list is scripts/generated.mjs (node scripts/generated.mjs list); scripts/tests/generated-paths.test.mjs keeps the two in step.
@@ -51,3 +52,6 @@ _site/
 /blazor/src/PlainKit.Blazor/Generated/
 /blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js
 /blazor/src/PlainKit.Blazor/wwwroot/plainkit/
+
+## The UI review output (node scripts/ui-review.mjs): screenshots and a manifest for the pull request, never committed
+review-output/
