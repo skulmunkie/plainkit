@@ -396,12 +396,38 @@ export const overlaysCases = [
         nb.part('toggle').click(); await t.settle(); t.ok(nb.open); t.eq(nb.part('toggle').getAttribute('aria-expanded'), 'true');
         t.key(nb.part('toggle'), 'Escape'); await t.settle(); t.ok(!nb.open);
         const sh = await t.mount('<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>');
-        sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open); t.ok(sh.navOpen);
+        sh.querySelector('button').click(); await t.settle();
+        if (mediaBelow('tablet').matches) { t.ok(sh.querySelector('pk-side-nav').open); t.ok(sh.navOpen); } // a drawer below the breakpoint
+        else { t.ok(sh.navHidden, 'wide: the toggle hides the nav (issue 298)'); t.ok(!sh.navOpen); }
     }],
 
     ['app shell: a Blazor-style wrapper span in the nav slot (issue 212) still gets found and toggled', async t => {
         const sh = await t.mount('<pk-app-shell><span slot="nav" class="u-contents"><pk-side-nav><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav></span><button slot="header" data-nav-toggle>Menu</button>Body</pk-app-shell>');
-        sh.querySelector('button').click(); await t.settle(); t.ok(sh.querySelector('pk-side-nav').open, 'the wrapper span must not hide the side nav from the shell'); t.ok(sh.navOpen);
+        const nav = sh.querySelector('pk-side-nav'); sh.querySelector('button').click(); await t.settle();
+        if (mediaBelow('tablet').matches) { t.ok(nav.open, 'the wrapper span must not hide the side nav from the shell'); t.ok(sh.navOpen); }
+        else { t.ok(sh.navHidden, 'the wrapper span must not hide the side nav from the shell'); t.eq(nav.getBoundingClientRect().width, 0, 'the wrapped nav is gone although its wrapper is display: contents'); }
+    }],
+
+    ['app shell: on a wide screen the nav toggle hides and shows the nav, keeps its icon-rail state and remembers the choice under the nav persist key (issue 298)', async t => {
+        if (mediaBelow('tablet').matches) return;
+        const key = 'pk-test-shell-nav';
+        try { localStorage.removeItem(key + ':nav-hidden'); } catch { /* blocked */ }
+        const html = `<pk-app-shell><pk-side-nav slot="nav" persist="${key}" collapsed><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><button slot="header" data-nav-toggle>Menu</button><p>Body</p></pk-app-shell>`;
+        const sh = await t.mount(html); await t.settle();
+        const nav = sh.querySelector('pk-side-nav'), main = sh.part('main'), full = sh.getBoundingClientRect().width;
+        t.ok(nav.getBoundingClientRect().width > 0 && main.getBoundingClientRect().width < full, 'the nav shows beside the body');
+        let ev = null; sh.addEventListener('pk-nav-toggle', e => { ev = e.detail; });
+        sh.querySelector('button').click(); await t.settle();
+        t.ok(sh.navHidden && sh.hasAttribute('nav-hidden')); t.eq(ev?.hidden, true, 'the commit event carries the new state');
+        t.eq(nav.getBoundingClientRect().width, 0, 'the nav is hidden'); t.eq(Math.round(main.getBoundingClientRect().width), Math.round(full), 'the body takes the full width');
+        t.ok(nav.collapsed, 'the nav keeps its icon-rail state');
+        const b = sh.querySelector('button'); b.focus(); t.eq(document.activeElement, b, 'the toggle stays reachable by keyboard while the nav is hidden');
+        const again = await t.mount(html); await t.settle();
+        t.ok(again.navHidden, 'a new shell restores the hidden state'); t.eq(again.querySelector('pk-side-nav').getBoundingClientRect().width, 0);
+        again.querySelector('button').click(); await t.settle();
+        t.ok(!again.navHidden, 'the toggle shows the nav again');
+        t.ok(again.querySelector('pk-side-nav').collapsed && again.querySelector('pk-side-nav').getBoundingClientRect().width > 0, 'shown again in its previous icon-rail state');
+        try { localStorage.removeItem(key + ':nav-hidden'); localStorage.removeItem(key); } catch { /* blocked */ }
     }],
 
     ['app-bar-search: typing debounces pk-query, items render as results, arrows and Enter pick one and raise pk-select, Escape closes', async t => {

@@ -31,6 +31,12 @@
 
 [part="footer"]:not(:has(::slotted(*))) { display: none; }
 
+/* Wide screens: the nav toggle hides the nav column altogether. Hide the slot, not the slotted node (a Blazor wrapper span is display: contents). */
+@media (--above-tablet) {
+    :host([nav-hidden]) { grid-template-columns: minmax(0, 1fr); }
+    :host([nav-hidden]) slot[name="nav"] { display: none; }
+}
+
 @media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } }
 
 @media (--phone) { [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--space-4)); padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); } }
