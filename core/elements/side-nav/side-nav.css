@@ -9,7 +9,8 @@
 
 ::slotted([slot="brand"]) { display: inline-flex; align-items: center; min-height: var(--touch-target); min-width: var(--touch-target); color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; }
 
-:host([collapsed]) ::slotted([slot="brand"]) { display: none; }
+/* Hide the slot, not the slotted node: a Blazor slot wrapper is <span slot="brand" class="u-contents"> and the page rule .u-contents (display: contents, marked important) beats any ::slotted rule (issue 297). A slot with display: none renders none of its assigned nodes, whatever their own display. */
+:host([collapsed]) slot[name="brand"] { display: none; }
 
 [part="collapse"] { flex: none; width: 2rem; height: 2rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
 
