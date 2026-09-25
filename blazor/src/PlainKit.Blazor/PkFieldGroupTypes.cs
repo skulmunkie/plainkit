@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace PlainKit.Blazor;
 
 /// <summary>What a <see cref="PkFieldSpec{TItem}"/> renders. Textarea, Select and Checkbox pick that control; every other value is a
@@ -112,6 +114,9 @@ public sealed record PkFieldSpec<TItem>
 
     /// <summary>Help text chosen per record; used instead of <see cref="Help"/> when it returns a non-empty string, so a locked and an editable state need one spec, not two guarded by <see cref="When"/>.</summary>
     public Func<TItem, string?>? HelpWhen { get; init; }
+
+    /// <summary>Extra content in the field's <c>label-action</c> slot, beside the label text (adopt-from-source buttons, flag badges). Re-evaluated with the record on every render. It follows the <see cref="Help"/> tooltip when both are set and never replaces the label text.</summary>
+    public RenderFragment<TItem>? LabelAction { get; init; }
 
     /// <summary>A <see cref="PkFieldKind.Checkbox"/> spec over a <see cref="bool"/> property: wraps the string <see cref="Get"/>/<see cref="Set"/> so the caller does not translate "true"/"" by hand. Set the other members with <c>with</c>: <c>PkFieldSpec&lt;T&gt;.Bool("active", "Active", o =&gt; o.Active, (o, v) =&gt; o.Active = v) with { Hint = "..." }</c>.</summary>
     public static PkFieldSpec<TItem> Bool(string key, string label, Func<TItem, bool> get, Action<TItem, bool> set) => new()

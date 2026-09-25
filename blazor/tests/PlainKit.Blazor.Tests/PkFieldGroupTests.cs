@@ -280,4 +280,27 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order { Qty = 1 }));
         Assert.Equal("Locked", cut.Find("pk-tooltip").GetAttribute("text"));
     }
+
+    // Issue 270: a per-field LabelAction beside the label, after the Help tooltip.
+    [Fact]
+    public void LabelAction_renders_in_the_label_action_slot_after_Help_and_keeps_the_label_text()
+    {
+        PkFieldSpec<Order>[] fields =
+        [
+            new() { Key = "a", Label = "A", Help = "Why", LabelAction = o => b => { b.OpenElement(0, "button"); b.AddAttribute(1, "class", "adopt"); b.AddContent(2, "From " + o.Name); b.CloseElement(); },
+                    Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "b", Label = "B", LabelAction = o => b => b.AddContent(0, "flag"), Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "c", Label = "C", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        ];
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order { Name = "X" }));
+
+        var first = cut.FindAll("pk-field")[0];
+        var slot = first.QuerySelector("[slot=label-action]")!;
+        Assert.Equal("pk-tooltip", slot.Children[0].LocalName);
+        Assert.Equal("button", slot.Children[1].LocalName);
+        Assert.Equal("From X", slot.Children[1].TextContent);
+        Assert.Equal("A", first.GetAttribute("label"));
+        Assert.Contains("flag", cut.FindAll("pk-field")[1].QuerySelector("[slot=label-action]")!.TextContent);
+        Assert.Empty(cut.FindAll("pk-field")[2].QuerySelectorAll("[slot=label-action]"));
+    }
 }

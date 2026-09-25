@@ -93,4 +93,39 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
         Assert.NotNull(table.QuerySelector("[slot=caption] strong"));
         Assert.NotNull(table.QuerySelector("[slot=footer] pk-pagination"));
     }
+
+    static RenderFragment Row => b => b.AddMarkupContent(0, "<tr><td>x</td></tr>");
+
+    [Fact]
+    public void Class_and_attributes_reach_the_frame_and_TableClass_reaches_the_inner_table()
+    {
+        var cut = Render<PkRawTable>(p => p
+            .Add(x => x.ChildContent, Row)
+            .Add(x => x.TableClass, "moves")
+            .AddUnmatched("class", "mt-4")
+            .AddUnmatched("data-x", "1"));
+        var table = cut.Find("pk-table");
+        Assert.Contains("mt-4", table.GetAttribute("class"));
+        Assert.Equal("1", table.GetAttribute("data-x"));
+        Assert.Equal("moves", cut.Find("table").GetAttribute("class"));
+    }
+
+    [Fact]
+    public void IsEmpty_shows_EmptyText_or_EmptyContent_instead_of_the_table()
+    {
+        var text = Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "No rows"));
+        Assert.Empty(text.FindAll("pk-table"));
+        Assert.Contains("No rows", text.Markup);
+        var content = Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "no")
+            .Add(x => x.EmptyContent, (RenderFragment)(b => b.AddMarkupContent(0, "<em>Custom</em>"))));
+        Assert.NotNull(content.Find("em"));
+        Assert.DoesNotContain(">no<", content.Markup);
+    }
+
+    [Fact]
+    public void IsEmpty_without_empty_content_still_renders_the_table_and_not_empty_renders_it_too()
+    {
+        Assert.NotNull(Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true)).Find("pk-table"));
+        Assert.NotNull(Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.EmptyText, "No rows")).Find("pk-table"));
+    }
 }
