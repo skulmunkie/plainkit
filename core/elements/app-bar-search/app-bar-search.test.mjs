@@ -65,3 +65,11 @@ test('compact is a reflected boolean that keeps the icon button and the expanded
     assert.match(css, /:host\(\[compact\]\) \.box \{ display: none/);
     assert.match(css, /:host\(\[compact\]\[expanded\]\) \.box \{ display: flex/);
 });
+
+test('the results panel has a footer slot and a popup-width hook, and an item without an id renders as a note', () => {
+    assert.ok(meta.slots.some(x => x.name === 'footer'));
+    assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-bar-search-popup-width'));
+    assert.match(read('html'), /part="footer"[^>]*hidden><slot name="footer">/);
+    assert.match(read('css'), /\.pop \{[^}]*min-width: var\(--pk-app-bar-search-popup-width, 24rem\)/);
+    assert.match(read('js'), /item\.id == null \|\| item\.id === ''/);
+});
