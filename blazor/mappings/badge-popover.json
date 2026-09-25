@@ -1,0 +1,15 @@
+{
+  "component": "PkBadgePopover",
+  "params": [
+    { "name": "Variant", "type": "string", "default": "accent", "map": "prop", "prop": "variant" },
+    { "name": "Heading", "type": "string", "default": "", "map": "prop", "prop": "heading" },
+    { "name": "Label", "type": "string", "default": "", "map": "prop", "prop": "label" },
+    { "name": "Placement", "type": "string", "default": "bottom-start", "map": "prop", "prop": "placement" },
+    { "name": "Open", "type": "bool", "default": false, "map": "prop", "prop": "open", "bind": { "event": "pk-close", "value": false } },
+    { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
+    { "name": "DetailsContent", "type": "RenderFragment?", "map": "slot", "slot": "details" },
+    { "name": "ActionsContent", "type": "RenderFragment?", "map": "slot", "slot": "actions" },
+    { "name": "OnOpen", "type": "EventCallback", "map": "event", "event": "pk-open" },
+    { "name": "OnClose", "type": "EventCallback<BadgePopoverCloseEventArgs>", "map": "event", "event": "pk-close", "cancelable": true }
+  ]
+}
