@@ -69,6 +69,16 @@
       }
     },
     {
+      "name": "NavHidden",
+      "type": "bool",
+      "map": "prop",
+      "prop": "navHidden",
+      "bind": {
+        "event": "pk-nav-toggle",
+        "value": "detail.hidden"
+      }
+    },
+    {
       "name": "Flush",
       "prop": "flush",
       "type": "bool"
