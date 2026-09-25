@@ -33,6 +33,13 @@
 @container (max-width: 46rem) {
     :host([variant="record"]:not([heading])) [part="header"] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "crumbs actions" "chips chips" "meta meta" "tabs tabs"; }
 }
+/* No crumbs and no heading: the chips are the lead, so they take row one with the actions (not a row under them, which would put the actions above what they act on). */
+:host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-row: 1; grid-column: 1 / 3; }
+:host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-row: 1; grid-column: 3; }
+@container (max-width: 46rem) {
+    :host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-column: 1; }
+    :host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-column: 2; }
+}
 /* A record on a narrow container: the title and the actions stay on row one, the chips and badges drop to their own row under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }

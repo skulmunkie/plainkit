@@ -52,6 +52,17 @@ export const headerCases = [
         t.ok(h.scrollWidth <= h.clientWidth + 1, 'no horizontal overflow');
     }],
 
+    ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
+        const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
+        const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
+        for (const w of ['1000px', '360px']) {
+            host.style.width = w; await t.load(host); await t.settle();
+            const chip = h.querySelector('#chip'), act = h.querySelector('#act');
+            t.ok(Math.abs(mid(chip) - mid(act)) < 30, `${w}: the chips and the actions share a row`);
+            t.ok(rect(act).left > rect(chip).right, `${w}: the actions are at the end`);
+        }
+    }],
+
     ['page-header: on a narrow container the actions take the full width and are touch sized', async t => {
         const host = t.stage('<pk-page-header heading="Wrapped"><button slot="actions">One</button><button slot="actions">Two</button></pk-page-header>');
         host.style.width = '320px'; await t.load(host); await t.settle();
