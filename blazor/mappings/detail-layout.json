@@ -12,6 +12,18 @@
       "type": "bool"
     },
     {
+      "name": "Section",
+      "prop": "section"
+    },
+    {
+      "name": "NextLabel",
+      "prop": "nextLabel"
+    },
+    {
+      "name": "OnSectionChange",
+      "event": "pk-section-change"
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

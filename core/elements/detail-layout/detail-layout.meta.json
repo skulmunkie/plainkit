@@ -1,7 +1,7 @@
 {
   "tag": "pk-detail-layout",
   "title": "Detail layout",
-  "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, sized minmax(0, 1fr) plus a fixed sidebar width. Below a container width (not the viewport, so it works next to a side nav or inside a narrower pane) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row.",
+  "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, sized minmax(0, 1fr) plus a fixed sidebar width. Below a container width (not the viewport, so it works next to a side nav or inside a narrower pane) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row. Elements carrying data-pk-section are grouped into phone tabs once collapsed.",
   "group": "Layout & structure",
   "props": [
     {
@@ -17,6 +17,21 @@
       "default": false,
       "reflect": true,
       "description": "Once collapsed to one column, the sidebar's own cards lay out two per row instead of stacking one-per-row."
+    },
+    {
+      "name": "section",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "commit": "pk-section-change",
+      "description": "The selected section once the layout has collapsed to one column and its cards name two or more data-pk-section values. Empty selects the first section."
+    },
+    {
+      "name": "nextLabel",
+      "type": "string",
+      "default": "Next",
+      "reflect": false,
+      "description": "The text before the next section's name on the button after the main column (\"Next: Pricing\")."
     }
   ],
   "slots": [
@@ -29,7 +44,17 @@
       "description": "Summary/status cards; pk-card fits. Sticky in the two-column layout: it sticks by its top edge, or by its bottom edge when it is taller than the viewport, so every card can be reached."
     }
   ],
-  "events": [],
+  "events": [
+    {
+      "name": "pk-section-change",
+      "detail": "{ section, previous }",
+      "detailProps": {
+        "section": "string",
+        "previous": "string"
+      },
+      "description": "The user chose a section, with a tab, the Next button, or by submitting a form whose invalid control was in a hidden section. Cancelable: preventDefault keeps the previous section."
+    }
+  ],
   "parts": [
     {
       "name": "grid",
@@ -42,6 +67,14 @@
     {
       "name": "sidebar",
       "description": "The sidebar wrapper"
+    },
+    {
+      "name": "tabs",
+      "description": "The pk-tabs strip of sections (collapsed layout with two or more sections only)"
+    },
+    {
+      "name": "next",
+      "description": "The button to the next section"
     }
   ],
   "cssProperties": [
@@ -63,7 +96,7 @@
   ],
   "methods": [],
   "a11y": "A layout primitive only: no landmark or role of its own. Give the main content and the sidebar their own headings so assistive technology can navigate between them.",
-  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst.",
+  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst. Elements inside it that carry data-pk-section (optionally data-pk-section-label on the first of a section) become tabs on a pk-tabs strip when there are two or more sections: only the selected section shows, a Next button moves on, and a required control in a hidden section is revealed when the form is submitted.",
   "examples": [
     {
       "title": "Order detail",
@@ -72,6 +105,19 @@
     {
       "title": "Sidebar first, two-up once collapsed",
       "html": "<pk-detail-layout sidebar-first sidebar-two-up>\n  <p>Main content.</p>\n  <div slot=\"sidebar\">\n    <pk-card><h3>Total</h3><p>$412.00</p></pk-card>\n    <pk-card><h3>Items</h3><p>3</p></pk-card>\n  </div>\n</pk-detail-layout>"
+    },
+    {
+      "title": "Record page with phone tabs",
+      "html": "<pk-detail-layout>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n  <div slot=\"sidebar\">\n    <pk-card heading=\"Status\" data-pk-section=\"details\"><p>Active</p></pk-card>\n    <pk-card heading=\"Channels\" data-pk-section=\"pricing\"><p>Web, store</p></pk-card>\n  </div>\n</pk-detail-layout>"
+    }
+  ],
+  "writes": [
+    {
+      "target": "elements inside the layout that carry data-pk-section",
+      "attributes": [
+        "data-pk-section-hidden"
+      ],
+      "why": "While the layout is collapsed and tabbed, every element outside the selected section gets the marker data-pk-section-hidden, and display: none is set through CSSOM (no attribute); both are removed again when the layout widens, loses its sections or the section is selected. Kept when the element disconnects."
     }
   ]
 }

@@ -134,4 +134,12 @@ public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
         Assert.Contains("main", layout.TextContent);
         Assert.Equal("status", layout.QuerySelector("[slot=sidebar]")!.TextContent);
     }
+
+    [Fact]
+    public void A_detail_layout_renders_its_Section_and_NextLabel_as_attributes()
+    {
+        var layout = Render<PkDetailLayout>(p => p.Add(x => x.Section, "pricing").Add(x => x.NextLabel, "Weiter")).Find("pk-detail-layout");
+        Assert.Equal("pricing", layout.GetAttribute("section"));
+        Assert.Equal("Weiter", layout.GetAttribute("next-label"));
+    }
 }
