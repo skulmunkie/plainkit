@@ -17,7 +17,7 @@ Agents follow [AGENTS.md](AGENTS.md), which has the same flow as commands and ru
 4. **Tick the checklist as parts land.** Edit the issue when a box is done on the branch; the pull request description says which boxes.
    Leave the issue open until every box is ticked, or split the leftovers into a new issue and close the original.
 5. **Merging closes.** A merged pull request with `Closes #n` closes the issue. Do not close an issue by hand unless it was decided against
-   (then close it as "not planned" with a comment saying why). Agents comment and tick checklists but never close issues.
+   (then close it as "not planned" with a comment saying why). Agents comment and tick checklists and put `Closes #n` on the pull request that finishes an issue, so the merge closes it; they never close issues by hand.
 
 > **Windows:** a checkout path that is deep (an agent worktree, a long user profile) can exceed the path limit that git and `dotnet test`
 > tolerate. Run `git config core.longpaths true`, and keep the clone close to a drive root when you can.

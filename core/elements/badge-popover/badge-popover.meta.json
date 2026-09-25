@@ -1,0 +1,78 @@
+{
+  "tag": "pk-badge-popover",
+  "title": "Badge popover",
+  "group": "Overlays",
+  "summary": "A status pill that is a button: it opens a panel of details (heading, body, optional actions) anchored under it, and on a phone the panel spans the viewport inside the gutters. Escape, an outside press or focus leaving closes it.",
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "accent",
+      "values": ["accent", "muted", "ok", "warn", "danger", "outline"],
+      "reflect": true,
+      "description": "Colour, as pk-badge."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Panel title; it also names the panel for assistive technology."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Accessible name of the panel when there is no heading (falls back to the pill text)."
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "default": "bottom-start",
+      "reflect": true,
+      "description": "Preferred side of the panel on a wide screen."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": ["pk-open", "pk-close"],
+      "description": "Whether the panel is shown."
+    }
+  ],
+  "slots": [
+    { "name": "", "description": "The pill text (for example a count and a noun: \"5 failing\")." },
+    { "name": "details", "description": "The panel body." },
+    { "name": "actions", "description": "Buttons at the foot of the panel; hidden when empty. A slotted element with data-close closes the panel." }
+  ],
+  "events": [
+    { "name": "pk-open", "detail": null, "description": "The panel opened." },
+    { "name": "pk-close", "detail": { "reason": "string" }, "description": "The panel is closing (escape, outside, blur, toggle, action); cancelable." }
+  ],
+  "parts": [
+    { "name": "trigger", "description": "The pill button." },
+    { "name": "panel", "description": "The panel." },
+    { "name": "title", "description": "The panel heading." },
+    { "name": "body", "description": "The details wrapper." },
+    { "name": "actions", "description": "The actions row." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-badge-popover-bg", "description": "Pill fill.", "default": "the variant colour" },
+    { "name": "--pk-badge-popover-fg", "description": "Pill text.", "default": "the variant text colour" },
+    { "name": "--pk-badge-popover-w", "description": "Panel width on a wide screen.", "default": "var(--pop-w)" }
+  ],
+  "methods": [
+    { "name": "show()", "description": "Open the panel." },
+    { "name": "hide()", "description": "Close the panel." },
+    { "name": "toggle()", "description": "Open or close it." }
+  ],
+  "a11y": "The pill is one native button (its own focus ring) with aria-expanded, aria-haspopup=\"dialog\" and aria-controls the panel; the panel is a dialog named by its heading or label. Enter and Space toggle it; opened by keyboard, focus moves into the panel; Escape closes it and returns focus to the pill; an outside press or focus leaving closes it without moving focus. The pill text is the button's name, so put the meaning in words (\"5 failing checks\"), not only a colour or an icon.",
+  "examples": [
+    {
+      "title": "Failing checks",
+      "html": "<pk-badge-popover variant=\"warn\" heading=\"5 failing checks\">5 failing\n  <div slot=\"details\">Price, weight and 3 image checks need attention before this product can be published.</div>\n  <pk-button slot=\"actions\" size=\"mini\" data-close>Dismiss</pk-button>\n</pk-badge-popover>"
+    }
+  ]
+}

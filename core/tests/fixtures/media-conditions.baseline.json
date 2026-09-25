@@ -13,6 +13,10 @@
   "(max-width: 1024px)",
   "(max-width: 640px)"
  ],
+ "badge-popover": [
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
+ ],
  "breadcrumb": [
   "(max-width: 640px)"
  ],
