@@ -1,7 +1,7 @@
 {
   "tag": "pk-app-shell",
   "title": "App shell",
-  "summary": "The page frame: nav column, header, one scrolling body and footer. Header and footer stay put; safe-area insets are added on notched phones; a slotted control marked data-nav-toggle opens the side nav drawer.",
+  "summary": "The page frame: nav column, header, one scrolling body and footer. Header and footer stay put; safe-area insets are added on notched phones; a slotted control marked data-nav-toggle opens the side nav drawer, or hides and shows the nav on a wide screen.",
   "group": "Layout & structure",
   "props": [
     {
@@ -10,6 +10,14 @@
       "default": false,
       "reflect": true,
       "description": "Drawer state, mirrors the side nav."
+    },
+    {
+      "name": "navHidden",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-nav-toggle",
+      "description": "Above the drawer breakpoint (1024px) the side nav is hidden and the body takes the full width; the nav toggle flips it and the nav comes back in its previous expanded or icon-rail state. Remembered under the nav's persist key plus \":nav-hidden\". On a phone or tablet the nav is the drawer (navOpen) and this has no effect."
     },
     {
       "name": "flush",
@@ -59,9 +67,10 @@
     {
       "name": "pk-nav-toggle",
       "detail": {
-        "open": "boolean"
+        "open": "boolean",
+        "hidden": "boolean"
       },
-      "description": "A data-nav-toggle control was pressed."
+      "description": "A data-nav-toggle control was pressed (open is the drawer state, hidden the wide-screen state), or the saved nav visibility was restored."
     }
   ],
   "parts": [
@@ -93,7 +102,7 @@
   "cssProperties": [],
   "methods": [],
   "writes": [
-    { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect." }
+    { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect. The wide-screen hide is done in the shell's own shadow tree (its nav slot), not on the nav." }
   ],
   "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot. The back link is a real link (keyboard reachable, 44px target, focus ring) named by back-label; the arrow is aria-hidden. Put the page's h1 in the title slot so there is exactly one page heading; do not repeat it in the body.",
   "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar. The back link keeps a 44px target and a long title is truncated to one line.",

@@ -9,6 +9,7 @@
   "(max-width: 640px)"
  ],
  "app-shell": [
+  "(min-width: 1025px)",
   "(max-width: 1024px)",
   "(max-width: 640px)"
  ],
