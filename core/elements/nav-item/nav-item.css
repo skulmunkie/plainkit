@@ -39,6 +39,10 @@
 
 :host([rail]) [part="sub"] { display: none; }
 
+[part="sub-title"] { display: none; }
+
+:host([rail][flyout]) [part="sub-title"] { display: block; padding: var(--space-1) var(--space-3) var(--space-2); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
 :host([rail][flyout]) [part="sub"] { display: block; position: fixed; z-index: var(--z-pop); min-width: 12rem; padding: var(--space-1); background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); }
 
 /* A group title: static text above the rows it introduces (a divider in the icon rail). */

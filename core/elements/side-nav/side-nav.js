@@ -49,7 +49,8 @@ export default Base => class extends Base {
     toggleCollapsed() { this.collapsed = !this.collapsed; this.emit('pk-nav-toggle', { collapsed: this.collapsed }); }
     sync() {
         const rail = this.collapsed && !this.$mq.matches;
-        for (const i of items(this)) i.rail = rail;
+        // Only the top-level rows are in the rail: a child inside an open flyout keeps its label (issue 299).
+        for (const i of items(this)) i.rail = rail && !i.parentElement?.closest?.('pk-nav-item');
         this.part('collapse').setAttribute('aria-expanded', String(!this.collapsed));
         this.part('collapse').setAttribute('aria-label', this.collapsed ? 'Expand the menu' : 'Collapse the menu');
     }
@@ -81,7 +82,7 @@ export default Base => class extends Base {
         this.part('scroll').setAttribute('aria-label', q.trim() ? `${r.matches.size} matches` : '');
     }
     rows() {
-        return rowsOf(this).filter(i => !i.hidden && !i.disabled && (() => { for (let p = i.parentElement?.closest?.('pk-nav-item'); p; p = p.parentElement?.closest?.('pk-nav-item')) if (!p.expanded) return false; return true; })());
+        return rowsOf(this).filter(i => !i.hidden && !i.disabled && (() => { for (let p = i.parentElement?.closest?.('pk-nav-item'); p; p = p.parentElement?.closest?.('pk-nav-item')) if (!(p.expanded || p.flyout)) return false; return true; })());
     }
     key(e) {
         const row = e.target.closest?.('pk-nav-item'); if (!row || e.target.closest('input')) return;
