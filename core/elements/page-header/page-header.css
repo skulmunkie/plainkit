@@ -21,6 +21,25 @@
 [part="chips"][hidden] { display: none; }
 [part="tabs"] { min-inline-size: 0; }
 ::slotted(pk-badge) { align-self: center; flex: none; }
+/* A record whose title is the last crumb (no heading): the crumbs are the title, so the chips and the actions share their row. Narrow: crumbs and actions on row one,
+   only the chips drop to their own row. */
+:host([variant="record"]:not([heading])) [part="header"] { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "crumbs chips actions" "meta meta meta" "tabs tabs tabs"; align-items: center; column-gap: var(--space-3); }
+:host([variant="record"]:not([heading])) :is([part="titlebar"], [part="lead"]) { display: contents; }
+:host([variant="record"]:not([heading])) [part="crumbs"] { grid-area: crumbs; }
+:host([variant="record"]:not([heading])) [part="chips"]:not([hidden]) { grid-area: chips; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 0; flex: none; }
+:host([variant="record"]:not([heading])) [part="actions"] { grid-area: actions; inline-size: auto; margin-inline-start: 0; }
+:host([variant="record"]:not([heading])) [part="meta"] { grid-area: meta; }
+:host([variant="record"]:not([heading])) [part="tabs"] { grid-area: tabs; }
+@container (max-width: 46rem) {
+    :host([variant="record"]:not([heading])) [part="header"] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "crumbs actions" "chips chips" "meta meta" "tabs tabs"; }
+}
+/* No crumbs and no heading: the chips are the lead, so they take row one with the actions (not a row under them, which would put the actions above what they act on). */
+:host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-row: 1; grid-column: 1 / 3; }
+:host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-row: 1; grid-column: 3; }
+@container (max-width: 46rem) {
+    :host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-column: 1; }
+    :host([variant="record"]:not([heading])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-column: 2; }
+}
 /* A record on a narrow container: the title and the actions stay on row one, the chips and badges drop to their own row under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }
