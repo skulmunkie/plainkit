@@ -1,4 +1,4 @@
-/* pk-page-header: crumbs, a title bar (title + chips left, actions right) and a note line. variant: page (default), section, record. Stacks by its own width. */
+/* pk-page-header: crumbs, a title bar (title + chips left, actions right), a note line and a docked tabs row. variant: page (default), section, record. Stacks by its own width. */
 :host { display: block; inline-size: 100%; container-type: inline-size; min-inline-size: 0; }
 [part="header"] { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--pk-page-header-padding, var(--space-1) 0); }
 [part="crumbs"] { font-size: var(--text-meta); color: var(--page-crumbs-fg); }
@@ -17,4 +17,16 @@
     [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
     ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
 }
-:host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: var(--z-sticky); background: var(--color-bg); }
+[part="chips"] { display: contents; }
+[part="chips"][hidden] { display: none; }
+[part="tabs"] { min-inline-size: 0; }
+::slotted(pk-badge) { align-self: center; flex: none; }
+/* A record on a narrow container: the title and the actions stay on row one, the chips and badges drop to their own row under them. */
+@container (max-width: 46rem) {
+    :host([variant="record"]) [part="lead"] { display: contents; }
+    :host([variant="record"]) [part="title"] { order: 0; }
+    :host([variant="record"]) [part="actions"] { order: 1; inline-size: auto; margin-inline-start: auto; }
+    :host([variant="record"]) [part="chips"]:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 2; flex: 1 0 100%; }
+}
+/* Its own stacking context, one above the in-body sticky strips (--z-sticky), so a popover opened from the header is not drawn under them. */
+:host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: calc(var(--z-sticky) + 1); isolation: isolate; background: var(--color-bg); }

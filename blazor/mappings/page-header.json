@@ -42,6 +42,29 @@
       "type": "RenderFragment?"
     },
     {
+      "name": "TabsContent",
+      "slot": "tabs",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "HomeHref",
+      "map": "wrapper",
+      "type": "string?",
+      "note": "Blazor only: an address for a leading home crumb, an icon-only link (the icon, with HomeLabel as its aria-label) drawn first in the pk-breadcrumb that Crumbs renders. Off (null) by default."
+    },
+    {
+      "name": "HomeLabel",
+      "map": "wrapper",
+      "type": "string",
+      "note": "Blazor only: the accessible name of the home crumb; Home by default."
+    },
+    {
+      "name": "HomeIcon",
+      "map": "wrapper",
+      "type": "string",
+      "note": "Blazor only: the icon name of the home crumb; dashboard by default."
+    },
+    {
       "name": "Crumbs",
       "map": "wrapper",
       "type": "IReadOnlyList<PkCrumb>?",
