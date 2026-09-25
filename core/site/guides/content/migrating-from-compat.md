@@ -1,6 +1,6 @@
 ---
 title: Migrating from the class-based components
-order: 6
+order: 7
 summary: The retired chip/btn-*/card-header/... class vocabulary, its pk-* replacements, and a dev-mode check that finds every retired class still on a page.
 ---
 

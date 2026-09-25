@@ -83,6 +83,7 @@ A standalone Blazor WebAssembly app needs no server and no extra package. It reg
 
 ## Where to go next
 
+- [Choosing what to build with](choosing-what-to-build-with.md) says when to use a template, `PkRecordForm` with `PkFieldGroup`, `PkDataList` or a raw element instead of writing your own markup: read it before you build a page.
 - The `plainkit-blazor` agent skill lists every component with its parameters: start with [components-index.md](../../dist/skills/plainkit-blazor/references/components-index.md).
 - [Logging](logging.md) shows how the SDK's log reaches `ILogger` and how to write your own entries with `IPkLog`.
 - [Theming and tokens](theming.md) works the same in Blazor: the tokens are CSS.

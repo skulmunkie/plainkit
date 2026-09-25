@@ -43,6 +43,10 @@ app.MapRazorComponents<App>()
 
 `PkStyles` writes a plain in-place `<link>` (`Minified`, `Versioned="false"`; `InHead="true"` is the old HeadContent behaviour, which lands after the app's stylesheets). With `app.MapStaticAssets()` (the ASP.NET Core 9+ default) the link is a fingerprinted, immutably-cached URL; without one it falls back to a `?v=` content hash, always revalidated. In a layout it lands in the body, after the head links. `CssVersioned`, `CssMin` and `Versioned(path)` on `PkAssets` are for a direct `<link>`. Add `@using PlainKit.Blazor` (and `using PlainKit.Blazor;` in `Program.cs`) so the `Pk*` components resolve, and an interactive render mode (`@rendermode InteractiveServer` or a global one) for `OnClick` and binding. Only for the `/_plainkit` dev tools page (together with `.AddPlainKitDevTools()` above; skip both otherwise), add the package assembly to the router in `Routes.razor`: `<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(PlainKit.Blazor.PkAssets).Assembly }">`. Options: `references/setup-and-options.md`. Next, open `references/components-index.md` to find a component and its parameters.
 
+### Choose before you build
+
+Before writing markup for a page or a job, open `references/choosing.md` (decision path, use-case table, anti-patterns): name the page type, find it in the table, open the template, layout or pattern (`plainkit-sdk` skill: `templates.md`, `layouts.md`, `patterns.md`) or the component it names, and change only content, slots, parameters and tokens. A page with a title, breadcrumbs, status or busy state derives from `PageBase`. A create-or-edit record page is `PkRecordForm` + `PkFieldGroup` (a `PkFieldSpec<T>` per field) + `PkRecordEditor`, never a hand-written `PkField` wrapper per field. A list is `PkTable`, or `PkDataList` when the server pages it. The frame is `PkAppShell` with `PkSideNav` and `PkAppBarSearch`. An element with no component is raw markup with `@onpk-...` handlers. Never wrap a slotted child in a `display: contents` element or add `!important`. Write your own only when nothing fits, from existing components and tokens, and say which gap it fills.
+
 ### Add a page (a bound input, a list and a toast)
 
 ```razor
@@ -85,7 +89,6 @@ app.MapRazorComponents<App>()
 ```
 
 ### Add a form
-
 `PkForm` shows the browser's validation in each field and a summary; `OnValid` fires when a submit passes (`OnInvalid` when it is stopped).
 
 ```razor
@@ -108,7 +111,6 @@ app.MapRazorComponents<App>()
 ```
 
 ### Give a page a header with breadcrumbs
-
 `PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it. `BackLink` (off by default) adds a chevron link `Back to <crumb>` to the last parent crumb that has an `Href`, before the title in that outlet (above the header without `ShellSection`); `Sticky` pins the header to the top of the scrolling page body (flush under the app bar in `PkAppShell`); leave `BackLink` off when the layout's `PkAppShell` already sets `BackHref` and `BackLabel`, which the header cannot reach.
 
 ```razor
@@ -124,7 +126,6 @@ app.MapRazorComponents<App>()
 ```
 
 ### Open a dialog from C#
-
 `Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
 
 ```razor
@@ -140,7 +141,6 @@ app.MapRazorComponents<App>()
 ```
 
 ### Show a table of typed rows (`PkTable`)
-
 `PkTable<TItem>` takes typed columns and items. Write `TItem="Order"` on the component whenever a handler such as `OnRowClick` is a method group: Razor infers `TItem` from `Items` and `Columns` but not through `EventCallback<PkTableRowClickArgs<TItem>>`, so without it the build fails with CS1503 (the same for `PkDataList`). A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`: the rows are serialised only when `Items` (its reference or count), `Columns` or `IdOf` change, so replace an item inside the same list with a new list, or call `Refresh()` on the table (`@ref`). `CurrentRow` marks the row whose record is open elsewhere (tinted, `aria-current`; set it from the route, the table never changes it); the routed list and detail page with a `PkWorkspace` is the `routed-list-detail` template in the `plainkit-sdk` skill.
 
 ```razor
@@ -180,7 +180,6 @@ app.MapRazorComponents<App>()
 ```
 
 ### Use an element that has no component (raw elements)
-
 Raw `pk-*` markup works in Razor with the SDK's props as attributes (`references/` of the `plainkit-sdk` skill), and so do its events: every `pk-*` event is registered with Blazor and mapped to a `Pk...EventArgs` class, so `@onpk-sort="OnSort"` with `void OnSort(PkSortEventArgs e)` just works (no JavaScript listener, no `ElementReference`; `references/events.md` lists the args). The elements load once a `Pk*` component has rendered on the page (any one: the runtime initialises on the first render); on a page with only raw tags, initialise it yourself:
 
 ```razor
@@ -223,4 +222,4 @@ In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Cons
 Several rows or cards with the same always-visible icon buttons competing for space: wrap the region in one `<PkContextMenu>` instead. `OnOpen`'s `Context` field (on `PkOpenEventArgs`) names what was targeted (the nearest ancestor's `data-pk-context`; `PkTable` sets one per row already), so `OnOpen="@(e => _menu = MenuFor(e.Context))"` can rebuild `<MenuContent>@_menu</MenuContent>` per target before it paints.
 
 ### Upgrade this app to a newer PlainKit.Blazor
-`references/upgrading.md`: a blast-radius recipe, not a changelog summary. Find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, turn the matches into a severity-ordered checklist. Mechanical renames get done; a judgment call gets flagged. Format text and numbers for `pk-input type="date"`/`type="number"` with `PkInputFormat` (`references/input-format.md`) rather than hand-rolling the invariant-culture parse.
+`references/upgrading.md`: a blast-radius recipe, not a changelog summary. Also check the app against `references/choosing.md`: a hand-written wrapper, table or record page that a newer component now covers is worth replacing. Find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, turn the matches into a severity-ordered checklist. Mechanical renames get done; a judgment call gets flagged. Format text and numbers for `pk-input type="date"`/`type="number"` with `PkInputFormat` (`references/input-format.md`) rather than hand-rolling the invariant-culture parse.
