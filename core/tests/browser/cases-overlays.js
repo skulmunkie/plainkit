@@ -321,6 +321,21 @@ export const overlaysCases = [
         el.collapsed = true; await t.settle(); t.eq(orders.rail, !mediaBelow('tablet').matches, 'items know they are in the rail (only on wide screens; a drawer ignores collapse)');
     }],
 
+    ['side nav rail: flyout children keep their labels and the flyout is named by its branch (issue 299)', async t => {
+        if (mediaBelow('tablet').matches) return;
+        const el = await t.mount('<pk-side-nav open collapsed><pk-nav-item href="#">Orders</pk-nav-item><pk-nav-item>Products<pk-nav-item slot="children" href="#">Drafts</pk-nav-item><pk-nav-item slot="children" href="#">Archive</pk-nav-item></pk-nav-item></pk-side-nav>');
+        await t.settle();
+        const [orders, products, drafts] = el.querySelectorAll('pk-nav-item');
+        t.ok(orders.rail && products.rail, 'top-level rows are in the rail'); t.ok(!drafts.rail, 'a child is not in the rail');
+        products.part('link').click(); await t.settle();
+        t.ok(products.flyout, 'the branch opens as a flyout');
+        t.ok(getComputedStyle(drafts.part('label')).display !== 'none', 'the child shows its label');
+        t.eq(products.part('sub-title').textContent, 'Products'); t.ok(getComputedStyle(products.part('sub-title')).display !== 'none', 'the flyout heading shows');
+        t.eq(products.part('sub').getAttribute('aria-label'), 'Products', 'the flyout is a group named by the branch');
+        t.key(products.part('link'), 'ArrowRight'); await t.settle(); t.eq(document.activeElement, drafts, 'ArrowRight enters the flyout');
+        t.key(drafts, 'ArrowLeft'); await t.settle(); t.eq(document.activeElement, products, 'ArrowLeft returns to the branch');
+    }],
+
     ['side nav: collapsed state and open branches persist under the persist key', async t => {
         const key = 'pk-test-nav';
         try { localStorage.removeItem(key); } catch { /* blocked */ }

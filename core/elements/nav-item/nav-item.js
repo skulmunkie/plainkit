@@ -31,7 +31,11 @@ export default Base => class extends Base {
         if (this.current) row.setAttribute('aria-current', 'page'); else row.removeAttribute('aria-current');
         if (this.disabled) row.setAttribute('aria-disabled', 'true'); else row.removeAttribute('aria-disabled');
         const label = this.textContent.trim().split('\n')[0];
+        const name = [...this.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() || label;
         if (this.rail) row.setAttribute('title', (this.firstChild?.textContent ?? label).trim()); else row.removeAttribute('title');
+        // The open flyout names its branch: a visible heading, and the group's accessible name.
+        this.part('sub-title').textContent = name;
+        for (const [a, v] of [['role', 'group'], ['aria-label', name]]) if (this.rail && this.flyout) this.part('sub').setAttribute(a, v); else this.part('sub').removeAttribute(a);
         if (!this.href) row.setAttribute('aria-expanded', String(this.rail ? this.flyout : this.expanded)); else row.removeAttribute('aria-expanded');
     }
     layer() {
