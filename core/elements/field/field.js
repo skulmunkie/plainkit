@@ -23,6 +23,7 @@ export default Base => class extends Base {
     wire() {
         const c = this.control();
         if (!c) return;
+        if (c.localName.includes('-') && !customElements.get(c.localName)) return void this.later(c.localName); // a control not defined yet: wire it once it upgrades, not through the fallback below
         const mine = c.$fieldLabel ?? '';
         if ('label' in c) { if (!c.label || c.label === mine) { c.label = this.label; c.$fieldLabel = this.label; } } else if (this.label && !c.getAttribute('aria-label')) c.setAttribute('aria-label', this.label);
         if (this.required && 'required' in c) c.required = true;
@@ -32,6 +33,7 @@ export default Base => class extends Base {
         else { c.toggleAttribute('data-invalid', Boolean(this.error)); if (this.error) c.setAttribute('aria-invalid', 'true'); else c.removeAttribute('aria-invalid'); }
         this.count();
     }
+    later(tag) { const w = this.$wait ??= new Set(); if (w.has(tag)) return; w.add(tag); customElements.whenDefined(tag).then(() => { w.delete(tag); this.wire(); }); }
     flag(c, name, on) { c.$byField ??= {}; if (on) { c[name] = true; c.$byField[name] = true; } else if (c.$byField[name]) { c[name] = false; c.$byField[name] = false; } }
     count() {
         const c = this.control(); const n = this.part('count');
