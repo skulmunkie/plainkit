@@ -209,4 +209,24 @@ export const appShellCases = [
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
+    ['mountApp: ctx.tasks shows a running task as a toast in the shell's bottom-end stack, and leaving the module cancels a cancellable one', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        let ctxA, aborted = false;
+        const a = defineModule({ id: 'a', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'a'; } } }], mount: ctx => { ctxA = ctx; } });
+        const b = defineModule({ id: 'b', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'b'; } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => a }, { id: 'b', title: 'B', load: async () => b }] });
+        await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
+        const handle = ctxA.tasks.run({ title: 'Importing', cancellable: true, run: ({ signal }) => new Promise(resolve => signal.addEventListener('abort', () => { aborted = true; resolve(); })) });
+        const stack = el.querySelector('pk-toast-stack[position="bottom-end"]');
+        await until(() => stack.querySelector('pk-toast'), 'the task toast');
+        t.ok(stack.querySelector('pk-toast').getAttribute('heading') === 'Importing', 'the toast carries the title, in the shell stack');
+        app.navigate('/b');
+        await until(() => el.querySelector('#pk-main')?.textContent.includes('b'), 'module b');
+        await handle.promise;
+        t.ok(aborted && handle.state === 'cancelled', 'leaving the module cancelled its cancellable task');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
 ];
