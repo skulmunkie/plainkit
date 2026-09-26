@@ -112,7 +112,7 @@ export function mountApp(container, config) {
     function settle(result) {
         const a = host.current();
         status = result === 'error' && a ? 'ok' : result; // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
-        if (a?.id !== active) { active = a?.id ?? null; subs.clear(); drawNav(); }
+        if (a?.id !== active) { active = a?.id ?? null; drawNav(); }
         mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
         const label = crumbs[crumbs.length - 1].label;
@@ -130,6 +130,7 @@ export function mountApp(container, config) {
     async function render() {
         const cur = router.current(), n = ++seq;
         if (ui.sideNav.open) ui.sideNav.hide(); // a chosen page closes the drawer at once, not after it has loaded
+        if (cur.url.split('/')[1] !== active) subs.clear(); // ctx.search subscribers end with their module, before the next one mounts and subscribes
         const result = await host.open(cur.url, cur.query);
         if (n === seq && !dead && result !== 'superseded') settle(result);
     }

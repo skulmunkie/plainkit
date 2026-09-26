@@ -188,4 +188,25 @@ export const appShellCases = [
         t.eq(search.items[0].label, 'Order 8', "the active module's own search source answered");
         a.win.localStorage.removeItem('pk.app');
     }],
+
+    ['mountApp: ctx.search reaches the active module, and its subscribers end with the module (nothing is called after a switch)', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const got = { a: [], b: [] };
+        const mod = id => defineModule({ id, routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = id; } } }], mount: ctx => { ctx.search.subscribe(q => got[id].push(q)); } });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod('a') }, { id: 'b', title: 'B', load: async () => mod('b') }], search: { placeholder: 'Find' } });
+        await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
+        const search = el.querySelector('pk-app-bar-search'), input = search.shadowRoot.querySelector('[part="control"]');
+        const type = async text => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400); };
+        await type('one');
+        t.eq(JSON.stringify(got.a), '["one"]', 'module a heard the query');
+        t.eq(app.navigate('/b'), true);
+        await until(() => el.querySelector('#pk-main')?.textContent.includes('b'), 'module b');
+        await type('two');
+        t.eq(JSON.stringify(got.a), '["one"]', 'module a is not called after it was left');
+        t.eq(JSON.stringify(got.b), '["two"]', 'module b hears the query');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
 ];

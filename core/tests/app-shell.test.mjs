@@ -125,3 +125,17 @@ test('the entry (js/app.js) reaches no module of the modules unit and no page ty
     for (const f of rel) assert.ok(f.startsWith('js/'), `${f} is outside js/: the runtime entry must not pull in the modules unit`);
     for (const f of rel) assert.ok(!/pages?\//.test(f) && !/page-type|-page\.js/.test(f), `${f} looks like a page type`);
 });
+
+test('the demo apps and the shell carry no consumer CSS: no style attribute or property, no class, no stylesheet of their own', () => {
+    const files = [];
+    const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.(js|html)$/.test(e.name)) files.push(p); } };
+    walk(path.join(root, 'samples', 'app'));
+    for (const f of files) {
+        const src = fs.readFileSync(f, 'utf8').replace(/\/\/.*$/gm, '');
+        assert.ok(!/\sstyle\s*=|<style|\.style\b|setAttribute\(\s*['"](style|class)|classList|className|\sclass\s*=/.test(src), `${path.relative(root, f)} has CSS of its own: a missing style is a framework gap, not a local fix`);
+    }
+    // the shell adds one class, the framework's own utility that keeps the route announcement off the screen, and nothing else
+    const shell = fs.readFileSync(path.join(root, 'js', 'app', 'shell.js'), 'utf8').replace(/\/\/.*$/gm, '');
+    assert.deepEqual([...shell.matchAll(/class:\s*'([^']+)'/g)].map(m => m[1]), ['u-sr-only']);
+    assert.ok(!/style/.test(shell));
+});
