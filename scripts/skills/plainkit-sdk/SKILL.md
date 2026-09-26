@@ -17,7 +17,7 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 - No literal colours: use the tokens (`references/theming.md`). No literal breakpoint widths in scripts: use the named breakpoints (same file, "Breakpoints"). The old class-based components (`.btn`, `.card`, `.modal-*`) no longer exist.
 - Text is `pk-text`, not a `<p>` or `<span>` with a class: a paragraph (`<pk-text tone="muted">`), a run inside a line (`<pk-text inline weight="semibold">`), a lead or eyebrow (`variant="lead"`, `variant="eyebrow"`), a mono figure (`font="mono"`). Real headings stay native `<h1>` to `<h6>` (they carry the heading role, level and outline); `variant="h1"` to `"h6"` is only the look, for text that should resemble a heading without being one. Layout is `pk-stack`, `pk-cluster` and `pk-grid`, not a styled `<div>`.
 - Never use anything a reference marks **Deprecated**: it logs a warning once, and it is removed in the release named there; use what the table says.
-- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it.
+- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it. An app is made of modules (`defineModule`, `moduleFromMount` for an existing `mountX` tool, `createModuleHost`; `references/app.md`): only the app config lists the code a module load may import, and listeners and timers go through `ctx.on` and `ctx.after`.
 
 ## References (open on demand)
 
@@ -42,8 +42,7 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 <!doctype html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My app</title>
 <link rel="stylesheet" href="plainkit/plainkit.min.css">
 <script type="module" src="app.js"></script>
