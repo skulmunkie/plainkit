@@ -137,6 +137,6 @@ Write your own only when the SDK has nothing for the job and composing existing 
 If the decision path ends at "write your own", the SDK has a gap, and the gap is worth recording so the next app does not rebuild it.
 
 1. Search the open issues in the repository for the job first (a component may be planned).
-2. If there is none, add to the "components the SDK lacks" list (the repository's tracking issue for it) or open an issue that describes the job, the page it appears on, what you composed from existing elements in the meantime and what was awkward about it.
+2. If there is none, add it to the standing issue "Tracker: components the SDK lacks" (search the repository's issues for that title) or open an issue that describes the job, the page it appears on, what you composed from existing elements in the meantime and what was awkward about it.
 3. Build the interim version from existing elements only, in one place, named for the job.
 4. Do not fix the gap by patching the SDK's own CSS in your app.
