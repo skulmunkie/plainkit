@@ -8,7 +8,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible,
-[tabindex]:focus-visible {
+[tabindex]:not(pk-tab):focus-visible { /* pk-tab draws its own inset ring: a scrolling tab strip clips an outset one (issue 338) */
     outline: var(--focus-ring);
     outline-offset: 2px;
 }
