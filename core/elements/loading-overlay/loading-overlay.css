@@ -1,13 +1,16 @@
 /* pk-loading-overlay: a positioned wrapper; the overlay dims what it covers and centres a spinner. [fullscreen] covers the viewport. */
 :host { position: relative; display: block; }
 
-[part="overlay"] { display: none; position: absolute; inset: 0; z-index: var(--z-sticky); flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); background: color-mix(in srgb, var(--color-bg) 70%, transparent); color: var(--color-text); font-size: var(--text-read); }
+[part="overlay"] { display: none; position: absolute; inset: 0; z-index: var(--z-sticky); flex-direction: column; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-bg) 88%, transparent); color: var(--color-text); font-size: var(--text-read); }
+
+/* The spinner and label sit on a solid panel, so the label never lands on text; sticky keeps the panel in view when the region is taller than the viewport. */
+[part="panel"] { position: sticky; top: var(--space-4); bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-3); max-width: calc(100% - 2 * var(--space-4)); padding: var(--space-3) var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
 
 :host([busy]) [part="overlay"] { display: flex; }
 
 :host([fullscreen]) [part="overlay"] { position: fixed; z-index: var(--z-modal); }
 
-[part="spinner"] { width: 1.75rem; height: 1.75rem; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: var(--radius-round); animation: overlay-spin 0.7s linear infinite; }
+[part="spinner"] { flex: none; width: 1.75rem; height: 1.75rem; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: var(--radius-round); animation: overlay-spin 0.7s linear infinite; }
 
 [part="label"]:empty { display: none; }
 

@@ -43,6 +43,10 @@
       "description": "The covering layer"
     },
     {
+      "name": "panel",
+      "description": "The solid chip holding the spinner and label"
+    },
+    {
       "name": "spinner",
       "description": "The spinner"
     },
@@ -54,7 +58,7 @@
   "cssProperties": [],
   "methods": [],
   "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
-  "mobile": "The label wraps; the spinner is 28px.",
+  "mobile": "The label wraps inside a solid panel; the spinner is 28px; on a region taller than the screen the panel stays in view.",
   "examples": [
     {
       "title": "Busy region",
