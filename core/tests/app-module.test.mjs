@@ -460,8 +460,29 @@ test('a moduleFromMount module cancelled while its mount is still starting has i
     await host.destroy();
 });
 
+test('ctx.tasks: a module and each page get their own task scope on the app manager; it ends (cancels the cancellable, detaches the rest) with the module or the page; null without a manager', async () => {
+    const { container } = makeDom();
+    const events = [];
+    const tasks = { scope: ({ busy }) => { const n = events.length; events.push(`scope:${typeof busy}`); return { run: spec => `ran:${spec}`, end: () => events.push(`end:${n}`) }; } };
+    let modCtx, pageCtx;
+    const m = defineModule({ id: 'jobs', mount: c => { modCtx = c; }, routes: [{ path: '/', page: 'custom', config: { mount: (el, c) => { pageCtx = c; } } }, { path: '/b', page: 'custom', config: { mount: () => {} } }] });
+    const host = createModuleHost(container, { modules: [entryFor('jobs', m), entryFor('other')], tasks, ...fast });
+    await host.show('jobs');
+    assert.equal(modCtx.tasks.run('a'), 'ran:a'); assert.equal(pageCtx.tasks.run('b'), 'ran:b');
+    assert.deepEqual(Object.keys(modCtx.tasks), ['run'], 'the ctx cannot end its own scope');
+    assert.deepEqual(events, ['scope:function', 'scope:function']);
+    await host.show('jobs', { path: '/b' });
+    assert.ok(events.includes('end:1') && !events.includes('end:0'), 'leaving the page ends the page scope only');
+    await host.show('other');
+    assert.ok(events.includes('end:0'), 'unmounting the module ends its scope');
+    const plain = createModuleHost(makeDom().container, { modules: [entryFor('p', defineModule({ id: 'p', mount: c => { modCtx = c; }, routes: [{ path: '*', page: 'custom', config: { mount: () => {} } }] }))], ...fast });
+    await plain.show('p');
+    assert.equal(modCtx.tasks, null);
+    await plain.destroy(); await host.destroy();
+});
+
 test('the framework sources: no markup sinks, eval, bare console, polling, inline styles or handlers; every catch logs', () => {
-    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js'];
+    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js', 'tasks.js'];
     for (const f of files) {
         const src = fs.readFileSync(path.join(root, 'js', f), 'utf8').replace(/\/\/.*$/gm, '');
         assert.ok(!/innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function|setAttribute\(\s*['"]style|\.onclick|console\./.test(src), `${f} has a forbidden construct`);

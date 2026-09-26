@@ -631,4 +631,56 @@ export const overlaysCases = [
         endA(); await a; await t.settle(); t.ok(!ov.busy && !ov.part('content').inert, 'idle after the last');
         page.destroy();
     }],
+
+    ['tasks: a task toast is composed from pk-toast, text and pk-progress, updated in place, cancellable with Retry after a failure, and sits at the bottom end', async t => {
+        const { createTasks } = await import('../../js/tasks.js');
+        const host = t.stage('<div></div>');
+        const tasks = createTasks({ container: host, concurrency: 1, doneDelay: 60, load: el => t.load(el) });
+        let g; const gate = () => new Promise((r, no) => { g = { r, no }; });
+        let attempts = 0;
+        const h = tasks.run({ title: 'Import <b>x</b>', details: 'Reading', cancellable: true, run: async ctx => { ctx.progress(30); await gate(); } });
+        const queued = tasks.run({ title: 'Second', retry: true, run: async () => { if (++attempts === 1) throw new Error('secret detail'); } });
+        await t.load(host); await t.settle(); await wait(300);
+        const stack = host.querySelector('pk-toast-stack[position="bottom-end"]'); t.ok(stack, 'a bottom-end stack');
+        const toasts = [...stack.querySelectorAll('pk-toast')]; t.eq(toasts.length, 2);
+        const [a, b] = toasts;
+        t.eq(a.heading, 'Import <b>x</b>'); t.eq(a.querySelector('b'), null, 'the title is text, never markup');
+        t.eq(a.duration, 0); t.eq(a.querySelector('pk-progress').value, 30); t.ok(!a.querySelector('pk-progress').indeterminate);
+        t.eq(b.querySelector('pk-progress').part('label').textContent, 'Queued');
+        const r = a.getBoundingClientRect(); t.ok(r.right <= innerWidth && r.bottom <= innerHeight && r.left > innerWidth / 3, 'at the bottom end, inside the viewport');
+        t.ok(a.noClose && getComputedStyle(a.part('close')).display === 'none', 'a running toast has no close button');
+        t.eq(host.querySelectorAll('pk-toast').length, 2); a.querySelector('pk-button').click(); await t.settle();
+        t.eq(h.state, 'cancelled'); t.ok(a.isConnected, 'the toast stays to say cancelled'); t.eq(a.kind, 'warning');
+        await h.promise; await wait(150); t.ok(!a.isConnected, 'and goes shortly after');
+        const rb = await queued.promise; t.eq(rb.state, 'failed'); await t.settle();
+        t.eq(b.kind, 'danger'); t.eq(b.querySelector('div').textContent, 'This task failed. Try again, or check the log.', 'the raw error message is not shown');
+        b.querySelector('pk-button').click(); await t.settle(); await wait(50);
+        t.ok(!b.isConnected, 'Retry replaces the failed toast'); t.eq(attempts, 2);
+        tasks.destroy(); t.ok(!host.querySelector('pk-toast-stack'), 'destroy removes the stack it created');
+    }],
+
+    ['tasks: 100 run, complete, fail, cancel and dismiss cycles leave no toast, node or timer', async t => {
+        const { createTasks } = await import('../../js/tasks.js');
+        const host = t.stage('<div></div>');
+        const tasks = createTasks({ container: host, doneDelay: 5, load: el => t.load(el) });
+        const open = new Set(); const st = window.setTimeout, ct = window.clearTimeout;
+        window.setTimeout = (fn, ms, ...a) => { const id = st(() => { open.delete(id); fn(...a); }, ms); open.add(id); return id; };
+        window.clearTimeout = id => { open.delete(id); ct(id); };
+        try {
+            for (let i = 0; i < 100; i++) {
+                const k = i % 4;
+                const x = tasks.run({ title: `t${i}`, cancellable: k === 2, timeout: k === 3 ? 30 : 0, run: async ctx => { ctx.progress(1, 2); ctx.details('x'); if (k === 1) throw new Error('boom'); if (k >= 2) await new Promise(() => {}); } });
+                if (k === 2) x.cancel();
+                await x.promise;
+                if (k === 1 || k === 3) for (const e of host.querySelectorAll('pk-toast')) e.dismiss('close');
+                if (i % 10 === 9) await wait(20);
+            }
+            await wait(50);
+            t.eq(host.querySelectorAll('pk-toast').length, 0, 'no toast is left');
+            t.eq(host.querySelector('pk-toast-stack').children.length, 0);
+            t.eq(open.size, 0, `${open.size} timers are pending`);
+            tasks.destroy();
+            t.eq(host.querySelectorAll('*').length, 1, 'only the stage div is left');
+        } finally { window.setTimeout = st; window.clearTimeout = ct; }
+    }],
 ];
