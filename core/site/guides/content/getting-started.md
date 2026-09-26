@@ -106,6 +106,7 @@ Set `data-theme="dark"` or `data-theme="light"` on `<html>`, or on any element t
 
 ## Where to go next
 
+- [Choosing what to build with](choosing-what-to-build-with.md) says when to start from a template, a layout, a pattern or an element instead of writing your own markup: read it before you build a page.
 - The [gallery](../gallery/index.html) shows every element with live examples and its API.
 - [Theming and tokens](theming.md) covers the design tokens and how to change them.
 - [Logging](logging.md) covers the one logger the SDK and your own code share.

@@ -12,7 +12,7 @@
 // the light DOM, and use the internals (aria()) for the host's own role and state.
 
 const sheets = new Map();
-export const sheetFor = css => { let s = sheets.get(css); if (!s) { s = new CSSStyleSheet(); s.replaceSync(css); sheets.set(css, s); } return s; };
+export const sheetFor = css => sheets.get(css) ?? (s => (s.replaceSync(css), sheets.set(css, s), s))(new CSSStyleSheet());
 export const RESET = ':host{display:inline-block}:host([hidden]){display:none}*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}';
 
 import { kebab, camel, coerce, parseBindings, bindValue } from './element-core.js';
@@ -20,8 +20,8 @@ import { createLogger, isLogEnabled } from './log.js';
 export { kebab, camel, coerce, parseBindings, bindValue };
 
 // One logger per tag (scope = the tag name), so a warning says which element spoke.
-const loggers = new Map();
-const loggerFor = tag => loggers.get(tag) ?? loggers.set(tag, createLogger(tag)).get(tag);
+const loggers = {};
+const loggerFor = tag => loggers[tag] ??= createLogger(tag);
 
 export class PkElement extends HTMLElement {
     static props = {};
@@ -37,12 +37,12 @@ export class PkElement extends HTMLElement {
         this.internals = this.attachInternals?.();
         for (const [n, d] of Object.entries(c.props)) {
             this.$[n] = d.default;
-            if (Object.hasOwn(this, n)) { const v = this[n]; delete this[n]; this.$[n] = this.coerceProp(n, d, v); }
+            if (Object.hasOwn(this, n)) { this.$[n] = this.coerceProp(n, d, this[n]); delete this[n]; if (d.reflect) (this.$u ??= []).push(n); }
         }
         const root = this.shadowRoot ?? this.attachShadow({ mode: 'open', delegatesFocus: c.delegatesFocus });
         root.adoptedStyleSheets = [sheetFor(RESET), sheetFor(c.css)];
-        if (!Object.hasOwn(c, '$tpl')) { c.$tpl = document.createElement('template'); c.$tpl.innerHTML = c.template; }
-        root.replaceChildren(c.$tpl.content.cloneNode(true));
+        if (!Object.hasOwn(c, '$k')) { c.$k = document.createElement('template'); c.$k.innerHTML = c.template; }
+        root.replaceChildren(c.$k.content.cloneNode(true));
         this.$b = [];
         const walk = document.createTreeWalker(root, 5);
         for (let n = walk.nextNode(); n; n = walk.nextNode()) {
@@ -57,8 +57,7 @@ export class PkElement extends HTMLElement {
     // The element's logger (scope: its tag), and a warning that is said once per element and key, so a loop or a re-render does not flood.
     get log() { return loggerFor(this.constructor.tag); }
     warnOnce(key, message, detail) {
-        const seen = this.$warned ??= new Set();
-        if (!seen.has(key)) { seen.add(key); this.log.warn(message, detail); }
+        if (!(this.$wn ??= new Set()).has(key)) { this.$wn.add(key); this.log.warn(message, detail); }
     }
     // A lifecycle line at debug; the level check keeps it (and its formatting) free at the default level.
     debug(message, detail) { if (isLogEnabled('debug', this.constructor.tag)) this.log.debug(message, detail); }
@@ -69,12 +68,14 @@ export class PkElement extends HTMLElement {
 
     connectedCallback() {
         this.debug('connected');
+        // A property set before the upgrade was adopted in the constructor (no attributes may be written there): reflect it now, like an assignment.
+        this.$u?.forEach(n => { this.$r = n; if (this.constructor.props[n].type === 'boolean') this.toggleAttribute(kebab(n), this.$[n]); else this.setAttribute(kebab(n), this.$[n]); this.$r = null; });
         this.update(); this.connected?.();
     }
     disconnectedCallback() { this.disconnected?.(); }
 
     attributeChangedCallback(attr, _old, val) {
-        const name = camel(attr); const d = this.constructor.props[name];
+        const name = camel(attr), d = this.constructor.props[name];
         if (!d || this.$r === name) return;
         this.$[name] = this.coerceProp(name, d, val, true);
         this.debug(`${name} changed`, this.$[name]);
@@ -91,8 +92,8 @@ export class PkElement extends HTMLElement {
 
     render() {
         for (const b of this.$b) {
-            if (b.parts) { const v = bindValue(b.parts, this.$, Boolean(b.a)); if (!b.a) b.n.nodeValue = v; else if (v === null) b.n.removeAttribute(b.a); else b.n.setAttribute(b.a, v); }
-            else b.n.hidden = b.not ? Boolean(this.$[b.key]) : !this.$[b.key];
+            if (b.parts) { const v = bindValue(b.parts, this.$, b.a); if (!b.a) b.n.nodeValue = v; else if (v === null) b.n.removeAttribute(b.a); else b.n.setAttribute(b.a, v); }
+            else b.n.hidden = b.not ? !!this.$[b.key] : !this.$[b.key];
         }
     }
 
@@ -126,7 +127,7 @@ export function define(cls) {
                 const n = this.coerceProp(name, def, v);
                 if (n === this.$[name]) return;
                 this.$[name] = n;
-                if (def.reflect) { this.$r = name; if (def.type === 'boolean') this.toggleAttribute(kebab(name), n); else this.setAttribute(kebab(name), String(n)); this.$r = null; }
+                if (def.reflect) { this.$r = name; if (def.type === 'boolean') this.toggleAttribute(kebab(name), n); else this.setAttribute(kebab(name), n); this.$r = null; }
                 this.debug(`${name} changed`, n); this.changed?.(name, n); this.requestUpdate();
             },
         });

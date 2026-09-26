@@ -130,7 +130,7 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 - **Size budgets are never raised.** Not the page layer's 10 KB gzip, not an element's. If you are over, make the source smaller.
 - **No silent failure.** No empty `catch`, no `.catch(() => {})`, no bare `console.*`: use the SDK logger (`createLogger(scope)` from `js/log.js`; elements have
   `this.log` and `this.warnOnce`). `core/tests/no-silent-catch.test.mjs` checks.
-- **Only existing components.** Use the `pk-*` elements that exist; a gap is recorded in the "components the SDK lacks" issue, not invented locally.
+- **Only existing components.** Use the `pk-*` elements that exist; a gap is recorded in the standing "Tracker: components the SDK lacks" issue (#336), not invented locally.
 - **Privacy.** No personal paths, real email addresses or internal tracker references anywhere (`core/tests/privacy.test.mjs`).
 
 ## Commits, pull requests, issues

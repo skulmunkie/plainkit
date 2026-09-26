@@ -3,11 +3,10 @@
 // The rail exists above the drawer breakpoint only, so this scenario is desktop only.
 const NAV = '#nav';
 const SUB = '#products >>> [part=sub]';
-const RAIL_ISSUE = 325;
 
 export default {
     name: 'side-nav',
-    issue: [297, 299],
+    issue: [297, 299, 325],
     elements: ['side-nav', 'nav-item'],
     viewports: ['desktop'],
     html: `<pk-app-shell>
@@ -29,9 +28,9 @@ export default {
         { hover: '#products >>> [part=link]' }, { wait: 400 }, { shot: 'flyout' },
     ],
     expect(t) {
-        // Filed defect (intermittent, depends on load order): the rows can miss their reflected `rail` attribute, so they stay full rows and the flyout never shows.
+        // Issue 325: whatever the load order, the rows carry their reflected `rail` attribute (a property set before the upgrade is reflected).
         const reflected = ['#dash', '#orders', '#products', '#settings'].every(id => t.attr(id, 'rail') !== null);
-        t.known(RAIL_ISSUE, reflected, 'the rows of the collapsed nav have no rail attribute (a property set before the element upgraded is not reflected): full rows and no flyout');
+        t.ok(reflected, 'the rows of the collapsed nav have no rail attribute (a property set before the element upgraded is not reflected): full rows and no flyout');
         if (t.shot === 'rail') {
             const nav = t.rect(NAV);
             t.ok(nav && nav.width < 100, `the rail is ${Math.round(nav?.width ?? 0)}px wide, expected an icon rail under 100px`);

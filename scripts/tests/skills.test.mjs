@@ -344,6 +344,20 @@ test('the skills say raw @onpk-... handlers work for every element and name the 
     assert.match(gen.get('plainkit-blazor/SKILL.md'), /@onpk-sort="OnSort"/);
 });
 
+test('both skills have a "Choose before you build" workflow and a generated references/choosing.md with the use-case table, the anti-patterns and the whole catalogue', () => {
+    for (const s of SKILL_NAMES) {
+        assert.match(gen.get(`${s}/SKILL.md`), /### Choose before you build[\s\S]*references\/choosing\.md/, `${s}: the workflow points to choosing.md`);
+        const text = gen.get(`${s}/references/choosing.md`);
+        assert.ok(text, `${s} has references/choosing.md`);
+        assert.match(text, /## The decision path/); assert.match(text, /## Use cases: where to start/); assert.match(text, /## Anti-patterns/); assert.match(text, /## Ask for a missing component/);
+        assert.doesNotMatch(text, /\]\([\w./-]+\.md/, `${s}: links are flattened (a skill has no Guides page)`);
+        for (const kind of ['templates', 'layouts', 'patterns']) for (const t of src.samples[kind]) assert.ok(text.includes(`- \`${t.id}\`: `), `${s}: the catalogue lists ${kind} ${t.id}`);
+    }
+    assert.match(gen.get('plainkit-blazor/references/choosing.md'), /## In Blazor/);
+    assert.doesNotMatch(gen.get('plainkit-sdk/references/choosing.md'), /## In Blazor/);
+    for (const s of SKILL_NAMES) assert.match(gen.get(`${s}/references/upgrading.md`) + gen.get(`${s}/SKILL.md`), /choosing\.md/);
+});
+
 test('a deprecated item in an element meta is listed in the element reference with what to use instead, and only then', () => {
     const marked = structuredClone(src); const badge = marked.api.find(e => e.tag === 'pk-badge');
     badge.props[0].deprecated = { since: '0.2.0', remove: '0.3.0', message: 'use tone' };
