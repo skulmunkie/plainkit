@@ -30,7 +30,7 @@ export default Base => class extends Base {
             if (p) { p.id ||= 'pk-panel-' + (++ids.n); t.setAttribute('aria-controls', p.id); p.setAttribute('aria-labelledby', t.id); }
         }
         for (const p of this.panels) { p.selected = !this.noneActive && p.value === this.value; p.tabIndex = p.selected ? 0 : -1; }
-        if (this.scroll) this.reveal(this.tabs.find(t => t.selected), this.$s);
+        this.reveal(this.tabs.find(t => t.selected), this.$s);
         this.$s = true; this.fade();
     }
     // Edge fades on a scrolling strip: the side that still has tabs beyond it (logical, so it holds in right-to-left).
@@ -39,11 +39,11 @@ export default Base => class extends Base {
         const max = l.scrollWidth - l.clientWidth, at = Math.abs(l.scrollLeft);
         const side = !this.scroll || max <= 1 ? '' : at <= 1 ? 'end' : at >= max - 1 ? 'start' : 'both';
         if (side) l.setAttribute('data-fade', side); else l.removeAttribute('data-fade');
-        l.toggleAttribute('data-rtl', getComputedStyle(l).direction === 'rtl');
+        if (typeof getComputedStyle === 'function' && getComputedStyle(l).direction === 'rtl') l.setAttribute('data-rtl', ''); else l.removeAttribute('data-rtl');
     }
     // Scroll the strip so the tab lies fully inside it, clear of the fade (scroll-padding); smooth unless the reader prefers reduced motion.
     reveal(tab, smooth) {
-        const l = this.part('list'); if (!l || !tab) return;
+        const l = this.part('list'); if (!this.scroll || !l || !tab) return;
         const a = tab.getBoundingClientRect(), b = l.getBoundingClientRect(), pad = parseFloat(getComputedStyle(l).scrollPaddingLeft) || 0;
         let left = a.left < b.left + pad ? a.left - b.left - pad : a.right > b.right - pad ? a.right - b.right + pad : 0;
         if (!left) return;
