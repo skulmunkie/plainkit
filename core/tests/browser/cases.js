@@ -122,7 +122,7 @@ export const cases = [
     ['tabs: arrow keys, Home and End move focus and select; disabled tabs are skipped', async t => {
         const el = await t.mount(t.tabsHtml());
         const [a, b] = el.querySelectorAll('pk-tab');
-        a.focus(); t.key(a, 'ArrowRight'); await t.settle();
+        a.focus(); t.key(a, 'ArrowRight'); await t.settle(); b.focus({ focusVisible: true });
         t.eq(el.value, 'b'); t.eq(document.activeElement, b);
         t.key(b, 'ArrowRight'); await t.settle();
         t.eq(el.value, 'a', 'wraps past the disabled third tab');
@@ -223,6 +223,58 @@ export const cases = [
         const list = s.part('list');
         t.eq(getComputedStyle(list).flexWrap, 'nowrap'); t.eq(list.getAttribute('data-fade'), 'end', 'the fade is on the side that has more tabs');
         list.scrollLeft = 200; list.dispatchEvent(new Event('scroll')); t.ok(['both', 'end'].includes(list.getAttribute('data-fade')));
+    }],
+
+    // Issues 338 and 339: a scrolling strip keeps the tab you move to fully visible, says which side has more tabs, and never clips the focus ring.
+    ['tabs scroll: arrowing to every tab leaves it fully inside the strip (issue 339), at a phone width and a narrow desktop width', async t => {
+        const NAMES = ['Overview', 'Line items', 'Shipping', 'Payments', 'Returns', 'Documents', 'Notes', 'History'];
+        const still = async list => { let last = NaN, n = 0; while (n < 3) { await new Promise(r => setTimeout(r, 60)); n = list.scrollLeft === last ? n + 1 : 0; last = list.scrollLeft; } };
+        for (const width of [375, 520]) {
+            const host = t.stage('<pk-tabs scroll value="s0">' + NAMES.map((n, i) => `<pk-tab value="s${i}">${n}</pk-tab>`).join('') + '</pk-tabs>');
+            host.style.width = width + 'px'; await t.load(host);
+            const el = host.firstElementChild, list = el.part('list'), tabs = [...el.querySelectorAll('pk-tab')];
+            t.ok(list.scrollWidth > list.clientWidth, `${width}px: the strip overflows`);
+            const inside = (i, why) => { const a = tabs[i].getBoundingClientRect(), b = list.getBoundingClientRect(), f = list.getAttribute('data-fade'), pad = parseFloat(getComputedStyle(list).scrollPaddingLeft); t.ok(a.left >= b.left + (f === 'start' || f === 'both' ? pad : 0) - 0.5 && a.right <= b.right - (f === 'end' || f === 'both' ? pad : 0) + 0.5, `${width}px: ${why}: tab ${i} (${Math.round(a.left)} to ${Math.round(a.right)}) lies inside the strip (${Math.round(b.left)} to ${Math.round(b.right)}) and clear of its fade`); };
+            tabs[0].focus();
+            for (let i = 1; i < tabs.length; i++) { t.key(document.activeElement, 'ArrowRight'); await still(list); t.eq(el.value, 's' + i); inside(i, 'ArrowRight'); }
+            t.key(document.activeElement, 'ArrowRight'); await still(list); inside(0, 'wrapping to the first tab');
+            t.key(document.activeElement, 'End'); await still(list); inside(7, 'End');
+            t.key(document.activeElement, 'ArrowLeft'); await still(list); inside(6, 'ArrowLeft');
+            t.key(document.activeElement, 'Home'); await still(list); inside(0, 'Home');
+            el.value = 's4'; await t.settle(); await still(list); inside(4, 'setting value');
+        }
+    }],
+
+    ['tabs scroll: the overflow affordance is on the sides with more tabs, follows the scroll and the tab list, and is absent when the tabs fit (issue 339)', async t => {
+        const still = async list => { let last = NaN, n = 0; while (n < 3) { await new Promise(r => setTimeout(r, 60)); n = list.scrollLeft === last ? n + 1 : 0; last = list.scrollLeft; } };
+        const html = n => '<pk-tabs scroll value="a">' + Array.from({ length: n }, (_, i) => `<pk-tab value="${i ? 'x' + i : 'a'}">Tab number ${i}</pk-tab>`).join('') + '</pk-tabs>';
+        const host = t.stage(html(12)); host.style.width = '375px'; await t.load(host);
+        const el = host.firstElementChild, list = el.part('list');
+        const mask = () => getComputedStyle(list).maskImage;
+        t.ok(list.scrollWidth > list.clientWidth, 'the tabs overflow');
+        t.eq(list.getAttribute('data-fade'), 'end', 'at the start only the end side has more'); t.ok(mask() !== 'none', 'and it is drawn');
+        list.scrollLeft = 150; await still(list); t.eq(list.getAttribute('data-fade'), 'both', 'in the middle both sides have more');
+        list.scrollLeft = list.scrollWidth; await still(list); t.eq(list.getAttribute('data-fade'), 'start', 'at the end only the start side has more'); t.ok(mask() !== 'none');
+        host.style.width = '2000px'; await t.settle(); await new Promise(r => setTimeout(r, 100));
+        t.ok(list.scrollWidth <= list.clientWidth, 'wide enough: the tabs fit'); t.ok(!list.hasAttribute('data-fade') && mask() === 'none', 'no affordance when everything fits (the width changed, nothing polled)');
+        host.style.width = '375px'; await t.settle(); await new Promise(r => setTimeout(r, 100));
+        t.ok(list.hasAttribute('data-fade'), 'narrower again: the affordance is back');
+        const rtl = t.stage('<div dir="rtl">' + html(12) + '</div>'); rtl.style.width = '375px'; await t.load(rtl);
+        const rl = rtl.querySelector('pk-tabs').part('list');
+        t.eq(rl.getAttribute('data-fade'), 'end', 'right to left: the strip starts at the right, so the end (left) side has more');
+        t.ok(getComputedStyle(rl).maskImage.startsWith('linear-gradient(to right, rgba(0, 0, 0, 0)'), 'and the fade is drawn on the left edge (the gradient that fades in from transparent)');
+        rl.scrollLeft = -rl.scrollWidth; await still(rl); t.eq(rl.getAttribute('data-fade'), 'start', 'scrolled to the far end: only the start (right) side has more');
+    }],
+
+    ['tabs scroll: the focus ring of a tab is inside the strip and is not clipped, focus from the keyboard (issue 338)', async t => {
+        const host = t.stage('<pk-tabs scroll value="a"><pk-tab value="a">One</pk-tab><pk-tab value="b">Two</pk-tab><pk-tab value="c">Three</pk-tab></pk-tabs>');
+        await t.load(host);
+        const el = host.firstElementChild, list = el.part('list'), [a, b] = el.querySelectorAll('pk-tab');
+        a.focus(); t.key(a, 'ArrowRight'); await t.settle();
+        const cs = getComputedStyle(b), off = parseFloat(cs.outlineOffset) || 0, w = parseFloat(cs.outlineWidth) || 0;
+        t.ok(cs.outlineStyle !== 'none' && b.matches(':focus-visible'), 'the focused tab shows its ring');
+        const r = b.getBoundingClientRect(), l = list.getBoundingClientRect();
+        t.ok(r.top - (off + w) >= l.top - 0.5 && r.bottom + off + w <= l.bottom + 0.5 && r.left - (off + w) >= l.left - 0.5 && r.right + off + w <= l.right + 0.5, `the ring (offset ${off}, width ${w}) fits in the strip: tab ${Math.round(r.top)}-${Math.round(r.bottom)}, strip ${Math.round(l.top)}-${Math.round(l.bottom)}`);
     }],
 
     ['mounting 200 buttons is fast enough to be unnoticeable', async t => {
