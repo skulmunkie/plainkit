@@ -7,7 +7,7 @@
     { "name": "value", "type": "string", "default": "", "reflect": true, "commit": "pk-tab-change", "description": "The value of the selected tab. Empty selects the first enabled tab." },
     { "name": "activation", "type": "enum", "default": "auto", "values": ["auto", "manual"], "reflect": true, "description": "auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space." },
     { "name": "noneActive", "type": "boolean", "default": false, "reflect": true, "description": "No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs." },
-    { "name": "scroll", "type": "boolean", "default": false, "reflect": true, "description": "One row that slides (touch swipe, wheel, drag) when the tabs outgrow the width, with a fade at the edge that has more tabs, instead of wrapping onto more rows." }
+    { "name": "scroll", "type": "boolean", "default": false, "reflect": true, "description": "One row that slides (touch swipe, mouse wheel, trackpad, drag) when the tabs outgrow the width, instead of wrapping onto more rows. A fade marks the edge that has more tabs (it follows the scroll, the tab list and the width, and mirrors in right-to-left); moving to a tab with the arrow keys, Home, End or a click scrolls it fully into view, clear of the fade, smoothly unless the reader prefers reduced motion." }
   ],
   "slots": [
     { "name": "tab", "description": "pk-tab children (they assign themselves to this slot).", "selfAssigned": true },
