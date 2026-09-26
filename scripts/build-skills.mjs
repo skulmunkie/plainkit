@@ -217,6 +217,9 @@ export function collect() {
         entryHeader: headerComment(read(path.join(core, 'js', 'plainkit.js'))),
         entryExports: exportsOf(dist('js/plainkit.js')),
         logExports: exportsOf(dist('js/log.js')),
+        storeHeader: headerComment(read(dist('js/store.js'))),
+        storeExtrasHeader: headerComment(read(dist('js/store-extras.js'))),
+        storeExports: ['js/store.js', 'js/store-extras.js', 'js/settings.js'].map(f => [f, exportsOf(dist(f))]),
         loaderExports: exportsOf(dist('js/loader.js')),
         themeExports: exportsOf(dist('js/theme.js')),
         standards: read(path.join(core, 'STANDARDS.md')),
@@ -322,6 +325,17 @@ function loggingMd(src) {
         '## Turn it on', '', 'Without touching code: add `?pk-log=debug` to the address, or `data-pk-log="debug"` on `<html>`. In code:', '',
         fence('js', "import { createLogger, configureLogging } from './plainkit/js/log.js';\n\nconfigureLogging({ level: 'info', scopes: { checkout: 'debug' }, routes: { error: ['console', 'toast'] } });\nconst log = createLogger('checkout');\nlog.info('order placed', { id: 42 });"), '',
         'From the browser console: `PkLog.setLogLevel(\'debug\')`. Settings saved with `configureLogging(settings, { persist: true })` survive a reload; `resetLogging()` forgets them. See `tools.md` for `mountLogs` (the viewer) and `mountLogSettings` (an editor for these settings).', ''].join('\n');
+}
+
+function stateMd(src) {
+    return ['# State: the store', '', stamp(src, 'dist/js/store.js, dist/js/store-extras.js and dist/js/settings.js'), '',
+        'Per-module state that is namespaced, versioned, validated, subscribable and optionally saved in `localStorage`. Saved and cross-tab data is untrusted: a corrupt, oversized, wrong-type, unknown-key, newer or unmigratable value falls back to the defaults with one logged warning and never throws. A module sees only its own keys; other modules read its `publish` keys through `store.read(id)`, as a read-only copy. Never store secrets in it. The header of `js/store.js`, verbatim:', '', fence('text', src.storeHeader), '',
+        '## Opt-in helpers', '', 'They wrap a module spec, so a page that needs neither ships neither. The header of `js/store-extras.js`, verbatim:', '', fence('text', src.storeExtrasHeader), '',
+        '## Exports', '', src.storeExports.map(([f, names]) => `- \`dist/${f}\`: ${names.map(code).join(', ')}`).join('\n'), '',
+        '## Use it', '',
+        fence('js', "import { createStore } from './plainkit/js/store.js';\nimport { syncTabs } from './plainkit/js/store-extras.js';\n\nconst store = createStore({ prefix: 'myapp', version: 1 });\nconst prefs = store.module('prefs', syncTabs({\n    defaults: { scale: 1, density: 'comfortable' },\n    schema: { scale: { min: 0.5, max: 2 }, density: { enum: ['comfortable', 'compact'] } },\n    persist: ['scale', 'density'],\n    publish: ['density'],\n}));\nprefs.set('scale', 1.25);                          // false (and a warning) when the value is invalid\nconst off = prefs.subscribe(state => paint(state)); // call off() to unsubscribe\nstore.read('prefs').density;                         // what another module may read"), '',
+        '## Change the saved shape', '', 'Raise `version` and give the module a `migrate(data, fromVersion)` that returns the new data; its result is validated like any saved value. Without a working `migrate` an older saved copy falls back to the defaults.', '',
+        '## Blazor', '', 'The Blazor store (`IPkStore`) is a later step of the app-framework work and will read and write the same `{ v, data }` envelope. Nothing in this reference applies to Blazor yet.', ''].join('\n');
 }
 
 function openersMd(src) {
@@ -828,6 +842,7 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/tools.md', toolsMd(src));
     put('plainkit-sdk', 'references/logging.md', loggingMd(src));
     put('plainkit-sdk', 'references/openers.md', openersMd(src));
+    put('plainkit-sdk', 'references/state.md', stateMd(src));
     put('plainkit-sdk', 'references/theming.md', themingMd(src));
     put('plainkit-sdk', 'references/loading.md', loadingMd(src));
     put('plainkit-sdk', 'references/known-gaps.md', sdkGapsMd(src));
@@ -837,7 +852,7 @@ export function generate(src = collect()) {
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
     put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).'));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
-    const describe = { 'choosing.md': CHOOSING_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
+    const describe = { 'choosing.md': CHOOSING_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
