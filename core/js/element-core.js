@@ -8,22 +8,22 @@ export const camel = n => n.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 // A missing value (null, undefined) and an empty number are not mistakes: the prop is just unset.
 export function coerce(def, raw, fromAttr = false, report = null) {
     switch (def.type) {
-        case 'boolean': return fromAttr ? raw !== null && raw !== 'false' : Boolean(raw);
+        case 'boolean': return fromAttr ? raw != null && raw !== 'false' : !!raw;
         case 'number': {
             const n = Number(raw);
-            if (raw === null || raw === '' || raw === undefined) return def.default;
-            if (Number.isNaN(n)) { report?.('is not a number', def.default); return def.default; }
+            if (raw == null || raw === '') return def.default;
+            if (isNaN(n)) { report?.('is not a number', def.default); return def.default; }
             return n;
         }
         case 'enum':
             if (def.values.includes(raw)) return raw;
-            if (raw !== null && raw !== undefined) report?.(`is not one of ${def.values}`, def.default);
+            if (raw != null) report?.(`is not one of ${def.values}`, def.default);
             return def.default;
         case 'json': {
             if (!fromAttr) return raw === undefined ? def.default : raw;
-            try { return raw === null ? def.default : JSON.parse(raw); } catch { report?.('is not valid JSON', def.default); return def.default; }
+            try { return raw == null ? def.default : JSON.parse(raw); } catch { report?.('is not valid JSON', def.default); return def.default; }
         }
-        default: return raw === null || raw === undefined ? def.default : String(raw);
+        default: return raw == null ? def.default : String(raw);
     }
 }
 
@@ -32,7 +32,7 @@ export function parseBindings(text) {
     const parts = []; let last = 0;
     for (const m of text.matchAll(/\{\{\s*([\w.]+)(\|str)?\s*\}\}/g)) {
         if (m.index > last) parts.push(text.slice(last, m.index));
-        parts.push({ key: m[1], str: Boolean(m[2]) }); last = m.index + m[0].length;
+        parts.push({ key: m[1], str: !!m[2] }); last = m.index + m[0].length;
     }
     if (last < text.length) parts.push(text.slice(last));
     return parts;
@@ -41,6 +41,6 @@ export function parseBindings(text) {
 // The value of a bound text or attribute: a lone binding on an attribute removes it for false/null/undefined and sets '' for true.
 export function bindValue(parts, values, isAttr = false) {
     const lone = parts.length === 1 && typeof parts[0] === 'object' && !parts[0].str;
-    if (isAttr && lone) { const v = values[parts[0].key]; return v === false || v === null || v === undefined || v === '' ? null : v === true ? '' : String(v); }
+    if (isAttr && lone) { const v = values[parts[0].key]; return v === false || v == null || v === '' ? null : v === true ? '' : String(v); }
     return parts.map(p => (typeof p === 'string' ? p : String(values[p.key] ?? ''))).join('');
 }
