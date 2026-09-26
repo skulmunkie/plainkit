@@ -13,6 +13,12 @@
     public new string? StatusHeading => base.StatusHeading;
     public new bool IsBusy => base.IsBusy;
     public new string? BusyLabel => base.BusyLabel;
+    public new bool ShowBusyOverlay => base.ShowBusyOverlay;
+    public int DelayMs { get; set; }
+    public int MinMs { get; set; }
+    protected override TimeSpan BusyDelay => TimeSpan.FromMilliseconds(DelayMs);
+    protected override TimeSpan BusyMinTime => TimeSpan.FromMilliseconds(MinMs);
+    public IDisposable CallBeginBusy(string? label = null) => BeginBusy(label);
 
     public void CallSetStatus(string message, string kind = "info", string? heading = null) => SetStatus(message, kind, heading);
     public void CallClearStatus() => ClearStatus();

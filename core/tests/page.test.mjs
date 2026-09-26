@@ -132,3 +132,154 @@ test('busy with no overlay still runs fn and still surfaces a rejection as a sta
     await assert.rejects(() => page.busy(() => { throw new Error('x'); }));
     assert.equal(alert.kind, 'danger');
 });
+
+// Counted busy (issue 371)
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const gate = () => { let go; const p = new Promise(r => { go = r; }); return [p, go]; };
+
+test('counted busy: overlapping actions keep busy true until the last finishes; the label is the most recent still running', async () => {
+    const overlay = new El('pk-loading-overlay');
+    const page = createPage({ overlay, alert: new El('pk-alert') });
+    const [a, endA] = gate(), [b, endB] = gate();
+    const first = page.busy(() => a, 'First');
+    const second = page.busy(() => b, 'Second');
+    assert.equal(page.isBusy, true);
+    assert.equal(page.busyLabel, 'Second');
+    assert.equal(overlay.label, 'Second');
+    endB(); await second;
+    assert.equal(page.isBusy, true, 'the first is still running');
+    assert.equal(overlay.busy, true);
+    assert.equal(page.busyLabel, 'First');
+    endA(); await first;
+    assert.equal(page.isBusy, false);
+    assert.equal(overlay.busy, false);
+});
+
+test('counted busy: a rejection releases only its own token, sets the danger status and rethrows', async () => {
+    fakeDom();
+    const alert = new El('pk-alert');
+    const page = createPage({ alert });
+    const [a, endA] = gate();
+    const slow = page.busy(() => a, 'Slow');
+    await assert.rejects(() => page.busy(async () => { throw new Error('bad'); }, 'Bad'));
+    assert.equal(page.isBusy, true);
+    assert.equal(page.busyLabel, 'Slow');
+    assert.equal(alert.kind, 'danger');
+    endA(); await slow;
+    assert.equal(page.isBusy, false);
+});
+
+test('begin() returns an idempotent end(); onBusyChange reports busy and label changes and returns its unsubscribe', () => {
+    const page = createPage({});
+    const seen = [];
+    const off = page.onBusyChange(s => seen.push(`${s.busy}:${s.label}`));
+    const endA = page.begin('A'), endB = page.begin('B');
+    endB(); endB();
+    assert.equal(page.isBusy, true);
+    endA();
+    assert.deepEqual(seen, ['true:A', 'true:B', 'true:A', 'false:']);
+    off();
+    page.begin('C')();
+    assert.equal(seen.length, 4);
+});
+
+test('a throwing onBusyChange listener is logged and does not break busy tracking', () => {
+    const page = createPage({ scope: 'listener-test' });
+    const entries = [];
+    const remove = addLogSink(e => entries.push(e));
+    try {
+        page.onBusyChange(() => { throw new Error('nope'); });
+        const end = page.begin('x');
+        end();
+    } finally { remove(); }
+    assert.equal(page.isBusy, false);
+    assert.equal(entries.filter(e => e.level === 'error').length, 2);
+});
+
+test('100 begin/end cycles and 100 create/destroy cycles leave no tokens, listeners or timers', () => {
+    const timers = new Set();
+    const realSet = globalThis.setTimeout, realClear = globalThis.clearTimeout;
+    globalThis.setTimeout = (fn, ms) => { const id = realSet(() => { timers.delete(id); fn(); }, ms); timers.add(id); return id; };
+    globalThis.clearTimeout = id => { timers.delete(id); realClear(id); };
+    try {
+        const overlay = new El('pk-loading-overlay');
+        const page = createPage({ overlay, delay: 50, minTime: 50 });
+        for (let i = 0; i < 100; i++) { const end = page.begin(`n${i}`); end(); }
+        assert.equal(page.isBusy, false);
+        assert.equal(timers.size, 0, 'no timer left after idle (delay cancelled: no flash)');
+        assert.notEqual(overlay.busy, true);
+        for (let i = 0; i < 100; i++) {
+            const p = createPage({ overlay: new El('pk-loading-overlay'), delay: 5, minTime: 5 });
+            p.onBusyChange(() => {}); p.begin('a'); p.begin('b');
+            p.destroy();
+            assert.equal(p.isBusy, false);
+        }
+        assert.equal(timers.size, 0, 'destroy clears its timers');
+        page.destroy();
+    } finally { globalThis.setTimeout = realSet; globalThis.clearTimeout = realClear; }
+});
+
+test('destroy releases everything; later begin/busy still run fn but track nothing', async () => {
+    const overlay = new El('pk-loading-overlay');
+    const page = createPage({ overlay });
+    page.begin('a');
+    assert.equal(overlay.busy, true);
+    page.destroy(); page.destroy();
+    assert.equal(page.isBusy, false);
+    assert.equal(overlay.busy, false);
+    assert.equal(await page.busy(() => 5, 'x'), 5);
+    assert.equal(page.isBusy, false);
+});
+
+function ownedDom() {
+    class Node2 extends El {
+        constructor(t) { super(t); this.parent = null; this.attrs = {}; }
+        append(...k) { for (const c of k) { c.parent = this; this.children.push(c); } }
+        remove() { if (this.parent) this.parent.children = this.parent.children.filter(c => c !== this); this.parent = null; }
+        replaceWith(n) { const p = this.parent; p.children = p.children.map(c => (c === this ? n : c)); n.parent = p; this.parent = null; }
+        setAttribute(k, v) { this.attrs[k] = v; }
+        removeAttribute(k) { delete this.attrs[k]; }
+    }
+    globalThis.document = { title: '', createElement: t => new Node2(t) };
+    const root = new Node2('div'); const body = new Node2('main'); root.append(body);
+    globalThis.document.body = new Node2('body');
+    return { root, body };
+}
+
+test('framework-owned overlay: wraps body once, shows only after the delay, keeps the minimum time, sets aria-busy, unwraps on destroy', async () => {
+    const { root, body } = ownedDom();
+    const page = createPage({ body, delay: 40, minTime: 80 });
+    const ov = root.children[0];
+    assert.equal(ov.localName, 'pk-loading-overlay');
+    assert.equal(ov.children[0], body);
+    const end = page.begin('Fast');
+    assert.equal(body.attrs['aria-busy'], 'true');
+    assert.notEqual(ov.busy, true);
+    await sleep(10); end();
+    await sleep(60);
+    assert.notEqual(ov.busy, true, 'no flash for an action under the delay');
+    assert.equal(body.attrs['aria-busy'], undefined);
+    const end2 = page.begin('Slow & <b>bold</b>');
+    await sleep(60);
+    assert.equal(ov.busy, true);
+    assert.equal(ov.label, 'Slow & <b>bold</b>', 'the label is handed over as text');
+    end2();
+    assert.equal(ov.busy, true, 'still shown right after it ended (minimum time)');
+    await sleep(120);
+    assert.equal(ov.busy, false);
+    const e3 = page.begin('Again'); await sleep(60); assert.equal(ov.busy, true);
+    e3(); const e4 = page.begin('Overlap'); await sleep(120); assert.equal(ov.busy, true, 'a new action during the hold keeps it shown'); e4();
+    page.destroy();
+    assert.equal(root.children[0], body, 'destroy puts the body back');
+});
+
+test('fullscreen (app scope) creates a fullscreen overlay on the document body and removes it on destroy', () => {
+    ownedDom();
+    const page = createPage({ fullscreen: true, delay: 0 });
+    const ov = globalThis.document.body.children[0];
+    assert.equal(ov.fullscreen, true);
+    page.begin('x');
+    assert.equal(ov.busy, true);
+    page.destroy();
+    assert.equal(globalThis.document.body.children.length, 0);
+});

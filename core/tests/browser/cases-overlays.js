@@ -566,4 +566,46 @@ export const overlaysCases = [
         const p = await t.mount('<pk-pager><a slot="prev" href="#">Prev</a><span>2 of 5</span><a slot="next" href="#">Next</a></pk-pager>');
         t.eq(p.slotted('prev').length, 1); t.eq(p.slotted('next').length, 1);
     }],
+
+    ['page busy: a framework-owned overlay appears after the delay, stays the minimum time, shifts no layout, and never flashes for a fast action', async t => {
+        const { createPage } = await import('../../js/page.js');
+        const host = t.stage('<div><main id="pb-body"><h2>Orders</h2><p>Row one</p><button>Inside</button></main></div>');
+        await t.load(host);
+        const body = host.querySelector('#pb-body');
+        const before = body.getBoundingClientRect();
+        let cls = 0;
+        const po = new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) cls += e.value; });
+        po.observe({ type: 'layout-shift', buffered: false });
+        const page = createPage({ body, delay: 80, minTime: 200 });
+        const ov = body.parentElement;
+        t.eq(ov.localName, 'pk-loading-overlay'); await t.load(host);
+        const same = () => { const r = body.getBoundingClientRect(); return r.x === before.x && r.y === before.y && r.width === before.width && r.height === before.height; };
+        t.ok(same(), 'wrapping does not move the body');
+        const fast = page.begin('Quick'); await wait(20); t.eq(body.getAttribute('aria-busy'), 'true'); fast(); await wait(140);
+        t.ok(!ov.busy && getComputedStyle(ov.part('overlay')).display === 'none', 'an action shorter than the delay never shows the overlay'); t.ok(!body.hasAttribute('aria-busy'));
+        const slow = page.begin('Saving <b>x</b>'); await wait(30); t.ok(!ov.busy, 'not yet, inside the delay');
+        await wait(90); t.ok(ov.busy, 'shown after the delay'); t.eq(getComputedStyle(ov.part('overlay')).display, 'flex');
+        t.eq(ov.part('label').textContent, 'Saving <b>x</b>', 'the label is text'); t.eq(ov.part('label').children.length, 0);
+        t.ok(ov.part('overlay').getAttribute('aria-live') === 'polite' && ov.part('overlay').getAttribute('role') === 'status', 'announced politely');
+        t.ok(same(), 'showing the overlay moves nothing');
+        slow(); await wait(20); t.ok(ov.busy, 'still shown inside the minimum time'); await wait(260); t.ok(!ov.busy, 'hidden after the minimum time');
+        await wait(50); po.disconnect(); t.ok(cls < 0.001, `layout shift while the overlay showed and hid: ${cls}`);
+        page.destroy(); t.ok(body.parentElement === host.firstElementChild, 'destroy puts the body back'); t.ok(!host.querySelector('pk-loading-overlay'));
+    }],
+
+    ['page busy: overlapping actions keep the overlay up until the last one finishes; a rejection releases only its own token', async t => {
+        const { createPage } = await import('../../js/page.js');
+        const host = t.stage('<pk-alert id="pb-alert" hidden></pk-alert><div><main id="pb2"><button>Inside</button></main></div>');
+        await t.load(host);
+        const page = createPage({ body: host.querySelector('#pb2'), alert: host.querySelector('#pb-alert'), delay: 0, minTime: 0 });
+        const ov = host.querySelector('pk-loading-overlay'); await t.load(host);
+        let endA; const a = page.busy(() => new Promise(r => { endA = r; }), 'First');
+        let endB; const b = page.busy(() => new Promise(r => { endB = r; }), 'Second'); await t.settle();
+        t.ok(ov.busy); t.eq(ov.part('label').textContent, 'Second'); t.ok(ov.part('content').inert);
+        endB(); await b; await t.settle(); t.ok(ov.busy, 'the first is still running'); t.eq(ov.part('label').textContent, 'First');
+        await page.busy(async () => { throw new Error('boom'); }, 'Bad').catch(() => { /* the case only checks the token */ }); await t.settle(); t.ok(ov.busy, 'the failure released only its own token');
+        t.eq(host.querySelector('#pb-alert').kind, 'danger');
+        endA(); await a; await t.settle(); t.ok(!ov.busy && !ov.part('content').inert, 'idle after the last');
+        page.destroy();
+    }],
 ];

@@ -29,7 +29,7 @@ test('the element base runtime stays inside its budget', () => {
 });
 
 test('every behaviour module stays inside the per-module gzip budget and the base set stays small', () => {
-    const modules = ['js/theme', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize'];
+    const modules = ['js/theme', 'js/page', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize'];
     for (const m of modules) assert.ok(gzKb(read(`${m}.js`)) < BUDGETS.jsModuleGzKb.limit, `${m}.js is over ${BUDGETS.jsModuleGzKb.limit} KB gzip`);
     const base = ['js/plainkit', 'js/invokers', 'js/log', 'js/loader', 'js/theme', 'js/colour', 'js/dynamic'].map(m => read(`${m}.js`)).join('');
     assert.ok(gzKb(base) < BUDGETS.baseJsGzKb.limit, 'the base script set grew past its budget');

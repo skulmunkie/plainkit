@@ -327,7 +327,7 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 {
     <PkAlert Kind="@StatusKind" Heading="@StatusHeading">@StatusMessage</PkAlert>
 }
-<PkLoadingOverlay Busy="@IsBusy" Label="@BusyLabel">
+<PkLoadingOverlay Busy="@ShowBusyOverlay" Label="@BusyLabel">
     @* orders list *@
 </PkLoadingOverlay>
 
@@ -342,7 +342,7 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 }
 ```
 
-`BusyAsync` sets `IsBusy` around the action; an exception it throws is logged through `IPkLog` (so it lands beside the SDK's own log entries, under a scope named after the page's type by default — override `LogScope` to change it) and shown as a danger status, then rethrown so the caller's own handling still runs. This is the same small model `core/js/page.js`'s `createPage` gives a vanilla page — title, status, busy, breadcrumbs and logging built from elements already on the page — so a Blazor page and a hand-written one wire the same three concerns the same way.
+`BusyAsync` holds a busy token around the action. Busy is counted: overlapping `BusyAsync` calls each hold their own token, `IsBusy` stays true until the last one ends, and `BusyLabel` is the label of the most recent action still running. `BeginBusy(label)` returns a disposable for work that is not one awaited action (`using var busy = BeginBusy("Saving…");`). Bind the overlay to `ShowBusyOverlay`, not `IsBusy`: it turns true only when busy lasts longer than `BusyDelay` (150 ms, so a fast action never flashes it) and stays for at least `BusyMinTime` (300 ms, so it never flickers); both are `protected virtual` and can be overridden. The page releases every token and timer when Blazor disposes it (a page with its own `Dispose` calls `ReleaseBusy()` from it). An exception it throws is logged through `IPkLog` (so it lands beside the SDK's own log entries, under a scope named after the page's type by default — override `LogScope` to change it) and shown as a danger status, then rethrown so the caller's own handling still runs. This is the same small model `core/js/page.js`'s `createPage` gives a vanilla page — title, status, busy, breadcrumbs and logging built from elements already on the page — so a Blazor page and a hand-written one wire the same three concerns the same way.
 
 `Crumbs` is host-supplied (`IReadOnlyList<PkCrumb>`, the same shape `PkPageHeader` already takes), not derived from a route tree: core has no router today, and `PkSideNav`/`PkAppBarSearch` above resolve their own route state the same explicit way. A route-derived breadcrumb (and other route-driven page state) is tracked as a separate, later piece of work — see issue 219.
 

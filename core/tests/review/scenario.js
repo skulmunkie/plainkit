@@ -8,6 +8,8 @@
 //   { click: sel } { hover: sel } { focus: sel } { key: 'Tab', times?: 2 } { type: 'text' } { scroll: sel, to: 800 } { set: sel, attr|prop: name, value }
 //   { resize: 400 } { wait: 'settle' | ms } { shot: 'name' }
 // A selector is a CSS selector; `a >>> b` looks for b inside the shadow tree of the first a (any depth of >>>).
+// An optional `setup(frame)` (sync or async, runs in the page only) wires behaviour the markup cannot carry: click handlers, a page object (CSP allows no
+// inline handlers). Import what it needs at the top of the scenario module with a relative path; the module is also loaded in Node, so touch no DOM at the top level.
 // expect(t) runs after every `shot` step, with t.shot = the shot's name, t.viewport = { name, width, height } and t.theme.
 
 export const VIEWPORT_NAMES = ['desktop', 'phone'];
@@ -27,6 +29,7 @@ export function validateScenario(s, known = null) {
     if (s.viewports !== undefined && (!Array.isArray(s.viewports) || !s.viewports.length || s.viewports.some(v => !VIEWPORT_NAMES.includes(v)))) bad.push(`viewports must be a non-empty subset of ${VIEWPORT_NAMES.join(', ')}`);
     if (s.themes !== undefined && (!Array.isArray(s.themes) || !s.themes.length || s.themes.some(v => !THEME_NAMES.includes(v)))) bad.push(`themes must be a non-empty subset of ${THEME_NAMES.join(', ')}`);
     if (typeof s.expect !== 'function') bad.push('expect(t) must be a function (a scenario states what it measures)');
+    if (s.setup !== undefined && typeof s.setup !== 'function') bad.push('setup(frame) must be a function (it runs in the page, once the markup is placed)');
     if (!Array.isArray(s.steps) || !s.steps.length) { bad.push('steps must be a non-empty array'); return bad; }
     const shots = new Set();
     s.steps.forEach((st, i) => {
