@@ -17,7 +17,7 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 - No literal colours: use the tokens (`references/theming.md`). No literal breakpoint widths in scripts: use the named breakpoints (same file, "Breakpoints"). The old class-based components (`.btn`, `.card`, `.modal-*`) no longer exist.
 - Text is `pk-text`, not a `<p>` or `<span>` with a class: a paragraph (`<pk-text tone="muted">`), a run inside a line (`<pk-text inline weight="semibold">`), a lead or eyebrow (`variant="lead"`, `variant="eyebrow"`), a mono figure (`font="mono"`). Real headings stay native `<h1>` to `<h6>` (they carry the heading role, level and outline); `variant="h1"` to `"h6"` is only the look, for text that should resemble a heading without being one. Layout is `pk-stack`, `pk-cluster` and `pk-grid`, not a styled `<div>`.
 - Never use anything a reference marks **Deprecated**: it logs a warning once, and it is removed in the release named there; use what the table says.
-- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning.
+- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it.
 
 ## References (open on demand)
 
@@ -58,8 +58,7 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 
 ```js
 // app.js
-import { initPlainkit } from './plainkit/js/init.js';
-initPlainkit();
+import { initPlainkit } from './plainkit/js/init.js'; initPlainkit();
 ```
 
 `js/init.js` is the small entry, `initPlainkit` alone. `js/plainkit.js` is the same plus the dynamic-value, theming and colour helpers; import it instead if the page uses those too (see `references/loading.md`).
