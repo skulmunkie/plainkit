@@ -209,7 +209,7 @@ export const appShellCases = [
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
-    ['mountApp: ctx.tasks shows a running task as a toast in the shell's bottom-end stack, and leaving the module cancels a cancellable one', async t => {
+    ['mountApp: ctx.tasks shows a running task as a toast in the bottom-end stack of the shell, and leaving the module cancels a cancellable one', async t => {
         const { mountApp, defineModule } = await src('js/app.js');
         const el = document.createElement('div'); t.stage('').append(el);
         let ctxA, aborted = false;
