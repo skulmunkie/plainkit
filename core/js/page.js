@@ -50,7 +50,7 @@ export function messageFor(input) {
 // { title?, alert?, overlay?, breadcrumb?, router?, scope?, body?, fullscreen?, delay?, minTime? } — each of title/alert/overlay/breadcrumb
 // is an element already in the host's markup (or null to skip that concern); scope names the logger (createLogger(scope), default 'page');
 // body / fullscreen / delay / minTime: see "The overlay" above. `router` is a route-tree router
-// (modules/router/router.js, duck-typed: crumbs() and subscribe(fn)): the page then derives its breadcrumbs and title from the current
+// (js/router.js, duck-typed: crumbs() and subscribe(fn)): the page then derives its breadcrumbs and title from the current
 // route now and on every route change, and destroy() stops following it. setBreadcrumbs/setTitle still override by hand.
 export function createPage({ title = null, alert = null, overlay = null, breadcrumb = null, router = null, scope = 'page', body = null, fullscreen = false, delay, minTime } = {}) {
     const log = createLogger(scope);

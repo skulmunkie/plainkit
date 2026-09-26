@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
-import { mountRouter, matchRoute, parseHash, buildHash, mapAlias, safeRoute, buildNavCrumbs } from '../modules/router/router.js';
+import { mountRouter, matchRoute, parseHash, buildHash, mapAlias, safeRoute, buildNavCrumbs } from '../js/router.js';
 
 const SCRIPT = 'java' + 'script:'; // built in two parts: the scanner flags a script address written out
 const routes = [{ path: '/', label: 'Home', children: [

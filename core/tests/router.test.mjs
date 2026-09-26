@@ -1,7 +1,7 @@
 // The route tree, its breadcrumb derivation, the mounted router and createPage's `router` option (modules/router/router.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { matchRoute, buildCrumbs, fillPath, mountRouter } from '../modules/router/router.js';
+import { matchRoute, buildCrumbs, fillPath, mountRouter } from '../js/router.js';
 import { createPage } from '../js/page.js';
 
 const routes = [{ path: '/', label: 'Home', children: [

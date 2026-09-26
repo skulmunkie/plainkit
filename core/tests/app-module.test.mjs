@@ -10,7 +10,7 @@ import { defineModule, moduleFromMount, registerPageType, registerLayout, pageTy
 import { createModuleHost } from '../js/app/host.js';
 import { createStore } from '../js/store.js';
 import { setLogLevel, addLogSink } from '../js/log.js';
-import { mountRouter } from '../modules/router/router.js';
+import { mountRouter } from '../js/router.js';
 import { mountLogSettings } from '../modules/log-settings/log-settings.js';
 import { mountFieldGroup } from '../modules/field-group/field-group.js';
 
@@ -461,7 +461,7 @@ test('a moduleFromMount module cancelled while its mount is still starting has i
 });
 
 test('the framework sources: no markup sinks, eval, bare console, polling, inline styles or handlers; every catch logs', () => {
-    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js'];
+    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js', 'app/app.js', 'app/config.js', 'app/nav.js', 'app/shell.js', 'router.js'];
     for (const f of files) {
         const src = fs.readFileSync(path.join(root, 'js', f), 'utf8').replace(/\/\/.*$/gm, '');
         assert.ok(!/innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function|setAttribute\(\s*['"]style|\.onclick|console\./.test(src), `${f} has a forbidden construct`);
@@ -474,7 +474,7 @@ test('the framework sources: no markup sinks, eval, bare console, polling, inlin
 test('size: each framework file stays inside the 6 KB gzip module budget (comments removed), and the whole lifecycle is small', () => {
     const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\n\s+/g, '\n');
     let total = 0;
-    for (const f of ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js']) {
+    for (const f of ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js', 'app/app.js', 'app/config.js', 'app/nav.js', 'app/shell.js']) {
         const kb = zlib.gzipSync(Buffer.from(strip(fs.readFileSync(path.join(root, 'js', f), 'utf8')))).length / 1024;
         total += kb;
         assert.ok(kb < 6, `js/${f} is ${kb.toFixed(2)} KB gzip, limit 6`);

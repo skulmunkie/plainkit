@@ -7,7 +7,7 @@ const fast = { timeout: 300, backoff: 20 };
 
 // Counts what a module could leak: listeners on window, document, <html> and <body>; live observers (mutation, resize, intersection, performance) that watch something still in the page
 // (an element's observer of its own removed subtree is freed with the element, not counted); intervals and long timers.
-function instrument() {
+export function instrument() {
     const listeners = new Set(), ids = new WeakMap(), timers = new Set(), observing = new Map();
     let n = 0;
     const id = fn => ids.get(fn) ?? (ids.set(fn, ++n), n);

@@ -8,7 +8,7 @@
 // any path nothing else matches. A path with no route is "not found": current() is null and crumbs() is empty (unless a not-found route
 // exists, below). Static segments beat a :param at the same depth.
 //
-//   import { mountRouter } from './plainkit/modules/router/router.js';
+//   import { mountRouter } from './plainkit/js/router.js';
 //   import { createPage } from './plainkit/js/page.js';
 //   const router = mountRouter(document.body, {
 //       routes: [{ path: '/', label: 'Home', children: [
@@ -37,10 +37,10 @@
 // params and query are untrusted text: put them in the page with textContent only. A same-page anchor ('#/guides/x/heading') is just a path the router
 // reports; the page type scrolls to it. navigate(to, { replace }) takes an app-relative path with an optional query and refuses anything else.
 
-import { createLogger } from '../../js/log.js';
-import { matchRoute, buildCrumbs, fillPath, labelOf, parseHash, buildHash, mapAlias, safeRoute } from '../../js/route-tree.js';
+import { createLogger } from './log.js';
+import { matchRoute, buildCrumbs, fillPath, labelOf, parseHash, buildHash, mapAlias, safeRoute } from './route-tree.js';
 
-export { flattenRoutes, matchRoute, buildCrumbs, fillPath, navRoutes, buildNavCrumbs, parseHash, buildHash, mapAlias, safeRoute } from '../../js/route-tree.js';
+export { flattenRoutes, matchRoute, buildCrumbs, fillPath, navRoutes, buildNavCrumbs, parseHash, buildHash, mapAlias, safeRoute } from './route-tree.js';
 
 const log = createLogger('router');
 const HOPS = 5; // alias and guard redirects followed for one address before it is given up

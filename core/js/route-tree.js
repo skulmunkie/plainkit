@@ -1,4 +1,4 @@
-// The route tree logic behind modules/router/router.js, pure so node tests and samples can use it without a DOM: match a path against
+// The route tree logic behind js/router.js, pure so node tests and samples can use it without a DOM: match a path against
 // a nested tree of { path, label, children?, crumb? } and derive the breadcrumb trail. A `:name` path segment captures; `label` is a
 // string or (params) => string; `crumb: false` leaves a route out of the trail; static segments beat a :param at the same depth. A route
 // with path '*' is the not-found route: it matches only when nothing else does. A node with no path is a group (a nav heading): it
@@ -59,7 +59,7 @@ export function buildCrumbs(match) {
 
 // A nav tree ({ id, title, route?, children? } items, the shape pk-side-nav is built from) as a route tree, so one tree gives the
 // links, `current` and the trail. Pure.
-export const navRoutes = nav => nav.map(n => ({ path: n.route, label: n.title, crumb: n.crumb, children: navRoutes(n.children ?? []) }));
+export const navRoutes = nav => nav.map(n => ({ id: n.id, path: n.route, label: n.title, crumb: n.crumb, children: navRoutes(n.children ?? []) }));
 
 // The breadcrumb trail of `path` through a nav tree: the ancestor titles down to the item whose route it is; [] when the nav has no such route. Pure.
 export function buildNavCrumbs(nav, path) {

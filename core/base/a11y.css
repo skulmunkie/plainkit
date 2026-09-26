@@ -13,6 +13,14 @@ summary:focus-visible,
     outline-offset: 2px;
 }
 
+/* A heading a script focuses after a route change (tabindex -1) marks a place, not a control: its ring hugs the text, not the whole row, and stays inside the page padding. */
+h1[tabindex="-1"]:focus-visible {
+    width: fit-content;
+    max-width: 100%;
+    outline-offset: var(--space-1);
+    border-radius: var(--radius-sm);
+}
+
 button,
 a.btn-primary,
 a.btn-ghost,
