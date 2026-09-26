@@ -39,6 +39,7 @@
 //   log                createLogger('app:<id>').
 //   on(target, type, fn, options) / observe(observer, target, options) / after(ms, fn)   listeners, observers and one-shot timers that core removes; each returns how to
 //                      stop it early. Called after that end they do nothing and warn.
+//   tasks              { run(spec) } from the app's task manager (js/tasks.js): long work shown as progress toasts; null when the app has none. Ends with this ctx: cancellable tasks cancel, the others continue.
 //   signal             an AbortSignal that aborts at that end (pass it to fetch).
 //   auth               what the app passed as `auth`.
 // The ctx of mount/unmount ends on unmount. A page factory gets its own ctx with the same members whose on/observe/after/signal end when the page is left (a route change

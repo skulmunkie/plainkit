@@ -6,6 +6,7 @@
 //       router,          // optional mountRouter handle (hash mode): ctx.navigate / ctx.href use it
 //       auth, can,       // optional: ctx.auth (opaque to the framework), and (entry, { auth, id, route }) => true | { allow: false, redirect } for the whole app
 //       store, settings, // optional: a createStore() (default: one of its own, prefix 'pk'), and the app settings facade given to ctx.settings
+//       tasks,           // optional: the app's task manager, createTasks({ container, ... }) from js/tasks.js (the shell makes it); ctx.tasks.run(spec) then runs a task of the module (or page)
 //   });
 //   const router = mountRouter(el, { mode: 'hash', routes: [...], guard: host.guard });   // access is checked BEFORE anything is imported...
 //   await host.open('/orders/7?tab=x');                                                    // ...and again here, at mount, after the import
@@ -36,7 +37,7 @@ const join = (id, p) => `/${id}${norm(p) === '/' ? '' : norm(p)}`;
 const cleanupOf = out => (typeof out === 'function' ? out : out?.destroy ? () => out.destroy() : null);
 const safe = async (fn, what, lg) => { try { await fn?.(); } catch (e) { lg.error(`${what} threw`, e); } };
 
-export function createModuleHost(container, { modules = [], router, auth, can, store, settings, timeout = 10000, retries = 1, backoff = 300, elements = loadElements } = {}) {
+export function createModuleHost(container, { modules = [], router, auth, can, store, settings, tasks, timeout = 10000, retries = 1, backoff = 300, elements = loadElements } = {}) {
     const allow = new Map();
     for (const m of modules) {
         if (!m || typeof m.id !== 'string' || !MODULE_ID.test(m.id) || typeof m.load !== 'function' || allow.has(m.id)) throw new TypeError(`createModuleHost: bad, missing or duplicate module entry ${JSON.stringify(m?.id)}`);
@@ -82,12 +83,15 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     const access = (entry, def, route) => verdict(entry.id, route, can && (c => can(entry, c)), entry.can, def?.can);
 
     // A scope of tracked resources: what on/observe/after/signal register ends with end(); late calls do nothing.
-    function scope(lg) {
+    function scope(lg, busy) {
         const ac = new AbortController(), off = new Set();
+        // ctx.tasks: tasks of this scope; when it ends its cancellable tasks are cancelled and the others continue with their toast (js/tasks.js).
+        const ts = tasks?.scope({ busy });
         const own = fn => (off.add(fn), fn);
         const live = what => !ac.signal.aborted || (lg.warn(`${what}() after the end of its scope ignored`), false);
         const api = {
             signal: ac.signal,
+            tasks: ts ? { run: ts.run } : null,
             on(target, type, fn, o) {
                 if (!live('on')) return () => {};
                 target.addEventListener(type, fn, o);
@@ -115,6 +119,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         };
         const end = async () => {
             ac.abort();
+            ts?.end();
             for (const fn of [...off].reverse()) await safe(fn, 'cleanup', lg);
             off.clear();
         };
@@ -131,11 +136,11 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             navigate: (p, o) => (router ? router.navigate(join(id, p), o) : (lg.warn('navigate: no router was given to the host'), false)),
             href: (p, params, query) => (router ? router.href(join(id, p), params, query) : null),
         };
-        const mine = scope(lg);
+        const mine = scope(lg, page.begin);
         return {
             ctx: Object.create(base, mine.api), lg,
             // A ctx for one page: the same members, with resources that end when the page is left.
-            pageScope() { const p = scope(lg); return { ctx: Object.create(base, p.api), end: p.end }; },
+            pageScope() { const p = scope(lg, page.begin); return { ctx: Object.create(base, p.api), end: p.end }; },
             // Ends everything the module registered, last first; nothing here can throw.
             async dispose() {
                 await mine.end();

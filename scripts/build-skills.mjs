@@ -222,7 +222,8 @@ export function collect() {
         storeExports: ['js/store.js', 'js/store-extras.js', 'js/settings.js'].map(f => [f, exportsOf(dist(f))]),
         appModuleHeader: headerComment(read(dist('js/app/module.js'))),
         appHostHeader: headerComment(read(dist('js/app/host.js'))),
-        appExports: ['js/app.js', 'js/app/module.js', 'js/app/host.js'].map(f => [f, exportsOf(dist(f))]),
+        tasksHeader: headerComment(read(dist('js/tasks.js'))),
+        appExports: ['js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/tasks.js'].map(f => [f, exportsOf(dist(f))]),
         loaderExports: exportsOf(dist('js/loader.js')),
         themeExports: exportsOf(dist('js/theme.js')),
         standards: read(path.join(core, 'STANDARDS.md')),
@@ -342,14 +343,16 @@ function stateMd(src) {
 }
 
 function appMd(src) {
-    return ['# App modules: defineModule, moduleFromMount and the module host', '', stamp(src, 'dist/js/app.js, dist/js/app/module.js and dist/js/app/host.js'), '',
+    return ['# App modules: defineModule, moduleFromMount and the module host', '', stamp(src, 'dist/js/app.js, dist/js/app/module.js, dist/js/app/host.js and dist/js/tasks.js'), '',
         'The app framework (tracker 346) is built in steps; this is step 3. A module is what one part of an app is: business logic plus the configs of existing page types, with an id, a title, its own routes, optional `nav`, `state` (a `createStore` module spec, `references/state.md`), `can` and `mount`/`unmount`. `createModuleHost` runs modules one at a time with a fixed lifecycle, tracked listeners, observers and timers that are removed on unmount, and a boundary around every step that can fail: a loading state, a danger alert with Retry, a forbidden state and a not-found state. The shell, `mountApp`, the built-in page types and `mountPage` come in later steps; until then a page is the `custom` type. Blazor: no surface yet (`IPkModule` is a later step). The header of `js/app/module.js`, verbatim (it also documents the `ctx` every module and page receives):', '', fence('text', src.appModuleHeader), '',
         '## The host', '', 'The header of `js/app/host.js`, verbatim:', '', fence('text', src.appHostHeader), '',
         '## Rules', '', '- The module list is the allow-list: the only code the host ever imports is the `load` function of an entry in `modules`, written as a literal `() => import(\'./modules/orders.js\')`. A module id from an address is only a key; an unknown one shows not-found and calls no loader.',
         '- A failed or slow import is retried once, then shows the danger alert with Retry and leaves the previous module mounted. A throwing `mount`, page or `unmount` is logged (scope `app:<id>`) and shown by the boundary; the other modules and the page keep working.',
         '- Register listeners, observers and timers only through `ctx.on`, `ctx.observe` and `ctx.after`: they end with the module or page, so it cannot leak. Never poll; use events.',
+        '- Long work is a task, never a hand-built toast: `ctx.tasks.run({ title, details, cancellable, retry, blocking, run(ctx) })` (`js/tasks.js`, `references/app.md`) shows it as a progress toast at the bottom end; when the page or module unmounts its cancellable tasks are cancelled and the others continue with their toast. The app passes `createTasks({ container })` to the host as `tasks`.',
         '- Access: `can` (app, entry, module, route) is checked at the router (`host.guard` as the router `guard`) and again at mount; only `true` allows, a throw denies. It is UX only: authorization stays on the server.',
         '- Values from the address (`ctx.route.params`, `query`), storage and search are untrusted text: put them in the page with `textContent` or attributes, never as markup.', '',
+        '## Tasks', '', 'Long work runs through the task manager, shown as progress toasts (issue 372). The app passes `createTasks({ container })` to `createModuleHost` as `tasks` and a module uses `ctx.tasks.run(spec)`; a page without a module uses `createTasks({ busy: page.begin })` itself. It is not in `js/plainkit.js` (the base closure stays small): import `js/tasks.js`. Blazor: `IPkTasks` is a later step. The header of `js/tasks.js`, verbatim:', '', fence('text', src.tasksHeader), '',
         '## Exports', '', src.appExports.map(([f, names]) => `- \`dist/${f}\`: ${names.map(code).join(', ')}`).join('\n'), '',
         '## Use it', '',
         fence('js', "import { createModuleHost, defineModule, moduleFromMount } from './plainkit/js/app.js';\nimport { mountLogSettings } from './plainkit/modules/log-settings/log-settings.js';\n\nconst orders = defineModule({\n    id: 'orders', title: 'Orders',\n    routes: [{ path: '/', page: 'custom', config: { mount: (host, ctx) => { host.textContent = 'Orders'; ctx.on(window, 'resize', () => {}); } } }],\n});\n// An existing mountX tool module becomes a module unchanged:\nconst logging = moduleFromMount(mountLogSettings, { id: 'logging', title: 'Logging', options: { height: 'fill' } });\n\nconst host = createModuleHost(document.getElementById('app'), {\n    modules: [\n        { id: 'orders', title: 'Orders', load: async () => orders },\n        { id: 'logging', title: 'Logging', load: async () => logging },\n    ],\n});\nhost.open('/orders');   // show(id, { path, query }) is the same by module id"), '',

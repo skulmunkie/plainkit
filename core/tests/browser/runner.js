@@ -33,7 +33,7 @@ async function sha(text) {
 async function sources() {
     const registry = (await import(registryUrl)).default;
     const names = Object.keys(registry).map(tag => tag.slice(3));
-    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'tests/browser/runner.js'];
+    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'tests/browser/runner.js'];
     for (const n of names) for (const ext of ['html', 'css', 'meta.json', 'js']) files.push(`elements/${n}/${n}.${ext}`);
     const out = {};
     for (const f of files.sort()) { const res = await fetch(new URL(`../../${f}`, import.meta.url)); if (res.ok) out[f] = await sha(await res.text()); }
