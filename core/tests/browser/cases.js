@@ -298,6 +298,7 @@ import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCase
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
+import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
 
 // A property set on an element before its class is defined (the upgrade) is adopted, and reflects to its attribute like an assignment (#325).
 cases.push(['a property set before the element upgrades is reflected to its attribute', async t => {

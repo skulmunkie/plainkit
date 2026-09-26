@@ -13,6 +13,9 @@
 .col:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 .pop { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 .pop[data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
+
+/* A field near the right edge of the window opens its results towards the start, so the panel stays inside the window. */
+.pop[data-align="end"] { left: auto; }
 .group { padding: var(--space-2) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
 .note { padding: var(--space-1) var(--space-3) var(--space-2); color: var(--color-muted); font-size: var(--text-meta); }
 .ft { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }

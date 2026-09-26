@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navbar in an app shell (browser case fixture)</title>
+<link rel="stylesheet" href="../../plainkit.css">
+</head>
+<body>
+<pk-app-shell>
+  <pk-side-nav slot="nav" label="Menu"><pk-nav-item href="#" current>Orders</pk-nav-item><pk-nav-item href="#">Reports</pk-nav-item></pk-side-nav>
+  <pk-button slot="header" variant="ghost" size="mini" icon data-nav-toggle label="Toggle the menu"><pk-icon name="menu"></pk-icon></pk-button>
+  <pk-navbar slot="header" label="Main" no-fold>
+    <a slot="brand" href="#">A rather long brand name for a narrow window</a>
+    <a href="#">Orders</a><a href="#">Reports</a>
+    <pk-app-bar-search slot="actions" label="Search" placeholder="Search"></pk-app-bar-search>
+    <pk-dropdown slot="actions" placement="bottom-end"><pk-button slot="trigger" variant="ghost" icon label="Settings menu"><pk-icon name="settings"></pk-icon></pk-button><pk-menu-item>Light theme</pk-menu-item></pk-dropdown>
+  </pk-navbar>
+  <main><h1>Page</h1></main>
+  <span slot="footer">Footer</span>
+</pk-app-shell>
+<script type="module" src="navbar-frame.js"></script>
+</body>
+</html>

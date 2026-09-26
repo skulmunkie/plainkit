@@ -79,7 +79,7 @@ export default Base => class extends Base {
         }
         foot.hidden = !this.slotted('footer').length;
         this.part('empty').hidden = this.$rows.length > 0;
-        if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; }
+        if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; pop.dataset.align = b.left + pop.getBoundingClientRect().width > innerWidth ? 'end' : 'start'; }
     }
     highlight(i) {
         this.$a = i;

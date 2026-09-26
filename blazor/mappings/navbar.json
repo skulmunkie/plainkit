@@ -23,6 +23,13 @@
       "prop": "sticky"
     },
     {
+      "name": "NoFold",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "noFold"
+    },
+    {
       "name": "BrandContent",
       "type": "RenderFragment?",
       "map": "slot",
