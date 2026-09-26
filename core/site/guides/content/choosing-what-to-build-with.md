@@ -88,7 +88,7 @@ and recoloured through a token, never a literal colour:
 | A hand-written `PkField` plus `PkInput` wrapper component per field | `PkFieldGroup` with a list of `PkFieldSpec` | One place for label, hint, help, validation, options, conditional fields and read-only state |
 | A header search box built from an `<input>` | `pk-app-bar-search` in the `pk-app-shell` header | It collapses to an icon on a phone, shows grouped results and coordinates with the shell |
 | A repeated create-or-edit page (toolbar, error, save state) copied per record | `PkRecordForm` with `PkRecordEditor` | Load, validate, save, delete, busy and error are one implementation |
-| Copying the same title, error and busy bookkeeping into every page | `PageBase` (Blazor) or `createPage` (SDK) | Status, busy overlay, breadcrumbs and logging as configuration |
+| Copying the same title, error and busy bookkeeping into every page | `PageBase` (Blazor) or `createPage` (SDK) | Status, counted busy with a framework-owned loading overlay (no overlay markup), breadcrumbs and logging as configuration |
 | A `display: contents` wrapper or a wrapper `<div>` between a shell, nav or dropdown and its slotted children | Put the slotted content directly in the slot; use the component's own parameters | A wrapper breaks the parent's direct-child lookups and `::slotted` rules |
 | `!important` or a selector into an element's internals | A slot, a prop, a `::part()`, a `--pk-*` property or a token | An override breaks at the next release and is invisible to the scorecard |
 | A literal colour, pixel size or duration | A token (`--color-*`, `--space-*`, `--text-*`, `--radius-*`, `--duration-*`) | Themes, density and dark mode only reach tokens |

@@ -115,4 +115,91 @@ public sealed class PageBaseTests : BunitContext
         Assert.Equal("Orders", cut.Instance.Title);
         Assert.Equal(2, cut.Instance.Crumbs.Count);
     }
+
+    private static IDisposable Begin(IRenderedComponent<PageBaseHost> cut, string label) => cut.InvokeAsync(() => cut.Instance.CallBeginBusy(label)).GetAwaiter().GetResult();
+    private static void End(IRenderedComponent<PageBaseHost> cut, IDisposable handle) => cut.InvokeAsync(handle.Dispose).GetAwaiter().GetResult();
+
+    // Issue 371: counted busy.
+    [Fact]
+    public async Task Overlapping_BusyAsync_calls_keep_IsBusy_true_until_the_last_finishes_and_the_label_is_the_most_recent_running()
+    {
+        var cut = Render<PageBaseHost>();
+        var a = new TaskCompletionSource();
+        var b = new TaskCompletionSource();
+        var first = cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => a.Task, "First"));
+        var second = cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => b.Task, "Second"));
+        Assert.True(cut.Instance.IsBusy);
+        Assert.Equal("Second", cut.Instance.BusyLabel);
+
+        b.SetResult();
+        await second;
+        Assert.True(cut.Instance.IsBusy);
+        Assert.Equal("First", cut.Instance.BusyLabel);
+
+        a.SetResult();
+        await first;
+        Assert.False(cut.Instance.IsBusy);
+    }
+
+    [Fact]
+    public async Task A_failing_action_releases_only_its_own_token()
+    {
+        var cut = Render<PageBaseHost>();
+        var slow = new TaskCompletionSource();
+        var running = cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => slow.Task, "Slow"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => throw new InvalidOperationException("bad"), "Bad")));
+        Assert.True(cut.Instance.IsBusy);
+        Assert.Equal("Slow", cut.Instance.BusyLabel);
+        slow.SetResult();
+        await running;
+        Assert.False(cut.Instance.IsBusy);
+    }
+
+    [Fact]
+    public void BeginBusy_handle_releases_once_however_often_it_is_disposed()
+    {
+        var cut = Render<PageBaseHost>();
+        var a = Begin(cut, "A");
+        var b = Begin(cut, "B");
+        End(cut, b); End(cut, b);
+        Assert.True(cut.Instance.IsBusy);
+        End(cut, a);
+        Assert.False(cut.Instance.IsBusy);
+    }
+
+    [Fact]
+    public async Task The_overlay_shows_only_after_the_delay_and_stays_for_the_minimum_time()
+    {
+        var cut = Render<PageBaseHost>();
+        cut.Instance.DelayMs = 60;
+        cut.Instance.MinMs = 200;
+
+        var fast = Begin(cut, "Fast");
+        await Task.Delay(10);
+        End(cut, fast);
+        await Task.Delay(120);
+        Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
+
+        var slow = Begin(cut, "Slow");
+        Assert.False(cut.Instance.ShowBusyOverlay);
+        await Task.Delay(150);
+        Assert.True(cut.Instance.ShowBusyOverlay);
+        End(cut, slow);
+        Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
+        await Task.Delay(400);
+        Assert.False(cut.Instance.ShowBusyOverlay);
+    }
+
+    [Fact]
+    public async Task Disposing_the_page_releases_every_token_and_cancels_the_timers()
+    {
+        var cut = Render<PageBaseHost>();
+        cut.Instance.DelayMs = 30;
+        Begin(cut, "A");
+        await cut.InvokeAsync(() => ((IDisposable)cut.Instance).Dispose());
+        Assert.False(cut.Instance.IsBusy);
+        await Task.Delay(100);
+        Assert.False(cut.Instance.ShowBusyOverlay);
+    }
 }

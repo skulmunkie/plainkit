@@ -172,14 +172,14 @@ Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>
 
 ### Build a page
 
-A page tends to repeat the same bookkeeping: a title, a status/error notice, a busy overlay around an action, a breadcrumb trail. `createPage` is that as one small object, built from elements already in your markup — it never creates or owns them, only drives the props they already have.
+A page tends to repeat the same bookkeeping: a title, a status/error notice, a busy overlay around an action, a breadcrumb trail. `createPage` is that as one small object, built from elements already in your markup — it never creates or owns them, only drives the props they already have; the one element it can create is the loading overlay, so you write no overlay markup. Busy is counted: every action holds a token, so two overlapping `page.busy(fn, label)` calls never clear each other: `page.isBusy` stays true until the last one ends and `page.busyLabel` is the most recent one still running. For work that is not a promise use `const end = page.begin('Saving…'); try { … } finally { end(); }` (`end` is safe to call twice); `page.onBusyChange(({ busy, label }) => …)` returns its unsubscribe. A rejection releases only its own token. The overlay created for `body` appears only after `BUSY_DELAY` (150 ms, so a fast action never flashes it) and stays at least `BUSY_MIN_TIME` (300 ms); pass `delay` and `minTime` to change them. It wraps `body` without moving it (no layout shift), sets `aria-busy` on it while any action runs, announces the label politely and never traps focus. `createPage({ fullscreen: true })` is the app-scope variant (a fullscreen overlay, nothing wrapped). An `overlay` element you placed yourself still works, driven at once (no delay) unless you pass `delay`. Labels are text, never markup. `page.destroy()` releases every token and timer and puts `body` back.
 
 ```js
 import { createPage } from './plainkit/js/page.js';
 
 const page = createPage({
     alert: document.getElementById('page-alert'),
-    overlay: document.getElementById('page-overlay'),
+    body: document.getElementById('page-body'),   // wrapped in a pk-loading-overlay the page creates and owns
     breadcrumb: document.getElementById('page-crumbs'),
     scope: 'orders',
 });

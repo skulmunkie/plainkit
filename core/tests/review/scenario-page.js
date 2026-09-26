@@ -44,6 +44,7 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
     frame.append(...new DOMParser().parseFromString(`<body>${scenario.html}`, 'text/html').body.childNodes);
     root.append(frame);
     applyDynamic(frame);
+    if (scenario.setup) await scenario.setup(frame); // wires behaviour the markup cannot carry (CSP: no inline handlers), before the elements are loaded
     await loadElements(frame, { registry });
     await Promise.all([...new Set([...frame.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
     const quiet = async () => {
