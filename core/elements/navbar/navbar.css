@@ -3,7 +3,7 @@
 
 :host([sticky]) { position: sticky; top: 0; z-index: var(--z-sticky); }
 
-[part="nav"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: var(--app-header-h); padding: 0 var(--space-4); }
+[part="nav"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: var(--app-header-h); padding: 0 var(--pk-navbar-padding, var(--space-4)); }
 
 ::slotted([slot="brand"]) { display: inline-flex; align-items: center; min-height: var(--touch-target); color: inherit; font-weight: 600; text-decoration: none; white-space: nowrap; }
 
@@ -32,3 +32,14 @@
     :host([open]) [part="links"] { display: flex; }
     ::slotted(a) { min-height: var(--touch-target); }
 }
+
+/* no-fold: the host owns the narrow-screen menu. No hamburger and the links stay hidden; one row that never wraps, the actions pinned to the end, the brand giving way first. */
+:host([no-fold]) [part="nav"] { flex-wrap: nowrap; }
+
+:host([no-fold]) [part="toggle"], :host([no-fold][open]) [part="links"] { display: none; }
+
+:host([no-fold]) [part="actions"] { flex: none; margin-inline-start: auto; }
+
+:host([no-fold]) [part="brand"] { min-width: 0; }
+
+:host([no-fold]) ::slotted([slot="brand"]) { display: block; line-height: var(--touch-target); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

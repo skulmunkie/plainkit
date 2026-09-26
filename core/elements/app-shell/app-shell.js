@@ -15,7 +15,7 @@ export default Base => class extends Base {
         });
         this.addEventListener('pk-close', e => { if (e.target === this.nav && !e.defaultPrevented) this.navOpen = false; });
         this.addEventListener('pk-open', e => { if (e.target === this.nav) this.navOpen = true; });
-        this.watchSlot('title', () => this.requestUpdate());
+        for (const slot of ['title', 'header', 'footer']) this.watchSlot(slot, () => this.requestUpdate());
         this.watchSlot('nav', () => this.restoreNav());
     }
     // Not slotted('nav')[0]: a host framework's own wrapper element (Blazor's generated <span slot="nav"> for a multi-root RenderFragment,
@@ -44,8 +44,10 @@ export default Base => class extends Base {
     updated() {
         this.restoreNav();
         this.part('title').hidden = this.slotted('title').length === 0; // an empty title area would push the header slot to the far side
+        this.part('footer').hidden = this.slotted('footer').length === 0; // a strip with nothing in it is not drawn (the header's own check is below, once the back link is known)
         const a = this.part('back'), href = this.backHref, go = safeLink(href);
         if (go) a.setAttribute('href', go); else a.removeAttribute('href');
+        this.part('header').hidden = !go && this.slotted('title').length + this.slotted('header').length === 0;
         if (href && !go) { a.hidden = true; this.warnOnce('back-href', `back-href=${JSON.stringify(href)} is not a same-site path or an http(s) address: no back link`, { href }); }
     }
 };

@@ -41,15 +41,16 @@ textarea::placeholder {
    nav, the help-flyout footer — and a blanket `a { }` would fight all of them
    over colour and underline. This targets exactly the case that has no answer
    at all. Note it ties on specificity with rules like .docs-body a, so it sits
-   here near the top of the file where source order lets those win. */
+   here near the top of the file where source order lets those win. The links a pk-navbar and a pk-breadcrumb dress themselves (their own ::slotted rules) are left
+   out: a document rule always beats a ::slotted one, so the blanket rule would undo their colour, underline and current-page weight. */
 
-a:not([class]) {
+a:not([class], pk-navbar > a, pk-breadcrumb > a) {
     color: var(--color-link);
     text-decoration: underline;
     text-underline-offset: 0.15em;
 }
 
-a:not([class]):hover {
+a:not([class], pk-navbar > a, pk-breadcrumb > a):hover {
     color: var(--color-link-hover);
 }
 

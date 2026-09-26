@@ -25,6 +25,13 @@
       "default": false,
       "reflect": true,
       "description": "The sticky setting"
+    },
+    {
+      "name": "noFold",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "For a host that owns the menu on narrow screens (the app shell's drawer): below 1024px the links stay hidden and the hamburger is not shown, and the actions stay at the end of one non-wrapping row while the brand shortens first."
     }
   ],
   "slots": [
@@ -76,7 +83,13 @@
       "description": "Action buttons"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-navbar-padding",
+      "description": "The bar's inline padding. A shell that already pads its header row sets it to 0 so the brand and the actions meet the header's own edges.",
+      "default": "var(--space-4)"
+    }
+  ],
   "methods": [],
   "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
   "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",

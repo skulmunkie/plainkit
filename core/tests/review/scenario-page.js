@@ -1,6 +1,6 @@
 // The scenario side of the UI review page (review.js loads it for /tests/review/?scenario=<name>&theme=light). It renders the scenario's markup into
 // one frame, and gives scripts/ui-review.mjs a small API on window.__rv to drive it: target(step) says where a pointer step lands, apply(step) does the
-// DOM steps (focus, scroll, set, resize), check(shot, ctx) runs the scenario's expect(t) and measures the frame for the audits. The pointer and key
+// DOM steps (focus, scroll, set), check(shot, ctx) runs the scenario's expect(t) and measures the frame for the audits. The pointer and key
 // events themselves are real ones sent by the runner over the DevTools protocol (so :hover, :focus-visible and the top layer behave as for a person).
 import { createExpectations } from './scenario.js';
 
@@ -95,8 +95,7 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
         },
         /** The DOM steps. */
         async apply(step) {
-            if ('resize' in step) { frame.style.width = `${step.resize}px`; }
-            else if ('scroll' in step) { const el = find(step.scroll); if (!el) return { error: `${step.scroll} was not found` }; el.scrollTop = step.to; }
+            if ('scroll' in step) { const el = find(step.scroll); if (!el) return { error: `${step.scroll} was not found` }; el.scrollTop = step.to; }
             else if ('set' in step) {
                 const el = find(step.set);
                 if (!el) return { error: `${step.set} was not found` };

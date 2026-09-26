@@ -4,12 +4,12 @@
 //   export default defineModule({
 //       id: 'orders',                                   // ^[a-z][a-z0-9-]{0,39}$; the key the app config's allow-list and the address '#/orders/...' use
 //       title: 'Orders', icon: 'list',
-//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // the module's own side nav: an array or (ctx) => array of { id, title, route|href, children? }
+//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // the module's own side nav: STRUCTURE (a few stable destinations), never one entry per record (js/app/nav.js)
 //       routes: [                                        // module-relative; the module id prefix is added by the app. page = a type id, or { type, config }
 //           { path: '/', page: 'custom', config: { mount: (el, ctx) => mountOrders(el) } },   // config: data, or ({ path, params, query }, ctx) => data
-//           { path: '/:id', page: 'custom', config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
+//           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
 //           { path: '*', page: 'not-found' },
-//       ],
+//       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` (text or params => text) is its breadcrumb
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
 //       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; anything else, and a throw, denies (fail closed)
 //       mount(ctx) { return () => {}; }, unmount(ctx) {},             // optional; a function returned from mount is cleanup
@@ -44,6 +44,7 @@
 //   auth               what the app passed as `auth`.
 // The ctx of mount/unmount ends on unmount. A page factory gets its own ctx with the same members whose on/observe/after/signal end when the page is left (a route change
 // or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
+import { flattenRoutes } from '../route-tree.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
 export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'custom', 'not-found', 'states']);
 
@@ -65,8 +66,9 @@ export function defineModule(def) {
     if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match ^[a-z][a-z0-9-]{0,39}$');
     for (const k of ['can', 'mount', 'unmount']) if (def[k] !== undefined && !isFn(def[k])) fail(id, `${k} must be a function`);
     if (def.nav !== undefined && !isFn(def.nav)) checkNav(id, def.nav);
+    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array');
     const seen = new Set();
-    for (const r of def.routes ?? []) {
+    for (const { node: r } of flattenRoutes(def.routes ?? [])) {
         const path = r?.path;
         if (typeof path !== 'string' || !(path === '*' || path[0] === '/')) fail(id, `a route path must be '*' or start with '/', not ${JSON.stringify(path)}`);
         const shape = segmentsOf(path).map(s => (s[0] === ':' ? ':' : s)).join('/') + (path === '*' ? '*' : '');
@@ -76,7 +78,6 @@ export function defineModule(def) {
         if (typeof type !== 'string' || !MODULE_ID.test(type)) fail(id, `route ${path} needs page: 'type' or { type }`);
         if (r.can !== undefined && !isFn(r.can)) fail(id, `route ${path}: can must be a function`);
     }
-    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array');
     const s = def.state;
     if (s !== undefined) {
         if (typeof s !== 'object' || s === null || (s.defaults !== undefined && typeof s.defaults !== 'object')) fail(id, 'state must be an object with defaults');

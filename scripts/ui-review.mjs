@@ -196,6 +196,10 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout }
         } else if ('type' in step) {
             await cdp.send('Input.insertText', { text: step.type });
             await evaluate(cdp, 'window.__rv.settle()');
+        } else if ('resize' in step) {
+            // A real viewport width (the frame's media queries answer to it); the height stays that of the combination.
+            await cdp.send('Emulation.setDeviceMetricsOverride', { width: step.resize, height: vp.height, deviceScaleFactor: 1, mobile: false });
+            await evaluate(cdp, 'window.__rv.settle()');
         } else if ('wait' in step) {
             if (step.wait === 'settle') await evaluate(cdp, 'window.__rv.settle()'); else await sleep(step.wait);
         } else {

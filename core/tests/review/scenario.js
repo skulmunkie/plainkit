@@ -6,7 +6,7 @@
 //   { name, elements: ['side-nav'], html: '<pk-...>', viewports?: ['desktop'|'phone'], themes?: ['light'|'dark'], issue?, steps: [...], expect(t) }
 // Steps are objects with one action key (and optional `on: ['phone']` to run only in some viewports):
 //   { click: sel } { hover: sel } { focus: sel } { key: 'Tab', times?: 2 } { type: 'text' } { scroll: sel, to: 800 } { set: sel, attr|prop: name, value }
-//   { resize: 400 } { wait: 'settle' | ms } { shot: 'name' }
+//   { resize: 400 } (the viewport width: media queries answer to it; the height stays) { wait: 'settle' | ms } { shot: 'name' }
 // A selector is a CSS selector; `a >>> b` looks for b inside the shadow tree of the first a (any depth of >>>).
 // An optional `setup(frame)` (sync or async, runs in the page only) wires behaviour the markup cannot carry: click handlers, a page object (CSP allows no
 // inline handlers). Import what it needs at the top of the scenario module with a relative path; the module is also loaded in Node, so touch no DOM at the top level.
