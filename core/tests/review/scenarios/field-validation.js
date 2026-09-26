@@ -2,12 +2,11 @@
 // that is visible, inside the field and wired to the control (aria-invalid, aria-description), a warning, the counter that turns over its maximum, disabled and read-only
 // with copy, and an error that appears later (set from outside) without the control moving out of the page. Focus rings on the invalid control stay visible.
 const LABEL = 'Product title as it is shown on the storefront, invoices and the packing slip';
-const INVALID_ISSUE = 341; // filed defect (t.known: a warning); change to t.ok when fixed
 const inner =id => `#${id} >>> [part=control]`;
 
 export default {
     name: 'field-validation',
-    issue: [268],
+    issue: [268, 341],
     elements: ['field', 'input'],
     html: `<div class="u-p-1r-1p25r"><pk-form><pk-stack>
 <pk-field id="f1" label="${LABEL}" required help="Up to 80 characters." error="Enter a title of at least 3 characters."><pk-input id="i1" value="ab"></pk-input></pk-field>
@@ -34,8 +33,8 @@ export default {
         t.visible('#f1 >>> [part=error]', 'the error message'); t.within('#f1 >>> [part=error]', '#f1', 1);
         t.noOverlap('#f1 >>> [part=error]', '#i1'); t.noOverlap('#f1 >>> [part=help]', '#f1 >>> [part=error]');
         t.hasText('#f1 >>> [part=error]', 'at least 3 characters');
-        const invalid = t.attr(inner('i1'), 'aria-invalid') === 'true'; // a race in the load order (filed defect)
-        t.known(INVALID_ISSUE, invalid, 'the control of a field with an error is not aria-invalid (the field wired it before the input upgraded)');
+        const invalid = t.attr(inner('i1'), 'aria-invalid') === 'true';
+        t.ok(invalid, 'the control of a field with an error is not aria-invalid (the field wired it before the input upgraded, #341)');
         t.ok((t.attr(inner('i1'), 'aria-description') ?? '').includes('at least 3 characters'), 'the error text is not exposed to the control (aria-description)');
         t.ok((t.attr(inner('i1'), 'aria-label') ?? '').startsWith('Product title'), 'the control has no accessible name from the field label');
         if (t.shot !== 'error-added' && invalid) t.ok(t.style('#i1 >>> [part=box]', 'border-top-color') !== t.style('#i3 >>> [part=box]', 'border-top-color'), 'the invalid box has the same border colour as a valid one');

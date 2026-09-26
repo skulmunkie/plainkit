@@ -263,3 +263,21 @@ cases.push(['a property set before the element upgrades is reflected to its attr
     t.eq(a.rail, true); t.eq(changes, 0, 'adopting fires no change event');
     a.rail = false; t.eq(a.hasAttribute('rail'), false, 'later assignments still reflect');
 }]);
+
+// The invalid state does not depend on the definition order: a field wired before its control is defined applies it when the control upgrades (#341).
+cases.push(['pk-field marks a control invalid when the control is defined after the field', async t => {
+    const { PkElement, define } = await import('../../js/element.js');
+    const host = t.stage('<pk-field label="Title" error="Too short." warning=""><pk-test-late-ctl></pk-test-late-ctl></pk-field>');
+    await t.settle();
+    const c = host.querySelector('pk-test-late-ctl');
+    t.ok(!('invalid' in c), 'the control is not defined yet');
+    define(class extends PkElement {
+        static tag = 'pk-test-late-ctl';
+        static props = { label: { type: 'string', default: '' }, description: { type: 'string', default: '' }, invalid: { type: 'boolean', default: false, reflect: true }, warning: { type: 'boolean', default: false, reflect: true }, required: { type: 'boolean', default: false, reflect: true } };
+    });
+    await t.load(host); await t.settle();
+    t.eq(c.invalid, true, 'the property is set'); t.eq(c.hasAttribute('invalid'), true, 'the host has the invalid attribute');
+    t.eq(c.hasAttribute('data-invalid'), false, 'the fallback was not used'); t.eq(c.label, 'Title'); t.eq(c.description, 'Too short.');
+    host.firstElementChild.error = ''; await t.settle();
+    t.eq(c.invalid, false, 'clearing the error clears it');
+}]);
