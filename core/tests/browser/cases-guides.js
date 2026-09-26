@@ -30,7 +30,7 @@ const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort(
 export const guidesCases = [
     ['guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem', async t => {
         const p = await open(t, '#/getting-started');
-        t.eq(p.items.length, 6, 'one nav item per guide');
+        t.eq(p.items.length, 7, 'one nav item per guide');
         t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started', 'the open guide is current');
         t.ok(shown(p.nav), 'the nav is a column, not a hidden drawer');
         t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
@@ -56,7 +56,7 @@ export const guidesCases = [
         await until(() => p.$('gd-title').textContent === 'Getting started with Blazor', 'its title');
         await until(() => p.doc.activeElement === p.$('gd-title'), 'focus on the title');
         t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started-blazor');
-        t.eq(p.$('gd-pager').querySelector('[slot="prev"]').getAttribute('href'), '#/getting-started'); t.eq(p.$('gd-pager').querySelector('[slot="next"]').getAttribute('href'), '#/theming');
+        t.eq(p.$('gd-pager').querySelector('[slot="prev"]').getAttribute('href'), '#/getting-started'); t.eq(p.$('gd-pager').querySelector('[slot="next"]').getAttribute('href'), '#/choosing-what-to-build-with');
         t.eq(p.scroller.scrollTop, 0, 'a new page starts at its top');
         p.$('gd-pager').querySelector('[slot="prev"]').click();
         await hashIs(p, /^#\/getting-started$/, 'back to the first');
@@ -120,7 +120,7 @@ export const guidesCases = [
         t.key(p.items[0], 'Escape'); await until(() => !p.nav.hasAttribute('open'), 'Escape to close the drawer');
         t.ok(!button.hasAttribute('pressed'), 'the button follows');
         button.click(); await until(() => shown(p.nav), 'the drawer to open again');
-        p.items[2].shadowRoot.querySelector('a').click();
+        p.items[3].shadowRoot.querySelector('a').click();
         await hashIs(p, /^#\/theming$/, 'the chosen guide');
         await until(() => !p.nav.hasAttribute('open') && p.$('gd-title').textContent === 'Theming and tokens', 'the drawer to close on the new guide');
         t.ok(shown(p.$('gd-toc')) && p.links().length >= 5, 'the toc stays available above the article');
@@ -130,7 +130,7 @@ export const guidesCases = [
     ['guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning', async t => {
         const list = await open(t, '#/', { toc: false });
         const cards = [...list.$('gd-body').querySelectorAll('pk-card')];
-        t.eq(cards.length, 6); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/theming,#/responsive-design,#/logging,#/migrating-from-compat');
+        t.eq(cards.length, 7); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/choosing-what-to-build-with,#/theming,#/responsive-design,#/logging,#/migrating-from-compat');
         t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-aside').hidden, true, 'no toc on the list');
         const gone = await open(t, '#/no-such-guide', { toc: false });
         t.eq(gone.$('gd-title').textContent, 'Guide not found');
