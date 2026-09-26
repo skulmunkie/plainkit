@@ -1,0 +1,5 @@
+---
+type: added
+issue: 349
+---
+`js/app.js` adds `defineModule`, `moduleFromMount` and `createModuleHost`, step 3 of the app framework. A module has an id, routes, optional `nav`, `state` (a `createStore` spec), `can`, `mount` and `unmount`; `defineModule` validates it and throws on a bad id, a duplicate route or a bad `nav`. The host runs modules one at a time (resolve, `can`, mount, page, page cleanup, unmount), imports only what the app config's `modules` allow-list names, checks access before the import and again at mount, and disposes every listener, observer and timer registered through `ctx.on`, `ctx.observe` and `ctx.after`. A failed or slow import (10 s, one retry) shows a danger alert with Retry and keeps the previous module; a throwing mount or page is contained and logged; a denied module shows a forbidden state and a route with no page shows not-found. `moduleFromMount(mountFn, meta)` turns any existing `mountX(container, options)` tool module into a module unchanged. Custom page types and layouts can be registered per module or per app (`registerPageType`, `registerLayout`). Reference: `references/app.md` in the skills.

@@ -220,6 +220,9 @@ export function collect() {
         storeHeader: headerComment(read(dist('js/store.js'))),
         storeExtrasHeader: headerComment(read(dist('js/store-extras.js'))),
         storeExports: ['js/store.js', 'js/store-extras.js', 'js/settings.js'].map(f => [f, exportsOf(dist(f))]),
+        appModuleHeader: headerComment(read(dist('js/app/module.js'))),
+        appHostHeader: headerComment(read(dist('js/app/host.js'))),
+        appExports: ['js/app.js', 'js/app/module.js', 'js/app/host.js'].map(f => [f, exportsOf(dist(f))]),
         loaderExports: exportsOf(dist('js/loader.js')),
         themeExports: exportsOf(dist('js/theme.js')),
         standards: read(path.join(core, 'STANDARDS.md')),
@@ -336,6 +339,21 @@ function stateMd(src) {
         fence('js', "import { createStore } from './plainkit/js/store.js';\nimport { syncTabs } from './plainkit/js/store-extras.js';\n\nconst store = createStore({ prefix: 'myapp', version: 1 });\nconst prefs = store.module('prefs', syncTabs({\n    defaults: { scale: 1, density: 'comfortable' },\n    schema: { scale: { min: 0.5, max: 2 }, density: { enum: ['comfortable', 'compact'] } },\n    persist: ['scale', 'density'],\n    publish: ['density'],\n}));\nprefs.set('scale', 1.25);                          // false (and a warning) when the value is invalid\nconst off = prefs.subscribe(state => paint(state)); // call off() to unsubscribe\nstore.read('prefs').density;                         // what another module may read"), '',
         '## Change the saved shape', '', 'Raise `version` and give the module a `migrate(data, fromVersion)` that returns the new data; its result is validated like any saved value. Without a working `migrate` an older saved copy falls back to the defaults.', '',
         '## Blazor', '', 'The Blazor store (`IPkStore`) is a later step of the app-framework work and will read and write the same `{ v, data }` envelope. Nothing in this reference applies to Blazor yet.', ''].join('\n');
+}
+
+function appMd(src) {
+    return ['# App modules: defineModule, moduleFromMount and the module host', '', stamp(src, 'dist/js/app.js, dist/js/app/module.js and dist/js/app/host.js'), '',
+        'The app framework (tracker 346) is built in steps; this is step 3. A module is what one part of an app is: business logic plus the configs of existing page types, with an id, a title, its own routes, optional `nav`, `state` (a `createStore` module spec, `references/state.md`), `can` and `mount`/`unmount`. `createModuleHost` runs modules one at a time with a fixed lifecycle, tracked listeners, observers and timers that are removed on unmount, and a boundary around every step that can fail: a loading state, a danger alert with Retry, a forbidden state and a not-found state. The shell, `mountApp`, the built-in page types and `mountPage` come in later steps; until then a page is the `custom` type. Blazor: no surface yet (`IPkModule` is a later step). The header of `js/app/module.js`, verbatim (it also documents the `ctx` every module and page receives):', '', fence('text', src.appModuleHeader), '',
+        '## The host', '', 'The header of `js/app/host.js`, verbatim:', '', fence('text', src.appHostHeader), '',
+        '## Rules', '', '- The module list is the allow-list: the only code the host ever imports is the `load` function of an entry in `modules`, written as a literal `() => import(\'./modules/orders.js\')`. A module id from an address is only a key; an unknown one shows not-found and calls no loader.',
+        '- A failed or slow import is retried once, then shows the danger alert with Retry and leaves the previous module mounted. A throwing `mount`, page or `unmount` is logged (scope `app:<id>`) and shown by the boundary; the other modules and the page keep working.',
+        '- Register listeners, observers and timers only through `ctx.on`, `ctx.observe` and `ctx.after`: they end with the module or page, so it cannot leak. Never poll; use events.',
+        '- Access: `can` (app, entry, module, route) is checked at the router (`host.guard` as the router `guard`) and again at mount; only `true` allows, a throw denies. It is UX only: authorization stays on the server.',
+        '- Values from the address (`ctx.route.params`, `query`), storage and search are untrusted text: put them in the page with `textContent` or attributes, never as markup.', '',
+        '## Exports', '', src.appExports.map(([f, names]) => `- \`dist/${f}\`: ${names.map(code).join(', ')}`).join('\n'), '',
+        '## Use it', '',
+        fence('js', "import { createModuleHost, defineModule, moduleFromMount } from './plainkit/js/app.js';\nimport { mountLogSettings } from './plainkit/modules/log-settings/log-settings.js';\n\nconst orders = defineModule({\n    id: 'orders', title: 'Orders',\n    routes: [{ path: '/', page: 'custom', config: { mount: (host, ctx) => { host.textContent = 'Orders'; ctx.on(window, 'resize', () => {}); } } }],\n});\n// An existing mountX tool module becomes a module unchanged:\nconst logging = moduleFromMount(mountLogSettings, { id: 'logging', title: 'Logging', options: { height: 'fill' } });\n\nconst host = createModuleHost(document.getElementById('app'), {\n    modules: [\n        { id: 'orders', title: 'Orders', load: async () => orders },\n        { id: 'logging', title: 'Logging', load: async () => logging },\n    ],\n});\nhost.open('/orders');   // show(id, { path, query }) is the same by module id"), '',
+        '## Blazor', '', 'No Blazor surface in this step. The Blazor mapping (`IPkModule`, `PkApp`) is a later step of the app-framework work.', ''].join('\n');
 }
 
 function openersMd(src) {
@@ -843,6 +861,7 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/logging.md', loggingMd(src));
     put('plainkit-sdk', 'references/openers.md', openersMd(src));
     put('plainkit-sdk', 'references/state.md', stateMd(src));
+    put('plainkit-sdk', 'references/app.md', appMd(src));
     put('plainkit-sdk', 'references/theming.md', themingMd(src));
     put('plainkit-sdk', 'references/loading.md', loadingMd(src));
     put('plainkit-sdk', 'references/known-gaps.md', sdkGapsMd(src));
@@ -852,7 +871,7 @@ export function generate(src = collect()) {
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
     put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).'));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
-    const describe = { 'choosing.md': CHOOSING_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
+    const describe = { 'choosing.md': CHOOSING_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'app.md': 'app modules: `defineModule`, `moduleFromMount`, `createModuleHost` (lifecycle, boundaries, ctx, custom page types and layouts)', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
