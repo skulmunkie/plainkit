@@ -35,7 +35,7 @@ A change is done when, on its pull request:
 - If an element source or a browser case changed, the in-browser suite was re-run so `core/tests/browser/report.json` is current (`node scripts/attest-browser.mjs` does it headless at 1280x900 and prints the counts; by hand: `node core/tools/serve.mjs 5341 --write-reports`, open `/tests/browser/` at desktop size, wait for "report saved"; see "The in-browser element suite" in `core/README.md`).
 - After a change to `PlainKit.Blazor.csproj`, pack into a scratch folder and list it: `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>`, then `unzip -l <dir>/*.nupkg`. There must be no `content/` or `contentFiles/` entries (the generator manifest stays out of the package), and the DLL, the XML docs and `staticwebassets/` must be there. `scripts/tests/blazor-package.test.mjs` checks the csproj part.
 - SDK and Blazor changes ship together: an element change updates its mapping in `blazor/mappings/<name>.json` (the SDK's element meta knows nothing about Blazor) and, through the bootstrap, its generated wrapper (never edit `Generated/` by hand).
-- It uses only components that exist in `core`; a missing component is recorded in the "components the SDK lacks" issue instead of being invented locally.
+- It uses only components that exist in `core`; a missing component is recorded in the standing "Tracker: components the SDK lacks" issue (#336) instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 
 ## Reviewing what it looks like
