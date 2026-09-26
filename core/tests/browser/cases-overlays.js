@@ -313,6 +313,29 @@ export const overlaysCases = [
         el.busy = false; await t.settle(); t.ok(!el.part('content').inert);
     }],
 
+    ['loading overlay: the label sits on a solid panel over a strong scrim, in view, for short and tall regions (issue 374)', async t => {
+        const rgba = c => { const m = /(-?[\d.]+)[ ,]+(-?[\d.]+)[ ,]+(-?[\d.]+)(?:\s*[,/]\s*([\d.]+))?\)/.exec(c); const k = c.startsWith('color(') ? 255 : 1; return m && { r: m[1] * k, g: m[2] * k, b: m[3] * k, a: m[4] === undefined ? 1 : +m[4] }; };
+        const lum = ({ r, g, b }) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+        const rows = Array.from({ length: 50 }, (_, i) => `<p>Row ${i + 1} of a long report.</p>`).join('');
+        const host = t.stage(`<div id="lo-scroll"><pk-loading-overlay id="lo-tall" busy label="Loading the report"><div>${rows}</div></pk-loading-overlay></div><pk-loading-overlay id="lo-short" busy label="Saving"><p>Saved 3 orders.</p></pk-loading-overlay>`);
+        await t.load(host);
+        const scroll = host.querySelector('#lo-scroll'), tall = host.querySelector('#lo-tall'), short = host.querySelector('#lo-short');
+        scroll.style.setProperty('height', '300px'); scroll.style.setProperty('overflow', 'auto'); await t.settle();
+        const legible = (el, what) => {
+            const panel = el.part('panel'); t.ok(panel, `${what}: there is a panel behind the spinner and label`); if (!panel) return;
+            const bg = rgba(getComputedStyle(panel).backgroundColor), fg = rgba(getComputedStyle(el.part('label')).color), scrim = rgba(getComputedStyle(el.part('overlay')).backgroundColor);
+            t.ok(bg && bg.a === 1, `${what}: the panel is opaque`); t.ok(scrim && scrim.a >= 0.8, `${what}: the scrim hides the covered content (${scrim?.a})`);
+            const [x, y] = [lum(fg), lum(bg)].sort((a, b) => b - a); t.ok((x + 0.05) / (y + 0.05) >= 4.5, `${what}: the label contrast on the panel is ${((x + 0.05) / (y + 0.05)).toFixed(2)}, AA needs 4.5`);
+            const p = panel.getBoundingClientRect(), l = el.part('label').getBoundingClientRect(); t.ok(l.left >= p.left - 0.5 && l.right <= p.right + 0.5 && l.top >= p.top - 0.5 && l.bottom <= p.bottom + 0.5, `${what}: the label is inside the panel`);
+        };
+        legible(short, 'short region'); legible(tall, 'tall region');
+        const inside = (el, box, what) => { const p = el.part('panel').getBoundingClientRect(); t.ok(p.top >= box.top - 1 && p.bottom <= box.bottom + 1, `${what}: the panel [${Math.round(p.top)}-${Math.round(p.bottom)}] is inside [${Math.round(box.top)}-${Math.round(box.bottom)}]`); };
+        t.ok(scroll.scrollHeight > scroll.clientHeight + 500, 'the tall region is taller than its scroller');
+        for (const top of [0, 700, 1300]) { scroll.scrollTop = top; await t.settle(); inside(tall, scroll.getBoundingClientRect(), `tall region scrolled to ${top}`); }
+        const p = short.part('panel').getBoundingClientRect(), r = short.getBoundingClientRect(); t.ok(Math.abs((p.left + p.right) / 2 - (r.left + r.right) / 2) <= 1, 'the panel is centred across the short region');
+        t.ok(getComputedStyle(short.part('overlay')).position === 'absolute' && short.part('content').inert, 'still covers and inerts the region');
+    }],
+
     ['breadcrumb: a long trail folds the middle crumbs behind a button that expands them', async t => {
         const el = await t.mount('<pk-breadcrumb max="3"><a href="#">A</a><a href="#">B</a><a href="#">C</a><a href="#">D</a><a href="#">E</a></pk-breadcrumb>');
         await t.settle();
