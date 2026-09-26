@@ -27,6 +27,15 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 
 Below, `plainkit/` is a copy of `dist` next to your page (see `references/loading.md` for the release zip, NuGet and other ways).
 
+### Choose before you build
+
+Before writing markup for a page or a job, open `references/choosing.md` (decision path, use-case table, anti-patterns) and do this:
+
+1. Name the page type or job, and find it in the use-case table.
+2. Open what it names: a template (`templates.md`), else a layout (`layouts.md`), else patterns (`patterns.md`), else the element that names the job (`elements-index.md`). The frame around pages is `pk-app-shell` with `pk-side-nav` or `pk-navbar`.
+3. Paste its markup into `<main>` and its page script (if shown) into your script file (the demo shell `mountChrome` is not part of it). Change only content, slots, props, `::part()`, `--pk-*` properties and tokens. Never copy an element's internals, add `!important` or wrap slotted content in a `display: contents` element.
+4. Write your own (from `pk-stack`, `pk-cluster`, `pk-grid`, `pk-text`, tokens) only when nothing fits, say which gap it fills, and never invent a `pk-*` tag.
+
 ### Start a page
 
 ```html
@@ -54,16 +63,6 @@ initPlainkit();
 ```
 
 `js/init.js` is the small entry, `initPlainkit` alone. `js/plainkit.js` is the same plus the dynamic-value, theming and colour helpers; import it instead if the page uses those too (see `references/loading.md`).
-
-### Add a page
-
-Pick the closest starting point: `references/layouts.md` (list, record, setup, tool, wizard anatomies), `references/templates.md` (full pages: crud, dashboard, form, wizard, workspace, auth, ...) or `references/patterns.md` (confirm delete, filter table, forms, notifications, ...). Copy its markup into `<main>`, keep the page script if one is shown, replace the text and data. For the frame around pages use `pk-app-shell` with `pk-side-nav` or `pk-navbar` (`references/elements-layout.md`, `references/elements-navigation.md`).
-
-### Start from a template
-
-1. Open `references/templates.md`, choose the template by its summary.
-2. Paste its markup into your page and its page script into your script file (the demo shell `mountChrome` is not part of it).
-3. Look up every element you change in `references/elements-index.md`.
 
 ### Add a form
 
@@ -213,7 +212,7 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 ### Upgrade this app to a newer Plainkit
 
-`references/upgrading.md` is a blast-radius recipe, not a changelog summary: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
+`references/upgrading.md` is a blast-radius recipe, not a changelog summary. While you are in the app, also check it against `references/choosing.md`: a hand-built table, modal, header search or record page that a newer element or template now covers is worth replacing. Recipe: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
 
 ### Share a context menu across targets
 
@@ -228,4 +227,4 @@ menu.addEventListener('pk-open', e => {
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of five with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).

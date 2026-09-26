@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { root } from '../build-skills.mjs';
-import { src, checkHtml, checkRazor, checkCode, checkJs } from './sample-checkers.mjs';
+import { src, byTag, checkHtml, checkRazor, checkCode, checkJs } from './sample-checkers.mjs';
 
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
 const CONTENT = 'core/site/guides/content';
@@ -117,4 +117,42 @@ test('the SDK guide\'s first page is the wiring the loader needs: initPlainkit i
     const g = guide('getting-started').text;
     for (const { lang, text } of fencesOf(g)) if (lang === 'html') assert.doesNotMatch(text.replace(/<script[^>]*\bsrc=[^>]*><\/script>/g, ''), /<script/, 'an inline script is blocked by a strict CSP');
     assert.ok(fencesOf(g).some(f => f.lang === 'js' && /initPlainkit\(\)/.test(f.text)));
+});
+
+// "Choosing what to build with" names elements, components, templates, layouts and patterns. A name that does not exist is a wrong instruction to an agent,
+// so every one is checked against the catalogue (the same data the skills are generated from).
+test('every element, component, template, layout and pattern the choosing guide names exists', () => {
+    const g = guide('choosing-what-to-build-with').text;
+    const prose = g.replace(/```[\s\S]*?```/g, '');
+    const decls = new Set();
+    const walk = dir => {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+            const p = path.join(dir, e.name);
+            if (e.isDirectory()) { if (!['bin', 'obj', 'wwwroot'].includes(e.name)) walk(p); continue; }
+            if (!/\.(cs|razor)$/.test(e.name)) continue;
+            if (e.name.endsWith('.razor')) decls.add(e.name.slice(0, -6));
+            for (const m of read(path.relative(root, p)).matchAll(/\b(?:class|record|enum|interface|struct)\s+(\w+)/g)) decls.add(m[1]);
+        }
+    };
+    walk(path.join(root, 'blazor', 'src', 'PlainKit.Blazor'));
+    let checked = 0;
+    for (const m of prose.matchAll(/`([^`\n]+)`/g)) {
+        const name = m[1];
+        if (/^pk-[a-z][a-z-]*$/.test(name)) { checked++; assert.ok(byTag.has(name), `the guide names ${name}, which is not an element`); }
+        else if (/^Pk[A-Z]\w*$/.test(name)) { checked++; assert.ok(decls.has(name), `the guide names ${name}, which is not a component or type of PlainKit.Blazor`); }
+    }
+    for (const [what, kind] of [['Template', 'templates'], ['Layout', 'layouts'], ['Pattern', 'patterns']]) {
+        const known = new Set(src.samples[kind].map(s => s.id));
+        for (const m of prose.matchAll(new RegExp(`\\b${what}\\s+\`([a-z-]+)\``, 'gi'))) { checked++; assert.ok(known.has(m[1]), `the guide names ${what.toLowerCase()} ${m[1]}, which does not exist (${[...known].join(', ')})`); }
+    }
+    assert.ok(checked >= 60, `only ${checked} names checked`);
+    assert.ok(decls.has('PageBase') && decls.has('PkFieldSpec') && decls.has('PkRecordEditor'), 'the walk finds the Blazor types');
+});
+
+test('the choosing guide points to every template, layout and pattern that exists, and its use-case table has a Blazor column', () => {
+    const g = guide('choosing-what-to-build-with').text;
+    for (const [what, kind] of [['Template', 'templates'], ['Layout', 'layouts'], ['Pattern', 'patterns']]) {
+        for (const s of src.samples[kind]) assert.match(g, new RegExp(`${what}\\s+\`${s.id}\``, 'i'), `the guide never points to the ${what.toLowerCase()} ${s.id}`);
+    }
+    assert.match(g, /\| Page type or job \| Start from \| In Blazor \|/);
 });
