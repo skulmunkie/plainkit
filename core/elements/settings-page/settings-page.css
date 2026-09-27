@@ -1,0 +1,4 @@
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="sections"] { display: flex; flex-direction: column; gap: var(--space-4); }
+[part="empty"] { color: var(--color-muted); }
+[part="saved"] { margin-block-end: var(--space-4); }
