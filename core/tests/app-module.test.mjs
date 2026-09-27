@@ -100,6 +100,7 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     assert.equal(pageTypeFor(def, 'only'), local);
     assert.equal(typeof pageTypeFor(def, 'custom'), 'function');
     assert.equal(typeof pageTypeFor(def, 'states'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'tool'), 'function');
     for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'list']) assert.equal(pageTypeFor(def, name), undefined, name);
 });
 
@@ -127,6 +128,33 @@ test("'states' (step 5, #351) creates a pk-states-page, sets only the config key
     cleanup2();
     el2.fire('pk-retry');
     assert.equal(retried, 1, 'cleanup removed the retry listener');
+});
+
+test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the element's data config and runLabel, wires run(values) with the page ctx, and cleanup removes the element", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('tool-host');
+    const factory = pageTypeFor(def, 'tool');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-tool-page');
+    assert.deepEqual(el1.config, { input: undefined, outcome: undefined });
+    assert.equal(el1.runLabel, undefined, 'no runLabel unless given');
+    assert.equal(el1.run, undefined, 'no run callback unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const seen = [];
+    const host2 = new Host();
+    const input = [{ key: 'text', type: 'textarea', label: 'Text' }];
+    factory(host2, { input, outcome: 'stat', runLabel: 'Count', run: (values, ctx) => { seen.push([values, ctx]); return { value: 1 }; } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config, { input, outcome: 'stat' });
+    assert.equal(el2.runLabel, 'Count');
+    assert.deepEqual(el2.run({ text: 'hi' }), { value: 1 });
+    assert.deepEqual(seen, [[{ text: 'hi' }, { id: 'x' }]], 'run receives the values and the page ctx');
 });
 
 test('the allow-list is the only way to code: crafted ids never call a loader, whatever the address', async () => {
