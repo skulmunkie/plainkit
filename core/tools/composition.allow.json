@@ -1,0 +1,11 @@
+{
+  "note": "Files outside core/elements/** that wire raw pointer drag, arrow-key navigation, a hand-built focus trap or a manual interactive ARIA role: the low-level interaction plumbing an element already standardizes, or should. An entry here is NOT a permanent exemption — nothing is internal-only, consumer apps should be able to reach the same capability core ships. Every entry must reference the issue that promotes it to a core element or utility; when that issue lands, remove the entry. If a new file trips this test, either compose from an existing element or file a promotion issue (like #393/#394/#395) before adding an entry (core/STANDARDS.md, 'Composition: check before you build').",
+  "interaction": {
+    "site/gallery/gallery.js": {
+      "reason": "Inspector-drawer resize handle: pointer drag + arrow-key resize duplicates pk-splitter's own behavior. Temporary, pending #391 (swap to pk-splitter). Remove this entry when #391 lands."
+    },
+    "modules/layout-builder/layout-builder.js": {
+      "reason": "Arrow/Home/End move the selected canvas node up/down/in/out in the document tree (structural keyboard reorder). Temporary, pending #395 (generalize into pk-tree/pk-sortable or a shared utility). Remove this entry when #395 lands."
+    }
+  }
+}

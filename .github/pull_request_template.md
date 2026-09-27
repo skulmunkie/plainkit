@@ -2,6 +2,10 @@
 
 <!-- One or two sentences. Say how you verified it. -->
 
+## Composition
+
+<!-- Touches core/site or core/modules: which pk-* elements/page types this composes from, and why any new interaction/DOM logic here isn't already covered by one (core/STANDARDS.md, "Composition: check before you build"). Not applicable otherwise. -->
+
 ## Issues
 
 <!-- One issue per pull request. Each on its own line: GitHub closes only the first issue of a list. `Refs #n` for an issue it only advances. -->
