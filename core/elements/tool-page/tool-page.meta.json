@@ -1,0 +1,39 @@
+{
+  "tag": "pk-tool-page",
+  "title": "Tool page",
+  "group": "Page types",
+  "summary": "A page that takes input, runs one action and shows the outcome: input fields, a Run button, and a stat, table, code block or line of text once it finishes. Set the run(values) callback as a property (business logic, never config data) - it may reject, which shows the built-in error state with Retry.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a select's options are [{ value, label? }] or plain strings); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
+    },
+    {
+      "name": "runLabel",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Text of the Run button. Defaults to \"Run\"."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "form", "description": "Wraps the fields and the Run button; submitting it (click or Enter) runs the action." },
+    { "name": "fields", "description": "Holds one control per config.input entry." },
+    { "name": "run", "description": "The Run button." },
+    { "name": "outcome", "description": "Holds the loading/error state while run() is in flight, then the drawn outcome." }
+  ],
+  "cssProperties": [],
+  "a11y": "Every field is a labelled real control (pk-input/pk-textarea/pk-select, showLabel on); the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
+  "examples": [
+    {
+      "title": "Word count (set config and run from script: an inline script cannot run under this site's CSP, so wire it the way pk-command-palette's items are wired)",
+      "html": "<pk-tool-page id=\"word-count\" run-label=\"Count\"></pk-tool-page>"
+    }
+  ],
+  "methods": []
+}
