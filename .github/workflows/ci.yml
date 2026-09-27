@@ -11,7 +11,7 @@ name: CI
 # says so (scripts/ci-changes.mjs has the rules). It is done inside each job, not in a first job, because a required check that is skipped counts
 # as passed only when the job exists in the run, and because no job then waits for a runner just to be told what to do.
 #
-# Required checks (see .github/REPO-SETTINGS.md): "Changelog (fragments)", "Toolkit (node)", "Blazor (dotnet)". The browser and package jobs
+# Required checks (see .github/REPO-SETTINGS.md): "Changelog (fragments)", "Toolkit (node)", "Blazor (dotnet)". The browser, package and scorecard jobs
 # run but are not required yet. "CI summary" writes the single sticky pull request comment with the FIX lines of whatever failed.
 on:
   push:
@@ -288,13 +288,51 @@ jobs:
         if: always() && steps.gate.outputs.run == 'true'
         run: node scripts/verify.mjs --budget pack
 
+  # The SDK Scorecard's own quality run (core/site/scorecard, core/js/quality.js): every gallery example through the accessibility, layout, spacing,
+  # touch target, focus and contrast checks, headless. Not required yet (issues #404, #405, #406 track the findings already on main); promote it once
+  # those are clear. Gated on the same paths as the browser suite (scripts/ci-changes.mjs browser): an element, module or js change is what it measures.
+  scorecard:
+    name: Scorecard (quality)
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+    outputs:
+      failures: ${{ steps.verify.outputs.failures }}
+    steps:
+      - run: echo "PK_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Anything to check?
+        id: gate
+        run: node scripts/ci-changes.mjs browser
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+
+      - name: SDK Scorecard quality run (node scripts/verify.mjs --only scorecard)
+        id: verify
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --only scorecard
+
+      - name: Time budget
+        if: always() && steps.gate.outputs.run == 'true'
+        run: node scripts/verify.mjs --budget scorecard
+
   # One sticky comment on the pull request (marker <!-- ci-summary -->, created or updated, never a new one per push): what failed, the FIX line of each
   # failed check, the log links, and the whole run's time against its 60 s budget. Text and rules: scripts/ci-report.mjs. Only this job may write
   # to pull requests. On a pull request from a fork the token is read-only: the comment is skipped with a warning and the job summary has the text.
   ci-summary:
     name: CI summary
     if: always() && github.event_name == 'pull_request'
-    needs: [lint, node, dotnet, browser, pack]
+    needs: [lint, node, dotnet, browser, pack, scorecard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

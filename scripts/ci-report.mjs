@@ -14,6 +14,7 @@ export const JOBS = {
     dotnet: { name: 'Blazor (dotnet)', required: true, budget: 45 },
     browser: { name: 'Browser (element suite)', required: false, budget: 300 },
     pack: { name: 'Package (contents)', required: false, budget: 45 },
+    scorecard: { name: 'Scorecard (quality)', required: false, budget: 60 },
 };
 export const RUN_BUDGET = 60; // seconds, the whole pull request run (wall time)
 export const SUMMARY_JOB = 'CI summary';
