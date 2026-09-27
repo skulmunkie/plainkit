@@ -1,5 +1,5 @@
 import { mountChrome } from '../chrome.js';
-mountChrome({ title: "Routed list and detail", page: "routed-list-detail", crumbs: [["Section", "page.html"]], actions: "<pk-button id=\"new-thing\" size=\"mini\">New thing</pk-button>", fill: true });
+mountChrome({ title: "Routed list and detail", page: "routed-list-detail", crumbs: [["Section", "page.html"]], actions: "<pk-dropdown placement=\"bottom-end\"><pk-button slot=\"trigger\" size=\"mini\">Actions</pk-button><pk-menu-item id=\"new-thing\">New thing</pk-menu-item></pk-dropdown>", fill: true });
 
 // The route owns the page. #/things shows the list; #/things/2 and #/things/new show the same page with the record open. A real app uses its
 // router's paths (/things, /things/2, /things/new) the same way: everything below is a function of the route, and the elements only report what
@@ -62,7 +62,7 @@ function render() {
 
 // The list: opening a row is a navigation, not a state change of its own.
 table.addEventListener('pk-row-click', e => go(e.detail.id));
-document.getElementById('new-thing').addEventListener('click', () => go('new'));
+document.getElementById('new-thing').addEventListener('pk-select', () => go('new'));
 
 // Back, close and Cancel leave the record. The phone strip's list tab does the same: the workspace announces the tab first (pk-pane-change is
 // cancelable), so the handler keeps the pane the route asked for and changes the route instead; the route then sets the pane.
@@ -78,7 +78,7 @@ validation.addEventListener('pk-valid', () => {
 });
 
 // The elements load on demand: wait until the ones this page sets properties on are defined, then follow the route.
-await Promise.all(['pk-workspace', 'pk-table', 'pk-page-header', 'pk-tabs', 'pk-pagination', 'pk-form', 'pk-input', 'pk-select'].map(tag => customElements.whenDefined(tag)));
+await Promise.all(['pk-workspace', 'pk-table', 'pk-page-header', 'pk-tabs', 'pk-pagination', 'pk-dropdown', 'pk-menu-item', 'pk-form', 'pk-input', 'pk-select'].map(tag => customElements.whenDefined(tag)));
 window.addEventListener('hashchange', render);
 renderList();
 render();
