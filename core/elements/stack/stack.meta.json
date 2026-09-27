@@ -38,6 +38,13 @@
       "default": false,
       "reflect": true,
       "description": "Draw a rule between children."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fills a flex or grid parent with a definite height (a workspace pane, an app shell body): the stack takes the full height instead of sizing to its content, so a flex child declared to grow (a table with sticky-header, for example) can own the scrolling instead of the page."
     }
   ],
   "slots": [

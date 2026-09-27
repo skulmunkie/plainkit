@@ -1,4 +1,5 @@
-// A store-only zip writer (no compression), enough for the custom SDK export: no dependencies, no DOM, deterministic (a fixed timestamp), UTF-8 names.
+// A store-only zip writer (no compression): no dependencies, no DOM, deterministic (a fixed timestamp), UTF-8 names. General-purpose — any
+// consumer app assembling a browser-side export/download can import this directly; it is not specific to the custom SDK export that uses it.
 //
 //   const bytes = zipStore([{ path: 'dist/plainkit.css', data: Uint8Array }, ...]);   // -> Uint8Array of a .zip any unzip tool opens
 //

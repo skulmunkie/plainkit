@@ -25,3 +25,8 @@ test('it respects [hidden], uses logical properties and no literal colours', () 
 test('a stack is a vertical flex column, with optional dividers', () => {
     assert.ok(/flex-direction:\s*column/.test(css)); assert.equal(prop('dividers').default, false); assert.ok(css.includes(':host([dividers])'));
 });
+
+test('fill takes a definite height from a flex or grid parent instead of sizing to content', () => {
+    assert.equal(prop('fill').default, false);
+    assert.match(css, /:host\(\[fill\]\)\s*\{[^}]*block-size:\s*100%/);
+});
