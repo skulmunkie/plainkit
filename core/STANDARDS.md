@@ -22,6 +22,16 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 - Source lives in `modules/<name>/` (the gallery in `site/gallery/`); pure logic sits in `js/` so node tests can import it without a DOM.
 - No new runtime dependencies. Reuse SDK components; do not rebuild them.
 
+## Composition: check before you build
+
+Nothing is internal-only. `core/site`, `core/modules` and every app framework module (#346) are consumers of the SDK first: if a capability is worth building, a consumer app should be able to reach the same one, not a private copy kept inside one page or one module. Before writing DOM, interaction or widget logic anywhere outside `core/elements/**`, check whether an existing `pk-*` element or page type already does it.
+
+- **Reimplementation** (an element already does this): use the element. A hand-rolled version is deleted, not kept alongside it.
+- **A real, reusable capability with no element yet** (used more than once, or generic enough that another consumer plausibly wants it): it belongs in `core/elements/` (or a shared `core/js/*` utility), not in the page/module that happened to need it first. File it under the "Tracker: components the SDK lacks" issue (#336) or its own promotion issue, and treat the existing hand-rolled copy as temporary, not settled. Whether it ships in the main runtime or a separate package (e.g. a devtools-only package, #162) is a placement decision made when it's built — being devtool-flavored is not a reason to skip promoting it.
+- **Genuinely one-off page glue** (a few lines, no reusable shape — e.g. "press Enter to submit this one form", pure index arithmetic feeding an existing control): stays where it is.
+
+`core/tests/composition-audit.test.mjs` mechanically catches the sharpest signal of the first two cases: raw pointer-drag wiring, arrow-key list/tree navigation, a hand-built focus trap, or a manually-set interactive ARIA role, anywhere outside `core/elements/**`. A match needs an entry in `core/tools/composition.allow.json` naming the issue that promotes it — an entry is a temporary tracking pin, not a permanent exemption, and is removed when that issue lands. The test cannot catch a capability that doesn't trip one of those specific patterns (a bespoke data viewer, a measurement harness): that judgment call is a human/agent review question, asked on every PR that adds non-trivial logic to `core/site` or `core/modules` — "what does this compose from, and does the rest need to move to core?" — not just at merge time but whenever the same shape of question comes up again.
+
 ## The dist pattern
 
 `node tools/build.mjs` is deterministic and writes the toolkit's generated files: `plainkit.css`, the element modules, the gallery data and `dist/` (`node scripts/bootstrap.mjs` runs it with the other generators). None of it is committed. `dist/` is self-contained: every runtime URL is built from `import.meta.url`, so the folder works when copied anywhere or served from a CDN prefix. `dist/manifest.json` lists each file with an SRI hash. The build owns `dist/js`: a file there that no source produces is removed, and a test fails if one is left. Never edit generated files.
