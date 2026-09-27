@@ -140,7 +140,19 @@ const settings = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings]]);
+// 'list' (step 6, #352): a <pk-list-page> (a filterable, sortable, paginated pk-table). config: { columns, filters, actions, empty, pageSize };
+// load and rowHref are callback properties on the element (business logic, not JSON data), like 'tool's own run and 'settings's own save -
+// load(query) returns { rows, total } for the current page/sort/filter/search, and rowHref(row) is called on a row click instead of the
+// element navigating itself, so a page that wants app-relative navigation wires it through ctx.navigate here, the same as any other route.
+const list = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-list-page');
+    el.config = { columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize };
+    if (config.load) el.load = query => config.load(query, ctx);
+    if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['list', list]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
