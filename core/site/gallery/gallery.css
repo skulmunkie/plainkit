@@ -55,6 +55,11 @@
 .gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .gx-el-live { padding: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-start; }
 .gx-el-stage { display: contents; }
+/* A flex item's default size shrink-wraps its own content: an element that starts with sparse or positioned visible content (a loading
+   state showing only a skeleton, say) can size to near-zero even though the identical markup fills the width on a plain page. The stage
+   is a wrapper, not a fixed-width sample, so its rendered element (in the playground, via .gx-el-stage, or an example, direct in
+   .gx-el-live) always takes the full row instead of guessing a size from content. */
+.gx-el-live > *, .gx-el-stage > * { flex: 1 1 100%; min-inline-size: 0; }
 .gx-el-controls > * { min-inline-size: 0; }
 .gx-el-controls :is(pk-input, pk-select) { display: block; contain: inline-size; }
 .gx-el-check { align-self: end; min-height: var(--touch-target); }
