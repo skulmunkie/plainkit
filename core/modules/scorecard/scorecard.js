@@ -177,36 +177,50 @@ export async function mountScorecard(container, options = {}) {
     };
 
     // ---- the sections that need no run: each is a card that fills when its data has loaded --------------------------------
+    // None of these cards is added to the page until every one of them has its data: a card that shows "Loading…" today and its real
+    // content once its own fetch resolves still resizes the page when that swap happens, and five cards resolving at five different
+    // times means five separate reflows spread over the load. A min-height placeholder sized for the eventual content was tried instead
+    // (the #135 work) and measured worse across repeated runs, so this waits for the slowest of the five instead of guessing a size: the
+    // whole group appears once, already full, after one reflow. First paint of this cluster is a little later; there is nothing to shift
+    // afterwards.
     const hosts = {};
     const heading = { size: 'Size and budgets', api: 'API surface', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
-    for (const name of ['size', 'api', 'sweep', 'security', 'history']) {
-        if (!sections.has(name)) continue;
-        const body = h(doc, 'div', {}, note(doc, 'Loading…'));
-        hosts[name] = body;
-        root.insertBefore(card(doc, heading[name], body), $('[data-sc-frames]'));
-    }
-    const fill = (name, get, paint, hint) => (hosts[name] ? Promise.resolve().then(get).then(v => paint(v)).catch(err => { log.warn(`the ${name} section could not be filled`, err); missing(doc, hosts[name], hint, `${err.message}`); }) : null);
+    for (const name of ['size', 'api', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'div', {});
+    const settled = get => Promise.resolve().then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
+    const loadHistoryData = () => {
+        if (!historyKey) return { history: [], scoring: undefined, noKey: true };
+        const history = readHistory(storage, historyKey);
+        return load(data.scoring).then(scoring => scoring, () => undefined).then(scoring => ({ history, scoring }));
+    };
+    const historyActions = {
+        onExport: () => { const a = doc.createElement('a'); a.href = URL.createObjectURL(new Blob([exportHistory(readHistory(storage, historyKey))], { type: 'application/json' })); a.download = `${historyKey}.json`; a.click(); URL.revokeObjectURL(a.href); },
+        onImport: async file => { try { const imported = importHistory(await file.text()); storage.setItem(historyKey, JSON.stringify(imported.slice(-(historyMax ?? 40)))); setProgress(`Imported ${imported.length} runs.`); } catch (err) { log.warn('importing the run history failed', err); setProgress(`The import failed: ${err.message}`); } paintHist(); },
+        onClear: () => { storage.setItem(historyKey, '[]'); paintHist(); },
+    };
+    // Re-paints the history card on its own (after a run, an import or a clear); those happen well after the initial batch, so there is
+    // nothing left to coalesce with.
     const paintHist = () => {
-        const history = historyKey ? readHistory(storage, historyKey) : [];
         if (!historyKey) return missing(doc, hosts.history, 'history key', 'Pass historyKey: the runs are kept in this browser under it.');
-        return load(data.scoring).then(scoring => scoring, () => undefined).then(scoring => paintHistory(doc, hosts.history, {
-            history, scoring,
-            actions: {
-                onExport: () => { const a = doc.createElement('a'); a.href = URL.createObjectURL(new Blob([exportHistory(readHistory(storage, historyKey))], { type: 'application/json' })); a.download = `${historyKey}.json`; a.click(); URL.revokeObjectURL(a.href); },
-                onImport: async file => { try { const imported = importHistory(await file.text()); storage.setItem(historyKey, JSON.stringify(imported.slice(-(historyMax ?? 40)))); setProgress(`Imported ${imported.length} runs.`); } catch (err) { log.warn('importing the run history failed', err); setProgress(`The import failed: ${err.message}`); } paintHist(); },
-                onClear: () => { storage.setItem(historyKey, '[]'); paintHist(); },
-            },
-        }));
+        return Promise.resolve(loadHistoryData()).then(({ history, scoring }) => paintHistory(doc, hosts.history, { history, scoring, actions: historyActions }));
     };
     const setProgress = text => { const p = $('[data-sc-progress]'); if (p) p.textContent = text; };
 
-    const ready = Promise.all([
-        fill('size', async () => ({ sizes: await measureSizes(data.sizes, doc), budgets: await load(data.budgets) }), v => paintSize(doc, hosts.size, v), 'sizes'),
-        fill('api', async () => ({ baseline: await load(data.apiBaseline), current: await load(data.api) }), v => paintApi(doc, hosts.api, v), 'API surface'),
-        fill('sweep', () => load(data.sweep), v => paintSweep(doc, hosts.sweep, v), 'sweep report'),
-        fill('security', () => load(data.security), v => paintSecurity(doc, hosts.security, v, { fileLink }), 'security report'),
-        hosts.history ? paintHist() : null,
-    ].filter(Boolean)).then(() => loadElements(root));
+    const cards = [
+        hosts.size && ['size', async () => ({ sizes: await measureSizes(data.sizes, doc), budgets: await load(data.budgets) }), v => paintSize(doc, hosts.size, v), 'sizes'],
+        hosts.api && ['api', async () => ({ baseline: await load(data.apiBaseline), current: await load(data.api) }), v => paintApi(doc, hosts.api, v), 'API surface'],
+        hosts.sweep && ['sweep', () => load(data.sweep), v => paintSweep(doc, hosts.sweep, v), 'sweep report'],
+        hosts.security && ['security', () => load(data.security), v => paintSecurity(doc, hosts.security, v, { fileLink }), 'security report'],
+        hosts.history && ['history', loadHistoryData, v => (v.noKey ? missing(doc, hosts.history, 'history key', 'Pass historyKey: the runs are kept in this browser under it.') : paintHistory(doc, hosts.history, { ...v, actions: historyActions })), 'history'],
+    ].filter(Boolean);
+
+    const ready = Promise.all(cards.map(([, get]) => settled(get))).then(results => {
+        const frames = $('[data-sc-frames]');
+        cards.forEach(([name, , paint, hint], i) => {
+            const r = results[i];
+            if (r.ok) paint(r.v); else { log.warn(`the ${name} section could not be filled`, r.err); missing(doc, hosts[name], hint, `${r.err.message}`); }
+            root.insertBefore(card(doc, heading[name], hosts[name]), frames);
+        });
+    }).then(() => loadElements(root));
 
     // ---- a run: frames, then (performance) the measurements that need a real browser ---------------------------------------
     async function measured(scoring, ranked) {
