@@ -200,26 +200,23 @@ export function unusedSelectors(cssText, documents) {
     return { total, unused };
 }
 
-// Selectors of every rule in the document's stylesheets that draws a focus ring (a :focus-visible or :focus rule with an outline
-// or box-shadow), with the pseudo-class removed so they can be tested with matches(). Programmatic focus() does not reliably
-// trigger :focus-visible, so the rules are read instead of the computed style.
+// Selectors of every rule that draws a focus ring, pseudo-class stripped for matches(). Shadow trees are walked too (their
+// rules live in adoptedStyleSheets, invisible to doc.styleSheets); a :host(:focus-visible) ring names the host's own tag.
 export function focusRingSelectors(doc) {
-    const out = [];
-    const walk = sheet => {
-        let rules; try { rules = sheet.cssRules; } catch { return; }
-        for (const r of rules) {
-            if (r.styleSheet) walk(r.styleSheet);
-            else if (r.cssRules && !r.selectorText) { for (const inner of r.cssRules) visit(inner); }
-            else visit(r);
-        }
-    };
-    const visit = r => {
+    const out = [], seen = new Set();
+    const visit = (r, tag) => {
         if (!r.selectorText || !/:focus/.test(r.selectorText)) return;
-        const s = r.style; const ring = (s.outlineStyle && s.outlineStyle !== 'none') || (s.outline && !/none|^0/.test(s.outline)) || (s.boxShadow && s.boxShadow !== 'none');
-        if (!ring) return;
-        for (const sel of r.selectorText.split(',')) out.push(sel.replace(/:focus-visible|:focus-within|:focus/g, '').trim() || '*');
+        const s = r.style, ring = (s.outlineStyle && s.outlineStyle !== 'none') || (s.outline && !/none|^0/.test(s.outline)) || (s.boxShadow && s.boxShadow !== 'none');
+        if (ring) for (const sel of r.selectorText.split(',')) { const c = sel.replace(/:focus-visible|:focus-within|:focus/g, '').trim(); out.push(tag && /^:host\b/.test(c) ? tag : c || '*'); }
     };
-    for (const sheet of doc.styleSheets) walk(sheet);
+    const walk = (sheet, tag) => {
+        if (seen.has(sheet)) return; seen.add(sheet);
+        let rules; try { rules = sheet.cssRules; } catch { return; }
+        for (const r of rules) r.styleSheet ? walk(r.styleSheet, tag) : r.cssRules && !r.selectorText ? [...r.cssRules].forEach(i => visit(i, tag)) : visit(r, tag);
+    };
+    for (const sheet of doc.styleSheets) walk(sheet, null);
+    const shadows = root => { for (const el of root.querySelectorAll('*')) { if (el.shadowRoot) { for (const sh of el.shadowRoot.adoptedStyleSheets ?? []) walk(sh, el.localName); shadows(el.shadowRoot); } } };
+    shadows(doc);
     return out;
 }
 
