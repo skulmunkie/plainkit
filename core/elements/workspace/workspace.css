@@ -36,6 +36,8 @@
     [part="root"], [part="root"][data-aside], [part="root"]:not([data-nav]), [part="root"]:not([data-nav])[data-aside] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
     [part="strip"] { display: flex; }
     [part="strip"][hidden] { display: none; }
-    [part="root"] > [part="nav"], [part="root"] > [part="main"], [part="root"] > [part="aside"] { display: none; position: static; inline-size: auto; border: 0; box-shadow: none; }
+    /* An explicit row: when the strip is display: none (hidden, one pane only), the visible pane is the only grid item left and auto-placement
+       would drop it into row 1 (the strip's own "auto" track, sized to its content) instead of row 2 (the 1fr track meant to fill the rest). */
+    [part="root"] > [part="nav"], [part="root"] > [part="main"], [part="root"] > [part="aside"] { display: none; position: static; inline-size: auto; border: 0; box-shadow: none; grid-row: 2; }
     [part="root"][data-pane="nav"] > [part="nav"], [part="root"][data-pane="main"] > [part="main"], [part="root"][data-pane="aside"] > [part="aside"] { display: block; }
 }

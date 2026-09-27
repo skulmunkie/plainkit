@@ -110,6 +110,16 @@ export const workspaceCases = [
         ws.activePane = 'nav'; await t.settle(); t.ok(shown(pane(ws, 'main')), 'a missing pane falls back to the main pane');
     }],
 
+    ['workspace (375px, fill): a short single pane still fills the host, not just its content', async t => {
+        // A phone-width workspace with only a main pane hides the strip (nothing to switch to); [part="strip"][hidden] is display: none, which
+        // removes it from the grid entirely, so the main pane is the only grid item left. Auto-placement used to drop it into the strip's own
+        // "auto" row (sized to its content) instead of the 1fr row meant to fill the rest, leaving a gap between short content and the host's edge.
+        const { doc } = await frame(t, '<pk-workspace fill><div style="height:20px">Short</div></pk-workspace>', 375, 300);
+        const ws = doc.querySelector('pk-workspace');
+        t.ok(!shown(ws.part('strip')), 'one pane needs no strip');
+        t.eq(Math.round(pane(ws, 'main').getBoundingClientRect().height), Math.round(ws.getBoundingClientRect().height), 'the main pane fills the host, not just its short content');
+    }],
+
     ['workspace: fill takes the height of its parent and drops the frame; without it the height is a viewport share', async t => {
         const host = await t.mount('<div><pk-workspace fill><div slot="nav">Nav</div><div>Main</div></pk-workspace></div>');
         const parent = host; parent.style.display = 'flex'; parent.style.flexDirection = 'column'; parent.style.height = '333px';

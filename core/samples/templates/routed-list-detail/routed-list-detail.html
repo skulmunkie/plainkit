@@ -17,7 +17,7 @@
       <pk-tab value="Draft">Draft</pk-tab>
       <pk-tab value="Archived">Archived</pk-tab>
     </pk-tabs>
-    <pk-field label="Search"><pk-input id="search" type="search" placeholder="Search things"></pk-input></pk-field>
+    <pk-input id="search" type="search" label="Search things" placeholder="Search things"></pk-input>
     <pk-table id="things" label="Things" clickable hover row-key="id" sticky-header manual columns='[{"key":"name","label":"Name","sortable":true},{"key":"status","label":"Status","sortable":true},{"key":"updated","label":"Updated","sortable":true,"hidePhone":true}]'>
       <pk-pagination slot="footer" id="pager" label="Things"></pk-pagination>
     </pk-table>
