@@ -1,0 +1,34 @@
+{
+  "component": "PkNotFoundPage",
+  "params": [
+    {
+      "name": "Heading",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "Description",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "description"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "OnAction",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-action",
+      "cancelable": false
+    }
+  ],
+  "notes": "New component: App framework step 5e (issue #351), the last page type of step 5. The action callback (business logic - navigating home, going back) is not itself mapped here beyond OnAction; a Blazor consumer wires its own navigation from that event, same as PkStatesPage's OnRetry."
+}
