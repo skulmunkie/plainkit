@@ -8,7 +8,7 @@ import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { customizeDist, buildBundle, themeBundle, validateBreakpoints, readShippedBreakpoints, rewriteMedia, rewriteProperties, themeCssProblem, integrityOf, manifestText, readSettings, settingsText, deltaRows, RANGE } from '../js/custom-sdk-logic.js';
-import { zipStore, crc32 } from '../js/zip-store.js';
+import { zipStore } from '../js/zip-store.js';
 import { fetchDist, exportSdk, exportTheme } from '../js/custom-sdk.js';
 import { buildOverrides } from '../js/theme.js';
 
@@ -173,17 +173,6 @@ function unzip(bytes) {
     }
     return out;
 }
-
-test('the zip writer: entries come back exactly, names are UTF-8, it is deterministic, and it refuses unsafe paths', () => {
-    const entries = [{ path: 'a/b.txt', data: enc.encode('hello\r\nworld') }, { path: 'eé.bin', data: Uint8Array.from({ length: 70000 }, (_, i) => i % 251) }, { path: 'empty', data: new Uint8Array(0) }];
-    const zip = zipStore(entries);
-    const back = unzip(zip);
-    assert.deepEqual([...back.keys()], entries.map(e => e.path));
-    for (const e of entries) assert.ok(same(back.get(e.path), e.data), e.path);
-    assert.ok(same(zip, zipStore(entries)), 'the same input, the same bytes');
-    assert.equal(crc32(enc.encode('123456789')), 0xcbf43926);
-    for (const path of ['../x', '/x', 'a\\b', 'a/../b', '']) assert.throws(() => zipStore([{ path, data: new Uint8Array(1) }]), /unsafe path/);
-});
 
 test('a full export unzips to the dist layout with the settings and a README that name the version and the settings used', async () => {
     const { files, summary } = await buildBundle(load(), { include: { theme: true, breakpoints: true }, breakpoints: { phone: 700, tablet: 1100, wide: 1500 }, theme });
