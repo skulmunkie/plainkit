@@ -10,7 +10,7 @@
 ::slotted(h1), ::slotted(h2), ::slotted(h3) { margin: 0; }
 :host([variant="section"]) [part="header"] { padding: 0; gap: var(--space-2); }
 :host([variant="section"]) [part="titlebar"] { gap: var(--space-2); }
-:host([variant="record"]) [part="header"] { gap: 0; }
+:host([variant="record"]) [part="header"] { gap: var(--space-1); }
 :host([variant="record"]) [part="titlebar"] { gap: var(--space-2) var(--space-3); }
 :host([variant="record"]) [part="meta"] { font-size: var(--text-meta); }
 @container (max-width: 46rem) {
