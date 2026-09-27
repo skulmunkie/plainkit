@@ -19,8 +19,8 @@
 // defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a nav that is not an array or function...).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
-// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); step 3 implements 'custom' (config.mount(host, ctx) returns cleanup or { destroy() })
-// and 'not-found', the rest arrive with steps 5 to 7. Extend the set three ways, all through the same factory shape
+// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); step 3 implements 'custom' (config.mount(host, ctx) returns cleanup or { destroy() }),
+// step 5 (#351) adds 'states', 'tool', 'settings' and 'not-found' (own comment below explains its routing exception), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -47,6 +47,8 @@
 // The ctx of mount/unmount ends on unmount. A page factory gets its own ctx with the same members whose on/observe/after/signal end when the page is left (a route change
 // or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
 import { flattenRoutes } from '../route-tree.js';
+import { createLogger } from '../log.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
 export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'custom', 'not-found', 'states']);
 
@@ -120,7 +122,37 @@ const states = (host, config = {}, ctx) => {
     host.append(el);
     return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states]]);
+// 'tool' (step 5, #351): a <pk-tool-page> (input fields, Run, an outcome). config: { input, outcome, runLabel, run(values, ctx) }; run is a
+// callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+const tool = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-tool-page');
+    el.config = { input: config.input, outcome: config.outcome };
+    if (config.runLabel !== undefined) el.runLabel = config.runLabel;
+    if (config.run) el.run = values => config.run(values, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+// 'settings' (step 5, #351): a <pk-settings-page> (sectioned fields, a sticky Save/Discard bar). config: { sections, values, save(values, ctx) };
+// save is a callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+const settings = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-settings-page');
+    el.config = { sections: config.sections };
+    if (config.values !== undefined) el.values = config.values;
+    if (config.save) el.save = values => config.save(values, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+// 'not-found' (step 5, #351): a <pk-not-found-page>. A route's page: 'not-found' bypasses this factory (app/host.js's showPage handles it
+// directly, box.notFound()); this is for mountPage() and a 'custom' module mounting pk-not-found-page itself. config: { heading, description, label, action(ctx) }, like 'states'' retry.
+const notFound = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-not-found-page');
+    for (const k of ['heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
+    const onAction = () => config.action?.(ctx);
+    if (config.action) el.addEventListener('pk-action', onAction);
+    host.append(el);
+    return () => { if (config.action) el.removeEventListener('pk-action', onAction); el.remove(); };
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
@@ -137,4 +169,50 @@ export function moduleFromMount(mountFn, { options, ...meta } = {}) {
         return () => handle?.destroy?.();
     };
     return defineModule({ ...meta, routes: [{ path: '*', page: 'custom', config: { mount } }] });
+}
+
+// mountPage(container, page, options): the one-page consumer from #351's title - a page type with no module or app around it. `page`: a
+// type id, or { type, config }. ctx is a SUBSET of a module page's ctx (header, above): id/log/auth/settings/store/theme/on/observe/after/
+// signal work the same (tracked, undone by destroy()); route/page/tasks/notify/dialogs stay null; navigate()/href() fail closed, warning.
+// Returns Promise<{ destroy() }>.
+export async function mountPage(container, page, options = {}) {
+    const type = typeof page === 'string' ? page : page?.type;
+    if (typeof type !== 'string') throw new TypeError('mountPage: page must be a type id, or { type, config }');
+    const factory = pageTypeFor({}, type);
+    if (!isFn(factory)) throw new TypeError(`mountPage: page type "${type}" is not available`);
+    const config = typeof page === 'string' ? undefined : page?.config;
+    const { id = 'page', auth = null, settings = null, store = null, root = container.ownerDocument?.documentElement } = options;
+    const lg = createLogger(`app:${id}`);
+    const ac = new AbortController();
+    const offs = new Set();
+    const run = (fn, what) => { try { fn?.(); } catch (e) { lg.error(`${what} threw`, e); } };
+    const track = off => { if (ac.signal.aborted) { lg.warn('mountPage: used after destroy() ignored'); return off; } offs.add(off); return off; };
+    const ctx = {
+        id, auth, settings, store, log: lg, route: null, page: null, tasks: null, notify: null, dialogs: null, signal: ac.signal,
+        navigate: () => (lg.warn('navigate: mountPage has no router'), false),
+        href: () => null,
+        on: (t, type, fn, o) => { t.addEventListener(type, fn, o); return track(() => t.removeEventListener(type, fn, o)); },
+        observe: (o, t, opt) => { o.observe(t, opt); track(() => o.disconnect()); return o; },
+        after(ms, fn) { const t = setTimeout(() => { offs.delete(off); run(fn, 'after() callback'); }, ms); const off = () => clearTimeout(t); return track(off); },
+        theme: root ? {
+            get name() { return currentTheme(root); },
+            set: n => setTheme(root, n),
+            toggle: () => toggleTheme(root),
+            subscribe(fn) {
+                const mo = new (container.ownerDocument?.defaultView?.MutationObserver ?? MutationObserver)(() => fn(currentTheme(root)));
+                ctx.observe(mo, root, { attributes: true, attributeFilter: ['data-theme'] });
+                return () => mo.disconnect();
+            },
+        } : null,
+    };
+    const out = await factory(container, config, ctx);
+    const cleanup = typeof out === 'function' ? out : out?.destroy?.bind(out);
+    return {
+        destroy() {
+            ac.abort();
+            for (const off of [...offs].reverse()) run(off, 'cleanup');
+            offs.clear();
+            run(cleanup, 'page cleanup');
+        },
+    };
 }

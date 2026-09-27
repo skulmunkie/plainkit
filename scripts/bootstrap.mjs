@@ -12,6 +12,7 @@
 //   --if-missing   do nothing when the generated files exist and are newer than their sources (cheap enough for a tool to call every time)
 //
 // Deterministic: running it twice changes nothing. Run it after cloning, after switching branches and after editing any source.
+// Also registers a local git merge driver for the browser attestation's noisy fields (issue #417; see ensureMergeDriver below).
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +27,19 @@ export const STEPS = [
     ['scripts/build-agent-refs.mjs', 'scripts/build-agent-refs.mjs'],
     ['scripts/publish-dist.mjs', 'scripts/publish-dist.mjs'],
 ];
+
+// Registers the local git merge driver .gitattributes names for core/tests/browser/report.json (merge=keep-current): a merge that only
+// touches the attestation's timestamp, browser UA or per-case timings - which differ on every run even when nothing substantive changed -
+// resolves by keeping whichever side started the merge, instead of a conflict a human has to hand-resolve on every branch sync (issue #417).
+// `driver = true` is git's own built-in shortcut for "keep ours, no external program"; nothing else needs installing. Best effort: never
+// fails bootstrap (a read-only checkout or a detached CI worktree may not be able to set local config).
+export function ensureMergeDriver({ cwd = root, run = spawnSync } = {}) {
+    try {
+        const current = run('git', ['config', '--get', 'merge.keep-current.driver'], { cwd, encoding: 'utf8' });
+        if (current.status === 0 && current.stdout.trim() === 'true') return true;
+        return run('git', ['config', 'merge.keep-current.driver', 'true'], { cwd, encoding: 'utf8' }).status === 0;
+    } catch { return false; }
+}
 
 export function bootstrap({ quiet = false, ifMissing = false, log = console.log } = {}) {
     const t0 = performance.now();
@@ -47,6 +61,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const flags = new Set(process.argv.slice(2));
     const bad = [...flags].filter(f => f !== '--quiet' && f !== '--if-missing');
     if (bad.length) { console.error(`bootstrap: unknown argument ${bad[0]} (flags: --quiet, --if-missing)`); process.exit(2); }
+    ensureMergeDriver();
     const r = bootstrap({ quiet: flags.has('--quiet'), ifMissing: flags.has('--if-missing') });
     if (!r.ok) process.exit(1);
     if (!r.skipped) console.log(`bootstrap: ${STEPS.length} steps ok in ${(r.ms / 1000).toFixed(1)} s`);

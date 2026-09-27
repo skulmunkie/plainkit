@@ -12,6 +12,7 @@ const CRUMBS = '#ph >>> [part=crumbs]';
 const TABS = '#ph >>> [part=tabs]';
 const PANEL = '#bp >>> [part=panel]';
 const TRIGGER = '#bp >>> [part=trigger]';
+const CLOSE = '#history-tab >>> [part=close]';
 
 export default {
     name: 'page-header',
@@ -30,7 +31,7 @@ export default {
 <pk-badge variant="muted">On hand 1</pk-badge>
 <pk-button slot="actions" id="save" size="mini">Save</pk-button>
 <pk-button slot="actions" size="mini" variant="ghost">Print</pk-button>
-<pk-tabs slot="tabs"><pk-tab value="details">Details</pk-tab><pk-tab value="history">History</pk-tab></pk-tabs>
+<pk-tabs slot="tabs"><pk-tab value="details">Details</pk-tab><pk-tab id="history-tab" value="history" closable>History</pk-tab></pk-tabs>
 </pk-page-header>
 <div id="rows">${paragraphs(70)}</div>
 </pk-app-shell>`,
@@ -38,6 +39,7 @@ export default {
         { shot: 'record' },
         { click: TRIGGER }, { wait: 300 }, { shot: 'popover-open' },
         { key: 'Escape' }, { wait: 200 },
+        { focus: CLOSE }, { shot: 'tab-close-focus' },
         { scroll: BODY, to: 800 }, { wait: 200 }, { shot: 'scrolled' },
     ],
     expect(t) {
@@ -55,6 +57,12 @@ export default {
             if (tabs && chips && actions) t.ok(tabs.y >= Math.max(chips.bottom, actions.bottom) - 1, `the tabs (from y=${Math.round(tabs.y)}) start above the end of the chips (y=${Math.round(chips.bottom)}) or actions (y=${Math.round(actions.bottom)})`);
             t.visible('#ph > pk-tabs', 'the docked tabs');
             if (phone) t.atLeast('#save', 'height', 44);
+            const crumbsRect = t.rect(CRUMBS);
+            if (crumbsRect && chips) t.ok(chips.y >= crumbsRect.bottom + 1, `the chips (from y=${Math.round(chips.y)}) sit flush against the crumbs (to y=${Math.round(crumbsRect.bottom)}), no visible gap`);
+        }
+        if (t.shot === 'tab-close-focus') {
+            t.ringVisible(CLOSE);
+            t.ringUnclipped(CLOSE);
         }
         if (t.shot === 'popover-open') {
             t.visible(PANEL, 'the badge popover panel');

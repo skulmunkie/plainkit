@@ -171,24 +171,44 @@ public sealed class PageBaseTests : BunitContext
     [Fact]
     public async Task The_overlay_shows_only_after_the_delay_and_stays_for_the_minimum_time()
     {
-        var cut = Render<PageBaseHost>();
-        cut.Instance.DelayMs = 60;
-        cut.Instance.MinMs = 200;
+        // Real Task.Delay-based timers, on purpose (PageBase.Later): margins are wide relative to DelayMs/MinMs so ordinary
+        // CI scheduler jitter (GC pauses, thread-pool ramp-up) never flips an assertion. Even generous margins occasionally
+        // lose a race on a heavily loaded shared runner (this exact test flaked twice in one afternoon's CI bursts), so the
+        // whole sequence retries a few times before failing for real - it still requires the same behaviour to hold, just
+        // tolerates one bad scheduler tick instead of a full PageBase timer-injection rewrite for a UX-only overlay delay.
+        await RetryAsync(async () =>
+        {
+            var cut = Render<PageBaseHost>();
+            cut.Instance.DelayMs = 100;
+            cut.Instance.MinMs = 300;
 
-        var fast = Begin(cut, "Fast");
-        await Task.Delay(10);
-        End(cut, fast);
-        await Task.Delay(120);
-        Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
+            var fast = Begin(cut, "Fast");
+            await Task.Delay(20);
+            End(cut, fast);
+            await Task.Delay(250);
+            Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
 
-        var slow = Begin(cut, "Slow");
-        Assert.False(cut.Instance.ShowBusyOverlay);
-        await Task.Delay(150);
-        Assert.True(cut.Instance.ShowBusyOverlay);
-        End(cut, slow);
-        Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
-        await Task.Delay(400);
-        Assert.False(cut.Instance.ShowBusyOverlay);
+            var slow = Begin(cut, "Slow");
+            Assert.False(cut.Instance.ShowBusyOverlay);
+            await Task.Delay(300);
+            Assert.True(cut.Instance.ShowBusyOverlay);
+            End(cut, slow);
+            Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
+            await Task.Delay(700);
+            Assert.False(cut.Instance.ShowBusyOverlay);
+        });
+    }
+
+    // Retries a real-timer assertion sequence up to `attempts` times. A genuine behavioural bug fails every attempt
+    // identically and still reports as a failure once the retries are exhausted - this only buys a fresh, independent
+    // race against the scheduler each time, it never turns a real regression into a pass.
+    private static async Task RetryAsync(Func<Task> attempt, int attempts = 3)
+    {
+        for (var i = 1; i <= attempts; i++)
+        {
+            try { await attempt(); return; }
+            catch (Xunit.Sdk.XunitException) when (i < attempts) { await Task.Delay(50); }
+        }
     }
 
     [Fact]

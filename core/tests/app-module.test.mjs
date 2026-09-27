@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { defineModule, moduleFromMount, registerPageType, registerLayout, pageTypeFor } from '../js/app/module.js';
+import { defineModule, moduleFromMount, registerPageType, registerLayout, pageTypeFor, mountPage } from '../js/app/module.js';
 import { createModuleHost } from '../js/app/host.js';
 import { createStore } from '../js/store.js';
 import { setLogLevel, addLogSink } from '../js/log.js';
@@ -100,6 +100,9 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     assert.equal(pageTypeFor(def, 'only'), local);
     assert.equal(typeof pageTypeFor(def, 'custom'), 'function');
     assert.equal(typeof pageTypeFor(def, 'states'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'tool'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'settings'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'not-found'), 'function');
     for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'list']) assert.equal(pageTypeFor(def, name), undefined, name);
 });
 
@@ -127,6 +130,130 @@ test("'states' (step 5, #351) creates a pk-states-page, sets only the config key
     cleanup2();
     el2.fire('pk-retry');
     assert.equal(retried, 1, 'cleanup removed the retry listener');
+});
+
+test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the element's data config and runLabel, wires run(values) with the page ctx, and cleanup removes the element", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('tool-host');
+    const factory = pageTypeFor(def, 'tool');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-tool-page');
+    assert.deepEqual(el1.config, { input: undefined, outcome: undefined });
+    assert.equal(el1.runLabel, undefined, 'no runLabel unless given');
+    assert.equal(el1.run, undefined, 'no run callback unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const seen = [];
+    const host2 = new Host();
+    const input = [{ key: 'text', type: 'textarea', label: 'Text' }];
+    factory(host2, { input, outcome: 'stat', runLabel: 'Count', run: (values, ctx) => { seen.push([values, ctx]); return { value: 1 }; } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config, { input, outcome: 'stat' });
+    assert.equal(el2.runLabel, 'Count');
+    assert.deepEqual(el2.run({ text: 'hi' }), { value: 1 });
+    assert.deepEqual(seen, [[{ text: 'hi' }, { id: 'x' }]], 'run receives the values and the page ctx');
+});
+
+test("'settings' (step 5, #351) creates a pk-settings-page, splits config into the element's data (sections, values) and wires save(values, ctx), and cleanup removes the element", async () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('settings-host');
+    const factory = pageTypeFor(def, 'settings');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, { sections: [{ heading: 'Store' }] }, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-settings-page');
+    assert.deepEqual(el1.config, { sections: [{ heading: 'Store' }] });
+    assert.equal(el1.values, undefined, 'no values given, none set');
+    assert.equal(el1.save, undefined, 'no save given, none set');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    let received; const ctxSeen = [];
+    const host2 = new Host();
+    const cleanup2 = factory(host2, { sections: [], values: { name: 'Example store' }, save: (v, c) => { received = v; ctxSeen.push(c); } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.values, { name: 'Example store' });
+    el2.save({ name: 'Changed' });
+    assert.deepEqual(received, { name: 'Changed' });
+    assert.deepEqual(ctxSeen, [{ id: 'x' }], 'save receives the page ctx');
+    cleanup2();
+});
+
+test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the config keys given, wires action to pk-action and back, and its cleanup removes the element and the listener - and pageTypeFor('not-found') is reachable only outside the module host's own routing (see app/host.js's showPage)", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('not-found-host');
+    const factory = pageTypeFor(def, 'not-found');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-not-found-page');
+    assert.equal(el1.heading, undefined, 'no config key is set unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    let acted = 0; const ctxSeen = [];
+    const host2 = new Host();
+    const cleanup2 = factory(host2, { heading: 'Gone', label: 'Go home', action: c => { acted++; ctxSeen.push(c); } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.equal(el2.heading, 'Gone'); assert.equal(el2.label, 'Go home'); assert.equal(el2.description, undefined);
+    el2.fire('pk-action');
+    assert.equal(acted, 1); assert.deepEqual(ctxSeen, [{ id: 'x' }], 'action receives the page ctx');
+    cleanup2();
+    el2.fire('pk-action');
+    assert.equal(acted, 1, 'cleanup removed the action listener');
+});
+
+test('mountPage: the one-page consumer - mounts a page type into a container with no module or app around it, and destroy() tears it down and stops its tracked resources', async () => {
+    await assert.rejects(mountPage({}, {}), /mountPage: page must be a type id/);
+    await assert.rejects(mountPage({}, 'nope'), /page type "nope" is not available/);
+
+    class El { constructor(tag) { this.localName = tag; this.children = []; } append(...k) { this.children.push(...k); } remove() {} }
+    class Doc { constructor() { this.documentElement = new El('html'); this.documentElement.setAttribute = (k, v) => { this.documentElement.attrs = { ...this.documentElement.attrs, [k]: v }; }; this.documentElement.getAttribute = k => this.documentElement.attrs?.[k]; } createElement(t) { return new El(t); } }
+    const doc = new Doc();
+    const container = new El('div'); container.ownerDocument = doc;
+
+    const seen = [];
+    registerPageType('mp-a', (host, config, ctx) => { seen.push(['mount', config, ctx.id, ctx.auth, ctx.store]); const off = ctx.on({ addEventListener() {}, removeEventListener() {} }, 'x', () => {}); return () => { seen.push('cleanup'); off(); }; });
+    const auth = { level: 1 }, store = { get() {} };
+    const page = await mountPage(container, { type: 'mp-a', config: { n: 1 } }, { id: 'solo', auth, store });
+    assert.deepEqual(seen[0], ['mount', { n: 1 }, 'solo', auth, store]);
+    assert.equal(typeof page.destroy, 'function');
+    page.destroy();
+    assert.deepEqual(seen[1], 'cleanup');
+    page.destroy(); // idempotent-ish: no throw
+
+    registerPageType('mp-b', () => ({ destroy: () => seen.push('destroyed') }));
+    const page2 = await mountPage(container, 'mp-b');
+    page2.destroy();
+    assert.deepEqual(seen.slice(-1), ['destroyed']);
+
+    let stopped = 0;
+    registerPageType('mp-c', (host, config, ctx) => { ctx.on({ addEventListener() {}, removeEventListener: () => stopped++ }, 'y', () => {}); ctx.after(60000, () => {}); });
+    const page3 = await mountPage(container, 'mp-c', { id: 'tracked' });
+    page3.destroy();
+    assert.equal(stopped, 1, 'on() cleanup ran on destroy');
+
+    assert.equal(page.destroy.length, 0);
+    assert.equal(await mountPage(container, { type: 'mp-a', config: {} }, {}).then(p => { const r = pageTypeFor({}, 'mp-a'); return typeof r; }), 'function');
+
+    let navWarned = false;
+    registerPageType('mp-nav', (host, config, ctx) => { assert.equal(ctx.navigate('/x'), false); assert.equal(ctx.href('/x'), null); assert.equal(ctx.route, null); assert.equal(ctx.page, null); assert.equal(ctx.tasks, null); assert.equal(ctx.notify, null); assert.equal(ctx.dialogs, null); navWarned = true; });
+    await mountPage(container, 'mp-nav');
+    assert.equal(navWarned, true);
+
+    const themed = new El('div'); themed.ownerDocument = doc;
+    registerPageType('mp-theme', (host, config, ctx) => { assert.equal(ctx.theme.name, 'dark'); ctx.theme.set('light'); assert.equal(doc.documentElement.getAttribute('data-theme'), 'light'); });
+    doc.documentElement.setAttribute('data-theme', 'dark');
+    await mountPage(themed, 'mp-theme');
 });
 
 test('the allow-list is the only way to code: crafted ids never call a loader, whatever the address', async () => {

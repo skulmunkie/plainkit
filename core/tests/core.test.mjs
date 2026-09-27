@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, blend, contrast, grade } from '../js/colour.js';
 import { buildOverrides, parseOverrides, nameProblem, valueProblem, parseTokenBlocks, tokenKind, splitLength, colourToHex } from '../js/theme.js';
-import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
+import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, focusRingSelectors, focusProblems, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
 import { scoreMetric, scoreCategory, scoreAll, scoreFindings, rankWorstFirst, groupFindings, pushRun, readHistory, deltas, importHistory, exportHistory } from '../js/scoring.js';
 import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
@@ -162,6 +162,28 @@ test('literalSizes ignores tokens and media queries, cssStats counts bytes and r
     assert.equal(literalSizes(css).length, 1);
     const s = cssStats('.a { color: red; margin: 0; }\n.b, .c { color: blue; }');
     assert.equal(s.rules, 2); assert.equal(s.selectors, 3); assert.equal(s.declarations, 3);
+});
+
+test('focusRingSelectors finds a :host(:focus-visible) ring authored in a shadow root\'s adoptedStyleSheets (not visible via doc.styleSheets), and credits the host element by tag name so matches() can see it from outside the shadow tree', () => {
+    const ringRule = { selectorText: ':host(:focus-visible)', style: { outlineStyle: 'solid' } };
+    const shadowSheet = { cssRules: [ringRule] };
+    const tab = {
+        localName: 'pk-tab', tagName: 'PK-TAB', disabled: false,
+        shadowRoot: { adoptedStyleSheets: [shadowSheet], querySelectorAll: () => [] },
+        getClientRects: () => [1],
+        matches: sel => sel === 'pk-tab',
+    };
+    const doc = { styleSheets: [], querySelectorAll: sel => (sel === '*' || sel === '[tabindex]' ? [tab] : []) };
+    assert.deepEqual(focusRingSelectors(doc), ['pk-tab']);
+    assert.deepEqual(focusProblems(doc, { interactive: '[tabindex]' }), []);
+});
+
+test('focusProblems still flags a control with no focus ring anywhere, document or shadow', () => {
+    const btn = { tagName: 'BUTTON', disabled: false, getClientRects: () => [1], matches: () => false };
+    const doc = { styleSheets: [], querySelectorAll: sel => (sel === '*' ? [] : [btn]) };
+    const problems = focusProblems(doc, { interactive: 'button' });
+    assert.equal(problems.length, 1);
+    assert.equal(problems[0].check, 'focus-visible');
 });
 
 // ---- scoring -----------------------------------------------------------------------------------------------------------

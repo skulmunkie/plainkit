@@ -1,0 +1,61 @@
+{
+  "tag": "pk-not-found-page",
+  "title": "Not found page",
+  "group": "Page types",
+  "summary": "The \"this page doesn't exist\" or \"you don't have access\" screen for a whole page, built on the same shared state markup as pk-states-page's empty state. Works with zero config; add label for a real action button that raises pk-action.",
+  "props": [
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Heading. Defaults to \"Page not found\"."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Explanation. Defaults to \"The page you're looking for doesn't exist or you don't have access to it.\""
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Text for an action button (e.g. \"Go home\"); no button is drawn when empty. Clicking it raises pk-action - this element never navigates by itself."
+    }
+  ],
+  "slots": [
+    {
+      "name": "drawn",
+      "description": "Internal: the drawn pk-empty-state content and its action button. A light-DOM child this element creates and self-assigns here (never a shadow-root child), so the SDK's on-demand loader can see and upgrade it.",
+      "selfAssigned": true
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-action",
+      "detail": null,
+      "description": "The label action button was activated. The host decides what happens (navigate home, go back); this element never navigates by itself.",
+      "cancelable": false
+    }
+  ],
+  "parts": [],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the drawn child", "attributes": ["slot"], "why": "A light-DOM element this element creates and owns itself (never a host-given node), self-assigned to its own drawn slot so the SDK's on-demand loader can see and upgrade it (a shadow-root child would be invisible to it)." }
+  ],
+  "a11y": "Uses pk-empty-state's own role and heading level; the action is a real pk-button in its actions slot.",
+  "examples": [
+    {
+      "title": "Zero config",
+      "html": "<pk-not-found-page></pk-not-found-page>"
+    },
+    {
+      "title": "Custom text with a Go home action",
+      "html": "<pk-not-found-page heading=\"We can't find that page\" description=\"It may have moved or you may not have access.\" label=\"Go home\"></pk-not-found-page>"
+    }
+  ],
+  "methods": []
+}
