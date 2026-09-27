@@ -41,3 +41,14 @@ test('the off-canvas nav flow-width reset only applies before the element is def
     const block = css.match(/@media \(max-width: 1024px\) \{\s*\.gx-nav[^}]*\}\s*\}/)[0];
     assert.match(block, /\.gx-nav:not\(:defined\)\s*\{\s*width:\s*0/, 'the width: 0 reset must be scoped to :not(:defined)');
 });
+
+// .gx-el-stage is `display: contents` inside the flex row .gx-el-live, so the live element the playground renders is a flex item with no
+// explicit size: a flex item's default size shrink-wraps its own content, and an element that starts with sparse or absolutely-positioned
+// visible content (a states-page in its loading state, showing only a skeleton) can size to near-zero even though the identical markup
+// fills the width on a plain page (issue #418). The fix belongs to the gallery's own stage wrapper, not to any one element's CSS: every
+// element rendered inside .gx-el-live (a playground's .gx-el-stage child, or an example's direct child) must be forced to the full row
+// width instead of being left to size from its own content.
+test('the playground stage and example live elements always take the full row width, regardless of their own content', () => {
+    const css = read('site/gallery', 'gallery.css');
+    assert.match(css, /\.gx-el-live\s*>\s*\*,\s*\.gx-el-stage\s*>\s*\*\s*\{[^}]*flex:\s*1 1 100%/, 'both the example (.gx-el-live > *) and playground (.gx-el-stage > *) live elements need a full-width flex-basis');
+});
