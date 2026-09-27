@@ -30,8 +30,15 @@
 // largely superseded by drag-and-drop, and Duplicate/Wrap are toolbar/keyboard-only, which on a phone (below) means keyboard-only.
 //
 // At phone width (@media max-width: 640px) the whole toolbar row -- Undo/Redo, Up/Down/Out/In, Duplicate/Wrap/Delete, Save -- is hidden: touch drag and the per-element
-// chip are the entire interaction model there, per the issue's "mobile is 100% drag-and-drop" direction. Ctrl+S keeps Save reachable with an attached keyboard; a phone
-// with none has no on-screen way to save once its button is gone with the row, a known gap flagged on #174 for a follow-up (a floating Save action for phone).
+// chip are the entire interaction model there, per the issue's "mobile is 100% drag-and-drop" direction. Ctrl+S keeps Save reachable with an attached keyboard.
+//
+// Issue #181: a phone with no attached keyboard had no on-screen way to save at all once the toolbar row (and its Save button) is hidden. Fix: a small persistent
+// floating Save button (`.lb-save-fab`), shown only at phone width and only when the host passed `onsave`. Trade-off recorded here (per the issue's request): a
+// single-button toolbar row was rejected because it reintroduces the row #174 deliberately removed for "100% drag-and-drop, no buttons"; a Save entry inside the
+// per-element chip was rejected because Save is a page-level action, not a per-element one, and would be one tap away only when some element happens to be
+// selected/hovered. A persistent FAB is the smallest addition that keeps the phone canvas 100% drag-and-drop for element editing while making the one remaining
+// page-level action (Save) reachable by touch at all times, independent of selection. It calls the same save() as the toolbar button and Ctrl+S, so onsave's
+// payload shape ({ model, html }) is unchanged across desktop, tablet and phone.
 //
 // The canvas renders the model in the page inside an inert container (a built page cannot act on the builder); selection is from element rectangles and drawn as an outline.
 // Its width buttons narrow the canvas but media queries still see the real viewport: the iframe device preview is a follow-up (DESIGN.md).
@@ -129,7 +136,11 @@ export async function mountLayoutBuilder(container, options = {}) {
     // aside-open is not set here: it is kept in step with the selection (see syncAside) so the inspector flyout does not sit over the
     // canvas, uninvited, on a tablet or phone when there is nothing to inspect.
     const workspace = h(doc, 'pk-workspace', { fill: true, 'nav-label': 'Palette', 'main-label': 'Canvas', 'aside-label': 'Properties' }, h(doc, 'div', { slot: 'nav', class: 'lb-nav' }, tabs), main, aside);
-    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, toolbar, status, hint, workspace);
+    // Phone-only Save fallback (issue #181): the toolbar row (and its Save button) is hidden at phone width, and Ctrl+S needs a hardware
+    // keyboard a phone may not have. This floating button is the on-screen way to reach save() by touch alone; see the top-of-file comment
+    // for the trade-off against a toolbar row or a per-element chip entry. Only rendered when the host offered onsave in the first place.
+    const saveFab = options.onsave ? h(doc, 'pk-button', { class: 'lb-save-fab', variant: 'primary', icon: true, 'icon-name': 'save', label: 'Save' }, 'Save') : null;
+    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, toolbar, status, hint, workspace, ...(saveFab ? [saveFab] : []));
     if (options.height) root.style.height = options.height;
     container.replaceChildren(root);
     loadElements(root);
@@ -444,6 +455,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         ({ undo, redo, duplicate, wrap, remove, save, up: () => move('up'), down: () => move('down'), out: () => move('out'), in: () => move('in') })[b.getAttribute('data-action')]?.();
     });
     on(paletteList, 'click', e => { const b = e.target.closest?.('pk-button[data-tag]'); if (b) insert(b.getAttribute('data-tag')); });
+    if (saveFab) on(saveFab, 'click', () => save());
 
     // ---- drag-and-drop: canvas reorder (the top-level pk-sortable) and palette -> canvas insert (its external-drop API)
     function clearDropTarget() { const prev = state.dropTarget; state.dropTarget = null; if (prev) elements.get(prev)?.removeAttribute('data-lb-drop-target'); }

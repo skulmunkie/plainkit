@@ -598,4 +598,36 @@ export const toolCases = [
         t.eq(win.__builder.toHtml({ compact: true }), '<p>Two</p><h2>One</h2>', 'the touch-style drag reordered the page with no toolbar in sight');
         win.__builder.destroy();
     }],
+
+    ['layout builder module (375px, issue 181): with the toolbar row hidden, a floating Save button is reachable by touch/click alone and calls onsave with the same payload shape as desktop', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe');
+        f.title = 'layout builder, phone width, save'; f.style.width = '375px'; f.style.height = '640px'; f.style.border = '0';
+        const base = new URL('../../', import.meta.url).href;
+        host.append(f);
+        f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><base href="${base}"><link rel="stylesheet" href="plainkit.css"></head><body><div id="host"></div>`
+            + `<script type="module">try { const { mountLayoutBuilder } = await import('./dist/modules/layout-builder/layout-builder.js');`
+            + `window.__saved = null; window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2>', onsave: e => { window.__saved = e; } }); window.__ready = true;`
+            + `} catch (error) { window.__error = String(error && error.stack || error); }</script></body></html>`;
+        await until(() => f.contentWindow?.__ready || f.contentWindow?.__error, 'the layout builder to mount in the phone frame');
+        const win = f.contentWindow, fdoc = f.contentDocument;
+        if (win.__error) throw new Error(`mountLayoutBuilder failed in the phone frame: ${win.__error}`);
+        await until(() => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item'), 'the page to render in the phone frame');
+        await t.settle();
+        const toolbar = fdoc.querySelector('pk-toolbar');
+        t.eq(win.getComputedStyle(toolbar).display, 'none', 'the toolbar row (and the Save button inside it) is hidden at phone width, as before');
+        const fab = fdoc.querySelector('.lb-save-fab');
+        t.ok(fab, 'a floating Save button exists when the host passed onsave');
+        await until(() => win.customElements.get('pk-button') && typeof fab.part === 'function', 'pk-button to upgrade in the phone frame');
+        t.eq(win.getComputedStyle(fab).display, 'flex', 'the floating Save button is shown (not display:none) at phone width');
+        const r = fab.getBoundingClientRect();
+        t.ok(r.width >= 43.5 && r.height >= 43.5, `the floating Save button is a 44px touch target (was ${Math.round(r.width)}x${Math.round(r.height)})`);
+        t.ok(r.right <= win.innerWidth && r.bottom <= win.innerHeight, 'the floating Save button sits inside the 375px viewport, not clipped off-screen');
+        fab.dispatchEvent(new win.MouseEvent('click', { bubbles: true, composed: true }));
+        await t.settle();
+        t.ok(win.__saved !== null, 'a touch/click on the floating Save button triggered onsave with no keyboard involved');
+        t.ok(win.__saved && typeof win.__saved.html === 'string' && win.__saved.model && typeof win.__saved.model === 'object', 'onsave still receives { model, html }, the same payload shape as the toolbar Save button and Ctrl+S');
+        t.eq(win.__saved.html, win.__builder.toHtml(), 'the html passed to onsave matches toHtml() for the current model');
+        win.__builder.destroy();
+    }],
 ];
