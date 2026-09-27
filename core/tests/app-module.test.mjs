@@ -103,7 +103,8 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     assert.equal(typeof pageTypeFor(def, 'tool'), 'function');
     assert.equal(typeof pageTypeFor(def, 'settings'), 'function');
     assert.equal(typeof pageTypeFor(def, 'not-found'), 'function');
-    for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'list']) assert.equal(pageTypeFor(def, name), undefined, name);
+    assert.equal(typeof pageTypeFor(def, 'list'), 'function');
+    for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) assert.equal(pageTypeFor(def, name), undefined, name);
 });
 
 test("'states' (step 5, #351) creates a pk-states-page, sets only the config keys given, wires retry to pk-retry and back, and its cleanup removes the element and the listener", () => {
@@ -210,6 +211,41 @@ test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the conf
     cleanup2();
     el2.fire('pk-action');
     assert.equal(acted, 1, 'cleanup removed the action listener');
+});
+
+test("'list' (step 6, #352) creates a pk-list-page, splits config into the element's data (columns, filters, actions, empty, pageSize), wires load(query) and rowHref(row) with the page ctx (rowHref through ctx.navigate), and cleanup removes the element", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('list-host');
+    const factory = pageTypeFor(def, 'list');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-list-page');
+    assert.deepEqual(el1.config, { columns: undefined, filters: undefined, actions: undefined, empty: undefined, pageSize: undefined });
+    assert.equal(el1.load, undefined, 'no load callback unless given');
+    assert.equal(el1.rowHref, undefined, 'no rowHref callback unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const columns = [{ key: 'sku', label: 'SKU' }];
+    const seen = [];
+    const navigated = [];
+    const ctx = { id: 'x', navigate: path => navigated.push(path) };
+    const host2 = new Host();
+    factory(host2, {
+        columns, pageSize: 10,
+        load: (query, c) => { seen.push([query, c]); return { rows: [{ id: 1 }], total: 1 }; },
+        rowHref: row => `/orders/${row.id}`,
+    }, ctx);
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config, { columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10 });
+    const query = { page: 1, pageSize: 10, sort: null, sortDir: 'ascending', search: '', filters: {} };
+    assert.deepEqual(el2.load(query), { rows: [{ id: 1 }], total: 1 });
+    assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
+    el2.rowHref({ id: 42 });
+    assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
 });
 
 test('mountPage: the one-page consumer - mounts a page type into a container with no module or app around it, and destroy() tears it down and stops its tracked resources', async () => {
@@ -475,7 +511,7 @@ test('unknown page types and layouts, unknown module routes and route guards sho
         layouts: { own: (host) => host },
         routes: [
             { path: '/board', page: { type: 'board', config: { n: 3 } }, layout: 'framed' },
-            { path: '/list', page: 'list' },
+            { path: '/dashboard', page: 'dashboard' },
             { path: '/nolayout', page: 'custom', layout: 'nope' },
             { path: '/secret', page: 'custom', config: { mount: () => {} }, can: () => false },
             { path: '/gone', page: 'not-found' },
@@ -489,8 +525,8 @@ test('unknown page types and layouts, unknown module routes and route guards sho
     assert.equal(pageHost.children[0].getAttribute('data-board'), '3', 'the page type mounted into the layout element with its config');
     assert.equal(await host.show('pages', { path: '/cfg/%3Cimg%20onerror%3E' }), 'ok');
     assert.equal(bodyOf(container).children[0].getAttribute('data-n'), '<img onerror>', 'params arrive as text, decoded once');
-    assert.equal(await host.show('pages', { path: '/list' }), 'error');
-    assert.match(errorOf(container).textContent, /page type "list" is not available/);
+    assert.equal(await host.show('pages', { path: '/dashboard' }), 'error');
+    assert.match(errorOf(container).textContent, /page type "dashboard" is not available/);
     assert.equal(await host.show('pages', { path: '/nolayout' }), 'error');
     assert.match(errorOf(container).textContent, /layout "nope" is not available/);
     assert.equal(await host.show('pages', { path: '/secret' }), 'forbidden');
