@@ -1,0 +1,79 @@
+{
+  "tag": "pk-states-page",
+  "title": "States page",
+  "group": "Page types",
+  "summary": "The loading, empty, error and forbidden content a page shows in place of its own, one at a time: the page-type building block for \"nothing to show yet\".",
+  "props": [
+    {
+      "name": "state",
+      "type": "enum",
+      "default": "ready",
+      "values": ["ready", "loading", "empty", "error", "forbidden"],
+      "reflect": true,
+      "description": "Which content shows. ready reveals the slotted content and hides the rest; every other value hides the slotted content and draws the matching built-in state (a labelled skeleton for loading, pk-empty-state for empty and forbidden, a danger pk-alert for error)."
+    },
+    {
+      "name": "heading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Heading for empty, error or forbidden. A sensible default is used when empty (\"Nothing here yet\", \"Something went wrong\", \"Not allowed\")."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Explanation for empty, error or forbidden."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible label for the loading skeleton (defaults to \"Loading\")."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The page's own content, shown only in the ready state."
+    },
+    {
+      "name": "drawn",
+      "description": "Internal: the drawn loading/empty/error/forbidden content. A light-DOM child this element creates and self-assigns here (never a shadow-root child), so the SDK's on-demand loader can see and upgrade it.",
+      "selfAssigned": true
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-retry",
+      "detail": null,
+      "description": "The error state's Retry action was activated. The host decides what happens (reload the data, set state back to loading); this element never retries by itself.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    { "name": "content", "description": "Wraps the default slot; hidden outside the ready state." }
+  ],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the drawn child", "attributes": ["slot"], "why": "A light-DOM element this element creates and owns itself (never a host-given node), self-assigned to its own drawn slot so the SDK's on-demand loader can see and upgrade it (a shadow-root child would be invisible to it)." }
+  ],
+  "a11y": "The error alert and empty/forbidden states use pk-alert and pk-empty-state's own roles and announcements; nothing here is re-implemented.",
+  "examples": [
+    {
+      "title": "Loading, then the real content",
+      "html": "<pk-states-page state=\"loading\" label=\"Loading orders\">\n  <p>The order list goes here once it loads.</p>\n</pk-states-page>"
+    },
+    {
+      "title": "Error, with Retry",
+      "html": "<pk-states-page state=\"error\" heading=\"Could not load orders\" description=\"The request timed out.\"></pk-states-page>"
+    },
+    {
+      "title": "Empty",
+      "html": "<pk-states-page state=\"empty\" heading=\"No orders yet\" description=\"Orders appear here once a customer checks out.\"></pk-states-page>"
+    }
+  ],
+  "methods": []
+}

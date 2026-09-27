@@ -53,7 +53,7 @@ const showValue = v => (v === null ? 'null' : typeof v === 'string' ? JSON.strin
 /** The element groups the API uses, folded into a few reference files (a new group not listed here gets a file of its own). */
 export const GROUP_FILES = {
     'Form controls': 'form-controls', 'Forms & inputs': 'form-controls', 'Forms': 'form-controls', 'Form layout': 'form-layout',
-    'Layout': 'layout', 'Layout & structure': 'layout', 'Containers': 'layout',
+    'Layout': 'layout', 'Layout & structure': 'layout', 'Containers': 'layout', 'Page types': 'layout',
     'Feedback': 'feedback', 'Feedback & status': 'feedback',
     'Data display': 'data-display', 'Media': 'data-display', 'Code': 'data-display',
     'Navigation': 'navigation', 'Actions': 'actions', 'Overlays': 'overlays',

@@ -109,8 +109,21 @@ const custom = (host, config, ctx) => {
     if (!isFn(config?.mount)) throw new TypeError("page type 'custom' needs config.mount(host, ctx)");
     return config.mount(host, ctx);
 };
+// 'states' (step 5, #351): a <pk-states-page> showing loading/empty/error/forbidden in place of nothing, or its own content when ready.
+// config: { state, heading, description, label, retry }; retry (a () => void) is wired to the element's pk-retry event, not a property
+// (elements talk back through events, never callback props - see core/STANDARDS.md), so it is added and removed here, not set on the element.
+const states = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-states-page');
+    for (const k of ['state', 'heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
+    const onRetry = () => config.retry?.(ctx);
+    if (config.retry) el.addEventListener('pk-retry', onRetry);
+    host.append(el);
+    return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
-export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? (id === 'custom' ? custom : undefined));
+// BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
+export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
 export const layoutFor = (def, id) => (own(def.layouts, id) ? def.layouts[id] : layouts.get(id));
 
 // Wraps an existing mountX(container, options) tool module (mountLogs, mountLogSettings, mountScorecard...) as a module with one 'custom' page, unchanged:
