@@ -68,8 +68,10 @@
 .gx-mount > .gx-shell { flex: 1; min-height: 0; }
 
 /* display+width apply before pk-side-nav is defined too (the FOUC guard only hides it, it does not reserve its box), so .gx-main does not
-   start full width and then jump left once the nav renders (#135). At and below the element's own off-canvas breakpoint (side-nav.css) the
-   defined nav takes no flow width either, so the reservation is turned off there to match. */
+   start full width and then jump left once the nav renders (#135). Below the element's own off-canvas breakpoint (side-nav.css) an UNDEFINED
+   nav still needs its flow width zeroed to match (a defined nav there is position: fixed and takes no flow width on its own); a DEFINED nav
+   must keep its own width (the element sets it, including its off-canvas open width) - overriding it here would collapse the open drawer to
+   zero width, showing the backdrop with no visible menu. */
 .gx-nav { --shell-nav-w: 17.5rem; display: flex; flex: none; width: var(--shell-nav-w); }
 
 .gx-shell { display: flex; min-height: 0; min-width: 0; }
@@ -77,7 +79,7 @@
 .gx-main { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-panel); }
 
 @media (max-width: 1024px) {
-    .gx-nav { width: 0; }
+    .gx-nav:not(:defined) { width: 0; }
 }
 
 /* The nav's section titles are links to the section overview; the element styles the rows, this styles the titles between them. */
