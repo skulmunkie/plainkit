@@ -8,6 +8,7 @@
 //       store, settings, // optional: a createStore() (default: one of its own, prefix 'pk'), and the app settings facade given to ctx.settings
 //       services,        // optional: more members for every ctx (mountApp adds ctx.search); core's own members win over a service of the same name
 //       tasks,           // optional: the app's task manager, createTasks({ container, ... }) from js/tasks.js (the shell makes it); ctx.tasks.run(spec) then runs a task of the module (or page)
+//       notify, dialogs, // optional: js/notify.js, js/dialogs.js; else ctx.notify, ctx.dialogs are null
 //   });
 //   const router = mountRouter(el, { mode: 'hash', routes: [...], guard: host.guard });   // access is checked BEFORE anything is imported...
 //   await host.open('/orders/7?tab=x');                                                    // ...and again here, at mount, after the import
@@ -36,9 +37,10 @@ const log = createLogger('app');
 const norm = p => '/' + String(p ?? '').split(/[?#]/)[0].split('/').filter(Boolean).join('/');
 const join = (id, p) => `/${id}${norm(p) === '/' ? '' : norm(p)}`;
 const cleanupOf = out => (typeof out === 'function' ? out : out?.destroy ? () => out.destroy() : null);
+const pick = (o, keys) => (o ? Object.fromEntries(keys.split(' ').map(k => [k, o[k]])) : null);
 const safe = async (fn, what, lg) => { try { await fn?.(); } catch (e) { lg.error(`${what} threw`, e); } };
 
-export function createModuleHost(container, { modules = [], router, auth, can, store, settings, services, tasks, timeout = 10000, retries = 1, backoff = 300, elements = loadElements } = {}) {
+export function createModuleHost(container, { modules = [], router, auth, can, store, settings, services, tasks, notify, dialogs, timeout = 10000, retries = 1, backoff = 300, elements = loadElements } = {}) {
     const allow = new Map();
     for (const m of modules) {
         if (!m || typeof m.id !== 'string' || !MODULE_ID.test(m.id) || typeof m.load !== 'function' || allow.has(m.id)) throw new TypeError(`createModuleHost: bad, missing or duplicate module entry ${JSON.stringify(m?.id)}`);
@@ -88,11 +90,14 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         const ac = new AbortController(), off = new Set();
         // ctx.tasks: tasks of this scope; when it ends its cancellable tasks are cancelled and the others continue with their toast (js/tasks.js).
         const ts = tasks?.scope({ busy });
+        const ns = notify?.scope(), ds = dialogs?.scope();
         const own = fn => (off.add(fn), fn);
         const live = what => !ac.signal.aborted || (lg.warn(`${what}() after the end of its scope ignored`), false);
         const api = {
             signal: ac.signal,
-            tasks: ts ? { run: ts.run } : null,
+            tasks: pick(ts, 'run'),
+            notify: pick(ns, 'info success warn error'),
+            dialogs: pick(ds, 'confirm alert prompt open'),
             on(target, type, fn, o) {
                 if (!live('on')) return () => {};
                 target.addEventListener(type, fn, o);
@@ -120,7 +125,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         };
         const end = async () => {
             ac.abort();
-            ts?.end();
+            ts?.end(); ns?.end(); ds?.end();
             for (const fn of [...off].reverse()) await safe(fn, 'cleanup', lg);
             off.clear();
         };

@@ -52,6 +52,18 @@ const clip = (v, n) => String(v ?? '').slice(0, n);
 // The text to show for an error: its own message only when it is marked userFacing === true, else the generic text. Pure.
 export const failureText = err => (err && err.userFacing === true && typeof err.message === 'string' && err.message ? clip(err.message, 500) : FAILED_TEXT);
 
+// The toast stack at `position`: the page's own (the shell's) when there is one, else a new one appended to `container`. Shared with js/notify.js, so task toasts and
+// notifications land in ONE stack. Returns { stack, own }: `own` is true when this call created it (the caller removes it again).
+export function toastStack(doc, container, position = 'bottom-end', max = 0) {
+    const found = doc.querySelector?.(`pk-toast-stack[position="${position}"]`);
+    if (found) return { stack: found, own: false };
+    const stack = doc.createElement('pk-toast-stack');
+    stack.setAttribute('position', position);
+    if (max > 0) stack.max = max;
+    (container ?? doc.body).append(stack);
+    return { stack, own: true };
+}
+
 export function createTasks({ container, busy, log = createLogger('tasks'), concurrency = MAX_RUNNING, position = 'bottom-end', max, doneDelay = DONE_DELAY, load } = {}) {
     const doc = container?.ownerDocument ?? globalThis.document;
     const limit = Number.isInteger(concurrency) && concurrency > 0 ? concurrency : MAX_RUNNING;
@@ -60,15 +72,7 @@ export function createTasks({ container, busy, log = createLogger('tasks'), conc
 
     function stackEl() {
         if (stack?.isConnected !== false && stack) return stack;
-        stack = doc.querySelector?.(`pk-toast-stack[position="${position}"]`) ?? null;
-        ownStack = false;
-        if (!stack) {
-            stack = doc.createElement('pk-toast-stack');
-            stack.setAttribute('position', position);
-            if (max > 0) stack.max = max;
-            (container ?? doc.body).append(stack);
-            ownStack = true;
-        }
+        ({ stack, own: ownStack } = toastStack(doc, container, position, max));
         return stack;
     }
 

@@ -27,6 +27,8 @@ import { createLogger } from '../log.js';
 import { createPage } from '../page.js';
 import { createStore } from '../store.js';
 import { createTasks } from '../tasks.js';
+import { createNotify } from '../notify.js';
+import { createDialogs } from '../dialogs.js';
 import { withLegacy } from '../store-extras.js';
 import { setTheme, currentTheme, toggleTheme } from '../theme.js';
 import { loadElements } from '../loader.js';
@@ -64,8 +66,9 @@ export function mountApp(container, config) {
     const search = { get query() { return query; }, subscribe: fn => (subs.add(fn), () => subs.delete(fn)) };
     const box = doc.createElement('div');
     const tasks = createTasks({ container, log }); // its toasts go to the shell's bottom-end pk-toast-stack (found when the first task runs)
+    const notify = createNotify({ container, log }), dialogs = createDialogs({ container, log, load: loadElements }); // the same stack; one dialog at a time for the whole app
     const host = createModuleHost(box, {
-        modules: cfg.modules, auth: cfg.auth, can: cfg.can, store, settings, tasks, services: { search },
+        modules: cfg.modules, auth: cfg.auth, can: cfg.can, store, settings, tasks, notify, dialogs, services: { search },
         router: { navigate: (...a) => router.navigate(...a), href: (...a) => router.href(...a) },
     });
     router = mountRouter(container, { mode: cfg.routing, base: cfg.base, guard: host.guard, aliases: { '/': `/${cfg.home}` }, notFound: 'Not found', intercept: cfg.routing === 'path' });
@@ -187,6 +190,8 @@ export function mountApp(container, config) {
             narrow.removeEventListener('change', relayout);
             await host.destroy();
             tasks.destroy();
+            notify.destroy();
+            dialogs.destroy();
             page.destroy();
             store.destroy();
             container.replaceChildren();
