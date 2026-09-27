@@ -120,7 +120,17 @@ const states = (host, config = {}, ctx) => {
     host.append(el);
     return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states]]);
+// 'tool' (step 5, #351): a <pk-tool-page> (input fields, Run, an outcome). config: { input, outcome, runLabel, run(values, ctx) }; run is a
+// callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+const tool = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-tool-page');
+    el.config = { input: config.input, outcome: config.outcome };
+    if (config.runLabel !== undefined) el.runLabel = config.runLabel;
+    if (config.run) el.run = values => config.run(values, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
