@@ -99,7 +99,34 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     assert.equal(pageTypeFor(mod('b'), 'kanban-a'), app, 'the app table serves any module');
     assert.equal(pageTypeFor(def, 'only'), local);
     assert.equal(typeof pageTypeFor(def, 'custom'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'states'), 'function');
     for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'list']) assert.equal(pageTypeFor(def, name), undefined, name);
+});
+
+test("'states' (step 5, #351) creates a pk-states-page, sets only the config keys given, wires retry to pk-retry and back, and its cleanup removes the element and the listener", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('states-host');
+    const factory = pageTypeFor(def, 'states');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-states-page');
+    assert.equal(el1.state, undefined, 'no config key is set unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    let retried = 0; const ctxSeen = [];
+    const host2 = new Host();
+    const cleanup2 = factory(host2, { state: 'error', heading: 'Failed', retry: c => { retried++; ctxSeen.push(c); } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.equal(el2.state, 'error'); assert.equal(el2.heading, 'Failed'); assert.equal(el2.description, undefined);
+    el2.fire('pk-retry');
+    assert.equal(retried, 1); assert.deepEqual(ctxSeen, [{ id: 'x' }], 'retry receives the page ctx');
+    cleanup2();
+    el2.fire('pk-retry');
+    assert.equal(retried, 1, 'cleanup removed the retry listener');
 });
 
 test('the allow-list is the only way to code: crafted ids never call a loader, whatever the address', async () => {

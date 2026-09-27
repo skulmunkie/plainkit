@@ -1,0 +1,54 @@
+{
+  "component": "PkStatesPage",
+  "params": [
+    {
+      "name": "State",
+      "type": "PageState",
+      "default": "ready",
+      "map": "prop",
+      "prop": "state",
+      "enum": {
+        "Ready": "ready",
+        "Loading": "loading",
+        "Empty": "empty",
+        "Error": "error",
+        "Forbidden": "forbidden"
+      }
+    },
+    {
+      "name": "Heading",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "heading"
+    },
+    {
+      "name": "Description",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "description"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnRetry",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-retry",
+      "cancelable": false
+    }
+  ],
+  "notes": "New component: App framework step 5 (issue #351). PageState is a new shared enum (not yet used by another component)."
+}
