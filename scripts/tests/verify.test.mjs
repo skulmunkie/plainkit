@@ -25,9 +25,9 @@ test('every check has an id, a group, a way to run, a cause and a one-line fix',
 });
 
 test('argument parsing: flags, values and mistakes', () => {
-    const { opts, errors } = parseArgs(['--fast', '--no-dotnet', '--browser', '--pack', '--only', 'node,lint', '--base', 'origin/dev', '--verbose']);
+    const { opts, errors } = parseArgs(['--fast', '--no-dotnet', '--browser', '--pack', '--scorecard', '--only', 'node,lint', '--base', 'origin/dev', '--verbose']);
     assert.deepEqual(errors.filter(e => !/either --fast or --only/.test(e)), []);
-    assert.deepEqual([opts.fast, opts.noDotnet, opts.browser, opts.pack, opts.verbose, opts.base], [true, true, true, true, true, 'origin/dev']);
+    assert.deepEqual([opts.fast, opts.noDotnet, opts.browser, opts.pack, opts.scorecard, opts.verbose, opts.base], [true, true, true, true, true, true, 'origin/dev']);
     assert.deepEqual(opts.only, ['node', 'lint']);
     assert.match(parseArgs(['--nope']).errors[0], /unknown argument --nope/);
     assert.match(parseArgs(['--only']).errors[0], /needs a value/);
@@ -40,10 +40,10 @@ test('argument parsing: flags, values and mistakes', () => {
 test('which checks run: default, --fast, --no-dotnet, --browser, --pack, --only', () => {
     const all = sel();
     for (const id of ['bootstrap', 'changelog', 'generated-tree', 'node-tests', 'dotnet']) assert.ok(all.includes(id), id);
-    assert.ok(!all.includes('browser') && !all.includes('pack'), 'browser and pack are opt-in');
+    assert.ok(!all.includes('browser') && !all.includes('pack') && !all.includes('scorecard'), 'browser, pack and scorecard are opt-in');
     assert.deepEqual(sel('--fast').sort(), ['bootstrap', 'changelog', 'changelog-pr', 'node-tests', 'release-fragments']);
     assert.ok(!sel('--no-dotnet').includes('dotnet'));
-    assert.ok(sel('--browser').includes('browser') && sel('--pack').includes('pack'));
+    assert.ok(sel('--browser').includes('browser') && sel('--pack').includes('pack') && sel('--scorecard').includes('scorecard'));
     assert.deepEqual(sel('--only', 'lint'), ['changelog', 'changelog-pr', 'release-fragments'], 'the lint job needs no bootstrap');
     assert.deepEqual(sel('--only', 'dotnet'), ['bootstrap', 'dotnet'], 'a group pulls in what it needs');
     assert.deepEqual(sel('--only', 'node-tests'), ['bootstrap', 'node-tests']);

@@ -52,7 +52,7 @@ test('concurrency cancels superseded runs; permissions are minimal and only the 
     assert.equal((ci.match(/pull-requests: write/g) || []).length, 1, 'exactly one job writes to pull requests');
     assert.ok(job('ci-summary').includes('pull-requests: write'));
     assert.match(job('ci-summary'), /if: always\(\) && github\.event_name == 'pull_request'/);
-    assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, browser, pack\]/);
+    assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, browser, pack, scorecard\]/);
     assert.match(job('ci-summary'), /actions\/github-script@[0-9a-f]{40} # v7\.\d+\.\d+/);
 });
 
@@ -87,6 +87,16 @@ test('the browser job reruns once, reports flaky, keeps the report and is not re
     assert.ok(b.includes('core/tests/browser/report.json'));
     assert.ok(b.includes('PK_CHROME: /usr/bin/google-chrome'));
     assert.equal(JOBS.browser.required, false);
+});
+
+test('the scorecard job gates on the same paths as the browser suite, uses Chrome, is not required', () => {
+    const s = job('scorecard');
+    assert.ok(s.includes('node scripts/ci-changes.mjs browser'), 'gates on the browser area (same paths it measures)');
+    assert.ok(s.indexOf('ci-changes.mjs') < s.indexOf('scripts/verify.mjs --only scorecard'), 'gate first');
+    assert.ok(s.includes('steps.gate.outputs.run'));
+    assert.ok(s.includes('fetch-depth: 2'));
+    assert.ok(s.includes('PK_CHROME: /usr/bin/google-chrome'));
+    assert.equal(JOBS.scorecard.required, false);
 });
 
 test('the lint job keeps the no-changelog label switch and full history', () => {
