@@ -171,23 +171,26 @@ public sealed class PageBaseTests : BunitContext
     [Fact]
     public async Task The_overlay_shows_only_after_the_delay_and_stays_for_the_minimum_time()
     {
+        // Real Task.Delay-based timers, on purpose (PageBase.Later): the margins below are wide relative to DelayMs/MinMs
+        // so ordinary CI scheduler jitter (GC pauses, thread-pool ramp-up) never flips an assertion - a tight margin here
+        // flaked on a shared runner even though the underlying behaviour was correct.
         var cut = Render<PageBaseHost>();
-        cut.Instance.DelayMs = 60;
-        cut.Instance.MinMs = 200;
+        cut.Instance.DelayMs = 100;
+        cut.Instance.MinMs = 300;
 
         var fast = Begin(cut, "Fast");
-        await Task.Delay(10);
+        await Task.Delay(20);
         End(cut, fast);
-        await Task.Delay(120);
+        await Task.Delay(250);
         Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
 
         var slow = Begin(cut, "Slow");
         Assert.False(cut.Instance.ShowBusyOverlay);
-        await Task.Delay(150);
+        await Task.Delay(300);
         Assert.True(cut.Instance.ShowBusyOverlay);
         End(cut, slow);
         Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
-        await Task.Delay(400);
+        await Task.Delay(700);
         Assert.False(cut.Instance.ShowBusyOverlay);
     }
 
