@@ -120,7 +120,17 @@ const states = (host, config = {}, ctx) => {
     host.append(el);
     return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states]]);
+// 'settings' (step 5, #351): a <pk-settings-page> (sectioned fields, a sticky Save/Discard bar). config: { sections, values, save(values, ctx) };
+// save is a callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+const settings = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-settings-page');
+    el.config = { sections: config.sections };
+    if (config.values !== undefined) el.values = config.values;
+    if (config.save) el.save = values => config.save(values, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['settings', settings]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
