@@ -481,8 +481,27 @@ test('ctx.tasks: a module and each page get their own task scope on the app mana
     await plain.destroy(); await host.destroy();
 });
 
+test('ctx.notify and ctx.dialogs: a scope each for the module and each page, ended with them; the ctx cannot end them; null without the services', async () => {
+    const { container } = makeDom();
+    const events = [];
+    const svc = (name, methods) => ({ scope: () => { const n = events.length; events.push(`${name}:scope`); return { ...Object.fromEntries(methods.map(k => [k, () => `${name}.${k}`])), end: () => events.push(`${name}:end:${n}`) }; } });
+    const notify = svc('n', ['info', 'success', 'warn', 'error']), dialogs = svc('d', ['confirm', 'alert', 'prompt', 'open']);
+    let modCtx, pageCtx;
+    const m = defineModule({ id: 'jobs', mount: c => { modCtx = c; }, routes: [{ path: '/', page: 'custom', config: { mount: (el, c) => { pageCtx = c; } } }] });
+    const host = createModuleHost(container, { modules: [entryFor('jobs', m), entryFor('other')], notify, dialogs, ...fast });
+    await host.show('jobs');
+    assert.equal(modCtx.notify.warn(), 'n.warn'); assert.equal(pageCtx.dialogs.prompt(), 'd.prompt');
+    assert.deepEqual(Object.keys(modCtx.notify), ['info', 'success', 'warn', 'error']); assert.deepEqual(Object.keys(pageCtx.dialogs), ['confirm', 'alert', 'prompt', 'open']);
+    await host.show('other');
+    assert.equal(events.filter(e => e.includes(':end:')).length, 4, 'the module and page scopes of both services ended');
+    const plain = createModuleHost(makeDom().container, { modules: [entryFor('p', defineModule({ id: 'p', mount: c => { modCtx = c; }, routes: [{ path: '*', page: 'custom', config: { mount: () => {} } }] }))], ...fast });
+    await plain.show('p');
+    assert.equal(modCtx.notify, null); assert.equal(modCtx.dialogs, null);
+    await plain.destroy(); await host.destroy();
+});
+
 test('the framework sources: no markup sinks, eval, bare console, polling, inline styles or handlers; every catch logs', () => {
-    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js', 'app/app.js', 'app/config.js', 'app/nav.js', 'app/shell.js', 'router.js', 'tasks.js'];
+    const files = ['app.js', 'app/module.js', 'app/host.js', 'app/boundary.js', 'app/app.js', 'app/config.js', 'app/nav.js', 'app/shell.js', 'router.js', 'tasks.js', 'notify.js', 'dialogs.js'];
     for (const f of files) {
         const src = fs.readFileSync(path.join(root, 'js', f), 'utf8').replace(/\/\/.*$/gm, '');
         assert.ok(!/innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function|setAttribute\(\s*['"]style|\.onclick|console\./.test(src), `${f} has a forbidden construct`);
