@@ -53,7 +53,9 @@ export default Base => class extends Base {
         const box = this.part('sections');
         box.replaceChildren();
         this.$controls = {};
-        for (const section of this.config?.sections ?? []) {
+        const sections = this.config?.sections ?? [];
+        this.part('empty').hidden = sections.length !== 0;
+        for (const section of sections) {
             const card = doc.createElement('pk-card');
             if (section.heading) card.heading = section.heading;
             const stack = doc.createElement('pk-stack');

@@ -23,6 +23,7 @@
   "events": [],
   "parts": [
     { "name": "saved", "description": "A success message shown after save(), hidden again once a field changes." },
+    { "name": "empty", "description": "A placeholder message shown in place of the sections while config.sections is empty." },
     { "name": "form", "description": "Wraps the sections and the save bar; submitting it (click Save or Enter) saves." },
     { "name": "sections", "description": "Holds one pk-card per config.sections entry." },
     { "name": "bar", "description": "The sticky Save/Discard bar; hidden while nothing has changed." },

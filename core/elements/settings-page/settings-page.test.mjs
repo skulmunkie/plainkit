@@ -23,8 +23,9 @@ const make = () => {
     const status = fakeEl('pk-alert');
     const save = fakeEl('pk-button');
     const discard = fakeEl('pk-button');
-    for (const p of [sections, bar, status, save, discard]) p.ownerDocument = { createElement: fakeEl };
-    const parts = { saved, form, sections, bar, status, save, discard };
+    const empty = fakeEl('p');
+    for (const p of [sections, bar, status, save, discard, empty]) p.ownerDocument = { createElement: fakeEl };
+    const parts = { saved, form, sections, bar, status, save, discard, empty };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }
@@ -45,6 +46,18 @@ test('connected wires the form once (idempotent) and builds the initial sections
     const card = parts.sections.children[0];
     assert.equal(card.localName, 'pk-card');
     assert.equal(card.heading, 'Store');
+});
+
+test('an empty config.sections shows the empty-state part instead of rendering nothing, hidden again once sections exist', () => {
+    const { el, parts } = make();
+    el.buildSections();
+    assert.equal(parts.empty.hidden, false);
+    assert.equal(parts.sections.children.length, 0);
+
+    el.config = { sections: [{ fields: [{ key: 'name', type: 'text' }] }] };
+    el.buildSections();
+    assert.equal(parts.empty.hidden, true);
+    assert.equal(parts.sections.children.length, 1);
 });
 
 test('buildSections maps field types to controls (including switch and range) and only rebuilds when config.sections actually changes', () => {
