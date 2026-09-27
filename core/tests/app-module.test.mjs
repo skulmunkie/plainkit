@@ -292,50 +292,6 @@ test('mountPage: the one-page consumer - mounts a page type into a container wit
     await mountPage(themed, 'mp-theme');
 });
 
-test('mountPage: the one-page consumer - mounts a page type into a container with no module or app around it, and destroy() tears it down and stops its tracked resources', async () => {
-    await assert.rejects(mountPage({}, {}), /mountPage: page must be a type id/);
-    await assert.rejects(mountPage({}, 'nope'), /page type "nope" is not available/);
-
-    class El { constructor(tag) { this.localName = tag; this.children = []; } append(...k) { this.children.push(...k); } remove() {} }
-    class Doc { constructor() { this.documentElement = new El('html'); this.documentElement.setAttribute = (k, v) => { this.documentElement.attrs = { ...this.documentElement.attrs, [k]: v }; }; this.documentElement.getAttribute = k => this.documentElement.attrs?.[k]; } createElement(t) { return new El(t); } }
-    const doc = new Doc();
-    const container = new El('div'); container.ownerDocument = doc;
-
-    const seen = [];
-    registerPageType('mp-a', (host, config, ctx) => { seen.push(['mount', config, ctx.id, ctx.auth, ctx.store]); const off = ctx.on({ addEventListener() {}, removeEventListener() {} }, 'x', () => {}); return () => { seen.push('cleanup'); off(); }; });
-    const auth = { level: 1 }, store = { get() {} };
-    const page = await mountPage(container, { type: 'mp-a', config: { n: 1 } }, { id: 'solo', auth, store });
-    assert.deepEqual(seen[0], ['mount', { n: 1 }, 'solo', auth, store]);
-    assert.equal(typeof page.destroy, 'function');
-    page.destroy();
-    assert.deepEqual(seen[1], 'cleanup');
-    page.destroy(); // idempotent-ish: no throw
-
-    registerPageType('mp-b', () => ({ destroy: () => seen.push('destroyed') }));
-    const page2 = await mountPage(container, 'mp-b');
-    page2.destroy();
-    assert.deepEqual(seen.slice(-1), ['destroyed']);
-
-    let stopped = 0;
-    registerPageType('mp-c', (host, config, ctx) => { ctx.on({ addEventListener() {}, removeEventListener: () => stopped++ }, 'y', () => {}); ctx.after(60000, () => {}); });
-    const page3 = await mountPage(container, 'mp-c', { id: 'tracked' });
-    page3.destroy();
-    assert.equal(stopped, 1, 'on() cleanup ran on destroy');
-
-    assert.equal(page.destroy.length, 0);
-    assert.equal(await mountPage(container, { type: 'mp-a', config: {} }, {}).then(p => { const r = pageTypeFor({}, 'mp-a'); return typeof r; }), 'function');
-
-    let navWarned = false;
-    registerPageType('mp-nav', (host, config, ctx) => { assert.equal(ctx.navigate('/x'), false); assert.equal(ctx.href('/x'), null); assert.equal(ctx.route, null); assert.equal(ctx.page, null); assert.equal(ctx.tasks, null); assert.equal(ctx.notify, null); assert.equal(ctx.dialogs, null); navWarned = true; });
-    await mountPage(container, 'mp-nav');
-    assert.equal(navWarned, true);
-
-    const themed = new El('div'); themed.ownerDocument = doc;
-    registerPageType('mp-theme', (host, config, ctx) => { assert.equal(ctx.theme.name, 'dark'); ctx.theme.set('light'); assert.equal(doc.documentElement.getAttribute('data-theme'), 'light'); });
-    doc.documentElement.setAttribute('data-theme', 'dark');
-    await mountPage(themed, 'mp-theme');
-});
-
 test('the allow-list is the only way to code: crafted ids never call a loader, whatever the address', async () => {
     const { container } = makeDom();
     let calls = 0;
