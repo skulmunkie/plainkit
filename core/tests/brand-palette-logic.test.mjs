@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { parseTokenBlocks, buildOverrides } from '../js/theme.js';
 import { contrast } from '../js/colour.js';
 import { emptyOverrides, overrideCount, effectiveValue, baseValue, guardLeaks, evaluatePairs } from '../js/theme-editor-logic.js';
-import { AA_PAIRS, generatePalette, applyPalette, paletteRows, hslToHex, normalizeColour, toHsl } from '../js/brand-palette-logic.js';
+import { AA_PAIRS, DEFAULT_TOKENS, generatePalette, applyPalette, paletteRows, hslToHex, normalizeColour, toHsl } from '../js/brand-palette-logic.js';
 import { TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
 
 const tokens = parseTokenBlocks(fs.readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8'));
@@ -124,6 +124,21 @@ test('the emitted CSS of a palette gives each theme its own values: a dark-only 
     const applied = applyPalette(emptyOverrides(), generatePalette('#e11d74').overrides, tokens);
     assert.notEqual(inForce(buildOverrides(applied).css, 'light', '--color-input'), '#ffffff', 'unguarded, the dark input colour wins in the light theme');
     assert.equal(inForce(buildOverrides(guardLeaks(applied, tokens)).css, 'light', '--color-input'), '#ffffff');
+});
+
+test('a consumer app can target its own token names via options.tokens, and the default names are unchanged', () => {
+    const custom = { accent: '--brand-accent', accentFill: '--brand-accent-fill', text: '--brand-text', warnFill: '--brand-warn-bg', warnFillHover: '--brand-warn-bg-hover' };
+    const p = generatePalette('#1d4ed8', { tokens: custom, warn: '#c2410c' });
+    assert.ok(!p.error);
+    assert.equal(p.overrides.light['--brand-accent'], '#1d4ed8');
+    assert.equal(p.overrides.light['--color-accent'], undefined, 'the renamed key replaces the default, it is not written alongside it');
+    assert.ok('--brand-text' in p.overrides.dark);
+    assert.ok('--brand-warn-bg' in p.overrides.shared && '--brand-warn-bg-hover' in p.overrides.shared);
+    // every token not overridden keeps Plainkit's own default name
+    assert.ok('--color-panel' in p.overrides.light);
+
+    const plain = generatePalette('#1d4ed8');
+    assert.deepEqual(plain.overrides, generatePalette('#1d4ed8', { tokens: DEFAULT_TOKENS }).overrides, 'passing the defaults back explicitly changes nothing');
 });
 
 test('guardLeaks adds the stylesheet light value for a dark-only edit, and leaves shared and light edits and its input alone', () => {
