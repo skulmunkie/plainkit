@@ -31,3 +31,13 @@ test('a fill template sets flush on the shell so the workspace body has no page 
     const js = read('samples/templates', 'chrome.js');
     assert.match(js, /if \(fill\) shell\.setAttribute\('flush', ''\);/);
 });
+
+// Below pk-side-nav's own off-canvas breakpoint, .gx-nav's flow-width reset (there to avoid a FOUC jump before the element is defined) must
+// stay scoped to :not(:defined). An unscoped `.gx-nav { width: 0 }` there wins the cascade over the defined element's own :host width once it
+// is [open] (light-DOM rules beat a shadow tree's own :host default at equal specificity), collapsing the opened off-canvas drawer to zero
+// width: the backdrop shows but the menu itself is invisible (issue #421).
+test('the off-canvas nav flow-width reset only applies before the element is defined, not to the open drawer', () => {
+    const css = read('site/gallery', 'gallery.css');
+    const block = css.match(/@media \(max-width: 1024px\) \{\s*\.gx-nav[^}]*\}\s*\}/)[0];
+    assert.match(block, /\.gx-nav:not\(:defined\)\s*\{\s*width:\s*0/, 'the width: 0 reset must be scoped to :not(:defined)');
+});
