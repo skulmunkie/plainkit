@@ -1,0 +1,43 @@
+{
+  "tag": "pk-settings-page",
+  "title": "Settings page",
+  "group": "Page types",
+  "summary": "A sectioned settings form with a sticky Save/Discard bar that appears once a field differs from its last saved value. Set the save(values) callback as a property (business logic, never config data) - it may reject, which shows the error inline instead of saving.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ sections: [{ heading, fields: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select'|'switch'|'range', label, placeholder?, required?, options?, min?, max?, step? }] }] }. Each section draws as a pk-card; a select's options are [{ value, label? }] or plain strings."
+    },
+    {
+      "name": "values",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "The current values, keyed by field key (what save() receives and discard() restores to). Set again once loaded values arrive (e.g. from ctx.store) to refresh the fields and take a new baseline."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "saved", "description": "A success message shown after save(), hidden again once a field changes." },
+    { "name": "empty", "description": "A placeholder message shown in place of the sections while config.sections is empty." },
+    { "name": "form", "description": "Wraps the sections and the save bar; submitting it (click Save or Enter) saves." },
+    { "name": "sections", "description": "Holds one pk-card per config.sections entry." },
+    { "name": "bar", "description": "The sticky Save/Discard bar; hidden while nothing has changed." },
+    { "name": "status", "description": "The bar's own message: \"Unsaved changes\", or a save error." },
+    { "name": "save", "description": "The Save button." },
+    { "name": "discard", "description": "The Discard button; restores the last saved values." }
+  ],
+  "cssProperties": [],
+  "a11y": "Every field is a labelled real control (pk-input/pk-textarea/pk-select showLabel on, pk-switch's own slotted label, pk-range wrapped in a labelled pk-field); the bar's status uses pk-alert's own role and announcement.",
+  "examples": [
+    {
+      "title": "Store settings (set config, values and save from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-settings-page id=\"store-settings\"></pk-settings-page>"
+    }
+  ],
+  "methods": []
+}
