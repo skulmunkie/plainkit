@@ -3,7 +3,7 @@
 // in a headless browser at a chosen viewport, waits for window.__review.ready, reads window.__review = { examples: [{ title, rect, facts }] } and
 // screenshots each rect. The rules that judge the facts are in audit.js (pure, tested in Node).
 import { loadElement } from '../../site/gallery/gallery.data.js';
-import { loadElements } from '../../js/loader.js';
+import { loadElements, observeElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 
@@ -14,6 +14,10 @@ if (params.get('scenario')) document.body.classList.add('rv-scenario');
 document.documentElement.dataset.theme = params.get('theme') === 'light' ? 'light' : 'dark';
 const registry = new URL('../../elements/registry.js', import.meta.url).href;
 const root = document.getElementById('rv-root');
+// loadElements(stage, ...) below is a one-time snapshot, taken right after an example's static markup is inserted; an element that creates and
+// self-assigns a light-DOM child of its own after that (STANDARDS.md's "self-assigning slot children" pattern; pk-states-page is the first to
+// do it) needs the loader's ongoing MutationObserver too, or that child's tag is never seen and never defined.
+observeElements(document, { registry });
 const state = { ready: false, error: null, tag, examples: [], viewport: { width: innerWidth, height: innerHeight } };
 window.__review = state;
 
