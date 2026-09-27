@@ -109,6 +109,8 @@ const { url } = await editor.share();
 
 An imported override block is validated: names must be lowercase custom properties and values may use only letters, digits and `# % . , ( ) - + /`, so `url()` and comments are refused.
 
+The palette generator behind the Palette tab is a standalone utility, `js/brand-palette-logic.js` (`generatePalette`, `applyPalette`, `paletteRows`), with no dependency on the theme editor or the DOM: any app can call it to turn one brand colour into an accessible palette. It writes Plainkit's own token names by default; pass `tokens` (a partial map, e.g. `{ accent: '--brand-accent' }`) to target a different token set of your own.
+
 ### Ship the exported theme
 
 The export is plain override blocks and needs no runtime. Save it as `theme.css` (the editor's Copy snippet is exactly that file) and link it **after** Plainkit's stylesheet, as a file: a strict `style-src 'self'` refuses an inline `<style>` block. In Blazor the editor takes your saved theme and reports each change with the CSS to save:
