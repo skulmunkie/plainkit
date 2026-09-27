@@ -1,15 +1,46 @@
 import { mountChrome } from '../chrome.js';
-mountChrome({ title: "Routed list and detail", page: "routed-list-detail", crumbs: [], actions: "", fill: true });
+mountChrome({ title: "Routed list and detail", page: "routed-list-detail", crumbs: [["Section", "page.html"]], actions: "<pk-button id=\"new-thing\" size=\"mini\">New thing</pk-button>", fill: true });
 
 // The route owns the page. #/things shows the list; #/things/2 and #/things/new show the same page with the record open. A real app uses its
 // router's paths (/things, /things/2, /things/new) the same way: everything below is a function of the route, and the elements only report what
-// the user did (pk-row-click, a tab, Save, Cancel) so the handlers can change the route.
+// the user did (pk-row-click, a tab, a sort, a page, Save, Cancel) so the handlers can change the route or the list state.
 const workspace = document.getElementById('content');
 const table = document.getElementById('things');
+const tabs = document.getElementById('status-tabs');
+const search = document.getElementById('search');
+const pager = document.getElementById('pager');
 const head = document.getElementById('detail-head');
 const validation = document.querySelector('pk-form');
 const form = document.getElementById('detail-form');
-let things = JSON.parse(table.getAttribute('rows'));
+
+const NAMES = ['Blue widget', 'Red widget', 'Green gadget', 'Grey gadget', 'Yellow gizmo', 'Orange gizmo', 'Purple sprocket', 'Teal sprocket', 'Silver bracket', 'Copper hinge', 'Bronze latch', 'Steel bolt', 'Iron rivet', 'Tin can', 'Brass fitting', 'Nickel washer', 'Chrome trim', 'Zinc plate', 'Titanium frame', 'Aluminium panel'];
+const STATUSES = ['Active', 'Draft', 'Archived'];
+let things = NAMES.map((name, i) => ({ id: String(i + 1), name, status: STATUSES[i % STATUSES.length], updated: `Sep ${(i % 28) + 1}` }));
+
+// pk-table is `manual` here: with a tab, a search box and a pager all narrowing the same list together, the table showing rows exactly as given
+// (never re-sorting or re-filtering a page slice on its own) is what lets the three combine correctly. The table still owns the sort indicator
+// and raises pk-sort when a header is clicked; this only decides what "clicked" means.
+const PAGE_SIZE = 6;
+const list = { status: 'all', search: '', sort: '', sortDir: 'ascending', page: 1 };
+
+function visibleRows() {
+    let rows = things;
+    if (list.status !== 'all') rows = rows.filter(r => r.status === list.status);
+    if (list.search) { const q = list.search.toLowerCase(); rows = rows.filter(r => r.name.toLowerCase().includes(q)); }
+    if (list.sort) { const dir = list.sortDir === 'descending' ? -1 : 1; rows = [...rows].sort((a, b) => (a[list.sort] < b[list.sort] ? -dir : a[list.sort] > b[list.sort] ? dir : 0)); }
+    return rows;
+}
+function renderList() {
+    const rows = visibleRows();
+    const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    list.page = Math.min(list.page, pages);
+    table.rows = rows.slice((list.page - 1) * PAGE_SIZE, list.page * PAGE_SIZE);
+    pager.page = list.page; pager.pages = pages; pager.total = rows.length; pager.pageSize = PAGE_SIZE;
+}
+tabs.addEventListener('pk-tab-change', e => { list.status = e.detail.value; list.page = 1; renderList(); });
+search.addEventListener('input', () => { list.search = search.value; list.page = 1; renderList(); });
+table.addEventListener('pk-sort', e => { list.sort = e.detail.key ?? ''; list.sortDir = e.detail.direction ?? 'ascending'; renderList(); });
+pager.addEventListener('pk-page', e => { list.page = e.detail.page; renderList(); });
 
 const route = () => { const [, id] = /^#\/things\/([^/]+)$/.exec(location.hash) ?? []; return id ?? null; };
 const go = id => { location.hash = id ? `/things/${encodeURIComponent(id)}` : '/things'; };
@@ -42,11 +73,12 @@ workspace.addEventListener('pk-pane-change', e => { if (e.detail.pane === 'main'
 validation.addEventListener('pk-valid', () => {
     const id = route(); const data = new FormData(form); const name = String(data.get('name')); const status = String(data.get('status'));
     things = id === 'new' ? [...things, { id: String(things.length + 1), name, status, updated: 'Today' }] : things.map(r => (r.id === id ? { ...r, name, status, updated: 'Today' } : r));
-    table.rows = things;
+    renderList();
     go(null);
 });
 
 // The elements load on demand: wait until the ones this page sets properties on are defined, then follow the route.
-await Promise.all(['pk-workspace', 'pk-table', 'pk-toolbar', 'pk-form', 'pk-input', 'pk-select'].map(tag => customElements.whenDefined(tag)));
+await Promise.all(['pk-workspace', 'pk-table', 'pk-page-header', 'pk-tabs', 'pk-pagination', 'pk-form', 'pk-input', 'pk-select'].map(tag => customElements.whenDefined(tag)));
 window.addEventListener('hashchange', render);
+renderList();
 render();

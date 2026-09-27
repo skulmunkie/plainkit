@@ -30,17 +30,24 @@ export function mountChrome({ title, page, crumbs = [], actions = '', fill = fal
     setTheme(document.documentElement, params.get('theme') === 'light' ? 'light' : 'dark');
     if (params.get('density') === 'compact') document.documentElement.setAttribute('data-density', 'compact');
     const content = document.getElementById('content');
-    // A page that fills the shell body (a workspace) is slotted as it is; any other page sits in a centred, stacked container.
-    const body = fill ? content : document.createElement('pk-stack');
-    if (!fill) body.className = 'container';
     const crumbHtml = crumbs.length ? `<pk-breadcrumb slot="breadcrumb" label="Breadcrumb">${crumbs.map(c => `<a href="${href(c[1])}${q}">${c[0]}</a>`).join('')}<span aria-current="page">${title}</span></pk-breadcrumb>` : '';
-    if (fill) { /* the content is the body */ } else if (crumbHtml || actions || variant === 'top') {
+    // A page header is built once crumbs or actions ask for one (a fill page's own title already comes from the side-nav h1 or the navbar
+    // brand, so it gets one only for crumbs/actions, never just for the title; a centred page also gets one for a bare top-nav title).
+    const needsHeader = crumbHtml || actions || (variant === 'top' && !fill);
+    let header = null;
+    if (needsHeader) {
         const head = document.createElement('div');
-        head.innerHTML = `<pk-page-header${variant === 'top' ? ` heading="${title}" level="1"` : ''}>${crumbHtml}${actions}</pk-page-header>`;
-        const header = head.firstElementChild;
+        head.innerHTML = `<pk-page-header${variant === 'top' && !fill ? ` heading="${title}" level="1"` : fill ? ` heading="${title}"` : ''}>${crumbHtml}${actions}</pk-page-header>`;
+        header = head.firstElementChild;
         for (const el of header.children) if (!el.hasAttribute('slot')) el.setAttribute('slot', 'actions');
-        body.append(header, content);
-    } else { body.append(content); }
+    }
+    // A page that fills the shell body (a workspace) is slotted as it is when it needs no header. With one, both sit in a fill stack instead,
+    // so the header stays put (flex: none, its natural height) while the workspace still owns its own scrolling (flex: 1 1 auto, from its own
+    // [fill] rule) instead of the header scrolling away with it. Any other page sits in a centred, stacked container.
+    let body;
+    if (fill && !header) { body = content; }
+    else if (fill) { body = document.createElement('pk-stack'); body.setAttribute('fill', ''); body.setAttribute('gap', 'none'); body.append(header, content); }
+    else { body = document.createElement('pk-stack'); body.className = 'container'; if (header) body.append(header); body.append(content); }
     const user = `<pk-dropdown slot="${variant === 'top' ? 'actions' : 'header'}" placement="bottom-end"><pk-button slot="trigger" variant="ghost" size="mini">User</pk-button><pk-menu-item href="${href('form.html')}${q}">Settings</pk-menu-item><pk-menu-item href="${href('auth.html')}${q}">Sign out</pk-menu-item></pk-dropdown>`;
     // Search is the command palette (Ctrl+K), opened by an icon button: it works at every width, unlike a text field in a phone-width header.
     const search = slot => `<pk-button slot="${slot}" variant="ghost" size="mini" icon data-open="#palette" label="Search"><pk-icon name="search"></pk-icon></pk-button>`;

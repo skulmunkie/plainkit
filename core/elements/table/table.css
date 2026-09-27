@@ -1,4 +1,7 @@
-:host { display: flex; flex-direction: column; min-block-size: 0; }
+/* flex: 1 1 auto lets the table claim the remaining height of a flex ancestor with a definite height (a pk-stack[fill], an app-shell body) so its
+   own sticky-header and scroll region own the scrolling instead of the page; it does nothing when the table is not a flex item, or its ancestor
+   has no space to distribute (an ordinary, shrink-to-fit stack), so this is safe as the default everywhere. */
+:host { display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; }
 [part="toolbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); margin-block-end: var(--space-3); }
 /* A toolbar item with the data-end attribute, and the ones after it, sit at the end of the row (a search box at the start, the action at the far end). */
 slot[name="toolbar"]::slotted([data-end]) { margin-inline-start: auto; }

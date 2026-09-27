@@ -10,15 +10,23 @@
 </head>
 <body>
 <pk-workspace id="content" fill main-label="Things" aside-label="Thing">
-  <pk-stack gap="sm">
-    <pk-toolbar heading="Things"><pk-button slot="actions" id="new-thing" size="mini">New thing</pk-button></pk-toolbar>
-    <pk-table id="things" label="Things" clickable hover row-key="id" columns='[{"key":"name","label":"Name"},{"key":"status","label":"Status"},{"key":"updated","label":"Updated","hidePhone":true}]' rows='[{"id":"1","name":"Blue widget","status":"Active","updated":"Sep 12"},{"id":"2","name":"Red widget","status":"Draft","updated":"Sep 14"},{"id":"3","name":"Green gadget","status":"Active","updated":"Sep 15"},{"id":"4","name":"Grey gadget","status":"Archived","updated":"Sep 2"}]'></pk-table>
+  <pk-stack id="list" fill gap="sm">
+    <pk-tabs id="status-tabs" value="all">
+      <pk-tab value="all">All</pk-tab>
+      <pk-tab value="Active">Active</pk-tab>
+      <pk-tab value="Draft">Draft</pk-tab>
+      <pk-tab value="Archived">Archived</pk-tab>
+    </pk-tabs>
+    <pk-field label="Search"><pk-input id="search" type="search" placeholder="Search things"></pk-input></pk-field>
+    <pk-table id="things" label="Things" clickable hover row-key="id" sticky-header manual columns='[{"key":"name","label":"Name","sortable":true},{"key":"status","label":"Status","sortable":true},{"key":"updated","label":"Updated","sortable":true,"hidePhone":true}]'>
+      <pk-pagination slot="footer" id="pager" label="Things"></pk-pagination>
+    </pk-table>
   </pk-stack>
   <pk-stack slot="aside" id="detail" gap="sm">
-    <pk-toolbar id="detail-head" heading="Thing">
+    <pk-page-header id="detail-head" variant="section" heading="Thing">
       <pk-button slot="actions" id="detail-back" size="mini" variant="ghost">&larr; Things</pk-button>
       <pk-button slot="actions" id="detail-close" size="mini" variant="ghost" icon label="Close the record" icon-name="x"></pk-button>
-    </pk-toolbar>
+    </pk-page-header>
     <pk-form summary>
       <form id="detail-form">
         <pk-stack gap="sm">
