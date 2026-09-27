@@ -1,0 +1,14 @@
+{
+  "component": "PkListPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize? }."
+    }
+  ],
+  "notes": "New component: App framework step 6 (issue #352). Load and RowHref are callback properties (business logic), not Blazor parameters mapped here yet - they need JS interop from the component (Func<ListQuery, Task<ListResult>> and Func<object, string> or similar); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run and PkSettingsPage's Save callbacks."
+}

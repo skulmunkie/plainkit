@@ -1,0 +1,33 @@
+{
+  "tag": "pk-list-page",
+  "title": "List page",
+  "group": "Page types",
+  "summary": "A filterable, sortable, paginated list of records: a pk-table (manual - the host owns sorting, filtering and paging), a pk-table-filters search/filter panel, optional toolbar actions and a pk-pagination footer. Set the load(query) callback as a property (business logic, never config data) - it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page; a rejection shows the built-in error state with Retry, and zero rows show the configured empty state. rowHref(row), also a callback property, makes rows clickable and is called instead of the element navigating itself, so the host wires it through its own router.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ columns, filters?, actions?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. actions is [{ label, href?, variant? }], toolbar buttons shown beside the search box (a page that needs one wired to app logic points its href at another route, the same way a module's own nav does - it is data, never a callback). empty is { heading?, description? } shown when a page has zero rows. pageSize is the initial page size (default 25); the reader can change it if pk-pagination's own sizes are configured through further host script."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "table", "description": "The pk-table, in manual mode." },
+    { "name": "filters", "description": "The pk-table-filters search/filter panel, in the table's toolbar." },
+    { "name": "actions", "description": "Holds one button per config.actions entry, at the end of the toolbar." },
+    { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
+    { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
+  ],
+  "cssProperties": [],
+  "a11y": "Every filter field is a labelled real control (pk-input/pk-select, showLabel on); the table, search box and pagination keep their own roles, names and announcements; the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
+  "examples": [
+    {
+      "title": "Orders list (set config and load from script: an inline script cannot run under this site's CSP, so wire it the way pk-tool-page's run is wired)",
+      "html": "<pk-list-page id=\"orders\"></pk-list-page>"
+    }
+  ],
+  "methods": []
+}

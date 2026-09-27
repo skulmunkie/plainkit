@@ -19,8 +19,8 @@
 // defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a nav that is not an array or function...).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
-// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); step 3 implements 'custom' (config.mount(host, ctx) returns cleanup or { destroy() }),
-// step 5 (#351) adds 'states', 'tool', 'settings' and 'not-found' (own comment below explains its routing exception), the rest arrive later. Extend the set three ways, all through the same factory shape
+// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found'
+// and 'list' are built in (own comments below), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -31,17 +31,16 @@
 // ctx, what a module and its pages receive (the tracker's list, minus what only the shell has: search, toast, confirm arrive with mountApp):
 //   id                 the module id.
 //   page               createPage (js/page.js) bound to the module's own alert and body (the framework wraps it in its busy overlay): setStatus, setError, busy(fn, label), begin(label), setTitle (no breadcrumb until the shell).
-//   store              the module's namespaced state (js/store.js facade: get, set, patch, subscribe, reset), or null without `state`. Its subscriptions end on unmount.
+//   store              the module's namespaced state (js/store.js: get, set, patch, subscribe, reset), or null without `state`; subscriptions end on unmount.
 //   settings           what the app passed as `settings`, or null.
-//   theme              { name, set(name), toggle(), subscribe(fn) } for the document's data-theme (js/theme.js); subscribe is a tracked MutationObserver, created on demand.
+//   theme              { name, set(name), toggle(), subscribe(fn) } for data-theme (js/theme.js); subscribe is a tracked MutationObserver, made on demand.
 //   route              { path, params, query } now, module-relative; params and query are untrusted text (textContent only).
-//   navigate(path, { replace }) / href(path, params, query)   module-relative links through the router; navigate returns false without one.
+//   navigate(path, { replace }) / href(path, params, query)   module-relative router links; navigate returns false without one.
 //   log                createLogger('app:<id>').
-//   on(target, type, fn, options) / observe(observer, target, options) / after(ms, fn)   listeners, observers and one-shot timers that core removes; each returns how to
-//                      stop it early. Called after that end they do nothing and warn.
-//   tasks              { run(spec) } from the app's task manager (js/tasks.js): long work shown as progress toasts; null when the app has none. Ends with this ctx: cancellable tasks cancel, the others continue.
-//   notify             { info, success, warn, error }(title, details?, opts?) from js/notify.js: toasts in the same stack; null when the app has none. Ends with this ctx: its toasts finish.
-//   dialogs            { confirm, alert, prompt, open }(config) -> Promise, from js/dialogs.js: one modal at a time app-wide; null when the app has none. Ends with this ctx: its dialogs cancel.
+//   on/observe/after   listeners, observers and one-shot timers core removes at that end; each call returns a stop-early fn. Called after that end, they warn and no-op.
+//   tasks              { run(spec) } (js/tasks.js): long work as progress toasts; null without an app manager. Ends with this ctx: cancellables cancel, others continue.
+//   notify             { info, success, warn, error }(title, details?, opts?) (js/notify.js); null without one. Ends with this ctx: its toasts finish.
+//   dialogs            { confirm, alert, prompt, open }(config) -> Promise (js/dialogs.js), one modal app-wide; null without one. Ends with this ctx: its dialogs cancel.
 //   signal             an AbortSignal that aborts at that end (pass it to fetch).
 //   auth               what the app passed as `auth`.
 // The ctx of mount/unmount ends on unmount. A page factory gets its own ctx with the same members whose on/observe/after/signal end when the page is left (a route change
@@ -111,9 +110,8 @@ const custom = (host, config, ctx) => {
     if (!isFn(config?.mount)) throw new TypeError("page type 'custom' needs config.mount(host, ctx)");
     return config.mount(host, ctx);
 };
-// 'states' (step 5, #351): a <pk-states-page> showing loading/empty/error/forbidden in place of nothing, or its own content when ready.
-// config: { state, heading, description, label, retry }; retry (a () => void) is wired to the element's pk-retry event, not a property
-// (elements talk back through events, never callback props - see core/STANDARDS.md), so it is added and removed here, not set on the element.
+// 'states' (#351): <pk-states-page> (loading/empty/error/forbidden, or its own content when ready). config: { state, heading, description,
+// label, retry }; retry is wired to the element's pk-retry event (elements talk back via events, not callback props - STANDARDS.md).
 const states = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-states-page');
     for (const k of ['state', 'heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
@@ -122,8 +120,8 @@ const states = (host, config = {}, ctx) => {
     host.append(el);
     return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
 };
-// 'tool' (step 5, #351): a <pk-tool-page> (input fields, Run, an outcome). config: { input, outcome, runLabel, run(values, ctx) }; run is a
-// callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+// 'tool' (#351): <pk-tool-page> (input fields, Run, an outcome). config: { input, outcome, runLabel, run(values, ctx) } - run is a callback
+// property, business logic never JSON data.
 const tool = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-tool-page');
     el.config = { input: config.input, outcome: config.outcome };
@@ -132,8 +130,8 @@ const tool = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-// 'settings' (step 5, #351): a <pk-settings-page> (sectioned fields, a sticky Save/Discard bar). config: { sections, values, save(values, ctx) };
-// save is a callback property on the element (business logic, not JSON data), like 'custom's own config.mount - config may mix data and functions freely.
+// 'settings' (#351): <pk-settings-page> (sectioned fields, a sticky Save/Discard bar). config: { sections, values, save(values, ctx) } - save
+// is a callback property, business logic never JSON data.
 const settings = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-settings-page');
     el.config = { sections: config.sections };
@@ -142,8 +140,8 @@ const settings = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-// 'not-found' (step 5, #351): a <pk-not-found-page>. A route's page: 'not-found' bypasses this factory (app/host.js's showPage handles it
-// directly, box.notFound()); this is for mountPage() and a 'custom' module mounting pk-not-found-page itself. config: { heading, description, label, action(ctx) }, like 'states'' retry.
+// 'not-found' (#351): <pk-not-found-page>. A route's page: 'not-found' bypasses this (app/host.js's showPage calls box.notFound() directly);
+// this factory only serves mountPage()/a 'custom' module. config: { heading, description, label, action(ctx) }, like 'states'' retry.
 const notFound = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-not-found-page');
     for (const k of ['heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
@@ -152,7 +150,17 @@ const notFound = (host, config = {}, ctx) => {
     host.append(el);
     return () => { if (config.action) el.removeEventListener('pk-action', onAction); el.remove(); };
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound]]);
+// 'list' (#352): <pk-list-page> (filterable, sortable, paginated pk-table). config: { columns, filters, actions, empty, pageSize,
+// load(query)->{rows,total}, rowHref(row) } - load/rowHref are callback properties; rowHref is routed through ctx.navigate, not the element.
+const list = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-list-page');
+    el.config = { columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize };
+    if (config.load) el.load = query => config.load(query, ctx);
+    if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
