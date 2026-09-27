@@ -1,4 +1,5 @@
-// The theme editor's undo/redo and change list (modules/theme-editor). Pure: no DOM, no timers (the caller passes the time).
+// The theme editor's change list on top of the generic undo/redo stack (js/history.js): which tokens differ from the stylesheet, grouped, and
+// clearing a token or a whole group. Pure: no DOM, no timers.
 //
 //   let h = createHistory(overrides);
 //   h = record(h, next, { key: '--color-accent', at: Date.now() });   // consecutive edits to one key within COALESCE_MS are one step
@@ -7,34 +8,9 @@
 //   withoutGroup(overrides, 'color');   // a copy with every token of that group cleared
 
 import { baseValue, overrideCount } from './theme-editor-logic.js';
+import { createHistory, record, undo, redo, canUndo, canRedo, MAX_STEPS, COALESCE_MS } from './history.js';
 
-export const MAX_STEPS = 100;
-export const COALESCE_MS = 800;
-
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-
-export const createHistory = present => ({ past: [], present, future: [], key: null, at: 0 });
-
-export const canUndo = h => h.past.length > 0;
-export const canRedo = h => h.future.length > 0;
-
-// Records `next` as the new present. The same overrides again is not a step. Typing in one field is many edits of one key: they are one step.
-export function record(h, next, { key = null, at = 0 } = {}) {
-    if (same(h.present, next)) return h;
-    const merge = key !== null && key === h.key && at - h.at < COALESCE_MS && h.past.length > 0;
-    const past = merge ? h.past : [...h.past, h.present].slice(-MAX_STEPS);
-    return { past, present: next, future: [], key, at };
-}
-
-export function undo(h) {
-    if (!h.past.length) return h;
-    return { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future], key: null, at: 0 };
-}
-
-export function redo(h) {
-    if (!h.future.length) return h;
-    return { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1), key: null, at: 0 };
-}
+export { createHistory, record, undo, redo, canUndo, canRedo, MAX_STEPS, COALESCE_MS };
 
 // The group of a token: the word after the leading dashes (--color-accent is 'color', --pad-card is 'pad').
 export const tokenGroup = name => name.split('-')[2] ?? 'other';
