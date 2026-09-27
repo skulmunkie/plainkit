@@ -32,12 +32,14 @@ export function mountChrome({ title, page, crumbs = [], actions = '', fill = fal
     const content = document.getElementById('content');
     const crumbHtml = crumbs.length ? `<pk-breadcrumb slot="breadcrumb" label="Breadcrumb">${crumbs.map(c => `<a href="${href(c[1])}${q}">${c[0]}</a>`).join('')}<span aria-current="page">${title}</span></pk-breadcrumb>` : '';
     // A page header is built once crumbs or actions ask for one (a fill page's own title already comes from the side-nav h1 or the navbar
-    // brand, so it gets one only for crumbs/actions, never just for the title; a centred page also gets one for a bare top-nav title).
+    // brand, so it gets one only for crumbs/actions, never just for the title; a centred page also gets one for a bare top-nav title). A fill
+    // page's header carries no heading of its own (it would only repeat the title shown above it): `variant="record"` without one is the SDK's
+    // own pattern for "the crumb's current page IS the title", which folds the actions onto the same row as the breadcrumb instead of a second row.
     const needsHeader = crumbHtml || actions || (variant === 'top' && !fill);
     let header = null;
     if (needsHeader) {
         const head = document.createElement('div');
-        head.innerHTML = `<pk-page-header${variant === 'top' && !fill ? ` heading="${title}" level="1"` : fill ? ` heading="${title}"` : ''}>${crumbHtml}${actions}</pk-page-header>`;
+        head.innerHTML = `<pk-page-header${variant === 'top' && !fill ? ` heading="${title}" level="1"` : fill ? ' variant="record"' : ''}>${crumbHtml}${actions}</pk-page-header>`;
         header = head.firstElementChild;
         for (const el of header.children) if (!el.hasAttribute('slot')) el.setAttribute('slot', 'actions');
     }
