@@ -1,0 +1,14 @@
+{
+  "component": "PkDashboardPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { tiles: [{ key, label, kind?: 'stat'|'chart', empty? }], sections?: [{ heading?, tiles: string[] }] }."
+    }
+  ],
+  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352). Load is a callback property (business logic), not a Blazor parameter mapped here yet - it needs JS interop from the component (Func<string, Task<object>> or similar, called once per tile key, independently); left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and RowHref, PkToolPage's Run and PkSettingsPage's Save callbacks."
+}

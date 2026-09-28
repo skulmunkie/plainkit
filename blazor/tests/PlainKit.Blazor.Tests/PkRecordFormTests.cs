@@ -1,5 +1,6 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
@@ -142,4 +143,59 @@ public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
         Assert.Equal("pricing", layout.GetAttribute("section"));
         Assert.Equal("Weiter", layout.GetAttribute("next-label"));
     }
+
+    // Issue 324: ActionsInHeader drops the toolbar row and hands the same buttons out through HeaderActions instead.
+    [Fact]
+    public void ActionsInHeader_leaves_out_the_toolbar_row()
+    {
+        var cut = Render<PkRecordForm>(p => p
+            .Add(x => x.ActionsInHeader, true)
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => { }))
+            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { })));
+
+        Assert.Empty(cut.FindAll("pk-cluster"));
+        Assert.Empty(cut.FindAll("pk-button"));
+    }
+
+    [Fact]
+    public void HeaderActions_renders_the_same_Cancel_Actions_Delete_Save_buttons()
+    {
+        var cut = Render<PkRecordForm>(p => p
+            .Add(x => x.ActionsInHeader, true)
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => { }))
+            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { }))
+            .Add(x => x.DeleteLabel, "Remove location")
+            .Add(x => x.SaveLabel, "Save location")
+            .Add(x => x.Actions, b => { b.OpenComponent<PkButton>(0); b.AddAttribute(1, nameof(PkButton.ChildContent), Text("Duplicate")); b.CloseComponent(); }));
+
+        var host = Render<PlainKitTestHost>(p => p.Add(x => x.Content, cut.Instance.HeaderActions));
+        var buttons = host.FindAll("pk-button");
+
+        Assert.Equal(["Cancel", "Duplicate", "Remove location", "Save location"], buttons.Select(b => b.TextContent.Trim()));
+        Assert.Equal("ghost", buttons[0].GetAttribute("variant"));
+        Assert.Equal("warn", buttons[2].GetAttribute("variant"));
+        Assert.Equal("submit", buttons[3].GetAttribute("type"));
+        Assert.Equal("primary", buttons[3].GetAttribute("variant"));
+    }
+
+    [Fact]
+    public void HeaderActions_Save_points_its_form_attribute_at_the_record_forms_own_form()
+    {
+        var cut = Render<PkRecordForm>(p => p.Add(x => x.ActionsInHeader, true));
+        var formId = cut.Find("pk-form form").GetAttribute("id");
+
+        var host = Render<PlainKitTestHost>(p => p.Add(x => x.Content, cut.Instance.HeaderActions));
+        var save = host.Find("pk-button");
+
+        Assert.False(string.IsNullOrEmpty(formId));
+        Assert.Equal(formId, save.GetAttribute("form"));
+    }
+}
+
+// A minimal host so a RenderFragment captured from one component (PkRecordForm.HeaderActions) can be rendered on its
+// own, the way a page's PkPageHeader would render it as ActionsContent.
+file sealed class PlainKitTestHost : ComponentBase
+{
+    [Parameter] public RenderFragment? Content { get; set; }
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, Content);
 }
