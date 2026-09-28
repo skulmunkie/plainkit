@@ -80,7 +80,11 @@ export async function mountDevTools(container, options, host) {
     mounted.set(container, await mountDevTools(mode === 'inline' ? container : null, { mode, ...rest, panels }));
 }
 
-export const openTools = container => mounted.get(container)?.open?.();
+// A callback property of a page element (pk-tool-page run, pk-settings-page save): config is data, so a callback is set from script. host is a DotNetObjectReference
+// of PkCallbackHost; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it.
+export const setCallback = (el, name, host) => { if (host) el[name] = values => host.invokeMethodAsync('Invoke', values); else delete el[name]; };
+
+export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();
 export const selectTool = (container, id) => mounted.get(container)?.select?.(id);
