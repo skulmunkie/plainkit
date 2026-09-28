@@ -47,6 +47,7 @@ export default Base => class extends Base {
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
         const k = this.list('columns'), r = V.view(this), s = new Set(this.selected.map(String));
         if (this.expandable || this.clickable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
+        if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
         tb.setAttribute('aria-busy', String(this.loading));
@@ -66,11 +67,11 @@ export default Base => class extends Base {
             pick.checked = s.has(id);
             const tr = h('tr', { 'data-pk-context': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-                ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+                ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${name}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
-        this.$m?.after(this);
+        this.$m?.after(this); this.$e?.after(this);
         this.part('empty').hidden = this.loading || r.length > 0;
         this.part('bulk').hidden = s.size === 0; this.part('bulk-count').textContent = `${s.size} selected`;
     }

@@ -1,5 +1,5 @@
 /* The code explorer's own styles: loaded by element.js next to the page layer (tokens, base), tokens only. The panes, tabs, tree, inputs,
-   buttons and badges are pk-* elements; what is left here is the host, the code viewer (cv-*, tk-*), the outline (co-*) and the search
+   buttons and badges are pk-* elements; what is left here is the host, the code viewer frame (cv-*; the listing is pk-code-view), the outline (co-*) and the search
    results (csr-*), none of which an element covers, plus the small ce-* layout classes around the elements. */
 
 /* The <pk-code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
@@ -94,41 +94,15 @@ pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0;
 .cv-count { white-space: nowrap; }
 .cv-notice { padding: var(--space-1) var(--space-3); font-size: var(--text-read); color: var(--cv-muted); background: var(--cv-bar); border-bottom: 1px solid var(--cv-border); }
 
-.cv-scroll { position: relative; max-height: 70vh; overflow: auto; font-family: var(--ce-mono); font-size: var(--text-read); line-height: 1.5; tab-size: 4; }
-.cv-scroll:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
-
-.cv-row { display: flex; min-width: max-content; border-left: 3px solid transparent; }
-.cv-row:hover { background: var(--cv-hover); }
-.cv-row--focus { background: var(--cv-focus); border-left-color: var(--cv-focus-edge); }
-
-.cv-no {
-    position: sticky; left: 0; flex: none; min-width: 3.5em; padding: 0 0.7em; text-align: right;
-    color: var(--cv-muted); background: var(--cv-gutter); border-right: 1px solid var(--cv-border); user-select: none;
-}
-.cv-row--focus .cv-no { color: var(--cv-text); font-weight: 600; }
-
-.cv-code { white-space: pre; padding: 0 1em; cursor: text; }
-
-.cv-match { background: var(--cv-match); border-radius: var(--radius-xs); }
-.cv-word { background: var(--cv-word); border-radius: var(--radius-xs); box-shadow: 0 0 0 1px var(--cv-word); }
-
-.tk-keyword { color: var(--cv-keyword); }
-.tk-string { color: var(--cv-string); }
-.tk-comment { color: var(--cv-comment); font-style: italic; }
-.tk-number { color: var(--cv-number); }
-.tk-type { color: var(--cv-type); }
-.tk-tag { color: var(--cv-tag); }
-.tk-attribute { color: var(--cv-attr); }
-.tk-directive { color: var(--cv-directive); }
-.tk-key { color: var(--cv-key); }
+/* The listing is a <pk-code-view>: the box is the .cv frame, so it draws no border of its own. */
+.cv-scroll { border: 0; border-radius: 0; --pk-code-view-max-height: 70vh; }
 
 .cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.cv--fill .cv-scroll { flex: 1; min-height: 0; max-height: none; }
+.cv--fill .cv-scroll { flex: 1; min-height: 0; --pk-code-view-max-height: none; }
 
 @media (max-width: 640px) {
-    .cv-scroll { font-size: var(--text-meta); max-height: 60vh; }
-    .cv--fill .cv-scroll { max-height: none; }
-    .cv-no { min-width: 2.8em; padding: 0 0.4em; }
+    .cv-scroll { --pk-code-view-max-height: 60vh; }
+    .cv--fill .cv-scroll { --pk-code-view-max-height: none; }
 }
 
 /* Parts of the outline and the trail that the explorer itself does not draw but other pages still use. */

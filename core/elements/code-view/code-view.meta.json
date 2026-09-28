@@ -1,0 +1,123 @@
+{
+  "tag": "pk-code-view",
+  "title": "Code view",
+  "group": "Code",
+  "summary": "A read-only, line-numbered listing for code or any text: numbers in a sticky gutter that a selection or a copy leaves out, optional highlighted lines, per-line coloured segments, and horizontal scrolling. Give it the lines as a property or as its text content.",
+  "props": [
+    {
+      "name": "lines",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The lines to show, an array of strings. When empty the element's text content is used instead."
+    },
+    {
+      "name": "segments",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Optional colouring: an array parallel to lines, each entry an array of { text, kind, match, word }. kind is a syntax kind (keyword, string, comment, number, type, tag, attribute, directive, key or plain); match and word mark a search hit and the selected word. The segments of a line should join to the line's text."
+    },
+    {
+      "name": "start",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "The number of the first line, for showing a slice of a longer file."
+    },
+    {
+      "name": "highlight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Line numbers to highlight, such as 12 or 3, 5-7. The first one is scrolled to the middle of the view."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Code",
+      "reflect": false,
+      "description": "The scrolling region's accessible name."
+    },
+    {
+      "name": "maxHeight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Cap the height, any CSS length. Without it the view is as tall as its lines, or fills a flex parent."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-line-click",
+      "detail": "{ line: number, column: number }",
+      "detailProps": {
+        "line": "number",
+        "column": "number"
+      },
+      "description": "A click left a caret in a line's code (not a drag selection): the line number and the zero-based column of the caret. Not cancelable."
+    }
+  ],
+  "parts": [
+    {
+      "name": "body",
+      "description": "The scrolling region."
+    },
+    {
+      "name": "rows",
+      "description": "The rows."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-code-view-bg",
+      "description": "Background.",
+      "default": "var(--cv-bg)"
+    },
+    {
+      "name": "--pk-code-view-fg",
+      "description": "Text colour.",
+      "default": "var(--cv-text)"
+    },
+    {
+      "name": "--pk-code-view-max-height",
+      "description": "Maximum body height; set by maxHeight.",
+      "default": "none"
+    },
+    {
+      "name": "--pk-code-view-gutter",
+      "description": "Line-number width in characters; set by the element.",
+      "default": "2"
+    }
+  ],
+  "methods": [
+    {
+      "name": "parseLines(spec)",
+      "description": "The set of line numbers a highlight string names."
+    },
+    {
+      "name": "sourceLines(lines, text)",
+      "description": "The lines to show."
+    },
+    {
+      "name": "lineSegments(text, segments)",
+      "description": "A line's normalised segments."
+    }
+  ],
+  "a11y": "The body is a labelled, focusable region so a keyboard can scroll it. Line numbers are generated content: they are not selectable, not copied and not read as part of the code. A highlighted line is marked by a background and a leading edge, not by colour alone in the number. Lines are set as text, never parsed as HTML.",
+  "examples": [
+    {
+      "title": "Highlighted lines",
+      "html": "<pk-code-view label=\"order.js\" highlight=\"2-3\">function total(items) {\n    const sum = items.reduce((a, i) => a + i.qty, 0);\n    return sum;\n}</pk-code-view>"
+    },
+    {
+      "title": "A slice starting at line 120, height capped",
+      "html": "<pk-code-view label=\"log.txt\" start=\"120\" max-height=\"6rem\">first line of the slice\nsecond line\nthird line\nfourth line\nfifth line\nsixth line\nseventh line</pk-code-view>"
+    },
+    {
+      "title": "Long lines scroll sideways",
+      "html": "<pk-code-view label=\"long.txt\">const message = 'This line is far longer than the box so it scrolls horizontally instead of wrapping, and the numbers stay put.';\nshort</pk-code-view>"
+    }
+  ]
+}
