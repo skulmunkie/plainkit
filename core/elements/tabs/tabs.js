@@ -70,7 +70,10 @@ export default Base => class extends Base {
     key(e) {
         const tabs = this.shown; const i = tabs.indexOf(e.target.closest('pk-tab'));
         if (i < 0) return;
-        const to = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key];
+        // In a right-to-left layout the next tab sits to the left, so ArrowLeft/ArrowRight swap meaning.
+        const rtl = typeof getComputedStyle === 'function' && getComputedStyle(this).direction === 'rtl';
+        const next = rtl ? 'ArrowLeft' : 'ArrowRight', prev = rtl ? 'ArrowRight' : 'ArrowLeft';
+        const to = { [next]: (i + 1) % tabs.length, [prev]: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key];
         if (to === undefined) return;
         e.preventDefault();
         if (this.activation === 'manual' || this.noneActive) { for (const t of this.tabs) t.tabIndex = t === tabs[to] ? 0 : -1; tabs[to].focus({ preventScroll: true }); this.reveal(tabs[to], true); } else this.choose(tabs[to], true);

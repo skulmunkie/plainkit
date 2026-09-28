@@ -117,6 +117,20 @@ test('arrow keys move through the visible enabled tabs with wrap-around, Home an
     el.key(key('Home', c)); assert.equal(el.value, 'a');
 });
 
+test('in a right-to-left layout ArrowLeft moves to the next tab and ArrowRight to the previous one, in reading order; Home/End are unaffected', () => {
+    const [a, b, c] = [tab('a'), tab('b'), tab('c')];
+    const { el } = make({ value: 'a' }, [a, b, c]);
+    const saved = globalThis.getComputedStyle;
+    globalThis.getComputedStyle = () => ({ direction: 'rtl' });
+    try {
+        el.key(key('ArrowLeft', a)); assert.equal(el.value, 'b');
+        el.key(key('ArrowLeft', b)); assert.equal(el.value, 'c');
+        el.key(key('ArrowRight', c)); assert.equal(el.value, 'b');
+        el.key(key('End', b)); assert.equal(el.value, 'c');
+        el.key(key('Home', c)); assert.equal(el.value, 'a');
+    } finally { globalThis.getComputedStyle = saved; }
+});
+
 test('manual activation moves focus and the tab stop without choosing', () => {
     const [a, b] = [tab('a', { tabIndex: 0 }), tab('b')];
     const { el, emitted } = make({ value: 'a', activation: 'manual' }, [a, b]);
