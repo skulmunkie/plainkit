@@ -114,7 +114,7 @@
   ],
   "cssProperties": [],
   "methods": [],
-  "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys. A group title is plain text (role presentation), not in the tab order.",
+  "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys. A group title is plain text (role presentation), not in the tab order. In the icon rail, a branch whose flyout holds the current row gets a visual indicator on its own collapsed link (it keeps no aria-current itself: it is not the current page).",
   "mobile": "44px tall.",
   "examples": [
     {

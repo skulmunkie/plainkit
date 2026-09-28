@@ -138,12 +138,15 @@ function measure(stage) {
         const clipX = ['hidden', 'clip'].includes(cs.overflowX) && el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0 && cs.textOverflow !== 'ellipsis';
         const clipY = ['hidden', 'clip'].includes(cs.overflowY) && el.scrollHeight > el.clientHeight + 1 && el.clientHeight > 0 && !clampedLines && cs.textOverflow !== 'ellipsis';
         const bg = ownText && !el.disabled ? backdrop(el) : null;
+        // The standard "visually hidden" technique (u-sr-only, pk-skip-link before focus): shrunk to ~1px and clipped on purpose, off-screen but
+        // still reachable by assistive tech, not a broken tap target or clipped content (issue 387).
+        const hiddenVisually = ['absolute', 'fixed'].includes(cs.position) && r.width <= 1.5 && r.height <= 1.5 && (cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden') && ((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto' && cs.clip !== ''));
         boxes.push({
             id, parent, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
             inFlow: !['absolute', 'fixed'].includes(cs.position) && cs.float === 'none' && !el.hasAttribute('popover'),
             clipX, clipY, interactive: inter, inlineLink: el.localName === 'a' && cs.display === 'inline', name: inter ? nameOf(el) : '',
             textColor: ownText && bg && Number(cs.opacity) === 1 ? rgba(cs.color) : null, bg, fontSize: parseFloat(cs.fontSize), bold: Number(cs.fontWeight) >= 700,
-            media, inLink: Boolean(el.closest?.('a[href]')) || el.getAttribute('role') === 'link', pseudo,
+            media, inLink: Boolean(el.closest?.('a[href]')) || el.getAttribute('role') === 'link', pseudo, hiddenVisually,
         });
     }
     return boxes;

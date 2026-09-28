@@ -11,8 +11,12 @@ export default Base => class extends Base {
         this.shadowRoot.addEventListener('keydown', e => { if (!this.href && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.branch(); } });
         this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && this.rail && !this.href && !this.flyout && this.children.length) this.flyout = true; });
         this.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && this.flyout) this.$t = setTimeout(() => { if (!this.matches(':hover')) this.flyout = false; }, 250); });
+        // A branch has no href of its own; watch its slotted children so the collapsed rail can mark it when one of them (in the flyout) is current.
+        this.$obs = new MutationObserver(() => this.requestUpdate());
+        this.$obs.observe(this, { subtree: true, attributes: true, attributeFilter: ['current'] });
     }
-    disconnected() { this.$o?.(); this.$o = null; clearTimeout(this.$t); }
+    disconnected() { this.$o?.(); this.$o = null; clearTimeout(this.$t); this.$obs?.disconnect(); }
+    get hasCurrentDescendant() { return !this.href && this.querySelector(':scope > [slot="children"][current], :scope > [slot="children"] [current]') != null; }
     changed(name) { if (name === 'flyout') this.layer(); }
     get row() { return this.shadowRoot.querySelector('[part="link"]'); }
     focusRow() { this.row?.focus({ preventScroll: true }); }
@@ -29,6 +33,8 @@ export default Base => class extends Base {
         if (this.href && !href) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the row has no link`, { href: this.href });
         if (href) { row.setAttribute('href', href); row.removeAttribute('role'); row.removeAttribute('tabindex'); } else { row.removeAttribute('href'); row.setAttribute('role', 'button'); row.tabIndex = 0; }
         if (this.current) row.setAttribute('aria-current', 'page'); else row.removeAttribute('aria-current');
+        // The branch itself is never the current page, so it keeps no aria-current, but the collapsed rail still needs a visible indicator when a descendant is.
+        this.toggleAttribute('data-current-branch', this.rail && this.hasCurrentDescendant);
         if (this.disabled) row.setAttribute('aria-disabled', 'true'); else row.removeAttribute('aria-disabled');
         const label = this.textContent.trim().split('\n')[0];
         const name = [...this.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() || label;
