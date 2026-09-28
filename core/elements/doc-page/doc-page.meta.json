@@ -1,0 +1,48 @@
+{
+  "tag": "pk-doc-page",
+  "title": "Doc page",
+  "group": "Page types",
+  "summary": "A page of long-form documents: a filterable side nav of items, an article with a title, summary and body, a table of contents and a previous/next pager. Set loadItem(id) and href(id, anchor?) as properties (business logic, never config data); a same-page link inside the article scrolls it and fires pk-navigate instead of touching history itself.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home?: { title, summary } }. id null shows the home list (every item, linked); id set loads and shows that item through loadItem(id). anchor scrolls the article to that heading once the item is shown, retried once on the very first load (the elements around the article are still upgrading)."
+    }
+  ],
+  "slots": [
+    { "name": "nav", "description": "The item nav (a real pk-side-nav the element builds and owns itself, with a pk-nav-item per config.items entry)." },
+    { "name": "bar", "description": "The under-1024px bar: the drawer toggle button the element builds itself." },
+    { "name": "aside", "description": "The table of contents (a real pk-toc the element builds itself, bound to the article body)." },
+    { "name": "", "description": "The article's own content: title, summary, body and pager, all built and owned by the element itself." }
+  ],
+  "events": [
+    {
+      "name": "pk-navigate",
+      "detail": "{ id, anchor, replace: false }",
+      "description": "A same-page link inside the article body (the table of contents, a heading's own permalink) was followed. The host rewrites the address (history.pushState) and keeps anchor in the config it sets next; the element never touches history itself."
+    }
+  ],
+  "parts": [
+    { "name": "shell", "description": "The whole layout: the nav slot beside the main column." },
+    { "name": "main", "description": "The column beside the nav: the bar (under 1024px), then the page." },
+    { "name": "page", "description": "The table of contents and the article, laid out side by side above 1280px and stacked at or below it." },
+    { "name": "bar", "description": "Wraps the bar slot; shown only at or below 1024px." },
+    { "name": "aside", "description": "Wraps the table of contents slot." },
+    { "name": "article", "description": "Wraps the default slot: the title, summary, body and pager the element builds." }
+  ],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the nav, toggle button and table of contents (pk-side-nav, pk-button, pk-toc)", "attributes": ["open", "pressed", "filterable", "hidden"], "why": "Light-DOM elements this element creates and owns itself (never host-given nodes): its own drawer toggle opens/closes the nav (open, pressed), its own config.search turns the nav's built-in filter on (filterable), and the table of contents is hidden while the shown page has no headings to list (hidden)." }
+  ],
+  "a11y": "The nav is a real pk-side-nav (its own filter box, arrow-key tree navigation, phone drawer); the article's h1 gets focus (tabindex=\"-1\", preventScroll) after a navigation so keyboard and screen reader users start there; the table of contents is a real pk-toc bound to the article body by id.",
+  "examples": [
+    {
+      "title": "A small set of documents (set loadItem/href from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-doc-page id=\"docs-example\"></pk-doc-page>"
+    }
+  ],
+  "methods": []
+}

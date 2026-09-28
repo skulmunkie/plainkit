@@ -220,4 +220,97 @@ export const appCases = [
         t.eq(tileBox('fast').querySelector('pk-stat').value, '1', 'the fast tile was never touched by the slow tile settling');
         t.ok(tileBox('bad').querySelector('pk-alert'), 'the bad tile was never touched by the slow tile settling');
     }],
+
+    ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let mounts = 0, destroys = 0;
+        const config = { panes: ['nav', 'aside'], mount: (panes, ctx) => {
+            mounts++; ctx.on(window, 'resize', () => {}); ctx.after(60000, () => {});
+            panes.main.textContent = 'main'; panes.nav.textContent = 'nav';
+            return { destroy() { destroys++; } };
+        } };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'workspace', config });
+            const el = box.querySelector('pk-workspace-page');
+            await t.load(box);
+            await until(() => el.part('main').textContent === 'main' && !el.part('state').firstElementChild, 'the panes to be mounted', 200);
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+        t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every consumer handle was destroyed exactly once');
+    }],
+
+    ['workspace page type (#353): the loading state shows while mount() is pending, a rejection shows the danger alert with a working Retry, and the panes are untouched by the state', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'workspace', config: { mount: (panes, ctx) => {
+            attempts++;
+            if (attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('backend down')); });
+            panes.main.textContent = 'recovered';
+        } } });
+        const el = box.querySelector('pk-workspace-page');
+        await t.load(box);
+        const state = el.part('state');
+        t.ok(state.querySelector('pk-skeleton'), 'loading while mount() is pending');
+        t.ok(getComputedStyle(state).display !== 'none', 'the state covers the panes');
+        release();
+        await until(() => state.querySelector('pk-alert'), 'the error state');
+        const alert = state.querySelector('pk-alert');
+        t.eq(alert.getAttribute('kind'), 'danger'); t.ok(/backend down/.test(alert.textContent), 'the message says what failed');
+        await t.load(state);
+        state.querySelector('pk-button').click();
+        await until(() => el.part('main').textContent === 'recovered' && !state.firstElementChild, 'Retry to recover');
+        t.eq(attempts, 2);
+        page.destroy();
+    }],
+
+    ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
+        const el = document.createElement('pk-doc-page');
+        el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
+        el.loadItem = async id => ({ title: `Guide ${id.toUpperCase()}`, summary: 'A summary', html: '<h2 id="one">One</h2><p>text</p><h2 id="two">Two</h2><p><a href="#two">to two</a></p>' });
+        el.href = (id, anchor) => `#/${id}${anchor ? `/${anchor}` : ''}`;
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        await until(() => el.querySelector('h2#two'), 'the article body to render');
+        const toc = el.querySelector('pk-toc');
+        await t.load(host);
+        await until(() => toc.shadowRoot?.querySelectorAll('a').length === 2, 'the table of contents to list both headings');
+        t.eq(el.querySelector('pk-side-nav').querySelectorAll('pk-nav-item').length, 2, 'one nav item per config.items entry');
+        t.ok(el.querySelector('pk-nav-item[current]')?.getAttribute('href') === '#/a', 'the current item is marked and linked through href()');
+        let detail = null;
+        el.addEventListener('pk-navigate', e => { detail = e.detail; });
+        const before = location.href;
+        el.querySelector('a[href="#two"]').click();
+        t.eq(location.href, before, 'the element never touches history itself');
+        t.eq(detail?.anchor, 'two', 'pk-navigate reports the heading');
+        t.eq(detail?.id, 'a');
+        host.replaceChildren();
+
+        const inst = instrument();
+        try {
+            const baseline = inst.snapshot().listeners.length;
+            for (let i = 0; i < 100; i++) {
+                const one = document.createElement('pk-doc-page');
+                one.config = { items: [{ id: 'a', title: 'A' }] };
+                host.append(one);
+                await t.load(host);
+                one.remove();
+            }
+            t.eq(inst.snapshot().listeners.length, baseline, 'no document/window listener is left behind after 100 mount/unmount cycles');
+        } finally { inst.restore(); }
+    }],
 ];
