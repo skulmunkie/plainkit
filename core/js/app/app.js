@@ -107,6 +107,10 @@ export function mountApp(container, config) {
     const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, locate(a.def, routes, a.route.path).ids); };
     const relayout = () => { drawNav(); mark(); };
     if (!side) narrow.addEventListener('change', relayout);
+    // A wide side layout has the side nav's own collapse chevron (icon rail): a second hamburger hiding the same nav would duplicate it (#448), so there the menu control only opens the drawer.
+    const syncToggle = () => ui.toggle.toggleAttribute('hidden', side && !narrow.matches);
+    narrow.addEventListener('change', syncToggle);
+    syncToggle();
     drawNav(); // the menu is in the page from the first paint: nothing moves when the first module arrives
 
     function trail(a) {
@@ -188,6 +192,7 @@ export function mountApp(container, config) {
             router.destroy();
             themeWatch.disconnect();
             narrow.removeEventListener('change', relayout);
+            narrow.removeEventListener('change', syncToggle);
             await host.destroy();
             tasks.destroy();
             notify.destroy();

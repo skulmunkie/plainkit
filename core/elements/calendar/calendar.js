@@ -1,21 +1,8 @@
 // Plainkit calendar logic: the month grid, ISO date helpers and keyboard movement. Pure functions on ISO dates ("2026-09-19"),
-// computed in UTC so a time zone never shifts a day. Framework-free; no imports.
+// computed in UTC so a time zone never shifts a day. Framework-free; the date helpers live in js/iso-date.js.
 
-const pad = n => String(n).padStart(2, '0');
-export const isoDate = (y, m0, d) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
-export const parseIso = s => { const [y, m, d] = s.split('-').map(Number); return { y, m0: m - 1, d }; };
-const utc = (y, m0, d) => new Date(Date.UTC(y, m0, d));
-const fromDate = dt => isoDate(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
-
-export const addDays = (iso, n) => { const { y, m0, d } = parseIso(iso); return fromDate(utc(y, m0, d + n)); };
-
-// Same day next/previous month, clamped to the last day of a shorter month (Jan 31 + 1 month = Feb 28/29).
-export function addMonths(iso, n) {
-    const { y, m0, d } = parseIso(iso);
-    const target = utc(y, m0 + n, 1);
-    const last = utc(target.getUTCFullYear(), target.getUTCMonth() + 1, 0).getUTCDate();
-    return isoDate(target.getUTCFullYear(), target.getUTCMonth(), Math.min(d, last));
-}
+import { isoDate, parseIso, utc, fromDate, addDays, addMonths } from '../../js/iso-date.js';
+export { isoDate, parseIso, addDays, addMonths };
 
 // Weeks of a month: array of weeks, each 7 cells { date, day, inMonth }. weekStart 0 = Sunday, 1 = Monday. Trims to 5 weeks when it can.
 export function monthGrid(year, month0, weekStart = 0) {

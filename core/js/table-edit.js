@@ -1,0 +1,146 @@
+// Lazy part of <pk-table>: inline cell editing (issue 331, first step). The table imports this on demand, only when `editable` is set, so its own module stays inside
+// its budget. The table owns what is drawn (shadow tree): this module marks the rendered body as an ARIA grid after every render, keeps one active cell (roving tabindex,
+// arrow keys), and swaps the active cell's content for an editor while it is edited. The edit state lives here and is drawn again on each render, so a render never loses a draft.
+// A commit raises the cancelable pk-cell-edit; unless the host cancels it the table then holds the new value in a copy of its rows (the host owns them after the event).
+
+import { sheetFor } from './element.js';
+
+const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1)}td[data-editing] :is(input,select){inline-size:0;min-inline-size:max(100%,4rem);font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);font-size:16px}td[data-key] input[role="switch"]{inline-size:var(--touch-target);block-size:var(--touch-target)}td[data-editing] select{min-inline-size:6.5rem}}');
+let sheet;
+
+// The message a draft breaks, or '' when it is fine. Pure: `col` is the column definition ({ editor, required, min, max, maxLength }), `text` the draft as typed.
+export function check(col, text) {
+    const t = String(text ?? '').trim();
+    if (col.required && !t) return 'Required';
+    if (col.editor === 'number' && t) {
+        const n = Number(t);
+        if (Number.isNaN(n)) return 'Enter a number';
+        if (col.min != null && n < col.min) return `At least ${col.min}`;
+        if (col.max != null && n > col.max) return `At most ${col.max}`;
+    }
+    if (col.maxLength != null && String(text ?? '').length > col.maxLength) return `At most ${col.maxLength} characters`;
+    return '';
+}
+
+// The value a draft becomes: a number column holds a number (or null when empty), a switch a boolean, the others the text as typed.
+export const typed = (col, text) => col.editor === 'number' ? (String(text).trim() === '' ? null : Number(text)) : col.editor === 'switch' ? !!text : text;
+
+const same = (a, b) => String(a ?? '') === String(b ?? '');
+const key = (id, k) => `${id}:${k}`;
+const st = t => t.$g ??= {};
+const col = (t, k) => t.list('columns').find(c => c.key === k) ?? {};
+const cells = t => [...t.part('body').querySelectorAll('tr[data-pk-context]')].map(tr => [...tr.querySelectorAll('td[data-key]')]);
+const say = (t, text) => { const s = st(t); (s.live ??= t.shadowRoot.appendChild(Object.assign(document.createElement('div'), { className: 'sr', role: 'status' }))).textContent = text; };
+const label = (t, id, k) => `${col(t, k).label ?? k}, row ${id}`;
+
+// The cell's editor: the control the column asks for, holding the draft. A switch is drawn always (it is the value), the others only while editing.
+function editor(t, c, id, s, value) {
+    const e = c.editor, name = label(t, id, c.key);
+    if (e === 'switch') { const i = document.createElement('input'); Object.assign(i, { type: 'checkbox', checked: value === true || value === 'true', tabIndex: -1 }); i.setAttribute('role', 'switch'); i.setAttribute('aria-label', name); i.dataset.cellEditor = ''; return i; }
+    const i = document.createElement(e === 'select' ? 'select' : 'input'); i.dataset.cellEditor = ''; i.setAttribute('aria-label', name);
+    if (e === 'select') for (const o of c.options ?? []) { const v = typeof o === 'object' ? o.value : o, op = document.createElement('option'); op.value = v; op.textContent = typeof o === 'object' ? (o.label ?? v) : o; i.append(op); }
+    else { i.type = 'text'; if (e === 'number') i.inputMode = 'decimal'; }
+    i.value = s.draft ?? '';
+    return i;
+}
+
+// After each render: grid roles and states on the body, the active cell's tab stop, the open editor and the error text.
+export function after(t) {
+    const root = t.shadowRoot, s = st(t), tb = t.part('table');
+    if (!t.editable) { tb.removeAttribute('role'); return; }
+    sheet ??= sheetFor(STYLES);
+    if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
+    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); }
+    tb.setAttribute('role', 'grid');
+    const rows = cells(t), ids = t.ids(), errors = t.cellErrors ?? {};
+    if (!rows.flat().some(td => at(td).id === s.a?.id && at(td).key === s.a?.key)) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
+    for (const line of rows) for (const td of line) {
+        const id = td.closest('tr').dataset.pkContext, k = td.dataset.key, c = col(t, k), on = s.a?.id === id && s.a?.key === k, ed = s.edit?.id === id && s.edit?.key === k;
+        const slotted = td.firstElementChild?.localName === 'slot', can = c.editor && !slotted, row = t.view[ids.indexOf(id)];
+        td.tabIndex = on ? 0 : -1;
+        td.setAttribute('aria-selected', String(on));
+        if (!can) td.setAttribute('aria-readonly', 'true');
+        const err = ed ? s.edit.error ?? errors[key(id, k)] : errors[key(id, k)];
+        if (err) td.setAttribute('aria-invalid', 'true');
+        if (can && (ed || c.editor === 'switch')) {
+            const i = editor(t, c, id, ed ? s.edit : {}, row?.[k]);
+            td.replaceChildren(i);
+            if (ed) td.dataset.editing = '';
+            if (err) { i.setAttribute('aria-invalid', 'true'); const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); i.setAttribute('aria-describedby', m.id); }
+        } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.textContent = err; td.append(m); }
+        if (s.focus && on) { (td.querySelector('[data-cell-editor]:not([role="switch"])') ?? td).focus(); if (ed) td.querySelector('input')?.select(); s.focus = false; }
+    }
+}
+
+const cellOf = e => e.target.closest?.('td[data-key]');
+const at = td => ({ id: td.closest('tr').dataset.pkContext, key: td.dataset.key });
+
+// Make a cell the active one (focus moves to it after the next draw, or now when it is already drawn).
+function activate(t, td) { const s = st(t); s.a = at(td); s.focus = true; t.requestUpdate(); }
+
+// Arrow keys and Tab: one cell over. Along a row it wraps to the neighbouring row; false at the edge of the grid.
+function move(t, td, dx, dy) {
+    const rows = cells(t), y = rows.findIndex(r => r.includes(td)), x = rows[y].indexOf(td) + dx;
+    const target = dy ? rows[y + dy]?.[Math.min(rows[y + dy].length - 1, x)] : rows[y][x] ?? (x < 0 ? rows[y - 1]?.at(-1) : rows[y + 1]?.[0]);
+    if (target) activate(t, target);
+    return !!target;
+}
+
+function begin(t, td) {
+    const s = st(t), { id, key: k } = at(td), c = col(t, k);
+    if (!c.editor || td.firstElementChild?.localName === 'slot') return;
+    const row = t.view[t.ids().indexOf(id)], v = row?.[k];
+    if (c.editor === 'switch') return void save(t, td, !(v === true || v === 'true'));
+    s.a = { id, key: k }; s.edit = { id, key: k, draft: String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
+}
+
+// Commit a draft (text as typed, or a boolean for a switch): checked, then offered to the host, which may cancel. False when the cell stays open.
+function save(t, td, draft, focus = true) {
+    const s = st(t), { id, key: k } = at(td), c = col(t, k), i = t.ids().indexOf(id), row = t.view[i], previous = row?.[k];
+    const error = c.editor === 'switch' ? '' : check(c, draft), value = typed(c, draft), changed = !same(value, previous);
+    const stay = msg => { s.edit = { id, key: k, draft: String(draft), error: msg }; s.focus = focus; t.requestUpdate(); return false; };
+    if (error) return stay(error);
+    if (changed && !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous })) return stay(t.cellErrors?.[key(id, k)] ?? 'Value not accepted');
+    if (changed) t.rows = t.list('rows').map(r => r === row ? { ...r, [k]: value } : r);
+    s.edit = null; s.focus = focus; t.requestUpdate();
+    if (changed) say(t, `${label(t, id, k)}: ${c.editor === 'switch' ? (value ? 'on' : 'off') : value ?? 'empty'}`);
+    return true;
+}
+
+function cancel(t) { const s = st(t); if (!s.edit) return; s.a = { id: s.edit.id, key: s.edit.key }; s.edit = null; s.focus = true; t.requestUpdate(); say(t, 'Edit cancelled'); }
+
+function keydown(t, e) {
+    const td = cellOf(e), s = st(t);
+    if (!td || !t.editable || e.defaultPrevented) return;
+    const editing = !!s.edit && e.target.dataset.cellEditor !== undefined && s.edit.id === at(td).id && s.edit.key === at(td).key, k = e.key;
+    if (editing) {
+        if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); cancel(t); }
+        else if (k === 'Enter' && e.target.localName !== 'select') { e.preventDefault(); save(t, td, e.target.value); }
+        else if (k === 'Tab') { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, e.shiftKey ? -1 : 1, 0); }
+        return;
+    }
+    if (e.target !== td) return;
+    const go = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[k];
+    if (go) { e.preventDefault(); move(t, td, ...go); }
+    else if (k === 'Enter' || k === 'F2' || (k === ' ' && col(t, td.dataset.key).editor === 'switch')) { e.preventDefault(); begin(t, td); }
+    else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[k === 'Home' ? 0 : r.length - 1]); }
+}
+
+// A click selects a cell; a click on the cell that is already active opens it (the way a touch screen edits, where there is no Enter). A switch toggles on any click.
+function click(t, e) {
+    const td = cellOf(e), s = st(t);
+    if (!td || !t.editable || td.hasAttribute('data-editing')) return;
+    const c = col(t, td.dataset.key), a = at(td), was = s.a?.id === a.id && s.a?.key === a.key;
+    if (c.editor === 'switch' && e.target.localName === 'input') { e.preventDefault(); begin(t, td); } else if (was && !s.edit) begin(t, td); else activate(t, td);
+}
+
+// A select commits when its choice changes.
+function change(t, e) { const td = cellOf(e); if (td && t.editable && e.target.localName === 'select' && e.target.dataset.cellEditor !== undefined) save(t, td, e.target.value); }
+
+// Leaving the open editor for somewhere outside its cell commits it; an invalid draft is dropped, since there is nowhere to show its message.
+function blur(t, e) {
+    const s = st(t), td = cellOf(e), i = e.target;
+    if (!s.edit || !td || i.dataset.cellEditor === undefined || td.contains(e.relatedTarget)) return;
+    // The browser also raises this when a render replaces the editor (it is still connected while it does): by the next task a replaced editor is gone.
+    setTimeout(() => { if (i.isConnected && s.edit && !save(t, td, i.value, false)) { s.edit = null; s.focus = false; t.requestUpdate(); } }, 0);
+}
