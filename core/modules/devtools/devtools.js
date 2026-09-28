@@ -18,7 +18,7 @@ import { mountPerformance } from '../performance/performance.js';
 import { mountConsole } from '../console/console.js';
 import { mountLogs } from '../logs/logs.js';
 import { mountLogSettings } from '../log-settings/log-settings.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { qualityPanel, inspectorPanel, themePanel, layoutBuilderPanel } from './panels.js';
 
@@ -42,13 +42,6 @@ export const BUILT_IN = Object.freeze([
     themePanel,
     layoutBuilderPanel,
 ]);
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 // Does this key event match a chord like "Ctrl+`" or "Ctrl+Shift+D"?
 export function matchesHotkey(event, chord) {

@@ -15,20 +15,13 @@
 
 import { collect, evaluate, focusProblems } from '../../js/quality.js';
 import { pageScore, scoreTone, findingRows } from '../../js/inspect-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('quality');
 
 const STYLES = ['../../plainkit.css'];
 export const PHONE_MAX = 640;
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 // Runs the checks now on `root` and returns { score, findings, width }. Synchronous, so a hidden tool never flickers.
 export function checkPage(root, { phone } = {}) {
