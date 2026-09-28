@@ -75,9 +75,21 @@ export const customTags = doc => [...new Set([...(doc?.querySelectorAll?.('*') ?
 // Elements are loaded on demand after the frame's load event; an element with no text (an avatar, a progress bar, a spinner) has no size until
 // it is defined, so a fixed settle time reads it as an empty preview when the machine is busy.
 export function whenDefined(frame, ms = DEFAULTS.defineMs) {
-    const win = frame.contentWindow; const tags = customTags(frame.contentDocument);
-    if (!win?.customElements || !tags.length) return Promise.resolve();
-    return Promise.race([Promise.all(tags.map(t => win.customElements.whenDefined(t))), new Promise(r => setTimeout(r, ms))]);
+    const win = frame.contentWindow;
+    if (!win?.customElements) return Promise.resolve();
+    // Page types and other composed elements create their own pk-* children once they are defined, so the tag list is read again
+    // until a pass finds nothing new (one frame is painted after each), all inside the same `ms` budget.
+    const seen = new Set();
+    const pass = async () => {
+        for (;;) {
+            const fresh = customTags(frame.contentDocument).filter(t => !seen.has(t));
+            if (!fresh.length) return;
+            fresh.forEach(t => seen.add(t));
+            await Promise.all(fresh.map(t => win.customElements.whenDefined(t)));
+            await new Promise(r => (win.requestAnimationFrame ? win.requestAnimationFrame(() => r()) : r()));
+        }
+    };
+    return Promise.race([pass(), new Promise(r => setTimeout(r, ms))]);
 }
 
 // A frame laid out off-screen at an exact width, resolved once loaded, its elements defined and settled; the caller measures it and removes it.
