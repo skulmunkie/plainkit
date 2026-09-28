@@ -1,0 +1,209 @@
+{
+  "tag": "pk-date-range-picker",
+  "title": "Date range picker",
+  "group": "Form controls",
+  "summary": "A start and an end date with quick ranges (last 7 days, this month), a minimum and maximum, and an inline error when the end is before the start. Built on native date fields, so keyboard, touch and the platform picker come with it.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name. The submitted value is the ISO interval start/end, for example 2026-09-01/2026-09-07, or empty when neither date is set."
+    },
+    {
+      "name": "start",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-range-change",
+      "description": "The first day, an ISO date such as 2026-09-01. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it. A browser state restore also sets it silently."
+    },
+    {
+      "name": "end",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-range-change",
+      "description": "The last day, an ISO date (inclusive). Same reset and restore behaviour as start."
+    },
+    {
+      "name": "min",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Earliest allowed ISO date. A date before it makes the field invalid and disables a quick range that lies wholly before it."
+    },
+    {
+      "name": "max",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Latest allowed ISO date."
+    },
+    {
+      "name": "presets",
+      "type": "string",
+      "default": "today,7d,30d,month",
+      "reflect": false,
+      "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, year. Empty for none. A range is cut to min and max."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name of the group (aria-label). pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "startLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name of the start field; \"Start date\" when empty. Set it to localise."
+    },
+    {
+      "name": "endLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name of the end field; \"End date\" when empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the range without letting the user change it."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted until both dates are set."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext). The element also shows its own error when the end is before the start or a date is outside min and max."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "A field changed while the user typed (native, composed: bubbles out of the shadow root). Read event.target.start and event.target.end."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user committed a date or a quick range (re-dispatched from the inner control, composed)."
+    },
+    {
+      "name": "pk-range-change",
+      "detail": "{ start: string, end: string, valid: boolean }",
+      "detailProps": {
+        "start": "string",
+        "end": "string",
+        "valid": "bool"
+      },
+      "description": "The range changed by the user (a date typed or picked, a quick range, clear). valid is false when the end is before the start or a date is outside min and max; the values are still reported so the host can show its own message."
+    }
+  ],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The wrapper, role=group."
+    },
+    {
+      "name": "fields",
+      "description": "The row of the two date fields."
+    },
+    {
+      "name": "start",
+      "description": "The start date field."
+    },
+    {
+      "name": "separator",
+      "description": "The word between the fields."
+    },
+    {
+      "name": "end",
+      "description": "The end date field."
+    },
+    {
+      "name": "presets",
+      "description": "The row of quick-range buttons."
+    },
+    {
+      "name": "error",
+      "description": "The inline error text (role=alert), hidden when the range is fine."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the fields.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the start field."
+    },
+    {
+      "name": "clear()",
+      "description": "Empties both dates and raises pk-range-change."
+    }
+  ],
+  "a11y": "A role=group named by label with two native date inputs named Start date and End date (segments move with the arrow keys, the platform picker opens from the field). Quick ranges are buttons in a named group with aria-pressed on the one that matches the current range and disabled when they fall outside min and max. An invalid range sets aria-invalid on both fields and shows a role=alert message tied to them with aria-describedby. On a phone every control is at least 44px tall.",
+  "examples": [
+    {
+      "title": "Quick ranges",
+      "html": "<pk-date-range-picker label=\"Reporting period\" start=\"2026-09-01\" end=\"2026-09-14\"></pk-date-range-picker>"
+    },
+    {
+      "title": "Limited to a window, no quick ranges",
+      "html": "<pk-date-range-picker label=\"Trip dates\" min=\"2026-09-01\" max=\"2026-09-30\" presets=\"\" start=\"2026-09-10\" end=\"2026-09-18\"></pk-date-range-picker>"
+    },
+    {
+      "title": "End before start (invalid)",
+      "html": "<pk-date-range-picker label=\"Booking\" start=\"2026-09-20\" end=\"2026-09-10\" presets=\"\"></pk-date-range-picker>"
+    },
+    {
+      "title": "Disabled",
+      "html": "<pk-date-range-picker label=\"Locked period\" start=\"2026-09-01\" end=\"2026-09-14\" disabled></pk-date-range-picker>"
+    }
+  ]
+}
