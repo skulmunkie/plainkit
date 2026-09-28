@@ -1,6 +1,9 @@
 // Plainkit scoring: turn measurements into 0-100 scores, rank the worst first, and keep a history so a regression
 // shows as a delta. Pure functions over a definitions object (scorecard/scoring.data.js); storage is passed in.
-// Framework-free; no imports.
+// Framework-free; its only import is the SDK logger.
+import { createLogger } from './log.js';
+
+const log = createLogger('scoring');
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
@@ -64,7 +67,7 @@ export function readHistory(storage, key) {
 // Append a run { at, overall, categories: { key: score }, items: { name: score } } and keep the newest `max`.
 export function pushRun(storage, key, run, max = 40) {
     const history = [...readHistory(storage, key), run].slice(-max);
-    try { storage.setItem(key, JSON.stringify(history)); } catch { /* storage full or blocked: the run is still returned */ }
+    try { storage.setItem(key, JSON.stringify(history)); } catch (err) { log.warn('the score history could not be saved (storage full or blocked); the run is still returned', err); }
     return history;
 }
 
