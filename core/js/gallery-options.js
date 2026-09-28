@@ -77,10 +77,11 @@ export function filterTree(tree, filter) {
     const f = String(filter ?? '').trim().toLowerCase();
     if (!f) return tree;
     const has = t => String(t).toLowerCase().includes(f);
+    const matches = it => has(it.title) || (it.aliases ?? []).some(has);
     return tree
         .map(sec => (sec.items
-            ? { ...sec, items: sec.items.filter(it => has(it.title)) }
-            : { ...sec, groups: sec.groups.map(g => ({ ...g, items: has(g.title) ? g.items : g.items.filter(it => has(it.title)) })).filter(g => g.items.length) }))
+            ? { ...sec, items: sec.items.filter(matches) }
+            : { ...sec, groups: sec.groups.map(g => ({ ...g, items: has(g.title) ? g.items : g.items.filter(matches) })).filter(g => g.items.length) }))
         .filter(sec => (sec.items ?? sec.groups).length);
 }
 
@@ -89,10 +90,10 @@ export function leaves(tree) {
     return tree.flatMap(sec => (sec.items ?? sec.groups.flatMap(g => g.items.map(it => ({ ...it, group: g })))).map(it => ({ ...it, section: sec })));
 }
 
-// Leaves whose title (or group title) contains the filter text, case-insensitively; no filter keeps everything.
+// Leaves whose title, alias (e.g. dialog's "modal") or group title contains the filter text, case-insensitively; no filter keeps everything.
 export function filterLeaves(list, filter) {
     const f = String(filter ?? '').trim().toLowerCase();
-    return f ? list.filter(it => it.title.toLowerCase().includes(f) || it.group?.title.toLowerCase().includes(f)) : list;
+    return f ? list.filter(it => it.title.toLowerCase().includes(f) || (it.aliases ?? []).some(a => a.toLowerCase().includes(f)) || it.group?.title.toLowerCase().includes(f)) : list;
 }
 
 // Where the gallery opens: the one element, the one group, or the section the options name; empty when nothing narrows the view.

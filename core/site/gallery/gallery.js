@@ -68,7 +68,7 @@ const keeps = (sec, grp, id) => Boolean(scopeGroup(sec, grp)?.items.some(i => i.
 // 77 elements in one flat list is a wall on a phone: the nav folds them by the group their meta declares (the section title still opens the overview).
 function elementGroups() {
     const by = new Map();
-    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}` }); }
+    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}`, aliases: m.aliases }); }
     return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: '#/elements', items }));
 }
 

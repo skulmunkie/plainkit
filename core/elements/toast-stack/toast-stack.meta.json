@@ -1,5 +1,6 @@
 {
   "tag": "pk-toast-stack",
+  "aliases": ["toast"],
   "title": "Toast stack",
   "summary": "The live region that holds toasts at one screen position, shows at most three at once and queues the rest; PkToast.show(message, options) creates one per position on demand.",
   "group": "Feedback & status",
