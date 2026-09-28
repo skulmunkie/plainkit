@@ -38,6 +38,8 @@ export default {
             t.styleIs(cal(open), 'border-top-width', '0px');
             const p = t.rect(panel(open)), f = t.rect(`#${open} >>> [part=fields]`);
             if (p && f) t.ok(p.y >= f.bottom - 1, `the panel starts at y=${Math.round(p.y)}, above the end of the fields (y=${Math.round(f.bottom)})`);
+            if (t.shot === 'open' || t.shot === 'rtl-open') { const focused = `${cal(open)} >>> .day[tabindex="0"]`; t.ringVisible(focused); t.ringUnclipped(focused); }
+            if (t.shot === 'rtl-open') { const p2 = t.rect(panel(open)), b = t.rect(`#${open} >>> [part=opener]`); if (p2 && b && t.viewport.name !== 'phone') t.ok(Math.abs(p2.right - b.right) <= 1, `the RTL panel ends at x=${Math.round(p2.right)}, not at the opener's inline-start (right) edge x=${Math.round(b.right)}`); }
             if (t.shot !== 'picking') t.ok(t.attr(day(open, '2026-09-12'), 'data-range') === 'mid', 'the picker range is not shown in the calendar');
             if (t.shot === 'picking') t.ok(t.attr(day(open, '2026-09-22'), 'data-range') === 'mid', 'the pending range does not preview under the pointer');
         }
