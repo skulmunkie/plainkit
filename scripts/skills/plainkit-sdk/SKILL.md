@@ -208,7 +208,7 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 ### Upgrade this app to a newer Plainkit
 
-`references/upgrading.md` is a blast-radius recipe, not a changelog summary. While you are in the app, also check it against `references/choosing.md`: a hand-built table (an editable grid is `pk-table` with `editable` and per-column `editor`s, cancelable `pk-cell-edit`), modal, header search or record page that a newer element or template now covers is worth replacing. Recipe: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
+`references/upgrading.md` is a blast-radius recipe, not a changelog summary. While you are in the app, also check it against `references/choosing.md`: a hand-built table (an editable grid is `pk-table` with `editable` and per-column `editor`s, cancelable `pk-cell-edit`, Ctrl+Z / Ctrl+Y undo and redo also go through that event), modal, header search or record page that a newer element or template now covers is worth replacing. Recipe: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
 
 ### Share a context menu across targets
 
