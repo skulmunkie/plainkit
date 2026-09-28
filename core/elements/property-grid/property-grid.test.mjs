@@ -156,3 +156,21 @@ test('wide layout puts the label beside the value on fields, not on switches', (
     el.layout(false);
     assert.equal(el.$rows.width.row.layout, 'stack');
 });
+
+test('unit property: a number plus a unit picker in the suffix slot; value is { value, unit }; range messages name the unit; changing the unit emits', () => {
+    const { el, emitted } = make({ groups: [{ heading: 'G', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 1, max: 100, required: true }] }] });
+    el.values = { w: { value: 50, unit: '%' } };
+    el.connected();
+    const r = el.$rows.w;
+    assert.equal(r.c.type, 'number'); assert.equal(r.unit.slot, 'suffix'); assert.equal(r.unit.label, 'Width unit'); assert.equal(r.unit.children.length, 2);
+    assert.deepEqual(el.currentValues().w, { value: 50, unit: '%' });
+    el.setValue('w', { value: 500, unit: 'px' });
+    assert.match(r.msg.textContent, /at most 100 px/); assert.equal(el.valid, false);
+    el.setValue('w', { value: '', unit: 'px' });
+    assert.match(r.msg.textContent, /required/);
+    r.unit.value = '%'; r.c.value = 20;
+    el.onChange({ target: r.unit });
+    assert.deepEqual(emitted.at(-1).detail.value, { value: 20, unit: '%' }); assert.equal(emitted.at(-1).detail.valid, true);
+    el.disabled = true; el.changed('disabled');
+    assert.equal(r.unit.disabled, true);
+});

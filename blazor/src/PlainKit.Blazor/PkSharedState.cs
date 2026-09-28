@@ -66,6 +66,8 @@ public interface IPkSettings
     ValueTask<T> GetAsync<T>(string module, string key, T fallback);
     /// <summary>Saves a setting; false when the module or key name is invalid or the value is not a string, boolean or number.</summary>
     ValueTask<bool> SetAsync(string module, string key, object value);
+    /// <summary>Raised with (module, key, value) after a setting was saved with a value that differs from the stored one.</summary>
+    event Action<string, string, object?>? Changed;
 }
 
 internal sealed class PkSettings(IPkStore store) : IPkSettings
@@ -81,7 +83,17 @@ internal sealed class PkSettings(IPkStore store) : IPkSettings
 
     public async ValueTask<T> GetAsync<T>(string module, string key, T fallback) => await ModuleAsync(module) is { } m ? m.Get(key, fallback) : fallback;
 
-    public async ValueTask<bool> SetAsync(string module, string key, object value) => await ModuleAsync(module) is { } m && await m.SetAsync(key, value);
+    public event Action<string, string, object?>? Changed;
+
+    public async ValueTask<bool> SetAsync(string module, string key, object value)
+    {
+        if (await ModuleAsync(module) is not { } m) return false;
+        var before = m.Get(key);
+        if (!await m.SetAsync(key, value)) return false;
+        var after = m.Get(key);
+        if (!Equals(before, after)) foreach (var fn in Changed?.GetInvocationList().Cast<Action<string, string, object?>>() ?? []) fn(module, key, after);
+        return true;
+    }
 }
 
 /// <summary>The colour theme, persisted (<c>pk.theme</c>) and applied as <c>data-theme</c> on the document element. Call <see cref="InitializeAsync"/> from <c>OnAfterRenderAsync(firstRender)</c>.</summary>

@@ -1,0 +1,183 @@
+// The dock-tree model (js/dock-model.js): the layout, its operations, the invariants after every one, and fromJson on hostile input.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS } from '../js/dock-model.js';
+
+const P = [{ id: 'tools', group: 'left' }, { id: 'assets', group: 'left' }, { id: 'canvas' }, { id: 'props', group: 'right' }, { id: 'log', group: 'bottom' }];
+const ids = P.map(p => p.id);
+const fresh = () => defaultLayout(P);
+
+test('defaultLayout builds left | center | right with a bottom group and is valid', () => {
+    const d = fresh();
+    assert.deepEqual(validate(d, ids), []);
+    assert.equal(d.root.type, 'split'); assert.equal(d.root.orientation, 'vertical');
+    assert.deepEqual(groups(d).map(g => g.panels), [['tools', 'assets'], ['canvas'], ['props'], ['log']]);
+    assert.equal(d.root.a.size, 20);
+});
+
+test('defaultLayout leaves out empty sides and handles no panels', () => {
+    const one = defaultLayout([{ id: 'a' }]);
+    assert.equal(one.root.type, 'tabs'); assert.deepEqual(validate(one, ['a']), []);
+    assert.equal(defaultLayout([]).root, null);
+    assert.deepEqual(validate(emptyLayout(), []), []);
+});
+
+test('resize clamps to min and max, is a no-op for the same size and reports an unknown split', () => {
+    const d = fresh(), s = d.root.a.id;
+    assert.equal(resize(d, { split: s, size: 40 }).doc.root.a.size, 40);
+    assert.equal(resize(d, { split: s, size: 1 }).doc.root.a.size, 5);
+    assert.equal(resize(d, { split: s, size: 500 }).doc.root.a.size, 95);
+    assert.equal(resize(d, { split: s, size: 20 }).doc, d);
+    const bad = resize(d, { split: 'd999', size: 40 });
+    assert.equal(bad.doc, d); assert.equal(bad.problems[0].code, 'unknown-split');
+    assert.equal(resize(d, { split: findGroup(d, 'canvas').id, size: 40 }).problems[0].code, 'unknown-split', 'a group is not a split');
+});
+
+test('operations do not mutate their input and share the branches they did not touch', () => {
+    const d = fresh(), before = JSON.stringify(d), s = d.root.a.id;
+    const r = resize(d, { split: s, size: 33 }).doc;
+    assert.equal(JSON.stringify(d), before);
+    assert.equal(r.root.b, d.root.b, 'the bottom group is the same object');
+});
+
+test('activate makes a panel the active tab of its group', () => {
+    const d = fresh();
+    assert.equal(findGroup(activate(d, { panel: 'assets' }).doc, 'assets').active, 'assets');
+    assert.equal(activate(d, { panel: 'tools' }).doc, d);
+    assert.equal(activate(d, { panel: 'nope' }).problems[0].code, 'unknown-panel');
+});
+
+test('moveTab reorders inside a group and moves between groups, collapsing the group it empties', () => {
+    const d = fresh(), g = findGroup(d, 'tools').id;
+    const swapped = moveTab(d, { panel: 'tools', group: g, index: 1 }).doc;
+    assert.deepEqual(findGroup(swapped, 'tools').panels, ['assets', 'tools']);
+    const to = findGroup(d, 'canvas').id, moved = moveTab(d, { panel: 'props', group: to }).doc;
+    assert.deepEqual(findGroup(moved, 'canvas').panels, ['canvas', 'props']);
+    assert.equal(findGroup(moved, 'canvas').active, 'props');
+    assert.equal(groups(moved).length, 3, 'the empty group is gone and its split collapsed');
+    assert.deepEqual(validate(moved, ids), []);
+    assert.equal(moveTab(d, { panel: 'tools', group: 'd999' }).problems[0].code, 'unknown-group');
+    assert.equal(moveTab(d, { panel: 'x', group: g }).problems[0].code, 'unknown-panel');
+});
+
+test('moving the active tab out makes a neighbour active', () => {
+    const d = activate(fresh(), { panel: 'assets' }).doc;
+    const m = moveTab(d, { panel: 'assets', group: findGroup(d, 'canvas').id }).doc;
+    assert.equal(findGroup(m, 'tools').active, 'tools');
+});
+
+test('dockPanel splits the target on each edge, in the right order and orientation, or joins it in the centre', () => {
+    const d = fresh(), target = findGroup(d, 'canvas').id;
+    for (const [zone, orientation, first] of [['left', 'horizontal', 'props'], ['right', 'horizontal', 'canvas'], ['top', 'vertical', 'props'], ['bottom', 'vertical', 'canvas']]) {
+        const r = dockPanel(d, { panel: 'props', target, zone });
+        assert.deepEqual(r.problems, [], zone);
+        const s = findGroup(r.doc, 'canvas'), parent = [];
+        const find = n => { if (n.type === 'split') { if (n.a === s || n.b === s) parent.push(n); find(n.a); find(n.b); } };
+        find(r.doc.root);
+        assert.equal(parent[0].orientation, orientation, zone); assert.equal(parent[0].size, 50);
+        assert.equal(parent[0].a.panels[0], first, zone);
+        assert.deepEqual(validate(r.doc, ids), [], zone);
+    }
+    assert.deepEqual(findGroup(dockPanel(d, { panel: 'props', target, zone: 'center' }).doc, 'canvas').panels, ['canvas', 'props']);
+});
+
+test('dockPanel refuses a panel beside its own single-panel group, an unknown zone, target or panel', () => {
+    const d = fresh(), own = findGroup(d, 'canvas').id;
+    assert.equal(dockPanel(d, { panel: 'canvas', target: own, zone: 'left' }).problems[0].code, 'self');
+    assert.equal(dockPanel(d, { panel: 'props', target: own, zone: 'diagonal' }).problems[0].code, 'unknown-zone');
+    assert.equal(dockPanel(d, { panel: 'props', target: 'zzz', zone: 'left' }).problems[0].code, 'unknown-group');
+    assert.equal(dockPanel(d, { panel: 'zzz', target: own, zone: 'left' }).problems[0].code, 'unknown-panel');
+    // A panel of a multi-panel group can be split off beside its own group.
+    const g = findGroup(d, 'tools'), r = dockPanel(d, { panel: 'tools', target: g.id, zone: 'right' });
+    assert.deepEqual(r.problems, []); assert.deepEqual(validate(r.doc, ids), []);
+});
+
+test('the last group is removed cleanly: the root becomes null', () => {
+    let d = defaultLayout([{ id: 'a' }, { id: 'b' }]);
+    assert.equal(d.root.type, 'tabs');
+    d = dockPanel(d, { panel: 'a', target: d.root.id, zone: 'right' }).doc;
+    assert.equal(d.root.type, 'split');
+    d = moveTab(d, { panel: 'a', group: findGroup(d, 'b').id }).doc;
+    assert.equal(d.root.type, 'tabs'); assert.deepEqual(d.root.panels, ['b', 'a']);
+});
+
+test('a limit is a problem and the unchanged document', () => {
+    const many = Array.from({ length: LIMITS.depth + 5 }, (_, i) => ({ id: `p${i}` }));
+    let d = defaultLayout(many), refused = null;
+    for (let i = 1; i < many.length && !refused; i++) {
+        const r = dockPanel(d, { panel: `p${i}`, target: findGroup(d, 'p0').id, zone: 'right' });
+        if (r.problems.length) { refused = r; assert.equal(r.doc, d); } else d = r.doc;
+    }
+    assert.equal(refused?.problems[0].code, 'limit');
+    assert.deepEqual(validate(d, many.map(p => p.id)), []);
+});
+
+test('toJson and fromJson round-trip a layout, including one edited by operations', () => {
+    let d = fresh();
+    d = dockPanel(d, { panel: 'props', target: findGroup(d, 'canvas').id, zone: 'bottom' }).doc;
+    d = resize(d, { split: d.root.a.id, size: 33.3 }).doc;
+    d = activate(d, { panel: 'assets' }).doc;
+    const back = fromJson(toJson(d), { panels: P });
+    assert.deepEqual(back.problems, []);
+    assert.deepEqual(back.doc, d);
+    assert.deepEqual(fromJson(JSON.parse(toJson(d)), { panels: P }).doc, d, 'an object works like a string');
+});
+
+test('fromJson on unusable input gives the default layout and a problem, never a throw', () => {
+    const def = fresh();
+    for (const bad of ['', '{', 'null', '[]', '42', '"x"', null, undefined, 7, [], { version: 2, root: null }, { version: 1 }, 'x'.repeat(LIMITS.bytes + 1)]) {
+        const r = fromJson(bad, { panels: P });
+        assert.deepEqual(r.doc.version === 1 && validate(r.doc, ids), [], JSON.stringify(bad)?.slice(0, 20));
+        assert.ok(r.problems.length > 0);
+    }
+    assert.deepEqual(fromJson('{', { panels: P }).doc, def);
+});
+
+test('fromJson rebuilds from known fields only: unknown keys, wrong types and bad numbers are repaired', () => {
+    const hostile = { version: 1, seq: 'x', evil: '<script>', root: { id: '<b>', type: 'split', orientation: 'diagonal', size: 'big', min: 'a', max: -5, a: { type: 'tabs', panels: ['tools', 'tools', 'ghost', 7, null], active: 'zzz', html: 'x' }, b: { type: 'tabs', panels: ['canvas', 'props', 'log', 'assets'] }, extra: 1 } };
+    const { doc, problems } = fromJson(hostile, { panels: P });
+    assert.deepEqual(validate(doc, ids), []);
+    assert.deepEqual(problems, [], 'every panel is still placed, so nothing is worth a warning');
+    assert.equal(JSON.stringify(doc).includes('script'), false); assert.equal(JSON.stringify(doc).includes('ghost'), false);
+    assert.equal(doc.root.orientation, 'horizontal');
+    assert.equal(doc.root.a.active, 'tools');
+});
+
+test('fromJson drops removed panels, appends added ones, and drops empty groups', () => {
+    const d = fresh();
+    const removed = fromJson(toJson(d), { panels: P.filter(p => p.id !== 'props') });
+    assert.deepEqual(validate(removed.doc, ids.filter(i => i !== 'props')), []);
+    assert.equal(groups(removed.doc).length, 3, 'the props group went with its panel');
+    const added = fromJson(toJson(d), { panels: [...P, { id: 'extra' }] });
+    assert.deepEqual(validate(added.doc, [...ids, 'extra']), []);
+    assert.ok(added.problems.some(p => p.code === 'panel-added'));
+    assert.deepEqual(findGroup(added.doc, 'extra').panels.slice(0, 2), ['tools', 'assets']);
+});
+
+test('fromJson caps depth and repeats of an id, and gives every node a unique id above seq', () => {
+    let node = { type: 'tabs', panels: ['tools'] };
+    for (let i = 0; i < 40; i++) node = { id: 'd1', type: 'split', size: 50, a: node, b: { id: 'd1', type: 'tabs', panels: [`x${i}`] } };
+    const r = fromJson({ version: 1, root: node }, { panels: P });
+    assert.deepEqual(validate(r.doc, ids), []);
+    const all = []; const walk = n => { all.push(n.id); if (n.type === 'split') { walk(n.a); walk(n.b); } }; walk(r.doc.root);
+    assert.equal(new Set(all).size, all.length);
+});
+
+test('a randomised sequence of operations keeps every invariant (seeded)', () => {
+    let seed = 12345;
+    const rnd = n => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed % n; };
+    let d = fresh();
+    for (let i = 0; i < 400; i++) {
+        const gs = groups(d), panel = ids[rnd(ids.length)], g = gs[rnd(gs.length)];
+        const op = rnd(5);
+        const r = op === 0 ? resize(d, { split: `d${rnd(d.seq + 3)}`, size: rnd(140) - 20 })
+            : op === 1 ? activate(d, { panel })
+            : op === 2 ? moveTab(d, { panel, group: g.id, index: rnd(4) })
+            : op === 3 ? dockPanel(d, { panel, target: g.id, zone: ['left', 'right', 'top', 'bottom'][rnd(4)] })
+            : dockPanel(d, { panel, target: rnd(9) ? g.id : 'zz', zone: ['center', 'bogus'][rnd(2)] });
+        d = r.doc;
+        assert.deepEqual(validate(d, ids), [], `after step ${i}`);
+        assert.equal(panelIds(d).length, ids.length);
+        assert.deepEqual(fromJson(toJson(d), { panels: P }).doc, d, `round trip after step ${i}`);
+    }
+});

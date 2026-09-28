@@ -42,6 +42,13 @@ export function dateForKey(iso, key, shift = false) {
 
 export const isBetween = (iso, min, max) => (!min || iso >= min) && (!max || iso <= max);
 
+// Where a key moves focus: dateForKey clamped into min..max, so focus lands on the nearest enabled day (a disabled button cannot hold focus). An empty window (min after max) keeps the day.
+export function focusForKey(iso, key, shift = false, min = '', max = '') {
+    const to = dateForKey(iso, key, shift);
+    if (!to || (min && max && min > max)) return to && iso;
+    return min && to < min ? min : max && to > max ? max : to;
+}
+
 const todayIso = () => { const d = new Date(); return isoDate(d.getFullYear(), d.getMonth(), d.getDate()); };
 
 export default Base => class extends Base {
@@ -57,7 +64,7 @@ export default Base => class extends Base {
             const day = e.target.closest?.('.day');
             if (!day) return;
             if (e.key === 'Escape' && this.$pend) { e.preventDefault(); e.stopPropagation(); this.cancelRange(); return; }
-            const next = dateForKey(day.dataset.date, e.key, e.shiftKey);
+            const next = focusForKey(day.dataset.date, e.key, e.shiftKey, this.min, this.max);
             if (!next) return;
             e.preventDefault();
             this.$focus = next; this.$refocus = true;
@@ -104,7 +111,7 @@ export default Base => class extends Base {
     updated() {
         const doc = this.ownerDocument, view = parseIso(this.viewIso), locale = this.locale || doc.documentElement.lang || 'en';
         const start = this.weekStart === 1 ? 1 : 0, today = todayIso();
-        const focus = this.$focus && this.$focus.slice(0, 7) === this.viewIso.slice(0, 7) ? this.$focus : (this.sel && this.sel.slice(0, 7) === this.viewIso.slice(0, 7) ? this.sel : isoDate(view.y, view.m0, 1));
+        let focus = this.$focus && this.$focus.slice(0, 7) === this.viewIso.slice(0, 7) ? this.$focus : (this.sel && this.sel.slice(0, 7) === this.viewIso.slice(0, 7) ? this.sel : isoDate(view.y, view.m0, 1));
         this.part('title').textContent = monthTitle(view.y, view.m0, locale);
         const tr = doc.createElement('tr');
         weekdayNames(locale, start, 'short').forEach((n, i) => { const th = doc.createElement('th'); th.scope = 'col'; th.textContent = n; th.setAttribute('abbr', weekdayNames(locale, start, 'long')[i]); tr.append(th); });

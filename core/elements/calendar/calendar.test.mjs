@@ -1,7 +1,7 @@
 // Tests for the calendar logic. Run: node --test sdk
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour, { monthGrid, addDays, addMonths, dateForKey, weekdayNames, monthTitle, isBetween, isoDate, parseIso } from './calendar.js';
+import behaviour, { monthGrid, addDays, addMonths, dateForKey, focusForKey, weekdayNames, monthTitle, isBetween, isoDate, parseIso } from './calendar.js';
 
 test('monthGrid lays September 2026 out in Sunday-first weeks with lead and trail days', () => {
     const g = monthGrid(2026, 8);
@@ -43,6 +43,22 @@ test('dateForKey follows the grid pattern', () => {
     assert.equal(dateForKey('2026-09-19', 'Home'), '2026-09-01');
     assert.equal(dateForKey('2026-09-19', 'End'), '2026-09-30');
     assert.equal(dateForKey('2026-09-19', 'x'), null);
+});
+
+test('focusForKey clamps every key to the nearest enabled day inside min and max (issue 517)', () => {
+    const min = '2026-09-05', max = '2026-09-20';
+    assert.equal(focusForKey('2026-09-19', 'ArrowRight', false, min, max), '2026-09-20');
+    assert.equal(focusForKey('2026-09-20', 'ArrowRight', false, min, max), '2026-09-20');
+    assert.equal(focusForKey('2026-09-05', 'ArrowLeft', false, min, max), '2026-09-05');
+    assert.equal(focusForKey('2026-09-18', 'ArrowDown', false, min, max), '2026-09-20');
+    assert.equal(focusForKey('2026-09-07', 'ArrowUp', false, min, max), '2026-09-05');
+    assert.equal(focusForKey('2026-09-10', 'Home', false, min, max), '2026-09-05');
+    assert.equal(focusForKey('2026-09-10', 'End', false, min, max), '2026-09-20');
+    assert.equal(focusForKey('2026-09-10', 'PageDown', false, min, max), '2026-09-20');
+    assert.equal(focusForKey('2026-09-10', 'PageUp', true, min, max), '2026-09-05');
+    assert.equal(focusForKey('2026-09-10', 'ArrowRight', false, '', ''), '2026-09-11', 'no bounds: unchanged');
+    assert.equal(focusForKey('2026-09-10', 'x', false, min, max), null);
+    assert.equal(focusForKey('2026-09-10', 'ArrowRight', false, '2026-09-20', '2026-09-05'), '2026-09-10', 'an empty window keeps the day');
 });
 
 test('weekday names rotate with the week start and titles read in a locale', () => {
