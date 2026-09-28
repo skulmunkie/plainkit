@@ -68,6 +68,47 @@ test('a resize commits one pk-layout-change with the new document and stops the 
     assert.equal(el.layout.root.size, 30); assert.equal(el.events[0].detail.layout, el.layout);
 });
 
+test('confirmLayout, when set, holds a resize until it settles: nothing fires or applies until then, and the confirmed json wins', async () => {
+    const { el, root } = make(P);
+    const calls = [];
+    let resolve;
+    el.confirmLayout = arg => { calls.push(arg); return new Promise(r => { resolve = r; }); };
+    const split = find(root, 'pk-splitter')[0];
+    split.closest = () => split;
+    root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 30 } });
+    assert.equal(calls.length, 1); assert.equal(calls[0].reason, 'resize'); assert.equal(JSON.parse(calls[0].layout).root.size, 30);
+    assert.equal(el.events.length, 0); assert.equal(el.layout, null); // nothing applied yet: layout is still what the host gave it
+    const confirmed = JSON.parse(calls[0].layout); confirmed.root.size = 45;
+    resolve(JSON.stringify(confirmed));
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(el.events.length, 1); assert.equal(el.events[0].detail.reason, 'resize');
+    assert.equal(el.layout.root.size, 45); // the settled value, not the proposed one
+});
+
+test('confirmLayout resolving with null keeps the previous layout and applies it', async () => {
+    const { el, root } = make(P);
+    el.confirmLayout = () => Promise.resolve(null);
+    const split = find(root, 'pk-splitter')[0];
+    split.closest = () => split;
+    const before = el.$applied;
+    root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 30 } });
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(el.events.length, 1);
+    assert.deepEqual(el.layout, before); // the doc from before the proposed resize, not the rejected one
+});
+
+test('a rejected confirmLayout keeps the previous layout and raises nothing', async () => {
+    const { el, root } = make(P);
+    el.confirmLayout = () => Promise.reject(new Error('offline'));
+    const split = find(root, 'pk-splitter')[0];
+    split.closest = () => split;
+    const before = el.$applied;
+    root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 30 } });
+    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    assert.equal(el.events.length, 0);
+    assert.equal(el.$doc, before);
+});
+
 test('choosing a tab activates the panel in the model and commits; a phone strip does not touch the layout', () => {
     const { el, root } = make(P);
     const section = find(root, 'section').find(s => s.getAttribute('data-node') === findGroup(el.$doc, 'tools').id);

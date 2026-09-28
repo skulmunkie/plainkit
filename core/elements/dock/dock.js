@@ -48,12 +48,37 @@ export default Base => class extends Base {
         const r = source == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(source, { panels });
         for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
         const repaired = !first && own && toJson(r.doc) !== toJson(this.$doc);
-        this.$doc = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(panels.map(p => [p.id, p.title]));
+        this.$doc = this.$applied = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(panels.map(p => [p.id, p.title]));
         this.draw(phone);
         if (repaired) this.commit('panels');
     }
+    // Free-running by default: the proposed doc is applied straight away. A host that wants every change to round-trip first (Blazor's controlled
+    // mode, #592) sets confirmLayout(arg) as a callback property, the same way pk-tool-page's run is set from script (STANDARDS.md: a callback is
+    // not config data). arg is { layout: <JSON string>, reason }; the settled result (a JSON string to apply, or null/undefined to keep the
+    // previous layout) is validated the same way an incoming layout attribute is, then applied and pk-layout-change fires with the confirmed doc.
+    // A rejection keeps the previous layout. this.$applied always holds the last confirmed/drawn doc (unlike this.$doc, which the caller already
+    // moved to the proposed one before commit runs), so it is what a null result or a rejection falls back to.
     commit(reason) {
-        this.layout = this.$given = this.$doc;
+        const proposed = this.$doc;
+        if (this.confirmLayout) {
+            const panels = readPanels(this.children), previous = this.$applied, phone = Boolean(this.$mq?.matches);
+            Promise.resolve(this.confirmLayout({ layout: toJson(proposed), reason }))
+                .then(result => {
+                    const json = typeof result === 'string' ? result : previous && toJson(previous);
+                    const r = json == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(json, { panels });
+                    for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
+                    this.$doc = this.$applied = this.$given = this.layout = r.doc;
+                    this.draw(phone);
+                    this.emit('pk-layout-change', { layout: r.doc, reason }, { cancelable: false });
+                })
+                .catch(error => {
+                    this.warnOnce('confirm-layout-rejected', 'confirmLayout rejected; keeping the previous layout', { error });
+                    this.$doc = previous;
+                    this.draw(phone);
+                });
+            return;
+        }
+        this.layout = this.$given = this.$applied = this.$doc;
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
     }
     draw(phone) {
