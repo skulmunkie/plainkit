@@ -79,7 +79,8 @@ export function autoUpdate(anchor, floating, options = {}) {
 export function isInside(target, elements) { return elements.some(el => el && el.contains(target)); }
 
 export function onOutside(elements, close) {
-    const down = e => { if (!isInside(e.target, elements)) close(e); };
+    // composedPath, so a layer inside a shadow root (a popover composed into another element) still counts a press on its own content as inside.
+    const down = e => { if (!isInside(e.target, elements) && !e.composedPath().some(n => elements.includes(n))) close(e); };
     const key = e => { if (e.key === 'Escape') close(e); };
     document.addEventListener('pointerdown', down, true);
     document.addEventListener('keydown', key);
