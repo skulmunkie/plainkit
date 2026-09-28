@@ -168,47 +168,69 @@ public sealed class PageBaseTests : BunitContext
         Assert.False(cut.Instance.IsBusy);
     }
 
+    // A controllable clock: time moves only through Advance, which fires the timers that come due. No real waiting.
+    private sealed class ManualTime : TimeProvider
+    {
+        private DateTimeOffset _now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        private readonly List<ManualTimer> _timers = [];
+        public override DateTimeOffset GetUtcNow() => _now;
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            var t = new ManualTimer(this, callback, state, _now + dueTime);
+            if (dueTime != Timeout.InfiniteTimeSpan) _timers.Add(t);
+            return t;
+        }
+        public void Advance(TimeSpan by)
+        {
+            var target = _now + by;
+            while (_timers.Where(t => t.Due <= target).OrderBy(t => t.Due).FirstOrDefault() is { } next)
+            {
+                _timers.Remove(next);
+                _now = next.Due;
+                next.Fire();
+            }
+            _now = target;
+        }
+        private sealed class ManualTimer(ManualTime owner, TimerCallback callback, object? state, DateTimeOffset due) : ITimer
+        {
+            public DateTimeOffset Due { get; } = due;
+            public void Fire() => callback(state);
+            public bool Change(TimeSpan dueTime, TimeSpan period) => false;
+            public void Dispose() => owner._timers.Remove(this);
+            public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
+        }
+    }
+
     [Fact]
     public async Task The_overlay_shows_only_after_the_delay_and_stays_for_the_minimum_time()
     {
-        // Real Task.Delay-based timers, on purpose (PageBase.Later): margins are wide relative to DelayMs/MinMs so ordinary
-        // CI scheduler jitter (GC pauses, thread-pool ramp-up) never flips an assertion. Even generous margins occasionally
-        // lose a race on a heavily loaded shared runner (this exact test flaked twice in one afternoon's CI bursts), so the
-        // whole sequence retries a few times before failing for real - it still requires the same behaviour to hold, just
-        // tolerates one bad scheduler tick instead of a full PageBase timer-injection rewrite for a UX-only overlay delay.
-        await RetryAsync(async () =>
-        {
-            var cut = Render<PageBaseHost>();
-            cut.Instance.DelayMs = 100;
-            cut.Instance.MinMs = 300;
+        var time = new ManualTime();
+        var cut = Render<PageBaseHost>();
+        cut.Instance.DelayMs = 100;
+        cut.Instance.MinMs = 300;
+        cut.Instance.Time = time;
 
-            var fast = Begin(cut, "Fast");
-            await Task.Delay(20);
-            End(cut, fast);
-            await Task.Delay(250);
-            Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
+        async Task Tick(int ms) { time.Advance(TimeSpan.FromMilliseconds(ms)); await cut.InvokeAsync(() => { }); }
 
-            var slow = Begin(cut, "Slow");
-            Assert.False(cut.Instance.ShowBusyOverlay);
-            await Task.Delay(300);
-            Assert.True(cut.Instance.ShowBusyOverlay);
-            End(cut, slow);
-            Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
-            await Task.Delay(700);
-            Assert.False(cut.Instance.ShowBusyOverlay);
-        });
-    }
+        var fast = Begin(cut, "Fast");
+        await Tick(99);
+        End(cut, fast);
+        await Tick(1000);
+        Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
 
-    // Retries a real-timer assertion sequence up to `attempts` times. A genuine behavioural bug fails every attempt
-    // identically and still reports as a failure once the retries are exhausted - this only buys a fresh, independent
-    // race against the scheduler each time, it never turns a real regression into a pass.
-    private static async Task RetryAsync(Func<Task> attempt, int attempts = 3)
-    {
-        for (var i = 1; i <= attempts; i++)
-        {
-            try { await attempt(); return; }
-            catch (Xunit.Sdk.XunitException) when (i < attempts) { await Task.Delay(50); }
-        }
+        var slow = Begin(cut, "Slow");
+        Assert.False(cut.Instance.ShowBusyOverlay);
+        await Tick(99);
+        Assert.False(cut.Instance.ShowBusyOverlay, "not before the delay");
+        await Tick(1);
+        Assert.True(cut.Instance.ShowBusyOverlay, "shown once the delay has passed");
+        await Tick(50);
+        End(cut, slow);
+        Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
+        await Tick(249);
+        Assert.True(cut.Instance.ShowBusyOverlay, "still held one tick before the minimum time is up");
+        await Tick(1);
+        Assert.False(cut.Instance.ShowBusyOverlay, "hidden once the minimum time is up");
     }
 
     [Fact]

@@ -16,6 +16,8 @@
     public new bool ShowBusyOverlay => base.ShowBusyOverlay;
     public int DelayMs { get; set; }
     public int MinMs { get; set; }
+    public TimeProvider? Time { get; set; }
+    protected override TimeProvider Clock => Time ?? base.Clock;
     protected override TimeSpan BusyDelay => TimeSpan.FromMilliseconds(DelayMs);
     protected override TimeSpan BusyMinTime => TimeSpan.FromMilliseconds(MinMs);
     public IDisposable CallBeginBusy(string? label = null) => BeginBusy(label);
