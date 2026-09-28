@@ -246,7 +246,7 @@ function paintPagebar() {
     if (!full) return;
     const label = KIND_LABEL[full.kind];
     $('#gx-title').textContent = full.title;
-    const back = $('#gx-back'); back.href = `#/samples/${full.kind}`; back.setAttribute('aria-label', `Back to ${label}`);
+    const back = $('#gx-back'); back.href = `#/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
     $('#gx-back-label').textContent = label;
     $('#gx-open').href = pageUrl(full, { width: state.width });
     for (const n of document.querySelectorAll('#gx-pagebar [data-nav-scope]')) n.hidden = full.kind !== 'templates';
@@ -528,14 +528,14 @@ const CHROME_HTML = `
                 <pk-button variant="ghost" toggle class="gx-inspect" id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
             </div>
             <div class="gx-bar gx-pagebar" id="gx-pagebar" role="toolbar" aria-label="Page preview">
-                <a class="gx-linkbtn gx-back" id="gx-back" href="#/samples"><pk-icon name="chevron-left"></pk-icon><span class="gx-wide-only" id="gx-back-label">Back</span></a>
+                <pk-button variant="ghost" class="gx-back" id="gx-back" href="#/samples" icon-name="chevron-left"><span class="gx-wide-only" id="gx-back-label">Back</span></pk-button>
                 <strong class="gx-title" id="gx-title"></strong>
                 <div class="gx-group gx-wide-only" data-nav-scope hidden><pk-button-group label="Navigation variant" mode="single"><pk-button variant="ghost" toggle data-nav="side">Side</pk-button><pk-button variant="ghost" toggle data-nav="top">Top</pk-button></pk-button-group></div>
                 <div class="gx-group gx-desktop-only">${viewportSwitch()}</div>
                 <div class="gx-group gx-wide-only">${scaleSelect()}</div>
                 <pk-dropdown placement="bottom-end" class="gx-compact-only"><pk-button slot="trigger" variant="ghost" icon label="Display options"><pk-icon name="settings"></pk-icon></pk-button><pk-menu-item type="header" data-nav-scope hidden>Navigation</pk-menu-item><pk-menu-item type="radio" data-nav="side" data-nav-scope hidden>Side</pk-menu-item><pk-menu-item type="radio" data-nav="top" data-nav-scope hidden>Top</pk-menu-item>${scaleItems()}</pk-dropdown>
                 <pk-button variant="ghost" class="gx-theme" id="gx-theme" data-toggle-theme></pk-button>
-                <a class="gx-linkbtn gx-open" id="gx-open" href="#" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></a>
+                <pk-button variant="ghost" class="gx-open" id="gx-open" href="#/samples" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></pk-button>
             </div>
             <div class="gx-body">
                 <div class="gx-view" id="gx-view"></div>
