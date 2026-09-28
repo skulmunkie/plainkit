@@ -9,6 +9,7 @@
     --color-surface-alt: #333333;     /* subtle alt surface (hover rows, chips) */
     --color-text: #e8e8e8;
     --color-muted: #9a9a9a;
+    --color-muted-strong: #a8a8a8;    /* secondary text on a flyout/popover surface: --color-muted reads 4.3:1 there */
     --color-accent: #4e93e3;
     --color-accent-hover: #5ca0f2;
     --color-accent-fill: #2276d7;      /* accent as a fill behind text: white on it is 4.5:1 or better, hover included */
@@ -106,6 +107,7 @@
     --color-surface-alt: #f1f5f9;     /* matches the prior surface-alt light fallback */
     --color-text: #1f2328;
     --color-muted: #6c747e;
+    --color-muted-strong: var(--color-muted);  /* already clears 4.5:1 here */
     --color-accent: #1d4ed8;          /* deep blue — high contrast on white */
     --color-accent-hover: #1e40af;
     --color-accent-fill: #1d4ed8;

@@ -3,6 +3,9 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
+        // Dresses its own slotted links (::slotted colour, underline, current-page weight): marks itself so
+        // base.css's blanket link rule can back off (see [data-dresses-links] there) without naming the tag.
+        this.setAttribute('data-dresses-links', '');
         const toggle = this.part('toggle'); const links = this.part('links');
         links.id = 'links'; toggle.setAttribute('aria-controls', 'links');
         toggle.addEventListener('click', () => this.set(!this.open));
