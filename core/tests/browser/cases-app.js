@@ -574,7 +574,7 @@ export const appCases = [
         await until(() => /ok/.test(body().textContent) && !body().querySelector('pk-alert'), 'Retry to recover');
         t.eq(attempts, 2);
         el.config = { ...el.config, id: 'gone' };
-        await until(() => /Not found/.test(el.querySelector('.doc-page-title').textContent) && /Not found/.test(body().textContent), 'the not-found state');
+        await until(() => /Not found/.test(el.querySelector('.doc-page-title').textContent) && body().querySelector('pk-empty-state')?.getAttribute('heading') === 'Not found', 'the not-found state');
         page.destroy();
     }],
 ];
