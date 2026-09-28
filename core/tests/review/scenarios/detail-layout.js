@@ -5,11 +5,11 @@ const lines = (n, what) => Array.from({ length: n }, (_, i) => `<p>${what} line 
 const BODY = 'pk-app-shell >>> [part=body]';
 const SIDEBAR = '#dl >>> [part=sidebar]';
 const MAIN = '#dl >>> [part=main]';
-const DOCK_ISSUE = 322, TABS_PR = 316;
+const TABS_PR = 316;
 
 export default {
     name: 'detail-layout',
-    issue: [281, 272],
+    issue: [281, 272, 322],
     elements: ['detail-layout', 'tabs', 'app-shell'],
     html: `<pk-app-shell>
 <pk-side-nav slot="nav" label="Main" collapsed><span slot="brand" class="u-contents"><a href="#">Acme</a></span><pk-nav-item href="#" current><pk-icon slot="icon" name="orders"></pk-icon>Orders</pk-nav-item></pk-side-nav>
@@ -49,8 +49,9 @@ export default {
             if (t.shot === 'docked' && side && body) {
                 // Taller than the window: it docks by its bottom edge, so it moved up and stays put while the main column scrolls.
                 t.ok(side.y < body.y, `the sidebar starts at y=${Math.round(side.y)} while scrolled; it should have moved up (docked by its bottom edge)`);
-                t.ok(side.bottom >= body.bottom - 1, `the sidebar ends at y=${Math.round(side.bottom)}; docked by its bottom edge it should reach the foot of the body (y=${Math.round(body.bottom)})`);
-                t.known(DOCK_ISSUE, side.bottom <= body.bottom + 1, `docked, the sidebar ends at y=${Math.round(side.bottom)}, ${Math.round(side.bottom - body.bottom)}px below the foot of the shell body (y=${Math.round(body.bottom)}): the dock uses the window height, so the last card's foot is out of reach until the page end`);
+                const inset = parseFloat(t.style(BODY, 'padding-bottom')) || 0; // sticky docks at the scroller's content edge, like the main column's last card at the end of the page
+                t.ok(side.bottom >= body.bottom - inset - 1, `the sidebar ends at y=${Math.round(side.bottom)}; docked by its bottom edge it should reach the foot of the body content (y=${Math.round(body.bottom - inset)})`);
+                t.ok(side.bottom <= body.bottom + 1, `docked, the sidebar ends at y=${Math.round(side.bottom)}, ${Math.round(side.bottom - body.bottom)}px below the foot of the shell body (y=${Math.round(body.bottom)}): the dock must use the scroller (the shell body), not the window, so the last card is reachable`);
             }
             if (t.shot === 'end') t.within('#last', BODY, 1);
         } else {
