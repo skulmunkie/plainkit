@@ -62,7 +62,6 @@ export default Base => class extends Base {
             field.addEventListener('input', () => { this[key] = cleanIso(field.value); this.$typing = true; this.commit(false); });
             field.addEventListener('change', () => { this[key] = cleanIso(field.value); this.commit(true); });
         }
-        this.wireCalendar();
         this.part('presets').addEventListener('click', ev => {
             const b = ev.target.closest?.('button[data-preset]');
             if (!b || b.disabled) return;
@@ -90,7 +89,7 @@ export default Base => class extends Base {
     syncCalendar(start, end, min, max) {
         if (!this.calendar) return;
         const tags = ['pk-popover', 'pk-button', 'pk-calendar'];
-        if (!this.$loaded) { this.$loaded = true; loadElements(this.shadowRoot); Promise.all(tags.map(n => customElements.whenDefined(n))).then(() => this.requestUpdate()); }
+        if (!this.$loaded) { this.$loaded = true; this.wireCalendar(); loadElements(this.shadowRoot); Promise.all(tags.map(n => customElements.whenDefined(n))).then(() => this.requestUpdate()); }
         if (!tags.every(n => customElements.get(n))) return;
         const cal = this.part('calendar'), ordered = start && end && end >= start;
         cal.start = ordered ? start : ''; cal.end = ordered ? end : ''; cal.min = min; cal.max = max;
