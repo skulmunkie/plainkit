@@ -4,7 +4,7 @@ import { changedFromFiles, parseArgs, shotName, groupFindings } from '../ui-revi
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
-const box = (over = {}) => ({ id: 1, parent: 0, path: 'a', rect: [0, 0, 100, 50], inFlow: true, clipX: false, clipY: false, interactive: false, inlineLink: false, name: '', textColor: null, bg: null, fontSize: 16, bold: false, media: false, inLink: false, pseudo: [], ...over });
+const box = (over = {}) => ({ id: 1, parent: 0, path: 'a', rect: [0, 0, 100, 50], inFlow: true, clipX: false, clipY: false, interactive: false, inlineLink: false, name: '', textColor: null, bg: null, fontSize: 16, bold: false, media: false, inLink: false, pseudo: [], hiddenVisually: false, ...over });
 const facts = (boxes, over = {}) => ({ viewport: { width: 1280 }, docScrollWidth: 1280, exampleWidth: 600, boxes, ...over });
 const rules = f => auditFacts(f).map(x => x.rule);
 const phone = { viewport: { width: 375 }, docScrollWidth: 375, exampleWidth: 300 };
@@ -54,6 +54,16 @@ test('tap targets count on the phone only, and inline links are exempt', () => {
     assert.deepEqual(rules(facts([small])), []);
     assert.deepEqual(rules(facts([small], phone)), ['tap-target']);
     assert.deepEqual(rules(facts([{ ...small, inlineLink: true }], phone)), []);
+});
+
+test('a standard visually-hidden element (pk-skip-link before focus, a u-sr-only live region) is not a clipped-content or tap-target finding', () => {
+    const skipLink = box({ interactive: true, name: 'Skip to content', rect: [0, 0, 1, 1], clipX: true, hiddenVisually: true });
+    assert.deepEqual(rules(facts([skipLink], phone)), []);
+    const liveRegion = box({ rect: [0, 0, 1, 1], clipY: true, hiddenVisually: true });
+    assert.deepEqual(rules(facts([liveRegion])), []);
+    // The same shape without the visually-hidden signal (a genuinely broken tiny element) still gets flagged.
+    assert.deepEqual(rules(facts([{ ...skipLink, hiddenVisually: false }], phone)), ['clipped-content', 'tap-target']);
+    assert.deepEqual(rules(facts([{ ...liveRegion, hiddenVisually: false }])), ['clipped-content']);
 });
 
 test('contrast below AA is a warning, large text needs 3:1', () => {
