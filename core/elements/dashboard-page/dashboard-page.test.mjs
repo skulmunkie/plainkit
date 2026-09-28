@@ -138,6 +138,15 @@ test('without a load callback every tile shows its own empty state', async () =>
     assert.equal(box.children[0].attrs.heading, 'No data yet');
 });
 
+test('no tiles configured shows the body-level empty state, not a blank body', () => {
+    const { el, body } = make();
+    el.config = { empty: { heading: 'Add a tile to get started' } };
+    el.connected();
+    assert.equal(body.children.length, 1);
+    assert.equal(body.children[0].localName, 'pk-empty-state');
+    assert.equal(body.children[0].attrs.heading, 'Add a tile to get started');
+});
+
 test('changing config rebuilds the layout and reloads every tile', async () => {
     const { el, body } = make();
     el.config = { tiles: [{ key: 'a', label: 'A' }] };

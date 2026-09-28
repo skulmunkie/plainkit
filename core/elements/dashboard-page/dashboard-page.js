@@ -25,6 +25,7 @@ export default Base => class extends Base {
         this.$tileBoxes = {};
         this.$tokens = {};
         const tiles = this.config?.tiles ?? [];
+        if (tiles.length === 0) { renderState(body, 'empty', this.config?.empty); loadElements(body); return; }
         const byKey = Object.fromEntries(tiles.map(t => [t.key, t]));
         const sections = this.config?.sections?.length ? this.config.sections : [{ tiles: tiles.map(t => t.key) }];
         for (const section of sections) {
