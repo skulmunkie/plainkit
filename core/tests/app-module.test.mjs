@@ -110,11 +110,11 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) assert.equal(pageTypeFor(def, name), undefined, name);
 });
 
-test("'states' (step 5, #351) creates a pk-states-page, sets only the config keys given, wires retry to pk-retry and back, and its cleanup removes the element and the listener", () => {
+test("'states' (step 5, #351) creates a pk-states-page, sets only the config keys given, wires retry to pk-retry and back, and its cleanup removes the element and the listener", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('states-host');
-    const factory = pageTypeFor(def, 'states');
+    const factory = (await import('../js/app/pages/states.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, {}, {});
@@ -136,11 +136,11 @@ test("'states' (step 5, #351) creates a pk-states-page, sets only the config key
     assert.equal(retried, 1, 'cleanup removed the retry listener');
 });
 
-test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the element's data config and runLabel, wires run(values) with the page ctx, and cleanup removes the element", () => {
+test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the element's data config and runLabel, wires run(values) with the page ctx, and cleanup removes the element", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('tool-host');
-    const factory = pageTypeFor(def, 'tool');
+    const factory = (await import('../js/app/pages/tool.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, {}, {});
@@ -167,7 +167,7 @@ test("'settings' (step 5, #351) creates a pk-settings-page, splits config into t
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('settings-host');
-    const factory = pageTypeFor(def, 'settings');
+    const factory = (await import('../js/app/pages/settings.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, { sections: [{ heading: 'Store' }] }, {});
@@ -190,11 +190,11 @@ test("'settings' (step 5, #351) creates a pk-settings-page, splits config into t
     cleanup2();
 });
 
-test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the config keys given, wires action to pk-action and back, and its cleanup removes the element and the listener - and pageTypeFor('not-found') is reachable only outside the module host's own routing (see app/host.js's showPage)", () => {
+test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the config keys given, wires action to pk-action and back, and its cleanup removes the element and the listener - and pageTypeFor('not-found') is reachable only outside the module host's own routing (see app/host.js's showPage)", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('not-found-host');
-    const factory = pageTypeFor(def, 'not-found');
+    const factory = (await import('../js/app/pages/not-found.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, {}, {});
@@ -216,11 +216,11 @@ test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the conf
     assert.equal(acted, 1, 'cleanup removed the action listener');
 });
 
-test("'list' (step 6, #352) creates a pk-list-page, splits config into the element's data (columns, filters, actions, empty, pageSize), wires load(query) and rowHref(row) with the page ctx (rowHref through ctx.navigate), and cleanup removes the element", () => {
+test("'list' (step 6, #352) creates a pk-list-page, splits config into the element's data (columns, filters, actions, empty, pageSize), wires load(query) and rowHref(row) with the page ctx (rowHref through ctx.navigate), and cleanup removes the element", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('list-host');
-    const factory = pageTypeFor(def, 'list');
+    const factory = (await import('../js/app/pages/list.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, {}, {});
@@ -251,11 +251,11 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
 });
 
-test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tiles, sections), wires load(key) with the page ctx, and cleanup removes the element", () => {
+test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tiles, sections), wires load(key) with the page ctx, and cleanup removes the element", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('dashboard-host');
-    const factory = pageTypeFor(def, 'dashboard');
+    const factory = (await import('../js/app/pages/dashboard.js')).default;
 
     const host1 = new Host();
     const cleanup1 = factory(host1, {}, {});
@@ -753,7 +753,7 @@ test('the framework sources: no markup sinks, eval, bare console, polling, inlin
         const src = fs.readFileSync(path.join(root, 'js', f), 'utf8').replace(/\/\/.*$/gm, '');
         assert.ok(!/innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function|setAttribute\(\s*['"]style|\.onclick|console\./.test(src), `${f} has a forbidden construct`);
         assert.ok(!/setInterval|requestAnimationFrame/.test(src), `${f} polls`);
-        assert.ok(!/import\(/.test(src), `${f} imports dynamically: the only import() is the app config's loader`);
+        assert.ok(!/import\(/.test(f === 'app/module.js' ? src.replace('import(`./pages/${id}.js`)', '') : src), `${f} imports dynamically: the only import() is the app config's loader (and module.js's fixed ./pages/<built-in id>.js chunks)`);
         assert.ok(!/localStorage|sessionStorage/.test(src), `${f} touches storage directly`);
     }
 });
