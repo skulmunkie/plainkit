@@ -51,7 +51,7 @@
     {
       "name": "--pk-skeleton-bg",
       "description": "Fill colour.",
-      "default": "var(--color-surface-alt)"
+      "default": "var(--color-border)"
     },
     {
       "name": "--pk-skeleton-lines",

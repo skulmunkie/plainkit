@@ -2,6 +2,7 @@
 // a breadcrumb and previous/next links. Hash routing (guides-logic.js): #/ is the list, #/<guide> a guide, #/<guide>/<heading> a place in it.
 import { mountShell } from '../shell.js';
 import { createLogger } from '../../js/log.js';
+import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 import { GUIDES } from './guides.data.js';
 import { parseHash, neighbours, routeHash } from './guides-logic.js';
 import { searchGuides } from './guides-search.js';
@@ -19,13 +20,10 @@ function el(tag, attrs = {}, ...kids) {
     return n;
 }
 
-// The guide's HTML was made and sanitised by the build (tools/markdown.mjs: raw HTML never passes, addresses are checked, every value escaped); this is the page's one
-// markup sink, parsed inert in a template and then imported.
-function fill(html) {
-    const t = document.createElement('template');
-    t.innerHTML = html;
-    body.replaceChildren(document.importNode(t.content, true));
-}
+// The guide's HTML was made and sanitised by the build (tools/markdown.mjs: raw HTML never passes, addresses are checked, every value escaped).
+// The actual sink (parse inert in a <template>, then import) lives in js/sanitized-html.js, shared with pk-doc-page's own article body (App
+// framework tracker #346, step 7, issue #353) so there is exactly one place this pattern is implemented.
+const fill = html => fillSanitizedHtml(body, html);
 
 function buildNav() {
     nav.append(...GUIDES.map(g => el('pk-nav-item', { href: routeHash(g.id), 'data-guide': g.id }, el('pk-icon', { slot: 'icon', name: 'docs' }), g.title)));

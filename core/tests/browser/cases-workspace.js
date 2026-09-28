@@ -270,4 +270,36 @@ export const workspaceCases = [
         t.ok(btn.getBoundingClientRect().height >= 43, 'a button is at least 44px high');
         t.ok(g.part('add').getBoundingClientRect().height >= 43, 'the add tile is at least 44px high');
     }],
+
+    // Moved here from the scorecard's workspaceFill (#353): a claimed viewport is reached at each size, for the workspace template and for the page type.
+    ['workspace fill: the workspace template reaches the bottom of the viewport (minus the footer strip) at 1280x800, 1920x1080 and 375x812, with no page scroll', async t => {
+        const host = t.stage('');
+        for (const [w, h] of [[1280, 800], [1920, 1080], [375, 812]]) {
+            const f = document.createElement('iframe');
+            f.title = 'template'; f.style.cssText = `width:${w}px;height:${h}px;border:0`;
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            f.src = new URL('../../samples/templates/workspace/workspace.html?nav=side', import.meta.url).href;
+            host.replaceChildren(f); await loaded; await wait(400);
+            const d = f.contentDocument, ws = d.querySelector('pk-workspace, .workspace'), foot = d.querySelector('[slot="footer"], .shell-footer');
+            const strip = foot?.assignedSlot?.parentElement ?? foot;
+            const want = h - (strip?.getBoundingClientRect().height ?? 0);
+            t.ok(ws.getBoundingClientRect().bottom >= want - 2, `${w}x${h}: the template's workspace reaches ${Math.round(want)}px, got ${Math.round(ws.getBoundingClientRect().bottom)}`);
+            t.ok(d.documentElement.scrollHeight <= h + 1, `${w}x${h}: the template does not scroll the page`);
+        }
+    }],
+
+    ['workspace fill: a pk-workspace-page with fill in a full-height flex column reaches the bottom of the viewport at 1280x800, 1920x1080 and 375x812, with no page scroll', async t => {
+        for (const [w, h] of [[1280, 800], [1920, 1080], [375, 812]]) {
+            const { doc } = await frame(t, '<pk-workspace-page fill></pk-workspace-page>', w, h);
+            const b = doc.body;
+            b.style.margin = '0'; b.style.padding = '0'; b.style.display = 'flex'; b.style.flexDirection = 'column'; b.style.blockSize = '100vh';
+            const el = doc.querySelector('pk-workspace-page');
+            el.config = { panes: ['nav', 'aside'] };
+            el.mount = panes => { panes.main.textContent = 'Main'; };
+            await t.settle(); await wait(80);
+            t.ok(Math.abs(el.getBoundingClientRect().bottom - h) <= 2, `${w}x${h}: the page type fills to ${h}px, got ${Math.round(el.getBoundingClientRect().bottom)}`);
+            t.ok(doc.documentElement.scrollHeight <= h + 1, `${w}x${h}: the page type does not scroll the page`);
+            t.ok(el.part('workspace').getBoundingClientRect().height >= el.getBoundingClientRect().height - 2, `${w}x${h}: the workspace fills its page`);
+        }
+    }],
 ];

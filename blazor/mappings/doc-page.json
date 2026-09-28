@@ -1,0 +1,14 @@
+{
+  "component": "PkDocPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search?, home?: { title, summary } }."
+    }
+  ],
+  "notes": "New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem, Href and the pk-navigate event are callback properties/events (business logic and routing), not Blazor parameters mapped here yet - they need JS interop from the component (Func<string, Task<object>>, Func<string, string, string> and an EventCallback for pk-navigate); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run, PkSettingsPage's Save and PkListPage's Load/RowHref callbacks."
+}
