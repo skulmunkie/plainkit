@@ -37,6 +37,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | `PkStepper` |
 | Master and detail with tabs | Template `master-detail`; pattern `master-detail-pattern` | `PkListGroup` beside `PkTabs` |
 | Tool page (one input, one outcome) | Layout `tool`; template `workspace` for a multi-pane tool | `PkWorkspace` |
+| Resizable side-by-side panels (Toolbox, Canvas, Properties; file tree, editor, log) | Element `pk-dock`: each panel is a child with `slot="<id>"`, `data-heading` and `data-group` (left, center, right, bottom; panels sharing a group become tabs); the arrangement is a JSON `layout` and a layout-change event reports each resize or tab change; moving, floating, collapse and saved layouts are not built yet (issue 432) | `PkDock` |
 | Sign in | Template `auth` | `PkCard` with `PkField` and `PkInput` |
 | Empty, error and loading regions | Template `states`; elements `pk-empty-state`, `pk-skeleton`, `pk-spinner`, `pk-alert` | `PkEmptyState`, `PkSkeleton` |
 | Confirm a destructive action | Pattern `confirm-delete`; element `pk-dialog` | `PkDialog` |
