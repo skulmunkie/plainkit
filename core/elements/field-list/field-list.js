@@ -24,7 +24,9 @@ export default Base => class extends Base {
         for (const item of items) {
             if (!rowVisible(item, this.showEmpty)) continue;
             const row = tpl.content.cloneNode(true);
-            const dt = row.querySelector('[part="term"]'), dd = row.querySelector('[part="value"]'), a = row.querySelector('[part="value-link"]');
+            const dt = row.querySelector('[part="term"]');
+            const dd = row.querySelector('[part="value"]');
+            const a = row.querySelector('[part="value-link"]');
             const text = item.value ?? '';
             dt.textContent = item.label ?? '';
             if (item.href) { a.href = item.href; a.textContent = text; a.hidden = false; }
