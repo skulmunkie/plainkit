@@ -9,6 +9,11 @@
 
 ::slotted(a), ::slotted(span) { display: inline-flex; align-items: center; min-height: 2rem; color: var(--color-link); text-decoration: none; }
 
+/* The user agent's default :visited colour otherwise outranks the element rule above once a crumb's href
+   has been visited (real navigation, or a headless review profile with retained history); pin it back to
+   the SDK's link token so a visited crumb never turns browser-default purple. */
+::slotted(a:visited) { color: var(--color-link); }
+
 ::slotted(a:hover) { text-decoration: underline; }
 
 /* The chevron sits outside the link's text flow: an absolutely positioned pseudo-element takes no part in the link's underline (a decoration cannot be cancelled once
