@@ -120,7 +120,7 @@ export const guidesCases = [
         t.key(p.items[0], 'Escape'); await until(() => !p.nav.hasAttribute('open'), 'Escape to close the drawer');
         t.ok(!button.hasAttribute('pressed'), 'the button follows');
         button.click(); await until(() => shown(p.nav), 'the drawer to open again');
-        p.items[3].shadowRoot.querySelector('a').click();
+        p.items.find(i => i.dataset.guide === 'theming').shadowRoot.querySelector('a').click();
         await hashIs(p, /^#\/theming$/, 'the chosen guide');
         await until(() => !p.nav.hasAttribute('open') && p.$('gd-title').textContent === 'Theming and tokens', 'the drawer to close on the new guide');
         t.ok(shown(p.$('gd-toc')) && p.links().length >= 5, 'the toc stays available above the article');

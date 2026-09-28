@@ -95,6 +95,15 @@ export const headerCases = [
         ph.setAttribute('sticky', ''); await t.settle(); t.ok(Math.abs(rect(ph).top - rect(sc).top) < 2, 'with sticky it stays');
     }],
 
+    ['app-shell: the scrolling body is a containing block, so an absolutely positioned page element resolves against the body, not the page (#302)', async t => {
+        const sh = await t.mount('<pk-app-shell style="height:400px"><span slot="title">App</span><div id="abs" style="position:absolute;top:0;left:0;width:10px;height:10px"></div><div style="height:1500px">Long</div></pk-app-shell>');
+        await t.settle();
+        const body = sh.part('body'), abs = sh.querySelector('#abs');
+        t.ok(Math.abs(rect(abs).top - rect(body).top) <= 1, 'the element at top:0 sits at the top of the body (' + rect(body).top + '), not of the page: ' + rect(abs).top);
+        body.scrollTop = 300; await t.settle();
+        t.ok(rect(abs).top < rect(body).top, 'it scrolls with the body content: ' + rect(abs).top);
+    }],
+
     ['page-header: a narrow record keeps the actions on row one and drops the badges to their own row, badges stay pills, and the tabs slot is docked', async t => {
         const host = t.stage('<pk-page-header variant="record" heading="Blue mug"><pk-badge>Active</pk-badge><pk-badge variant="muted">On hand 1</pk-badge><button slot="actions">Save</button><div slot="tabs" id="pk-tabs-row">Tabs</div></pk-page-header>');
         host.style.width = '320px'; await t.load(host); await t.settle();
@@ -127,5 +136,29 @@ export const headerCases = [
         t.ok(Math.abs(rect(tb.part('actions')).width - rect(tb.part('toolbar')).width) < 2, 'full width');
         t.ok(rect(tb.querySelector('button')).height >= 43, 'touch-sized');
         const e = await t.mount('<pk-toolbar heading="Only lead"></pk-toolbar>'); t.ok(e.part('actions').hidden);
+    }],
+    ['page shell: a field hint and an action hint add an info tip beside the label and a tooltip on the button; a config without them is unchanged', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const cfg = { heading: 'Settings', actions: [{ key: 'save', label: 'Save', hint: 'Saves every section' }, { key: 'x', label: 'Plain' }], sections: [{ heading: 'A', fields: [
+            { key: 'name', type: 'text', label: 'Name', hint: 'Shown on invoices' }, { key: 'mail', type: 'email', label: 'Email' },
+            { key: 'on', type: 'switch', label: 'Notify', hint: 'Sends a weekly digest' }] }] };
+        const page = await t.mount('<pk-settings-page></pk-settings-page>');
+        page.config = cfg;
+        for (let i = 0; i < 30 && !page.shadowRoot.querySelectorAll('pk-tooltip').length; i++) await wait(100);
+        await t.settle();
+        const tips = [...page.shadowRoot.querySelectorAll('pk-tooltip')];
+        t.eq(tips.length, 3, 'one tip per hint, none for the plain field or action');
+        const field = page.shadowRoot.querySelector('pk-field');
+        const label = field.shadowRoot?.querySelector('[part=label]') ?? field;
+        const tip = field.querySelector('pk-tooltip[slot=label-action]');
+        t.ok(tip && tip.help && tip.interactive && tip.text === 'Shown on invoices', 'the field tip is an interactive info button in the label-action slot');
+        t.ok(rect(tip).width > 0 && Math.abs(rect(tip).top - rect(label).top) < rect(label).height + 4, 'the tip sits beside the label, not below the control');
+        t.ok(rect(tip).bottom <= rect(field.querySelector('pk-input')).top + 2, 'the tip is above the control');
+        const sw = page.shadowRoot.querySelector('pk-cluster pk-switch');
+        t.ok(sw && rect(sw).right <= rect(sw.parentNode.querySelector('pk-tooltip')).left + 2, 'the switch hint follows the switch on its row');
+        const save = page.shadowRoot.querySelector('pk-page-header pk-tooltip[text="Saves every section"] pk-button');
+        t.ok(save, 'the action button is wrapped by its tooltip');
+        t.eq(page.shadowRoot.querySelectorAll('pk-page-header pk-tooltip').length, 1, 'an action without a hint stays a bare button');
+        t.eq(page.shadowRoot.querySelectorAll('pk-input').length, 2);
     }],
 ];

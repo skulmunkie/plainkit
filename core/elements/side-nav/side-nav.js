@@ -53,6 +53,7 @@ export default Base => class extends Base {
         // Only the top-level rows are in the rail: a child inside an open flyout keeps its label (issue 299).
         for (const i of items(this)) i.rail = rail && !i.parentElement?.closest?.('pk-nav-item');
         this.part('brand').toggleAttribute('data-empty', !this.querySelector(':scope > [slot="brand"]'));
+        this.part('foot').toggleAttribute('data-empty', !this.querySelector(':scope > [slot="footer"]'));
         this.part('collapse').setAttribute('aria-expanded', String(!this.collapsed));
         this.part('collapse').setAttribute('aria-label', this.collapsed ? 'Expand the menu' : 'Collapse the menu');
     }

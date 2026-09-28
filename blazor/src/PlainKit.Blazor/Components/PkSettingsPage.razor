@@ -32,7 +32,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        await _save.SyncAsync(await Runtime.BridgeAsync(Assets), Element, Save is not null, async values => { await Save!(values); return null; });
+        await _save.SyncAsync<Dictionary<string, JsonElement>>(await Runtime.BridgeAsync(Assets), Element, Save is not null, async values => { await Save!(values); return null; });
     }
 
     /// <inheritdoc />

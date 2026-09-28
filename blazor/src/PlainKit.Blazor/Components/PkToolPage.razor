@@ -35,7 +35,7 @@
     {
         await base.OnAfterRenderAsync(firstRender);
         // The callback delegates to the current Run, so a new delegate needs no new setup; only set versus unset matters.
-        await _run.SyncAsync(await Runtime.BridgeAsync(Assets), Element, Run is not null, values => Run!(values));
+        await _run.SyncAsync<Dictionary<string, JsonElement>>(await Runtime.BridgeAsync(Assets), Element, Run is not null, values => Run!(values));
     }
 
     /// <inheritdoc />
