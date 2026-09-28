@@ -532,6 +532,7 @@ function tableFacts(src) {
     if (/tab stop/.test(prop('clickable')?.description ?? '')) facts.push('`Clickable` rows are keyboard stops (Enter or Space activates).');
     if (/cleared/.test(event('pk-sort')?.description ?? '')) facts.push('A third activation of a sortable header clears the sort (`OnSort` reports a null key and direction).');
     if (/in the cards layout too/.test(el.props.find(p => p.name === 'columns')?.description ?? '')) facts.push('A `HidePhone` column is hidden in the `cards` layout too.');
+    if (prop('editable')) facts.push('`Editable` edits cells in place (columns with an `Editor`); it has no paste, undo, column resize or bulk edit yet, and it never windows.');
     return facts;
 }
 

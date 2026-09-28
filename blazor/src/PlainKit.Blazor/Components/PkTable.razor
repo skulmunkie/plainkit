@@ -27,6 +27,8 @@
           current-row="@CurrentRow"
           filterable="@Filterable"
           expandable="@Expandable"
+          editable="@Editable"
+          cell-errors="@PkAttr.JsonVerbatimKeys(CellErrors)"
           loading="@Loading"
           empty-text="@EmptyText"
           cards="@Cards"
@@ -113,6 +115,12 @@
     /// <summary>Rows get a toggle that shows their <see cref="DetailTemplate"/> under them.</summary>
     [Parameter] public bool Expandable { get; set; }
 
+    /// <summary>Cells of columns that have an <see cref="PkTableColumn{TItem}.Editor"/> edit in place (Enter, F2, or a second tap), and <see cref="OnCellEdit"/> reports each accepted value. Update your item in the handler (then <see cref="Refresh"/>, or pass a new list): the element already shows the value. Never windows.</summary>
+    [Parameter] public bool Editable { get; set; }
+
+    /// <summary>Cells to mark invalid, by <c>"&lt;rowId&gt;:&lt;columnKey&gt;"</c>, with the message to show (server-side validation of an edit). The table never changes it.</summary>
+    [Parameter] public Dictionary<string, string>? CellErrors { get; set; }
+
     /// <summary>Show a placeholder row instead of the rows, announce Loading and mark the table busy.</summary>
     [Parameter] public bool Loading { get; set; }
 
@@ -145,6 +153,9 @@
 
     /// <summary>The user expanded or collapsed a row: its id, item and the new state. <see cref="Expanded"/> already follows it.</summary>
     [Parameter] public EventCallback<PkTableRowExpandArgs<TItem>> OnRowExpand { get; set; }
+
+    /// <summary>The user edited a cell of an <see cref="Editable"/> table: the row's id and item, the column key, and the new and previous values. The event cannot be cancelled from Blazor (the browser does not wait); to refuse a value, set <see cref="CellErrors"/> and reset your item.</summary>
+    [Parameter] public EventCallback<PkTableCellEditArgs<TItem>> OnCellEdit { get; set; }
 
     /// <summary>Raised with the new value of Sort (two-way: Sort follows it).</summary>
     [Parameter] public EventCallback<string?> SortChanged { get; set; }
@@ -227,6 +238,7 @@
         handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelect);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClick);
         handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpand);
+        handlers["onpk-cell-edit"] = EventCallback.Factory.Create<PkCellEditEventArgs>(this, HandleCellEdit);
     }
 
     private async Task HandleSort(PkSortEventArgs e)
@@ -278,6 +290,12 @@
     {
         if (e.Id is null || !_byId.TryGetValue(e.Id, out var item)) return;
         await OnRowClick.InvokeAsync(new PkTableRowClickArgs<TItem>(e.Id, item));
+    }
+
+    private async Task HandleCellEdit(PkCellEditEventArgs e)
+    {
+        if (e.Id is null || e.Key is null || !_byId.TryGetValue(e.Id, out var item)) return;
+        await OnCellEdit.InvokeAsync(new PkTableCellEditArgs<TItem>(e.Id, item, e.Key, e.Value, e.Previous));
     }
 
     private async Task HandleRowExpand(PkRowExpandEventArgs e)

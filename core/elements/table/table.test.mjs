@@ -213,3 +213,36 @@ test('currentRow marks one row with aria-current and a tint and is a host-set st
     assert.match(readFileSync(new URL('./table.js', import.meta.url), 'utf8'), /'aria-current': this\.currentRow && this\.currentRow === id \? 'true' : null/);
     assert.match(readFileSync(new URL('./table.css', import.meta.url), 'utf8'), /tr\[aria-current\]/);
 });
+
+// ---- inline cell editing (js/table-edit.js, loaded by the table only when `editable` is set)
+
+const E = await import('../../js/table-edit.js');
+
+test('check reports what breaks a column\'s rules and nothing else', () => {
+    assert.equal(E.check({ required: true }, '  '), 'Required');
+    assert.equal(E.check({}, ''), '');
+    assert.equal(E.check({ editor: 'number' }, 'lots'), 'Enter a number');
+    assert.equal(E.check({ editor: 'number', min: 0 }, '-1'), 'At least 0');
+    assert.equal(E.check({ editor: 'number', max: 9 }, '10'), 'At most 9');
+    assert.equal(E.check({ editor: 'number', min: 0, max: 9 }, '4.5'), '');
+    assert.equal(E.check({ editor: 'number' }, ''), '', 'an empty optional number is fine');
+    assert.equal(E.check({ maxLength: 3 }, 'abcd'), 'At most 3 characters');
+});
+
+test('typed gives a number column a number (or null), a switch a boolean, the rest the text', () => {
+    assert.equal(E.typed({ editor: 'number' }, '4.5'), 4.5);
+    assert.equal(E.typed({ editor: 'number' }, ' '), null);
+    assert.equal(E.typed({ editor: 'switch' }, true), true);
+    assert.equal(E.typed({ editor: 'text' }, 'abc'), 'abc');
+});
+
+test('the edit props and the pk-cell-edit event are in the meta, and an editable table never windows', async () => {
+    const { readFileSync } = await import('node:fs');
+    const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
+    assert.equal(meta.props.find(p => p.name === 'editable').default, false);
+    assert.ok(meta.props.some(p => p.name === 'cellErrors'));
+    const ev = meta.events.find(e => e.name === 'pk-cell-edit');
+    assert.equal(ev.cancelable, true);
+    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous']);
+    assert.match(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/);
+});
