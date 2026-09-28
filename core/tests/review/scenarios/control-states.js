@@ -2,11 +2,12 @@
 const seen = {};
 export default {
     name: 'control-states',
-    elements: ['button', 'input'],
+    elements: ['button', 'input', 'select'],
     html: `<div class="u-p-1r-1p25r"><pk-stack>
 <pk-button id="save">Save</pk-button>
 <p>Read the <a id="link" href="#terms">terms of service</a> first.</p>
 <pk-input id="name" label="Name" placeholder="Ada Lovelace"></pk-input>
+<pk-select id="plan" label="Plan"><option value="a">Free</option><option value="b">Pro</option></pk-select>
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
@@ -25,6 +26,7 @@ export default {
         if (t.shot === 'link-hover') t.ok(t.style('#link', 'text-decoration-line') !== 'none' || t.style('#link', 'color') !== seen[key].color, 'the link does not change on hover (no underline, same colour)');
         if (t.shot === 'link-focus') { t.ringVisible('#link'); t.ringUnclipped('#link'); }
         if (t.shot === 'input-focus') { t.ringVisible('#name >>> .box'); t.ringUnclipped('#name >>> .box'); }
+        if (t.shot === 'rest' && t.viewport.name === 'phone') for (const c of ['#name >>> [part=control]', '#plan >>> [part=control]']) t.atLeast(c, 'height', 44);
         t.inViewport('#name');
     },
 };
