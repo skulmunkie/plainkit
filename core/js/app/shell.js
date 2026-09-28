@@ -4,7 +4,7 @@
 //   <pk-skip-link href="#pk-main">, <pk-skip-link href="#pk-nav">                    first focusable; the second only while there is a menu
 //   <pk-app-shell>                                                                   landmarks: header (banner), footer, the one <main>
 //     <pk-side-nav slot="nav" id="pk-nav">                                           the menu (js/app/nav.js): the modules as sections (side layout) or the active module's own entries (top)
-//     <pk-button slot="header" data-nav-toggle>                                      the ONE menu control: opens the drawer / hides the column (whenever there is a menu)
+//     <pk-button slot="header" data-nav-toggle>                                      the ONE menu control: opens the drawer (hidden on a wide side layout, where the side nav has its own rail chevron, #448)
 //     <pk-navbar slot="header" label="Main" no-fold>                                 the brand, the module links (top layout only), pk-app-bar-search and the settings menu
 //     <main id="pk-main" tabindex="-1"><pk-stack><pk-breadcrumb/><div>the module host</div></pk-stack></main>
 //     <span slot="footer">...</span>                                                 only with config.footer
