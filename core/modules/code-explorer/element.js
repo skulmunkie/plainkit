@@ -9,11 +9,13 @@
 // Attributes (all optional except source/src unless a provider is assigned): source, src, base (feed only), theme
 // (light|dark, sets data-theme), height (any CSS length, or "fill"; default 32rem), initial (a path to open first; initial-line focuses a row),
 // search (a query to run once the files are listed), max-lines (rows drawn per file, default 2000), feed-interval (ms; polls instead of SSE). Property `provider` accepts
-// a ready provider object. Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
+// a ready provider object; property `patterns` accepts a host-defined [{ name, pattern, label? }] (reports.js) and shows the Reports
+// button once set. Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
+import { patternReport } from './reports.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -57,6 +59,8 @@ export class CodeExplorerElement extends Base {
     #word = '';
     #filter = '';
     #search = null;
+    #patterns = [];
+    #reports = null;
     #inspector = null;
     #folders = new Set();
     #nodes = new Map();
@@ -65,6 +69,10 @@ export class CodeExplorerElement extends Base {
 
     set provider(p) { this.#provider = p; if (this.isConnected) this.#start(); }
     get provider() { return this.#provider; }
+
+    // Host-defined patterns for the pattern report (reports.js); [] hides the Reports button.
+    set patterns(p) { this.#patterns = p ?? []; const btn = this.querySelector('[data-ce-reports]'); if (btn) btn.hidden = !this.#patterns.length; }
+    get patterns() { return this.#patterns; }
 
     connectedCallback() {
         this.#applyAttributes();
@@ -95,6 +103,7 @@ export class CodeExplorerElement extends Base {
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
     <div class="ce-actions">
       <pk-button size="mini" data-ce-search hidden>Search</pk-button>
+      <pk-button size="mini" variant="ghost" data-ce-reports hidden>Reports</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-clear hidden>Back to files</pk-button>
     </div>
     <div data-ce-tree></div>
@@ -113,7 +122,9 @@ export class CodeExplorerElement extends Base {
         const runSearch = () => this.#runSearch($('[data-ce-query]').value);
         $('[data-ce-query]').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
         $('[data-ce-search]').addEventListener('click', runSearch);
-        $('[data-ce-clear]').addEventListener('click', () => { this.#search = null; this.#renderTree(); });
+        $('[data-ce-reports]').addEventListener('click', () => this.#toggleReports());
+        $('[data-ce-clear]').addEventListener('click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
+        $('[data-ce-reports]').hidden = !this.#patterns.length;
         $('[data-ce-inspector-close]').addEventListener('click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
         tree.addEventListener('click', e => this.#onHitClick(e));
@@ -173,7 +184,8 @@ export class CodeExplorerElement extends Base {
     // ---- nav -------------------------------------------------------------
     #renderTree() {
         const host = this.querySelector('[data-ce-tree]');
-        this.querySelector('[data-ce-clear]').hidden = !this.#search;
+        this.querySelector('[data-ce-clear]').hidden = !this.#search && !this.#reports;
+        if (this.#reports) { fill(host, this.#reportsHtml()); return; }
         if (this.#search) { fill(host, this.#searchHtml()); return; }
         const root = buildTree(this.#files, this.#filter);
         this.#nodes = new Map();
@@ -243,6 +255,37 @@ export class CodeExplorerElement extends Base {
         if (!query.trim() || !this.#provider.search) return;
         try { this.#search = { query, groups: await this.#provider.search(query) }; } catch (e) { log.warn('the search failed', e); this.#search = { query, groups: [], error: e.message }; }
         this.#renderTree();
+    }
+
+    // Toggle the pattern report (reports.js) in the nav pane: like search, it replaces the tree until "Back to files" (data-ce-clear)
+    // clears it. Needs every file's content, which a lazy provider has not fetched yet -- read (and cache in #docs) whatever is missing,
+    // one file at a time, the same way search already does for a lazy provider (providers.js, #needAll).
+    async #toggleReports() {
+        if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
+        try {
+            const files = [];
+            for (const f of this.#files) {
+                if (!this.#docs.has(f.path)) {
+                    const doc = await this.#provider.readFile(f.path);
+                    const language = doc.language ?? languageOf(f.path);
+                    this.#docs.set(f.path, { ...doc, language, tokens: tokenize(doc.lines, language) });
+                }
+                files.push(this.#docs.get(f.path));
+            }
+            this.#reports = { pattern: patternReport(files, this.#patterns) };
+        } catch (error) {
+            log.warn('the reports could not be computed', error);
+            this.#reports = { pattern: [], error: error.message };
+        }
+        this.#search = null;
+        this.#renderTree();
+    }
+
+    #reportsHtml() {
+        const r = this.#reports;
+        if (r.error) return `<p class="ce-error" role="alert">${esc(r.error)}</p>`;
+        if (!r.pattern.length) return '<p class="ce-muted">No matches.</p>';
+        return `<div class="csr">${r.pattern.map(x => `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line ?? ''}"><span class="csr-no">${x.count}</span><span class="csr-text">${esc(x.name)}${x.label ? ` — ${esc(x.label)}` : ''}: ${esc(x.path)}</span></button>`).join('')}</div>`;
     }
 
     #searchHtml() {

@@ -31,12 +31,15 @@
     /// <summary>Any CSS length, or "fill". Defaults to 32rem.</summary>
     [Parameter] public string? Height { get; set; }
 
+    /// <summary>Host-defined patterns for the Reports tab's pattern report. Empty (the default) hides that tab.</summary>
+    [Parameter] public IReadOnlyList<PkCodePattern> Patterns { get; set; } = [];
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (Snapshot is null && SnapshotUrl is null) return;
         _bridge ??= await Runtime.BridgeAsync(Assets);
         // Mount again only when what is shown changes: a re-render with the same parameters leaves the explorer (and its open tabs) alone.
-        var key = JsonSerializer.Serialize(new { SnapshotUrl, Snapshot?.Generated, Files = Snapshot?.Files.Count, File, Line, Search, Theme, Height });
+        var key = JsonSerializer.Serialize(new { SnapshotUrl, Snapshot?.Generated, Files = Snapshot?.Files.Count, File, Line, Search, Theme, Height, Patterns });
         if (key == _mounted) return;
         _mounted = key;
         object snapshot = Snapshot is not null ? Snapshot : SnapshotUrl!;
@@ -48,6 +51,7 @@
             search = Search,
             theme = Theme.Attr(),
             height = Height,
+            patterns = Patterns.Count > 0 ? Patterns.Select(p => new { name = p.Name, pattern = p.Pattern, label = p.Label }) : null,
         });
     }
 
