@@ -1,0 +1,26 @@
+/* pk-list: a plain ordered or unordered prose list. The host is role=list and each slotted item becomes a real display: list-item
+   box with a native ::marker, so the bullet or number is drawn by the browser, not simulated with CSS content. */
+:host { display: block; --_g: var(--space-1); }
+
+:host([gap="none"]) { --_g: 0px; }
+:host([gap="xs"]) { --_g: var(--space-1); }
+:host([gap="sm"]) { --_g: var(--space-2); }
+:host([gap="md"]) { --_g: var(--space-4); }
+:host([gap="lg"]) { --_g: var(--space-6); }
+:host([gap="xl"]) { --_g: var(--space-8); }
+:host([dense]) { --_g: var(--space-1); font-size: var(--text-meta); }
+
+/* marker's default is "auto" but a default prop value is never written to the attribute (only an explicit assignment reflects), so the
+   auto behaviour (disc, or decimal once ordered) is the base rule below, not a [marker="auto"] selector; an explicit marker value
+   (disc, decimal, check, none) is a same-specificity rule that comes after it and so wins regardless of ordered. */
+::slotted(*) { display: list-item; list-style-position: outside; margin-inline-start: var(--space-5); list-style-type: disc; }
+::slotted(*:not(:last-child)) { margin-block-end: var(--pk-list-gap, var(--_g)); }
+::slotted(*)::marker { color: var(--color-muted); }
+
+:host([ordered]) ::slotted(*) { list-style-type: decimal; }
+
+:host([marker="disc"]) ::slotted(*) { list-style-type: disc; }
+:host([marker="decimal"]) ::slotted(*) { list-style-type: decimal; }
+:host([marker="none"]) ::slotted(*) { list-style: none; margin-inline-start: 0; }
+:host([marker="check"]) ::slotted(*) { list-style-type: "\2713\2002"; }
+:host([marker="check"]) ::slotted(*)::marker { color: var(--color-positive); }
