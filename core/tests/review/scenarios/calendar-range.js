@@ -20,6 +20,8 @@ export default {
         { key: 'Escape' }, { wait: 100 }, { shot: 'cancelled' },
         { click: day('c1', '2026-09-18') }, { click: day('c1', '2026-09-12') }, { wait: 100 }, { shot: 'swapped' },
         { focus: day('c3', '2026-09-07') }, { key: 'Enter' }, { key: 'ArrowRight', times: 2 }, { wait: 100 }, { shot: 'keyboard-min' },
+        { focus: day('c3', '2026-09-24') }, { key: 'ArrowRight', times: 3 }, { key: 'ArrowDown' }, { wait: 100 }, { shot: 'keyboard-max' },
+        { key: 'Home' }, { key: 'ArrowUp', times: 6 }, { key: 'ArrowLeft', times: 3 }, { wait: 100 }, { shot: 'keyboard-min-clamp' },
         { click: day('c4', '2026-09-08') }, { hover: day('c4', '2026-09-11') }, { wait: 100 }, { shot: 'rtl-pending' },
     ],
     expect(t) {
@@ -55,6 +57,11 @@ export default {
             const r = roles(t, 'c3', [sep(6), sep(7), sep(8), sep(9), sep(10)]).join('|');
             t.ok(r === '|start|mid|end|', `Enter then two ArrowRight from the minimum day previews ${r}, expected |start|mid|end|`);
             t.ok(t.text('#c3 >>> [part=status]').startsWith('Range start set to'), 'Enter on the minimum day did not announce the start');
+        }
+        if (t.shot === 'keyboard-max' || t.shot === 'keyboard-min-clamp') {
+            const want = t.shot === 'keyboard-max' ? '2026-09-25' : '2026-09-07', got = t.attr('#c3 >>> .day[tabindex="0"]', 'data-date');
+            t.ok(got === want, `after arrowing past ${t.shot === 'keyboard-max' ? 'max' : 'min'} the focused day is ${got}, expected the boundary ${want} (focus was dropped or sits on a disabled day)`);
+            t.ok(t.attr('#c3 >>> .day[tabindex="0"]', 'disabled') === null, 'the focused day is disabled');
         }
         if (t.shot === 'rtl-pending') {
             const a = t.rect(day('c4', '2026-09-08')), b = t.rect(day('c4', '2026-09-11'));

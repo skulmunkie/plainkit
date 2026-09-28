@@ -440,6 +440,20 @@ export const dataDisplayCases = [
         c.part('prev').click(); await t.settle(); t.eq(c.part('title').textContent, 'September 2026');
     }],
 
+    ['calendar: arrow, Home/End and Page keys clamp at min and max and focus stays on an enabled day, across months, in single and range mode', async t => {
+        for (const range of ['', ' range']) {
+            const c = await t.mount(`<pk-calendar${range} month="2026-09-01" min="2026-09-05" max="2026-10-02"></pk-calendar>`);
+            const press = async (key, shiftKey = false) => { c.shadowRoot.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey, bubbles: true, composed: true, cancelable: true })); await t.settle(); };
+            const at = () => c.shadowRoot.activeElement;
+            c.part('days').querySelector('[data-date="2026-09-06"]').focus();
+            await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); t.ok(!at().disabled);
+            await press('ArrowUp'); t.eq(at()?.dataset.date, '2026-09-05'); await press('Home'); t.eq(at()?.dataset.date, '2026-09-05'); await press('PageUp'); t.eq(at()?.dataset.date, '2026-09-05');
+            await press('PageDown'); t.eq(c.part('title').textContent, 'October 2026'); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(!at().disabled);
+            await press('ArrowRight'); t.eq(at()?.dataset.date, '2026-10-02'); await press('ArrowDown'); t.eq(at()?.dataset.date, '2026-10-02'); await press('End'); t.eq(at()?.dataset.date, '2026-10-02');
+            await press('PageDown', true); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(c.shadowRoot.contains(at()), 'focus is still inside the calendar');
+        }
+    }],
+
     ['divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow', async t => {
         const d = await t.mount('<pk-divider vertical>or</pk-divider>'); t.eq(d.internals.role, 'separator'); t.eq(d.internals.ariaOrientation, 'vertical'); t.eq(d.hasAttribute('data-labelled'), true);
         const m = await t.mount('<pk-media ratio="4/3" lightbox caption="C"><img alt="cover" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></pk-media>');
