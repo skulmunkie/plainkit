@@ -64,6 +64,24 @@ public sealed record PkTableColumn<TItem>
     /// <summary>Leave the column out of the card layout on a phone.</summary>
     public bool HidePhone { get; init; }
 
+    /// <summary>The editor of the column's cells when the table is <c>Editable</c>; null leaves the column read-only. A column with a <see cref="Cell"/> template is not editable.</summary>
+    public PkTableEditor? Editor { get; init; }
+
+    /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor. A new list on every render counts as a changed column and re-sends the rows; keep it in a field.</summary>
+    public IReadOnlyList<string>? Options { get; init; }
+
+    /// <summary>An empty value is refused.</summary>
+    public bool Required { get; init; }
+
+    /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
+    public double? Min { get; init; }
+
+    /// <summary>The largest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
+    public double? Max { get; init; }
+
+    /// <summary>The longest text a <see cref="PkTableEditor.Text"/> editor accepts.</summary>
+    public int? MaxLength { get; init; }
+
     /// <summary>The cell as text, computed from the item (a formatted date, an amount). Sent in the row under <see cref="Key"/>.</summary>
     public Func<TItem, string?>? Text { get; init; }
 
@@ -79,6 +97,12 @@ public sealed record PkTableColumn<TItem>
         Align = Align,
         Sortable = Sortable,
         HidePhone = HidePhone,
+        Editor = Cell is null ? Editor : null,
+        Options = Options,
+        Required = Required,
+        Min = Min,
+        Max = Max,
+        MaxLength = MaxLength,
     };
 }
 
@@ -110,6 +134,15 @@ public sealed record PkTableRowClickArgs<TItem>(string Id, TItem Item);
 /// <param name="Item">The item of that row.</param>
 /// <param name="Expanded">The new state: true when the row is now open.</param>
 public sealed record PkTableRowExpandArgs<TItem>(string Id, TItem Item, bool Expanded);
+
+/// <summary>A cell of an <c>Editable</c> <see cref="PkTable{TItem}"/> was edited: the element has already accepted <paramref name="Value"/> in its own copy of the rows; update your item in the handler.</summary>
+/// <typeparam name="TItem">The type of a row.</typeparam>
+/// <param name="Id">The row's id.</param>
+/// <param name="Item">The item of that row (before your change).</param>
+/// <param name="Key">The column key of the cell.</param>
+/// <param name="Value">The new value: a JSON number for a number editor, a boolean for a switch, else a string.</param>
+/// <param name="Previous">The value it replaces.</param>
+public sealed record PkTableCellEditArgs<TItem>(string Id, TItem Item, string Key, System.Text.Json.JsonElement? Value, System.Text.Json.JsonElement? Previous);
 
 internal static class PkTableRows
 {

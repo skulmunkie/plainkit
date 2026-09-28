@@ -6,7 +6,7 @@
       "name": "Columns",
       "prop": "columns",
       "type": "IReadOnlyList<PkTableColumn<TItem>>",
-      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row."
+      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, editor, options, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row."
     },
     {
       "name": "Items",
@@ -74,6 +74,18 @@
       "name": "Expandable",
       "prop": "expandable",
       "type": "bool"
+    },
+    {
+      "name": "Editable",
+      "prop": "editable",
+      "type": "bool",
+      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options, Switch) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. Update the item in OnCellEdit."
+    },
+    {
+      "name": "CellErrors",
+      "prop": "cellErrors",
+      "type": "Dictionary<string, string>?",
+      "note": "Cells to mark invalid, keyed \"<rowId>:<columnKey>\", with the message. The table never changes it."
     },
     {
       "name": "Loading",
@@ -197,6 +209,12 @@
       "name": "OnRowExpand",
       "event": "pk-row-expand",
       "type": "EventCallback<PkTableRowExpandArgs<TItem>>"
+    },
+    {
+      "name": "OnCellEdit",
+      "event": "pk-cell-edit",
+      "type": "EventCallback<PkTableCellEditArgs<TItem>>",
+      "note": "An edited cell was accepted. Blazor cannot cancel the event (the browser does not wait for the server): to refuse a value, put a message in CellErrors and put the previous value back in your item."
     }
   ],
   "notes": "Hand-written, generic: PkTable<TItem> (Components/PkTable.razor). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows. The toolbar slot lays its items out in a wrapping row; the item that should sit at the far end (an action beside a search box) takes the attribute data-end, which the wrapper can pass through on the element it renders into HeaderActionsTemplate. A column's type only decides how it sorts and filters (cells show the value the row holds, text as given, with no locale or time zone formatting), so a wrapper that sends dates or numbers as display strings should sort on the source data. The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property. Windowing (issue 131): at 500 rows or more, a non-expandable element draws only the rows near the scroll frame's viewport (core/js/table-vw.js); it is a fixed constant, not a parameter, so the element's own module stays inside its gzip budget. Sort, filter and selection still act on every row."

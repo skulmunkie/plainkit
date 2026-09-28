@@ -48,7 +48,7 @@ function attach(el) {
 function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
     if (prev) el.$rowH = prev.getBoundingClientRect().height || el.$rowH;
-    if (el.expandable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
+    if (el.expandable || el.editable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
     const cols = el.list('columns'), lead = Number(el.selectable), sel = new Set(el.selected.map(String));
