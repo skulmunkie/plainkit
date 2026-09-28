@@ -24,6 +24,9 @@ export default Base => class extends Base {
     connected() {
         if (!this.$w) {
             this.$w = true;
+            // Dresses its own slotted links (::slotted colour, underline, current-page weight): marks itself so
+            // base.css's blanket link rule can back off (see [data-dresses-links] there) without naming the tag.
+            this.setAttribute('data-dresses-links', '');
             this.watchSlot('', () => this.fold());
             this.part('more').addEventListener('click', () => { this.$open = true; this.part('more').setAttribute('aria-expanded', 'true'); this.fold(); this.emit('pk-expand', null); });
             this.$mq = mediaBelow('phone'); this.$fold = () => this.fold();

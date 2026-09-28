@@ -24,7 +24,7 @@
 @media (prefers-reduced-motion: reduce) { [part="panel"] { animation: none; } }
 /* A phone: the panel is not anchored at the pill's x; it spans the viewport inside the gutters (the script centres it on the viewport, so the left edge is the gutter). */
 @media (--phone) {
-    [part="trigger"]::before { content: ""; position: absolute; inset-inline: 0; inset-block: calc((100% - var(--touch-target)) / 2); }
+    [part="trigger"] { min-height: var(--touch-target); }
     [part="panel"] { width: calc(100vw - 2 * var(--space-4)); }
     ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
 }
