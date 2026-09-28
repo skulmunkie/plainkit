@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
@@ -28,13 +28,6 @@ const FALLBACK_EVENTS = ['pk-change', 'pk-value-change', 'pk-dismiss', 'pk-close
 
 const TABS = [['console', 'Console'], ['events', 'Events'], ['network', 'Network'], ['elements', 'Elements'], ['environment', 'Environment']];
 const CONSOLE_METHODS = { debug: 'debug', log: 'log', info: 'info', warn: 'warn', error: 'error' };
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([], { hour12: false })}.${String(d.getMilliseconds()).padStart(3, '0')}`; };
 

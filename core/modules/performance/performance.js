@@ -12,7 +12,7 @@
 // expose (INP and heap outside Chromium, for one) show a dash rather than a guess.
 
 import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, summarizeResources, formatBytes, formatMs, shortName } from '../../js/perf-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('performance');
@@ -23,13 +23,6 @@ const OWN_STYLES = ['./performance.css'];
 export const DEFAULTS = Object.freeze({ interval: 1000, history: 60 });
 
 const TONES = { good: 'positive', warn: 'warning', poor: 'critical', '': 'neutral' };
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 // Watches one performance entry type; a browser that lacks it is skipped without complaint.
 function observe(win, type, onEntries, extra = {}) {

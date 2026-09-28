@@ -13,7 +13,7 @@
 
 import { configureLogging, getLoggingConfig, resetLogging, getLogBuffer, getLogOutputs, addLogSink, createLogger } from '../../js/log.js';
 import { INHERIT, draftFrom, configFrom, scopeRows, addScope, removeScope, setScopeLevel, setGlobalLevel, setRoute, routeRows, sameDraft, levelOverride, describeOverride, outputsFor, testMessages, TEST_SCOPE } from '../../js/log-settings-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 
 const STYLES = ['../../plainkit.css'];
@@ -22,12 +22,6 @@ const OWN_STYLES = ['./log-settings.css'];
 const LEVEL_OPTIONS = [['debug', 'Debug (everything)'], ['info', 'Info'], ['warn', 'Warn'], ['error', 'Error (errors only)'], ['silent', 'Silent (nothing)']];
 const LEVEL_NAMES = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
 
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 const options = (doc, list, selected) => list.map(([value, label]) => h(doc, 'option', { value, selected: value === selected }, label));
 
 export async function mountLogSettings(container, opts = {}) {
