@@ -6,10 +6,16 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import behaviour, { readPanels, readingOrder } from './dock.js';
 import { defaultLayout, findGroup } from '../../js/dock-model.js';
+import { setLogLevel } from '../../js/log.js';
+
+setLogLevel('silent');
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./dock.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json')); const css = read('css'); const src = read('js');
 const child = (slot, extra = {}) => ({ getAttribute: n => (n === 'slot' ? slot : extra[n] ?? null) });
+
+// An in-memory localStorage stand-in (core/tests/store.test.mjs's pattern), so persistence is exercised without touching real storage.
+const memoryStorage = (init = {}) => { const m = new Map(Object.entries(init)); return { m, getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: k => m.delete(k) }; };
 
 test('readPanels takes the slotted children with a usable, unique id, and reads the heading and group hints', () => {
     const got = readPanels([child('tools', { 'data-heading': 'Toolbox', 'data-group': 'left' }), child('canvas'), child('tools'), child('Bad Id'), child(null), child('9x'), child('a'.repeat(41)), { }]);
@@ -91,6 +97,55 @@ test('a layout the host sets raises nothing; a panel that appears is added and r
     el.updated();
     assert.deepEqual(el.events.map(e => e.detail.reason), ['panels']);
     assert.ok(findGroup(el.layout, 'extra'));
+});
+
+test('persistKey saves the committed layout and restores it on a later connect, but not a layout the host sets', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        const first = make(P, { persistKey: 'demo' });
+        const split = find(first.root, 'pk-splitter')[0];
+        split.closest = () => split;
+        first.root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 33 } });
+        assert.equal(first.el.layout.root.size, 33);
+        assert.ok(globalThis.localStorage.m.has('pk-dock:demo.layout'), 'the commit was persisted');
+        first.el.disconnected();
+
+        const second = make(P, { persistKey: 'demo' });
+        assert.equal(second.el.layout.root.size, 33, 'a fresh element with no layout prop restores the saved layout');
+
+        const before = JSON.parse(globalThis.localStorage.m.get('pk-dock:demo.layout')).data.layout.root.size;
+        const third = make(P, { persistKey: 'demo', layout: defaultLayout(P) });
+        assert.notEqual(third.el.layout.root.size, before, 'a layout the host sets is used as-is, not overridden by storage');
+        assert.equal(JSON.parse(globalThis.localStorage.m.get('pk-dock:demo.layout')).data.layout.root.size, before, 'and a host-set layout is not itself persisted');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
+});
+
+test('no persistKey never touches storage; a bad or hostile stored layout falls back quietly', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        make(P);
+        assert.equal(globalThis.localStorage.m.size, 0, 'no persistKey means no store module');
+
+        globalThis.localStorage = memoryStorage({ 'pk-dock:demo.layout': '{not json' });
+        const { el } = make(P, { persistKey: 'demo' });
+        assert.ok(el.$doc.root, 'corrupt storage falls back to the default layout, not a throw');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
+});
+
+test('disconnected() releases the persistence store: a later commit while disconnected is not saved', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        const { el, root } = make(P, { persistKey: 'demo' });
+        el.disconnected();
+        assert.equal(el.$mod, undefined);
+        const split = find(root, 'pk-splitter')[0];
+        split.closest = () => split;
+        root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 40 } });
+        assert.equal(globalThis.localStorage.m.has('pk-dock:demo.layout'), false, 'commit() after disconnected has no store to write to');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
 });
 
 test('no panels shows the empty state', () => {
