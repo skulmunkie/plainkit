@@ -1,0 +1,32 @@
+{
+  "tag": "pk-kanban-column",
+  "title": "Kanban column",
+  "group": "Layout",
+  "summary": "One column of a pk-kanban: a title with a card count, the cards, and a message when it has none. Place it directly inside a pk-kanban.",
+  "props": [
+    { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The identifier pk-kanban reports for this column in a pk-move event's from and to." },
+    { "name": "label", "type": "string", "default": "", "reflect": false, "description": "The column's title, and its accessible name. Falls back to value." },
+    { "name": "emptyText", "type": "string", "default": "No cards", "reflect": false, "description": "Shown in place of the cards while the column has none; it is also the drop target for a card dragged in." },
+    { "name": "dropTarget", "type": "boolean", "default": false, "reflect": true, "description": "Set by the surrounding pk-kanban while a dragged card is over this column." }
+  ],
+  "slots": [
+    { "name": "", "description": "pk-sortable-item cards, in order." }
+  ],
+  "events": [],
+  "parts": [
+    { "name": "root", "description": "The column's frame." },
+    { "name": "header", "description": "The title row." },
+    { "name": "title", "description": "The column title." },
+    { "name": "count", "description": "The number of cards." },
+    { "name": "list", "description": "The scrolling region that holds the cards; a long column scrolls here, not the page." },
+    { "name": "empty", "description": "The empty message." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-kanban-column-max-height", "description": "Height at which a long column starts to scroll.", "default": "32rem" }
+  ],
+  "methods": [],
+  "a11y": "role=list, named by label (or value); its cards are listitems. The count is text beside the title.",
+  "examples": [
+    { "title": "Inside pk-kanban", "html": "<pk-kanban label=\"Board\">\n  <pk-kanban-column value=\"todo\" label=\"To do\">\n    <pk-sortable-item value=\"a\">Mix</pk-sortable-item>\n  </pk-kanban-column>\n</pk-kanban>" }
+  ]
+}
