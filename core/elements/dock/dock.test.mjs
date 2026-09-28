@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import behaviour, { readPanels, readingOrder } from './dock.js';
-import { defaultLayout, findGroup } from '../../js/dock-model.js';
+import { defaultLayout, findGroup, groups } from '../../js/dock-model.js';
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./dock.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json')); const css = read('css'); const src = read('js');
@@ -31,19 +31,30 @@ class Node {
     addEventListener(t, f) { this.listeners[t] = f; }
     set textContent(v) { this.text = v; }
     closest(sel) { return this.tag === sel ? this : null; }
+    focus() { this.focused = true; }
+    // A tiny querySelector: matches tag, [attr=value] and [data-node="x"]-style attribute selectors, depth-first.
+    querySelector(sel) {
+        const m = /^([a-z-]*)(?:\[([\w-]+)(?:=(?:"([^"]*)"|([^\]]*)))?\])?$/.exec(sel.trim());
+        if (!m) return null;
+        const [, tag, attr, qval, val] = m, want = qval ?? val;
+        const test = n => (!tag || n.tag === tag) && (!attr || (want === undefined ? n.getAttribute(attr) != null : n.getAttribute(attr) === want));
+        const walk = n => { if (test(n)) return n; for (const k of n.kids) { const f = walk(k); if (f) return f; } return null; };
+        for (const k of this.kids) { const f = walk(k); if (f) return f; }
+        return null;
+    }
     remove() { this.removed = true; }
 }
 // The group template: a section holding a header and a body, cloned per group.
 const groupTemplate = () => { const s = new Node('section'), h = new Node('div'), b = new Node('div'); s.kids = [h, b]; s.querySelector = sel => (sel === '.header' ? h : b); s.cloneNode = groupTemplate; return s; };
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
 const make = (panels, props = {}) => {
-    const root = new Node('root'), empty = new Node('empty');
-    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return n === 'root' ? root : empty; } get shadowRoot() { return { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }) }; } requestUpdate() {} }))();
+    const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), parts = { root, empty, status };
+    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? empty; } get shadowRoot() { return { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }) }; } requestUpdate() {} }))();
     Object.assign(el, { events: [], layout: null, label: '', resizeLabel: 'Resize panels', children: panels.map(p => child(p.id, { 'data-heading': p.title, 'data-group': p.group })), ownerDocument: { createElement: t => new Node(t) } });
     Object.assign(el, props);
     globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
     el.connected(); el.updated();
-    return { el, root, empty };
+    return { el, root, empty, status };
 };
 const P = [{ id: 'tools', title: 'Toolbox', group: 'left' }, { id: 'assets', title: 'Assets', group: 'left' }, { id: 'canvas', title: 'Canvas' }, { id: 'props', title: 'Properties', group: 'right' }];
 
@@ -78,6 +89,47 @@ test('choosing a tab activates the panel in the model and commits; a phone strip
     const phone = { getAttribute: () => 'phone' };
     root.listeners['pk-tab-change']({ stopPropagation() {}, target: { closest: () => phone }, detail: { value: 'props' } });
     assert.equal(el.events.length, 1);
+});
+
+test('a group with company (more than one group total) gets a Move dropdown listing every other group, Add as tab plus the four dock zones; a single group gets none', () => {
+    const { el, root } = make(P);
+    const [left, , right] = groups(el.$doc);
+    assert.equal(left.panels[0], 'tools'); assert.equal(right.panels[0], 'props');
+    const dropdowns = find(root, 'pk-dropdown');
+    assert.equal(dropdowns.length, 3, 'one per group: left, center (canvas), right');
+    const items = find(dropdowns[1], 'pk-menu-item'); // the canvas group's dropdown: two other groups (left, right)
+    assert.deepEqual(items.filter(i => i.getAttribute('type') === 'header').map(i => i.text), ['Toolbox', 'Properties']);
+    const values = items.filter(i => i.getAttribute('type') !== 'header').map(i => i.getAttribute('value'));
+    assert.deepEqual(values, [left, right].flatMap(g => [`tab:canvas:${g.id}`, `dock:canvas:${g.id}:left`, `dock:canvas:${g.id}:right`, `dock:canvas:${g.id}:top`, `dock:canvas:${g.id}:bottom`]));
+    const single = make([{ id: 'only' }]);
+    assert.equal(find(single.root, 'pk-dropdown').length, 0);
+});
+
+test('choosing "Add as tab" moves the panel with moveTab, commits reason move and announces the result', () => {
+    const { el, root, status } = make(P);
+    const target = findGroup(el.$doc, 'props').id;
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: `tab:canvas:${target}` } });
+    assert.equal(findGroup(el.$doc, 'canvas').id, target);
+    assert.equal(findGroup(el.$doc, 'canvas').active, 'canvas');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['move']);
+    assert.match(status.text, /Canvas added as a tab in Properties/);
+});
+
+test('choosing a dock zone moves the panel with dockPanel and commits reason move', () => {
+    const { el, root, status } = make(P);
+    const target = findGroup(el.$doc, 'props').id;
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: `dock:canvas:${target}:top` } });
+    assert.notEqual(findGroup(el.$doc, 'canvas').id, target, 'canvas is now in its own new group, split above props');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['move']);
+    assert.match(status.text, /Canvas docked above Properties/);
+    assert.equal(groups(el.$doc).length, 3, 'canvas left its old group (which collapses) for a fresh one split above props');
+});
+
+test('an unusable pk-select value (not ours, or an unknown group) is left alone and raises nothing', () => {
+    const { el, root } = make(P);
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: 'not-ours' } });
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: 'tab:canvas:no-such-group' } });
+    assert.equal(el.events.length, 0);
 });
 
 test('a layout the host sets raises nothing; a panel that appears is added and raises reason panels', () => {

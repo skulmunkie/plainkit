@@ -91,4 +91,27 @@ export const dockCases = [
         t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'choosing a tab shows that panel');
         t.eq(dock.layout, null, 'a phone render writes no layout');
     }],
+
+    ['dock: a group with company gets a keyboard-reachable Move button; choosing "Add as tab" from its menu moves the panel with moveTab, commits reason move, and the moved tab keeps focus', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const leftGroup = [...root.querySelectorAll('[part=group]')][0];
+        const move = leftGroup.querySelector('pk-dropdown');
+        t.ok(move, 'the left group (more than one panel, more than one group total) has a Move dropdown');
+        const trigger = move.querySelector('[slot=trigger]');
+        t.eq(trigger.tagName.toLowerCase(), 'pk-button'); t.ok(trigger.getAttribute('label').startsWith('Move'));
+        trigger.focus(); trigger.click(); await t.settle(); await wait(60);
+        t.eq(move.open, true, 'Enter/click on the trigger opens the menu (keyboard-reachable, no drag)');
+        const items = [...move.querySelectorAll('pk-menu-item')];
+        const addAsTab = items.find(i => i.textContent === 'Add as tab');
+        t.ok(addAsTab, 'an "Add as tab" item is offered for the other group');
+        addAsTab.click(); await t.settle(); await wait(60);
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        t.ok(seen[0].layout.root, 'a new layout was committed');
+        const movedTab = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Toolbox');
+        t.ok(movedTab && movedTab.getAttribute('selected') !== null, 'the moved panel is the active tab of its new group');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Toolbox/.test(status.textContent), 'the move is announced in the visually hidden status region');
+    }],
 ];

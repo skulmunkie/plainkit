@@ -2,7 +2,7 @@
   "tag": "pk-dock",
   "title": "Dock",
   "group": "Layout",
-  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group. The arrangement is one JSON layout document you can read, store and set. Step 1 of #432: docked panels only; moving panels, floating, collapse and saved layouts come in later steps.",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, and use a group's Move button to move its active panel to another group without a mouse. The arrangement is one JSON layout document you can read, store and set. Step 2 of #432: docked panels plus keyboard/menu move between groups; drag-to-dock, floating panels, collapse/rails and a pk-dock-panel element come in later steps.",
   "props": [
     {
       "name": "layout",
@@ -53,7 +53,7 @@
         "layout": "object",
         "reason": "string"
       },
-      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
+      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen), move (a panel was moved to another group from its Move menu) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
       "cancelable": false
     }
   ],
@@ -77,6 +77,10 @@
     {
       "name": "empty",
       "description": "The empty state."
+    },
+    {
+      "name": "status",
+      "description": "The visually hidden live region that announces a move."
     }
   ],
   "cssProperties": [
@@ -97,7 +101,7 @@
     }
   ],
   "methods": [],
-  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree.",
+  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. When there is more than one group, its header (or its tab strip, in the trailing slot) carries a Move button (a pk-dropdown, reachable by Tab and opened with Enter or Space) listing every other group: Add as tab in it, or Dock left/right/above/below it; choosing one moves the active panel with dockPanel/moveTab and moves focus to it, and the visually hidden status part announces the result. This is the keyboard and menu alternative to a future pointer drag; nothing here requires a mouse.",
   "mobile": "Below 640px a splitter tree cannot show real panels, so the dock draws every open panel in reading order as one tab strip with one panel visible. The layout document is untouched, so widening the window restores the arrangement.",
   "examples": [
     {

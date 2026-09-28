@@ -1,6 +1,6 @@
-// pk-dock (issue 432, step 1): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
-// same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels
-// themselves: they are the page's own children, slotted.
+// pk-dock (issue 432): step 1's resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
+// same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen; step 2's keyboard/menu move between
+// groups (a group's Move button opened by keyboard, and the panel it moves). The dock applies nothing to the panels themselves: they are the page's own children, slotted.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
   <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
@@ -31,6 +31,10 @@ export default {
         { shot: 'pointer', on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
         { shot: 'tab' },
+        { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'move-menu', on: ['desktop'] },
+        { click: '#dock >>> [part=group] pk-dropdown pk-menu-item:nth-of-type(2)', on: ['desktop'] }, { wait: 150 },
+        { shot: 'move-done', on: ['desktop'] },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
     ],
@@ -48,6 +52,8 @@ export default {
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
         }
         if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
+        if (t.shot === 'move-menu') { t.visible('#dock >>> [part=group] pk-dropdown', 'the Move menu opened'); t.exists('#dock >>> [part=group] pk-menu-item'); }
+        if (t.shot === 'move-done') { t.hidden('#dock >>> [part=empty]'); t.exists('#dock >>> [part=group]'); }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
     },
