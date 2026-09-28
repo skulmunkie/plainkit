@@ -1,5 +1,6 @@
 {
   "component": "PkListPage",
+  "existing": true,
   "params": [
     {
       "name": "Config",
@@ -10,5 +11,5 @@
       "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize? }."
     }
   ],
-  "notes": "New component: App framework step 6 (issue #352). Load and RowHref are callback properties (business logic), not Blazor parameters mapped here yet - they need JS interop from the component (Func<ListQuery, Task<ListResult>> and Func<object, string> or similar); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run and PkSettingsPage's Save callbacks."
+  "notes": "Hand-written (issue #366): load(query) is a callback property, set from script, so the component (PkListPage<TItem>) hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Load parameter, Func<PkListRequest, Task<PkListResult<TItem>>>. Not a mapped param: the generator only maps props, slots and events. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler (later step)."
 }
