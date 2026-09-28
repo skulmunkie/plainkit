@@ -32,6 +32,13 @@
       "default": false,
       "reflect": true,
       "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) instead of --pk-dock-height."
+    },
+    {
+      "name": "persistKey",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Save and restore the layout across reloads, through the SDK's store (js/store.js), under the key pk-dock:<persistKey>. Leave unset to disable persistence. On connect, a saved layout is used as the initial arrangement when the layout prop is not set (stored data wins over the default arrangement); every later pk-layout-change (resize, activate, panels) is saved, but a layout the host sets is not. Give each pk-dock on a page its own value; changing it starts a fresh, separately-saved layout."
     }
   ],
   "slots": [
@@ -119,6 +126,10 @@
     {
       "title": "Tab groups and a bottom panel",
       "html": "<pk-dock label=\"Project workspace\">\n  <div slot=\"files\" data-heading=\"Files\" data-group=\"left\" class=\"stack\"><span>app.js</span><span>README.md</span></div>\n  <div slot=\"outline\" data-heading=\"Outline\" data-group=\"left\" class=\"stack\"><span>run()</span><span>render()</span></div>\n  <div slot=\"editor\" data-heading=\"Editor\" class=\"stack\"><span>Choose Files or Outline to switch the left tab.</span></div>\n  <div slot=\"log\" data-heading=\"Log\" data-group=\"bottom\" class=\"stack\"><span>Ready.</span></div>\n</pk-dock>"
+    },
+    {
+      "title": "Persisted layout",
+      "html": "<pk-dock label=\"Workspace with a saved layout\" persist-key=\"gallery-demo\">\n  <div slot=\"tools\" data-heading=\"Toolbox\" data-group=\"left\" class=\"stack\"><span>Select</span><span>Rectangle</span></div>\n  <div slot=\"canvas\" data-heading=\"Canvas\" class=\"stack\"><span>Resize a separator or move a tab, then reload the page: the arrangement comes back.</span></div>\n  <div slot=\"props\" data-heading=\"Properties\" data-group=\"right\" class=\"stack\"><span>Width 120</span><span>Height 80</span></div>\n</pk-dock>"
     }
   ]
 }

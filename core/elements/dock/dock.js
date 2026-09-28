@@ -4,9 +4,12 @@
 // tab strip of every panel and the layout is left untouched.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
+import { createStore } from '../../js/store.js';
 import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel } from '../../js/dock-model.js';
 
 const PANEL = /^[a-z][\w-]{0,39}$/;
+// The layout document can be large (up to dock-model's own 64 KB limit): the store's default 1 KB per-key limit is raised for it.
+const PERSIST_SCHEMA = { layout: { maxLength: 65536 } };
 
 // Pure: the panels a host declares, from its child elements: [{ id, title, group }] in DOM order; a child without a usable slot name or with a repeated one is not a panel.
 export function readPanels(children) {
@@ -39,8 +42,24 @@ export default Base => class extends Base {
         this.$mo.observe(this, { childList: true, attributes: true, attributeFilter: ['slot', 'data-heading', 'data-group'] });
         this.$mq?.addEventListener('change', this.$mqf);
     }
-    disconnected() { this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf); }
+    disconnected() {
+        this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf);
+        this.$mod?.destroy(); this.$store?.destroy();
+        this.$mod = this.$store = this.$persisted = undefined;
+    }
+    // Creates (or replaces) the per-element store when persistKey changes; restores a saved layout the first time there is no layout prop yet.
+    syncPersist() {
+        if (this.persistKey === this.$persisted) return;
+        this.$mod?.destroy(); this.$store?.destroy(); this.$mod = this.$store = undefined;
+        this.$persisted = this.persistKey;
+        if (!this.persistKey) return;
+        this.$store = createStore({ prefix: `pk-dock:${this.persistKey}` });
+        this.$mod = this.$store.module('layout', { defaults: { layout: {} }, schema: PERSIST_SCHEMA, persist: ['layout'] });
+        const saved = this.$mod.get('layout');
+        if (this.layout == null && saved && saved.version) this.layout = saved;
+    }
     updated() {
+        this.syncPersist();
         const panels = readPanels(this.children), phone = Boolean(this.$mq?.matches);
         const key = JSON.stringify(panels) + phone;
         if (this.layout === this.$given && key === this.$key) return;
@@ -55,6 +74,7 @@ export default Base => class extends Base {
     }
     commit(reason) {
         this.layout = this.$given = this.$doc;
+        this.$mod?.set('layout', this.$doc);
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
     }
     draw(phone) {
