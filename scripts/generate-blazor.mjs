@@ -193,7 +193,7 @@ export function modelElement(el, mapping, reg) {
             out.attrs.push({ attr: kebab(p.prop), expr: r.expr, boolean: r.attr === 'bool' });
             if (r.todo) todo(p.name, r.todo);
             // `bind` is one event or a list of them (PkCommandPalette.Open follows pk-open and pk-close).
-            for (const b of [p.bind].flat().filter(Boolean)) addBind(r, { event: b.event, literal: typeof b.value !== 'string' ? b.value : undefined, path: typeof b.value === 'string' ? b.value.replace(/^detail\./, '') : undefined });
+            for (const b of [p.bind].flat().filter(Boolean)) addBind(r, { event: b.event, literal: typeof b.value !== 'string' && b.field === undefined ? b.value : undefined, path: typeof b.value === 'string' ? b.value.replace(/^detail\./, '') : b.field });
         } else if (map === 'slot' || map === 'text') {
             const slot = map === 'text' ? '' : p.slot;
             if (/[<>]/.test(slot)) { skip(p.name, `dynamic slot name "${slot}": the wrapper has to render one slot per item, which needs a hand-written component`); continue; }
@@ -235,6 +235,24 @@ export function modelElement(el, mapping, reg) {
             if (p.name === 'ExtraClass') { declare({ name: 'ExtraClass', kind: 'param', cs: 'string?', doc: 'Extra CSS classes for the element.' }); out.usesClass = true; }
             else if (p.name === 'AdditionalAttributes') out.usesAttributes = true; // every component has it, from PkElementBase
             else skip(p.name, p.todo ? `${p.todo}` : `wrapper behaviour, not a property of the element (${p.note})`);
+        }
+    }
+
+    // ---- 2b. `events`: a callback for each listed element event, named On<Event> ("pk-property-change" -> OnPropertyChange), typed from the meta's
+    // detail (the shared PkXxxEventArgs; no detail is a plain EventCallback). "pk" lists every pk-* event of the element. An event that has an
+    // `event` parameter already is left to it; a native event (click) is not generated, use the normal Blazor syntax (@onclick) for those.
+    if (mapping.events) {
+        const listed = mapping.events === 'pk' ? el.events.filter(e => e.name.startsWith('pk-')).map(e => e.name) : [mapping.events].flat();
+        const covered = new Set(mapping.params.filter(p => inferMap(p) === 'event').map(p => p.event));
+        for (const name of listed) {
+            const ev = eventInfo(name);
+            if (!ev) throw new Error(`${comp}: "events" lists ${name}, which the element does not have`);
+            if (covered.has(name) || ev.native) continue;
+            const pname = 'On' + pascal(name.replace(/^pk-/, ''));
+            if (names.has(pname)) throw new Error(`${comp}: "events" would generate ${pname} for ${name}, but the mapping already has a parameter of that name`);
+            noteEvent(ev, comp);
+            const call = ev.fields.length ? 'args' : 'none';
+            if (declare({ name: pname, kind: 'param', cs: ev.fields.length ? `EventCallback<${ev.args}>` : 'EventCallback', doc: ev.description, cancelable: ev.cancelable })) handler(ev).callbacks.push({ name: pname, call });
         }
     }
 

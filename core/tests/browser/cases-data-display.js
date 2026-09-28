@@ -474,8 +474,9 @@ export const dataDisplayCases = [
         const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav pk-nav-item') && el.part('frame').contentDocument, 'the nav');
         t.eq([...doc.querySelectorAll('#gx-nav pk-nav-item[slot][href]')].map(a => a.textContent.trim()).join(), 'Button');
         t.ok(doc.querySelector('.gx-bar'), 'the toolbar is there');
-        t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
-        t.ok(doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector shows the live markup of the element page');
+        // The element page is drawn asynchronously (elementSlot loads the element's API data first), later than the nav: wait for the page and the inspector it feeds.
+        await until(() => doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the page to open on the control');
+        await until(() => doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector to show the live markup of the element page');
     }],
     ['log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised', async t => {
         const el = await t.mount('<pk-log label="Build output" max="50" style="--pk-log-height: 8rem">Nothing yet.</pk-log>');
