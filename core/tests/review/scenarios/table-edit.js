@@ -1,5 +1,5 @@
 // pk-table in edit mode (issue 331): the grid at rest (active cell, read-only cells, the switch column), a text cell open for editing, a number cell holding an invalid
-// draft (its message, aria-invalid, the editor kept open), and a select cell. Each state must stay inside the scroll frame; on a phone the editor keeps a tap target.
+// draft (its message, aria-invalid, the editor kept open), and a select cell, and an edit undone with Ctrl+Z. Each state must stay inside the scroll frame; on a phone the editor keeps a tap target.
 const columns = JSON.stringify([
     { key: 'sku', label: 'SKU' },
     { key: 'name', label: 'Product', editor: 'text', required: true },
@@ -25,6 +25,8 @@ export default {
         { key: 'Escape' }, { wait: 200 },
         { focus: cell(2, 'qty') }, { key: 'Enter' }, { wait: 200 }, { type: 'lots' }, { key: 'Enter' }, { wait: 200 }, { shot: 'invalid' },
         { key: 'Escape' }, { wait: 200 },
+        { focus: cell(1, 'name') }, { key: 'Enter' }, { wait: 200 }, { key: 'End' }, { type: ' XL' }, { key: 'Enter' }, { wait: 200 }, { shot: 'edited' },
+        { key: 'Control+z' }, { wait: 200 }, { shot: 'undone' },
         { focus: cell(3, 'status') }, { key: 'Enter' }, { wait: 200 }, { shot: 'select' },
     ],
     expect(t) {
@@ -50,6 +52,8 @@ export default {
             t.ok(!!t.attr(`${cell(2, 'qty')} input`, 'aria-describedby'), 'the message is not tied to the editor');
             t.ringVisible(`${cell(2, 'qty')} input`);
         }
+        if (t.shot === 'edited') t.hasText(cell(1, 'name'), 'Widget number one XL');
+        if (t.shot === 'undone') { t.hasText(cell(1, 'name'), 'Widget number one'); t.ok(t.attr(cell(1, 'name'), 'aria-selected') === 'true', 'the undone cell is not the active one'); }
         if (t.shot === 'select') { t.exists(`${cell(3, 'status')} select`); t.within(`${cell(3, 'status')} select`, cell(3, 'status'), 1); }
     },
 };

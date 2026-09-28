@@ -17,7 +17,7 @@ const fakeEl = (tag = 'div') => ({
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = Object.fromEntries(['layout', 'list', 'back', 'none', 'record', 'state', 'detail'].map(p => [p, fakeEl()]));
+    const parts = Object.fromEntries(['header', 'layout', 'list', 'back', 'none', 'record', 'state', 'detail'].map(p => [p, fakeEl()]));
     const errors = [];
     const el = new (behaviour(class {
         part(n) { return parts[n]; }

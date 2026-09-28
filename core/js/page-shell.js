@@ -19,10 +19,11 @@ export function showState(box, state, opts = {}) {
 
 /**
  * The title bar: a pk-page-header in `box` drawn from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant? }] }.
+ * `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
  * Nothing is drawn (and `box` stays hidden) when none is set. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
-export function showTitleBar(host, box) {
-    const { heading, breadcrumb = [], actions = [] } = host.config ?? {};
+export function showTitleBar(host, box, cfg = host.config) {
+    const { heading, breadcrumb = [], actions = [] } = cfg ?? {};
     const doc = host.ownerDocument;
     box.hidden = !heading && !breadcrumb.length && !actions.length;
     box.replaceChildren();

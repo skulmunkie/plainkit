@@ -100,11 +100,30 @@ function save(t, td, draft, focus = true) {
     const error = c.editor === 'switch' ? '' : check(c, draft), value = typed(c, draft), changed = !same(value, previous);
     const stay = msg => { s.edit = { id, key: k, draft: String(draft), error: msg }; s.focus = focus; t.requestUpdate(); return false; };
     if (error) return stay(error);
-    if (changed && !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous })) return stay(t.cellErrors?.[key(id, k)] ?? 'Value not accepted');
-    if (changed) t.rows = t.list('rows').map(r => r === row ? { ...r, [k]: value } : r);
+    if (changed && !put(t, id, k, value)) return stay(t.cellErrors?.[key(id, k)] ?? 'Value not accepted');
     s.edit = null; s.focus = focus; t.requestUpdate();
-    if (changed) say(t, `${label(t, id, k)}: ${c.editor === 'switch' ? (value ? 'on' : 'off') : value ?? 'empty'}`);
+    if (changed) { (s.undo ??= []).push({ id, key: k, from: previous, to: value }); s.undo.splice(0, s.undo.length - 100); s.redo = []; say(t, `${label(t, id, k)}: ${shown(c, value)}`); }
     return true;
+}
+
+const shown = (c, v) => c.editor === 'switch' ? (v ? 'on' : 'off') : v ?? 'empty';
+
+// Offer a value for a cell to the host (pk-cell-edit) and, unless it cancels, hold it in a copy of the rows. False when the row is not drawn or the host refused.
+function put(t, id, k, value) {
+    const i = t.ids().indexOf(id), row = t.view[i];
+    if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k] })) return false;
+    t.rows = t.list('rows').map(r => r === row ? { ...r, [k]: value } : r);
+    return true;
+}
+
+// Ctrl/Cmd+Z and Ctrl+Y (or Ctrl+Shift+Z) step through the committed edits of this table. A step goes through the same pk-cell-edit, so the host sees it like any edit and may refuse it.
+function step(t, back) {
+    const s = st(t), from = back ? s.undo : s.redo, to = back ? (s.redo ??= []) : (s.undo ??= []), h = from?.pop();
+    if (!h) return say(t, back ? 'Nothing to undo' : 'Nothing to redo');
+    const value = back ? h.from : h.to, c = col(t, h.key);
+    if (!put(t, h.id, h.key, value)) { from.push(h); return say(t, `${label(t, h.id, h.key)}: ${back ? 'undo' : 'redo'} not accepted`); }
+    to.push(h); s.a = { id: h.id, key: h.key }; s.focus = true; t.requestUpdate();
+    say(t, `${back ? 'Undo' : 'Redo'}, ${label(t, h.id, h.key)}: ${shown(c, value)}`);
 }
 
 function cancel(t) { const s = st(t); if (!s.edit) return; s.a = { id: s.edit.id, key: s.edit.key }; s.edit = null; s.focus = true; t.requestUpdate(); say(t, 'Edit cancelled'); }
@@ -120,6 +139,7 @@ function keydown(t, e) {
         return;
     }
     if (e.target !== td) return;
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && /^[zy]$/i.test(k)) { e.preventDefault(); step(t, k.toLowerCase() === 'z' && !e.shiftKey); return; }
     const go = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[k];
     if (go) { e.preventDefault(); move(t, td, ...go); }
     else if (k === 'Enter' || k === 'F2' || (k === ' ' && col(t, td.dataset.key).editor === 'switch')) { e.preventDefault(); begin(t, td); }

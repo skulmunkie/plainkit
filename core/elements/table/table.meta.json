@@ -145,7 +145,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Inline cell editing: the table becomes an ARIA grid with one active cell (arrow keys, Home, End, Tab move it), and a cell of a column that has an editor opens with Enter, F2, or a second click or tap on the active cell. Enter (or Tab) commits, Escape cancels, leaving the cell commits. A switch column toggles with Enter, Space or a click. A commit raises pk-cell-edit, and unless the host cancels it the row holds the new value. Turns windowing off (see the summary): a table this size edits every row it draws."
+      "description": "Inline cell editing: the table becomes an ARIA grid with one active cell (arrow keys, Home, End, Tab move it), and a cell of a column that has an editor opens with Enter, F2, or a second click or tap on the active cell. Enter (or Tab) commits, Escape cancels, leaving the cell commits. A switch column toggles with Enter, Space or a click. Ctrl/Cmd+Z undoes the last committed edit of this table (up to 100) and Ctrl+Y or Ctrl/Cmd+Shift+Z redoes it; each step goes through pk-cell-edit, so the host may refuse it. A commit raises pk-cell-edit, and unless the host cancels it the row holds the new value. Turns windowing off (see the summary): a table this size edits every row it draws."
     },
     {
       "name": "cellErrors",
@@ -310,7 +310,7 @@
         "value": "object",
         "previous": "object"
       },
-      "description": "An edited cell is about to be committed (an editable table). value is typed by the column (a number for a number editor, a boolean for a switch, else text) and previous is the value it replaces; the event only fires when they differ, after the element checked required, min, max and maxLength. Cancel it to reject the value: the editor stays open showing cellErrors for the cell, or \"Value not accepted\". Not cancelled, the table replaces its rows with a copy that holds the value and the host takes it from there.",
+      "description": "An edited cell is about to be committed (an editable table). value is typed by the column (a number for a number editor, a boolean for a switch, else text) and previous is the value it replaces; the event only fires when they differ, after the element checked required, min, max and maxLength. Cancel it to reject the value: the editor stays open showing cellErrors for the cell, or \"Value not accepted\". Undo and redo raise it too, with the value being restored. Not cancelled, the table replaces its rows with a copy that holds the value and the host takes it from there.",
       "cancelable": true
     }
   ],

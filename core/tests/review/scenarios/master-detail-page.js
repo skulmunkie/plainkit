@@ -5,11 +5,11 @@ const PARTS = `${MD} >>> `;
 
 export default {
     name: 'master-detail-page',
-    elements: ['master-detail-page', 'list-page', 'alert', 'button'],
+    elements: ['master-detail-page', 'list-page', 'alert', 'button', 'page-header', 'breadcrumb'],
     html: '<pk-stack gap="md"><pk-stack direction="row" gap="sm"><pk-button id="open" size="sm">Open record 2</pk-button><pk-button id="fail" size="sm">Open a failing record</pk-button><pk-button id="clear" size="sm">Clear</pk-button></pk-stack><pk-master-detail-page></pk-master-detail-page></pk-stack>',
     setup(frame) {
         const el = frame.querySelector(MD);
-        el.config = { list: { columns: [{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }] }, backLabel: 'Things', none: { heading: 'No record selected', description: 'Pick a thing from the list.' } };
+        el.config = { heading: 'Orders', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Orders', href: '#' }], actions: [{ key: 'export', label: 'Export', variant: 'secondary' }], list: { heading: 'Things', breadcrumb: [{ label: 'Home', href: '#' }], columns: [{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status' }] }, backLabel: 'Things', none: { heading: 'No record selected', description: 'Pick a thing from the list.' } };
         el.load = () => ({ rows: [{ id: '1', name: 'Blue widget', status: 'Active' }, { id: '2', name: 'Red gadget', status: 'Draft' }, { id: '3', name: 'Green gizmo', status: 'Archived' }], total: 3 });
         el.mountDetail = (pane, id) => {
             if (id === 'bad') throw new Error('The record could not be loaded.');
@@ -28,6 +28,9 @@ export default {
     ],
     expect(t) {
         t.inViewport(MD);
+        t.visible(`${PARTS}[part=header] pk-page-header`, 'the shared title bar');
+        t.noOverlap(`${PARTS}[part=header]`, `${PARTS}[part=layout]`);
+        if (t.shot === 'none' || !(t.viewport.name !== 'desktop')) t.visible(`${PARTS}[part=list] >>> [part=header] pk-page-header`, "the list page's own title bar"); // hidden with the master on a phone once a record is open
         const phone = t.viewport.name !== 'desktop';
         if (t.shot === 'none') {
             t.visible(`${PARTS}[part=master]`, 'the list');
