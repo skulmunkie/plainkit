@@ -1,0 +1,110 @@
+{
+  "tag": "pk-container",
+  "title": "Container",
+  "group": "Containers",
+  "summary": "A max-width, padded content region, optionally scrolling on its own. Wraps a gallery stage, a code view or a doc-like page instead of a hand-styled div with max-width, padding and overflow.",
+  "props": [
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "sm",
+        "md",
+        "lg",
+        "full"
+      ],
+      "reflect": true,
+      "description": "Max width, on the content scale (sm --content-sm, md --content-md, lg --content-lg). full removes the max width."
+    },
+    {
+      "name": "padding",
+      "type": "enum",
+      "default": "md",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "reflect": true,
+      "description": "Padding on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8)."
+    },
+    {
+      "name": "align",
+      "type": "enum",
+      "default": "center",
+      "values": [
+        "center",
+        "start"
+      ],
+      "reflect": true,
+      "description": "center margins the region within its parent (the usual page layout); start pins it to the inline start instead."
+    },
+    {
+      "name": "scroll",
+      "type": "enum",
+      "default": "none",
+      "values": [
+        "none",
+        "y",
+        "both"
+      ],
+      "reflect": true,
+      "description": "Makes the region scroll on its own instead of growing with its content: y for vertical overflow, both for vertical and horizontal. Needs a parent with a definite height (or fill) to have anything to scroll within. A scrolling region gets tabindex=0 and role=region, and needs label."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name for the scrolling region; required when scroll is not none (a warning is logged once when it is missing). Unused otherwise."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fills a flex or grid parent with a definite height (a workspace pane, an app shell body) instead of sizing to content, so scroll has a height to scroll within."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The content."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "root",
+      "description": "The max-width, padded region; the scroll container when scroll is set."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-container-width",
+      "description": "Overrides the size prop with any length (or none).",
+      "default": "the size token"
+    },
+    {
+      "name": "--pk-container-pad",
+      "description": "Overrides the padding prop with any length.",
+      "default": "the padding token"
+    }
+  ],
+  "methods": [],
+  "a11y": "A plain layout box with no role. With scroll set to y or both, the region becomes a keyboard-reachable landmark: tabindex=0, role=region and aria-label from label, so a keyboard or screen reader user can find and scroll it without a pointer.",
+  "examples": [
+    {
+      "title": "Doc-like page",
+      "html": "<pk-container size=\"md\">\n  <h2>Release notes</h2>\n  <p>A centred column of prose, the width and padding both on the token scale.</p>\n</pk-container>"
+    },
+    {
+      "title": "Scrolling region",
+      "html": "<pk-container size=\"lg\" padding=\"none\" scroll=\"both\" label=\"Example output\" fill>\n  <pre>function greet(name) {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet('world'));</pre>\n</pk-container>"
+    }
+  ]
+}
