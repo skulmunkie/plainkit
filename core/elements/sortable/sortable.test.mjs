@@ -6,6 +6,9 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import behaviour, { moveOrder, keyMove, dropIndex, announceMove } from './sortable.js';
 
+// A frame queue that never fires (the browser suite covers the page scroll), for the drag loop.
+globalThis.requestAnimationFrame = () => 1; globalThis.cancelAnimationFrame = () => {};
+
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./sortable.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json')); const css = read('css'); const src = read('js');
 

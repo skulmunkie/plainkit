@@ -37,6 +37,8 @@ export function announceMove(label, index, total) {
     return `${label} moved to position ${index + 1} of ${total}.`;
 }
 
+import { frameLoop, scrollPageStep } from '../../js/drag-scroll.js';
+
 const mid = (el, axis) => { const r = el.getBoundingClientRect(); return axis === 'y' ? (r.top + r.bottom) / 2 : (r.left + r.right) / 2; };
 
 export default Base => class extends Base {
@@ -60,7 +62,8 @@ export default Base => class extends Base {
         const items = this.items, from = items.indexOf(item);
         if (from < 0) return;
         const others = items.filter(i => i !== item);
-        this.$drag = { item, from, to: from, ids: items.map(i => this.idOf(i)), others, axis: this.axis(), mids: others.map(o => mid(o, this.axis())) };
+        this.$drag = { item, from, to: from, x, y, ids: items.map(i => this.idOf(i)), others, axis: this.axis(), mids: others.map(o => mid(o, this.axis())) };
+        if (this.axis() === 'y') (this.$loop ??= frameLoop(() => this.scrollTick())).start();
         item.toggleAttribute('dragging', true);
         this.dragging = true;
         this.say(`Grabbed ${this.idOf(item) || 'the item'}.`);
@@ -68,6 +71,7 @@ export default Base => class extends Base {
     continueDrag(x, y) {
         const d = this.$drag;
         if (!d) return;
+        d.x = x; d.y = y;
         const to = dropIndex(d.mids, d.axis === 'y' ? y : x);
         if (to === d.to) return;
         d.to = to;
@@ -76,7 +80,19 @@ export default Base => class extends Base {
         if (before) before.setAttribute('drop-indicator', 'before');
         else d.others[d.others.length - 1]?.setAttribute('drop-indicator', 'after');
     }
+    // Auto-scroll (js/drag-scroll.js, shared with pk-kanban): a vertical drag near the top or bottom of the window (or of the scrolling ancestor) scrolls it; the cached row
+    // midpoints are viewport coordinates, so they shift by what actually scrolled and the drop position is worked out again under the still pointer.
+    scrollTick() {
+        const d = this.$drag;
+        const dy = d && d.y !== undefined ? scrollPageStep(this, d.y) : 0;
+        if (!dy) return;
+        d.mids = d.mids.map(m => m - dy);
+        this.continueDrag(d.x, d.y);
+    }
+    // A drag in progress must not outlive the element: stop the frame loop.
+    disconnected() { this.$loop?.stop(); }
     endDrag(cancelled) {
+        this.$loop?.stop();
         const d = this.$drag;
         if (!d) return;
         d.item.toggleAttribute('dragging', false);
