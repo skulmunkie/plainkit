@@ -247,7 +247,8 @@ const detailText = d => (d === null || d === undefined ? 'none' : typeof d === '
 export const EXAMPLE_ISSUES = [];
 
 function elementSection(e) {
-    const out = [`## ${code(e.tag)}`, '', `**${e.title}** (${e.group}). ${e.summary}`];
+    const also = e.aliases?.length ? ` Also known as: ${e.aliases.join(', ')}.` : '';
+    const out = [`## ${code(e.tag)}`, '', `**${e.title}** (${e.group}).${also} ${e.summary}`];
     const flags = [e.formAssociated && 'form-associated (takes part in a `<form>` by its `name`)', e.delegatesFocus && 'delegates focus to its inner control'].filter(Boolean);
     if (flags.length) out.push('', `It is ${flags.join(' and ')}.`);
     const deprecated = [[e.deprecated, 'the element'], ...[['prop', 'props'], ['event', 'events'], ['slot', 'slots']].flatMap(([k, l]) => e[l].map(x => [x.deprecated, `${k} ${code(x.name || '(default)')}`]))].filter(([d]) => d);
@@ -281,7 +282,7 @@ function sdkElementFiles(src) {
         for (const e of els) index.push({ e, file: name });
     }
     index.sort((a, b) => a.e.tag.localeCompare(b.e.tag));
-    files.set('references/elements-index.md', [`# Elements: index`, '', stamp(src, 'core/dist/elements/api.json'), '', `${src.api.length} elements. Open the file named in the last column for a tag's props, slots, events, parts, CSS properties, methods and examples.`, '', table(['Tag', 'Group', 'What it is', 'File'], index.map(({ e, file }) => [code(e.tag), e.group, firstSentence(e.summary), code(file.replace('references/', '')) ])), ''].join('\n'));
+    files.set('references/elements-index.md', [`# Elements: index`, '', stamp(src, 'core/dist/elements/api.json'), '', `${src.api.length} elements. Open the file named in the last column for a tag's props, slots, events, parts, CSS properties, methods and examples.`, '', table(['Tag', 'Group', 'Also known as', 'What it is', 'File'], index.map(({ e, file }) => [code(e.tag), e.group, e.aliases?.join(', ') ?? '', firstSentence(e.summary), code(file.replace('references/', '')) ])), ''].join('\n'));
     return { files, slugs: [...bySlug.keys()].sort() };
 }
 
