@@ -25,7 +25,7 @@ const make = () => {
     const discard = fakeEl('pk-button');
     const empty = fakeEl('p');
     for (const p of [sections, bar, status, save, discard, empty]) p.ownerDocument = { createElement: fakeEl };
-    const parts = { saved, form, sections, bar, status, save, discard, empty };
+    const parts = { saved, form, sections, bar, status, save, discard, empty, header: fakeEl('div') };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }
@@ -141,6 +141,27 @@ test('a rejecting save() shows the error in the bar status and keeps the bar ope
     assert.equal(parts.status.kind, 'danger');
     assert.equal(parts.status.textContent, 'network down');
     assert.equal(parts.saved.hidden, true);
+});
+
+test('the shared title bar draws heading, breadcrumb and actions from config, fires pk-action, and stays hidden when none is set', () => {
+    const { el, parts } = make();
+    el.config = { sections: [] };
+    el.connected();
+    assert.equal(parts.header.hidden, true);
+    assert.equal(parts.header.children.length, 0);
+    const events = [];
+    el.dispatchEvent = e => events.push(e.detail.key);
+    el.config = { heading: 'Settings', breadcrumb: [{ label: 'Home', href: '/' }], actions: [{ key: 'reset', label: 'Reset' }] };
+    el.changed('config');
+    assert.equal(parts.header.hidden, false);
+    const [header] = parts.header.children;
+    assert.equal(header.localName, 'pk-page-header');
+    assert.equal(header.heading, 'Settings');
+    assert.equal(header.children[0].localName, 'pk-breadcrumb');
+    const btn = header.children[1];
+    assert.equal(btn.slot, 'actions');
+    btn.fire('click');
+    assert.deepEqual(events, ['reset']);
 });
 
 test('saveNow does nothing without a save callback (no throw)', async () => {
