@@ -167,7 +167,7 @@ const log = createLogger('checkout');
 log.info('order placed', { id: 42 });
 ```
 
-Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`.
+Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`. To measure your own page (load time, DOM size, LCP, CLS, long tasks): `await measurePage('/checkout')` from `./plainkit/js/measure.js` loads it off-screen (same origin) and resolves `{ loadMs, nodes, lcp, cls, longTasks, inp }`; `watchVitals(window)` and `recalcMs(document)` are the live pieces.
 
 ### Build a page
 
