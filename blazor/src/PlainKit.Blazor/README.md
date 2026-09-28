@@ -346,6 +346,15 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 
 `Crumbs` is host-supplied (`IReadOnlyList<PkCrumb>`, the same shape `PkPageHeader` already takes), not derived from a route tree: core has no router today, and `PkSideNav`/`PkAppBarSearch` above resolve their own route state the same explicit way. A route-derived breadcrumb (and other route-driven page state) is tracked as a separate, later piece of work — see issue 219.
 
+## Declaring events and bindings in a mapping
+
+A mapping (`blazor/mappings/<name>.json`) stays declarative; `scripts/generate-blazor.mjs` writes the C# from it:
+
+- `"events": ["pk-property-change"]` (or `"events": "pk"` for every `pk-*` event) generates an `On<Event>` parameter per event (`OnPropertyChange`), an `EventCallback<PkPropertyChangeEventArgs>` typed from the element's `detailProps` (a plain `EventCallback` when the event has no detail). An event that already has an `event` parameter in `params` keeps it; native events (`click`) use the normal `@onclick`.
+- `"bind": { "event": "pk-range-change", "field": "end" }` on a parameter makes it two-way from that field of that event (`EndChanged`, so `@bind-End`). `bind` may be a list of events, and every parameter can have its own, so one event can drive several parameters. `"value": "detail.end"` is the same as `"field": "end"`, and a literal `"value": false` sets a constant.
+- A callback cannot cancel a cancelable event: the browser does not wait for the server. Refuse in your model, or report the refusal through a parameter (`CellErrors` on `PkTable`).
+- Not covered: callbacks that take a JavaScript function (the page types' `load`, `save`, `validate`, ...) need interop design (#346).
+
 ## How binding works
 
 The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivity"):
