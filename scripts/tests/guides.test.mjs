@@ -154,5 +154,21 @@ test('the choosing guide points to every template, layout and pattern that exist
     for (const [what, kind] of [['Template', 'templates'], ['Layout', 'layouts'], ['Pattern', 'patterns']]) {
         for (const s of src.samples[kind]) assert.match(g, new RegExp(`${what}\\s+\`${s.id}\``, 'i'), `the guide never points to the ${what.toLowerCase()} ${s.id}`);
     }
-    assert.match(g, /\| Page type or job \| Start from \| In Blazor \|/);
+    assert.match(g, /\| Page type or job \| Start from \| In an app \(SDK\) \| In Blazor \|/);
+});
+
+// The "Build an app" guide is written from the running samples (samples/app/), so a code block tagged `text` must be lines that exist verbatim in one of them (only the
+// import specifier may differ), and the guide must state the three tenets and the client-guards-are-UX-only rule (#363).
+test('every sample block in the Build an app guide is copied verbatim from a file in samples/app, and the guide states the tenets and the guard rule', () => {
+    const files = [];
+    const walk = dir => { for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) { const p = `${dir}/${e.name}`; if (e.isDirectory()) walk(p); else if (e.name.endsWith('.js')) files.push(read(p)); } };
+    walk('core/samples/app');
+    const norm = s => s.replace(/'(?:\.\/plainkit\/|(?:\.\.\/)+)js\/app\.js'/g, "'@app'").split('\n').map(l => l.trimEnd()).join('\n');
+    const haystack = files.map(norm);
+    const g = guide('build-an-app');
+    const blocks = fencesOf(g.text).filter(f => f.lang === 'text');
+    assert.ok(blocks.length >= 10, `only ${blocks.length} sample blocks`);
+    for (const b of blocks) assert.ok(haystack.some(h => h.includes(norm(b.text))), `not verbatim from samples/app:\n${b.text.slice(0, 200)}`);
+    for (const re of [/Speed/, /Reliability/, /Security/, /client guard is a user-interface rule only/i, /Enforce every permission on the server/]) assert.match(g.text, re);
+    assert.doesNotMatch(g.text, /ctx\.modules\(/, 'module-composed dashboards are not documented until they merge');
 });
