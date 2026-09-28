@@ -1,0 +1,76 @@
+{
+  "component": "PkDateRangePicker",
+  "params": [
+    {
+      "name": "Start",
+      "prop": "start",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "StartChanged",
+      "event": "pk-range-change",
+      "type": "EventCallback<DateOnly?>"
+    },
+    {
+      "name": "End",
+      "prop": "end",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "Min",
+      "prop": "min",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "Max",
+      "prop": "max",
+      "type": "DateOnly?"
+    },
+    {
+      "name": "Presets",
+      "prop": "presets",
+      "type": "string"
+    },
+    {
+      "name": "StartLabel",
+      "prop": "startLabel",
+      "type": "string"
+    },
+    {
+      "name": "EndLabel",
+      "prop": "endLabel",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
+      "name": "AriaLabel",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "OnRangeChange",
+      "event": "pk-range-change"
+    }
+  ],
+  "model": {
+    "prop": "start",
+    "event": "pk-range-change",
+    "key": "start",
+    "type": "DateOnly?"
+  },
+  "notes": "Bind the start with @bind-Start and read both ends in OnRangeChange (args carry Start, End, Valid), or set both from it. Dates convert to and from ISO strings."
+}
