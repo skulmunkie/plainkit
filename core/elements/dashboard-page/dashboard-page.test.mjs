@@ -1,5 +1,5 @@
-// Unit tests for pk-dashboard-page: building sections/tiles from config, and that each tile's load(key) is its own isolated async
-// boundary - loading, ready or error per tile, and a slow/rejecting tile never blocks or corrupts another. Stub base, no DOM.
+// Unit tests for pk-dashboard-page: widgets as pk-card, tabs that load lazily, filters that reload only what already loaded, and that each
+// widget's load(key) is its own isolated async boundary. Stub base, no DOM: a card's state/retry/stateDescription are plain properties.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './dashboard-page.js';
@@ -16,146 +16,234 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const body = fakeEl('div');
+    const parts = { body: fakeEl('div'), filters: fakeEl('div') };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
-        part(n) { return n === 'body' ? body : undefined; }
+        part(n) { return parts[n]; }
         get ownerDocument() { return { createElement: fakeEl }; }
         get shadowRoot() { return fakeRoot; }
     }))();
     el.config = {};
-    return { el, body };
+    return { el, body: parts.body, filters: parts.filters };
 };
 
-// A box (a tile's part="tile" div) after renderState/an assign: box.children[0] is the skeleton/alert/pk-stat/pk-chart.
-const boxFor = (body, key) => body.children.flatMap(s => s.children.find(c => c.attrs.part === 'grid')?.children ?? []).find(b => b.dataset.key === key);
+const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
+const walk = (node, out = []) => { out.push(node); for (const c of node.children ?? []) walk(c, out); return out; };
+const cards = body => walk(body).filter(n => n.localName === 'pk-card');
+const cardFor = (body, key) => cards(body).find(c => c.dataset.key === key);
+const gridKeys = grid => grid.children.map(c => c.dataset.key);
 
-test('buildLayout with no sections puts every tile in one ungrouped grid, in order', () => {
+test('no sections and no tabs puts every widget in one ungrouped grid of pk-cards headed by the label, in order', () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] };
+    el.config = { widgets: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] };
     el.connected();
     assert.equal(body.children.length, 1, 'one section');
     const [section] = body.children;
-    assert.equal(section.children.some(c => c.localName === 'h3'), false, 'no heading without one');
+    assert.equal(section.children.some(c => c.localName === 'h3'), false);
     const grid = section.children.find(c => c.attrs.part === 'grid');
-    assert.deepEqual(grid.children.map(b => b.dataset.key), ['a', 'b']);
+    assert.deepEqual(gridKeys(grid), ['a', 'b']);
+    assert.equal(grid.children[0].localName, 'pk-card');
+    assert.equal(grid.children[0].heading, 'A');
+    assert.equal(walk(body).some(n => n.localName === 'pk-tabs'), false, 'no tab strip');
 });
 
-test('buildLayout groups tiles into sections with their own heading, in the order given, and skips a key with no matching tile', () => {
+test('sections group widgets with their own heading, in order, and skip a key with no widget', () => {
     const { el, body } = make();
     el.config = {
-        tiles: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }, { key: 'c', label: 'C' }],
-        sections: [{ heading: 'Sales', tiles: ['b', 'missing'] }, { heading: 'Ops', tiles: ['a', 'c'] }],
+        widgets: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }, { key: 'c', label: 'C' }],
+        sections: [{ heading: 'Sales', widgets: ['b', 'missing'] }, { heading: 'Ops', widgets: ['a', 'c'] }],
     };
     el.connected();
-    assert.equal(body.children.length, 2);
     const [sales, ops] = body.children;
     assert.equal(sales.children.find(c => c.localName === 'h3').textContent, 'Sales');
-    assert.deepEqual(sales.children.find(c => c.attrs.part === 'grid').children.map(b => b.dataset.key), ['b']);
-    assert.equal(ops.children.find(c => c.localName === 'h3').textContent, 'Ops');
-    assert.deepEqual(ops.children.find(c => c.attrs.part === 'grid').children.map(b => b.dataset.key), ['a', 'c']);
+    assert.deepEqual(gridKeys(sales.children.find(c => c.attrs.part === 'grid')), ['b']);
+    assert.deepEqual(gridKeys(ops.children.find(c => c.attrs.part === 'grid')), ['a', 'c']);
 });
 
-test('a tile with kind stat (the default) resolves load(key) onto a pk-stat labelled from the tile', async () => {
+test('a stat widget (the default) resolves load(key) onto a pk-stat in its card, state ready', async () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'orders', label: 'Open orders' }] };
+    el.config = { widgets: [{ key: 'orders', label: 'Open orders' }] };
     el.load = async key => ({ value: String(key === 'orders' ? 12 : 0), tone: 'positive' });
     el.connected();
-    await Promise.resolve(); await Promise.resolve();
-    const box = boxFor(body, 'orders');
-    const stat = box.children[0];
+    assert.equal(cardFor(body, 'orders').state, 'loading');
+    await flush();
+    const card = cardFor(body, 'orders');
+    assert.equal(card.state, 'ready');
+    const stat = card.children[0];
     assert.equal(stat.localName, 'pk-stat');
     assert.equal(stat.label, 'Open orders');
     assert.equal(stat.value, '12');
     assert.equal(stat.tone, 'positive');
 });
 
-test('a tile with kind chart resolves load(key) onto a pk-chart captioned from the tile', async () => {
+test('a chart widget resolves load(key) onto a pk-chart captioned from the widget', async () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'trend', label: 'Sales trend', kind: 'chart' }] };
-    el.load = async () => ({ data: { labels: ['Jan', 'Feb'], series: [{ name: 'Sales', values: [1, 2] }] } });
+    el.config = { widgets: [{ key: 'trend', label: 'Sales trend', kind: 'chart' }] };
+    el.load = async () => ({ data: { labels: ['Jan'], series: [{ name: 'Sales', values: [1] }] } });
     el.connected();
-    await Promise.resolve(); await Promise.resolve();
-    const chart = boxFor(body, 'trend').children[0];
+    await flush();
+    const chart = cardFor(body, 'trend').children[0];
     assert.equal(chart.localName, 'pk-chart');
     assert.equal(chart.caption, 'Sales trend');
-    assert.deepEqual(chart.data, { labels: ['Jan', 'Feb'], series: [{ name: 'Sales', values: [1, 2] }] });
 });
 
-test('per-tile async boundary: a fast tile renders while a slower sibling is still loading, and a rejecting tile shows its own error without touching the others', async () => {
+test('per-widget async boundary: a fast card is ready while a slow sibling loads, and a rejecting card shows its own error without touching the others', async () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };
+    el.config = { widgets: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };
     let releaseSlow;
     const slowGate = new Promise(r => { releaseSlow = r; });
     el.load = async key => {
         if (key === 'fast') return { value: '1' };
         if (key === 'slow') { await slowGate; return { value: '2' }; }
-        throw new Error('tile boom');
+        throw new Error('widget boom');
     };
     el.connected();
-    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
-
-    // While slow is still pending: fast is already ready, bad has already failed on its own, slow is still a skeleton.
-    assert.equal(boxFor(body, 'fast').children[0].localName, 'pk-stat', 'fast tile did not wait for slow');
-    assert.equal(boxFor(body, 'fast').children[0].value, '1');
-    assert.equal(boxFor(body, 'slow').children[0].localName, 'pk-skeleton', 'slow tile is still loading');
-    const badAlert = boxFor(body, 'bad').children[0];
-    assert.equal(badAlert.localName, 'pk-alert', 'a rejecting tile shows an error, not a stuck skeleton');
-    assert.equal(badAlert.textContent, 'tile boom');
-
+    await flush();
+    assert.equal(cardFor(body, 'fast').state, 'ready');
+    assert.equal(cardFor(body, 'fast').children[0].value, '1');
+    assert.equal(cardFor(body, 'slow').state, 'loading');
+    assert.equal(cardFor(body, 'bad').state, 'error');
+    assert.equal(cardFor(body, 'bad').stateDescription, 'widget boom');
     releaseSlow();
-    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
-    assert.equal(boxFor(body, 'slow').children[0].localName, 'pk-stat', 'slow tile resolves once released');
-    assert.equal(boxFor(body, 'slow').children[0].value, '2');
-    // The fast and bad tiles were never touched by slow's resolution.
-    assert.equal(boxFor(body, 'fast').children[0].value, '1');
-    assert.equal(boxFor(body, 'bad').children[0].localName, 'pk-alert');
+    await flush();
+    assert.equal(cardFor(body, 'slow').state, 'ready');
+    assert.equal(cardFor(body, 'slow').children[0].value, '2');
+    assert.equal(cardFor(body, 'fast').children[0].value, '1');
+    assert.equal(cardFor(body, 'bad').state, 'error');
 });
 
-test('the error state Retry button reloads only that tile', async () => {
+test('the card retry reloads only that widget; retry is set before the state changes', async () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'a', label: 'A' }] };
-    let calls = 0;
-    el.load = async () => { calls++; if (calls === 1) throw new Error('boom'); return { value: 'ok' }; };
+    el.config = { widgets: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] };
+    const calls = { a: 0, b: 0 };
+    el.load = async key => { calls[key]++; if (key === 'a' && calls.a === 1) throw new Error('boom'); return { value: 'ok' }; };
     el.connected();
-    await Promise.resolve(); await Promise.resolve();
-    const alert = boxFor(body, 'a').children[0];
-    assert.equal(alert.localName, 'pk-alert');
-    const retryBtn = alert.children[0];
-    await retryBtn.listeners.click[0]();
-    assert.equal(calls, 2);
-    assert.equal(boxFor(body, 'a').children[0].localName, 'pk-stat');
-    assert.equal(boxFor(body, 'a').children[0].value, 'ok');
+    await flush();
+    const card = cardFor(body, 'a');
+    assert.equal(card.state, 'error');
+    assert.equal(typeof card.retry, 'function');
+    card.retry();
+    await flush();
+    assert.deepEqual(calls, { a: 2, b: 1 });
+    assert.equal(card.state, 'ready');
+    assert.equal(card.children[0].value, 'ok');
 });
 
-test('without a load callback every tile shows its own empty state', async () => {
+test('without a load callback every card is empty with its own text', () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'a', label: 'A', empty: { heading: 'No data yet' } }] };
+    el.config = { widgets: [{ key: 'a', label: 'A', empty: { heading: 'No data yet' } }] };
     el.connected();
-    await Promise.resolve(); await Promise.resolve();
-    const box = boxFor(body, 'a');
-    assert.equal(box.children[0].localName, 'pk-empty-state');
-    assert.equal(box.children[0].attrs.heading, 'No data yet');
+    const card = cardFor(body, 'a');
+    assert.equal(card.state, 'empty');
+    assert.equal(card.stateHeading, 'No data yet');
 });
 
-test('no tiles configured shows the body-level empty state, not a blank body', () => {
+test('no widgets configured shows the body-level empty state', () => {
     const { el, body } = make();
-    el.config = { empty: { heading: 'Add a tile to get started' } };
+    el.config = { empty: { heading: 'Add a widget to get started' } };
     el.connected();
-    assert.equal(body.children.length, 1);
     assert.equal(body.children[0].localName, 'pk-empty-state');
-    assert.equal(body.children[0].attrs.heading, 'Add a tile to get started');
+    assert.equal(body.children[0].attrs.heading, 'Add a widget to get started');
 });
 
-test('changing config rebuilds the layout and reloads every tile', async () => {
+test('changing config rebuilds the layout and reloads every widget', async () => {
     const { el, body } = make();
-    el.config = { tiles: [{ key: 'a', label: 'A' }] };
+    el.config = { widgets: [{ key: 'a', label: 'A' }] };
     el.load = async () => ({ value: '1' });
     el.connected();
-    await Promise.resolve(); await Promise.resolve();
-    el.config = { tiles: [{ key: 'b', label: 'B' }] };
+    await flush();
+    el.config = { widgets: [{ key: 'b', label: 'B' }] };
     el.changed('config');
-    await Promise.resolve(); await Promise.resolve();
-    assert.equal(boxFor(body, 'a'), undefined, 'the old tile is gone');
-    assert.equal(boxFor(body, 'b').children[0].localName, 'pk-stat');
+    await flush();
+    assert.equal(cardFor(body, 'a'), undefined);
+    assert.equal(cardFor(body, 'b').state, 'ready');
+});
+
+const TABBED = {
+    tabs: [{ id: 'overview', label: 'Overview' }, { id: 'sales', label: 'Sales' }],
+    widgets: [{ key: 'revenue', tab: 'overview', label: 'Revenue' }, { key: 'trend', tab: 'overview', label: 'Trend', kind: 'chart' }, { key: 'churn', tab: 'sales', label: 'Churn' }],
+};
+
+test('tabs: a pk-tabs with one pk-tab and pk-tab-panel per tab, each holding only its own widgets', () => {
+    const { el, body } = make();
+    el.config = TABBED;
+    el.load = async () => ({ value: '1' });
+    el.connected();
+    const strip = body.children[0];
+    assert.equal(strip.localName, 'pk-tabs');
+    assert.equal(strip.value, 'overview');
+    const panels = strip.children.filter(c => c.localName === 'pk-tab-panel');
+    assert.deepEqual(panels.map(p => p.value), ['overview', 'sales']);
+    assert.deepEqual(panels.map(p => cards(p).map(c => c.dataset.key)), [['revenue', 'trend'], ['churn']]);
+    assert.deepEqual(strip.children.filter(c => c.localName === 'pk-tab').map(t => t.textContent), ['Overview', 'Sales']);
+});
+
+test('tabs: an unopened tab never calls load(); opening it loads its widgets once; revisiting reloads nothing', async () => {
+    const { el, body } = make();
+    el.config = TABBED;
+    const seen = [];
+    el.load = async key => { seen.push(key); return { value: '1' }; };
+    el.connected();
+    await flush();
+    assert.deepEqual(seen, ['revenue', 'trend'], 'only the initial tab loaded');
+    const strip = body.children[0];
+    strip.fire('pk-tab-change', { detail: { value: 'sales' } });
+    await flush();
+    assert.deepEqual(seen, ['revenue', 'trend', 'churn']);
+    strip.fire('pk-tab-change', { detail: { value: 'overview' } });
+    strip.fire('pk-tab-change', { detail: { value: 'sales' } });
+    await flush();
+    assert.deepEqual(seen, ['revenue', 'trend', 'churn'], 'a revisit is pure visibility');
+});
+
+test('tabs: a widget naming no known tab belongs to the first tab; sections are scoped to their tab', () => {
+    const { el, body } = make();
+    el.config = {
+        tabs: TABBED.tabs,
+        widgets: [{ key: 'x', label: 'X' }, { key: 'y', tab: 'nope', label: 'Y' }, { key: 'z', tab: 'sales', label: 'Z' }],
+        sections: [{ heading: 'Key', tab: 'sales', widgets: ['z'] }],
+    };
+    el.connected();
+    const panels = body.children[0].children.filter(c => c.localName === 'pk-tab-panel');
+    assert.deepEqual(cards(panels[0]).map(c => c.dataset.key), ['x', 'y']);
+    assert.equal(walk(panels[1]).find(c => c.localName === 'h3').textContent, 'Key');
+    assert.deepEqual(cards(panels[1]).map(c => c.dataset.key), ['z']);
+});
+
+test('filters: the bar builds a control per filter; a change lands on this.context and reloads only widgets that already loaded', async () => {
+    const { el, body, filters } = make();
+    el.config = { ...TABBED, filters: [{ key: 'range', type: 'select', label: 'Range', options: ['7d', '30d'] }] };
+    const seen = [];
+    el.load = async key => { seen.push([key, el.context.range]); return { value: '1' }; };
+    el.connected();
+    await flush();
+    assert.equal(filters.children.length, 1);
+    assert.equal(filters.children[0].localName, 'pk-field', 'a select is wrapped so its label shows');
+    assert.equal(filters.children[0].label, 'Range');
+    assert.equal(filters.children[0].children[0].localName, 'pk-select');
+    assert.deepEqual(el.context, {});
+    seen.length = 0;
+    el.onFilterChange({ target: { dataset: { key: 'range' } }, detail: { value: '30d' } });
+    await flush();
+    assert.deepEqual(el.context, { range: '30d' });
+    assert.deepEqual(seen, [['revenue', '30d'], ['trend', '30d']], 'the unopened Sales tab never loaded');
+    body.children[0].fire('pk-tab-change', { detail: { value: 'sales' } });
+    await flush();
+    assert.deepEqual(seen.at(-1), ['churn', '30d'], 'a tab opened later loads with the current selections');
+    seen.length = 0;
+    el.onFilterChange({ target: { dataset: { key: 'range' } }, detail: { value: '' } });
+    await flush();
+    assert.deepEqual(el.context, {}, 'an empty selection is dropped');
+    assert.equal(seen.length, 3, 'now all three widgets have loaded, so all three reload');
+});
+
+test('filters: a config change that keeps the same filters keeps the selections', async () => {
+    const { el } = make();
+    const filters = [{ key: 'q', type: 'text', label: 'Q' }];
+    el.config = { widgets: [{ key: 'a', label: 'A' }], filters };
+    el.connected();
+    el.onFilterChange({ target: { dataset: { key: 'q' } }, detail: { value: 'x' } });
+    el.config = { widgets: [{ key: 'a', label: 'A2' }], filters };
+    el.changed('config');
+    assert.deepEqual(el.context, { q: 'x' });
 });

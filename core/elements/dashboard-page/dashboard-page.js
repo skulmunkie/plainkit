@@ -1,14 +1,16 @@
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { filterControl } from '../../js/filter-controls.js';
 
-// Which element a tile's kind composes.
-const TILE_TAG = { stat: 'pk-stat', chart: 'pk-chart' };
+// Which element a widget's kind composes.
+const WIDGET_TAG = { stat: 'pk-stat', chart: 'pk-chart' };
 
 export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
+        this.part('filters').addEventListener('pk-value-change', e => this.onFilterChange(e));
         this.buildLayout();
     }
     changed(name) {
@@ -16,72 +18,141 @@ export default Base => class extends Base {
         this.buildLayout();
     }
 
-    // Rebuilds every tile box from config.tiles/config.sections and starts each tile's own load, independently: this loop never awaits,
-    // so one tile's slow or rejecting loadTile() never delays or breaks the others (the per-tile-async-boundary requirement, #436).
+    // Rebuilds the filter bar, the tab strip and every widget card from config, then opens the first tab. Nothing here awaits: each widget's
+    // own loadWidget() is its own async boundary, so one slow or rejecting widget never delays or breaks another (#436).
     buildLayout() {
         const doc = this.ownerDocument;
         const body = this.part('body');
         body.replaceChildren();
-        this.$tileBoxes = {};
+        this.$cards = {};
         this.$tokens = {};
-        const tiles = this.config?.tiles ?? [];
-        if (tiles.length === 0) { renderState(body, 'empty', this.config?.empty); loadElements(body); return; }
-        const byKey = Object.fromEntries(tiles.map(t => [t.key, t]));
-        const sections = this.config?.sections?.length ? this.config.sections : [{ tiles: tiles.map(t => t.key) }];
-        for (const section of sections) {
-            const sec = doc.createElement('div');
-            sec.setAttribute('part', 'section');
-            if (section.heading) {
-                const heading = doc.createElement('h3');
-                heading.setAttribute('part', 'section-heading');
-                heading.textContent = section.heading;
-                sec.append(heading);
+        this.$started = new Set();
+        this.buildFilters();
+        const widgets = this.config?.widgets ?? [];
+        if (widgets.length === 0) { renderState(body, 'empty', this.config?.empty); loadElements(body); return; }
+        const tabs = this.config?.tabs?.length ? this.config.tabs : null;
+        const first = tabs?.[0]?.id;
+        // A widget or section naming no known tab belongs to the first one.
+        const tabOf = x => (tabs?.some(t => t.id === x.tab) ? x.tab : first);
+        const byKey = Object.fromEntries(widgets.map(w => [w.key, w]));
+        const sectionsFor = tab => {
+            const own = (this.config?.sections ?? []).filter(s => !tabs || tabOf(s) === tab);
+            return own.length ? own : [{ widgets: widgets.filter(w => !tabs || tabOf(w) === tab).map(w => w.key) }];
+        };
+        const draw = (into, tab) => {
+            for (const section of sectionsFor(tab)) {
+                const sec = doc.createElement('div');
+                sec.setAttribute('part', 'section');
+                if (section.heading) {
+                    const heading = doc.createElement('h3');
+                    heading.setAttribute('part', 'section-heading');
+                    heading.textContent = section.heading;
+                    sec.append(heading);
+                }
+                const grid = doc.createElement('div');
+                grid.setAttribute('part', 'grid');
+                for (const key of section.widgets ?? []) {
+                    const widget = byKey[key];
+                    if (!widget || this.$cards[key]) continue;
+                    const card = doc.createElement('pk-card');
+                    card.heading = widget.label ?? '';
+                    card.dataset.key = key;
+                    card.dataset.tab = tab ?? '';
+                    grid.append(card);
+                    this.$cards[key] = card;
+                }
+                sec.append(grid);
+                into.append(sec);
             }
-            const grid = doc.createElement('div');
-            grid.setAttribute('part', 'grid');
-            for (const key of section.tiles ?? []) {
-                const tile = byKey[key];
-                if (!tile) continue;
-                const box = doc.createElement('div');
-                box.setAttribute('part', 'tile');
-                box.dataset.key = key;
-                grid.append(box);
-                this.$tileBoxes[key] = box;
-            }
-            sec.append(grid);
-            body.append(sec);
+        };
+        if (!tabs) { draw(body, undefined); loadElements(body); this.activate(undefined); return; }
+        const strip = doc.createElement('pk-tabs');
+        strip.setAttribute('part', 'tabs');
+        for (const t of tabs) {
+            const tab = doc.createElement('pk-tab');
+            tab.value = t.id;
+            tab.textContent = t.label ?? t.id;
+            const panel = doc.createElement('pk-tab-panel');
+            panel.value = t.id;
+            draw(panel, t.id);
+            strip.append(tab, panel);
         }
+        strip.value = first;
+        strip.addEventListener('pk-tab-change', e => this.activate(e.detail.value));
+        body.append(strip);
         loadElements(body);
-        for (const tile of tiles) this.loadTile(tile);
+        this.activate(first);
     }
 
-    // One tile's own async boundary: loading, then the tile element on success, or an error state with Retry on rejection. A token guards
-    // against a stale response drawing over a box that has since moved on (rebuilt config, or a newer retry of the same tile).
-    async loadTile(tile) {
-        const box = this.$tileBoxes?.[tile.key];
-        if (!box) return;
-        const token = (this.$tokens[tile.key] = {});
-        renderState(box, 'loading', { label: tile.label ? `Loading ${tile.label}` : 'Loading' });
+    // Starts every widget of `tab` that has never started: the first time a tab is shown, never on a revisit, never for a tab never opened.
+    activate(tab) {
+        for (const w of this.config?.widgets ?? []) {
+            const card = this.$cards[w.key];
+            if (card && (card.dataset.tab || undefined) === tab && !this.$started.has(w.key)) this.loadWidget(w);
+        }
+    }
+
+    buildFilters() {
+        const key = JSON.stringify(this.config?.filters ?? []);
+        const box = this.part('filters');
+        box.hidden = !this.config?.filters?.length;
+        if (key === this.$filtersFor) return;
+        this.$filtersFor = key;
+        this.context = {};
+        // A pk-select has no visible label of its own (its label is the accessible name), so a pk-field shows it; a pk-input shows its own.
+        box.replaceChildren(...(this.config?.filters ?? []).map(f => {
+            const control = filterControl(this.ownerDocument, f);
+            if (control.localName !== 'pk-select') return control;
+            const field = this.ownerDocument.createElement('pk-field');
+            field.label = f.label ?? f.key;
+            field.append(control);
+            return field;
+        }));
         loadElements(box);
-        if (typeof this.load !== 'function') { renderState(box, 'empty', tile.empty); loadElements(box); return; }
-        let result;
-        try {
-            result = await this.load(tile.key);
-        } catch (err) {
-            if (this.$tokens[tile.key] !== token) return;
-            renderState(box, 'error', { description: err?.message ?? String(err), retry: () => this.loadTile(tile) });
-            loadElements(box);
+    }
+    // Selections live on this.context (an empty one is dropped); every widget that already started reloads, never one in an unopened tab.
+    onFilterChange(e) {
+        const key = e.target?.dataset?.key;
+        if (!key) return;
+        const { [key]: _old, ...rest } = this.context ?? {};
+        const value = e.detail?.value;
+        this.context = value == null || String(value) === '' ? rest : { ...rest, [key]: value };
+        for (const w of this.config?.widgets ?? []) if (this.$started.has(w.key)) this.loadWidget(w);
+    }
+
+    // One widget's own async boundary, drawn by its pk-card: loading, the pk-stat/pk-chart in the card's slot on success, or an error with
+    // Retry on rejection. A token guards against a stale response drawing over a card that has since moved on. retry is set before state
+    // (a retry assigned after state="error" does not redraw).
+    async loadWidget(widget) {
+        const card = this.$cards?.[widget.key];
+        if (!card) return;
+        this.$started.add(widget.key);
+        const token = (this.$tokens[widget.key] = {});
+        card.retry = () => this.loadWidget(widget);
+        card.stateHeading = ''; card.stateDescription = '';
+        if (typeof this.load !== 'function') {
+            card.stateHeading = widget.empty?.heading ?? ''; card.stateDescription = widget.empty?.description ?? '';
+            card.state = 'empty';
             return;
         }
-        if (this.$tokens[tile.key] !== token) return;
-        renderState(box, 'ready');
-        const doc = this.ownerDocument;
-        const tag = TILE_TAG[tile.kind] ?? 'pk-stat';
-        const el = doc.createElement(tag);
-        if (tag === 'pk-stat') el.label = tile.label ?? '';
-        if (tag === 'pk-chart') el.caption = tile.label ?? '';
+        card.state = 'loading';
+        let result;
+        try {
+            result = await this.load(widget.key);
+        } catch (err) {
+            if (this.$tokens[widget.key] !== token) return;
+            card.stateDescription = err?.message ?? String(err);
+            card.state = 'error';
+            return;
+        }
+        if (this.$tokens[widget.key] !== token) return;
+        const tag = WIDGET_TAG[widget.kind] ?? 'pk-stat';
+        const el = this.ownerDocument.createElement(tag);
+        if (tag === 'pk-stat') el.label = widget.label ?? '';
+        if (tag === 'pk-chart') el.caption = widget.label ?? '';
         Object.assign(el, result);
-        box.append(el);
-        loadElements(box);
+        card.replaceChildren(el);
+        loadElements(card);
+        card.state = 'ready';
     }
 };

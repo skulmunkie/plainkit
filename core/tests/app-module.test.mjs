@@ -251,7 +251,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
 });
 
-test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tiles, sections), wires load(key) with the page ctx, and cleanup removes the element", async () => {
+test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tabs, widgets, sections, filters, empty), wires load(key) with the page ctx, and cleanup removes the element", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('dashboard-host');
@@ -261,21 +261,23 @@ test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the ele
     const cleanup1 = factory(host1, {}, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-dashboard-page');
-    assert.deepEqual(el1.config, { tiles: undefined, sections: undefined });
+    assert.deepEqual(el1.config, { tabs: undefined, widgets: undefined, sections: undefined, filters: undefined, empty: undefined });
     assert.equal(el1.load, undefined, 'no load callback unless given');
     cleanup1();
     assert.deepEqual(host1.children, [], 'cleanup removes the element');
 
-    const tiles = [{ key: 'orders', label: 'Open orders' }];
-    const sections = [{ heading: 'Sales', tiles: ['orders'] }];
+    const widgets = [{ key: 'orders', label: 'Open orders', tab: 'sales' }];
+    const tabs = [{ id: 'sales', label: 'Sales' }];
+    const sections = [{ heading: 'Sales', tab: 'sales', widgets: ['orders'] }];
+    const filters = [{ key: 'range', type: 'select', label: 'Range', options: ['7d'] }];
     const seen = [];
     const ctx = { id: 'x' };
     const host2 = new Host();
-    factory(host2, { tiles, sections, load: (key, c) => { seen.push([key, c]); return { value: '12' }; } }, ctx);
+    factory(host2, { tabs, widgets, sections, filters, load: (key, c) => { seen.push([key, c]); return { value: '12' }; } }, ctx);
     const el2 = host2.children[0];
-    assert.deepEqual(el2.config, { tiles, sections });
+    assert.deepEqual(el2.config, { tabs, widgets, sections, filters, empty: undefined });
     assert.deepEqual(el2.load('orders'), { value: '12' });
-    assert.deepEqual(seen, [['orders', ctx]], 'load receives the tile key and the page ctx');
+    assert.deepEqual(seen, [['orders', ctx]], 'load receives the widget key and the page ctx');
 });
 
 test('mountPage: the one-page consumer - mounts a page type into a container with no module or app around it, and destroy() tears it down and stops its tracked resources', async () => {

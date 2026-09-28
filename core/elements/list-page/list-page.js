@@ -1,8 +1,6 @@
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
-
-// Which control a filter field builds; pk-input carries every scalar type through its own `type` attribute (STANDARDS.md: only existing components).
-const CONTROL = { text: 'pk-input', email: 'pk-input', number: 'pk-input', date: 'pk-input', select: 'pk-select' };
+import { filterControl } from '../../js/filter-controls.js';
 
 export default Base => class extends Base {
     connected() {
@@ -41,18 +39,7 @@ export default Base => class extends Base {
         box.replaceChildren();
         this.$filterControls = {};
         for (const f of this.config?.filters ?? []) {
-            const tag = CONTROL[f.type] ?? 'pk-input';
-            const el = doc.createElement(tag);
-            el.label = f.label ?? f.key;
-            el.showLabel = true;
-            el.dataset.key = f.key;
-            if (tag === 'pk-input') el.type = f.type ?? 'text';
-            if (tag === 'pk-select') {
-                const any = doc.createElement('option');
-                any.value = ''; any.textContent = f.anyLabel ?? 'Any';
-                el.append(any);
-                for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); }
-            }
+            const el = filterControl(doc, f);
             box.append(el);
             this.$filterControls[f.key] = el;
         }
