@@ -167,7 +167,7 @@ const log = createLogger('checkout');
 log.info('order placed', { id: 42 });
 ```
 
-Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`.
+Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs and the viewer: `references/logging.md`. To measure your own page (load time, DOM size, LCP, CLS, long tasks): `await measurePage('/checkout')` from `./plainkit/js/measure.js` loads it off-screen (same origin) and resolves `{ loadMs, nodes, lcp, cls, longTasks, inp }`; `watchVitals(window)` and `recalcMs(document)` are the live pieces.
 
 ### Build a page
 
@@ -210,7 +210,7 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 ### Upgrade this app to a newer Plainkit
 
-`references/upgrading.md` is a blast-radius recipe, not a changelog summary. While you are in the app, also check it against `references/choosing.md`: a hand-built table, modal, header search or record page that a newer element or template now covers is worth replacing. Recipe: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
+`references/upgrading.md` is a blast-radius recipe, not a changelog summary. While you are in the app, also check it against `references/choosing.md`: a hand-built table (an editable grid is `pk-table` with `editable` and per-column `editor`s, cancelable `pk-cell-edit`), modal, header search or record page that a newer element or template now covers is worth replacing. Recipe: find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, and turn the matches into a severity-ordered checklist. Do the mechanical renames; flag what needs a judgment call.
 
 ### Share a context menu across targets
 
