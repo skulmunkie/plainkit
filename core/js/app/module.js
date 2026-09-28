@@ -10,6 +10,7 @@
 //           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
 //           { path: '*', page: 'not-found' },
 //       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
+//       dashboardTabs: [{ id: 'sales', label: 'Sales' }], dashboard: ctx => [{ key: 'churn', tab: 'sales', label: 'Churn', kind: 'stat', load: async () => ({ value: 3 }) }],   // its part of a { page: 'dashboard' } route (js/app/dashboard.js)
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
 //       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; else, or a throw, denies (fail closed)
 //       mount(ctx) { return () => {}; }, unmount(ctx) {},             // optional; a function returned from mount is cleanup
@@ -35,6 +36,7 @@
 //   settings           what the app passed as `settings`, or null.
 //   theme              { name, set(name), toggle(), subscribe(fn) } for data-theme (js/theme.js); subscribe is a tracked MutationObserver, on demand.
 //   route              { path, params, query } now, module-relative; params and query are untrusted text (textContent only).
+//   modules()          async: the definitions of every module the user may open (loads the rest); what the composed dashboard reads (js/app/dashboard.js).
 //   navigate(path, { replace }) / href(path, params, query)   module-relative router links; navigate returns false without one.
 //   log                createLogger('app:<id>').
 //   on/observe/after   listeners, observers and one-shot timers core removes at that end; each call returns a stop-early fn; called after, they warn and no-op.
@@ -64,11 +66,20 @@ function checkNav(id, items, at = 'nav') {
     }
 }
 
+// dashboardTabs / dashboard (#494): the module's share of the dashboard page, composed by js/app/dashboard.js. A dashboard function is checked when composed.
+function checkDash(id, tabs, widgets) {
+    const bad = (list, what, keys) => { if (list !== undefined && !(Array.isArray(list) && list.every(x => x && keys.every(k => typeof x[k] === 'string')))) fail(id, what); };
+    bad(tabs, 'dashboardTabs must be an array of { id, label }', ['id', 'label']);
+    if (!isFn(widgets)) bad(widgets, 'dashboard must be an array of { key, tab, label, kind } or a function returning one', ['key', 'label', 'kind']);
+    if (Array.isArray(widgets) && widgets.some(w => w.load !== undefined && !isFn(w.load))) fail(id, 'a dashboard widget load must be a function');
+}
+
 export function defineModule(def) {
     const id = def?.id;
     if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match ^[a-z][a-z0-9-]{0,39}$');
     for (const k of ['can', 'mount', 'unmount']) if (def[k] !== undefined && !isFn(def[k])) fail(id, `${k} must be a function`);
     if (def.nav !== undefined && !isFn(def.nav)) checkNav(id, def.nav);
+    checkDash(id, def.dashboardTabs, def.dashboard);
     if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array');
     const seen = new Set();
     for (const { node: r } of flattenRoutes(def.routes ?? [])) {

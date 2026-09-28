@@ -29,7 +29,7 @@ test('the element base runtime stays inside its budget', () => {
 });
 
 test('every behaviour module stays inside the per-module gzip budget and the base set stays small', () => {
-    const modules = ['js/theme', 'js/page', 'js/tasks', 'js/notify', 'js/dialogs', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize', 'js/store', 'js/app', 'js/app/module', 'js/app/host', 'js/app/boundary', 'js/app/app', 'js/app/config', 'js/app/nav', 'js/app/shell', 'js/router', ...fs.readdirSync(path.join(root, 'js/app/pages')).map(f => `js/app/pages/${f.replace(/\.js$/, '')}`)];
+    const modules = ['js/theme', 'js/page', 'js/tasks', 'js/notify', 'js/dialogs', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize', 'js/store', 'js/app', 'js/app/module', 'js/app/host', 'js/app/boundary', 'js/app/app', 'js/app/config', 'js/app/nav', 'js/app/dashboard', 'js/app/shell', 'js/router', ...fs.readdirSync(path.join(root, 'js/app/pages')).map(f => `js/app/pages/${f.replace(/\.js$/, '')}`)];
     for (const m of modules) assert.ok(gzKb(read(`${m}.js`)) < BUDGETS.jsModuleGzKb.limit, `${m}.js is over ${BUDGETS.jsModuleGzKb.limit} KB gzip`);
     assert.ok(gzKb(read('modules/code-explorer/reports.js')) < BUDGETS.jsModuleGzKb.limit, 'modules/code-explorer/reports.js is over the per-module gzip budget');
     const base = ['js/plainkit', 'js/invokers', 'js/log', 'js/loader', 'js/theme', 'js/colour', 'js/dynamic'].map(m => read(`${m}.js`)).join('');

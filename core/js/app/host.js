@@ -1,5 +1,5 @@
 // The module host (#349): runs app modules one at a time inside a container, with a deterministic lifecycle and a boundary around every step that can fail.
-// No shell, no router of its own: mountApp (step 4) wires it to the router; it is usable and tested on its own with a fake host element.
+// No shell or router of its own (mountApp wires them); usable on its own.
 //
 //   const host = createModuleHost(document.getElementById('app'), {
 //       modules: [{ id: 'orders', title: 'Orders', load: () => import('./modules/orders.js') }],   // the ALLOW-LIST: a static literal per module, never built from data
@@ -7,7 +7,7 @@
 //       auth, can,       // optional: ctx.auth (opaque to the framework), and (entry, { auth, id, route }) => true | { allow: false, redirect } for the whole app
 //       store, settings, // optional: a createStore() (default: one of its own, prefix 'pk'), and the app settings facade given to ctx.settings
 //       services,        // optional: more members for every ctx (mountApp adds ctx.search); core's own members win over a service of the same name
-//       tasks,           // optional: the app's task manager, createTasks({ container, ... }) from js/tasks.js (the shell makes it); ctx.tasks.run(spec) then runs a task of the module (or page)
+//       tasks,           // optional: the app's task manager, createTasks({ container, ... }) (js/tasks.js); ctx.tasks.run(spec) then runs a task of the module or page
 //       notify, dialogs, // optional: js/notify.js, js/dialogs.js; else ctx.notify, ctx.dialogs are null
 //   });
 //   const router = mountRouter(el, { mode: 'hash', routes: [...], guard: host.guard });   // access is checked BEFORE anything is imported...
@@ -17,8 +17,8 @@
 // can (app, entry, module; fail closed) -> unmount of the module being left -> mount(ctx) -> per route: layout, page factory (host, config, ctx) -> on a route change
 // page cleanup -> on a module switch page cleanup, unmount(ctx), the cleanup mount returned, then everything ctx tracked is disposed. Steps that change what is mounted
 // run one at a time in request order; a request made while another is in flight cancels the older one (its ctx.signal aborts, what it mounted is torn down before
-// the newer one starts). A failed import, timeout or denied module leaves the previous module mounted and usable; a throwing mount or page shows the boundary error
-// and Retry, and a module can always be left. Every failure is logged through the SDK logger (scope app:<id>).
+// the newer starts). A failed import, timeout or denied module leaves the previous one mounted; a throwing mount or page shows the boundary error and Retry.
+// Every failure is logged (scope app:<id>).
 //
 // The module id in an address is only a key into the allow-list (ids are checked against MODULE_ID first); nothing else is ever passed to import().
 // show(id, { path, query }) / open(address, query) resolve to 'ok' | 'forbidden' | 'not-found' | 'error' | 'superseded'.
@@ -32,6 +32,7 @@ import { loadElements } from '../loader.js';
 import { setTheme, currentTheme, toggleTheme } from '../theme.js';
 import { MODULE_ID, defineModule, pageTypeFor, layoutFor } from './module.js';
 import { createBoundary, loadWithRetry } from './boundary.js';
+import { allModules } from './dashboard.js';
 
 const log = createLogger('app');
 const norm = p => '/' + String(p ?? '').split(/[?#]/)[0].split('/').filter(Boolean).join('/');
@@ -137,7 +138,8 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         const facade = def.state ? getStore().module(id, def.state) : null;
         const page = createPage({ alert: box.status, body: box.body, scope: `app:${id}` });
         const base = {
-            ...services, id, auth, log: lg, page, store: facade, settings: settings ?? null,
+            ...services, id, auth, modules: () => allModules({ allow, defs, access, define: defineModule, log }),
+            log: lg, page, store: facade, settings: settings ?? null,
             get route() { return s.route; },
             navigate: (p, o) => (router ? router.navigate(join(id, p), o) : (lg.warn('navigate: no router was given to the host'), false)),
             href: (p, params, query) => (router ? router.href(join(id, p), params, query) : null),
