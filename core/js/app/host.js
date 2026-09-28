@@ -65,7 +65,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     const wait = ms => new Promise(resolve => { const id = setTimeout(() => { timers.delete(id); resolve(); }, ms); timers.set(id, resolve); });
     const within = (promise, ms) => {
         let id;
-        const timeoutP = new Promise((_, reject) => { id = setTimeout(() => reject(new Error(`no answer after ${ms} ms`)), ms); timers.set(id, () => {}); });
+        const timeoutP = new Promise((_, reject) => { id = setTimeout(() => reject(Object.assign(new Error(`no answer after ${ms} ms`), { userFacing: true })), ms); timers.set(id, () => {}); });
         return Promise.race([promise, timeoutP]).finally(() => { clearTimeout(id); timers.delete(id); });
     };
 

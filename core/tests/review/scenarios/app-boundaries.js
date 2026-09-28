@@ -50,6 +50,7 @@ export default {
         if (t.shot === 'loading-first') {
             t.visible('#app pk-skeleton', 'the skeleton that holds the space');
             t.atLeast('#app pk-skeleton', 'height', 200);
+            t.ok(t.style('#app pk-skeleton', 'background-color') !== t.style('body', 'background-color'), 'the skeleton fill differs from the page background');
             t.hidden(ALERT, 'the error alert');
         }
         if (t.shot === 'loaded') { t.absent('#app pk-skeleton'); t.hasText('#app pk-card', 'is loaded'); t.hidden(ALERT, 'the error alert'); }
@@ -60,7 +61,7 @@ export default {
         }
         if (t.shot === 'import-error') {
             t.visible(ALERT, 'the error alert');
-            t.hasText(ALERT, 'Failed to fetch');
+            t.hasText(ALERT, 'Something went wrong loading this part of the app'); // a raw import error is not userFacing (#378): the generic text shows, not the fetch detail
             t.ok(t.attr(ALERT, 'heading') === 'Could not load Broken', `the heading is "${t.attr(ALERT, 'heading')}"`);
             t.within(ALERT, '#app', 1);
             t.visible('#app pk-alert pk-button', 'the Retry button');
@@ -72,7 +73,7 @@ export default {
         if (t.shot === 'retry-ok') { t.hidden(ALERT, 'the error alert after a successful retry'); t.hasText('#app pk-card', 'second try'); }
         if (t.shot === 'mount-error') {
             t.visible(ALERT, 'the error alert');
-            t.hasText(ALERT, 'threw while starting');
+            t.hasText(ALERT, 'Something went wrong loading this part of the app'); // a thrown mount error is not userFacing (#378): the generic text shows, not the exception's own message
             t.visible(state, 'a placeholder instead of a blank page');
             t.noOverlap(ALERT, state);
             t.within(ALERT, '#app', 1);

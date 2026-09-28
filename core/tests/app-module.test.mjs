@@ -9,7 +9,9 @@ import { fileURLToPath } from 'node:url';
 import { defineModule, moduleFromMount, registerPageType, registerLayout, pageTypeFor, mountPage } from '../js/app/module.js';
 import { createModuleHost } from '../js/app/host.js';
 import { createStore } from '../js/store.js';
-import { setLogLevel, addLogSink } from '../js/log.js';
+import { setLogLevel, configureLogging, addLogSink } from '../js/log.js';
+import { BOUNDARY_FAILED_TEXT } from '../js/app/boundary.js';
+const GENERIC_TEXT_RE = new RegExp(`^${BOUNDARY_FAILED_TEXT.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
 import { mountRouter } from '../js/router.js';
 import { mountLogSettings } from '../modules/log-settings/log-settings.js';
 import { mountFieldGroup } from '../modules/field-group/field-group.js';
@@ -482,7 +484,7 @@ test('a failing import is retried once after a backoff, then shows the boundary 
     assert.equal(alert.hidden, false);
     assert.equal(alert.getAttribute('kind'), 'danger');
     assert.equal(alert.getAttribute('heading'), 'Could not load Flaky');
-    assert.match(alert.textContent, /chunk 404/);
+    assert.match(alert.textContent, GENERIC_TEXT_RE, 'a raw import error is not userFacing: the generic text shows, not "chunk 404"');
     assert.equal(mounted, 1); assert.equal(cleaned, 0, 'the previous module was not unmounted');
     assert.equal(host.current().id, 'good');
     assert.equal(bodyOf(container).children.length, 1, 'the previous page is still there');
@@ -517,16 +519,43 @@ test('a module whose mount throws, a page that throws and an unmount that throws
     const host = createModuleHost(container, { modules: [entryFor('boom', boom), entryFor('page', badPage), entryFor('okay', okay)], ...fast });
     const before = logs.length;
     assert.equal(await host.show('boom'), 'error');
-    assert.match(errorOf(container).textContent, /mount exploded/);
+    assert.match(errorOf(container).textContent, GENERIC_TEXT_RE, 'a thrown mount error is not userFacing: the generic text shows, not "mount exploded"');
     assert.equal(host.current(), null, 'nothing half-mounted is left');
     assert.equal(await host.show('page', { path: '/' }), 'error');
-    assert.match(errorOf(container).textContent, /page exploded/);
+    assert.match(errorOf(container).textContent, GENERIC_TEXT_RE, 'a thrown page error is not userFacing: the generic text shows, not "page exploded"');
     assert.equal(await host.show('page', { path: '/ok' }), 'ok', 'the module is still usable after its page failed');
     assert.equal(errorOf(container).hidden, true);
     assert.equal(await host.show('okay'), 'ok', 'a module whose unmount throws can still be left');
     assert.equal(host.current().id, 'okay');
     const mine = logs.slice(before).filter(e => e.level === 'error').map(e => e.message);
     for (const re of [/mount threw/, /page for \/ failed/, /unmount threw/]) assert.ok(mine.some(m => re.test(m)), String(re));
+    await host.destroy();
+});
+
+test('boundary error text (#378): generic by default, the raw message only when the error is userFacing or the app scope logs at debug; always logged in full either way', async () => {
+    const { container } = makeDom();
+    const boom = defineModule({ id: 'boom', mount: () => { throw new Error('db password: hunter2'); } });
+    const timedOut = { id: 'timedout', title: 'Timed out', load: () => new Promise(() => {}) };
+    const host = createModuleHost(container, { modules: [entryFor('boom', boom), timedOut], ...fast, timeout: 10, retries: 0 });
+
+    // not userFacing, debug off: generic text; the raw message is still logged in full.
+    const before = logs.length;
+    assert.equal(await host.show('boom'), 'error');
+    assert.match(errorOf(container).textContent, GENERIC_TEXT_RE);
+    assert.ok(logs.slice(before).some(e => e.level === 'error' && /hunter2/.test(e.detail?.message ?? '')), 'the raw detail is still logged for a developer');
+
+    // a host-authored message (the timeout) is marked userFacing: shows even with debug off.
+    assert.equal(await host.show('timedout'), 'error');
+    assert.match(errorOf(container).textContent, /no answer after 10 ms/);
+
+    // debug on (the 'app' scope): the raw message shows even though it is not userFacing.
+    configureLogging({ scopes: { app: 'debug' } });
+    try {
+        assert.equal(await host.show('boom'), 'error');
+        assert.match(errorOf(container).textContent, /hunter2/);
+    } finally {
+        configureLogging({ scopes: {} }, { replace: true });
+    }
     await host.destroy();
 });
 
@@ -554,9 +583,9 @@ test('unknown page types and layouts, unknown module routes and route guards sho
     assert.equal(await host.show('pages', { path: '/cfg/%3Cimg%20onerror%3E' }), 'ok');
     assert.equal(bodyOf(container).children[0].getAttribute('data-n'), '<img onerror>', 'params arrive as text, decoded once');
     assert.equal(await host.show('pages', { path: '/record' }), 'error');
-    assert.match(errorOf(container).textContent, /page type "record" is not available/);
+    assert.match(errorOf(container).textContent, /^Something went wrong loading this part of the app\. Try again\./, 'not userFacing: the generic text shows, not "page type ... is not available"');
     assert.equal(await host.show('pages', { path: '/nolayout' }), 'error');
-    assert.match(errorOf(container).textContent, /layout "nope" is not available/);
+    assert.match(errorOf(container).textContent, /^Something went wrong loading this part of the app\. Try again\./, 'not userFacing: the generic text shows, not "layout ... is not available"');
     assert.equal(await host.show('pages', { path: '/secret' }), 'forbidden');
     assert.equal(await host.show('pages', { path: '/gone' }), 'not-found');
     assert.equal(await host.show('pages', { path: '/nothing/here' }), 'not-found');

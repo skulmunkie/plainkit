@@ -97,7 +97,7 @@ export const appCases = [
         t.ok(!alert.hidden, 'the error is shown');
         t.eq(alert.heading, 'Could not load Flaky');
         t.eq(alert.shadowRoot.querySelector('[part=title]').textContent, 'Could not load Flaky', 'the upgraded alert renders its heading');
-        t.ok(/dynamically imported module|Failed to fetch|error loading/i.test(alert.textContent), `the message says what failed: ${alert.textContent}`);
+        t.ok(/Something went wrong loading this part of the app\. Try again\./.test(alert.textContent), `a raw import error is not userFacing: the generic text shows, not the fetch detail: ${alert.textContent}`);
         t.ok(el.textContent.includes('good page'), 'the previous module is still on screen');
         t.eq(host.current().id, 'good');
         const retry = alert.querySelector('pk-button[slot=action]');
@@ -141,9 +141,9 @@ export const appCases = [
         try {
             t.eq(await host.show('boom'), 'error');
             await t.load(el);
-            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('mount exploded'));
+            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('Something went wrong loading this part of the app. Try again.'), 'a thrown mount error is not userFacing: the generic text shows');
             t.eq(await host.show('bad', { path: '/' }), 'error');
-            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('page exploded'));
+            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('Something went wrong loading this part of the app. Try again.'), 'a thrown page error is not userFacing: the generic text shows');
             t.eq(await host.show('bad', { path: '/ok' }), 'ok', 'the module is still usable after its page failed');
             t.ok(el.textContent.includes('bad ok') && el.querySelector('pk-alert[kind=danger]').hidden);
             t.eq(await host.show('fine'), 'ok', 'a module whose unmount throws can still be left');
@@ -276,5 +276,41 @@ export const appCases = [
         await until(() => el.part('main').textContent === 'recovered' && !state.firstElementChild, 'Retry to recover');
         t.eq(attempts, 2);
         page.destroy();
+    }],
+
+    ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
+        const el = document.createElement('pk-doc-page');
+        el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
+        el.loadItem = async id => ({ title: `Guide ${id.toUpperCase()}`, summary: 'A summary', html: '<h2 id="one">One</h2><p>text</p><h2 id="two">Two</h2><p><a href="#two">to two</a></p>' });
+        el.href = (id, anchor) => `#/${id}${anchor ? `/${anchor}` : ''}`;
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        await until(() => el.querySelector('h2#two'), 'the article body to render');
+        const toc = el.querySelector('pk-toc');
+        await t.load(host);
+        await until(() => toc.shadowRoot?.querySelectorAll('a').length === 2, 'the table of contents to list both headings');
+        t.eq(el.querySelector('pk-side-nav').querySelectorAll('pk-nav-item').length, 2, 'one nav item per config.items entry');
+        t.ok(el.querySelector('pk-nav-item[current]')?.getAttribute('href') === '#/a', 'the current item is marked and linked through href()');
+        let detail = null;
+        el.addEventListener('pk-navigate', e => { detail = e.detail; });
+        const before = location.href;
+        el.querySelector('a[href="#two"]').click();
+        t.eq(location.href, before, 'the element never touches history itself');
+        t.eq(detail?.anchor, 'two', 'pk-navigate reports the heading');
+        t.eq(detail?.id, 'a');
+        host.replaceChildren();
+
+        const inst = instrument();
+        try {
+            const baseline = inst.snapshot().listeners.length;
+            for (let i = 0; i < 100; i++) {
+                const one = document.createElement('pk-doc-page');
+                one.config = { items: [{ id: 'a', title: 'A' }] };
+                host.append(one);
+                await t.load(host);
+                one.remove();
+            }
+            t.eq(inst.snapshot().listeners.length, baseline, 'no document/window listener is left behind after 100 mount/unmount cycles');
+        } finally { inst.restore(); }
     }],
 ];

@@ -52,6 +52,10 @@
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
  ],
+ "doc-page": [
+  "(max-width: 1280px)",
+  "(max-width: 1024px)"
+ ],
  "drawer": [
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
