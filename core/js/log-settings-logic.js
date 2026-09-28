@@ -69,8 +69,7 @@ export const sameDraft = (a, b) => JSON.stringify(configFrom(a)) === JSON.string
 // Is something other than the saved settings choosing the level? ?pk-log= in the URL wins over <html data-pk-log>, which wins over the
 // saved settings (js/log.js levelFrom). Returns { source: 'url' | 'attribute', level } or null.
 export function levelOverride({ search = '', attr = null } = {}) {
-    let fromUrl = null;
-    try { fromUrl = new URLSearchParams(search).get('pk-log'); } catch { /* not a query string */ }
+    const fromUrl = new URLSearchParams(search).get('pk-log'); // parses any string and never throws
     const valid = v => (v && LEVELS.includes(String(v).toLowerCase()) ? String(v).toLowerCase() : null);
     if (valid(fromUrl)) return { source: 'url', level: valid(fromUrl) };
     if (valid(attr)) return { source: 'attribute', level: valid(attr) };

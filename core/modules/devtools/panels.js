@@ -6,10 +6,13 @@
 
 import { describeForInspector } from '../../js/inspect-logic.js';
 import { loadElements } from '../../js/loader.js';
+import { createLogger } from '../../js/log.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
 import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
 import { h } from '../../js/mount-support.js';
+
+const log = createLogger('devtools');
 
 // The Quality tab is the standalone quality module (modules/quality) mounted in the dock; the dock hides itself while it measures.
 export const qualityPanel = {
@@ -32,7 +35,7 @@ export const inspectorPanel = {
             columns: JSON.stringify([{ key: 'tag', label: 'Element' }, { key: 'domId', label: 'Id' }, { key: 'props', label: 'Set with' }, { key: 'size', label: 'Size', align: 'end' }]),
         });
         el.append(h(doc, 'pk-cluster', {}, refresh, status), h(doc, 'div', { class: 'u-mt-3' }, table));
-        loadElements(el).catch(() => { /* loadElements logs its own failures */ });
+        loadElements(el).catch(err => log.debug('elements did not load (loadElements reports it)', err));
 
         let found = [];
         let outlined = null;

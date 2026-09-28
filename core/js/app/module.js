@@ -48,7 +48,7 @@
 // left (a route change or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
 import { flattenRoutes } from '../route-tree.js';
 import { createLogger } from '../log.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
 export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'custom', 'not-found', 'states']);
 

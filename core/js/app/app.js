@@ -22,7 +22,7 @@
 //   regions        an empty pk-toast-stack and dialog host are mounted for the toast and dialog services (#373); nothing shows until they are used
 //
 // What is in the entry and what loads later (#514, the pattern for an app that stays small): the entry holds only what the first paint of a route needs (the config check, the router,
-// the module host and its boundaries, the shell, the nav, the page overlay, the store and the theme). Everything that waits for a user or a module loads on first use through the ONE
+// the module host and its boundaries, the shell, the nav, the page overlay, the store and the three theme calls of js/theme-core.js; the override and colour code of js/theme.js stays out). Everything that waits for a user or a module loads on first use through the ONE
 // allowed import() (js/app/module.js): a page type when a route names it (js/app/pages/<type>.js), and the task, notification and dialog services when a module first calls
 // ctx.tasks, ctx.notify or ctx.dialogs (js/app/lazy.js: same contract, the code arrives with the first call; the chunks are js/app/pages/svc-*.js). Each chunk file stays under the
 // per-chunk budget, and tests/app-budgets.test.mjs holds the entry's size down (limits only ever come down).
@@ -33,7 +33,7 @@ import { createLogger } from '../log.js';
 import { createPage } from '../page.js';
 import { createStore } from '../store.js';
 import { withLegacy } from '../store-extras.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 import { loadElements } from '../loader.js';
 import { mountRouter } from '../router.js';
 import { mediaBelow } from '../breakpoints.js';
