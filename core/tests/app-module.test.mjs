@@ -792,3 +792,26 @@ test("'workspace' (step 7, #353) creates a pk-workspace-page, splits config into
     assert.equal(el2.mount({ main: 1 }), 'handle');
     assert.deepEqual(seen, [[{ main: 1 }, { id: 'x' }]], 'mount receives the panes and the page ctx');
 });
+
+test("'master-detail' (step 7, #353) creates a pk-master-detail-page, selects the record from the route, and wires load, row and Back through ctx", async () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const factory = (await import('../js/app/pages/master-detail.js')).default;
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, { route: { params: {} } });
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-master-detail-page');
+    assert.equal(el1.recordId, undefined, 'no id in the route: nothing selected');
+    assert.equal(el1.load, undefined); assert.equal(el1.open, undefined); assert.equal(el1.mountDetail, undefined);
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const go = [], host2 = new Host(), ctx = { route: { params: { thing: 7 } }, navigate: p => go.push(p) };
+    factory(host2, { list: { columns: [] }, param: 'thing', fill: true, rowHref: r => `/things/${r.id}`, listHref: '/things', load: (q, c) => [q, c], mountDetail: (pane, id, c) => [pane, id, c] }, ctx);
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config.list, { columns: [] }); assert.equal(el2.recordId, '7'); assert.equal(el2.fill, true);
+    el2.open({ id: 3 }); el2.close();
+    assert.deepEqual(go, ['/things/3', '/things'], 'row and Back navigate through ctx.navigate');
+    assert.deepEqual(el2.load('q'), ['q', ctx]); assert.deepEqual(el2.mountDetail('p', '7'), ['p', '7', ctx]);
+});
