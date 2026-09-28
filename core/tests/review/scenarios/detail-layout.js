@@ -5,7 +5,7 @@ const lines = (n, what) => Array.from({ length: n }, (_, i) => `<p>${what} line 
 const BODY = 'pk-app-shell >>> [part=body]';
 const SIDEBAR = '#dl >>> [part=sidebar]';
 const MAIN = '#dl >>> [part=main]';
-const GAP_ISSUE = 321, DOCK_ISSUE = 322, TABS_PR = 316;
+const DOCK_ISSUE = 322, TABS_PR = 316;
 
 export default {
     name: 'detail-layout',
@@ -44,7 +44,7 @@ export default {
             if (t.shot === 'top' && side && main) t.ok(Math.abs(side.y - main.y) <= 2, `the sidebar starts at y=${Math.round(side.y)}, the main content at y=${Math.round(main.y)}`);
             if (t.shot === 'top') {
                 const a = t.rect('#status'), b = t.rect('#customer');
-                if (a && b) t.known(GAP_ISSUE, b.y - a.bottom >= 8, `the sidebar cards are ${Math.round(b.y - a.bottom)}px apart (the documented div slot=sidebar wrapper leaves them flush); the layout's own gap is 16px`);
+                if (a && b) t.ok(b.y - a.bottom >= 8, `the sidebar cards are ${Math.round(b.y - a.bottom)}px apart (issue #321: [part=sidebar] ::slotted(*) now spaces a wrapper's own children too)`);
             }
             if (t.shot === 'docked' && side && body) {
                 // Taller than the window: it docks by its bottom edge, so it moved up and stays put while the main column scrolls.
