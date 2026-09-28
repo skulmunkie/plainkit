@@ -393,32 +393,22 @@ export class CodeExplorerElement extends Base {
         const start = total <= max ? 1 : Math.max(1, Math.min(centre - Math.floor(max / 2), total - max + 1));
         const end = Math.min(total, start + max - 1);
         const caps = this.#provider.capabilities ?? {};
-        const rows = [];
-        for (let n = start; n <= end; n++) {
-            const text = doc.lines[n - 1];
-            const segs = buildSegments(text, doc.tokens[n - 1] ?? [], [], wordSpans(text, this.#word));
-            rows.push(`<div class="cv-row${n === this.#focus ? ' cv-row--focus' : ''}" data-line="${n}"><span class="cv-no">${n}</span><span class="cv-code">${segs.map(s => {
-                const cls = [s.kind !== 'plain' ? `tk-${s.kind}` : '', s.match ? 'cv-match' : '', s.word ? 'cv-word' : ''].filter(Boolean).join(' ');
-                return cls ? `<span class="${cls}">${esc(s.text)}</span>` : esc(s.text);
-            }).join('')}</span></div>`);
-        }
-        fill(pane, `<div class="cv cv--fill"><div class="cv-title"><span class="cv-name">${esc(doc.path)}</span><span class="cv-meta"><span class="cv-lang">${esc(doc.language)}</span><span class="cv-count">${total.toLocaleString()} lines</span></span>${caps.outline ? '<pk-button size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : ''}${caps.references && this.#word ? `<pk-button size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : ''}</div>${start > 1 || end < total ? `<div class="cv-notice">Showing lines ${start}-${end} of ${total}.</div>` : ''}<div class="cv-scroll" tabindex="0">${rows.join('')}</div></div>`);
+        fill(pane, `<div class="cv cv--fill"><div class="cv-title"><span class="cv-name">${esc(doc.path)}</span><span class="cv-meta"><span class="cv-lang">${esc(doc.language)}</span><span class="cv-count">${total.toLocaleString()} lines</span></span>${caps.outline ? '<pk-button size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : ''}${caps.references && this.#word ? `<pk-button size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : ''}</div>${start > 1 || end < total ? `<div class="cv-notice">Showing lines ${start}-${end} of ${total}.</div>` : ''}<pk-code-view class="cv-scroll" label="${esc(doc.path)}"></pk-code-view></div>`);
+        const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
+        Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
+        view.addEventListener('pk-line-click', e => this.#onLineClick(e.detail));
         this.#upgrade();
-        if (this.#focus) pane.querySelector('.cv-row--focus')?.scrollIntoView({ block: 'center' });
         this.#renderInspector();
     }
 
     #onPaneClick(e) {
         if (e.target.closest('[data-ce-outline]')) return this.#showOutline();
         if (e.target.closest('[data-ce-usages]')) return this.#showUsages();
-        const row = e.target.closest('.cv-row'); const code = e.target.closest('.cv-code');
-        const sel = this.ownerDocument.defaultView.getSelection();
-        if (!row || !code || !sel?.anchorNode || !sel.isCollapsed) return;
-        let col = sel.anchorOffset;
-        const walker = this.ownerDocument.createTreeWalker(code, NodeFilter.SHOW_TEXT);
-        for (let n = walker.nextNode(); n && n !== sel.anchorNode; n = walker.nextNode()) col += n.textContent.length;
-        const line = Number(row.dataset.line);
-        const word = wordAt(this.#docs.get(this.#active).lines[line - 1], col);
+    }
+
+    // A click in the code viewer: toggle the word under the caret as the selected word and focus its line.
+    #onLineClick({ line, column }) {
+        const word = wordAt(this.#docs.get(this.#active).lines[line - 1], column);
         this.#word = word === this.#word ? '' : word; this.#focus = line;
         this.#renderPane();
     }

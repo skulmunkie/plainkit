@@ -29,8 +29,9 @@ export const toolCases = [
         const handle = await mountCodeExplorer(host, { snapshot: SNAPSHOT, file: 'src/app.js', line: 2, search: 'return', theme: 'light', height: '20rem' });
         const el = handle.element;
         t.eq(el.getAttribute('data-theme'), 'light');
-        await until(() => el.querySelector('.cv-row--focus'), 'the opened file');
-        t.eq(el.querySelector('.cv-row--focus .cv-code').textContent.trim(), 'return 42;', 'the requested line is focused');
+        const hl = () => el.querySelector('pk-code-view')?.shadowRoot?.querySelector('.row.hl');
+        await until(hl, 'the opened file');
+        t.eq(hl().querySelector('.code').textContent.trim(), 'return 42;', 'the requested line is focused');
         await until(() => el.querySelector('.csr-hit'), 'the search results');
         t.eq(el.querySelectorAll('.csr-hit').length, 1);
         await handle.search('nothing-matches-this'); await t.settle();
@@ -49,8 +50,9 @@ export const toolCases = [
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');
         const handle = await mountCodeExplorer(host, { provider: p, file: 'plainkit.css', height: '20rem' });
-        await until(() => handle.element.querySelector('.cv-row'), 'the opened file');
-        t.ok(handle.element.querySelectorAll('.cv-row').length > 1, 'openFile through the element also fetched real content, not an error page');
+        const rows = () => handle.element.querySelector('pk-code-view')?.shadowRoot?.querySelectorAll('.row') ?? [];
+        await until(() => rows().length, 'the opened file');
+        t.ok(rows().length > 1, 'openFile through the element also fetched real content, not an error page');
         handle.destroy();
     }],
 
