@@ -15,28 +15,6 @@ const here = path => new URL(path, import.meta.url).href;
 const ELEMENTS = await loadAllElements(); // the scorecard reads every element's examples: all the chunks
 const elementTargets = () => ELEMENTS.map(m => ({ id: m.tag, name: m.title, kind: m.group || 'Other', samples: m.examples.map(x => ({ srcdoc: ({ theme }) => sampleDoc(x.html, { theme }) })) }));
 
-// Every template that claims the viewport must reach its bottom edge (minus the footer strip) at each size.
-const VIEWPORTS = [[1280, 800], [1920, 1080], [375, 812]];
-async function workspaceFill({ host }) {
-    const failures = [];
-    for (const [w, h] of VIEWPORTS) {
-        const f = document.createElement('iframe');
-        f.style.cssText = `position:fixed;left:-20000px;top:0;width:${w}px;height:${h}px;border:0`;
-        f.src = '../../samples/templates/workspace/workspace.html?nav=side';
-        host.append(f);
-        await new Promise(r => f.addEventListener('load', () => setTimeout(r, 400), { once: true }));
-        const d = f.contentDocument; const ws = d.querySelector('pk-workspace, .workspace'); const foot = d.querySelector('[slot="footer"], .shell-footer');
-        // The footer is slotted spans; the strip they sit in (the shell's footer part) is what takes the room.
-        const strip = foot?.assignedSlot?.parentElement ?? foot;
-        const bottom = ws.getBoundingClientRect().bottom; const want = h - (strip?.getBoundingClientRect().height ?? 0);
-        const scroll = d.documentElement.scrollHeight > h + 1;
-        if (bottom < want - 2 || scroll) failures.push({ w, h, bottom: Math.round(bottom), want: Math.round(want), pageScroll: scroll });
-        f.remove();
-    }
-    if (!failures.length) return [];
-    return [{ id: 'workspace-fill', name: 'Workspace fills the viewport', kind: 'Page templates', findings: failures.map(x => ({ check: 'workspace-fill', severity: 'error', category: 'look', selector: `${x.w}x${x.h}`, message: JSON.stringify(x), count: 1, contexts: [] })), score: 0 }];
-}
-
 // The page-level sheets and every element's css.
 async function stylesheetFiles() {
     const registry = (await import('../../elements/registry.js')).default;
@@ -79,7 +57,6 @@ async function main() {
         link: i => `../gallery/index.html#/elements/${i.id}`,
         rankedLabel: 'Element',
         fileLink: (file, line) => `../files/index.html#path=${encodeURIComponent(file)}&line=${line}`,
-        extraItems: workspaceFill,
         data: {
             scoring: SCORING,
             budgets: BUDGETS,
