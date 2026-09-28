@@ -37,6 +37,7 @@ export default {
 <div id="body"><pk-card heading="Orders"><p>Order 1041 shipped to Acme Ltd.</p><p>Order 1042 is waiting for payment.</p><p>Order 1043 was refunded.</p><pk-button id="inside" size="small">Open order</pk-button></pk-card></div>
 <pk-app-shell id="shell" hidden><pk-side-nav slot="nav" label="Main"><a slot="brand" href="#">Acme</a><pk-nav-item href="#" current>Reports</pk-nav-item></pk-side-nav><h2 slot="title">Reports</h2><span slot="footer">Acme Inc.</span><pk-loading-overlay id="tall" label="Loading the report…"><pk-card heading="Report">${ROWS}</pk-card></pk-loading-overlay></pk-app-shell>
 <div id="short-wrap" hidden><pk-loading-overlay id="short" label="Saving…"><pk-card><p>Saved 3 orders.</p></pk-card></pk-loading-overlay></div>
+<div id="narrow-wrap" hidden><pk-loading-overlay id="narrow" label="Loading Exports"><pk-card heading="Reports"><p>Reports is loaded and shows its own content.</p></pk-card></pk-loading-overlay></div>
 </div>`,
     setup(frame) {
         const page = createPage({ body: frame.querySelector(BODY), alert: frame.querySelector('#alert'), delay: 2500, minTime: 300, scope: 'scenario-page-busy' });
@@ -67,6 +68,7 @@ export default {
         { set: '#tall', attr: 'busy', value: true }, { wait: 100 }, { shot: 'tall-top' },
         { scroll: SCROLLER, to: 900 }, { wait: 100 }, { shot: 'tall-scrolled' },
         { set: '#shell', attr: 'hidden', value: true }, { set: '#short-wrap', attr: 'hidden', value: null }, { set: '#short', attr: 'busy', value: true }, { wait: 100 }, { shot: 'short' },
+        { set: '#short-wrap', attr: 'hidden', value: true }, { set: '#narrow-wrap', attr: 'hidden', value: null }, { set: '#narrow', attr: 'busy', value: true }, { wait: 100 }, { shot: 'narrow' },
     ],
     expect(t) {
         const frame = t.frame;
@@ -103,6 +105,14 @@ export default {
             legible(t, '#short', 'the very short region'); t.inViewport('#short >>> [part=panel]', 1);
             const p = t.rect('#short >>> [part=panel]'), o = t.rect('#short');
             if (p && o) t.ok(Math.abs(p.cy - o.cy) <= 2 && Math.abs(p.cx - o.cx) <= 2, 'the panel is centred in the short region');
+        }
+        if (t.shot === 'narrow') {
+            // Issue 376: a two-line card (heading + one sentence) that is short enough for the panel to land on the sentence. The panel used to
+            // hug its own content, leaving faded words visible on both sides at the same height as the label - readable fragments of a sentence
+            // beside an unrelated label. Below a 24rem (384px) region the panel now fills the width, so it covers a whole line, not part of one.
+            legible(t, '#narrow', 'the narrow region');
+            const p = t.rect('#narrow >>> [part=panel]'), o = t.rect('#narrow');
+            if (p && o && o.width <= 384) t.ok(o.width - p.width <= 48, `the panel (${p.width}px) should fill a narrow region (${o.width}px) instead of leaving faded text beside it`);
         }
         if (t.shot === 'failed') { t.visible('#alert', 'the danger alert'); t.ok(t.attr('#alert', 'kind') === 'danger', 'the status is danger'); t.hidden(SHADE, 'the overlay'); t.ok(t.attr(BODY, 'aria-busy') === null, 'no stuck busy'); }
     },

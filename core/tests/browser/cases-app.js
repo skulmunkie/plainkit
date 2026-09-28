@@ -97,7 +97,7 @@ export const appCases = [
         t.ok(!alert.hidden, 'the error is shown');
         t.eq(alert.heading, 'Could not load Flaky');
         t.eq(alert.shadowRoot.querySelector('[part=title]').textContent, 'Could not load Flaky', 'the upgraded alert renders its heading');
-        t.ok(/dynamically imported module|Failed to fetch|error loading/i.test(alert.textContent), `the message says what failed: ${alert.textContent}`);
+        t.ok(/Something went wrong loading this part of the app\. Try again\./.test(alert.textContent), `a raw import error is not userFacing: the generic text shows, not the fetch detail: ${alert.textContent}`);
         t.ok(el.textContent.includes('good page'), 'the previous module is still on screen');
         t.eq(host.current().id, 'good');
         const retry = alert.querySelector('pk-button[slot=action]');
@@ -141,9 +141,9 @@ export const appCases = [
         try {
             t.eq(await host.show('boom'), 'error');
             await t.load(el);
-            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('mount exploded'));
+            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('Something went wrong loading this part of the app. Try again.'), 'a thrown mount error is not userFacing: the generic text shows');
             t.eq(await host.show('bad', { path: '/' }), 'error');
-            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('page exploded'));
+            t.ok(el.querySelector('pk-alert[kind=danger]').textContent.includes('Something went wrong loading this part of the app. Try again.'), 'a thrown page error is not userFacing: the generic text shows');
             t.eq(await host.show('bad', { path: '/ok' }), 'ok', 'the module is still usable after its page failed');
             t.ok(el.textContent.includes('bad ok') && el.querySelector('pk-alert[kind=danger]').hidden);
             t.eq(await host.show('fine'), 'ok', 'a module whose unmount throws can still be left');
