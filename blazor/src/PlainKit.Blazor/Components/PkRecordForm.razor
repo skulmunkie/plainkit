@@ -4,22 +4,17 @@
    A PkForm (with its validation summary) around a native form, and inside it a PkStack of: the toolbar (Cancel, the caller's Actions,
    Delete, Save) under the page's breadcrumbs, the caller's Tabs, the error alert, and the body. The body is the caller's PkCards in the main
    column and, when a Sidebar is given, a PkDetailLayout with the status cards beside them; without a Sidebar it is the main column alone.
-   The state half (load, validate, save, delete) is not here: the page keeps that, or uses PkRecordEditor. *@
+   The state half (load, validate, save, delete) is not here: the page keeps that, or uses PkRecordEditor.
+   ActionsInHeader (issue 324) drops the toolbar row and expects the caller to place HeaderActions in the page's own PkPageHeader instead, so
+   the buttons stay in the sticky title bar. The form carries an id so the header's Save button, living outside it, still submits it (the
+   pk-button element is form-associated and resolves a form attribute the same way a native submit button would). *@
 <PkForm Summary OnValid="OnValid">
-    <form @onsubmit:preventDefault>
+    <form id="@_formId" @onsubmit:preventDefault>
         <PkStack>
-            <PkCluster Justify="end">
-                @if (OnCancel.HasDelegate)
-                {
-                    <PkButton Variant="ButtonVariant.Ghost" OnClick="OnCancel">Cancel</PkButton>
-                }
-                @Actions
-                @if (OnDelete.HasDelegate)
-                {
-                    <PkButton Variant="ButtonVariant.Warn" OnClick="OnDelete" Disabled="Busy">@DeleteLabel</PkButton>
-                }
-                <PkButton Type="submit" Variant="ButtonVariant.Primary" Busy="Busy" BusyText="@BusyText" Disabled="SaveDisabled">@SaveLabel</PkButton>
-            </PkCluster>
+            @if (!ActionsInHeader)
+            {
+                <PkCluster Justify="end">@ToolbarButtons</PkCluster>
+            }
             @Tabs
             @if (!string.IsNullOrEmpty(Error))
             {
@@ -79,4 +74,64 @@
 
     /// <summary>A message shown in an error alert above the body; empty or null shows none.</summary>
     [Parameter] public string? Error { get; set; }
+
+    /// <summary>
+    /// Keeps Cancel/Actions/Delete/Save out of this component's own toolbar row so the caller can place
+    /// <see cref="HeaderActions"/> in a <c>PkPageHeader</c>'s <c>ActionsContent</c> instead, which keeps them visible
+    /// in the sticky title bar instead of scrolling away with a toolbar under it. Off by default so existing pages
+    /// keep their toolbar row unchanged.
+    /// </summary>
+    [Parameter] public bool ActionsInHeader { get; set; }
+
+    // A stable id for the native form, so a submit button living outside it (the header's Save, when
+    // ActionsInHeader moves it there) can still submit it via a form attribute.
+    private readonly string _formId = $"pk-record-form-{Guid.NewGuid():N}";
+
+    /// <summary>
+    /// The same Cancel/Actions/Delete/Save buttons this component would otherwise draw in its own toolbar row, for
+    /// use as a <c>PkPageHeader</c>'s <c>ActionsContent</c> when <see cref="ActionsInHeader"/> is set. Because Blazor
+    /// only populates a <c>@@ref</c> after the referenced component has rendered once, the header (which usually sits
+    /// above this component in the page's markup) needs one extra render to pick it up:
+    /// <code>
+    /// &lt;PkPageHeader ActionsContent="_form?.HeaderActions" ... /&gt;
+    /// &lt;PkRecordForm @@ref="_form" ActionsInHeader OnValid="..."&gt;...&lt;/PkRecordForm&gt;
+    /// </code>
+    /// with, on the page:
+    /// <code>
+    /// protected override void OnAfterRender(bool firstRender) { if (firstRender) StateHasChanged(); }
+    /// </code>
+    /// </summary>
+    public RenderFragment HeaderActions => ToolbarButtons;
+
+    private RenderFragment ToolbarButtons => builder =>
+    {
+        var i = 0;
+        if (OnCancel.HasDelegate)
+        {
+            builder.OpenComponent<PkButton>(i++);
+            builder.AddAttribute(i++, nameof(PkButton.Variant), ButtonVariant.Ghost);
+            builder.AddAttribute(i++, nameof(PkButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, (MouseEventArgs _) => OnCancel.InvokeAsync()));
+            builder.AddAttribute(i++, nameof(PkButton.ChildContent), (RenderFragment)(inner => inner.AddContent(0, "Cancel")));
+            builder.CloseComponent();
+        }
+        builder.AddContent(i++, Actions);
+        if (OnDelete.HasDelegate)
+        {
+            builder.OpenComponent<PkButton>(i++);
+            builder.AddAttribute(i++, nameof(PkButton.Variant), ButtonVariant.Warn);
+            builder.AddAttribute(i++, nameof(PkButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, (MouseEventArgs _) => OnDelete.InvokeAsync()));
+            builder.AddAttribute(i++, nameof(PkButton.Disabled), Busy);
+            builder.AddAttribute(i++, nameof(PkButton.ChildContent), (RenderFragment)(inner => inner.AddContent(0, DeleteLabel)));
+            builder.CloseComponent();
+        }
+        builder.OpenComponent<PkButton>(i++);
+        builder.AddAttribute(i++, nameof(PkButton.Type), "submit");
+        builder.AddAttribute(i++, "form", _formId);
+        builder.AddAttribute(i++, nameof(PkButton.Variant), ButtonVariant.Primary);
+        builder.AddAttribute(i++, nameof(PkButton.Busy), Busy);
+        builder.AddAttribute(i++, nameof(PkButton.BusyText), BusyText);
+        builder.AddAttribute(i++, nameof(PkButton.Disabled), SaveDisabled);
+        builder.AddAttribute(i++, nameof(PkButton.ChildContent), (RenderFragment)(inner => inner.AddContent(0, SaveLabel)));
+        builder.CloseComponent();
+    };
 }
