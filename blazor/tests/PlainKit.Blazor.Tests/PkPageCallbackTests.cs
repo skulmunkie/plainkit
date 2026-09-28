@@ -46,7 +46,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var call = Assert.Single(_bridge.Invocations["setCallback"]);
         Assert.IsType<ElementReference>(call.Arguments[0]);
         Assert.Equal("run", call.Arguments[1]);
-        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost>>(call.Arguments[2]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(call.Arguments[2]);
         var result = await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"text\":\"a b c\",\"n\":2}")));
 
         Assert.Equal("a b c", seen!["text"].GetString());
@@ -58,7 +58,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     public async Task ToolPage_run_that_throws_faults_the_call_so_the_element_shows_its_error_state()
     {
         var cut = Render<PkToolPage>(p => p.Add(x => x.Run, _ => throw new InvalidOperationException("boom")));
-        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
         var e = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
         Assert.Equal("boom", e.Message);
@@ -68,7 +68,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     public async Task ToolPage_clears_the_callback_when_Run_is_removed_and_releases_the_reference_on_dispose()
     {
         var cut = Render<PkToolPage>(p => p.Add(x => x.Run, _ => Task.FromResult<object?>("ok")));
-        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
         cut.Render(p => p.Add<Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>>?>(x => x.Run, null));
         Assert.Equal(2, _bridge.Invocations["setCallback"].Count);
@@ -77,7 +77,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
 
         // and once more set, then disposed with the component
         cut.Render(p => p.Add(x => x.Run, _ => Task.FromResult<object?>("ok")));
-        var again = Assert.IsType<DotNetObjectReference<PkCallbackHost>>(_bridge.Invocations["setCallback"].Last().Arguments[2]);
+        var again = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(_bridge.Invocations["setCallback"].Last().Arguments[2]);
         await DisposeComponentsAsync();
         Assert.Throws<ObjectDisposedException>(() => again.Value);
     }
@@ -91,11 +91,84 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("{\"density\":\"cozy\"}", cut.Find("pk-settings-page").GetAttribute("values"));
         var call = Assert.Single(_bridge.Invocations["setCallback"]);
         Assert.Equal("save", call.Arguments[1]);
-        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost>>(call.Arguments[2]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(call.Arguments[2]);
         var result = await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"compact\",\"beta\":true}")));
 
         Assert.Null(result);
         Assert.Equal("compact", saved!["density"].GetString());
         Assert.True(saved["beta"].GetBoolean());
+    }
+
+    private sealed record Order(string OrderNo, int Total);
+
+    [Fact]
+    public async Task ListPage_load_gets_the_query_as_a_request_and_returns_rows_and_total()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"columns\":[{\"key\":\"orderNo\",\"label\":\"No\"}]}")
+            .Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 41)); }));
+
+        Assert.Contains("orderNo", cut.Find("pk-list-page").GetAttribute("config"));
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("load", call.Arguments[1]);
+        Assert.Equal(true, call.Arguments[3]);   // a list that drew its empty state before the callback existed redraws (or, not yet defined, loads when it upgrades)
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(call.Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"page\":3,\"pageSize\":10,\"sort\":\"total\",\"sortDir\":\"descending\",\"search\":\" ab \",\"filters\":{\"status\":\"open\"}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        var result = await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal(new PkListRequest("ab", "total", true, 3, 10), seen! with { Filters = null });
+        Assert.Equal("open", seen.Filters!["status"]);
+        Assert.Equal(20, seen.Skip);
+        var json = JsonSerializer.SerializeToElement(result);
+        Assert.Equal(41, json.GetProperty("total").GetInt32());
+        Assert.Equal("A-1", json.GetProperty("rows")[0].GetProperty("OrderNo").GetString());
+    }
+
+    [Fact]
+    public async Task ListPage_default_query_is_page_one_with_no_search_sort_or_filters()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery(Sort: "", Search: "  ")));
+
+        Assert.Null(seen!.Search);
+        Assert.Null(seen.SortKey);
+        Assert.False(seen.Descending);
+        Assert.Equal(1, seen.Page);
+        Assert.Null(seen.Filters);
+    }
+
+    [Fact]
+    public void ListPage_sets_no_callback_without_Load()
+    {
+        Render<PkListPage<Order>>();
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
+    }
+
+    [Fact]
+    public async Task ListPage_load_that_throws_faults_the_call_so_the_element_shows_its_error_state()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, _ => throw new InvalidOperationException("db down")));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
+        Assert.Equal("db down", e.Message);
+    }
+
+    [Fact]
+    public async Task ListPage_clears_the_callback_when_Load_is_removed_and_releases_the_reference_on_dispose()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Order>([], 0))));
+        var first = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        cut.Render(p => p.Add<Func<PkListRequest, Task<PkListResult<Order>>>?>(x => x.Load, null));
+        Assert.Null(_bridge.Invocations["setCallback"].Last().Arguments[2]);
+        Assert.Throws<ObjectDisposedException>(() => first.Value);
+
+        cut.Render(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Order>([], 0))));
+        var again = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(_bridge.Invocations["setCallback"].Last().Arguments[2]);
+        await DisposeComponentsAsync();
+        Assert.Throws<ObjectDisposedException>(() => again.Value);
     }
 }

@@ -80,9 +80,10 @@ export async function mountDevTools(container, options, host) {
     mounted.set(container, await mountDevTools(mode === 'inline' ? container : null, { mode, ...rest, panels }));
 }
 
-// A callback property of a page element (pk-tool-page run, pk-settings-page save): config is data, so a callback is set from script. host is a DotNetObjectReference
-// of PkCallbackHost; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it.
-export const setCallback = (el, name, host) => { if (host) el[name] = values => host.invokeMethodAsync('Invoke', values); else delete el[name]; };
+// A callback property of a page element (pk-tool-page run, pk-settings-page save, pk-list-page load): config is data, so a callback is set from script. host is a DotNetObjectReference
+// of PkCallbackHost<TArg>; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it. refresh: an element
+// that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.
+export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = arg => host.invokeMethodAsync('Invoke', arg); if (refresh) el.refresh?.(); } else delete el[name]; };
 
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();

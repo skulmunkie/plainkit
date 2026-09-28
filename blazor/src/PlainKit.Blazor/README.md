@@ -335,6 +335,23 @@ async Task DeleteAsync()
 
 Call them from an event handler or `OnAfterRenderAsync`: prerendering has no page, so a call there does nothing and logs one warning. Not yet: a dialog `template` or a `validate` callback (use `Required` and `MaxLength`), and a handle to dismiss a toast early.
 
+### Page types with callbacks: `PkToolPage`, `PkSettingsPage`, `PkListPage<TItem>`
+
+The page types of the app framework take their business logic as a callback the element calls; `Config` (JSON) stays data. The component hands the element a .NET reference, so a page is a config string plus one delegate. A delegate that throws shows the element's own error state (Retry on the tool and list pages, the message in the settings status bar), and the reference is released when the component is disposed.
+
+- `PkToolPage`: `Run` gets the input values keyed by field key (`JsonElement`) and returns what the outcome shows.
+- `PkSettingsPage`: `Save` gets the values the same way.
+- `PkListPage<TItem>`: `Load` gets a `PkListRequest` (`Page`, `PageSize`, `SortKey`, `Descending`, `Search`, `Filters`, `Skip`) and returns a `PkListResult<TItem>` (`Items`, `Total`), the same types as `PkDataList`. Column keys in `Config` are the camel-case property names of `TItem`. It reloads on every sort, search, filter and page change. `rowHref` is not available yet (it is synchronous in the element and cannot cross interop).
+
+```razor
+<PkListPage TItem="Order" Config="@_config" Load="LoadAsync" />
+
+@code {
+    // Config: { "columns": [{ "key": "orderNo", "label": "No", "sortable": true }], "filters": [{ "key": "status", "type": "text", "label": "Status" }] }
+    async Task<PkListResult<Order>> LoadAsync(PkListRequest r) => await Orders.PageAsync(r.Search, r.SortKey, r.Descending, r.Skip, r.PageSize);
+}
+```
+
 ### PageBase: the state a page repeats by hand
 
 A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
