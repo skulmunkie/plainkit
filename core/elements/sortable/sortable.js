@@ -20,9 +20,7 @@ export function moveOrder(order, from, to) {
 
 // Alt+ArrowUp / Alt+ArrowDown: the index the key asks for, or null for any other key or with nowhere to go.
 export function keyMove(key, index, length) {
-    if (key === 'ArrowUp') return index > 0 ? index - 1 : null;
-    if (key === 'ArrowDown') return index < length - 1 ? index + 1 : null;
-    return null;
+    return key === 'ArrowUp' || key === 'ArrowDown' ? stepIndex(key, index, length) ?? null : null;
 }
 
 // The insertion index a pointer position means, given the midpoints of the other rows along the drag axis, in their current order.
@@ -37,6 +35,7 @@ export function announceMove(label, index, total) {
     return `${label} moved to position ${index + 1} of ${total}.`;
 }
 
+import { navigable, stepIndex } from '../../js/roving.js';
 import { frameLoop, scrollPageStep } from '../../js/drag-scroll.js';
 
 const mid = (el, axis) => { const r = el.getBoundingClientRect(); return axis === 'y' ? (r.top + r.bottom) / 2 : (r.left + r.right) / 2; };
@@ -123,9 +122,8 @@ export default Base => class extends Base {
             return;
         }
         if (e.altKey) return;
-        const nav = items.filter(x => !x.disabled), ni = nav.indexOf(item); // a disabled row is skipped, never landed on
-        const to = { ArrowDown: ni + 1 < nav.length ? ni + 1 : null, ArrowUp: ni > 0 ? ni - 1 : null, Home: 0, End: nav.length - 1 }[e.key];
-        if (to === null || to === undefined) return;
+        const nav = navigable(items), to = stepIndex(e.key, nav.indexOf(item), nav.length); // a disabled row is skipped, never landed on
+        if (to == null) return;
         e.preventDefault();
         nav[to].focus();
     }
