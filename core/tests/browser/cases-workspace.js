@@ -218,6 +218,14 @@ export const workspaceCases = [
         g.addLabel = 'Upload photo'; await t.settle(); t.eq(g.part('add-text').textContent.trim(), 'Upload photo');
     }],
 
+    ['image gallery: hide-add keeps make-primary, remove and reorder but never draws the add tile', async t => {
+        const g = await gallery(t, 'editable hide-add');
+        t.ok(!shown(g.part('add-tile')), 'no add tile');
+        t.ok(shown(tiles(g)[0].querySelector('[part="actions"]')), 'the per-tile actions still show');
+        g.makePrimary(1); await t.settle(); t.eq(g.primary, 1, 'make-primary still works');
+        g.hideAdd = false; await t.settle(); t.ok(shown(g.part('add-tile')), 'turning hideAdd off redraws it');
+    }],
+
     ['image gallery: an input in the input slot (a Blazor InputFile) becomes the add tile\'s own picker; its own change carries the real files, and pk-add does not fire for it', async t => {
         const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
         g.images = IMAGES.map(i => ({ ...i })); await t.settle(); await t.load(g.shadowRoot);
