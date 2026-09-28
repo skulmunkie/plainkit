@@ -37,6 +37,12 @@
       "type": "bool"
     },
     {
+      "name": "Options",
+      "prop": "options",
+      "type": "IReadOnlyList<PkSelectOption>?",
+      "note": "Sent as a JSON attribute ([{ value, label, disabled }], camelCase). When set (non-empty), it wins over ChildContent's option/optgroup markup and a warning is logged once. Grouped options are not covered by this typed parameter; build the options attribute by hand for that shape."
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

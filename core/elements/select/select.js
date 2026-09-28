@@ -1,7 +1,29 @@
-// pk-select behaviour: the browser's select in a token skin. The options are the element's own <option> and <optgroup> children, cloned into the inner select.
+// pk-select behaviour: the browser's select in a token skin. The options are either the element's own <option> and <optgroup> children (cloned into the
+// inner select) or, when the `options` property is given, built from that data straight into the inner select: the host owns its light-DOM children
+// (STANDARDS "Ownership and reactivity"), so data options never get written there and instead go directly to the shadow-side control they already own.
 export const flagsOf = v => { const o = {}; for (const k in v) o[k] = v[k]; return o; };
 // The selected values of a select-like list of {value, selected} options.
 export const selectedValues = options => options.filter(o => o.selected).map(o => o.value);
+// One option entry (a plain value, or { value, label, disabled }) as an <option> element.
+export function buildOption(doc, o) {
+    const op = doc.createElement('option'), isObj = o && typeof o === 'object';
+    const v = isObj ? o.value : o;
+    op.value = v ?? ''; op.textContent = isObj ? (o.label ?? v ?? '') : String(o);
+    if (isObj && o.disabled) op.disabled = true;
+    return op;
+}
+// The `options` array (flat, or grouped as { group, options: [...] }) as <option>/<optgroup> elements.
+export function buildOptions(doc, list) {
+    return list.map(item => {
+        if (item && typeof item === 'object' && 'group' in item) {
+            const g = doc.createElement('optgroup');
+            g.label = item.group ?? '';
+            g.append(...(item.options ?? []).map(o => buildOption(doc, o)));
+            return g;
+        }
+        return buildOption(doc, item);
+    });
+}
 
 export default Base => class extends Base {
     connected() {
@@ -15,10 +37,19 @@ export default Base => class extends Base {
         s.addEventListener('input', () => this.dispatchEvent(new Event('input', { bubbles: true, composed: true })));
         this.$opts = true;
     }
+    changed(name) { if (name === 'options') { this.$opts = true; this.requestUpdate(); } }
     updated() {
         const s = this.part('control');
         s.multiple = this.multiple;
-        if (this.$opts ?? true) { this.$opts = false; s.replaceChildren(...[...this.children].filter(c => c.localName === 'option' || c.localName === 'optgroup').map(c => c.cloneNode(true))); this.$pushed = false; }
+        if (this.$opts ?? true) {
+            this.$opts = false;
+            const data = Array.isArray(this.options) ? this.options : [];
+            if (data.length) {
+                if ([...this.children].some(c => c.localName === 'option' || c.localName === 'optgroup')) this.warnOnce('options', 'options is set: slotted option/optgroup children are ignored');
+                s.replaceChildren(...buildOptions(this.ownerDocument ?? document, data));
+            } else s.replaceChildren(...[...this.children].filter(c => c.localName === 'option' || c.localName === 'optgroup').map(c => c.cloneNode(true)));
+            this.$pushed = false;
+        }
         if (!this.$typing) {
             const wanted = this.multiple ? this.value.split(',') : [this.value];
             if ([...s.options].some(o => wanted.includes(o.value))) for (const o of s.options) o.selected = wanted.includes(o.value);

@@ -76,12 +76,19 @@
       "default": false,
       "reflect": true,
       "description": "Allows several selections (value is comma-separated; the form submits one entry each)."
+    },
+    {
+      "name": "options",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Options as data: a flat array of { value, label, disabled? }, a plain array of strings, or grouped as [{ group, options: [...] }]. Rendered straight into the inner select (the host's own option/optgroup children are never touched, only read). When set (non-empty), it wins over slotted option/optgroup children and a warning is logged once."
     }
   ],
   "slots": [
     {
       "name": "",
-      "description": "option and optgroup elements."
+      "description": "option and optgroup elements; ignored while options is set."
     }
   ],
   "events": [
@@ -146,6 +153,11 @@
     {
       "title": "Select and multiple",
       "html": "<pk-select label=\"Status\" value=\"Draft\"><option>Active</option><option>Draft</option><option>Archived</option></pk-select>\n<pk-select label=\"Formats\" multiple value=\"JSON\"><option>CSV</option><option>JSON</option><option>XML</option></pk-select>"
+    },
+    {
+      "title": "Options from data",
+      "description": "The options property builds the option/optgroup elements from data (flat, or grouped) instead of slotted option children; also settable as a JSON attribute.",
+      "html": "<pk-select label=\"Status\" value=\"draft\" options='[{\"value\":\"active\",\"label\":\"Active\"},{\"value\":\"draft\",\"label\":\"Draft\"},{\"value\":\"archived\",\"label\":\"Archived\"}]'></pk-select>\n<pk-select label=\"Fruit\" options='[{\"group\":\"Citrus\",\"options\":[{\"value\":\"orange\",\"label\":\"Orange\"},{\"value\":\"lemon\",\"label\":\"Lemon\"}]},{\"group\":\"Pome\",\"options\":[{\"value\":\"apple\",\"label\":\"Apple\"},{\"value\":\"pear\",\"label\":\"Pear\"}]}]'></pk-select>"
     }
   ]
 }
