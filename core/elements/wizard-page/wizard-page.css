@@ -1,0 +1,10 @@
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="state"]:empty, [part="notice"]:empty { display: none; }
+[part="stepper"], [part="notice"] { margin-block-end: var(--space-4); }
+[part="heading"] { margin: 0 0 var(--space-4); font-size: var(--text-lg); outline: none; }
+[part="panes"] form { display: flex; flex-direction: column; gap: var(--space-4); }
+[part="panes"] > div { display: flex; flex-direction: column; gap: var(--space-4); }
+[part="panes"] > div[hidden] { display: none; }
+[part="bar"] { display: flex; justify-content: space-between; gap: var(--space-2); margin-block-start: var(--space-4); }
+[part="bar"] pk-button[hidden] { display: none; }
+[part="next"] { margin-inline-start: auto; }

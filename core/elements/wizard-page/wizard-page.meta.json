@@ -1,0 +1,61 @@
+{
+  "tag": "pk-wizard-page",
+  "title": "Wizard page",
+  "group": "Page types",
+  "summary": "A multi-step flow on a page: a pk-stepper for progress, one step's fields at a time as a validated pk-form (or your own content through mountStep), and Back, Next and Submit. Next is blocked until the step's fields are valid and validate(stepId, values) passes; what was typed is kept when you go back; focus moves to the step heading on every step change. An optional Review step lists every answer before Submit. Set validate, submit, load and mountStep as properties (business logic, never config data). Reject or return { errors: { field: message } } to mark fields inline (a submit may name a field of an earlier step: the wizard goes back to it), or any other error for a notice. While answers are unsent, dirty is true, pk-wizard-dirty fires, and closing or reloading the tab asks first.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }. steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers."
+    },
+    {
+      "name": "dirty",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Answers were typed and not yet submitted. Read it; the element sets it."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-wizard-dirty",
+      "detail": "{ dirty }",
+      "detailProps": { "dirty": "boolean" },
+      "description": "The unsent-answers state changed. An app that owns its router uses it to confirm before leaving."
+    },
+    {
+      "name": "pk-wizard-submit",
+      "detail": "{ values }",
+      "detailProps": {},
+      "description": "submit() resolved; values are all the answers."
+    }
+  ],
+  "parts": [
+    { "name": "stepper", "description": "The pk-stepper showing progress; a reached step can be clicked to go back." },
+    { "name": "card", "description": "The pk-card holding the heading, the step and the buttons." },
+    { "name": "heading", "description": "The current step's heading; it receives focus on every step change." },
+    { "name": "panes", "description": "One pane per visited step; the others are hidden, not removed." },
+    { "name": "bar", "description": "Wraps Back and Next or Submit." },
+    { "name": "back", "description": "The Back button." },
+    { "name": "next", "description": "The Next button (Submit on the last step); busy while validate() or submit() runs." },
+    { "name": "notice", "description": "The step or submit error, above the card." },
+    { "name": "state", "description": "The loading or load error state before the first step, and the done message after Submit." }
+  ],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the pk-field elements the step forms build in this element's own shadow tree", "attributes": ["error"], "why": "A validate or submit that rejects with { errors } sets each named field's error, and the next attempt clears them. The fields are rebuilt with the wizard, so nothing outlives the element." },
+    { "target": "the step panes this element draws in its own shadow tree", "attributes": ["hidden"], "why": "Each visited step keeps its pane (so answers survive Back); only the current one is shown. The panes are created by this element and removed with it." }
+  ],
+  "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. Focus moves to the step heading (an h2) on every step change so a keyboard or screen reader user starts at the new step; Enter in a field is Next. pk-stepper announces 'Step n of m' with its state.",
+  "examples": [
+    {
+      "title": "Sign-up in three steps with a review (set validate and submit from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-wizard-page id=\"wizard-example\" config='{\"review\":true,\"steps\":[{\"id\":\"account\",\"label\":\"Account\",\"fields\":[{\"name\":\"email\",\"label\":\"Email\",\"type\":\"email\",\"required\":true}]},{\"id\":\"plan\",\"label\":\"Plan\",\"fields\":[{\"name\":\"plan\",\"label\":\"Plan\",\"type\":\"select\",\"options\":[\"Free\",\"Team\"]}]}]}'></pk-wizard-page>"
+    }
+  ],
+  "methods": []
+}
