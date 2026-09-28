@@ -1,4 +1,4 @@
-import { renderState } from '../../js/page-states.js';
+import { showState, showTitleBar, showTabs } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 import { filterControl } from '../../js/filter-controls.js';
 
@@ -27,9 +27,10 @@ export default Base => class extends Base {
         this.$cards = {};
         this.$tokens = {};
         this.$started = new Set();
+        showTitleBar(this, this.part('header'));
         this.buildFilters();
         const widgets = this.config?.widgets ?? [];
-        if (widgets.length === 0) { renderState(body, 'empty', this.config?.empty); loadElements(body); return; }
+        if (widgets.length === 0) { showState(body, 'empty', this.config?.empty); return; }
         const tabs = this.config?.tabs?.length ? this.config.tabs : null;
         const first = tabs?.[0]?.id;
         // A widget or section naming no known tab belongs to the first one.
@@ -66,22 +67,7 @@ export default Base => class extends Base {
             }
         };
         if (!tabs) { draw(body, undefined); loadElements(body); this.activate(undefined); return; }
-        const strip = doc.createElement('pk-tabs');
-        strip.setAttribute('part', 'tabs');
-        for (const t of tabs) {
-            const tab = doc.createElement('pk-tab');
-            tab.value = t.id;
-            tab.textContent = t.label ?? t.id;
-            const panel = doc.createElement('pk-tab-panel');
-            panel.value = t.id;
-            draw(panel, t.id);
-            strip.append(tab, panel);
-        }
-        strip.value = first;
-        strip.addEventListener('pk-tab-change', e => this.activate(e.detail.value));
-        body.append(strip);
-        loadElements(body);
-        this.activate(first);
+        showTabs(body, tabs, draw, id => this.activate(id));
     }
 
     // Starts every widget of `tab` that has never started: the first time a tab is shown, never on a revisit, never for a tab never opened.
