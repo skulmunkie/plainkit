@@ -8,7 +8,21 @@
 //     <pk-loading-overlay>                                                                                    covers the previous module while the next one loads (page.js begin/end)
 //       <div data-pk-app-body>...</div>                                                                       the page host, or a skeleton, or the denied / not-found state
 // A module's ctx.page wraps the body in its own pk-loading-overlay (createPage's `body` option) while the module is mounted.
+//
+// The boundary alert's text is untrusted (#378, security tenet): a rejected import or a throwing mount/page can carry a raw message with internal
+// detail (a stack path, backend text), so it is never shown as-is. `failureText` shows it only when the error opts in (`err.userFacing === true`,
+// the same idea as PlainKit.Blazor's IPkUserFacingException, js/tasks.js's own failureText) or when the 'app' scope's log level is 'debug' (the same
+// switch host.js already reads with `isLogEnabled('debug', 'app')`, set with configureLogging, ?pk-log=debug or data-pk-log="debug"); every error is
+// always logged in full at the call site regardless, so nothing is lost for a developer. A host-authored message (the timeout text, host.js `within`)
+// is marked userFacing itself, since it never carries anything but the timeout it already announces.
 import { messageFor } from '../page.js';
+import { isLogEnabled } from '../log.js';
+
+export const BOUNDARY_FAILED_TEXT = 'Something went wrong loading this part of the app. Try again.';
+
+// The text to show for a boundary error: its own message when it is marked userFacing or the 'app' scope logs at debug, else the generic text. Pure but
+// for the log-level check.
+export const failureText = err => ((err && err.userFacing === true) || isLogEnabled('debug', 'app') ? messageFor(err) : BOUNDARY_FAILED_TEXT);
 
 const h = (doc, tag, attrs = {}) => {
     const el = doc.createElement(tag);
@@ -45,7 +59,7 @@ export function createBoundary(doc, rendered = () => {}) {
             retry.textContent = 'Retry';
             retry.addEventListener('click', onRetry);
             error.setAttribute('heading', heading);
-            error.textContent = `${messageFor(err)}${globalThis.navigator?.onLine === false ? ' You appear to be offline.' : ''}`;
+            error.textContent = `${failureText(err)}${globalThis.navigator?.onLine === false ? ' You appear to be offline.' : ''}`;
             error.append(retry);
             error.hidden = false;
             if (!body.firstChild) body.replaceChildren(h(doc, 'pk-empty-state', { heading: 'Nothing to show', description: 'This part of the app did not load.', tone: 'compact' }));
