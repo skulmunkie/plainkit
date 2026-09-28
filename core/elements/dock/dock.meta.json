@@ -2,7 +2,7 @@
   "tag": "pk-dock",
   "title": "Dock",
   "group": "Layout",
-  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group. The arrangement is one JSON layout document you can read, store and set. Step 1 of #432: docked panels only; moving panels, floating, collapse and saved layouts come in later steps.",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group. The arrangement is one JSON layout document you can read, store and set. Free-running by default (a resize or tab change applies right away, then fires pk-layout-change); a host that wants every change to round-trip first sets confirmLayout(arg) as a callback property (business logic, not config data, like pk-tool-page's run) - arg is { layout: json, reason }, and the settled result (a layout JSON string, or null/undefined to keep the previous one) is what gets applied and reported. Step 1 of #432: docked panels only; moving panels, floating, collapse and saved layouts come in later steps.",
   "props": [
     {
       "name": "layout",

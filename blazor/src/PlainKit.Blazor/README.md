@@ -352,6 +352,33 @@ The page types of the app framework take their business logic as a callback the 
 }
 ```
 
+### PkDock: bindable by default, controlled with `ConfirmLayout`
+
+`PkDock`'s `Layout` is bindable (`@bind-Layout`, JSON): the element owns the arrangement while the user drags a separator or picks a tab,
+and reports it back through `pk-layout-change` when they finish. For a workspace .NET must own authoritatively - persisting every change to a
+user's account, rejecting a resize outside a rule, coordinating a layout with something server-side - set `ConfirmLayout` too. It turns on
+controlled mode: every resize, tab switch or panel repair now holds in the element until the delegate settles, called with the proposed layout
+(JSON, the same shape as `Layout`) and the reason (`resize`, `activate` or `panels`). Return the layout JSON to apply - typically what you were
+given, stored first and returned unchanged, or a different one your own logic computed - or `null` to keep the previous layout unchanged. A
+delegate that throws also keeps the previous layout. Leave `ConfirmLayout` unset and `PkDock` stays free-running, unchanged from the plain
+bindable default.
+
+```razor
+<PkDock @bind-Layout="_layout" ConfirmLayout="ConfirmLayoutAsync">
+    <div slot="tools" data-heading="Toolbox" data-group="left">...</div>
+    <div slot="canvas" data-heading="Canvas">...</div>
+</PkDock>
+
+@code {
+    string? _layout;
+    async Task<string?> ConfirmLayoutAsync(string layout, string reason)
+    {
+        await Workspace.SaveLayoutAsync(layout);   // .NET is authoritative: store it, then let the element apply it
+        return layout;
+    }
+}
+```
+
 ### PageBase: the state a page repeats by hand
 
 A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
