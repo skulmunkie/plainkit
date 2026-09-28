@@ -1,7 +1,7 @@
 {
   "tag": "pk-nav-item",
   "title": "Nav item",
-  "summary": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state.",
+  "summary": "A row of a side nav or a navbar (the container styles it): a link, or a branch that folds its children; icon, badge, active bar and disabled state.",
   "group": "Navigation",
   "props": [
     {
@@ -112,7 +112,28 @@
       "description": "The branch name, shown as the flyout heading in the icon rail"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-nav-item-radius",
+      "description": "Corner radius of the row (pk-navbar squares the bottom corners under the current-page bar).",
+      "default": "var(--radius-md)"
+    },
+    {
+      "name": "--pk-nav-item-current-mark",
+      "description": "Box-shadow mark of the current row. A container sets it on its slotted items (pk-navbar draws a bottom bar).",
+      "default": "inset 3px 0 0 var(--color-accent)"
+    },
+    {
+      "name": "--pk-nav-item-current-bg",
+      "description": "Background of the current row (pk-navbar sets it to transparent).",
+      "default": "a 16% accent tint"
+    },
+    {
+      "name": "--pk-nav-item-current-weight",
+      "description": "Font weight of the current row (pk-navbar keeps the bar text weight).",
+      "default": "600"
+    }
+  ],
   "methods": [],
   "a11y": "A link (or a button with aria-expanded for a branch); the current row has aria-current=\"page\"; disabled rows are aria-disabled and skipped by arrow keys. A group title is plain text (role presentation), not in the tab order. In the icon rail, a branch whose flyout holds the current row gets a visual indicator on its own collapsed link (it keeps no aria-current itself: it is not the current page).",
   "mobile": "44px tall.",
