@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 import { filterControl } from '../../js/filter-controls.js';
@@ -65,6 +65,8 @@ export default Base => class extends Base {
     // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant), never a callback - a page that
     // needs one wired to app logic points its href at another route, the same way a module's own nav does.
     buildActions() {
+        // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
+        showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
         const key = JSON.stringify(this.config?.actions ?? []);
         if (key === this.$actionsFor) return;
         this.$actionsFor = key;

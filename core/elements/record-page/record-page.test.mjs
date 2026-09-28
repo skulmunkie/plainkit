@@ -21,7 +21,7 @@ const fakeEl = (tag = 'div') => ({
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = Object.fromEntries(['state', 'bar', 'notice', 'layout', 'main', 'side', 'edit', 'cancel', 'save'].map(n => [n, fakeEl()]));
+    const parts = Object.fromEntries(['header', 'state', 'bar', 'notice', 'layout', 'main', 'side', 'edit', 'cancel', 'save'].map(n => [n, fakeEl()]));
     const events = [], errors = [];
     const win = { added: [], removed: [], addEventListener(t, f) { this.added.push([t, f]); }, removeEventListener(t, f) { this.removed.push([t, f]); } };
     globalThis.window = win;
