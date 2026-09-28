@@ -1,0 +1,96 @@
+{
+  "tag": "pk-list",
+  "title": "List",
+  "group": "Layout",
+  "summary": "A plain ordered or unordered prose list: bullets, numbers or checkmarks on items the host writes as plain elements, never a raw ul, ol or li.",
+  "props": [
+    {
+      "name": "ordered",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Numbered instead of bulleted, when marker is auto (the default)."
+    },
+    {
+      "name": "marker",
+      "type": "enum",
+      "default": "auto",
+      "values": [
+        "auto",
+        "disc",
+        "decimal",
+        "check",
+        "none"
+      ],
+      "reflect": true,
+      "description": "The bullet: auto follows ordered (decimal when set, disc otherwise), disc and decimal force a style regardless of ordered, check draws a checkmark, none removes the marker and its indent (the list role stays; it comes from ARIA, not the native marker)."
+    },
+    {
+      "name": "gap",
+      "type": "enum",
+      "default": "xs",
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "reflect": true,
+      "description": "Space between items, on the spacing scale (none 0, xs --space-1, sm --space-2, md --space-4, lg --space-6, xl --space-8). Default xs."
+    },
+    {
+      "name": "dense",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Tighter rhythm and smaller text."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of the list."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Items: plain elements (span, div, a) or pk-text inline. Never li; the list role and item count come from ARIA."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [
+    {
+      "name": "--pk-list-gap",
+      "description": "Space between items, overriding gap.",
+      "default": "the gap step"
+    }
+  ],
+  "methods": [],
+  "writes": [
+    { "target": "the slotted items", "attributes": ["role"], "why": "An item without a role gets role=listitem so the list has the items the host role=list expects; a role the host set is left alone. Not removed. Kept when the element disconnects." }
+  ],
+  "a11y": "The host is role=list (named by label when set) and each item gets role=listitem unless it already has one. The marker is drawn by the browser's native ::marker on a display: list-item box, so it never carries the meaning alone; with marker=none the list-style is removed but the ARIA role stays, so the list and its item count still reach assistive technology.",
+  "examples": [
+    {
+      "title": "Unordered",
+      "html": "<pk-list label=\"Shipping notes\"><span>Orders ship within two working days.</span><span>Anything placed after 3 pm counts as the next day.</span><span>Weekend orders ship Monday.</span></pk-list>"
+    },
+    {
+      "title": "Ordered",
+      "html": "<pk-list ordered label=\"Setup steps\"><span>Create an account.</span><span>Verify the email address.</span><span>Add a payment method.</span></pk-list>"
+    },
+    {
+      "title": "Checklist marker",
+      "html": "<pk-list marker=\"check\" label=\"Included\"><span>Free returns within 30 days.</span><span>Two-day shipping.</span><span>24/7 support.</span></pk-list>"
+    },
+    {
+      "title": "Dense, no marker",
+      "html": "<pk-list marker=\"none\" dense label=\"Tags\"><span>Backend</span><span>Billing</span><span>Urgent</span></pk-list>"
+    }
+  ]
+}
