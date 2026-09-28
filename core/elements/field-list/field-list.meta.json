@@ -130,6 +130,10 @@
     {
       "title": "Data-driven items",
       "html": "<pk-field-list heading=\"Order\" items='[{\"label\":\"Order\",\"value\":\"A-1042\"},{\"label\":\"PO\",\"value\":\"\"},{\"label\":\"Tracking\",\"value\":\"1Z999\",\"href\":\"#\"}]'></pk-field-list>"
+    },
+    {
+      "title": "Data-driven items, show-empty",
+      "html": "<pk-field-list heading=\"Order\" show-empty items='[{\"label\":\"Order\",\"value\":\"A-1042\"},{\"label\":\"PO\",\"value\":\"\"},{\"label\":\"Tracking\",\"value\":\"1Z999\",\"href\":\"#\"}]'></pk-field-list>"
     }
   ],
   "contentStyles": [],
