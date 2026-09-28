@@ -91,6 +91,9 @@
  "input": [
   "(max-width: 640px)"
  ],
+ "kanban": [
+  "(max-width: 640px)"
+ ],
  "lightbox": [
   "(max-width: 640px)"
  ],

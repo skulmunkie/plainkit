@@ -1,0 +1,11 @@
+{
+  "component": "PkKanbanColumn",
+  "params": [
+    { "name": "Value", "prop": "value" },
+    { "name": "Label", "prop": "label" },
+    { "name": "EmptyText", "prop": "emptyText" },
+    { "name": "DropTarget", "prop": "dropTarget" },
+    { "name": "ChildContent", "slot": "" }
+  ],
+  "notes": "Place inside PkKanban. DropTarget is normally left alone: the surrounding pk-kanban sets it while a card is dragged over this column."
+}

@@ -1,0 +1,11 @@
+{
+  "component": "PkKanban",
+  "params": [
+    { "name": "Label", "prop": "label" },
+    { "name": "Disabled", "prop": "disabled" },
+    { "name": "Dragging", "prop": "dragging" },
+    { "name": "OnMove", "event": "pk-move", "type": "EventCallback<PkMoveEventArgs>" },
+    { "name": "ChildContent", "slot": "" }
+  ],
+  "notes": "Children are PkKanbanColumn, each holding PkSortableItem cards. pk-kanban never moves its own children (SDK rule: the host owns the light DOM), so OnMove is the whole contract: handle it by changing your model (remove the card Item from the column From and insert it at ToIndex of the column To) and re-render, keying the cards by their Value so focus stays with the moved card. PkMoveEventArgs has Item, From, To, FromIndex and ToIndex. The event is cancelable in JavaScript; a Blazor handler cannot cancel it, so guard in your model instead."
+}
