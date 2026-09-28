@@ -18,9 +18,9 @@ export function showState(box, state, opts = {}) {
 }
 
 /**
- * The title bar: a pk-page-header in `box` drawn from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant? }] }.
+ * The title bar: a pk-page-header in `box` drawn from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] }.
  * `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
- * Nothing is drawn (and `box` stays hidden) when none is set. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
+ * Nothing is drawn (and `box` stays hidden) when none is set. An action's `hint` shows as a tooltip on the button. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
 export function showTitleBar(host, box, cfg = host.config) {
     const { heading, breadcrumb = [], actions = [] } = cfg ?? {};
@@ -43,7 +43,12 @@ export function showTitleBar(host, box, cfg = host.config) {
         if (a.variant) btn.variant = a.variant;
         if (a.href) btn.href = a.href;
         else btn.addEventListener('click', () => host.dispatchEvent(new CustomEvent('pk-action', { bubbles: true, detail: { key: a.key } })));
-        header.append(btn);
+        if (a.hint) {
+            const tip = doc.createElement('pk-tooltip');
+            tip.text = a.hint; tip.slot = 'actions'; btn.removeAttribute('slot');
+            tip.append(btn);
+            header.append(tip);
+        } else header.append(btn);
     }
     box.append(header);
     loadElements(box);

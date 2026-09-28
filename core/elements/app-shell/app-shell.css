@@ -1,4 +1,4 @@
-/* pk-app-shell: nav column + a main column whose body is the only scroller. Header and footer are sticky by construction; the safe area is added to their padding. */
+/* pk-app-shell: nav column + a main column whose body is the only scroller and the containing block of the page's absolutely positioned content (else it resolves against the page and the document scrolls too). Header and footer are sticky by construction; the safe area is added to their padding. */
 :host { display: grid; grid-template-columns: auto minmax(0, 1fr); height: 100vh; height: 100dvh; background: var(--color-bg); color: var(--color-text); }
 
 /* The main column is always the last one: with no nav in the nav slot it must not fall into the nav's (auto) column and take only its content width. */
@@ -27,7 +27,7 @@
 /* A pk-navbar in the header slot is the bar itself: it takes the row (its brand left, its actions right) and leaves the borders, background and side padding to the header. */
 ::slotted(pk-navbar) { flex: 1; min-width: 0; background: none; border-bottom: 0; --pk-navbar-padding: 0; }
 
-[part="body"] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
+[part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 
