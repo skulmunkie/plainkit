@@ -19,8 +19,8 @@
 // defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a nav that is not an array or function...).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
-// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found'
-// and 'list' are built in (own comments below), the rest arrive later. Extend the set three ways, all through the same factory shape
+// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
+// 'list', 'dashboard' and 'workspace' are built in (each a chunk in js/app/pages/, below), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -106,69 +106,9 @@ const register = (table, what, name, fn) => {
 export const registerPageType = (id, factory) => register(types, 'page type', id, factory);
 export const registerLayout = (id, factory) => register(layouts, 'layout', id, factory);
 
-const custom = (host, config, ctx) => {
-    if (!isFn(config?.mount)) throw new TypeError("page type 'custom' needs config.mount(host, ctx)");
-    return config.mount(host, ctx);
-};
-// 'states' (#351): <pk-states-page> (loading/empty/error/forbidden, or its own content when ready). config: { state, heading, description,
-// label, retry }; retry is wired to the element's pk-retry event (elements talk back via events, not callback props - STANDARDS.md).
-const states = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-states-page');
-    for (const k of ['state', 'heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
-    const onRetry = () => config.retry?.(ctx);
-    if (config.retry) el.addEventListener('pk-retry', onRetry);
-    host.append(el);
-    return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
-};
-// 'tool' (#351): <pk-tool-page> (input fields, Run, an outcome). config: { input, outcome, runLabel, run(values, ctx) } - run is a callback
-// property, business logic never JSON data.
-const tool = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-tool-page');
-    el.config = { input: config.input, outcome: config.outcome };
-    if (config.runLabel !== undefined) el.runLabel = config.runLabel;
-    if (config.run) el.run = values => config.run(values, ctx);
-    host.append(el);
-    return () => el.remove();
-};
-// 'settings' (#351): <pk-settings-page> (sectioned fields, a sticky Save/Discard bar). config: { sections, values, save(values, ctx) } - save
-// is a callback property, business logic never JSON data.
-const settings = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-settings-page');
-    el.config = { sections: config.sections };
-    if (config.values !== undefined) el.values = config.values;
-    if (config.save) el.save = values => config.save(values, ctx);
-    host.append(el);
-    return () => el.remove();
-};
-// 'not-found' (#351): <pk-not-found-page>. A route's page: 'not-found' bypasses this (app/host.js's showPage calls box.notFound() directly);
-// this factory only serves mountPage()/a 'custom' module. config: { heading, description, label, action(ctx) }, like 'states'' retry.
-const notFound = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-not-found-page');
-    for (const k of ['heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
-    const onAction = () => config.action?.(ctx);
-    if (config.action) el.addEventListener('pk-action', onAction);
-    host.append(el);
-    return () => { if (config.action) el.removeEventListener('pk-action', onAction); el.remove(); };
-};
-// 'list' (#352): <pk-list-page> (filterable, sortable, paginated pk-table). config: { columns, filters, actions, empty, pageSize,
-// load(query)->{rows,total}, rowHref(row) } - load/rowHref are callback properties; rowHref is routed through ctx.navigate, not the element.
-const list = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-list-page');
-    el.config = { columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize };
-    if (config.load) el.load = query => config.load(query, ctx);
-    if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
-    host.append(el);
-    return () => el.remove();
-};
-// 'dashboard' (#436): tiles/sections; load(key) per tile.
-const dashboard = (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-dashboard-page');
-    el.config = { tiles: config.tiles, sections: config.sections };
-    if (config.load) el.load = key => config.load(key, ctx);
-    host.append(el);
-    return () => el.remove();
-};
-const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list], ['dashboard', dashboard]]);
+// The built-in page types live in js/app/pages/<id>.js (a default-exported factory each), fetched by the first route that names one (#346). pageTypeFor stays
+// synchronous: a built-in answers a wrapper whose promise (awaited by the host and mountPage) is the factory's own result; a failed import rejects it, so the boundary shows it like any page error.
+const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace'].map(id => [id, (host, config, ctx) => import(`./pages/${id}.js`).then(m => m.default(host, config, ctx))]));
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));

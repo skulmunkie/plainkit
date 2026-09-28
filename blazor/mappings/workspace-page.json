@@ -1,0 +1,21 @@
+{
+  "component": "PkWorkspacePage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { panes?: ('nav'|'aside')[], navLabel?, mainLabel?, asideLabel?, asideOpen?, label? }."
+    },
+    {
+      "name": "Fill",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "fill"
+    }
+  ],
+  "notes": "New component: App framework step 7 (issue #353). Mount is a callback property (business logic) that receives the pane elements, not a Blazor parameter mapped here yet - it needs JS interop from the component (a RenderFragment per pane is the likely shape); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run and PkListPage's Load."
+}
