@@ -13,7 +13,7 @@ import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
 import { tokenize, buildSegments, wordAt, languageOf } from '../js/code-explorer/tokenize.js';
 import { buildTree } from '../js/code-explorer/element.js';
-import { compilePattern, patternReport } from '../modules/code-explorer/reports.js';
+import { compilePattern, patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from '../modules/code-explorer/reports.js';
 import { SCORING, TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
 import { runStaticAudit } from '../site/scorecard/static-audit.mjs';
 
@@ -441,4 +441,63 @@ test('patternReport skips files with no hits and sorts by count descending acros
     ];
     const rows = patternReport(files, [{ name: 'todo', pattern: 'TODO' }]);
     assert.deepEqual(rows.map(r => r.path), ['many.js', 'few.js']);
+});
+
+test('largestFilesReport ranks files by line count descending and skips empty files', () => {
+    const files = [
+        { path: 'small.js', lines: ['a'] },
+        { path: 'big.js', lines: ['a', 'b', 'c', 'd'] },
+        { path: 'empty.js', lines: [] },
+    ];
+    const rows = largestFilesReport(files);
+    assert.deepEqual(rows.map(r => [r.path, r.count]), [['big.js', 4], ['small.js', 1]]);
+});
+
+test('longestMethodsReport finds a declaration and measures it to its matching closing brace, ranked by length', () => {
+    const files = [{
+        path: 'Foo.cs',
+        lines: [
+            'public class Foo {',
+            '    public void Bar()',
+            '    {',
+            '        var x = 1;',
+            '        var y = 2;',
+            '    }',
+            '',
+            '    private static int Baz(int a) {',
+            '        return a;',
+            '    }',
+            '}',
+        ],
+    }];
+    const rows = longestMethodsReport(files);
+    assert.deepEqual(rows.map(r => [r.name, r.line, r.count]), [['Bar', 2, 5], ['Baz', 8, 3]]);
+});
+
+test('longestMethodsReport works for JS function declarations and skips a declaration with no matching brace', () => {
+    const files = [{ path: 'a.js', lines: ['function foo() {', '  return 1;', '}', 'function bar() {', '  return 1;'] }];
+    const rows = longestMethodsReport(files);
+    assert.deepEqual(rows.map(r => r.name), ['foo']);
+});
+
+test('duplicateBlocksReport finds runs of N+ identical consecutive lines (whitespace-insensitive) in 2+ places', () => {
+    const files = [
+        { path: 'a.js', lines: ['function foo() {', '  console.log(1);', '  console.log(2);', '  return 1;', '}'] },
+        { path: 'b.js', lines: ['function bar() {', '    console.log(1);', '    console.log(2);', '    return 1;', '}'] },
+        { path: 'c.js', lines: ['function baz() { return 2; }'] },
+    ];
+    const rows = duplicateBlocksReport(files, 3);
+    assert.ok(rows.length >= 1);
+    const top = rows[0];
+    assert.equal(top.length, 3);
+    assert.deepEqual(top.locations.map(l => l.path).sort(), ['a.js', 'b.js']);
+});
+
+test('duplicateBlocksReport ignores a run of only blank lines and a run appearing in only one place', () => {
+    const files = [
+        { path: 'a.js', lines: ['', '', '', 'unique one', 'unique two', 'unique three'] },
+        { path: 'b.js', lines: ['', '', ''] },
+    ];
+    const rows = duplicateBlocksReport(files, 3);
+    assert.deepEqual(rows, []);
 });

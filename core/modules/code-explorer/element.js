@@ -9,13 +9,14 @@
 // Attributes (all optional except source/src unless a provider is assigned): source, src, base (feed only), theme
 // (light|dark, sets data-theme), height (any CSS length, or "fill"; default 32rem), initial (a path to open first; initial-line focuses a row),
 // search (a query to run once the files are listed), max-lines (rows drawn per file, default 2000), feed-interval (ms; polls instead of SSE). Property `provider` accepts
-// a ready provider object; property `patterns` accepts a host-defined [{ name, pattern, label? }] (reports.js) and shows the Reports
-// button once set. Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
+// a ready provider object; property `patterns` accepts a host-defined [{ name, pattern, label? }] (reports.js), adding a "Patterns" choice
+// to the Reports button's picker alongside the always-available largest files, longest methods and duplicate blocks reports.
+// Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
-import { patternReport } from './reports.js';
+import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
@@ -70,8 +71,9 @@ export class CodeExplorerElement extends Base {
     set provider(p) { this.#provider = p; if (this.isConnected) this.#start(); }
     get provider() { return this.#provider; }
 
-    // Host-defined patterns for the pattern report (reports.js); [] hides the Reports button.
-    set patterns(p) { this.#patterns = p ?? []; const btn = this.querySelector('[data-ce-reports]'); if (btn) btn.hidden = !this.#patterns.length; }
+    // Host-defined patterns for the pattern report (reports.js). The Reports button always shows the built-in reports
+    // (largest files, longest methods, duplicate blocks); patterns just add one more report choice to the picker.
+    set patterns(p) { this.#patterns = p ?? []; }
     get patterns() { return this.#patterns; }
 
     connectedCallback() {
@@ -103,7 +105,7 @@ export class CodeExplorerElement extends Base {
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
     <div class="ce-actions">
       <pk-button size="mini" data-ce-search hidden>Search</pk-button>
-      <pk-button size="mini" variant="ghost" data-ce-reports hidden>Reports</pk-button>
+      <pk-button size="mini" variant="ghost" data-ce-reports>Reports</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-clear hidden>Back to files</pk-button>
     </div>
     <div data-ce-tree></div>
@@ -124,7 +126,6 @@ export class CodeExplorerElement extends Base {
         $('[data-ce-search]').addEventListener('click', runSearch);
         $('[data-ce-reports]').addEventListener('click', () => this.#toggleReports());
         $('[data-ce-clear]').addEventListener('click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
-        $('[data-ce-reports]').hidden = !this.#patterns.length;
         $('[data-ce-inspector-close]').addEventListener('click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
         tree.addEventListener('click', e => this.#onHitClick(e));
@@ -257,9 +258,11 @@ export class CodeExplorerElement extends Base {
         this.#renderTree();
     }
 
-    // Toggle the pattern report (reports.js) in the nav pane: like search, it replaces the tree until "Back to files" (data-ce-clear)
-    // clears it. Needs every file's content, which a lazy provider has not fetched yet -- read (and cache in #docs) whatever is missing,
-    // one file at a time, the same way search already does for a lazy provider (providers.js, #needAll).
+    // Toggle the reports picker (reports.js) in the nav pane: like search, it replaces the tree until "Back to files"
+    // (data-ce-clear) clears it. Needs every file's content, which a lazy provider has not fetched yet -- read (and cache
+    // in #docs) whatever is missing, one file at a time, the same way search already does for a lazy provider
+    // (providers.js, #needAll). Three built-in reports (largest files, longest methods, duplicate blocks) are always
+    // available; the host-defined pattern report is a fourth choice when `patterns` was set.
     async #toggleReports() {
         if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
         try {
@@ -272,20 +275,51 @@ export class CodeExplorerElement extends Base {
                 }
                 files.push(this.#docs.get(f.path));
             }
-            this.#reports = { pattern: patternReport(files, this.#patterns) };
+            this.#reports = {
+                kind: this.#patterns.length ? 'pattern' : 'files',
+                pattern: this.#patterns.length ? patternReport(files, this.#patterns) : null,
+                files: largestFilesReport(files),
+                methods: longestMethodsReport(files),
+                duplicates: duplicateBlocksReport(files),
+            };
         } catch (error) {
             log.warn('the reports could not be computed', error);
-            this.#reports = { pattern: [], error: error.message };
+            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], error: error.message };
         }
         this.#search = null;
         this.#renderTree();
     }
 
+    // The choices shown by the reports picker: only "Patterns" is conditional (needs host-defined patterns).
+    #reportKinds() {
+        const r = this.#reports;
+        return [
+            r.pattern && { key: 'pattern', label: 'Patterns' },
+            { key: 'files', label: 'Largest files' },
+            { key: 'methods', label: 'Longest methods' },
+            { key: 'duplicates', label: 'Duplicate blocks' },
+        ].filter(Boolean);
+    }
+
     #reportsHtml() {
         const r = this.#reports;
         if (r.error) return `<p class="ce-error" role="alert">${esc(r.error)}</p>`;
-        if (!r.pattern.length) return '<p class="ce-muted">No matches.</p>';
-        return `<div class="csr">${r.pattern.map(x => `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line ?? ''}"><span class="csr-no">${x.count}</span><span class="csr-text">${esc(x.name)}${x.label ? ` — ${esc(x.label)}` : ''}: ${esc(x.path)}</span></button>`).join('')}</div>`;
+        const kinds = this.#reportKinds();
+        const picker = `<div class="csr-kinds">${kinds.map(k => `<button type="button" class="csr-kind${k.key === r.kind ? ' csr-kind--active' : ''}" data-kind="${k.key}" aria-pressed="${k.key === r.kind}">${k.label}</button>`).join('')}</div>`;
+        return picker + this.#reportRowsHtml(r.kind, r[r.kind] ?? []);
+    }
+
+    #reportRowsHtml(kind, rows) {
+        if (!rows.length) return '<p class="ce-muted">No matches.</p>';
+        if (kind === 'duplicates') {
+            return `<div class="csr">${rows.map(d => `<div class="csr-group"><div class="csr-title">${d.length} lines duplicated in ${d.locations.length} places</div>${d.locations.map(l => `<button type="button" class="csr-hit" data-path="${esc(l.path)}" data-line="${l.line}"><span class="csr-no">${l.line}</span><span class="csr-text">${esc(l.path)}</span></button>`).join('')}</div>`).join('')}</div>`;
+        }
+        return `<div class="csr">${rows.map(x => {
+            const label = kind === 'pattern' ? `${esc(x.name)}${x.label ? ` — ${esc(x.label)}` : ''}: ${esc(x.path)}`
+                : kind === 'methods' ? `${esc(x.name)} — ${esc(x.path)}`
+                    : esc(x.path);
+            return `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line ?? ''}"><span class="csr-no">${x.count}</span><span class="csr-text">${label}</span></button>`;
+        }).join('')}</div>`;
     }
 
     #searchHtml() {
@@ -300,8 +334,10 @@ export class CodeExplorerElement extends Base {
         }).join('')}</div>`).join('')}</div>`;
     }
 
-    // A search hit in the nav pane opens its file at that line.
+    // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
+        const kindBtn = e.target.closest?.('.csr-kind');
+        if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
         const hit = e.target.closest?.('.csr-hit');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
     }
