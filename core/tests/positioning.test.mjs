@@ -70,3 +70,9 @@ test('boxOf uses the union of the children for a box-less display: contents wrap
     assert.deepEqual(boxOf(box(5, 5, 25, 15, [box(0, 0, 1, 1)])), { left: 5, top: 5, right: 25, bottom: 15 });
     assert.deepEqual(boxOf(box(0, 0, 0, 0, [])), { left: 0, top: 0, right: 0, bottom: 0 });
 });
+
+test('in right-to-left start and end mirror on top and bottom, and stay physical on left and right', () => {
+    assert.equal(computePosition(rect(150, 50), size, view, { placement: 'bottom-start', rtl: true }).x, 190 - 100);
+    assert.equal(computePosition(rect(150, 50), size, view, { placement: 'top-end', rtl: true }).x, 150);
+    assert.equal(computePosition(rect(150, 50), size, view, { placement: 'right-start', rtl: true }).y, 50);
+});

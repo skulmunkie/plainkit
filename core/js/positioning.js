@@ -4,7 +4,8 @@
 //
 //   place(anchor, floating, { placement: 'bottom-start', offset: 4, padding: 8 })
 //     anchor    an element, or a point/rect { x, y, width?, height? } (a context menu passes the pointer)
-//     placement top | bottom | left | right, each optionally -start or -end (default centred)
+//     placement top | bottom | left | right, each optionally -start or -end (default centred). On top and bottom, start and end are inline edges: they mirror in
+//               right-to-left (read from the anchor's computed direction; pass rtl: true or false to override).
 //   Sets left/top from the CSSOM and data-placement (the side actually used) on the floating element.
 //   autoUpdate(anchor, floating, options) re-places on scroll and resize and returns a stop function.
 //   onOutside(elements, close) closes on a pointerdown outside all of them or on Escape; returns a stop function.
@@ -15,7 +16,9 @@ const OPPOSITE = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
 // Returns { x, y, side } in viewport coordinates.
 export function computePosition(anchor, size, viewport, options = {}) {
     const { placement = 'bottom', offset = 4, padding = 8, flip = true, shift = true } = options;
-    const [wanted, align = 'center'] = placement.split('-');
+    const [wanted, logical = 'center'] = placement.split('-');
+    // start and end are inline edges: in right-to-left text the start of a top or bottom layer is the right edge of the anchor.
+    const align = options.rtl && (wanted === 'top' || wanted === 'bottom') ? { start: 'end', end: 'start' }[logical] ?? logical : logical;
     const aw = anchor.right - anchor.left;
     const ah = anchor.bottom - anchor.top;
     const at = side => {
@@ -60,7 +63,8 @@ export function place(anchor, floating, options = {}) {
     style.position = 'fixed'; style.left = '0px'; style.top = '0px';
     const box = floating.getBoundingClientRect();
     const view = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
-    const r = computePosition(rectOf(anchor), { width: box.width, height: box.height }, view, options);
+    const rtl = options.rtl ?? getComputedStyle(typeof anchor.getBoundingClientRect === 'function' ? anchor : floating).direction === 'rtl';
+    const r = computePosition(rectOf(anchor), { width: box.width, height: box.height }, view, { ...options, rtl });
     style.left = `${Math.round(r.x)}px`; style.top = `${Math.round(r.y)}px`;
     floating.setAttribute('data-placement', r.side);
     return r;

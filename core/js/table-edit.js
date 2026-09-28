@@ -4,8 +4,9 @@
 // A commit raises the cancelable pk-cell-edit; unless the host cancels it the table then holds the new value in a copy of its rows (the host owns them after the event).
 
 import { sheetFor } from './element.js';
+import { loadElements } from './loader.js';
 
-const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1)}td[data-editing] :is(input,select){inline-size:0;min-inline-size:max(100%,4rem);font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);font-size:16px}td[data-key] input[role="switch"]{inline-size:var(--touch-target);block-size:var(--touch-target)}td[data-editing] select{min-inline-size:6.5rem}}');
+const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-key] pk-switch::part(control){min-inline-size:var(--touch-target)}td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
 let sheet;
 
 // The message a draft breaks, or '' when it is fine. Pure: `col` is the column definition ({ editor, required, min, max, maxLength }), `text` the draft as typed.
@@ -36,12 +37,28 @@ const label = (t, id, k) => `${col(t, k).label ?? k}, row ${id}`;
 // The cell's editor: the control the column asks for, holding the draft. A switch is drawn always (it is the value), the others only while editing.
 function editor(t, c, id, s, value) {
     const e = c.editor, name = label(t, id, c.key);
-    if (e === 'switch') { const i = document.createElement('input'); Object.assign(i, { type: 'checkbox', checked: value === true || value === 'true', tabIndex: -1 }); i.setAttribute('role', 'switch'); i.setAttribute('aria-label', name); i.dataset.cellEditor = ''; return i; }
+    if (e === 'switch') { const i = document.createElement('pk-switch'), l = document.createElement('span'); l.className = 'sr'; l.textContent = name; i.append(l); i.checked = value === true || value === 'true'; i.dataset.cellEditor = ''; keep(i); return i; }
     const i = document.createElement(e === 'select' ? 'select' : 'input'); i.dataset.cellEditor = ''; i.setAttribute('aria-label', name);
     if (e === 'select') for (const o of c.options ?? []) { const v = typeof o === 'object' ? o.value : o, op = document.createElement('option'); op.value = v; op.textContent = typeof o === 'object' ? (o.label ?? v) : o; i.append(op); }
     else { i.type = 'text'; if (e === 'number') i.inputMode = 'decimal'; }
     i.value = s.draft ?? '';
     return i;
+}
+
+// The switch is the pk-switch element (defined on demand); its button is not a tab stop, the cell is (roving tabindex).
+function keep(sw) { const go = () => { const b = sw.shadowRoot?.querySelector('button'); if (b) b.tabIndex = -1; return !!b; }; if (!go()) customElements.whenDefined('pk-switch').then(() => setTimeout(go, 0)); }
+
+// While a cell is edited, the columns keep the widths they had at rest (an editor's own intrinsic width must never reflow the grid); released once nothing is edited.
+function lockWidths(t, tb, editing) {
+    const ths = [...tb.querySelectorAll('thead th')];
+    if (editing) {
+        if (!tb.style.tableLayout) {
+            const w = ths.map(th => th.getBoundingClientRect().width);
+            const cg = tb.querySelector('colgroup') ?? tb.insertBefore(document.createElement('colgroup'), tb.firstElementChild);
+            cg.replaceChildren(...w.map(px => { const c = document.createElement('col'); c.style.width = `${px}px`; return c; }));
+            tb.style.tableLayout = 'fixed';
+        }
+    } else if (tb.style.tableLayout) { tb.style.tableLayout = ''; tb.querySelector('colgroup')?.remove(); }
 }
 
 // After each render: grid roles and states on the body, the active cell's tab stop, the open editor and the error text.
@@ -52,6 +69,7 @@ export function after(t) {
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
     if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); }
     tb.setAttribute('role', 'grid');
+    lockWidths(t, tb, !!s.edit);
     const rows = cells(t), ids = t.ids(), errors = t.cellErrors ?? {};
     if (!rows.flat().some(td => at(td).id === s.a?.id && at(td).key === s.a?.key)) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
     for (const line of rows) for (const td of line) {
@@ -68,8 +86,9 @@ export function after(t) {
             if (ed) td.dataset.editing = '';
             if (err) { i.setAttribute('aria-invalid', 'true'); const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); i.setAttribute('aria-describedby', m.id); }
         } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.textContent = err; td.append(m); }
-        if (s.focus && on) { (td.querySelector('[data-cell-editor]:not([role="switch"])') ?? td).focus(); if (ed) td.querySelector('input')?.select(); s.focus = false; }
+        if (s.focus && on) { (td.querySelector('[data-cell-editor]:not(pk-switch)') ?? td).focus(); if (ed) td.querySelector('input')?.select(); s.focus = false; }
     }
+    if (!s.sw && root.querySelector('pk-switch')) { s.sw = 1; loadElements(root); }
 }
 
 const cellOf = e => e.target.closest?.('td[data-key]');
@@ -151,7 +170,7 @@ function click(t, e) {
     const td = cellOf(e), s = st(t);
     if (!td || !t.editable || td.hasAttribute('data-editing')) return;
     const c = col(t, td.dataset.key), a = at(td), was = s.a?.id === a.id && s.a?.key === a.key;
-    if (c.editor === 'switch' && e.target.localName === 'input') { e.preventDefault(); begin(t, td); } else if (was && !s.edit) begin(t, td); else activate(t, td);
+    if (c.editor === 'switch' && e.target.localName === 'pk-switch') { e.preventDefault(); begin(t, td); } else if (was && !s.edit) begin(t, td); else activate(t, td);
 }
 
 // A select commits when its choice changes.
