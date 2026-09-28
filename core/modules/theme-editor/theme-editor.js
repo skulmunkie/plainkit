@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
 import { createLogger } from '../../js/log.js';
@@ -60,13 +60,6 @@ const PREVIEW = `
 <pk-cluster class="u-mt-3"><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-card>
 <pk-alert kind="warning">A warning notice.</pk-alert><pk-alert kind="success">A success notice.</pk-alert>
 <pk-table density="compact"><table><thead><tr><th>SKU</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>AC-001</code></td><td class="num">$4.99</td></tr></tbody></table></pk-table>`;
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 const cap = s => s[0].toUpperCase() + s.slice(1);
 

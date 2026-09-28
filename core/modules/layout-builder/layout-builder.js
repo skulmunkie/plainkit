@@ -48,7 +48,7 @@
 import * as M from '../../js/layout-model.js';
 import * as L from '../../js/layout-builder-logic.js';
 import { createElementInspector } from '../../js/element-inspector.js';
-import { ensureStyles, styleUrls, loadJson, runtimeUrl } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { setTheme } from '../../js/theme.js';
 import { createLogger } from '../../js/log.js';
@@ -60,13 +60,6 @@ const DEFAULT_API = '../../dist/elements/api.json';
 const isText = c => typeof c === 'string';
 const EDIT_EVENTS = ['input', 'change', 'pk-value-change', 'pk-change'];
 const MOVES = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'out', ArrowRight: 'in' };
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined && c !== false));
-    return el;
-}
 
 export async function mountLayoutBuilder(container, options = {}) {
     if (!container) { log.error('mountLayoutBuilder needs a container element'); throw new TypeError('mountLayoutBuilder: container is required'); }

@@ -10,18 +10,11 @@ import { validateBreakpoints, deltaRows, readSettings, RANGE } from '../../js/cu
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
-import { runtimeUrl } from '../../js/mount-support.js';
+import { runtimeUrl, h } from '../../js/mount-support.js';
 const log = createLogger('theme-editor.sdk');
 
 /** The runtime dist folder (two levels above this module in the release layout, where the modules sit in dist/modules/); the source tree points at core/dist (the build rewrites this line). */
 export const DIST = '../../dist/';
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 /**
  * createSdkTab({ doc, win, theme, importTheme, dist }) -> { panel, refresh(), widths(), include(), setWidths(w), destroy() }.
