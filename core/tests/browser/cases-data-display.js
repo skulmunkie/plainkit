@@ -566,4 +566,22 @@ export const dataDisplayCases = [
         press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
         t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
     }],
+    ['table (editable): a switch column draws a pk-switch (no bare checkbox), and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
+        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed","editor":"switch"}]' rows='[{"id":1,"name":"Widget number one","qty":4,"on":true},{"id":2,"name":"Gadget number two","qty":9,"on":false}]'></pk-table></div>`);
+        host.firstElementChild.style.inlineSize = '320px';
+        await t.load(host);
+        const el = host.querySelector('pk-table'); await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const widths = () => [...el.shadowRoot.querySelectorAll('thead th')].map(h => Math.round(h.getBoundingClientRect().width));
+        await until(() => cell(1, 'on')?.querySelector('pk-switch'), 'the pk-switch');
+        t.ok(!cell(1, 'on').querySelector('input'), 'no bare checkbox in the switch column');
+        t.ok(cell(1, 'on').querySelector('pk-switch').checked === true, 'the switch shows the value');
+        const before = widths();
+        cell(2, 'qty').focus(); cell(2, 'qty').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        const q = await until(() => cell(2, 'qty').querySelector('input'), 'the editor');
+        t.eq(widths().join(), before.join(), 'opening the editor changed a column width');
+        q.value = 'lots'; q.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        await until(() => cell(2, 'qty').querySelector('[data-cell-error]'), 'the message');
+        t.eq(widths().join(), before.join(), 'the validation message changed a column width');
+    }],
 ];
