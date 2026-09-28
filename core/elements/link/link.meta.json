@@ -1,0 +1,130 @@
+{
+  "tag": "pk-link",
+  "title": "Link",
+  "group": "Navigation",
+  "summary": "A router-aware text link: a real anchor in prose or a nav row, with href for an ordinary address or to for an app route the app router handles without a full page load.",
+  "props": [
+    {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An external or same-document address. Navigates natively (middle and ctrl-click, the status-bar URL). Ignored when to is set."
+    },
+    {
+      "name": "to",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A module-relative route. A plain click is intercepted and reported as a cancelable pk-navigate for the app router (js/router.js mountRouter, mounted with mountApp) to handle; a modified click (middle, ctrl, shift, alt), target or download, or a router that does not cancel the event, falls back to a normal navigation."
+    },
+    {
+      "name": "target",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Where the link opens (for example _blank). _blank adds rel=\"noopener noreferrer\" automatically and a visually hidden \"(opens in a new tab)\" after the label."
+    },
+    {
+      "name": "rel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The link relation. Defaults to noopener noreferrer when target is _blank."
+    },
+    {
+      "name": "download",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Downloads the target instead of opening it, under the file name given (the bare attribute keeps the name from the URL)."
+    },
+    {
+      "name": "current",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Marks the link as the current page: sets aria-current=\"page\" on the anchor."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "inline",
+      "values": [
+        "inline",
+        "muted",
+        "plain"
+      ],
+      "reflect": true,
+      "description": "inline is a coloured, underlined prose link; muted is a quiet reference (a nav row, a card footer); plain keeps the surrounding text colour."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The link text. No decorative glyph belongs inside it (#315); put an icon before or after the element instead."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-navigate",
+      "detail": {
+        "to": "string",
+        "href": "string"
+      },
+      "detailProps": {
+        "to": "string",
+        "href": "string"
+      },
+      "description": "A plain click on a to link, before any navigation. Cancelable: the app router calls preventDefault and handles it; if nothing cancels the event pk-link falls back to a normal navigation to to.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "link",
+      "description": "The anchor element."
+    },
+    {
+      "name": "tab",
+      "description": "The visually hidden \"(opens in a new tab)\" text, shown only when target is _blank."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-link-color",
+      "description": "Text colour.",
+      "default": "the variant colour"
+    },
+    {
+      "name": "--pk-link-color-hover",
+      "description": "Text colour on hover.",
+      "default": "the variant hover colour"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the inner anchor."
+    }
+  ],
+  "a11y": "A real <a> lives in the shadow root (exposed as a link, works with no JS), with a visible focus ring. current sets aria-current=\"page\" for the current page in a trail or nav list. An external link that opens in a new tab (target set to _blank) adds a visually hidden \"(opens in a new tab)\" after the label, so its accessible name still says where it leads without a decorative icon inside the link box.",
+  "examples": [
+    {
+      "title": "Inline prose link",
+      "html": "<p>Read the <pk-link href=\"/guides/routing\">routing guide</pk-link> before wiring the app shell.</p>"
+    },
+    {
+      "title": "Variants",
+      "html": "<pk-link href=\"/reports\">Reports</pk-link>\n<pk-link href=\"/reports\" variant=\"muted\">Reports</pk-link>\n<pk-link href=\"/reports\" variant=\"plain\">Reports</pk-link>"
+    },
+    {
+      "title": "Current page and a new tab",
+      "html": "<pk-link href=\"/orders\" current>Orders</pk-link>\n<pk-link href=\"https://example.com/help\" target=\"_blank\" rel=\"noopener noreferrer\">Help centre</pk-link>"
+    },
+    {
+      "title": "An app route",
+      "html": "<pk-link to=\"/orders/7\">Order 7</pk-link>"
+    }
+  ]
+}

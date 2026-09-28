@@ -100,7 +100,7 @@ A control that navigates is a link, not a click handler: give `pk-button` an `hr
 <pk-button href="/export.csv" download="export.csv" variant="ghost">Download</pk-button>
 ```
 
-`target`, `rel` (`noopener` is the default for `_blank`) and `download` only apply with `href`. `disabled` and `busy` drop the href and report `aria-disabled`. A link still fires `click`, so a host can track it.
+`target`, `rel` (`noopener` is the default for `_blank`) and `download` only apply with `href`. `disabled` and `busy` drop the href and report `aria-disabled`. A link still fires `click`, so a host can track it. For a text link in prose, `pk-link` is a real anchor instead: `href` for an ordinary address, or `to` for an app route (a plain click emits a cancelable `pk-navigate` that `mountRouter({ intercept: true })`/`mountApp` picks up like a plain `<a href>`, falling back to a normal navigation outside an app); `variant` is `inline`/`muted`/`plain`, `current` sets `aria-current="page"`.
 
 ### Icon-only button
 

@@ -60,11 +60,16 @@ test('mountRouter reads the location, navigates with pushState, notifies subscri
     assert.equal(router.href('/orders/:id', { id: 9 }), '/orders/9');
 });
 
+function fakeContainer() {
+    const handlers = {};
+    return { on: t => handlers[t], addEventListener: (t, f) => { handlers[t] = f; }, removeEventListener: (t, f) => { if (handlers[t] === f) delete handlers[t]; }, handlers };
+}
+
 test('intercept turns a same-origin link click into navigate and ignores modified and cross-origin clicks', () => {
     fakeWin('/');
-    let click;
-    const container = { addEventListener: (t, f) => { click = f; }, removeEventListener() {} };
+    const container = fakeContainer();
     const router = mountRouter(container, { routes, intercept: true });
+    const click = container.on('click');
     const ev = (href, extra = {}) => ({ target: { closest: () => ({ href, hasAttribute: () => false }) }, button: 0, preventDefault() { this.prevented = true; }, ...extra });
     const a = ev('http://x/orders'); click(a);
     assert.equal(a.prevented, true);
@@ -73,6 +78,23 @@ test('intercept turns a same-origin link click into navigate and ignores modifie
     const c = ev('http://x/admin/users', { ctrlKey: true }); click(c);
     assert.ok(!b.prevented && !c.prevented);
     assert.equal(router.current().label, 'Orders');
+});
+
+test('intercept also handles a cancelable pk-navigate (pk-link\'s `to`), and destroy removes both listeners', () => {
+    fakeWin('/');
+    const container = fakeContainer();
+    const router = mountRouter(container, { routes, intercept: true });
+    const onNavigate = container.on('pk-navigate');
+    const e = { detail: { to: '/orders' }, preventDefault() { this.prevented = true; } };
+    onNavigate(e);
+    assert.equal(e.prevented, true);
+    assert.equal(router.current().label, 'Orders');
+    // an event with no `to` (or already handled) is left alone
+    const e2 = { detail: {}, preventDefault() { this.prevented = true; } };
+    onNavigate(e2);
+    assert.equal(e2.prevented, undefined);
+    router.destroy();
+    assert.deepEqual(container.handlers, {});
 });
 
 test('createPage with a router sets breadcrumbs and the title now and on each route change, and destroy stops following', () => {
