@@ -1,0 +1,6 @@
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="state"]:empty, [part="notice"]:empty { display: none; }
+[part="bar"] { display: flex; justify-content: flex-end; gap: var(--space-2); margin-block-end: var(--space-4); }
+[part="notice"] { margin-block-end: var(--space-4); }
+[part="side"] { display: flex; flex-direction: column; gap: var(--space-4); }
+[part="main"] form { display: flex; flex-direction: column; gap: var(--space-4); }
