@@ -814,6 +814,23 @@ test("'record' (step 7, #353) creates a pk-record-page, takes the id from the ro
     assert.equal(bare.children[0].load, undefined);
 });
 
+test("'wizard' (step 7, #353) creates a pk-wizard-page and keeps validate, submit, load and mountStep as callbacks bound to ctx and the rest as data", async () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const factory = (await import('../js/app/pages/wizard.js')).default;
+    const seen = [], host = new Host();
+    const cleanup = factory(host, { steps: [{ id: 'a' }], review: true, validate: (id, v, ctx) => { seen.push(['validate', id, v, ctx.tag]); }, submit: (v, ctx) => { seen.push(['submit', v, ctx.tag]); }, load: ctx => { seen.push(['load', ctx.tag]); return {}; }, mountStep: (p, s, ctx) => { seen.push(['mount', p, s, ctx.tag]); } }, { tag: 'x' });
+    const el = host.children[0];
+    assert.equal(el.localName, 'pk-wizard-page');
+    assert.deepEqual(el.config, { steps: [{ id: 'a' }], review: true }, 'callbacks are not config data');
+    el.validate('a', 1); el.submit(2); el.load(); el.mountStep('pane', 'step');
+    assert.deepEqual(seen, [['validate', 'a', 1, 'x'], ['submit', 2, 'x'], ['load', 'x'], ['mount', 'pane', 'step', 'x']]);
+    cleanup();
+    assert.deepEqual(host.children, []);
+    const bare = new Host(); factory(bare, {}, {});
+    assert.equal(bare.children[0].validate, undefined);
+});
+
 test("'master-detail' (step 7, #353) creates a pk-master-detail-page, selects the record from the route, and wires load, row and Back through ctx", async () => {
     class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }

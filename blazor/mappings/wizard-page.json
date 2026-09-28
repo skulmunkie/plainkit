@@ -1,0 +1,14 @@
+{
+  "component": "PkWizardPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }."
+    }
+  ],
+  "notes": "New component: App framework step 7 (issue #353). Validate, Submit, Load and MountStep are callback properties (business logic) and need JS interop from the component, left for the Blazor page-type step (#346 step 20), same as PkRecordPage's Load and Save. A Razor flow composes PkStepper, PkForm and PkButton directly today."
+}

@@ -363,6 +363,73 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['wizard page type (#353): mounted and destroyed 100 times leaves no listener (the leave guard included), observer, timer or element behind', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        const config = { review: true, steps: [{ id: 'a', label: 'One', fields: [{ name: 'name', label: 'Name', required: true }] }], validate: async () => {}, submit: async () => {} };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'wizard', config });
+            const el = box.querySelector('pk-wizard-page');
+            await t.load(box);
+            await until(() => el.part('panes').querySelector('pk-form'), 'the first step to render', 200);
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+    }],
+
+    ['wizard page type (#353): load pending shows loading, a rejection shows an alert with a working Retry, an invalid step blocks Next, valid answers go on, Back keeps them, and a submit error returns to its field', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'wizard', config: {
+            review: true,
+            steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email', required: true }] }, { id: 'b', label: 'Plan', fields: [{ name: 'plan', label: 'Plan' }] }],
+            load: () => { if (++attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('backend down')); }); return {}; },
+            submit: async () => { throw Object.assign(new Error('invalid'), { errors: { email: 'Taken' } }); },
+        } });
+        const el = box.querySelector('pk-wizard-page');
+        await t.load(box);
+        const state = el.part('state');
+        t.ok(state.querySelector('pk-skeleton'), 'loading while load() is pending');
+        release();
+        await until(() => state.querySelector('pk-alert'), 'the error state');
+        t.ok(/backend down/.test(state.querySelector('pk-alert').textContent));
+        await t.load(state);
+        state.querySelector('pk-button').click();
+        await until(() => el.part('panes').querySelector('pk-form') && !state.firstElementChild, 'Retry to recover');
+        t.eq(attempts, 2);
+        await t.load(el.part('panes'));
+        el.part('next').click();
+        await wait(200);
+        t.eq(el.part('heading').textContent, 'Account', 'an empty required field blocks Next');
+        const email = el.part('panes').querySelector('[name=email]');
+        const inner = email.part('control'); inner.value = 'a@b.c'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        t.eq(el.dirty, true, 'typing marks the wizard dirty');
+        await t.settle(); // the control's validity follows its value on the next update
+        el.part('next').click();
+        await until(() => el.part('heading').textContent === 'Plan', 'step two');
+        el.part('back').click();
+        await until(() => el.part('heading').textContent === 'Account', 'back to step one');
+        t.eq(el.part('panes').querySelector('[name=email]').value, 'a@b.c', 'the answer is kept going back');
+        el.part('next').click(); await until(() => el.part('heading').textContent === 'Plan', 'step two again');
+        el.part('next').click(); await until(() => el.part('heading').textContent === 'Review', 'the review step');
+        el.part('next').click();
+        await until(() => el.part('heading').textContent === 'Account' && el.part('panes').querySelector('pk-field[error]'), 'the submit error on its field');
+        page.destroy();
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
