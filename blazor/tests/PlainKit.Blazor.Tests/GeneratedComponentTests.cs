@@ -192,6 +192,30 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task Calendar_range_mode_binds_both_ends_from_the_range_change_event()
+    {
+        DateOnly? start = null, end = null;
+        PkRangeChangeEventArgs? args = null;
+        var cut = Render<PkCalendar>(p => p
+            .Add(x => x.Range, true)
+            .Add(x => x.Start, new DateOnly(2026, 9, 1))
+            .Add(x => x.End, new DateOnly(2026, 9, 5))
+            .Add(x => x.StartChanged, EventCallback.Factory.Create<DateOnly?>(this, d => start = d))
+            .Add(x => x.EndChanged, EventCallback.Factory.Create<DateOnly?>(this, d => end = d))
+            .Add(x => x.OnRangeChange, EventCallback.Factory.Create<PkRangeChangeEventArgs>(this, e => args = e)));
+        var el = cut.Find("pk-calendar");
+        Assert.Equal("2026-09-01", el.GetAttribute("start"));
+        Assert.Equal("2026-09-05", el.GetAttribute("end"));
+        Assert.True(el.HasAttribute("range"));
+
+        await el.TriggerEventAsync("onpk-range-change", new PkRangeChangeEventArgs { Start = "2026-09-10", End = "2026-09-17", Valid = true });
+
+        Assert.Equal(new DateOnly(2026, 9, 10), start);
+        Assert.Equal(new DateOnly(2026, 9, 17), end);
+        Assert.True(args!.Valid);
+    }
+
+    [Fact]
     public void Extra_class_and_unmatched_attributes_land_on_the_element()
     {
         var cut = Render<PkAlert>(p => p
