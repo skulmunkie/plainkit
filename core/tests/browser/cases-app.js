@@ -306,6 +306,63 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['record page type (#353): mounted and destroyed 100 times leaves no listener (the leave guard included), observer, timer or element behind', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        const config = { fields: [{ name: 'name', label: 'Name', required: true }], sidebar: [{ heading: 'Summary', fields: ['name'] }], load: async () => ({ name: 'Widget' }), save: async () => {}, mode: 'edit' };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'record', config: { ...config, id: '1' } });
+            const el = box.querySelector('pk-record-page');
+            await t.load(box);
+            await until(() => el.part('main').querySelector('pk-form') && !el.part('state').firstElementChild, 'the record to render', 200);
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+    }],
+
+    ['record page type (#353): loading while load() is pending, a rejection shows the danger alert with a working Retry, edit shows the form and a server error lands on its field', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'record', config: { id: '1', fields: [{ name: 'name', label: 'Name', required: true }], load: () => {
+            if (++attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('backend down')); });
+            return { name: 'Widget' };
+        }, save: async () => { throw Object.assign(new Error('invalid'), { errors: { name: 'Name is taken' } }); } } });
+        const el = box.querySelector('pk-record-page');
+        await t.load(box);
+        const state = el.part('state');
+        t.ok(state.querySelector('pk-skeleton'), 'loading while load() is pending');
+        release();
+        await until(() => state.querySelector('pk-alert'), 'the error state');
+        t.eq(state.querySelector('pk-alert').getAttribute('kind'), 'danger'); t.ok(/backend down/.test(state.querySelector('pk-alert').textContent));
+        await t.load(state);
+        state.querySelector('pk-button').click();
+        await until(() => el.part('main').querySelector('pk-field-list') && !state.firstElementChild, 'Retry to recover');
+        t.eq(attempts, 2);
+        el.part('edit').click();
+        await until(() => el.part('main').querySelector('pk-form'), 'edit mode');
+        await t.load(el.part('main'));
+        const ctl = el.part('main').querySelector('[name=name]');
+        ctl.value = 'Taken'; ctl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        t.eq(el.dirty, true, 'an edit marks the page dirty');
+        el.part('save').click();
+        await until(() => el.part('main').querySelector('pk-field').getAttribute('error') === 'Name is taken', 'the inline server error');
+        t.eq(el.dirty, true, 'a failed save stays dirty');
+        page.destroy();
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };

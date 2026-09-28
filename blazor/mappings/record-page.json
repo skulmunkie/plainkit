@@ -1,0 +1,22 @@
+{
+  "component": "PkRecordPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }."
+    },
+    {
+      "name": "Mode",
+      "type": "string",
+      "default": "view",
+      "map": "prop",
+      "prop": "mode",
+      "note": "'view' or 'edit'."
+    }
+  ],
+  "notes": "New component: App framework step 7 (issue #353). Load and Save are callback properties (business logic) and need JS interop from the component, left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run. Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template."
+}

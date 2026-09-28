@@ -1,0 +1,68 @@
+{
+  "tag": "pk-record-page",
+  "title": "Record page",
+  "group": "Page types",
+  "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form in edit mode, beside sidebar cards of summary fields (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit."
+    },
+    {
+      "name": "mode",
+      "type": "enum",
+      "default": "view",
+      "values": ["view", "edit"],
+      "reflect": true,
+      "description": "view reads the record; edit shows the form with Save and Cancel. Edit and a successful save switch it; a new record is always in edit mode."
+    },
+    {
+      "name": "dirty",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form differs from the last loaded or saved values. Read it; the element sets it."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-record-dirty",
+      "detail": "{ dirty }",
+      "detailProps": { "dirty": "boolean" },
+      "description": "The unsaved-changes state changed. An app that owns its router uses it to confirm before leaving."
+    },
+    {
+      "name": "pk-record-save",
+      "detail": "{ values }",
+      "detailProps": {},
+      "description": "save() resolved; values are the saved record."
+    }
+  ],
+  "parts": [
+    { "name": "layout", "description": "The pk-detail-layout holding the main column and the sidebar." },
+    { "name": "main", "description": "The field list or the form." },
+    { "name": "side", "description": "The sidebar cards." },
+    { "name": "bar", "description": "Wraps the Edit, Cancel and Save buttons." },
+    { "name": "edit", "description": "The Edit button (view mode)." },
+    { "name": "cancel", "description": "The Cancel button (edit mode of an existing record)." },
+    { "name": "save", "description": "The Save button (edit mode); busy while save() is in flight." },
+    { "name": "notice", "description": "The save error, above the form." },
+    { "name": "state", "description": "The loading, not-found or load error state, in place of the record." }
+  ],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the pk-field elements the form builds in this element's own shadow tree", "attributes": ["error"], "why": "A save that rejects with { errors } sets each named field's error, and the next save clears them. The fields are rebuilt with the form, so nothing outlives the element." }
+  ],
+  "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. The loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
+  "examples": [
+    {
+      "title": "Product record (set config, load and save from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-record-page id=\"product\"></pk-record-page>"
+    }
+  ],
+  "methods": []
+}
