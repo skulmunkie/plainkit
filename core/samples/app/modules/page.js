@@ -21,10 +21,13 @@ export const table = (heading, columns, rows) => (host, ctx) => {
     host.append(stack(doc, make(doc, 'h1', {}, heading), grid));
 };
 
-// A record page: a heading and the record's fields.
+// A record page: a heading and the record's fields. pk-field-list's items property is data-driven (a JSON attribute), so a strict module
+// never has to write dt/dd itself.
 export const facts = (heading, pairs) => host => {
-    const doc = host.ownerDocument, list = make(doc, 'pk-field-list'), card = make(doc, 'pk-card', { heading: 'Details' });
-    for (const [name, value] of pairs) list.append(make(doc, 'dt', {}, name), make(doc, 'dd', {}, value));
+    const doc = host.ownerDocument;
+    const items = pairs.map(([label, value]) => ({ label, value }));
+    const list = make(doc, 'pk-field-list', { items: JSON.stringify(items) });
+    const card = make(doc, 'pk-card', { heading: 'Details' });
     card.append(list);
     host.append(stack(doc, make(doc, 'h1', {}, heading), card));
 };
