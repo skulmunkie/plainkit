@@ -448,4 +448,25 @@ export const formCases = [
         unit.value = 'px'; unit.dispatchEvent(ev('pk-value-change')); await t.settle();
         t.eq(JSON.stringify(got.at(-1)?.value), JSON.stringify({ value: 140, unit: 'px' }));
     }],
+    ['property-grid keyboard: Ctrl+Up/Down/Home/End move between enabled visible rows (skipping disabled, hidden and collapsed), a switch takes plain arrows, plain arrows in a number are left alone', async t => {
+        const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
+        const g = host.querySelector('pk-property-grid');
+        g.config = { groups: [
+            { heading: 'A', fields: [{ key: 'a', type: 'number', label: 'A' }, { key: 'off', type: 'text', label: 'Off', disabled: true }, { key: 'gone', type: 'text', label: 'Gone', hidden: true }, { key: 'sw', type: 'switch', label: 'S' }, { key: 'z', type: 'text', label: 'Z' }] },
+            { heading: 'B', collapsed: true, fields: [{ key: 'b', type: 'text', label: 'B' }] },
+        ] };
+        await t.settle(); await t.settle();
+        const rows = g.$rows, send = (el, key, ctrlKey) => { const e = new KeyboardEvent('keydown', { key, ctrlKey, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
+        const inner = r => r.c.shadowRoot?.querySelector('input') ?? r.c;
+        const focusedKey = () => Object.keys(rows).find(k => rows[k].c.matches(':focus-within') || rows[k].c.shadowRoot?.activeElement || g.shadowRoot.activeElement === rows[k].c);
+        inner(rows.a).focus();
+        t.eq(send(inner(rows.a), 'ArrowDown', false).defaultPrevented, false, 'a plain arrow in a number is left to the stepper');
+        send(inner(rows.a), 'ArrowDown', true); await t.settle(); t.eq(focusedKey(), 'sw', 'Ctrl+Down skips the disabled and hidden rows');
+        t.eq(send(rows.sw.c, 'ArrowDown', false).defaultPrevented, true, 'a switch takes a plain arrow'); await t.settle(); t.eq(focusedKey(), 'z');
+        send(inner(rows.z), 'ArrowDown', true); await t.settle(); t.eq(focusedKey(), 'z', 'the collapsed group and the end are not entered');
+        send(inner(rows.z), 'Home', true); await t.settle(); t.eq(focusedKey(), 'a', 'Ctrl+Home is the first row');
+        send(inner(rows.a), 'End', true); await t.settle(); t.eq(focusedKey(), 'z', 'Ctrl+End is the last row');
+        send(inner(rows.z), 'ArrowUp', true); await t.settle(); t.eq(focusedKey(), 'sw');
+        t.eq(send(inner(rows.z), 'Tab', false).defaultPrevented, false, 'Tab is never trapped');
+    }],
 ];
