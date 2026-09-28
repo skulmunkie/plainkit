@@ -1,5 +1,5 @@
 // The layout builder as a module: mountLayoutBuilder(container, options) is an editor for a page built from Plainkit elements. A palette lists every element of the
-// element API (grouped like the gallery, with search), the canvas shows the page live, a structure tree and the toolbar select and rearrange it, and an inspector edits
+// element API (grouped like the gallery, with search), the canvas shows the page live, a structure tree and the Edit menu select and rearrange it, and an inspector edits
 // the selected element's props from its API metadata. The page is a JSON document (js/layout-model.js) that round-trips to CSP-safe HTML; the host owns persistence.
 //
 //   const builder = await mountLayoutBuilder(el, { model, onchange: ({ model, reason }) => draft(model), onsave: ({ model, html }) => store(model, html) });
@@ -7,42 +7,36 @@
 //
 // Options: registry (the element API: an array, or a URL of api.json; default ../elements/api.json next to the module), model (a starting document, or its JSON text;
 // default an empty page), html (a starting page as markup instead: sanitised, what is refused is logged; setHtml(markup) loads one later), onchange({ model, reason }) (every edit, undo, redo and load; reason: insert, move, remove, duplicate, wrap, prop, text, slot, undo, redo, load),
-// onsave({ model, html }) (adds a Save button; a returned promise is awaited, a failure is logged and shown), exporters ({ name: (model, helpers) => text }: extra export
+// onsave({ model, html }) (adds a File menu with Save; a returned promise is awaited, a failure is logged and shown), exporters ({ name: (model, helpers) => text }: extra export
 // formats a host contributes, for example Razor from the Blazor side; used by exportAs(name)), height (any CSS length; default 40rem), theme ('dark' | 'light').
 // Returns { element, getModel(), setModel(model) -> { ok, problems }, setHtml(markup) -> { ok, problems }, toHtml(options), exportAs(name), select(id), selection(), insert(tag), undo(), redo(), on(event, fn) -> off, destroy() };
 // events: change ({ model, reason }), select ({ id }), problem ({ message }).
 //
 // Keyboard (canvas or structure tree focused): arrows select (Up and Down walk the page, Left the parent, Right the first child), Alt+arrows move the selection (Up and
 // Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes,
-// Ctrl+S saves. This stays the accessible fallback, and (desktop/tablet) the toolbar's buttons do the same things: neither is replaced by drag-and-drop (issue #174).
+// Ctrl+S saves. The toolbar's File and Edit menus (and the canvas's right-click menu) run the same functions and show these keys: neither is replaced by drag-and-drop (issue #174).
 //
 // Pointer/touch drag-and-drop (issue #174, built on pk-sortable, core/elements/sortable/): the top-level page order is a real pk-sortable of pk-sortable-item rows,
 // each with its own 44px drag handle; dragging one reorders the page for real (a pk-reorder event drives M.moveNode, same as Alt+arrows). A palette button is a second
 // drag source, using pk-sortable's external-drop API (beginExternalDrag/externalDragOver/endExternalDrag): dropped between top-level rows it inserts there; dropped on
 // a container (hit-tested, not nested pk-sortable: wrapping arbitrary slotted content would break the many elements whose shadow CSS keys off ::slotted() directly, for
 // example pk-stack's dividers or pk-card's [slot="media"]) it inserts inside that container's default slot, which is the "slot-aware" half of the drop. Reordering
-// *inside* a container, and moving a node into or out of one, stay keyboard/toolbar-only in this iteration (Alt+Left/Right, Alt+Up/Down, Out/In): a real, but scoped,
+// *inside* a container, and moving a node into or out of one, stay keyboard/menu-only in this iteration (Alt+Left/Right, Alt+Up/Down, Move out/in): a real, but scoped,
 // limitation flagged on #174 rather than pretending a further recursive pk-sortable nesting was built and verified.
 //
 // Each canvas element also gets an Edit/Delete icon chip (issue #174) that follows whichever node is hovered or, since touch has no hover, selected -- a tap already
 // selects (the canvas is inert), so touch reaches the chip through selection alone, with no separate gesture needed. Edit focuses the properties form for that node;
-// Delete removes it. Up/Down/Out/In/Duplicate/Wrap stay toolbar buttons and keyboard shortcuts rather than more icons (a decision recorded on #174): the first four are
-// largely superseded by drag-and-drop, and Duplicate/Wrap are toolbar/keyboard-only, which on a phone (below) means keyboard-only.
+// Delete removes it. Up/Down/Out/In/Duplicate/Wrap are Edit menu items, canvas context-menu items and keyboard shortcuts rather than more icons (a decision recorded on #174).
 //
-// At phone width (@media max-width: 640px) the whole toolbar row -- Undo/Redo, Up/Down/Out/In, Duplicate/Wrap/Delete, Save -- is hidden: touch drag and the per-element
-// chip are the entire interaction model there, per the issue's "mobile is 100% drag-and-drop" direction. Ctrl+S keeps Save reachable with an attached keyboard.
-//
-// Issue #181: a phone with no attached keyboard had no on-screen way to save at all once the toolbar row (and its Save button) is hidden. Fix: a small persistent
-// floating Save button (`.lb-save-fab`), shown only at phone width and only when the host passed `onsave`. Trade-off recorded here (per the issue's request): a
-// single-button toolbar row was rejected because it reintroduces the row #174 deliberately removed for "100% drag-and-drop, no buttons"; a Save entry inside the
-// per-element chip was rejected because Save is a page-level action, not a per-element one, and would be one tap away only when some element happens to be
-// selected/hovered. A persistent FAB is the smallest addition that keeps the phone canvas 100% drag-and-drop for element editing while making the one remaining
-// page-level action (Save) reachable by touch at all times, independent of selection. It calls the same save() as the toolbar button and Ctrl+S, so onsave's
-// payload shape ({ model, html }) is unchanged across desktop, tablet and phone.
+// The chrome is a pk-dock (issue #432): Palette, Structure and HTML are tabs of its left group, the canvas the center, Properties the right; any of them can be
+// resized, moved or closed and reopened from the dock's own Panels menu. Its toolbar-start slot holds the File (Save, only with onsave) and Edit menus. Below the
+// phone breakpoint the dock draws every panel as one tab strip and the menus stay in its toolbar, so Save and every edit stay reachable by touch.
+// Right click (or Shift+F10, or a touch long press, all pk-context-menu) on the canvas opens the element menu for the element under the pointer; on a palette
+// button it offers Add.
 //
 // The canvas renders the model in the page inside an inert container (a built page cannot act on the builder); selection is from element rectangles and drawn as an outline.
 // Its width buttons narrow the canvas but media queries still see the real viewport: the iframe device preview is a follow-up (DESIGN.md).
-// Built only from SDK components (pk-toolbar, pk-workspace, pk-tabs, pk-accordion, pk-tree, pk-button, pk-button-group, pk-input, pk-select, pk-checkbox, pk-textarea, pk-code-block,
+// Built only from SDK components (pk-dock, pk-dropdown, pk-menu-item, pk-context-menu, pk-accordion, pk-tree, pk-button, pk-button-group, pk-input, pk-select, pk-checkbox, pk-textarea, pk-code-block,
 // pk-empty-state, pk-sortable, pk-sortable-item, pk-icon) and the element inspector. The pure logic is js/layout-builder-logic.js and js/layout-model.js. Logging scope: layout-builder.
 
 import * as M from '../../js/layout-model.js';
@@ -82,27 +76,25 @@ export async function mountLayoutBuilder(container, options = {}) {
     const current = () => history.doc;
 
     // ---- interface
-    const button = (action, label, extra = {}) => h(doc, 'pk-button', { 'data-action': action, size: 'mini', variant: 'ghost', ...extra }, label);
-    const actions = {
-        undo: button('undo', 'Undo', { icon: true, 'icon-name': 'undo' }), redo: button('redo', 'Redo', { icon: true, 'icon-name': 'redo' }),
-        up: button('up', 'Up'), down: button('down', 'Down'), out: button('out', 'Out'), in: button('in', 'In'),
-        duplicate: button('duplicate', 'Duplicate'), wrap: button('wrap', 'Wrap'), remove: button('remove', 'Delete', { variant: 'warn' }),
-        ...(options.onsave ? { save: button('save', 'Save', { variant: 'primary' }) } : {}),
-    };
-    for (const b of Object.values(actions)) b.setAttribute('slot', 'actions');
-    const toolbar = h(doc, 'pk-toolbar', { heading: 'Layout builder', note: '' }, ...Object.values(actions));
+    // Menus (issue #432): the dock's toolbar-start slot holds File (Save, only with onsave) and Edit; the canvas has the Edit menu's element actions as
+    // its context menu. Every item's value is an action name that run() maps to the same function the keyboard handler calls. The dock's own Panels
+    // menu already reopens a closed panel, so there is no View menu.
+    const KEYS = { undo: 'Ctrl+Z', redo: 'Ctrl+Y', save: 'Ctrl+S', duplicate: 'Ctrl+D', remove: 'Delete', up: 'Alt+Up', down: 'Alt+Down', out: 'Alt+Left', in: 'Alt+Right' };
+    const item = (action, label, extra = {}) => h(doc, 'pk-menu-item', { value: action, 'data-action': action, ...extra }, label, KEYS[action] && h(doc, 'span', { slot: 'suffix' }, KEYS[action]));
+    const divider = () => h(doc, 'pk-menu-item', { type: 'divider' });
+    const nodeItems = () => [item('duplicate', 'Duplicate'), item('wrap', 'Wrap in a stack'), item('remove', 'Delete', { danger: true }), divider(),
+        item('up', 'Move up'), item('down', 'Move down'), item('out', 'Move out'), item('in', 'Move in')];
+    const menu = (name, ...items) => h(doc, 'pk-dropdown', { slot: 'toolbar-start', 'data-menu': name.toLowerCase() }, h(doc, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini' }, name), ...items);
+    const menus = [...(options.onsave ? [menu('File', item('save', 'Save'))] : []), menu('Edit', item('undo', 'Undo'), item('redo', 'Redo'), divider(), ...nodeItems())];
     const status = h(doc, 'p', { class: 'lb-status', role: 'status' });
-    const hint = h(doc, 'p', { class: 'lb-hint muted' }, 'Arrows select. Alt+arrows move. Delete removes. Ctrl+Z undoes.');
+    const hint = h(doc, 'p', { class: 'lb-hint muted' }, 'Arrows select. Alt+arrows move. Delete removes. Ctrl+Z undoes. Right-click an element for its menu.');
 
     const search = h(doc, 'pk-input', { type: 'search', label: 'Find an element', placeholder: 'e.g. card, button, form', clearable: true });
     const paletteList = h(doc, 'div', { class: 'lb-palette' });
     const tree = h(doc, 'pk-tree', { label: 'Page structure' });
     const code = h(doc, 'pk-code-block', { label: 'Exported HTML', wrap: true });
-    const tabs = h(doc, 'pk-tabs', { value: 'palette', label: 'Builder panels' },
-        h(doc, 'pk-tab', { value: 'palette' }, 'Palette'), h(doc, 'pk-tab', { value: 'structure' }, 'Structure'), h(doc, 'pk-tab', { value: 'html' }, 'HTML'),
-        h(doc, 'pk-tab-panel', { value: 'palette' }, search, paletteList),
-        h(doc, 'pk-tab-panel', { value: 'structure' }, tree),
-        h(doc, 'pk-tab-panel', { value: 'html' }, code));
+    // A palette button's context menu: Add, the same insert() a click runs. Its target is remembered when the menu opens (pointer or Shift+F10).
+    const paletteMenu = h(doc, 'pk-context-menu', { class: 'lb-palette-menu' }, paletteList, h(doc, 'pk-menu-item', { slot: 'menu', value: 'add' }, 'Add to the page'));
 
     const empty = h(doc, 'pk-empty-state', { heading: 'An empty page', description: 'Add an element from the palette, or load a page with setModel().', tone: 'compact' });
     const page = h(doc, 'div', { class: 'lb-page' });
@@ -110,7 +102,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     // Per-element controls: a small chip of Edit/Delete icon buttons positioned over whichever node is hovered, focused (selected: the
     // canvas is inert, so "focused" means selected) or, at phone width, simply selected (there is no hover on touch, so a tap that selects
     // is what makes the chip appear). Up/Down/Out/In stay keyboard-only (Alt+arrows) and are superseded by drag-and-drop; Duplicate and
-    // Wrap stay toolbar actions (desktop/tablet) and keyboard shortcuts (Ctrl+D) rather than adding more icons here. See DESIGN.md and
+    // Wrap stay Edit/context-menu items and keyboard shortcuts (Ctrl+D) rather than adding more icons here. See DESIGN.md and
     // the #174 issue comment for the reasoning.
     const nodeControls = h(doc, 'div', { class: 'lb-node-controls', hidden: true },
         h(doc, 'pk-button', { size: 'mini', variant: 'ghost', icon: true, 'icon-name': 'edit', 'data-node-action': 'edit', label: 'Edit' }, 'Edit'),
@@ -120,20 +112,20 @@ export async function mountLayoutBuilder(container, options = {}) {
         h(doc, 'pk-button', { 'data-width': 'phone', size: 'mini', variant: 'ghost', toggle: true, value: 'phone' }, '375px'),
         h(doc, 'pk-button', { 'data-width': 'tablet', size: 'mini', variant: 'ghost', toggle: true, value: 'tablet' }, '768px'),
         h(doc, 'pk-button', { 'data-width': 'full', size: 'mini', variant: 'ghost', toggle: true, pressed: true, value: 'full' }, 'Full'));
-    const main = h(doc, 'div', { class: 'lb-main' }, widths, canvas);
+    // The canvas's context menu wraps it from outside: .lb-canvas has contain: paint, which would clip a fixed-position menu placed inside it.
+    const canvasMenu = h(doc, 'pk-context-menu', { class: 'lb-canvas-menu' }, canvas, ...nodeItems().map(i => { i.setAttribute('slot', 'menu'); return i; }));
+    const actionItems = () => root.querySelectorAll('pk-menu-item[data-action]');
 
     const form = h(doc, 'div', { class: 'lb-form' });
     const inspectorBox = h(doc, 'div', { class: 'lb-inspector' });
     const inspector = createElementInspector(inspectorBox, { emptyHeading: 'Nothing selected', emptyText: 'Select an element on the canvas or in the structure tree to edit it and to see its documentation and markup.' });
-    const aside = h(doc, 'div', { slot: 'aside', class: 'lb-aside' }, form, inspectorBox);
-    // aside-open is not set here: it is kept in step with the selection (see syncAside) so the inspector flyout does not sit over the
-    // canvas, uninvited, on a tablet or phone when there is nothing to inspect.
-    const workspace = h(doc, 'pk-workspace', { fill: true, 'nav-label': 'Palette', 'main-label': 'Canvas', 'aside-label': 'Properties' }, h(doc, 'div', { slot: 'nav', class: 'lb-nav' }, tabs), main, aside);
-    // Phone-only Save fallback (issue #181): the toolbar row (and its Save button) is hidden at phone width, and Ctrl+S needs a hardware
-    // keyboard a phone may not have. This floating button is the on-screen way to reach save() by touch alone; see the top-of-file comment
-    // for the trade-off against a toolbar row or a per-element chip entry. Only rendered when the host offered onsave in the first place.
-    const saveFab = options.onsave ? h(doc, 'pk-button', { class: 'lb-save-fab', variant: 'primary', icon: true, 'icon-name': 'save', label: 'Save' }, 'Save') : null;
-    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, toolbar, status, hint, workspace, ...(saveFab ? [saveFab] : []));
+    // Five pk-dock panels: Palette, Structure and HTML share the left group (the dock draws them as tabs), the canvas is the center, Properties the right.
+    const panel = (id, heading, group, ...kids) => h(doc, 'div', { slot: id, 'data-heading': heading, 'data-group': group, class: 'lb-panel' }, ...kids);
+    const props = panel('properties', 'Properties', 'right', form, inspectorBox);
+    const dock = h(doc, 'pk-dock', { label: 'Layout builder panels' }, ...menus,
+        panel('palette', 'Palette', 'left', search, paletteMenu), panel('structure', 'Structure', 'left', tree), panel('html', 'HTML', 'left', code),
+        panel('canvas', 'Canvas', 'center', widths, canvasMenu), props);
+    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, status, hint, dock);
     if (options.height) root.style.height = options.height;
     container.replaceChildren(root);
     loadElements(root);
@@ -178,7 +170,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     // would sit between a container and its ::slotted() rules and break the 34-odd element stylesheets that key off the slotted tag or
     // attribute directly (pk-stack's dividers, pk-card's [slot="media"], and so on). So canvas drag reorders the top level for real; moving
     // a node into or out of a container, or reordering inside one, stays the keyboard fallback (Alt+Left/Right, Alt+Up/Down) and the
-    // toolbar's Out/In/Up/Down buttons. A palette element dragged onto a container (not between top-level rows) still inserts inside it
+    // Edit menu's Move items. A palette element dragged onto a container (not between top-level rows) still inserts inside it
     // (see startExternalDrag/updateExternalHover): that is the "slot-aware" half of the drop, done by hit-testing rather than nesting
     // pk-sortable, so it does not pay the same ::slotted cost.
     function paintCanvas() {
@@ -254,8 +246,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         const sel = state.selected;
         const can = { undo: history.canUndo, redo: history.canRedo, duplicate: Boolean(sel), remove: Boolean(sel), wrap: Boolean(sel) };
         for (const dir of ['up', 'down', 'out', 'in']) can[dir] = Boolean(sel && L.moveTarget(d, sel, dir));
-        for (const [name, b] of Object.entries(actions)) { if (name === 'save') continue; if (can[name]) b.removeAttribute('disabled'); else b.setAttribute('disabled', ''); }
-        toolbar.setAttribute('note', `${M.flatten(d).length} elements${sel ? `, selected: ${L.nodeLabel(M.findNode(d, sel))}` : ''}`);
+        for (const i of actionItems()) i.toggleAttribute('disabled', i.dataset.action !== 'save' && !can[i.dataset.action]);
     }
 
     // The properties form is rebuilt when the selection or the page changed from outside it; an edit made in the form leaves it alone (so typing keeps its focus).
@@ -297,13 +288,8 @@ export async function mountLayoutBuilder(container, options = {}) {
         else inspector.show({ meta, element: elements.get(node.id) });
     }
 
-    // The aside (Properties) pane opens only while something is selected: on a wide screen it is otherwise an empty docked column, but on a
-    // tablet the workspace floats it over the canvas, and left permanently open (as it was before) that flyout covered the canvas even with
-    // nothing to inspect. Closing it when the selection is empty is what lets the tablet and phone panes reach the canvas at all.
-    function syncAside() { workspace.toggleAttribute('aside-open', Boolean(state.selected)); }
-
     function paintAll({ formToo = true } = {}) {
-        paintCanvas(); paintTree(); paintToolbar(); paintInspector(); syncAside();
+        paintCanvas(); paintTree(); paintToolbar(); paintInspector();
         if (formToo) paintForm();
         code.textContent = M.toHtml(current());
     }
@@ -322,7 +308,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         const next = id && M.findNode(current(), id) ? id : null;
         if (next === state.selected) return;
         state.selected = next;
-        paintSelection(scroll); paintToolbar(); paintForm(); paintInspector(); syncAside();
+        paintSelection(scroll); paintToolbar(); paintForm(); paintInspector();
         const node = next && M.findNode(current(), next);
         if (node) say(`Selected ${L.nodeLabel(node)}`);
         emit('select', { id: next });
@@ -439,16 +425,18 @@ export async function mountLayoutBuilder(container, options = {}) {
         const id = nodeControls.dataset.nodeId;
         if (!b || !id) return;
         const action = b.getAttribute('data-node-action');
-        if (action === 'edit') { selectNode(id, { scroll: true }); queueMicrotask(() => aside.querySelector('input, select, textarea, pk-input, pk-select, pk-switch, pk-textarea')?.focus()); }
+        if (action === 'edit') { selectNode(id, { scroll: true }); queueMicrotask(() => props.querySelector('input, select, textarea, pk-input, pk-select, pk-switch, pk-textarea')?.focus()); }
         else if (action === 'trash') { selectNode(id); remove(); }
     });
-    on(toolbar, 'click', e => {
-        const b = e.target.closest?.('pk-button[data-action]');
-        if (!b || b.hasAttribute('disabled')) return;
-        ({ undo, redo, duplicate, wrap, remove, save, up: () => move('up'), down: () => move('down'), out: () => move('out'), in: () => move('in') })[b.getAttribute('data-action')]?.();
-    });
+    // A menu choice runs the same function as its keyboard shortcut (the keydown handler below).
+    const run = action => ({ undo, redo, duplicate, wrap, remove, save, up: () => move('up'), down: () => move('down'), out: () => move('out'), in: () => move('in') })[action]?.();
+    for (const m of [...menus, canvasMenu]) on(m, 'pk-select', e => { if (e.target.localName === 'pk-menu-item' && !e.target.disabled) run(e.target.dataset.action); });
+    // A right click on the canvas selects the element under the pointer first, so its menu acts on that element (Shift+F10 acts on the selection).
+    on(canvas, 'contextmenu', e => selectNode(hit(e.clientX, e.clientY)));
+    let paletteTag = null;
+    on(paletteMenu, 'pk-open', e => { paletteTag = e.detail?.target?.closest?.('pk-button[data-tag]')?.getAttribute('data-tag') ?? null; paletteMenu.querySelector('pk-menu-item').toggleAttribute('disabled', !paletteTag); });
+    on(paletteMenu, 'pk-select', e => { if (e.target.localName === 'pk-menu-item' && paletteTag) insert(paletteTag); });
     on(paletteList, 'click', e => { const b = e.target.closest?.('pk-button[data-tag]'); if (b) insert(b.getAttribute('data-tag')); });
-    if (saveFab) on(saveFab, 'click', () => save());
 
     // ---- drag-and-drop: canvas reorder (the top-level pk-sortable) and palette -> canvas insert (its external-drop API)
     function clearDropTarget() { const prev = state.dropTarget; state.dropTarget = null; if (prev) elements.get(prev)?.removeAttribute('data-lb-drop-target'); }
@@ -540,8 +528,6 @@ export async function mountLayoutBuilder(container, options = {}) {
         const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
         if (mod && key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
         if (mod && key === 'y') { e.preventDefault(); redo(); return; }
-        // Ctrl+S keeps Save reachable when the toolbar row is hidden at phone width (below): otherwise a phone would have no way to
-        // trigger it at all, once the row that held its button is gone.
         if (mod && key === 's') { e.preventDefault(); if (options.onsave) save(); return; }
         const inCanvas = canvas.contains(e.target), inTree = tree.contains(e.target);
         if (!inCanvas && !inTree) return;

@@ -472,21 +472,81 @@ export const toolCases = [
         t.ok(!hostile.ok && builder.getModel().nodes[0].tag === 'pk-card', 'a model with a script tag is refused and the page is kept');
         const markup = builder.setHtml('<p onclick="x()">Hi</p><script>alert(1)</script><a href="' + 'java' + 'script:x">l</a>');
         t.ok(markup.problems.length >= 3 && !/script|onclick|javascript/.test(builder.toHtml()), 'markup is sanitised on the way in');
-        host.querySelector('.lb pk-button[data-action=save]').click(); await t.settle();
+        host.querySelector('pk-dropdown[data-menu=file] pk-menu-item[data-action=save]').click(); await t.settle();
         t.ok(saved && saved.html === builder.toHtml() && saved.model === builder.getModel(), 'Save hands the host the model and the HTML');
         builder.destroy();
     }],
 
-    ['layout builder module: Undo/Redo are icon-only (issue #174), drawing the sprite\'s undo/redo symbols with the words kept as the accessible name', async t => {
+    ['layout builder module (#432): the chrome is a pk-dock (Palette, Structure and HTML tabs | canvas | Properties) under a toolbar holding File and Edit menus', async t => {
         const { mountLayoutBuilder } = await dist('layout-builder');
         const host = t.stage('');
-        const builder = await mountLayoutBuilder(host, { html: '<p>A</p>' });
+        host.style.width = '1100px';
+        const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p>', onsave: () => {} });
         await t.load(host);
-        const undo = host.querySelector('.lb pk-button[data-action="undo"]'), redo = host.querySelector('.lb pk-button[data-action="redo"]');
-        t.ok(undo.hasAttribute('icon') && undo.getAttribute('icon-name') === 'undo', 'the undo button is icon-only, drawing "undo"');
-        t.ok(redo.hasAttribute('icon') && redo.getAttribute('icon-name') === 'redo', 'the redo button is icon-only, drawing "redo"');
-        t.eq(undo.textContent.trim(), 'Undo', 'the word stays as the accessible name (hidden visually by icon mode, not removed)');
-        t.eq(undo.part('icon').querySelector('use').getAttribute('href'), await (async () => { const { iconHref } = await import('../../js/icon-sprite.js'); return iconHref('undo'); })(), 'the icon href points at the sprite\'s undo symbol');
+        const dock = host.querySelector('.lb > pk-dock');
+        await until(() => dock.shadowRoot?.querySelector('pk-splitter'), 'the dock to draw its groups');
+        await t.load(dock.shadowRoot); await t.settle();
+        t.ok(!host.querySelector('pk-workspace, pk-toolbar, .lb-save-fab'), 'the old workspace, toolbar row and floating Save button are gone');
+        const rect = el => el.getBoundingClientRect();
+        const lb = rect(host.querySelector('.lb')), d = rect(dock);
+        t.ok(Math.abs(d.bottom - lb.bottom) < 2 && Math.abs(d.left - lb.left) < 2 && Math.abs(d.right - lb.right) < 2, 'the dock fills the builder to its bottom edge');
+        const panel = id => rect(host.querySelector(`.lb-panel[slot="${id}"]`));
+        const palette = panel('palette'), canvas = panel('canvas'), props = panel('properties');
+        t.ok(palette.width > 0 && canvas.width > 0 && props.width > 0, 'palette, canvas and properties are all showing');
+        t.ok(palette.right <= canvas.left + 1 && canvas.right <= props.left + 1, 'palette | canvas | properties, left to right, without overlap');
+        t.ok(canvas.width > palette.width && canvas.width > props.width, 'the canvas is the widest panel');
+        t.ok(Math.abs(palette.top - canvas.top) < 60 && Math.abs(canvas.top - props.top) < 60, 'the three sit on one row');
+        const tabs = [...dock.shadowRoot.querySelectorAll('pk-tab')].map(x => x.textContent.trim());
+        t.eq(tabs.join(), 'Palette,Structure,HTML', 'Palette, Structure and HTML are tabs of one dock group');
+        const bar = rect(dock.part('toolbar')), file = host.querySelector('pk-dropdown[data-menu=file]'), edit = host.querySelector('pk-dropdown[data-menu=edit]');
+        for (const m of [file, edit]) { const r = rect(m); t.ok(r.top >= bar.top - 1 && r.bottom <= bar.bottom + 1 && r.width > 0, 'the menu sits inside the dock toolbar'); }
+        t.ok(rect(file).right <= rect(edit).left + 1, 'File comes before Edit');
+        t.ok(bar.bottom <= Math.min(palette.top, canvas.top) + 1, 'the toolbar is above the panels');
+        const keys = [...edit.querySelectorAll('pk-menu-item[data-action]')].map(i => [i.dataset.action, i.querySelector('[slot=suffix]')?.textContent ?? '']);
+        t.eq(Object.fromEntries(keys).undo, 'Ctrl+Z', 'Undo shows its accelerator as plain text');
+        t.eq(Object.fromEntries(keys).duplicate, 'Ctrl+D');
+        t.eq(file.querySelector('pk-menu-item[data-action=save] [slot=suffix]').textContent, 'Ctrl+S');
+        const item = a => edit.querySelector(`pk-menu-item[data-action="${a}"]`);
+        t.ok(item('undo').disabled && item('duplicate').disabled, 'nothing to undo and nothing selected: those items are disabled');
+        builder.select(builder.getModel().nodes[1].id); await t.settle();
+        t.ok(!item('duplicate').disabled && !item('up').disabled && item('down').disabled, 'a selection enables the element items it allows');
+        item('duplicate').click(); await t.settle();
+        t.eq(builder.toHtml({ compact: true }), '<h2>One</h2><p>Two</p><p>Two</p>', 'Edit > Duplicate runs the same duplicate as Ctrl+D');
+        t.ok(!item('undo').disabled, 'Undo is enabled once there is something to undo');
+        item('undo').click(); await t.settle();
+        t.eq(builder.toHtml({ compact: true }), '<h2>One</h2><p>Two</p>', 'Edit > Undo undoes it');
+        const plain = t.stage('');
+        const other = await mountLayoutBuilder(plain, { html: '<p>A</p>' });
+        await t.load(plain);
+        t.ok(!plain.querySelector('pk-dropdown[data-menu=file]') && plain.querySelector('pk-dropdown[data-menu=edit]'), 'no onsave, no File menu: only Edit');
+        other.destroy(); builder.destroy();
+    }],
+
+    ['layout builder module (#432): right click on a canvas element selects it and opens its menu (the Edit menu\'s element actions); on a palette button it offers Add', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p>' });
+        await t.load(host);
+        const menu = host.querySelector('pk-context-menu.lb-canvas-menu');
+        const p = host.querySelector('.lb-page p'), r = p.getBoundingClientRect();
+        host.querySelector('.lb-canvas').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + 4, clientY: r.top + 4, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.ok(menu.open, 'the canvas context menu opened');
+        t.eq(host.querySelector('.lb-page [data-lb-selected]')?.localName, 'p', 'the element under the pointer is selected first');
+        const m = menu.part('menu').getBoundingClientRect();
+        t.ok(m.width > 0 && m.left >= 0 && m.top >= 0 && m.right <= innerWidth && m.bottom <= innerHeight, 'the menu shows inside the viewport (the stage itself is off screen: placement at the pointer is measured by the review scenario)');
+        const rows = [...menu.querySelectorAll('pk-menu-item[slot=menu][data-action]')].map(i => i.dataset.action);
+        t.eq(rows.join(), 'duplicate,wrap,remove,up,down,out,in', 'the element actions, in the Edit menu\'s order');
+        menu.querySelector('pk-menu-item[data-action=remove]').click(); await t.settle();
+        t.ok(!menu.open, 'choosing an item closes the menu');
+        t.eq(builder.toHtml({ compact: true }), '<h2>One</h2>', 'Delete removed the element that was right-clicked');
+        const pal = host.querySelector('pk-context-menu.lb-palette-menu'), badge = host.querySelector('.lb-palette pk-button[data-tag="pk-badge"]');
+        const br = badge.getBoundingClientRect();
+        badge.dispatchEvent(new MouseEvent('contextmenu', { clientX: br.left + 4, clientY: br.top + 4, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        t.ok(pal.open, 'the palette context menu opened');
+        pal.querySelector('pk-menu-item[value=add]').click(); await t.settle();
+        t.ok(builder.toHtml().includes('<pk-badge'), 'Add inserted the right-clicked element');
         builder.destroy();
     }],
 
@@ -565,30 +625,36 @@ export const toolCases = [
         builder.destroy();
     }],
 
-    ['layout builder module (375px): the toolbar row is gone and a touch-style drag on the handle still reorders the page', async t => {
+    ['layout builder module (375px, #432): the dock draws one tab strip, the File and Edit menus stay in its toolbar (Save by touch), and a touch-style drag still reorders the page', async t => {
         const host = t.stage('');
         const f = document.createElement('iframe');
         f.title = 'layout builder, phone width'; f.style.width = '375px'; f.style.height = '640px'; f.style.border = '0';
         const base = new URL('../../', import.meta.url).href;
         host.append(f);
         f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><base href="${base}"><link rel="stylesheet" href="plainkit.css"></head><body><div id="host"></div>`
-            + `<script type="module">try { const { mountLayoutBuilder } = await import('./dist/modules/layout-builder/layout-builder.js');`
-            + `window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2><p>Two</p>' }); window.__ready = true;`
+            // From source, not dist: from dist pk-dock does not load yet (dist/js/dock-model.js imports a splitter path dist lacks, #601).
+            + `<script type="module">try { const { mountLayoutBuilder } = await import('./modules/layout-builder/layout-builder.js');`
+            + `window.__saved = null; window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2><p>Two</p>', onsave: e => { window.__saved = e; } }); window.__ready = true;`
             + `} catch (error) { window.__error = String(error && error.stack || error); }</script></body></html>`;
-        // Poll fresh contentDocument/contentWindow each time rather than capturing them once after 'load': a srcdoc iframe can fire an
-        // initial about:blank load before the srcdoc content itself has navigated in, and contentDocument/contentWindow are replaced by
-        // that navigation, so a reference taken too early would be stale.
+        // Poll fresh contentDocument/contentWindow each time: a srcdoc iframe can fire an initial about:blank load before the srcdoc content navigates in.
         await until(() => f.contentWindow?.__ready || f.contentWindow?.__error, 'the layout builder to mount in the phone frame');
         const win = f.contentWindow, fdoc = f.contentDocument;
         if (win.__error) throw new Error(`mountLayoutBuilder failed in the phone frame: ${win.__error}`);
-        try { await until(() => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item'), 'the page to render in the phone frame'); }
-        catch (error) { throw new Error(`${error.message}; .lb present: ${Boolean(fdoc.querySelector('.lb'))}; #host: ${fdoc.getElementById('host')?.innerHTML.slice(0, 300)}`); }
+        const dock = fdoc.querySelector('.lb > pk-dock');
+        await until(() => dock.shadowRoot?.querySelector('[data-node="phone"] pk-tab'), 'the dock to draw its phone strip');
         await t.settle();
-        t.eq(win.innerWidth, 375, 'the frame really is phone width, so the max-width media query answers to it');
-        const toolbar = fdoc.querySelector('pk-toolbar');
-        t.ok(toolbar, 'the toolbar element exists in the markup');
-        t.eq(win.getComputedStyle(toolbar).display, 'none', 'the whole toolbar row is hidden at phone width: no buttons, drag-and-drop only');
-        await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item').part === 'function', 'pk-sortable-item to upgrade in the phone frame');
+        t.eq(win.innerWidth, 375, 'the frame really is phone width');
+        t.ok(!dock.shadowRoot.querySelector('pk-splitter'), 'no splitters on a phone: one tab strip');
+        t.eq([...dock.shadowRoot.querySelectorAll('pk-tab')].map(x => x.textContent.trim()).join(), 'Palette,Structure,HTML,Canvas,Properties', 'every panel is a tab of the strip');
+        const bar = dock.part('toolbar').getBoundingClientRect();
+        t.ok(bar.width > 0 && bar.right <= 375 + 1, 'the toolbar shows and fits the phone width');
+        const file = fdoc.querySelector('pk-dropdown[data-menu=file]'), trigger = file.querySelector('pk-button[slot=trigger]').getBoundingClientRect();
+        t.ok(trigger.width > 0 && trigger.top >= bar.top - 1 && trigger.bottom <= bar.bottom + 1, 'the File menu is on screen in the toolbar');
+        file.querySelector('pk-menu-item[data-action=save]').dispatchEvent(new win.MouseEvent('click', { bubbles: true, composed: true }));
+        await t.settle();
+        t.ok(win.__saved && win.__saved.html === win.__builder.toHtml() && win.__saved.model, 'File > Save calls onsave with { model, html }, no keyboard involved');
+        dock.shadowRoot.querySelector('pk-tab[value="canvas"]').click(); await t.settle();
+        await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item')?.part === 'function', 'pk-sortable-item to upgrade in the phone frame');
         const items = [...fdoc.querySelectorAll('.lb-canvas-sortable pk-sortable-item')];
         t.eq(items.length, 2);
         const handle = items[0].part('handle'); const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
@@ -597,39 +663,7 @@ export const toolCases = [
         ptr('pointerdown', rh.left + rh.width / 2, rh.top + rh.height / 2);
         ptr('pointermove', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
         ptr('pointerup', rh.left + rh.width / 2, rl.bottom - 2); await t.settle();
-        t.eq(win.__builder.toHtml({ compact: true }), '<p>Two</p><h2>One</h2>', 'the touch-style drag reordered the page with no toolbar in sight');
-        win.__builder.destroy();
-    }],
-
-    ['layout builder module (375px, issue 181): with the toolbar row hidden, a floating Save button is reachable by touch/click alone and calls onsave with the same payload shape as desktop', async t => {
-        const host = t.stage('');
-        const f = document.createElement('iframe');
-        f.title = 'layout builder, phone width, save'; f.style.width = '375px'; f.style.height = '640px'; f.style.border = '0';
-        const base = new URL('../../', import.meta.url).href;
-        host.append(f);
-        f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><base href="${base}"><link rel="stylesheet" href="plainkit.css"></head><body><div id="host"></div>`
-            + `<script type="module">try { const { mountLayoutBuilder } = await import('./dist/modules/layout-builder/layout-builder.js');`
-            + `window.__saved = null; window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2>', onsave: e => { window.__saved = e; } }); window.__ready = true;`
-            + `} catch (error) { window.__error = String(error && error.stack || error); }</script></body></html>`;
-        await until(() => f.contentWindow?.__ready || f.contentWindow?.__error, 'the layout builder to mount in the phone frame');
-        const win = f.contentWindow, fdoc = f.contentDocument;
-        if (win.__error) throw new Error(`mountLayoutBuilder failed in the phone frame: ${win.__error}`);
-        await until(() => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item'), 'the page to render in the phone frame');
-        await t.settle();
-        const toolbar = fdoc.querySelector('pk-toolbar');
-        t.eq(win.getComputedStyle(toolbar).display, 'none', 'the toolbar row (and the Save button inside it) is hidden at phone width, as before');
-        const fab = fdoc.querySelector('.lb-save-fab');
-        t.ok(fab, 'a floating Save button exists when the host passed onsave');
-        await until(() => win.customElements.get('pk-button') && typeof fab.part === 'function', 'pk-button to upgrade in the phone frame');
-        t.eq(win.getComputedStyle(fab).display, 'flex', 'the floating Save button is shown (not display:none) at phone width');
-        const r = fab.getBoundingClientRect();
-        t.ok(r.width >= 43.5 && r.height >= 43.5, `the floating Save button is a 44px touch target (was ${Math.round(r.width)}x${Math.round(r.height)})`);
-        t.ok(r.right <= win.innerWidth && r.bottom <= win.innerHeight, 'the floating Save button sits inside the 375px viewport, not clipped off-screen');
-        fab.dispatchEvent(new win.MouseEvent('click', { bubbles: true, composed: true }));
-        await t.settle();
-        t.ok(win.__saved !== null, 'a touch/click on the floating Save button triggered onsave with no keyboard involved');
-        t.ok(win.__saved && typeof win.__saved.html === 'string' && win.__saved.model && typeof win.__saved.model === 'object', 'onsave still receives { model, html }, the same payload shape as the toolbar Save button and Ctrl+S');
-        t.eq(win.__saved.html, win.__builder.toHtml(), 'the html passed to onsave matches toHtml() for the current model');
+        t.eq(win.__builder.toHtml({ compact: true }), '<p>Two</p><h2>One</h2>', 'the touch-style drag reordered the page');
         win.__builder.destroy();
     }],
 ];
