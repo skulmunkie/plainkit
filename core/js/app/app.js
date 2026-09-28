@@ -37,8 +37,8 @@ import { mediaBelow } from '../breakpoints.js';
 import { navRoutes } from '../route-tree.js';
 import { MODULE_ID } from './module.js';
 import { createModuleHost } from './host.js';
-import { readConfig } from './config.js';
-import { buildShell } from './shell.js';
+import { readConfig, readFooter } from './config.js';
+import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, menuTree, paintNav, paintLinks, locate, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
@@ -49,7 +49,7 @@ export function mountApp(container, config) {
     const cfg = readConfig(config);
     const doc = container.ownerDocument, root = doc.documentElement, win = doc.defaultView;
     const entries = new Map(cfg.modules.map(m => [m.id, m]));
-    let router, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
+    let router, footerCustom = false, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
     const hrefOf = path => router.href(path);
     const moduleHref = (id, path = '/') => hrefOf(`/${id}${path === '/' ? '' : path}`);
 
@@ -118,10 +118,18 @@ export function mountApp(container, config) {
         return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: entries.get(a.id).title, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
     }
 
+    // A module's own `footer` ({ text, links }, or false for none) replaces the app's while it is active; a bad one is logged and the app footer stays.
+    function drawFooter(a) {
+        let footer = cfg.footer;
+        if (a?.def.footer !== undefined) try { footer = a.def.footer === false ? null : readFooter(a.def.footer, `${a.id}.footer`); } catch (e) { log.error(`the footer of "${a.id}" is invalid; the app footer stays`, e); }
+        for (const el of ui.shell.querySelectorAll(':scope > [slot="footer"]')) el.remove();
+        ui.shell.append(...footerNodes(doc, footer));
+    }
+
     function settle(result) {
         const a = host.current();
         status = result === 'error' && a ? 'ok' : result; // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
-        if (a?.id !== active) { active = a?.id ?? null; drawNav(); }
+        if (a?.id !== active) { active = a?.id ?? null; drawNav(); if (a?.def.footer !== undefined || footerCustom) drawFooter(a); footerCustom = a?.def.footer !== undefined; }
         mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
         const label = crumbs[crumbs.length - 1].label;

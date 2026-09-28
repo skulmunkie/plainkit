@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readConfig } from '../js/app/config.js';
+import { readConfig, readFooter } from '../js/app/config.js';
 import { locate, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
 import { navRoutes } from '../js/route-tree.js';
 import { defineModule } from '../js/app/module.js';
@@ -49,6 +49,14 @@ test('the config: a bad value throws naming the key, an unknown key is ONE warni
     const said = logs.filter(e => e.level === 'warn').map(e => e.message);
     assert.equal(said.length, 3, said.join(' | '));
     for (const key of ['colour', 'brand.logo', 'modules[0].badge']) assert.ok(said.some(m => m.includes(`"${key}"`)), `no warning for ${key}`);
+});
+
+test('readFooter: the shape of a footer (the app one and a module footer), links checked, text a string', () => {
+    assert.deepEqual(readFooter({ text: 'A', links: [{ label: 'P', href: '/p' }] }), { text: 'A', links: [{ label: 'P', href: '/p' }] });
+    assert.deepEqual(readFooter({}), { text: '', links: [] });
+    assert.throws(() => readFooter({ links: 'x' }, 'orders.footer'), /orders\.footer\.links/);
+    assert.throws(() => readFooter({ links: [{ label: 'x', href: ['java', 'script:x'].join('') }] }, 'orders.footer'), /orders\.footer\.links\[0\]/);
+    assert.throws(() => readFooter('text'), /footer must be an object/);
 });
 
 const ORDERS = defineModule({

@@ -103,11 +103,6 @@
 
 .gx-contents, .gx-phone-only { display: none; }
 
-/* A link that looks like a ghost button (pk-button has no href form): back to the list, open in a new page. */
-.gx-linkbtn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); box-sizing: border-box; min-height: var(--ctl-h); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--field-muted); font-size: var(--text-read); font-weight: 500; text-decoration: none; white-space: nowrap; }
-.gx-linkbtn:hover { color: var(--color-text); border-color: var(--color-text); }
-.gx-linkbtn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-
 .gx-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .gx-view { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; padding: var(--pad-page); }
@@ -135,7 +130,7 @@
 @media (max-width: 1280px) {
     .gx-pagebar .gx-wide-only { display: none; }
     .gx-pagebar .gx-compact-only { display: inline-flex; }
-    .gx-pagebar > .gx-linkbtn, .gx-pagebar > pk-button { min-width: var(--touch-target); }
+    .gx-pagebar > pk-button { min-width: var(--touch-target); }
 }
 
 /* The nav becomes an off-canvas drawer (the element's own breakpoint): the Contents button opens it. */
