@@ -159,6 +159,7 @@ export const appShellCases = [
 
     ['mountApp: a denied direct URL shows the forbidden state and never runs the loader, and a broken chunk shows the error with Retry inside the shell', async t => {
         const { mountApp, defineModule } = await src('js/app.js');
+        const { BOUNDARY_FAILED_TEXT } = await src('js/app/boundary.js');
         const el = document.createElement('div'); t.stage('').append(el);
         let loads = 0, healthy = false;
         const page = defineModule({ id: 'ok', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'ok'; } } }] });
@@ -173,7 +174,7 @@ export const appShellCases = [
         t.ok(el.querySelector('pk-app-shell'), 'the shell is still there');
         app.navigate('/flaky');
         const alert = await until(() => el.querySelector('pk-alert[kind="danger"]:not([hidden])'), 'the boundary error', 200);
-        t.ok(alert.textContent.includes('Failed to fetch'), 'the error says what failed');
+        t.ok(alert.textContent.includes(BOUNDARY_FAILED_TEXT), 'a raw import error is not userFacing (#378): the generic text shows, not the fetch detail');
         t.ok(alert.querySelector('pk-button'), 'Retry is offered');
         healthy = true; alert.querySelector('pk-button').click();
         await until(() => el.querySelector('#pk-main')?.textContent.includes('back'), 'the module after Retry', 200);

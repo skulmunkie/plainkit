@@ -1,6 +1,7 @@
 // Switching modules in a mounted app (#350): the previous module stays under a busy overlay while the next one loads, the bar's current link, the side nav, the breadcrumbs and the
 // title follow, focus lands on the new page's h1, and the failure states (a chunk that will not load, a module denied by `can`, a route the module does not have) draw inside the shell.
 import { mountApp, defineModule } from '../../../js/app.js';
+import { BOUNDARY_FAILED_TEXT } from '../../../js/app/boundary.js';
 
 const page = (heading, text) => host => {
     const h1 = host.ownerDocument.createElement('h1'), p = host.ownerDocument.createElement('pk-card');
@@ -79,7 +80,7 @@ export default {
         }
         if (t.shot === 'error') {
             t.visible(ALERT, 'the error alert');
-            t.hasText(ALERT, 'Failed to fetch');
+            t.hasText(ALERT, BOUNDARY_FAILED_TEXT); // a raw import error is not userFacing (#378): the generic text shows, not the fetch detail
             t.visible(`${ALERT} pk-button`, 'Retry');
             t.inViewport(ALERT);
             t.exists('pk-nav-item[data-module=reports][expanded]'); // the previous module stays usable
