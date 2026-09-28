@@ -2,14 +2,14 @@
   "tag": "pk-property-grid",
   "title": "Property grid",
   "group": "Form controls",
-  "summary": "A property inspector: fields in collapsible groups (text, number, select, switch), each a labelled real control, with per-property validation and a pk-property-change event. Uses the same field vocabulary as pk-settings-page.",
+  "summary": "A property inspector: fields in collapsible groups (text, number, range, colour, select, switch), each a labelled real control, with per-property validation and a pk-property-change event. Uses the same field vocabulary as pk-settings-page.",
   "props": [
     {
       "name": "config",
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ groups: [{ heading, collapsed?, fields: [{ key, type: 'text'|'number'|'select'|'switch', label, required?, disabled?, options?, min?, max?, step? }] }] }. A select's options are [{ value, label? }] or plain strings."
+      "description": "{ groups: [{ heading, collapsed?, fields: [{ key, type: 'text'|'number'|'range'|'color'|'select'|'switch', label, required?, disabled?, hidden?, visibleWhen?, options?, min?, max?, step? }] }] }. A select's options are [{ value, label? }] or plain strings; range is a pk-range slider with its value shown, color is a #rrggbb text field with a swatch. visibleWhen is { key, equals } or { key, in: [...] } against the current values and hides the property (and skips its validation) when false. Labels sit beside the value once the grid is 480px wide, above it otherwise."
     },
     {
       "name": "values",
@@ -24,6 +24,13 @@
       "default": {},
       "reflect": false,
       "description": "Host-side validation messages keyed by field key (for example from a server); shown under the property and marking it invalid. Built-in rules (required, number min/max) apply as well."
+    },
+    {
+      "name": "state",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "Live per-property state keyed by field key: { key: { disabled?, hidden? } }. Set again to enable, disable, show or hide a property without rebuilding the grid; hidden here overrides visibleWhen."
     },
     {
       "name": "disabled",
@@ -52,12 +59,25 @@
     { "name": "groups", "description": "The pk-accordion holding one pk-accordion-item per group." }
   ],
   "cssProperties": [],
+  "writes": [
+    { "target": "swatch", "attributes": ["slot"], "why": "The colour editor's swatch is created by the grid itself inside its own shadow tree and slotted into the pk-input prefix." },
+    { "target": "r.row", "attributes": ["hidden"], "why": "A property row (a pk-field or switch the grid created in its own shadow tree) is hidden by visibleWhen or state." }
+  ],
   "a11y": "Each property is a labelled real control (pk-input, pk-select, pk-switch), so Tab, arrow keys and Space work as in those elements; groups are pk-accordion-item disclosures (Enter or Space toggles). An invalid property sets aria-invalid and shows its message as a pk-alert next to it, so an error is never colour alone.",
   "examples": [
+    {
+      "title": "Range and colour editors; Threshold is only shown while Mode is Custom (visibleWhen)",
+      "html": "<pk-property-grid config='{\"groups\":[{\"heading\":\"Appearance\",\"fields\":[{\"key\":\"mode\",\"type\":\"select\",\"label\":\"Mode\",\"options\":[\"Auto\",\"Custom\"]},{\"key\":\"threshold\",\"type\":\"range\",\"label\":\"Threshold\",\"min\":0,\"max\":100,\"visibleWhen\":{\"key\":\"mode\",\"equals\":\"Custom\"}},{\"key\":\"accent\",\"type\":\"color\",\"label\":\"Accent colour\"}]}]}' values='{\"mode\":\"Custom\",\"threshold\":40,\"accent\":\"#3366cc\"}'></pk-property-grid>"
+    },
     {
       "title": "Grouped properties; Width is below its minimum, so it shows its validation message",
       "html": "<pk-property-grid config='{\"groups\":[{\"heading\":\"Dimensions\",\"fields\":[{\"key\":\"width\",\"type\":\"number\",\"label\":\"Width (px)\",\"min\":1,\"max\":4096,\"required\":true},{\"key\":\"height\",\"type\":\"number\",\"label\":\"Height (px)\",\"min\":1,\"max\":4096}]},{\"heading\":\"Output\",\"fields\":[{\"key\":\"format\",\"type\":\"select\",\"label\":\"Format\",\"options\":[\"PNG\",\"JPEG\",\"WebP\"]},{\"key\":\"transparent\",\"type\":\"switch\",\"label\":\"Transparent background\"}]},{\"heading\":\"Advanced (collapsed)\",\"collapsed\":true,\"fields\":[{\"key\":\"note\",\"type\":\"text\",\"label\":\"Export note\",\"disabled\":true}]}]}' values='{\"width\":0,\"height\":600,\"format\":\"PNG\",\"transparent\":true,\"note\":\"Locked by the template\"}'></pk-property-grid>"
     }
   ],
-  "methods": []
+  "methods": [
+    {
+      "name": "setValue(key, value)",
+      "description": "Sets one property's value without rebuilding the grid, so focus, scroll position and open groups stay; validation and visibleWhen are re-evaluated."
+    }
+  ]
 }

@@ -14,7 +14,11 @@
     {
       "name": "End",
       "prop": "end",
-      "type": "DateOnly?"
+      "type": "DateOnly?",
+      "bind": {
+        "event": "pk-range-change",
+        "value": "detail.end"
+      }
     },
     {
       "name": "Min",
@@ -72,5 +76,5 @@
     "key": "start",
     "type": "DateOnly?"
   },
-  "notes": "Bind the start with @bind-Start and read both ends in OnRangeChange (args carry Start, End, Valid), or set both from it. Dates convert to and from ISO strings."
+  "notes": "Bind both ends with @bind-Start and @bind-End (each follows pk-range-change), and read Valid in OnRangeChange (args carry Start, End, Valid). Dates convert to and from ISO strings."
 }

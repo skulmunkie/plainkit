@@ -1,8 +1,9 @@
 // pk-date-range-picker (issue 333) in its states: at rest with quick ranges, a quick range chosen (pressed, both fields filled), the end set before the start (inline
 // error wired to both fields), a minimum and maximum that disable the quick ranges outside them, disabled, and the focus ring. Fields stay inside the element and the page never
-// scrolls sideways; on a phone every control is a full-height tap target.
+// scrolls sideways; on a phone every control is a full-height tap target. Right to left (r5): the start field sits on the right, the quick ranges start at the right edge and
+// nothing leaves the element.
 const part = (id, name) => `#${id} >>> [part=${name}]`;
-const ids = ['r1', 'r2', 'r3', 'r4'];
+const ids = ['r1', 'r2', 'r3', 'r4', 'r5'];
 
 export default {
     name: 'date-range-picker',
@@ -13,6 +14,7 @@ export default {
 <pk-date-range-picker id="r2" label="Booking" start="2026-09-10" end="2026-09-18" presets="7d"></pk-date-range-picker>
 <pk-date-range-picker id="r3" label="Trip window" min="2020-01-01" max="2020-12-31" presets="today,year"></pk-date-range-picker>
 <pk-date-range-picker id="r4" label="Locked period" start="2026-09-01" end="2026-09-14" disabled></pk-date-range-picker>
+<div dir="rtl"><pk-date-range-picker id="r5" label="Reporting period" start="2026-09-01" end="2026-09-14" presets="today,7d,30d,month,lastmonth"></pk-date-range-picker></div>
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
@@ -29,6 +31,12 @@ export default {
             t.noOverlap(part(id, 'start'), part(id, 'end'));
         }
         below(part('r1', 'presets'), part('r1', 'fields'));
+        below(part('r5', 'presets'), part('r5', 'fields'));
+        // Right to left: reading order runs from the right, so the start field is to the right of the end field and the quick ranges begin at the right edge of the element.
+        const rs = t.rect(part('r5', 'start')), re = t.rect(part('r5', 'end')), host = t.rect('#r5'), first = t.rect('#r5 >>> [data-preset]');
+        if (rs && re) t.ok(rs.x >= re.right - 1, `in right to left the start field (x=${Math.round(rs.x)}) is not to the right of the end field (right edge ${Math.round(re.right)})`);
+        if (first && host) t.ok(first.right >= host.right - 16, `in right to left the first quick range ends at x=${Math.round(first.right)}, away from the right edge of the element (${Math.round(host.right)})`);
+        t.within(part('r5', 'presets'), '#r5', 1);
         t.visible(part('r1', 'presets'), 'the quick ranges');
         t.hidden(part('r1', 'error'), 'the error of a valid range');
         t.ok(t.attr(part('r4', 'start'), 'disabled') !== null, 'the disabled picker keeps its field enabled');

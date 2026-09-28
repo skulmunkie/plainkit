@@ -15,7 +15,7 @@
 
 import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer } from '../../js/log.js';
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 
 const STYLES = ['../../plainkit.css'];
@@ -25,13 +25,6 @@ export const DEFAULTS = Object.freeze({ max: 1000, level: 'debug', order: 'newes
 const LEVEL_LABEL = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
 const LEVEL_TONE = { debug: 'muted', info: 'outline', warn: 'warn', error: 'danger' };
 const COLUMNS = [{ key: 'time', label: 'Time' }, { key: 'level', label: 'Level' }, { key: 'scope', label: 'Scope' }, { key: 'message', label: 'Message' }, { key: 'output', label: 'Output', hidePhone: true }];
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 export async function mountLogs(container, options = {}) {
     const { theme, height, max = DEFAULTS.max } = options;
