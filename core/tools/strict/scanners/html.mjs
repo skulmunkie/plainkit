@@ -1,0 +1,153 @@
+// Dependency-free HTML/Razor/JSX-template tag tokenizer (design section 4.1). No DOM, no npm parser: walks the
+// text once and returns tag/component nodes plus every token seen, so rules are written against a uniform
+// structure instead of ad hoc regexes. HTML comments and `<script>`/`<style>` bodies are raw text; Razor
+// `@* *@` comments, `@{ }`/`@( )` blocks and bare `@expr` are skipped as opaque (their contents are not
+// re-scanned here - a later Razor-aware rule reads `@code` blocks itself, per the design's section 7).
+// Tags whose name starts uppercase, or with `Pk`, are recognised as components (JSX/Razor components).
+
+import { makePosAt } from './util.mjs';
+
+const RAW_TEXT_TAGS = new Set(['script', 'style']);
+const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+const TAG_NAME_RE = /^[A-Za-z][A-Za-z0-9:_.-]*/;
+const ATTR_NAME_RE = /^[^\s=/>"'<]+/;
+
+const isComponentName = name => /^[A-Z]/.test(name) || /^Pk[A-Z]/.test(name);
+
+export function scanHtml(text) {
+    const at = makePosAt(text);
+    const tokens = [];
+    const nodes = [];
+    const n = text.length;
+    let i = 0;
+
+    while (i < n) {
+        if (text.startsWith('@*', i)) {
+            const end = text.indexOf('*@', i + 2);
+            const pos = at(i);
+            tokens.push({ kind: 'razor-comment', line: pos.line, column: pos.column });
+            i = end === -1 ? n : end + 2;
+            continue;
+        }
+        if (text.startsWith('<!--', i)) {
+            const end = text.indexOf('-->', i + 4);
+            const pos = at(i);
+            tokens.push({ kind: 'comment', line: pos.line, column: pos.column });
+            i = end === -1 ? n : end + 3;
+            continue;
+        }
+        if (text[i] === '@' && /[A-Za-z({]/.test(text[i + 1] || '')) {
+            const razorEnd = readRazorExpression(text, i);
+            if (razorEnd > i + 1) {
+                const pos = at(i);
+                tokens.push({ kind: 'razor-expr', line: pos.line, column: pos.column });
+                i = razorEnd;
+                continue;
+            }
+        }
+        if (text[i] === '<') {
+            const tag = readTag(text, i, at);
+            if (tag) {
+                tokens.push(tag.token);
+                if (tag.node) nodes.push(tag.node);
+                i = tag.end;
+                if (tag.node && RAW_TEXT_TAGS.has(tag.node.name.toLowerCase()) && !tag.node.closing && !tag.node.selfClosing) {
+                    const closeRe = new RegExp(`</${tag.node.name}\\s*>`, 'i');
+                    const m = closeRe.exec(text.slice(i));
+                    const pos = at(i);
+                    tokens.push({ kind: 'raw', name: tag.node.name, line: pos.line, column: pos.column });
+                    i = m ? i + m.index + m[0].length : n;
+                }
+                continue;
+            }
+        }
+        const next = nextSpecialIndex(text, i + 1);
+        const pos = at(i);
+        tokens.push({ kind: 'text', line: pos.line, column: pos.column });
+        i = next;
+    }
+    return { nodes, tokens };
+}
+
+function readTag(text, start, at) {
+    let i = start + 1;
+    let closing = false;
+    if (text[i] === '/') { closing = true; i++; }
+    const nameMatch = TAG_NAME_RE.exec(text.slice(i));
+    if (!nameMatch) return null; // "<" not followed by a tag name: not a tag (e.g. "a < b")
+    const name = nameMatch[0];
+    i += name.length;
+    const attrs = {};
+
+    while (i < text.length && text[i] !== '>' && !text.startsWith('/>', i)) {
+        while (i < text.length && /\s/.test(text[i])) i++;
+        if (text[i] === '>' || text.startsWith('/>', i)) break;
+        if (text[i] === '@') { const end = readRazorExpression(text, i); i = end > i + 1 ? end : i + 1; continue; }
+        const attrNameMatch = ATTR_NAME_RE.exec(text.slice(i));
+        if (!attrNameMatch) { i++; continue; }
+        const attrName = attrNameMatch[0];
+        i += attrName.length;
+        while (i < text.length && /\s/.test(text[i])) i++;
+        let value = true;
+        if (text[i] === '=') {
+            i++;
+            while (i < text.length && /\s/.test(text[i])) i++;
+            const quote = text[i];
+            if (quote === '"' || quote === "'") {
+                const end = text.indexOf(quote, i + 1);
+                const stop = end === -1 ? text.length : end;
+                value = text.slice(i + 1, stop);
+                i = end === -1 ? stop : stop + 1;
+            } else {
+                const bare = /^[^\s>]+/.exec(text.slice(i));
+                value = bare ? bare[0] : '';
+                i += value.length;
+            }
+        }
+        attrs[attrName] = value;
+    }
+
+    let selfClosing = false;
+    if (text.startsWith('/>', i)) { selfClosing = true; i += 2; }
+    else if (text[i] === '>') i += 1;
+    else return null; // unterminated tag: give up rather than mis-scan the rest of the file
+
+    const pos = at(start);
+    const node = {
+        kind: isComponentName(name) ? 'component' : 'tag',
+        name,
+        attrs,
+        line: pos.line,
+        column: pos.column,
+        closing,
+        selfClosing: selfClosing || VOID_TAGS.has(name.toLowerCase()),
+    };
+    return { end: i, node, token: { kind: 'tag', name, line: pos.line, column: pos.column } };
+}
+
+// `@{ ... }`, `@( ... )`, `@code { ... }`, or a bare `@identifier` (no following block): returns the end index,
+// or start+1 (nothing consumed beyond the `@`) when it is not one of these shapes.
+function readRazorExpression(text, start) {
+    let i = start + 1;
+    const idMatch = /^[A-Za-z_][A-Za-z0-9_.]*/.exec(text.slice(i));
+    if (idMatch) i += idMatch[0].length;
+    let probe = i;
+    while (probe < text.length && /\s/.test(text[probe])) probe++;
+    if (text[probe] === '(') { i = skipBalanced(text, probe, '(', ')'); probe = i; while (probe < text.length && /\s/.test(text[probe])) probe++; }
+    if (text[probe] === '{') i = skipBalanced(text, probe, '{', '}');
+    return i;
+}
+
+function skipBalanced(text, start, open, close) {
+    let depth = 0;
+    for (let i = start; i < text.length; i++) {
+        if (text[i] === open) depth++;
+        else if (text[i] === close && --depth === 0) return i + 1;
+    }
+    return text.length;
+}
+
+function nextSpecialIndex(text, from) {
+    for (let i = from; i < text.length; i++) if (text[i] === '<' || text[i] === '@') return i;
+    return text.length;
+}
