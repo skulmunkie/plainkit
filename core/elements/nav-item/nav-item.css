@@ -37,6 +37,9 @@
 
 :host([rail]) [part="link"] { justify-content: center; }
 
+/* A collapsed branch whose flyout holds the current page: the rail row itself needs a visible indicator, since its children (the only ones marked current) are hidden until hover. */
+:host([rail][data-current-branch]) [part="link"] { box-shadow: inset 3px 0 0 var(--color-accent); background: color-mix(in srgb, var(--color-accent) 16%, transparent); color: var(--color-link); }
+
 :host([rail]) [part="sub"] { display: none; }
 
 [part="sub-title"] { display: none; }
