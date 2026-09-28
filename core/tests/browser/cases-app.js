@@ -370,4 +370,65 @@ export const appCases = [
             t.eq(inst.snapshot().listeners.length, baseline, 'no document/window listener is left behind after 100 mount/unmount cycles');
         } finally { inst.restore(); }
     }],
+
+    ['master-detail page type (#353): mounted and destroyed 100 times, opening and closing a record each time, leaves no listener, observer, timer or element behind, and every record handle is destroyed exactly once', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let mounts = 0, destroys = 0;
+        const config = { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => ({ rows: [{ id: '1', name: 'A' }] }), mountDetail: (pane, id, ctx) => {
+            mounts++; ctx.on(window, 'resize', () => {}); ctx.after(60000, () => {});
+            pane.textContent = 'record ' + id;
+            return { destroy() { destroys++; } };
+        } };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'master-detail', config });
+            const el = box.querySelector('pk-master-detail-page');
+            await t.load(box);
+            el.recordId = '1';
+            await until(() => el.part('record').textContent === 'record 1' && !el.part('state').firstElementChild, 'the record to be mounted', 200);
+            el.recordId = '';
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+        t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every record handle was destroyed exactly once');
+    }],
+
+    ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => { throw new Error('list down'); }, mountDetail: (pane, id) => {
+            attempts++;
+            if (attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('record down')); });
+            pane.textContent = 'recovered ' + id;
+        } } });
+        const el = box.querySelector('pk-master-detail-page');
+        await t.load(box);
+        const listState = () => el.part('list').part('state');
+        await until(() => listState().querySelector('pk-alert'), 'the list error state');
+        t.ok(/list down/.test(listState().textContent), 'the list error names what failed');
+        el.recordId = '9';
+        const state = el.part('state');
+        await until(() => state.querySelector('pk-skeleton'), 'the record loading state');
+        release();
+        await until(() => state.querySelector('pk-alert'), 'the record error state');
+        t.eq(state.querySelector('pk-alert').getAttribute('kind'), 'danger'); t.ok(/record down/.test(state.textContent));
+        await t.load(state);
+        state.querySelector('pk-button').click();
+        await until(() => el.part('record').textContent === 'recovered 9' && !state.firstElementChild, 'Retry to recover');
+        t.eq(attempts, 2);
+        page.destroy();
+    }],
 ];

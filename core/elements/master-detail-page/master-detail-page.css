@@ -1,0 +1,14 @@
+:host { position: relative; display: block; inline-size: 100%; min-inline-size: 0; container-type: inline-size; }
+:host([fill]) { flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+[part="layout"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+[part="master"], [part="detail"] { position: relative; min-inline-size: 0; }
+[part="detail"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+[part="layout"][data-view="list"] [part="detail"], [part="layout"][data-view="detail"] [part="master"] { display: none; }
+[part="none"]:empty, [part="record"]:empty, [part="state"]:empty { display: none; }
+[part="state"]:not(:empty) + [part="record"] { display: none; }
+/* Wide: both panes side by side, the record beside its list; the back button is only for the one-pane view. */
+@container (min-width: 48rem) {
+    [part="layout"] { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+    [part="layout"][data-view] [part="master"], [part="layout"][data-view] [part="detail"] { display: block; }
+    [part="bar"] { display: none; }
+}

@@ -313,6 +313,7 @@ const NOT_TWO_WAY = {
     'checkbox.value': 'the value the checkbox submits when checked; checked is the state',
     'switch.value': 'the value the switch submits when on; checked is the state',
     'tag.value': 'the identifier pk-remove reports, not state',
+    'kanban-column.value': 'the column identifier, reported as from and to in the pk-move event of pk-kanban; the user moves cards, not this',
     'menu-item.value': 'the item\'s identifier, reported by pk-select',
     'nav-item.current': 'the route marker the host sets; the element never changes it',
     'progress.value': 'output only: nothing the user can change',
