@@ -95,6 +95,15 @@ export const headerCases = [
         ph.setAttribute('sticky', ''); await t.settle(); t.ok(Math.abs(rect(ph).top - rect(sc).top) < 2, 'with sticky it stays');
     }],
 
+    ['app-shell: the scrolling body is a containing block, so an absolutely positioned page element resolves against the body, not the page (#302)', async t => {
+        const sh = await t.mount('<pk-app-shell style="height:400px"><span slot="title">App</span><div id="abs" style="position:absolute;top:0;left:0;width:10px;height:10px"></div><div style="height:1500px">Long</div></pk-app-shell>');
+        await t.settle();
+        const body = sh.part('body'), abs = sh.querySelector('#abs');
+        t.ok(Math.abs(rect(abs).top - rect(body).top) <= 1, 'the element at top:0 sits at the top of the body (' + rect(body).top + '), not of the page: ' + rect(abs).top);
+        body.scrollTop = 300; await t.settle();
+        t.ok(rect(abs).top < rect(body).top, 'it scrolls with the body content: ' + rect(abs).top);
+    }],
+
     ['page-header: a narrow record keeps the actions on row one and drops the badges to their own row, badges stay pills, and the tabs slot is docked', async t => {
         const host = t.stage('<pk-page-header variant="record" heading="Blue mug"><pk-badge>Active</pk-badge><pk-badge variant="muted">On hand 1</pk-badge><button slot="actions">Save</button><div slot="tabs" id="pk-tabs-row">Tabs</div></pk-page-header>');
         host.style.width = '320px'; await t.load(host); await t.settle();
