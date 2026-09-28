@@ -23,7 +23,8 @@ export default {
         const first = board.querySelector('#todo pk-sortable-item'), ev = (type, detail) => first.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
         Object.defineProperty(board, 'demoDrag', { set(on) {
             if (!on) return ev('pk-sortable-drop', { cancelled: true });
-            const r = board.querySelector('#done').getBoundingClientRect();
+            const done = board.querySelector('#done'); done.scrollIntoView({ block: 'nearest', inline: 'center' }); // a phone shows one column: bring it under a pointer that sits clear of the edge zones
+            const r = done.getBoundingClientRect();
             ev('pk-sortable-grab', { x: 0, y: 0 });
             ev('pk-sortable-drag', { x: r.left + r.width / 2, y: r.top + 60 });
         } });
