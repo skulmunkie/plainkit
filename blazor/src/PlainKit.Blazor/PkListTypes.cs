@@ -11,6 +11,9 @@ public sealed record PkListRequest(string? Search, string? SortKey, bool Descend
     /// <summary>Cancelled when a newer request replaces this one (the user typed, sorted or paged again) or the list goes away. Pass it to the database call; the list ignores the result of a superseded request in any case.</summary>
     public CancellationToken CancellationToken { get; init; }
 
+    /// <summary>The values of the filter fields a <see cref="PkListPage{TItem}"/> shows, keyed by filter key (text, as typed or chosen); null when none is set. Always null for a <see cref="PkDataList{TItem}"/>.</summary>
+    public IReadOnlyDictionary<string, string>? Filters { get; init; }
+
     /// <summary>The number of items to skip: <c>(Page - 1) * PageSize</c>, for <c>Skip</c> in a query.</summary>
     public int Skip => (Math.Max(1, Page) - 1) * PageSize;
 }
@@ -99,4 +102,17 @@ internal sealed class PkListState
         Page = Pages;
         return true;
     }
+}
+
+/// <summary>What <c>pk-list-page</c> passes its <c>load</c> callback, read from JSON: <c>{ page, pageSize, sort, sortDir, search, filters }</c>.</summary>
+internal sealed record PkListPageQuery(int Page = 1, int PageSize = 25, string? Sort = null, string? SortDir = null, string? Search = null, Dictionary<string, string>? Filters = null)
+{
+    /// <summary>The <see cref="PkListRequest"/> a <c>PkListPage</c> <c>Load</c> gets: an empty search is null, a sort without a key is none.</summary>
+    public PkListRequest ToRequest() => new(
+        string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
+        string.IsNullOrEmpty(Sort) ? null : Sort,
+        string.Equals(SortDir, "descending", StringComparison.OrdinalIgnoreCase),
+        Math.Max(1, Page),
+        Math.Max(1, PageSize))
+    { Filters = Filters is { Count: > 0 } ? Filters : null };
 }
