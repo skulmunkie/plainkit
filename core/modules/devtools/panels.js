@@ -9,13 +9,7 @@ import { loadElements } from '../../js/loader.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
 import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
+import { h } from '../../js/mount-support.js';
 
 // The Quality tab is the standalone quality module (modules/quality) mounted in the dock; the dock hides itself while it measures.
 export const qualityPanel = {

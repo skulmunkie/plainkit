@@ -34,17 +34,11 @@
 
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
+import { h } from '../../js/mount-support.js';
 
 const log = createLogger('field-group');
 const INPUT_KINDS = new Set(['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel']);
 const COMMIT = { select: 'pk-value-change', textarea: 'pk-value-change', checkbox: 'pk-change' };
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 function controlFor(doc, spec) {
     const { key, kind = 'text', required, min, max, step, minlength, maxlength, pattern, placeholder } = spec;
