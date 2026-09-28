@@ -220,4 +220,61 @@ export const appCases = [
         t.eq(tileBox('fast').querySelector('pk-stat').value, '1', 'the fast tile was never touched by the slow tile settling');
         t.ok(tileBox('bad').querySelector('pk-alert'), 'the bad tile was never touched by the slow tile settling');
     }],
+
+    ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let mounts = 0, destroys = 0;
+        const config = { panes: ['nav', 'aside'], mount: (panes, ctx) => {
+            mounts++; ctx.on(window, 'resize', () => {}); ctx.after(60000, () => {});
+            panes.main.textContent = 'main'; panes.nav.textContent = 'nav';
+            return { destroy() { destroys++; } };
+        } };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'workspace', config });
+            const el = box.querySelector('pk-workspace-page');
+            await t.load(box);
+            await until(() => el.part('main').textContent === 'main' && !el.part('state').firstElementChild, 'the panes to be mounted', 200);
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+        t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every consumer handle was destroyed exactly once');
+    }],
+
+    ['workspace page type (#353): the loading state shows while mount() is pending, a rejection shows the danger alert with a working Retry, and the panes are untouched by the state', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'workspace', config: { mount: (panes, ctx) => {
+            attempts++;
+            if (attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('backend down')); });
+            panes.main.textContent = 'recovered';
+        } } });
+        const el = box.querySelector('pk-workspace-page');
+        await t.load(box);
+        const state = el.part('state');
+        t.ok(state.querySelector('pk-skeleton'), 'loading while mount() is pending');
+        t.ok(getComputedStyle(state).display !== 'none', 'the state covers the panes');
+        release();
+        await until(() => state.querySelector('pk-alert'), 'the error state');
+        const alert = state.querySelector('pk-alert');
+        t.eq(alert.getAttribute('kind'), 'danger'); t.ok(/backend down/.test(alert.textContent), 'the message says what failed');
+        await t.load(state);
+        state.querySelector('pk-button').click();
+        await until(() => el.part('main').textContent === 'recovered' && !state.firstElementChild, 'Retry to recover');
+        t.eq(attempts, 2);
+        page.destroy();
+    }],
 ];

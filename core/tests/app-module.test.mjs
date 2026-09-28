@@ -739,3 +739,27 @@ test('size: each framework file stays inside the 6 KB gzip module budget (commen
     }
     console.log('framework gz KB (comments removed):', total.toFixed(2));
 });
+
+test("'workspace' (step 7, #353) creates a pk-workspace-page, splits config into data, fill and the mount(panes, ctx) callback, and cleanup removes the element", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const factory = pageTypeFor(mod('workspace-host'), 'workspace');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-workspace-page');
+    assert.deepEqual(el1.config, {});
+    assert.equal(el1.mount, undefined, 'no mount callback unless given');
+    assert.equal(el1.fill, undefined);
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const seen = [], host2 = new Host();
+    factory(host2, { panes: ['nav', 'aside'], navLabel: 'Files', fill: true, mount: (panes, ctx) => { seen.push([panes, ctx]); return 'handle'; } }, { id: 'x' });
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config, { panes: ['nav', 'aside'], navLabel: 'Files' }, 'mount and fill are not config data');
+    assert.equal(el2.fill, true);
+    assert.equal(el2.mount({ main: 1 }), 'handle');
+    assert.deepEqual(seen, [[{ main: 1 }, { id: 'x' }]], 'mount receives the panes and the page ctx');
+});

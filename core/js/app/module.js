@@ -19,8 +19,8 @@
 // defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a nav that is not an array or function...).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
-// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found'
-// and 'list' are built in (own comments below), the rest arrive later. Extend the set three ways, all through the same factory shape
+// Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
+// 'list', 'dashboard' and 'workspace' are built in (own comments below), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -110,8 +110,7 @@ const custom = (host, config, ctx) => {
     if (!isFn(config?.mount)) throw new TypeError("page type 'custom' needs config.mount(host, ctx)");
     return config.mount(host, ctx);
 };
-// 'states' (#351): <pk-states-page> (loading/empty/error/forbidden, or its own content when ready). config: { state, heading, description,
-// label, retry }; retry is wired to the element's pk-retry event (elements talk back via events, not callback props - STANDARDS.md).
+// 'states' (#351): <pk-states-page>. config: state, heading, description, label, retry (wired to the pk-retry event).
 const states = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-states-page');
     for (const k of ['state', 'heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
@@ -140,8 +139,7 @@ const settings = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-// 'not-found' (#351): <pk-not-found-page>. A route's page: 'not-found' bypasses this (app/host.js's showPage calls box.notFound() directly);
-// this factory only serves mountPage()/a 'custom' module. config: { heading, description, label, action(ctx) }, like 'states'' retry.
+// 'not-found' (#351): <pk-not-found-page>; a route's page: 'not-found' bypasses this (host.js calls box.notFound()). config: heading, description, label, action(ctx).
 const notFound = (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-not-found-page');
     for (const k of ['heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
@@ -168,7 +166,17 @@ const dashboard = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list], ['dashboard', dashboard]]);
+// 'workspace' (#353): <pk-workspace-page>; config: panes, labels, fill, mount(panes, ctx) (callback: cleanup | { destroy() }).
+const workspace = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-workspace-page');
+    const { mount, fill, ...data } = config;
+    el.config = data;
+    if (fill) el.fill = true;
+    if (mount) el.mount = panes => mount(panes, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list], ['dashboard', dashboard], ['workspace', workspace]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
