@@ -106,12 +106,13 @@ function move(t, td, dx, dy) {
     return !!target;
 }
 
-function begin(t, td) {
+// Opens the cell's editor. `draft`, when given (type-to-edit), replaces the current value instead of starting from it.
+function begin(t, td, draft) {
     const s = st(t), { id, key: k } = at(td), c = col(t, k);
     if (!c.editor || td.firstElementChild?.localName === 'slot') return;
     const row = t.view[t.ids().indexOf(id)], v = row?.[k];
     if (c.editor === 'switch') return void save(t, td, !(v === true || v === 'true'));
-    s.a = { id, key: k }; s.edit = { id, key: k, draft: String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
+    s.a = { id, key: k }; s.edit = { id, key: k, draft: draft ?? String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
 }
 
 // Commit a draft (text as typed, or a boolean for a switch): checked, then offered to the host, which may cancel. False when the cell stays open.
@@ -154,7 +155,8 @@ function keydown(t, e) {
     const editing = !!s.edit && e.target.dataset.cellEditor !== undefined && s.edit.id === at(td).id && s.edit.key === at(td).key, k = e.key;
     if (editing) {
         if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); cancel(t); }
-        else if (k === 'Enter' && e.target.localName !== 'select') { e.preventDefault(); save(t, td, e.target.value); }
+        // Enter commits the draft and moves the active cell down one row, the way a spreadsheet does.
+        else if (k === 'Enter' && e.target.localName !== 'select') { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, 0, 1); }
         else if (k === 'Tab') { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, e.shiftKey ? -1 : 1, 0); }
         return;
     }
@@ -164,6 +166,16 @@ function keydown(t, e) {
     if (dx || dy) { e.preventDefault(); move(t, td, dx, dy); }
     else if (k === 'Enter' || k === 'F2' || (k === ' ' && col(t, td.dataset.key).editor === 'switch')) { e.preventDefault(); begin(t, td); }
     else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[stepIndex(k, 0, r.length)]); }
+    // Tab moves right along the row only (never wraps to the next row); at the row's last cell it is left alone so focus leaves the grid normally.
+    else if (k === 'Tab' && !e.shiftKey) {
+        const r = cells(t).find(r => r.includes(td)), x = r.indexOf(td);
+        if (x < r.length - 1) { e.preventDefault(); activate(t, r[x + 1]); }
+    }
+    // A printable key with no modifier starts editing the active cell, replacing its content with what was typed (standard grid convention).
+    else if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const c = col(t, td.dataset.key);
+        if (c.editor && c.editor !== 'switch' && td.firstElementChild?.localName !== 'slot') { e.preventDefault(); begin(t, td, k); }
+    }
 }
 
 // A click selects a cell; a click on the cell that is already active opens it (the way a touch screen edits, where there is no Enter). A switch toggles on any click.
