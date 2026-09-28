@@ -14,7 +14,7 @@
 //       routes: [{ path: '/', label: 'Home', children: [
 //           { path: '/orders', label: 'Orders', children: [{ path: '/orders/:id', label: p => `Order ${p.id}` }] },
 //       ] }],
-//       intercept: true, // same-origin <a> clicks inside the container become router.navigate(href)
+//       intercept: true, // same-origin <a> clicks inside the container become router.navigate(href); so does a pk-navigate (pk-link's `to`)
 //   });
 //   const page = createPage({ breadcrumb: document.getElementById('crumbs'), router });
 //   router.navigate('/orders/7'); // crumbs: Home > Orders > Order 7, document.title 'Order 7'
@@ -121,9 +121,14 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
         e.preventDefault();
         navigate(url.pathname + url.search + url.hash);
     };
+    // pk-link (and anything else that reports a cancelable, composed pk-navigate for a `to` it could not turn into a plain <a href> the click
+    // intercept above already understands, such as an address that only makes sense once the router resolves it) is handled the same way:
+    // cancel the event so the element does not also fall back to a real navigation.
+    const onNavigate = e => { if (e.defaultPrevented || !e.detail?.to) return; e.preventDefault(); navigate(e.detail.to); };
     win.addEventListener?.(event, onPop);
     const clicks = intercept && !hash && container; // in hash mode a link to '#/x' is already a navigation
     if (clicks) container.addEventListener('click', onClick);
+    if (intercept && container) container.addEventListener('pk-navigate', onNavigate);
 
     const handle = {
         mode,
@@ -141,6 +146,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
             dead = true;
             win.removeEventListener?.(event, onPop);
             if (clicks) container.removeEventListener('click', onClick);
+            if (intercept && container) container.removeEventListener('pk-navigate', onNavigate);
             listeners.clear();
         },
     };

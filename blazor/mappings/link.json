@@ -1,0 +1,67 @@
+{
+  "component": "PkLink",
+  "params": [
+    {
+      "name": "Href",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "href"
+    },
+    {
+      "name": "To",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "to"
+    },
+    {
+      "name": "Target",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "target"
+    },
+    {
+      "name": "Rel",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "rel"
+    },
+    {
+      "name": "Download",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "download"
+    },
+    {
+      "name": "Current",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "current"
+    },
+    {
+      "name": "Variant",
+      "type": "LinkVariant",
+      "default": "inline",
+      "map": "prop",
+      "prop": "variant"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "OnNavigate",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-navigate",
+      "cancelable": true
+    }
+  ]
+}
