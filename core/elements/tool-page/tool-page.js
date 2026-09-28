@@ -1,3 +1,4 @@
+import { showState } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -52,14 +53,12 @@ export default Base => class extends Base {
     async runNow() {
         if (typeof this.run !== 'function') return;
         const outcome = this.part('outcome');
-        renderState(outcome, 'loading', { label: this.runLabel ? `${this.runLabel}…` : 'Working' });
-        loadElements(outcome);
+        showState(outcome, 'loading', { label: this.runLabel ? `${this.runLabel}…` : 'Working' });
         try {
             const result = await this.run(this.values());
             this.drawOutcome(result);
         } catch (err) {
-            renderState(outcome, 'error', { description: err?.message ?? String(err), retry: () => this.runNow() });
-            loadElements(outcome);
+            showState(outcome, 'error', { error: err, retry: () => this.runNow() });
         }
     }
     drawOutcome(result) {
