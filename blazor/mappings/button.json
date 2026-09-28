@@ -101,5 +101,6 @@
       "slot": "end",
       "type": "RenderFragment"
     }
-  ]
+  ],
+  "events": ["pk-toggle"]
 }

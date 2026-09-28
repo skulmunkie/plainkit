@@ -19,32 +19,32 @@ Go down this list and stop at the first step that fits.
 
 ## Use cases: where to start
 
-Only things that exist today are listed. A dash means there is no ready-made piece: compose from the elements named.
+Only things that exist today are listed. A dash means there is no ready-made piece: compose from the elements named. The "In an app (SDK)" column is for an app mounted with `mountApp`: there the page is not markup you paste but a page type you give a config, and [Build an app](build-an-app.md) walks through it.
 
-| Page type or job | Start from | In Blazor |
-|---|---|---|
-| Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `PkAppShell`, `PkSideNav` |
-| A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `PkPageHeader`, or `PageBase` for its state |
-| List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | `PkTable`, or `PkDataList` when the server pages, searches and sorts |
-| List and detail on one page | Template `crud`; template `master-detail`; template `routed-list-detail` (the route drives it) | `PkTable` beside a `PkCard`; routes and `NavigationManager` for the record |
-| Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
-| Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | `PkFieldList`, `PkStat` |
-| Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | `PkForm` with `PkFormSection` |
-| Long form built from a list of fields | Pattern `forms` for the controls | `PkFieldGroup` with `PkFieldSpec` |
-| Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | `PkStat`, `PkChart`, `PkDashboardPage` |
-| Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `PkAppBarSearch`, `PkCommandPalette` |
-| Filtered table | Pattern `filter-table`; element `pk-table-filters` | `PkTableFilters`, `PkDataList` |
-| Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | `PkStepper` |
-| Master and detail with tabs | Template `master-detail`; pattern `master-detail-pattern` | `PkListGroup` beside `PkTabs` |
-| Tool page (one input, one outcome) | Layout `tool`; template `workspace` for a multi-pane tool | `PkWorkspace` |
-| Resizable side-by-side panels (Toolbox, Canvas, Properties; file tree, editor, log) | Element `pk-dock`: each panel is a child with `slot="<id>"`, `data-heading` and `data-group` (left, center, right, bottom; panels sharing a group become tabs); the arrangement is a JSON `layout` and a layout-change event reports each resize or tab change; moving, floating, collapse and saved layouts are not built yet (issue 432) | `PkDock` |
-| Sign in | Template `auth` | `PkCard` with `PkField` and `PkInput` |
-| Empty, error and loading regions | Template `states`; elements `pk-empty-state`, `pk-skeleton`, `pk-spinner`, `pk-alert` | `PkEmptyState`, `PkSkeleton` |
-| Confirm a destructive action | Pattern `confirm-delete`; element `pk-dialog` | `PkDialog` |
-| Toasts and notices | Pattern `notifications`; elements `pk-toast-stack`, `pk-alert` | `PkToastStack` |
-| Onboarding checklist | Pattern `onboarding` | `PkStepper`, `PkProgress` |
-| Short list of small records with an add form | Layout `setup` | `PkTable` with `PkField` |
-| Marketing or landing page | None: compose from `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, and see "Ask for a missing component" | same |
+| Page type or job | Start from | In an app (SDK) | In Blazor |
+|---|---|---|---|
+| Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
+| A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
+| List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | Page type `list` | `PkTable`, or `PkDataList` when the server pages, searches and sorts |
+| List and detail on one page | Template `crud`; template `master-detail`; template `routed-list-detail` (the route drives it) | Page type `master-detail`, or `list` with a record route under it | `PkTable` beside a `PkCard`; routes and `NavigationManager` for the record |
+| Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
+| Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
+| Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` | `PkForm` with `PkFormSection` |
+| Long form built from a list of fields | Pattern `forms` for the controls | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
+| Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
+| Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
+| Filtered table | Pattern `filter-table`; element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataList` |
+| Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | Page type `wizard` | `PkStepper` |
+| Master and detail with tabs | Template `master-detail`; pattern `master-detail-pattern` | Page type `master-detail` | `PkListGroup` beside `PkTabs` |
+| Tool page (one input, one outcome) | Layout `tool`; template `workspace` for a multi-pane tool | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace` |
+| Resizable side-by-side panels (Toolbox, Canvas, Properties; file tree, editor, log) | Element `pk-dock`: each panel is a child with `slot="<id>"`, `data-heading` and `data-group` (left, center, right, bottom; panels sharing a group become tabs); the arrangement is a JSON `layout` and a layout-change event reports each resize or tab change; moving, floating, collapse and saved layouts are not built yet (issue 432) | None: compose the panels yourself | `PkDock` |
+| Sign in | Template `auth` | None: a plain page before the app mounts | `PkCard` with `PkField` and `PkInput` |
+| Empty, error and loading regions | Template `states`; elements `pk-empty-state`, `pk-skeleton`, `pk-spinner`, `pk-alert` | Page types `states` and `not-found` (the app draws its own loading and error boundaries) | `PkEmptyState`, `PkSkeleton` |
+| Confirm a destructive action | Pattern `confirm-delete`; element `pk-dialog` | `ctx.dialogs.confirm(config)` | `PkDialog` |
+| Toasts and notices | Pattern `notifications`; elements `pk-toast-stack`, `pk-alert` | `ctx.notify.success(title)` | `PkToastStack` |
+| Onboarding checklist | Pattern `onboarding` | Page type `wizard` | `PkStepper`, `PkProgress` |
+| Short list of small records with an add form | Layout `setup` | Page type `list` with a `record` route under it | `PkTable` with `PkField` |
+| Marketing or landing page | None: compose from `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, and see "Ask for a missing component" | None | same |
 
 ## Customize a template
 

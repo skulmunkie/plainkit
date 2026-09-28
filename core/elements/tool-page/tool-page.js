@@ -1,8 +1,8 @@
+import { showState } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { buildField, read } from '../../js/page-fields.js';
 
-// Which control a field type builds; pk-input carries every scalar type through its own `type` attribute (STANDARDS.md: only existing components).
-const CONTROL = { text: 'pk-input', email: 'pk-input', number: 'pk-input', date: 'pk-input', textarea: 'pk-textarea', select: 'pk-select' };
 const RESULT_TAG = { stat: 'pk-stat', table: 'pk-table', code: 'pk-code-block' };
 
 export default Base => class extends Base {
@@ -28,23 +28,18 @@ export default Base => class extends Base {
         const box = this.part('fields');
         box.replaceChildren();
         this.$controls = {};
+        this.$types = {};
         for (const f of this.config?.input ?? []) {
-            const tag = CONTROL[f.type] ?? 'pk-input';
-            const el = doc.createElement(tag);
-            el.label = f.label ?? f.key;
-            el.showLabel = true;
-            if (f.placeholder) el.placeholder = f.placeholder;
-            if (f.required) el.required = true;
-            if (tag === 'pk-input' && f.type !== 'select' && f.type !== 'textarea') el.type = f.type ?? 'text';
-            if (tag === 'pk-select') for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); }
-            box.append(el);
+            const { el, row } = buildField(doc, f);
+            box.append(row);
             this.$controls[f.key] = el;
+            this.$types[f.key] = f.type;
         }
         loadElements(box);
     }
     values() {
         const out = {};
-        for (const [key, el] of Object.entries(this.$controls ?? {})) out[key] = el.value;
+        for (const [key, el] of Object.entries(this.$controls ?? {})) out[key] = read(el, this.$types?.[key]);
         return out;
     }
 
@@ -52,14 +47,12 @@ export default Base => class extends Base {
     async runNow() {
         if (typeof this.run !== 'function') return;
         const outcome = this.part('outcome');
-        renderState(outcome, 'loading', { label: this.runLabel ? `${this.runLabel}…` : 'Working' });
-        loadElements(outcome);
+        showState(outcome, 'loading', { label: this.runLabel ? `${this.runLabel}…` : 'Working' });
         try {
             const result = await this.run(this.values());
             this.drawOutcome(result);
         } catch (err) {
-            renderState(outcome, 'error', { description: err?.message ?? String(err), retry: () => this.runNow() });
-            loadElements(outcome);
+            showState(outcome, 'error', { error: err, retry: () => this.runNow() });
         }
     }
     drawOutcome(result) {

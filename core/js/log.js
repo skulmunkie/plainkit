@@ -31,8 +31,8 @@ const LAZY_OUTPUTS = new Set(['toast', 'alert']);
 
 // The level a page asks for, from its sources in precedence order (each may be missing or invalid). Pure.
 export function levelFrom({ search = '', attr = null, stored = null } = {}) {
-    let fromUrl = null;
-    try { fromUrl = new URLSearchParams(search).get('pk-log'); } catch { /* not a query string */ }
+    // URLSearchParams parses any string and never throws.
+    const fromUrl = new URLSearchParams(search).get('pk-log');
     for (const candidate of [fromUrl, attr, stored]) if (candidate && LEVELS.includes(String(candidate).toLowerCase())) return String(candidate).toLowerCase();
     return DEFAULT_LEVEL;
 }
@@ -62,11 +62,13 @@ export function parseConfig(text) {
     try { return normalizeConfig(JSON.parse(text)); } catch { return {}; }
 }
 
+// Failures met while the logger itself is starting (nothing to log with yet): recorded here, reported at debug level once it is up.
+let early = null;
+
 function readSources() {
     const g = globalThis;
     let stored = null, saved = {};
-    try { stored = g.localStorage?.getItem('pk-log') ?? null; } catch { /* storage blocked */ }
-    try { saved = parseConfig(g.localStorage?.getItem(CONFIG_KEY) ?? ''); } catch { /* storage blocked */ }
+    try { stored = g.localStorage?.getItem('pk-log') ?? null; saved = parseConfig(g.localStorage?.getItem(CONFIG_KEY) ?? ''); } catch (err) { early = err; }
     const level = levelFrom({ search: g.location?.search ?? '', attr: g.document?.documentElement?.getAttribute?.('data-pk-log') ?? null, stored: saved.level ?? stored });
     return { level, scopes: saved.scopes ?? {}, routes: { ...DEFAULT_ROUTES, ...(saved.routes ?? {}) } };
 }
@@ -97,7 +99,7 @@ export function configureLogging(partial, { persist = false, replace = false } =
         routes: n.routes ? { ...(replace ? DEFAULT_ROUTES : config.routes), ...n.routes } : config.routes,
     };
     if (persist) {
-        try { globalThis.localStorage?.setItem(CONFIG_KEY, JSON.stringify({ level: config.level, scopes: config.scopes, routes: config.routes })); } catch { /* storage blocked */ }
+        try { globalThis.localStorage?.setItem(CONFIG_KEY, JSON.stringify({ level: config.level, scopes: config.scopes, routes: config.routes })); } catch (err) { internal('warn', 'settings not saved', err); }
     }
     for (const route of Object.values(config.routes)) for (const name of route) requireOutput(name);
     return getLoggingConfig();
@@ -105,7 +107,7 @@ export function configureLogging(partial, { persist = false, replace = false } =
 
 // Forgets the saved settings and goes back to the defaults (the URL and page attribute still win for the level).
 export function resetLogging() {
-    try { globalThis.localStorage?.removeItem(CONFIG_KEY); } catch { /* storage blocked */ }
+    try { globalThis.localStorage?.removeItem(CONFIG_KEY); } catch (err) { internal('warn', 'settings not removed', err); }
     config = { level: levelFrom({ search: globalThis.location?.search ?? '', attr: globalThis.document?.documentElement?.getAttribute?.('data-pk-log') ?? null }), scopes: {}, routes: { ...DEFAULT_ROUTES } };
     return getLoggingConfig();
 }
@@ -132,8 +134,13 @@ export function registerLogOutput(name, fn) {
 export const getLogOutputs = () => [...outputs.keys()];
 
 function deliver(name, fn, entry) {
-    try { fn(entry); } catch { /* a broken output must not break the SDK */ }
+    // A broken output must not break the SDK; it is reported (not through the logger: no loop, and no entries a sink would see).
+    // (a broken console has nowhere left to report to)
+    try { fn(entry); } catch (err) { if (name !== 'console') internal('warn', `log output "${name}" threw`, err); }
 }
+
+// The logger's own failures go straight to the console output when the level allows them: it cannot log through itself while it is failing.
+const internal = (level, message, detail) => isLogEnabled(level, 'log') && deliver('console', consoleOutput, { level, scope: 'log', message, detail });
 
 // Built-in outputs that live in another file are imported when a route first names them.
 function requireOutput(name) {
@@ -187,4 +194,5 @@ export function createLogger(scope) {
 // A handle for the browser console, so a developer can turn the logs up on a live page: PkLog.setLogLevel('debug').
 try {
     globalThis.PkLog ??= { createLogger, setLogLevel, getLogLevel, configureLogging, getLoggingConfig, resetLogging, getLogBuffer, clearLogBuffer, addLogSink, registerLogOutput, getLogOutputs };
-} catch { /* a frozen global */ }
+} catch (err) { early ??= err; }
+if (early) internal('debug', 'log setup failed', early);

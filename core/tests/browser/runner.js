@@ -1,6 +1,7 @@
 // In-browser test runner for the SDK's custom elements. Open /tests/browser/ in a visible tab. With node tools/serve.mjs --write-reports it
 // also posts its report (tests/browser/report.json, local scratch output): the results plus a SHA-256 of every element source it covered, so a guard
 // (nothing checks it against the sources any more; it is a local manual safety net).
+// Filter: /tests/browser/?only=<text>[&times=N] runs only the cases whose name contains <text> (N times over, default 1) and posts no report, to hammer one intermittent case.
 import { loadElements } from '../../js/loader.js';
 import { cases } from './cases.js';
 
@@ -43,7 +44,9 @@ async function sources() {
 const list = document.getElementById('results');
 const results = [];
 const CASE_TIMEOUT_MS = 60000;
-for (const [name, fn] of cases) {
+const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
+const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : cases;
+for (const [name, fn] of chosen) {
     const started = performance.now();
     const li = document.createElement('li');
     // A case that never settles must fail by name, not stall the whole run (and the report) forever.

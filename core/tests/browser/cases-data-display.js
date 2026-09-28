@@ -440,6 +440,20 @@ export const dataDisplayCases = [
         c.part('prev').click(); await t.settle(); t.eq(c.part('title').textContent, 'September 2026');
     }],
 
+    ['calendar: arrow, Home/End and Page keys clamp at min and max and focus stays on an enabled day, across months, in single and range mode', async t => {
+        for (const range of ['', ' range']) {
+            const c = await t.mount(`<pk-calendar${range} month="2026-09-01" min="2026-09-05" max="2026-10-02"></pk-calendar>`);
+            const press = async (key, shiftKey = false) => { c.shadowRoot.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey, bubbles: true, composed: true, cancelable: true })); await t.settle(); };
+            const at = () => c.shadowRoot.activeElement;
+            c.part('days').querySelector('[data-date="2026-09-06"]').focus();
+            await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); t.ok(!at().disabled);
+            await press('ArrowUp'); t.eq(at()?.dataset.date, '2026-09-05'); await press('Home'); t.eq(at()?.dataset.date, '2026-09-05'); await press('PageUp'); t.eq(at()?.dataset.date, '2026-09-05');
+            await press('PageDown'); t.eq(c.part('title').textContent, 'October 2026'); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(!at().disabled);
+            await press('ArrowRight'); t.eq(at()?.dataset.date, '2026-10-02'); await press('ArrowDown'); t.eq(at()?.dataset.date, '2026-10-02'); await press('End'); t.eq(at()?.dataset.date, '2026-10-02');
+            await press('PageDown', true); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(c.shadowRoot.contains(at()), 'focus is still inside the calendar');
+        }
+    }],
+
     ['divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow', async t => {
         const d = await t.mount('<pk-divider vertical>or</pk-divider>'); t.eq(d.internals.role, 'separator'); t.eq(d.internals.ariaOrientation, 'vertical'); t.eq(d.hasAttribute('data-labelled'), true);
         const m = await t.mount('<pk-media ratio="4/3" lightbox caption="C"><img alt="cover" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></pk-media>');
@@ -474,8 +488,9 @@ export const dataDisplayCases = [
         const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav pk-nav-item') && el.part('frame').contentDocument, 'the nav');
         t.eq([...doc.querySelectorAll('#gx-nav pk-nav-item[slot][href]')].map(a => a.textContent.trim()).join(), 'Button');
         t.ok(doc.querySelector('.gx-bar'), 'the toolbar is there');
-        t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
-        t.ok(doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector shows the live markup of the element page');
+        // The element page is drawn asynchronously (elementSlot loads the element's API data first), later than the nav: wait for the page and the inspector it feeds.
+        await until(() => doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the page to open on the control');
+        await until(() => doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector to show the live markup of the element page');
     }],
     ['log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised', async t => {
         const el = await t.mount('<pk-log label="Build output" max="50" style="--pk-log-height: 8rem">Nothing yet.</pk-log>');

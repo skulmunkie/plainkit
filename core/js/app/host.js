@@ -29,7 +29,7 @@ import { createPage, BUSY_DELAY } from '../page.js';
 import { createStore } from '../store.js';
 import { matchRoute } from '../route-tree.js';
 import { loadElements } from '../loader.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 import { MODULE_ID, defineModule, pageTypeFor, layoutFor } from './module.js';
 import { createBoundary, loadWithRetry } from './boundary.js';
 

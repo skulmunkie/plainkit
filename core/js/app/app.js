@@ -21,22 +21,26 @@
 //   prefetch       hovering or focusing a module link for 100 ms calls that module's own allow-listed loader once (the browser keeps the chunk), never on saveData
 //   regions        an empty pk-toast-stack and dialog host are mounted for the toast and dialog services (#373); nothing shows until they are used
 //
+// What is in the entry and what loads later (#514, the pattern for an app that stays small): the entry holds only what the first paint of a route needs (the config check, the router,
+// the module host and its boundaries, the shell, the nav, the page overlay, the store and the three theme calls of js/theme-core.js; the override and colour code of js/theme.js stays out). Everything that waits for a user or a module loads on first use through the ONE
+// allowed import() (js/app/module.js): a page type when a route names it (js/app/pages/<type>.js), and the task, notification and dialog services when a module first calls
+// ctx.tasks, ctx.notify or ctx.dialogs (js/app/lazy.js: same contract, the code arrives with the first call; the chunks are js/app/pages/svc-*.js). Each chunk file stays under the
+// per-chunk budget, and tests/app-budgets.test.mjs holds the entry's size down (limits only ever come down).
+//
 // destroy() ends the router, the host (which unmounts the module), the store subscriptions, the theme observer and the prefetch timer, and removes what mountApp added:
 // mount and destroy 100 times leave the listener, observer and timer counts where they were.
 import { createLogger } from '../log.js';
 import { createPage } from '../page.js';
 import { createStore } from '../store.js';
-import { createTasks } from '../tasks.js';
-import { createNotify } from '../notify.js';
-import { createDialogs } from '../dialogs.js';
 import { withLegacy } from '../store-extras.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 import { loadElements } from '../loader.js';
 import { mountRouter } from '../router.js';
 import { mediaBelow } from '../breakpoints.js';
 import { navRoutes } from '../route-tree.js';
 import { MODULE_ID } from './module.js';
 import { createModuleHost } from './host.js';
+import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
 import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, menuTree, paintNav, paintLinks, locate, markCurrent, searchNav } from './nav.js';
@@ -65,8 +69,8 @@ export function mountApp(container, config) {
     let query = '';
     const search = { get query() { return query; }, subscribe: fn => (subs.add(fn), () => subs.delete(fn)) };
     const box = doc.createElement('div');
-    const tasks = createTasks({ container, log }); // its toasts go to the shell's bottom-end pk-toast-stack (found when the first task runs)
-    const notify = createNotify({ container, log }), dialogs = createDialogs({ container, log, load: loadElements }); // the same stack; one dialog at a time for the whole app
+    // The three services load on first use (js/app/lazy.js, #514): toasts go to the shell's bottom-end pk-toast-stack (found when the first one shows), one dialog at a time for the whole app.
+    const { tasks, notify, dialogs } = lazyServices({ container, log, load: loadElements });
     const host = createModuleHost(box, {
         modules: cfg.modules, auth: cfg.auth, can: cfg.can, store, settings, tasks, notify, dialogs, services: { search },
         router: { navigate: (...a) => router.navigate(...a), href: (...a) => router.href(...a) },
