@@ -40,7 +40,7 @@
     { "target": "the pk-sortable-item children", "attributes": ["dragging", "drop-indicator", "tabindex"], "why": "dragging marks the row being dragged; drop-indicator marks the neighbour to draw the insertion line against (cleared when the drag ends); tabindex is the roving focus stop. Refreshed on every drag step and every update; none is undone on disconnect (tabindex stays wherever the list last put it, like pk-tree and pk-tabs)." }
   ],
   "a11y": "role=list; each pk-sortable-item is role=listitem with aria-roledescription and aria-disabled. One tab stop (roving tabindex, skipping disabled rows); Up, Down, Home and End move it; Alt+Up and Alt+Down move the focused row and keep focus on it (a disabled row cannot be focused or moved). A visually-hidden aria-live=polite region announces a grab, a completed or cancelled reorder, and an accepted external drop.",
-  "mobile": "The handle is a 44px touch target on a touch screen (@media (pointer: coarse), (--phone)); touch-action is off on it so a drag reorders instead of scrolling the page.",
+  "mobile": "The handle is a 44px touch target on a touch screen (@media (pointer: coarse), (--phone)); touch-action is off on it so a drag reorders instead of scrolling the page. A vertical drag near the top or bottom of the window (or of the nearest scrolling ancestor) scrolls the page for you, at a steady half speed under prefers-reduced-motion.",
   "examples": [
     {
       "title": "Reorder a checklist",

@@ -64,6 +64,8 @@ globalThis.getComputedStyle = () => ({ direction: 'ltr' });
 const frames = new Map(); let frameId = 0, reducedMotion = false;
 globalThis.requestAnimationFrame = fn => { frames.set(++frameId, fn); return frameId; };
 globalThis.cancelAnimationFrame = id => frames.delete(id);
+// No page in Node: a stub document whose scroller the page-level auto-scroll (js/drag-scroll.js) may move, and a window tall enough that the tests' points are mid-window.
+globalThis.document = { body: {}, documentElement: {}, scrollingElement: { scrollTop: 0 } }; globalThis.innerHeight = 100000;
 globalThis.matchMedia = () => ({ matches: reducedMotion });
 const step = () => { const q = [...frames]; frames.clear(); q.forEach(([, fn]) => fn()); };
 const board = () => { const a = [card('a', 0), card('b', 40)], b = [card('c', 0)], c = []; const cols = [column('todo', 0, a), column('doing', 110, b), column('done', 220, c)]; return { el: make(cols), a, b, cols }; };
