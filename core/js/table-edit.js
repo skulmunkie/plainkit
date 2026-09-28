@@ -4,6 +4,7 @@
 // A commit raises the cancelable pk-cell-edit; unless the host cancels it the table then holds the new value in a copy of its rows (the host owns them after the event).
 
 import { sheetFor } from './element.js';
+import { keyStep, stepIndex } from './roving.js';
 
 const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1)}td[data-editing] :is(input,select){inline-size:0;min-inline-size:max(100%,4rem);font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);font-size:16px}td[data-key] input[role="switch"]{inline-size:var(--touch-target);block-size:var(--touch-target)}td[data-editing] select{min-inline-size:6.5rem}}');
 let sheet;
@@ -140,10 +141,10 @@ function keydown(t, e) {
     }
     if (e.target !== td) return;
     if ((e.ctrlKey || e.metaKey) && !e.altKey && /^[zy]$/i.test(k)) { e.preventDefault(); step(t, k.toLowerCase() === 'z' && !e.shiftKey); return; }
-    const go = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[k];
-    if (go) { e.preventDefault(); move(t, td, ...go); }
+    const dx = keyStep(k, { horizontal: true }) | 0, dy = keyStep(k) | 0; // Home / End are 'start' / 'end': not a step
+    if (dx || dy) { e.preventDefault(); move(t, td, dx, dy); }
     else if (k === 'Enter' || k === 'F2' || (k === ' ' && col(t, td.dataset.key).editor === 'switch')) { e.preventDefault(); begin(t, td); }
-    else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[k === 'Home' ? 0 : r.length - 1]); }
+    else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[stepIndex(k, 0, r.length)]); }
 }
 
 // A click selects a cell; a click on the cell that is already active opens it (the way a touch screen edits, where there is no Enter). A switch toggles on any click.

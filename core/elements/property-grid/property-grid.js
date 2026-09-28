@@ -1,3 +1,4 @@
+import { navigable, stepIndex } from '../../js/roving.js';
 import { loadElements } from '../../js/loader.js';
 
 // The same field vocabulary as pk-settings-page ({ key, type, label, options?, min?, max?, step?, required? }), so a property inspector and a settings form
@@ -162,12 +163,11 @@ export default Base => class extends Base {
         const at = rows.findIndex(r => path.includes(r.c));
         const plain = rows[at]?.f.type === 'switch';
         if (at < 0 || e.altKey || e.shiftKey || e.metaKey || !(plain ? !e.ctrlKey : e.ctrlKey)) return;
-        const open = rows.filter(r => !r.row.hidden && !r.c.disabled && r.c.closest('pk-accordion-item')?.open !== false);
-        const i = open.findIndex(r => r === rows[at]);
-        const to = { ArrowUp: i - 1, ArrowDown: i + 1, Home: 0, End: open.length - 1 }[e.key];
+        const open = navigable(rows, r => !r.row.hidden && !r.c.disabled && r.c.closest('pk-accordion-item')?.open !== false);
+        const i = open.indexOf(rows[at]), to = stepIndex(e.key, i, open.length);
         if (to === undefined) return;
         e.preventDefault();
-        const c = open[Math.max(0, Math.min(open.length - 1, to))]?.c;
+        const c = open[to ?? i]?.c;
         // A pk-input's own focus() lands on its first stepper button; the value control is the part="control" inside it.
         (c?.shadowRoot?.querySelector('[part="control"]') ?? c)?.focus();
     }
