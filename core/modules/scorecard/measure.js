@@ -1,24 +1,8 @@
-// What the scorecard measures in a real browser beyond the rendered frames: the page's own timings (largest paint, layout shift, long
-// tasks, slowest interaction), how long a table of N rows takes to lay out, how long a theme switch takes to restyle, and the size of
+// What the scorecard measures in a real browser beyond the rendered frames (the page's own timings and the theme-switch cost come from
+// js/measure.js): how long a table of N rows takes to lay out, how long a theme switch takes to restyle, and the size of
 // files (raw and gzip). Every read is of a file the host names on its own origin; nothing else is requested.
 
 import { stripComments, sameOrigin } from '../../js/framework-checks.js';
-import { createLogger } from '../../js/log.js';
-
-const log = createLogger('scorecard');
-
-// Timings collected from page load (buffered observers), so the numbers describe the page as it loaded. Returns the live object.
-export function watchVitals(win) {
-    const v = { lcp: null, cls: 0, longTasks: 0, inp: 0 };
-    const observe = (type, fn, extra = {}) => {
-        try { new win.PerformanceObserver(l => l.getEntries().forEach(fn)).observe({ type, buffered: true, ...extra }); } catch (error) { log.debug(`the ${type} entry type is not supported in this browser: the metric stays unmeasured`, error); }
-    };
-    observe('largest-contentful-paint', e => { v.lcp = e.startTime; });
-    observe('layout-shift', e => { if (!e.hadRecentInput) v.cls += e.value; });
-    observe('longtask', () => { v.longTasks++; });
-    observe('event', e => { v.inp = Math.max(v.inp, e.duration); }, { durationThreshold: 16 });
-    return v;
-}
 
 // Render and lay out a pk-table of n product rows off-screen, in ms. The status cell is plain text: the test times the table, not n badge elements.
 export function timeRows(doc, n) {
@@ -32,18 +16,6 @@ export function timeRows(doc, n) {
     doc.defaultView.getComputedStyle(host.querySelector('tbody tr:last-child td')).color;
     const ms = performance.now() - t0;
     host.remove();
-    return ms;
-}
-
-// Flip the theme and re-read every element's colour: the style recalculation cost of a theme switch, in ms. The theme is put back.
-export function recalcMs(doc) {
-    const root = doc.documentElement;
-    const was = root.getAttribute('data-theme');
-    const t0 = performance.now();
-    root.setAttribute('data-theme', was === 'dark' ? 'light' : 'dark');
-    doc.querySelectorAll('*').forEach(el => doc.defaultView.getComputedStyle(el).color);
-    const ms = performance.now() - t0;
-    if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was);
     return ms;
 }
 

@@ -25,6 +25,9 @@ public abstract class PageBase : ComponentBase, IDisposable
     /// <summary>Writes an error into the SDK log through <see cref="IPkLog"/> (used by <see cref="SetErrorAsync"/>).</summary>
     [Inject] protected IPkLog Log { get; set; } = default!;
 
+    /// <summary>The clock behind the busy overlay's delay and minimum time. <see cref="TimeProvider.System"/> by default; a test overrides it with a fake so the timing is deterministic.</summary>
+    protected virtual TimeProvider Clock => TimeProvider.System;
+
     /// <summary>The page's title; bind into <see cref="PkPageHeader.Title"/> or the document title.</summary>
     protected string? Title { get; set; }
 
@@ -147,7 +150,7 @@ public abstract class PageBase : ComponentBase, IDisposable
     private readonly List<BusyToken> _busy = [];
     private string? _lastLabel;
     private CancellationTokenSource? _showCts, _hideCts;
-    private DateTime _shownAt;
+    private DateTimeOffset _shownAt;
 
     private sealed class BusyToken(string? label, PageBase page) : IDisposable
     {
@@ -181,7 +184,7 @@ public abstract class PageBase : ComponentBase, IDisposable
             _showCts?.Cancel(); _showCts = null;
             if (ShowBusyOverlay)
             {
-                var left = BusyMinTime - (DateTime.UtcNow - _shownAt);
+                var left = BusyMinTime - (Clock.GetUtcNow() - _shownAt);
                 if (left > TimeSpan.Zero) Later(left, () => { _hideCts = null; SetOverlay(false); }, cts => _hideCts = cts);
                 else SetOverlay(false);
             }
@@ -192,7 +195,7 @@ public abstract class PageBase : ComponentBase, IDisposable
     private void SetOverlay(bool on)
     {
         ShowBusyOverlay = on;
-        if (on) _shownAt = DateTime.UtcNow;
+        if (on) _shownAt = Clock.GetUtcNow();
         StateHasChanged();
     }
 
@@ -204,7 +207,7 @@ public abstract class PageBase : ComponentBase, IDisposable
 
         async Task Run()
         {
-            try { await Task.Delay(delay, cts.Token); }
+            try { await Task.Delay(delay, Clock, cts.Token); }
             catch (OperationCanceledException) { return; }
             await InvokeAsync(() => { if (!cts.IsCancellationRequested) then(); });
         }

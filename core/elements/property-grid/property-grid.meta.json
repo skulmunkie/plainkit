@@ -1,0 +1,63 @@
+{
+  "tag": "pk-property-grid",
+  "title": "Property grid",
+  "group": "Form controls",
+  "summary": "A property inspector: fields in collapsible groups (text, number, select, switch), each a labelled real control, with per-property validation and a pk-property-change event. Uses the same field vocabulary as pk-settings-page.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ groups: [{ heading, collapsed?, fields: [{ key, type: 'text'|'number'|'select'|'switch', label, required?, disabled?, options?, min?, max?, step? }] }] }. A select's options are [{ value, label? }] or plain strings."
+    },
+    {
+      "name": "values",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "The property values keyed by field key; set again to update the controls (for example when the selected object changes)."
+    },
+    {
+      "name": "errors",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "Host-side validation messages keyed by field key (for example from a server); shown under the property and marking it invalid. Built-in rules (required, number min/max) apply as well."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Disables every property (a field's own disabled: true stays disabled either way)."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-property-change",
+      "detail": "{ key: string, value: any, values: object, valid: boolean }",
+      "detailProps": {
+        "key": "string",
+        "value": "any",
+        "values": "object",
+        "valid": "boolean"
+      },
+      "description": "The user committed a new value for one property; carries every current value and whether all properties are valid."
+    }
+  ],
+  "parts": [
+    { "name": "empty", "description": "A placeholder message shown while config.groups is empty." },
+    { "name": "groups", "description": "The pk-accordion holding one pk-accordion-item per group." }
+  ],
+  "cssProperties": [],
+  "a11y": "Each property is a labelled real control (pk-input, pk-select, pk-switch), so Tab, arrow keys and Space work as in those elements; groups are pk-accordion-item disclosures (Enter or Space toggles). An invalid property sets aria-invalid and shows its message as a pk-alert next to it, so an error is never colour alone.",
+  "examples": [
+    {
+      "title": "Grouped properties; Width is below its minimum, so it shows its validation message",
+      "html": "<pk-property-grid config='{\"groups\":[{\"heading\":\"Dimensions\",\"fields\":[{\"key\":\"width\",\"type\":\"number\",\"label\":\"Width (px)\",\"min\":1,\"max\":4096,\"required\":true},{\"key\":\"height\",\"type\":\"number\",\"label\":\"Height (px)\",\"min\":1,\"max\":4096}]},{\"heading\":\"Output\",\"fields\":[{\"key\":\"format\",\"type\":\"select\",\"label\":\"Format\",\"options\":[\"PNG\",\"JPEG\",\"WebP\"]},{\"key\":\"transparent\",\"type\":\"switch\",\"label\":\"Transparent background\"}]},{\"heading\":\"Advanced (collapsed)\",\"collapsed\":true,\"fields\":[{\"key\":\"note\",\"type\":\"text\",\"label\":\"Export note\",\"disabled\":true}]}]}' values='{\"width\":0,\"height\":600,\"format\":\"PNG\",\"transparent\":true,\"note\":\"Locked by the template\"}'></pk-property-grid>"
+    }
+  ],
+  "methods": []
+}

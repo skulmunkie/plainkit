@@ -48,6 +48,9 @@
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
  ],
+ "date-range-picker": [
+  "(max-width: 640px)"
+ ],
  "dialog": [
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"

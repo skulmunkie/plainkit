@@ -87,7 +87,6 @@ const ALLOWED = {
     'elements/radio-group/radio-group.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/combobox/combobox.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/select-menu/select-menu.js': { observer: 'a MutationObserver of the element\'s own children, created once per instance: it is freed with the element' },
-    'modules/scorecard/measure.js': { observer: 'a PerformanceObserver inside the measured frame\'s window; the frame is removed after each measurement' },
     'modules/scorecard/scorecard.js': { timeout: 'a bounded settle delay before a measured frame resolves' },
 };
 

@@ -28,7 +28,7 @@ const FOOTER = 'pk-app-shell >>> [part=footer]';
 
 export default {
     name: 'app-shell',
-    issue: [350],
+    issue: [350, 448],
     elements: ['app-shell', 'navbar', 'side-nav', 'app-bar-search'],
     html: '<div id="app"></div>',
     setup(frame) {
@@ -80,11 +80,12 @@ export default {
             t.hidden('pk-navbar >>> [part=toggle]', "the bar's own hamburger (the shell has the one menu control)");
             t.exists('pk-nav-item[data-module=overview][href="#/overview"]');
             t.exists('pk-nav-item[data-module=orders][expanded]'); // the active module is a section holding its own entries
-            t.visible('pk-button[data-nav-toggle]');
+            if (desktop) t.hidden('pk-button[data-nav-toggle]', 'the hamburger (the side nav has its own collapse chevron, #448)'); else t.visible('pk-button[data-nav-toggle]', 'the hamburger (opens the drawer)');
+            if (desktop) t.visible('#pk-nav >>> [part=collapse]', 'the one collapse control');
             if (desktop) { t.visible('#pk-nav'); t.atLeast('#pk-nav', 'width', 150); t.sameRow('pk-navbar a[slot=brand]', 'pk-app-bar-search'); t.visible('pk-nav-item[data-module=overview]'); }
             else t.hidden('#pk-nav', 'the nav (a drawer, closed)');
         }
-        if (t.shot === 'nav-collapsed') { t.visible('#pk-nav'); t.ok(t.rect('#pk-nav')?.width < 100, 'the nav is an icon rail'); t.visible('#pk-main'); }
+        if (t.shot === 'nav-collapsed') { t.visible('#pk-nav'); t.ok(t.rect('#pk-nav')?.width < 100, 'the nav is an icon rail'); t.hidden('pk-button[data-nav-toggle]', 'no second collapse control'); t.visible('#pk-nav >>> [part=collapse]'); t.visible('#pk-main'); }
         if (t.shot === 'nav-open') {
             t.visible('#pk-nav', 'the drawer');
             t.inViewport('#pk-nav');
