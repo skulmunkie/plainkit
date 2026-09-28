@@ -70,7 +70,13 @@ const docFor = (frame, { theme, width }, base) => {
 };
 
 // The custom element names (anything with a hyphen) used in a document: the ones the frame has to define before its layout means anything.
-export const customTags = doc => [...new Set([...(doc?.querySelectorAll?.('*') ?? [])].map(el => el.localName).filter(name => name.includes('-')))];
+// Open shadow roots are read too: a page type's own children (pk-master-detail-page holds a pk-list-page) live there and give it its height.
+export const customTags = doc => {
+    const tags = new Set();
+    const walk = root => { for (const el of root?.querySelectorAll?.('*') ?? []) { if (el.localName.includes('-')) tags.add(el.localName); if (el.shadowRoot) walk(el.shadowRoot); } };
+    walk(doc);
+    return [...tags];
+};
 
 // Resolves once every custom element in the frame is defined, or after `ms` (a tag that is never registered must not stall a run).
 // Elements are loaded on demand after the frame's load event; an element with no text (an avatar, a progress bar, a spinner) has no size until
