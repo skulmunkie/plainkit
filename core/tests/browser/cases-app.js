@@ -194,4 +194,30 @@ export const appCases = [
         } finally { inst.restore(); }
         await host.destroy();
     }],
+
+    ['pk-dashboard-page: each tile is its own async boundary - a fast tile and a rejecting tile settle immediately while a slow sibling is still loading, and the slow tile finishing does not touch what the others already drew (#436)', async t => {
+        const el = document.createElement('pk-dashboard-page');
+        el.config = { tiles: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };
+        const SLOW_MS = 300;
+        el.load = async key => {
+            if (key === 'slow') { await wait(SLOW_MS); return { value: '2' }; }
+            if (key === 'bad') throw new Error('tile boom');
+            return { value: '1' };
+        };
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        await t.settle();
+        const tileBox = key => el.shadowRoot.querySelector(`[part="tile"][data-key="${key}"]`);
+        const started = performance.now();
+        t.ok(tileBox('fast').querySelector('pk-stat'), 'the fast tile rendered without waiting for the slow one');
+        t.eq(tileBox('fast').querySelector('pk-stat').value, '1');
+        t.ok(tileBox('bad').querySelector('pk-alert'), 'the rejecting tile shows its own error, not a stuck skeleton');
+        const elapsed = performance.now() - started;
+        t.ok(elapsed < SLOW_MS, `the fast and bad tiles were already settled well before the slow tile's ${SLOW_MS}ms load could finish (checked after ${elapsed.toFixed(0)}ms)`);
+        t.ok(tileBox('slow').querySelector('pk-skeleton'), 'the slow tile is still loading');
+        await until(() => tileBox('slow').querySelector('pk-stat'), 'the slow tile to resolve');
+        t.eq(tileBox('slow').querySelector('pk-stat').value, '2');
+        t.eq(tileBox('fast').querySelector('pk-stat').value, '1', 'the fast tile was never touched by the slow tile settling');
+        t.ok(tileBox('bad').querySelector('pk-alert'), 'the bad tile was never touched by the slow tile settling');
+    }],
 ];

@@ -1,0 +1,29 @@
+{
+  "tag": "pk-dashboard-page",
+  "title": "Dashboard page",
+  "group": "Page types",
+  "summary": "A tile grid composed of pk-stat and pk-chart tiles, optionally grouped into sections with their own headings. Set the load(key) callback as a property (business logic, never config data) - it is called once per tile, independently, and resolves to the data merged onto that tile's element (a pk-stat's value/delta/tone/values, or a pk-chart's data/caption). Each tile is its own async boundary: a loading skeleton while its own load(key) call is in flight, the tile once it resolves, or an error state with Retry on rejection - one slow or rejecting tile never blocks or breaks any other tile.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ tiles, sections? }. tiles is [{ key, label, kind: 'stat'|'chart', empty? }][] - key identifies the tile (passed to load(key)), label becomes the pk-stat label or pk-chart caption, kind picks the composed element (default stat), empty is the empty-state text shown when there is no load callback. sections is [{ heading?, tiles: string[] }][], each naming the keys it groups, in the order to render them; without sections every tile in config.tiles renders in one ungrouped grid, in array order."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "body", "description": "Holds every section, each built as a section (an optional section-heading) around a grid of tile boxes: a tile box holds its own loading/error state, then the pk-stat or pk-chart it resolved to." }
+  ],
+  "cssProperties": [],
+  "a11y": "Each tile's loading and error states use pk-skeleton and pk-alert's own roles and announcements, scoped to that tile alone; a resolved tile is a real pk-stat or pk-chart with its own accessible name and roles.",
+  "examples": [
+    {
+      "title": "Two sections (set config and load from script: an inline script cannot run under this site's CSP, so wire it the way pk-tool-page's run is wired)",
+      "html": "<pk-dashboard-page id=\"overview\"></pk-dashboard-page>"
+    }
+  ],
+  "methods": []
+}

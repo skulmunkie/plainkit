@@ -2,16 +2,16 @@
 //
 //   import { defineModule } from './plainkit/js/app.js';
 //   export default defineModule({
-//       id: 'orders',                                   // ^[a-z][a-z0-9-]{0,39}$; the key the app config's allow-list and the address '#/orders/...' use
+//       id: 'orders',                                   // ^[a-z][a-z0-9-]{0,39}$; the key the allow-list and the address '#/orders/...' use
 //       title: 'Orders', icon: 'list',
-//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // the module's own side nav: STRUCTURE (a few stable destinations), never one entry per record (js/app/nav.js)
-//       routes: [                                        // module-relative; the module id prefix is added by the app. page = a type id, or { type, config }
+//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // side nav: STRUCTURE (a few stable destinations), never one per record (js/app/nav.js)
+//       routes: [                                        // module-relative; the app adds the module id prefix. page = a type id, or { type, config }
 //           { path: '/', page: 'custom', config: { mount: (el, ctx) => mountOrders(el) } },   // config: data, or ({ path, params, query }, ctx) => data
 //           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
 //           { path: '*', page: 'not-found' },
-//       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` (text or params => text) is its breadcrumb
+//       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
-//       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; anything else, and a throw, denies (fail closed)
+//       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; else, or a throw, denies (fail closed)
 //       mount(ctx) { return () => {}; }, unmount(ctx) {},             // optional; a function returned from mount is cleanup
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }
 //   });
@@ -25,26 +25,26 @@
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
 //   a route      { path, page: { type: 'kanban', config }, layout: 'split' }.
-// A layout is (host, ctx) => element: it may build chrome around `host` and returns the element the page type mounts into (host itself when it returns nothing).
-// Lookup is module, then app, then built-in; a built-in id can never be shadowed or registered, and a name is used only as a key into these tables.
+// A layout is (host, ctx) => element: it may build chrome around `host`, returning the element the page type mounts into (host itself if none).
+// Lookup is module, then app, then built-in; a built-in id can never be shadowed or registered, and a name is only a key into these tables.
 //
 // ctx, what a module and its pages receive (the tracker's list, minus what only the shell has: search, toast, confirm arrive with mountApp):
 //   id                 the module id.
-//   page               createPage (js/page.js) bound to the module's own alert and body (the framework wraps it in its busy overlay): setStatus, setError, busy(fn, label), begin(label), setTitle (no breadcrumb until the shell).
-//   store              the module's namespaced state (js/store.js: get, set, patch, subscribe, reset), or null without `state`; subscriptions end on unmount.
+//   page               createPage (js/page.js) bound to the module's own alert and body (wrapped in the busy overlay): setStatus, setError, busy(fn, label), begin(label), setTitle (no breadcrumb until the shell).
+//   store              the module's namespaced state (js/store.js: get, set, patch, subscribe, reset), null without `state`; subscriptions end on unmount.
 //   settings           what the app passed as `settings`, or null.
-//   theme              { name, set(name), toggle(), subscribe(fn) } for data-theme (js/theme.js); subscribe is a tracked MutationObserver, made on demand.
+//   theme              { name, set(name), toggle(), subscribe(fn) } for data-theme (js/theme.js); subscribe is a tracked MutationObserver, on demand.
 //   route              { path, params, query } now, module-relative; params and query are untrusted text (textContent only).
 //   navigate(path, { replace }) / href(path, params, query)   module-relative router links; navigate returns false without one.
 //   log                createLogger('app:<id>').
-//   on/observe/after   listeners, observers and one-shot timers core removes at that end; each call returns a stop-early fn. Called after that end, they warn and no-op.
-//   tasks              { run(spec) } (js/tasks.js): long work as progress toasts; null without an app manager. Ends with this ctx: cancellables cancel, others continue.
-//   notify             { info, success, warn, error }(title, details?, opts?) (js/notify.js); null without one. Ends with this ctx: its toasts finish.
-//   dialogs            { confirm, alert, prompt, open }(config) -> Promise (js/dialogs.js), one modal app-wide; null without one. Ends with this ctx: its dialogs cancel.
+//   on/observe/after   listeners, observers and one-shot timers core removes at that end; each call returns a stop-early fn; called after, they warn and no-op.
+//   tasks              { run(spec) } (js/tasks.js): long work as progress toasts; null without a manager. Ends with this ctx: cancellables cancel, others continue.
+//   notify             { info, success, warn, error }(title, details?, opts?) (js/notify.js); null without one; ends with this ctx: its toasts finish.
+//   dialogs            { confirm, alert, prompt, open }(config) -> Promise (js/dialogs.js), one modal app-wide; null without one; ends with this ctx: its dialogs cancel.
 //   signal             an AbortSignal that aborts at that end (pass it to fetch).
 //   auth               what the app passed as `auth`.
-// The ctx of mount/unmount ends on unmount. A page factory gets its own ctx with the same members whose on/observe/after/signal end when the page is left (a route change
-// or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
+// The ctx of mount/unmount ends on unmount. A page factory gets its own ctx (same members) whose on/observe/after/signal end when the page is
+// left (a route change or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
 import { flattenRoutes } from '../route-tree.js';
 import { createLogger } from '../log.js';
 import { setTheme, currentTheme, toggleTheme } from '../theme.js';
@@ -160,7 +160,15 @@ const list = (host, config = {}, ctx) => {
     host.append(el);
     return () => el.remove();
 };
-const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list]]);
+// 'dashboard' (#436): tiles/sections; load(key) per tile.
+const dashboard = (host, config = {}, ctx) => {
+    const el = host.ownerDocument.createElement('pk-dashboard-page');
+    el.config = { tiles: config.tiles, sections: config.sections };
+    if (config.load) el.load = key => config.load(key, ctx);
+    host.append(el);
+    return () => el.remove();
+};
+const BUILT_IN = new Map([['custom', custom], ['states', states], ['tool', tool], ['settings', settings], ['not-found', notFound], ['list', list], ['dashboard', dashboard]]);
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
