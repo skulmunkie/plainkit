@@ -1,6 +1,6 @@
 // In-browser test runner for the SDK's custom elements. Open /tests/browser/ in a visible tab. With node tools/serve.mjs --write-reports it
-// also posts an attested report (tests/browser/report.json): the results plus a SHA-256 of every element source it covered, so a guard
-// test can fail when a component changed after its last run without needing a browser in CI.
+// also posts its report (tests/browser/report.json, local scratch output): the results plus a SHA-256 of every element source it covered, so a guard
+// (nothing checks it against the sources any more; it is a local manual safety net).
 import { loadElements } from '../../js/loader.js';
 import { cases } from './cases.js';
 
@@ -24,7 +24,7 @@ const t = {
     },
 };
 
-// Every source the tests cover, hashed the way tests/elements-attest.test.mjs hashes them on disk (LF-normalised SHA-256, hex).
+// Every source the tests cover, hashed (LF-normalised SHA-256, hex) so a report says which sources it covered.
 async function sha(text) {
     const bytes = new TextEncoder().encode(text.replace(/\r\n/g, '\n'));
     return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');

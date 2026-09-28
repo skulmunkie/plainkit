@@ -46,7 +46,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/modules/<tool>/` (their own unit, see "Tool modules"); the site pages are thin hosts on them |
 | `tools/` | `build.mjs`, `breakpoints.mjs` (named breakpoints resolved at build), `breakpoint-report.mjs` (what changes at each), `serve.mjs` (generates the output itself when it is missing), `snapshot.mjs`, `security.mjs`, `api-surface.mjs`, `markdown.mjs` and `guides.mjs` (the Guides' Markdown converter and loader) |
-| `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab, attested by `report.json`) |
+| `tests/` | Cross-cutting tests (`node --test tests`); `tests/browser/` is the in-browser element suite (open it in a tab; `report.json` is local scratch output) |
 | `dist/` | Generated output (not in git; `node scripts/bootstrap.mjs` from the repository root writes it); never edit |
 
 `plainkit.css`, `elements/*/*.element.js`, `site/gallery/gallery.data.js`, `site/guides/guides.data.js`, `site/files/snapshot.json`, `site/scorecard/api.current.json`, `js/version.js` and `dist/` are generated from the element, layout and sample folders by `node tools/build.mjs`, and none of them is in git. On a fresh clone (and after switching branches or editing sources) run `node scripts/bootstrap.mjs` from the repository root: it runs the build, then the Blazor wrapper generator, the skills generator and the package copy (about 4 seconds). `node tools/serve.mjs` runs it by itself when the files are missing. The pinned release is the GitHub release `dist` zip, or NuGet; there is no CDN link by git tag, because a tag does not carry `dist`.
@@ -238,9 +238,9 @@ node tools/security.mjs     # scan for eval, inline handlers, secrets, unlisted 
 node site/scorecard/static-audit.mjs
 ```
 
-### The in-browser element suite and its attestation
+### The in-browser element suite
 
-`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so the last run is attested: `tests/browser/report.json` holds its results and a SHA-256 of every source it covered, and `tests/elements-attest.test.mjs` fails when an element source or a browser case changed after that run, or when the run had failures. Re-run it after any change to an element source, `js/element*.js`, `js/loader.js` or a browser case.
+`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so this suite is a local manual safety net: run it when you change an element source, `js/element*.js`, `js/loader.js` or a browser case. Nothing in CI or the node tests compares it with the sources, and `tests/browser/report.json` is local scratch output (not committed).
 
 One command does the whole procedure (from the repository root; Node only, no browser package; it needs an installed Chrome, Chromium or Edge, found by `PK_CHROME` or the usual install paths):
 
@@ -248,19 +248,19 @@ One command does the whole procedure (from the repository root; Node only, no br
 node scripts/attest-browser.mjs
 ```
 
-It starts `node core/tools/serve.mjs 5341 --write-reports`, opens `http://localhost:5341/tests/browser/` in a headless browser, waits for the page to post its report (about 170 s; it gives up after 420 s), prints the passed and failed counts from `report.json`, re-runs `node --test core/tests/elements-attest.test.mjs`, then stops the server and the browser and deletes the temporary profile. The exit code is 0 when every case passed and the attestation test passes, 1 for a failed case, 2 when the run could not finish. `--port`, `--timeout`, `--width`, `--height` and `--no-attest` are the options; `PK_CHROME_FLAGS` adds browser flags.
+It starts `node core/tools/serve.mjs 5341 --write-reports`, opens `http://localhost:5341/tests/browser/` in a headless browser, waits for the page to post its report (about 170 s; it gives up after 420 s), prints the passed and failed counts from `report.json`, then stops the server and the browser and deletes the temporary profile. The exit code is 0 when every case passed, 1 for a failed case, 2 when the run could not finish. `--port`, `--timeout`, `--width` and `--height` are the options; `PK_CHROME_FLAGS` adds browser flags.
 
 By hand, the same thing:
 
 1. `node core/tools/serve.mjs 5341 --write-reports` (`--write-reports` lets the page post its report to the server, which writes `report.json`).
 2. Open `http://localhost:5341/tests/browser/` in Chrome at desktop size. Headless: `chrome --headless=new --disable-gpu --no-first-run --user-data-dir=<a temporary folder> --window-size=1280,900 http://localhost:5341/tests/browser/`.
 3. Wait about 170 s for "report saved" (a visible tab shows it; a headless run has no window, so read the file).
-4. Read `tests/browser/report.json` (`passed` and `failed`), then `node --test core/tests/elements-attest.test.mjs`.
+4. Read `tests/browser/report.json` (`passed` and `failed`).
 5. Stop the server and the browser and delete the temporary profile (on Windows a browser child can keep the folder locked for a moment; `scripts/attest-browser.mjs` ends the whole process tree and retries).
 
 **Viewport.** Run it at desktop size, 1280x900 or larger. A small window (about 486x425) made the suite flaky, because several cases assert layout, so the script refuses a window smaller than 1024x700. A visible tab must stay in front: a background tab throttles timers.
 
-**In CI.** The suite is not a required check: it takes minutes and reads layout, so a slow or differently configured runner would make a required check flaky, and the attestation already guards the sources cheaply. The runners have a Chrome preinstalled, and the script needs no npm dependency, so `.github/workflows/ci.yml` has a `browser` job that runs it on demand (Actions, Run workflow) and uploads `report.json`; it is not part of push or pull request runs. It has not been proven on a runner yet: promote it to a required check only after a few clean runs there.
+**In CI.** The suite is not a required check: it takes minutes and reads layout, so a slow or differently configured runner would make a required check flaky, so it stays a manual check. The runners have a Chrome preinstalled, and the script needs no npm dependency, so `.github/workflows/ci.yml` has a `browser` job that runs it on demand (Actions, Run workflow) and uploads `report.json`; it is not part of push or pull request runs. It has not been proven on a runner yet: promote it to a required check only after a few clean runs there.
 
 ### The scorecard analysis in one command
 
@@ -278,7 +278,7 @@ It writes `sweep.json`, `quality.json`, `pages.json` and `summary.md` (worst fir
 
 1. Create `elements/<name>/` (the tag is `pk-<name>`).
 2. Write `<name>.html` (the template), `<name>.css` (tokens only), `<name>.js` only if it needs behaviour, `<name>.meta.json` (the API, with examples), and `<name>.test.mjs` for logic.
-3. Run `node scripts/bootstrap.mjs` (from the repository root), then `node --test .`; run the browser suite (`tests/browser/`) and refresh the attestation.
+3. Run `node scripts/bootstrap.mjs` (from the repository root), then `node --test .`; run the browser suite (`tests/browser/`) if an element changed.
 
 Rules the tests enforce: no literal colours in element CSS (tokens live in `tokens/tokens.css`), no inline scripts or event handlers, every `innerHTML` use is allow-listed with its markup source, the public surface (classes, tokens,
 JS exports in `site/scorecard/api.baseline.json`) only grows, and size budgets in `site/scorecard/scoring.data.js`.

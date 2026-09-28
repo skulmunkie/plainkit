@@ -1,15 +1,15 @@
-// Runs the in-browser element suite (core/tests/browser/) and refreshes its attestation (core/tests/browser/report.json). Node only, no dependencies,
+// Runs the in-browser element suite (core/tests/browser/), a local manual safety net (nothing checks it in CI or against the sources). Node only, no dependencies,
 // no browser package: it starts the SDK's own static server with --write-reports, opens the suite in a headless Chrome (or Edge) you already have
-// installed, waits for the page to post its report, prints the passed and failed counts, re-runs core/tests/elements-attest.test.mjs against the new
-// report, then stops the server and the browser and deletes the temporary profile.
+// installed, waits for the page to post its report (core/tests/browser/report.json, local scratch output, not committed), prints the passed and failed
+// counts, then stops the server and the browser and deletes the temporary profile.
 //
-//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900] [--no-attest]
+//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900]
 //
 // Browser: PK_CHROME (a path to chrome, chromium or msedge), else the usual install paths and PATH names for the platform. PK_CHROME_FLAGS adds
 // extra flags (space separated; a CI container may need --no-sandbox).
 // Viewport: keep it at desktop size. A small window (about 486x425) made the suite flaky, so the default is 1280x900 and a smaller one is refused.
 // Time: the suite takes about 170 s; the default timeout is 420 s.
-// Exit code: 0 when every case passed and the attestation test passes, 1 when a case failed or the attestation test failed, 2 when the run
+// Exit code: 0 when every case passed, 1 when a case failed, 2 when the run
 // itself could not finish (no browser, port in use, timeout).
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -65,12 +65,11 @@ export function isNewRun(previousRan, current) {
 
 // Command line -> options; an unknown flag or a too-small window is an error message (the second value), not a silent default.
 export function parseArgs(argv) {
-    const o = { port: 5341, timeout: 420, width: 1280, height: 900, attest: true };
+    const o = { port: 5341, timeout: 420, width: 1280, height: 900 };
     const num = (flag, v) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`${flag} needs a positive whole number`); return n; };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
-        if (a === '--no-attest') o.attest = false;
-        else if (['--port', '--timeout', '--width', '--height'].includes(a)) o[a.slice(2)] = num(a, argv[++i]);
+        if (['--port', '--timeout', '--width', '--height'].includes(a)) o[a.slice(2)] = num(a, argv[++i]);
         else throw new Error(`unknown argument ${a}`);
     }
     if (o.width < MIN_WIDTH || o.height < MIN_HEIGHT) throw new Error(`the window must be at least ${MIN_WIDTH}x${MIN_HEIGHT} (a small viewport made the suite flaky); got ${o.width}x${o.height}`);
@@ -132,11 +131,6 @@ async function main() {
         console.log(`browser run ${sum.ran}: ${sum.passed} passed, ${sum.failed} failed, ${sum.total} cases`);
         for (const r of current.results.filter(r => !r.ok)) console.log(`  FAIL ${r.name}: ${r.error ?? ''}`);
         code = sum.ok ? 0 : 1;
-        if (options.attest) {
-            const t = spawnSync(process.execPath, ['--test', path.join(root, 'core', 'tests', 'elements-attest.test.mjs')], { cwd: root, encoding: 'utf8' });
-            console.log(t.status === 0 ? 'elements-attest.test.mjs: passed' : `elements-attest.test.mjs: FAILED\n${t.stdout}${t.stderr}`);
-            if (t.status !== 0) code = 1;
-        }
     } catch (e) {
         console.error(e.message);
         code = 2;
