@@ -1,0 +1,23 @@
+{
+  "comment": "Shared by core/tests/store.test.mjs (js/store.js) and blazor/tests/PlainKit.Blazor.Tests/PkSharedStateTests.cs (PkStore.cs): one module spec, stored texts, expected state and warnings. Change a rule on one side and both tests must agree.",
+  "spec": {
+    "defaults": { "scale": 1, "width": "wide", "open": false },
+    "schema": { "scale": { "min": 0.5, "max": 2 }, "width": { "enum": ["narrow", "wide"] } },
+    "persist": ["scale", "width"]
+  },
+  "cases": [
+    { "name": "valid", "stored": "{\"v\":1,\"data\":{\"scale\":1.5,\"width\":\"narrow\"}}", "expect": { "scale": 1.5, "width": "narrow", "open": false, "warnings": 0 } },
+    { "name": "corrupt JSON", "stored": "{not json", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "not an object", "stored": "[1,2]", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "no data", "stored": "{\"v\":1}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "data is an array", "stored": "{\"v\":1,\"data\":[]}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "newer version", "stored": "{\"v\":9,\"data\":{\"scale\":1.5}}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "older version without a migration", "stored": "{\"v\":0,\"data\":{\"scale\":1.5}}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "wrong type", "stored": "{\"v\":1,\"data\":{\"scale\":\"big\",\"width\":\"narrow\"}}", "expect": { "scale": 1, "width": "narrow", "open": false, "warnings": 1, "contains": ["invalid scale"] } },
+    { "name": "out of range", "stored": "{\"v\":1,\"data\":{\"scale\":9,\"width\":\"huge\"}}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["invalid scale", "invalid width"] } },
+    { "name": "unknown and unpersisted keys", "stored": "{\"v\":1,\"data\":{\"scale\":1.25,\"open\":true,\"extra\":1}}", "expect": { "scale": 1.25, "width": "wide", "open": false, "warnings": 1, "contains": ["unknown open", "unknown extra"] } },
+    { "name": "over 64 KB", "pad": 70000, "stored": "{\"v\":1,\"data\":{\"scale\":1.5}}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["unusable data"] } },
+    { "name": "migrated from version 1", "version": 2, "migrate": "w-to-wide", "stored": "{\"v\":1,\"data\":{\"scale\":1.5,\"width\":\"w\"}}", "expect": { "scale": 1.5, "width": "wide", "open": false, "warnings": 0 } },
+    { "name": "migration result is validated", "version": 2, "migrate": "w-to-wide", "stored": "{\"v\":1,\"data\":{\"scale\":7}}", "expect": { "scale": 1, "width": "wide", "open": false, "warnings": 1, "contains": ["invalid scale"] } }
+  ]
+}

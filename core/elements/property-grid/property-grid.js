@@ -2,20 +2,29 @@ import { loadElements } from '../../js/loader.js';
 
 // The same field vocabulary as pk-settings-page ({ key, type, label, options?, min?, max?, step?, required? }), so a property inspector and a settings form
 // describe their fields alike; here the fields sit in collapsible groups and a change is announced per property (pk-property-change) instead of saved as a whole.
-const CONTROL = { text: 'pk-input', number: 'pk-input', color: 'pk-input', select: 'pk-select', switch: 'pk-switch', range: 'pk-range' };
+const CONTROL = { text: 'pk-input', number: 'pk-input', color: 'pk-input', unit: 'pk-input', select: 'pk-select', switch: 'pk-switch', range: 'pk-range' };
 const HEX = /^#[0-9a-f]{6}$/i;
 const empty = v => v === undefined || v === null || v === '';
-const read = (c, type) => (type === 'switch' ? c.checked : type === 'number' || type === 'range' ? (c.value === '' || c.value == null ? '' : Number(c.value)) : c.value);
-const write = (c, type, v) => { if (type === 'switch') c.checked = Boolean(v); else c.value = v ?? ''; };
+const num = c => (c.value === '' || c.value == null ? '' : Number(c.value));
+// A unit property's value is { value, unit } (the number and the chosen unit); every other type is a plain value.
+const read = ({ f, c, unit }) => (f.type === 'switch' ? c.checked : f.type === 'unit' ? { value: num(c), unit: unit.value } : f.type === 'number' || f.type === 'range' ? num(c) : c.value);
+const write = ({ f, c, unit }, v) => {
+    if (f.type === 'switch') c.checked = Boolean(v);
+    else if (f.type === 'unit') { c.value = v?.value ?? ''; unit.value = v?.unit || f.units[0]; }
+    else c.value = v ?? '';
+};
 
 // The built-in rules (required, number range); returns the message or ''. Host-side rules arrive through the errors property.
 function check(f, v) {
     const name = f.label ?? f.key;
-    if (f.required && empty(v)) return `${name} is required.`;
-    if (f.type === 'number' && !empty(v)) {
-        if (!Number.isFinite(Number(v))) return `${name} must be a number.`;
-        if (f.min !== undefined && Number(v) < f.min) return `${name} must be at least ${f.min}.`;
-        if (f.max !== undefined && Number(v) > f.max) return `${name} must be at most ${f.max}.`;
+    const u = f.type === 'unit';
+    const n = u ? v?.value : v;
+    if (f.required && empty(n)) return `${name} is required.`;
+    if ((f.type === 'number' || u) && !empty(n)) {
+        const sfx = u ? ` ${v.unit}` : '';
+        if (!Number.isFinite(Number(n))) return `${name} must be a number.`;
+        if (f.min !== undefined && Number(n) < f.min) return `${name} must be at least ${f.min}${sfx}.`;
+        if (f.max !== undefined && Number(n) > f.max) return `${name} must be at most ${f.max}${sfx}.`;
     }
     if (f.type === 'color' && !empty(v) && !HEX.test(v)) return `${name} must be a colour like #1a2b3c.`;
     return '';
@@ -25,17 +34,24 @@ function check(f, v) {
 const visible = (f, values) => !f.visibleWhen || ('in' in f.visibleWhen ? f.visibleWhen.in.includes(values[f.visibleWhen.key]) : values[f.visibleWhen.key] === f.visibleWhen.equals);
 
 function buildField(doc, f) {
+    if (f.type === 'unit' && !f.units?.length) f = { ...f, units: ['px'] };
     const tag = CONTROL[f.type] ?? 'pk-input';
     const c = doc.createElement(tag);
     const msg = doc.createElement('pk-alert');
     msg.kind = 'danger'; msg.plain = true; msg.inline = true; msg.compact = true; msg.hidden = true;
     if (f.disabled) c.disabled = true;
-    if (tag === 'pk-switch') { c.textContent = f.label ?? f.key; return { c, msg, row: c }; }
+    if (tag === 'pk-switch') { c.textContent = f.label ?? f.key; return { c, msg, row: c, f }; }
     if (f.required) c.required = true;
-    let swatch;
+    let swatch, unit;
     if (tag === 'pk-input') {
-        c.type = f.type === 'number' ? 'number' : 'text';
-        if (f.type === 'number') { c.stepper = true; for (const k of ['min', 'max', 'step']) if (f[k] !== undefined) c[k] = f[k]; }
+        c.type = f.type === 'number' || f.type === 'unit' ? 'number' : 'text';
+        if (f.type === 'number' || f.type === 'unit') { c.stepper = true; for (const k of ['min', 'max', 'step']) if (f[k] !== undefined) c[k] = f[k]; }
+        if (f.type === 'unit') {
+            // The unit picker is a pk-select in the input's suffix slot, named after the property so it is not an unlabelled control.
+            unit = doc.createElement('pk-select'); unit.slot = 'suffix'; unit.label = `${f.label ?? f.key} unit`;
+            for (const x of f.units) { const opt = doc.createElement('option'); opt.value = opt.textContent = String(x); unit.append(opt); }
+            c.append(unit);
+        }
         if (f.type === 'color') { c.placeholder = '#rrggbb'; swatch = doc.createElement('span'); swatch.slot = 'prefix'; swatch.className = 'swatch'; c.append(swatch); }
     } else if (tag === 'pk-range') {
         for (const k of ['min', 'max', 'step']) if (f[k] !== undefined) c[k] = f[k];
@@ -45,7 +61,7 @@ function buildField(doc, f) {
     const field = doc.createElement('pk-field');
     field.label = f.label ?? f.key;
     field.append(c);
-    return { c, msg, row: field, swatch };
+    return { c, msg, row: field, swatch, unit, f };
 }
 
 export default Base => class extends Base {
@@ -72,7 +88,7 @@ export default Base => class extends Base {
     setValue(key, value) {
         const r = this.$rows?.[key];
         if (!r) return;
-        write(r.c, r.f.type, value);
+        write(r, value);
         this.paint();
     }
 
@@ -93,9 +109,9 @@ export default Base => class extends Base {
             item.open = !g.collapsed;
             const stack = doc.createElement('pk-stack');
             for (const f of g.fields ?? []) {
-                const { c, msg, row, swatch } = buildField(doc, f);
+                const { c, msg, row, swatch, unit, f: built } = buildField(doc, f);
                 stack.append(row, msg);
-                this.$rows[f.key] = { f, c, msg, row, swatch };
+                this.$rows[f.key] = { f: built, c, msg, row, swatch, unit };
                 if (this.$wide && row !== c) row.layout = 'row';
             }
             item.append(stack);
@@ -106,11 +122,11 @@ export default Base => class extends Base {
     }
     currentValues() {
         const out = {};
-        for (const [key, { f, c }] of Object.entries(this.$rows ?? {})) out[key] = read(c, f.type);
+        for (const [key, r] of Object.entries(this.$rows ?? {})) out[key] = read(r);
         return out;
     }
     applyValues() {
-        for (const [key, { f, c }] of Object.entries(this.$rows ?? {})) if (Object.hasOwn(this.values ?? {}, key)) write(c, f.type, this.values[key]);
+        for (const [key, r] of Object.entries(this.$rows ?? {})) if (Object.hasOwn(this.values ?? {}, key)) write(r, this.values[key]);
         this.paint();
     }
     isHidden(key, values) {
@@ -118,8 +134,8 @@ export default Base => class extends Base {
         return this.state?.[key]?.hidden ?? (Boolean(f.hidden) || !visible(f, values));
     }
     errorFor(key) {
-        const { f, c } = this.$rows[key];
-        return this.errors?.[key] || check(f, read(c, f.type));
+        const r = this.$rows[key];
+        return this.errors?.[key] || check(r.f, read(r));
     }
     get valid() { const v = this.currentValues(); return Object.keys(this.$rows ?? {}).every(k => this.isHidden(k, v) || !this.errorFor(k)); }
     paint() {
@@ -133,11 +149,12 @@ export default Base => class extends Base {
             msg.hidden = !err;
             msg.textContent = err;
             c.disabled = Boolean(f.disabled || this.state?.[key]?.disabled || this.disabled);
+            if (r.unit) r.unit.disabled = c.disabled;
             if (r.swatch?.style) r.swatch.style.background = HEX.test(values[key]) ? values[key] : 'transparent';
         }
     }
     onChange(e) {
-        const hit = Object.entries(this.$rows ?? {}).find(([, r]) => r.c === e.target);
+        const hit = Object.entries(this.$rows ?? {}).find(([, r]) => r.c === e.target || r.unit === e.target);
         if (!hit) return;
         this.paint();
         const values = this.currentValues();

@@ -113,6 +113,28 @@ export const sendTest = container => mounted.get(container)?.test?.();
 export const save = container => { mounted.get(container)?.save?.(); };
 export const reset = container => mounted.get(container)?.reset?.();
 
+// Notifications and dialogs (IPkNotifications, IPkDialogs): one notify manager and one dialogs manager per page, made on first use from the SDK modules (js/notify.js,
+// js/dialogs.js). Config comes in as plain data; a dialog answers its result as data (a bool, text or { action, values }, null when cancelled or for an alert). Each
+// service instance (one per circuit) has its own dialogs scope, so disposing it cancels its open and queued dialogs.
+const managers = {};
+const manager = (file, load, make) => managers[file] ??= Promise.all([load(), import('./plainkit/js/loader.js')]).then(([m, l]) => make(m, l.loadElements));
+const scopes = new Map();
+
+export async function notify(kind, title, details, duration) {
+    const n = await manager('notify', () => import('./plainkit/js/notify.js'), (m, load) => m.createNotify({ container: document.body, load }));
+    if (['info', 'success', 'warn', 'error'].includes(kind)) n[kind](title, details, { duration });
+}
+
+export async function dialog(scopeId, kind, config) {
+    if (!scopes.has(scopeId)) scopes.set(scopeId, (await manager('dialogs', () => import('./plainkit/js/dialogs.js'), (m, load) => m.createDialogs({ container: document.body, load }))).scope());
+    return (await scopes.get(scopeId)[kind]?.(config)) ?? null;
+}
+
+export function endDialogs(scopeId) {
+    scopes.get(scopeId)?.end();
+    scopes.delete(scopeId);
+}
+
 // Logging. configureLogging applies the app's settings to the SDK logger; writeLog is how .NET writes into it (IPkLog); the forwarder is a
 // sink that hands entries to a .NET object, which writes them to ILogger.
 let stopForwarding = null;

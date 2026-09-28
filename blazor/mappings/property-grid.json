@@ -1,7 +1,7 @@
 {
   "component": "PkPropertyGrid",
   "params": [
-    { "name": "Config", "type": "string", "default": "{}", "map": "prop", "prop": "config", "note": "Sent as a JSON attribute: { groups: [{ heading, collapsed?, fields: [{ key, type (text, number, range, color, select, switch), label, required?, disabled?, hidden?, visibleWhen?, options?, min?, max?, step? }] }] }." },
+    { "name": "Config", "type": "string", "default": "{}", "map": "prop", "prop": "config", "note": "Sent as a JSON attribute: { groups: [{ heading, collapsed?, fields: [{ key, type (text, number, unit, range, color, select, switch), label, required?, disabled?, hidden?, visibleWhen?, options?, units?, min?, max?, step? }] }] }." },
     { "name": "Values", "type": "string", "default": "{}", "map": "prop", "prop": "values", "note": "Sent as a JSON attribute: the property values keyed by field key." },
     { "name": "Errors", "type": "string", "default": "{}", "map": "prop", "prop": "errors", "note": "Sent as a JSON attribute: host-side validation messages keyed by field key." },
     { "name": "State", "type": "string", "default": "{}", "map": "prop", "prop": "state", "note": "Sent as a JSON attribute: live per-property { disabled?, hidden? } keyed by field key." },

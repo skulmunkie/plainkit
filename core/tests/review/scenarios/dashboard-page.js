@@ -5,11 +5,14 @@ const CARD = key => `${DP} >>> pk-card[data-key=${key}]`;
 
 export default {
     name: 'dashboard-page',
-    elements: ['dashboard-page', 'card', 'tabs', 'stat', 'chart'],
+    elements: ['dashboard-page', 'card', 'tabs', 'stat', 'chart', 'page-header', 'breadcrumb', 'button'],
     html: '<pk-dashboard-page></pk-dashboard-page>',
     setup(frame) {
         const el = frame.querySelector(DP);
         el.config = {
+            heading: 'Overview',
+            breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Reports', href: '#' }],
+            actions: [{ key: 'export', label: 'Export', variant: 'secondary' }],
             tabs: [{ id: 'overview', label: 'Overview' }, { id: 'sales', label: 'Sales' }],
             widgets: [
                 { key: 'revenue', tab: 'overview', label: 'Revenue', kind: 'stat' },
@@ -38,6 +41,8 @@ export default {
         // The page grows taller than a phone screen (stacked widgets), so only the top of it must be on screen; every card stays inside the page's width.
         if (t.shot === 'overview') t.inViewport(`${DP} >>> [part=filters]`); // later shots follow a click that may have scrolled the phone page
         t.within(`${DP} >>> pk-tabs`, DP, 1);
+        t.visible(`${DP} >>> [part=header] pk-page-header`, 'the shared title bar');
+        t.noOverlap(`${DP} >>> [part=header]`, `${DP} >>> [part=filters]`);
         if (t.shot === 'overview') {
             t.visible(`${DP} >>> [part=filters] pk-select`, 'the filter');
             t.noOverlap(`${DP} >>> [part=filters]`, `${DP} >>> pk-tabs`);
