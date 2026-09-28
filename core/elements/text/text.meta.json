@@ -119,6 +119,10 @@
     {
       "title": "Truncated",
       "html": "<pk-text truncate>A very long file name that will not fit in a narrow column - quarterly-report-final-v3-reviewed.pdf</pk-text>"
+    },
+    {
+      "title": "Inline code",
+      "html": "<pk-text>Run <code>npm install</code> and set <code>PORT=4000</code> before starting the server.</pk-text>"
     }
   ],
   "events": [],

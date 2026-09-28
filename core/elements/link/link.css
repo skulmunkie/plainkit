@@ -1,0 +1,8 @@
+:host { display: inline; --_fg: var(--pk-link-color, var(--color-link)); --_fg-hover: var(--pk-link-color-hover, var(--color-link-hover)); }
+:host([variant="muted"]) { --_fg: var(--pk-link-color, var(--field-muted)); --_fg-hover: var(--pk-link-color-hover, var(--color-text)); }
+:host([variant="plain"]) { --_fg: var(--pk-link-color, var(--color-text)); --_fg-hover: var(--pk-link-color-hover, var(--color-text)); }
+[part="link"] { color: var(--_fg); text-decoration: underline; text-underline-offset: 0.15em; font: inherit; }
+[part="link"]:hover { color: var(--_fg-hover); }
+[part="link"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+[part="link"][aria-current="page"] { font-weight: 600; }
+.sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

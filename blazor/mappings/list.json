@@ -1,0 +1,35 @@
+{
+  "component": "PkList",
+  "params": [
+    {
+      "name": "Ordered",
+      "prop": "ordered",
+      "type": "bool"
+    },
+    {
+      "name": "Marker",
+      "prop": "marker",
+      "type": "string"
+    },
+    {
+      "name": "Gap",
+      "prop": "gap",
+      "type": "string"
+    },
+    {
+      "name": "Dense",
+      "prop": "dense",
+      "type": "bool"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

@@ -50,14 +50,14 @@ function buildField(doc, f) {
         if (f.type === 'unit') {
             // The unit picker is a pk-select in the input's suffix slot, named after the property so it is not an unlabelled control.
             unit = doc.createElement('pk-select'); unit.slot = 'suffix'; unit.label = `${f.label ?? f.key} unit`;
-            for (const x of f.units) { const opt = doc.createElement('option'); opt.value = opt.textContent = String(x); unit.append(opt); }
+            unit.options = f.units.map(x => ({ value: String(x), label: String(x) }));
             c.append(unit);
         }
         if (f.type === 'color') { c.placeholder = '#rrggbb'; swatch = doc.createElement('span'); swatch.slot = 'prefix'; swatch.className = 'swatch'; c.append(swatch); }
     } else if (tag === 'pk-range') {
         for (const k of ['min', 'max', 'step']) if (f[k] !== undefined) c[k] = f[k];
         c.output = true;
-    } else for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); c.append(opt); }
+    } else c.options = (f.options ?? []).map(o => ({ value: String(o.value ?? o), label: o.label ?? String(o) }));
     // Every non-switch control sits in a pk-field, which draws the label (above, or beside the value in the wide layout) and names the control.
     const field = doc.createElement('pk-field');
     field.label = f.label ?? f.key;

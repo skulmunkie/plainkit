@@ -1,0 +1,40 @@
+{
+  "component": "PkContainer",
+  "params": [
+    {
+      "name": "Size",
+      "prop": "size",
+      "type": "string"
+    },
+    {
+      "name": "Padding",
+      "prop": "padding",
+      "type": "string"
+    },
+    {
+      "name": "Align",
+      "prop": "align",
+      "type": "string"
+    },
+    {
+      "name": "Scroll",
+      "prop": "scroll",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}

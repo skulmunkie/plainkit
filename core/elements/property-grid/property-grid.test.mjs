@@ -45,7 +45,7 @@ test('builds one accordion item per group with a labelled control per field; col
     const note = nfield.children[0];
     assert.equal(field.localName, 'pk-field'); assert.equal(field.label, 'Format');
     const format = field.children[0];
-    assert.equal(format.localName, 'pk-select'); assert.equal(format.children.length, 2);
+    assert.equal(format.localName, 'pk-select'); assert.deepEqual(format.options, [{ value: 'PNG', label: 'PNG' }, { value: 'jpg', label: 'JPEG' }]);
     assert.equal(alpha.localName, 'pk-switch'); assert.equal(alpha.textContent, 'Alpha');
     assert.equal(note.disabled, true);
 });
@@ -162,7 +162,7 @@ test('unit property: a number plus a unit picker in the suffix slot; value is { 
     el.values = { w: { value: 50, unit: '%' } };
     el.connected();
     const r = el.$rows.w;
-    assert.equal(r.c.type, 'number'); assert.equal(r.unit.slot, 'suffix'); assert.equal(r.unit.label, 'Width unit'); assert.equal(r.unit.children.length, 2);
+    assert.equal(r.c.type, 'number'); assert.equal(r.unit.slot, 'suffix'); assert.equal(r.unit.label, 'Width unit'); assert.deepEqual(r.unit.options, [{ value: 'px', label: 'px' }, { value: '%', label: '%' }]);
     assert.deepEqual(el.currentValues().w, { value: 50, unit: '%' });
     el.setValue('w', { value: 500, unit: 'px' });
     assert.match(r.msg.textContent, /at most 100 px/); assert.equal(el.valid, false);
