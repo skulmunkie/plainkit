@@ -137,4 +137,28 @@ export const headerCases = [
         t.ok(rect(tb.querySelector('button')).height >= 43, 'touch-sized');
         const e = await t.mount('<pk-toolbar heading="Only lead"></pk-toolbar>'); t.ok(e.part('actions').hidden);
     }],
+    ['page shell: a field hint and an action hint add an info tip beside the label and a tooltip on the button; a config without them is unchanged', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const cfg = { heading: 'Settings', actions: [{ key: 'save', label: 'Save', hint: 'Saves every section' }, { key: 'x', label: 'Plain' }], sections: [{ heading: 'A', fields: [
+            { key: 'name', type: 'text', label: 'Name', hint: 'Shown on invoices' }, { key: 'mail', type: 'email', label: 'Email' },
+            { key: 'on', type: 'switch', label: 'Notify', hint: 'Sends a weekly digest' }] }] };
+        const page = await t.mount('<pk-settings-page></pk-settings-page>');
+        page.config = cfg;
+        for (let i = 0; i < 30 && !page.shadowRoot.querySelectorAll('pk-tooltip').length; i++) await wait(100);
+        await t.settle();
+        const tips = [...page.shadowRoot.querySelectorAll('pk-tooltip')];
+        t.eq(tips.length, 3, 'one tip per hint, none for the plain field or action');
+        const field = page.shadowRoot.querySelector('pk-field');
+        const label = field.shadowRoot?.querySelector('[part=label]') ?? field;
+        const tip = field.querySelector('pk-tooltip[slot=label-action]');
+        t.ok(tip && tip.help && tip.interactive && tip.text === 'Shown on invoices', 'the field tip is an interactive info button in the label-action slot');
+        t.ok(rect(tip).width > 0 && Math.abs(rect(tip).top - rect(label).top) < rect(label).height + 4, 'the tip sits beside the label, not below the control');
+        t.ok(rect(tip).bottom <= rect(field.querySelector('pk-input')).top + 2, 'the tip is above the control');
+        const sw = page.shadowRoot.querySelector('pk-cluster pk-switch');
+        t.ok(sw && rect(sw).right <= rect(sw.parentNode.querySelector('pk-tooltip')).left + 2, 'the switch hint follows the switch on its row');
+        const save = page.shadowRoot.querySelector('pk-page-header pk-tooltip[text="Saves every section"] pk-button');
+        t.ok(save, 'the action button is wrapped by its tooltip');
+        t.eq(page.shadowRoot.querySelectorAll('pk-page-header pk-tooltip').length, 1, 'an action without a hint stays a bare button');
+        t.eq(page.shadowRoot.querySelectorAll('pk-input').length, 2);
+    }],
 ];

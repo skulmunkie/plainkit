@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant? }] (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
