@@ -12,7 +12,7 @@
 //                                                            // for a tiny app with few modules and no module nav): the modules are links in the header bar. On a narrow screen both use ONE drawer.
 //       routing: 'hash', base: '',                           // 'hash' ('#/<moduleId>/...', static hosting, the default) or 'path' (server rewrites; base = the prefix)
 //       search: { placeholder: 'Search', minLength: 1 },     // the header search; false leaves it out. Results: the active module's `search(query, ctx)`, else its nav
-//       footer: { text: 'Acme', links: [{ label: 'Privacy', href: '/privacy.html' }] },
+//       footer: { text: 'Acme', links: [{ label: 'Privacy', href: '/privacy.html' }] },   // a module's own `footer` (same shape, or false for none) replaces it while that module is active (#373)
 //       theme: { default: 'dark', param: 'theme' },          // ?theme=light wins over the stored choice, which wins over the default
 //       storage: { prefix: 'pk', version: 1, legacy: { theme: 'pk-site-theme' } },   // the store's namespace and schema version; legacy: old localStorage keys read once
 //       auth, can,                                           // ctx.auth (opaque to the framework) and the app-wide (entry, { auth, id, route }) => true | { allow: false, redirect }
@@ -30,6 +30,13 @@ const fail = (key, why) => { throw new TypeError(`mountApp: config${key ? '.' + 
 const obj = (v, key) => (v === undefined ? {} : v && typeof v === 'object' && !Array.isArray(v) ? v : fail(key, 'must be an object'));
 const str = (v, key, dflt) => (v === undefined ? dflt : typeof v === 'string' && v.trim() ? v : fail(key, 'must be a non-empty string'));
 const known = (o, keys, where) => { for (const k of Object.keys(o)) if (!keys.includes(k)) log.warn(`mountApp: unknown config key "${where}${k}" ignored`); return o; };
+
+// A footer ({ text, links }) checked and normalised; also used for a module's own `footer` (a module may replace the app's while it is active). Throws a TypeError naming `key`.
+export function readFooter(footer, key = 'footer') {
+    const foot = known(obj(footer, key), ['text', 'links'], `${key}.`);
+    const links = (Array.isArray(foot.links) ? foot.links : foot.links === undefined ? [] : fail(`${key}.links`, 'must be an array')).map((l, i) => (typeof l?.label === 'string' && safeHref(l.href) ? { label: l.label, href: l.href } : fail(`${key}.links[${i}]`, 'needs a label and an http(s), mailto, tel or relative href')));
+    return { text: str(foot.text, `${key}.text`, ''), links };
+}
 
 export function readConfig(config) {
     const c = known(obj(config ?? fail('', 'is required (an object: modules, brand, ...)'), ''), ['title', 'brand', 'modules', 'home', 'layout', 'routing', 'base', 'search', 'footer', 'theme', 'storage', 'auth', 'can'], '');
@@ -65,7 +72,7 @@ export function readConfig(config) {
         modules, home, auth: c.auth, can: c.can,
         layout: c.layout ?? 'side', routing: c.routing ?? 'hash', base: str(c.base, 'base', ''),
         search: search && { placeholder: str(search.placeholder, 'search.placeholder', 'Search'), minLength: Number.isInteger(search.minLength) && search.minLength >= 0 ? search.minLength : 1 },
-        footer: foot && { text: str(foot.text, 'footer.text', ''), links },
+        footer: c.footer === undefined ? null : readFooter(c.footer, 'footer'),
         theme: { default: theme.default ?? 'dark', param: str(theme.param, 'theme.param', 'theme') },
         storage: { prefix: str(storage.prefix, 'storage.prefix', 'pk'), version: storage.version ?? 1, legacy: obj(storage.legacy, 'storage.legacy') },
     };

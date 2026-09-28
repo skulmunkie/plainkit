@@ -42,6 +42,29 @@
       "type": "IReadOnlyList<DateOnly>"
     },
     {
+      "name": "Range",
+      "prop": "range",
+      "type": "bool"
+    },
+    {
+      "name": "Start",
+      "prop": "start",
+      "type": "DateOnly?",
+      "bind": {
+        "event": "pk-range-change",
+        "value": "detail.start"
+      }
+    },
+    {
+      "name": "End",
+      "prop": "end",
+      "type": "DateOnly?",
+      "bind": {
+        "event": "pk-range-change",
+        "value": "detail.end"
+      }
+    },
+    {
       "name": "ReadOnly",
       "prop": "readonly",
       "type": "bool"
@@ -52,10 +75,14 @@
       "type": "bool"
     },
     {
+      "name": "OnRangeChange",
+      "event": "pk-range-change"
+    },
+    {
       "name": "OnMonthChanged",
       "event": "pk-month",
       "type": "EventCallback<MonthEventArgs>"
     }
   ],
-  "notes": "Bind with @bind-Value; dates convert to and from ISO strings."
+  "notes": "Bind with @bind-Value; dates convert to and from ISO strings. In range mode (Range) bind both ends with @bind-Start and @bind-End (each follows pk-range-change, raised when the second click completes the range), or read OnRangeChange (args carry Start, End, Valid)."
 }
