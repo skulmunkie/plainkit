@@ -131,6 +131,27 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task An_editable_table_sends_editors_and_maps_a_cell_edit_back_to_the_item()
+    {
+        PkTableCellEditArgs<Order>? edited = null;
+        PkTableColumn<Order>[] cols = [new() { Key = "customer", Label = "Customer", Editor = PkTableEditor.Text, Required = true, MaxLength = 20 }, new() { Key = "status", Label = "Status", Editor = PkTableEditor.Select, Options = ["Open", "Shipped"] }];
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, cols).Add(x => x.Items, Orders).Add(x => x.IdOf, o => o.Number.ToString()).Add(x => x.Editable, true).Add(x => x.CellErrors, new() { ["1042:customer"] = "Taken" }).Add(x => x.OnCellEdit, a => edited = a));
+        var table = cut.Find("pk-table");
+
+        Assert.True(table.HasAttribute("editable"));
+        Assert.Equal("{\"1042:customer\":\"Taken\"}", table.GetAttribute("cell-errors"));
+        using var json = JsonDocument.Parse(table.GetAttribute("columns")!);
+        Assert.Equal("text", json.RootElement[0].GetProperty("editor").GetString());
+        Assert.True(json.RootElement[0].GetProperty("required").GetBoolean());
+        Assert.Equal("Shipped", json.RootElement[1].GetProperty("options")[1].GetString());
+
+        await table.TriggerEventAsync("onpk-cell-edit", new PkCellEditEventArgs { Id = "1043", Key = "customer", Value = JsonDocument.Parse("\"Grace H\"").RootElement });
+        Assert.Equal("Grace", edited!.Item.Customer);
+        Assert.Equal("customer", edited.Key);
+        Assert.Equal("Grace H", edited.Value!.Value.GetString());
+    }
+
+    [Fact]
     public async Task A_row_click_maps_the_id_back_to_the_item()
     {
         PkTableRowClickArgs<Order>? clicked = null;

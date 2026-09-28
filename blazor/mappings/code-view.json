@@ -1,0 +1,43 @@
+{
+  "component": "PkCodeView",
+  "params": [
+    {
+      "name": "Lines",
+      "type": "IReadOnlyList<string>?",
+      "map": "prop",
+      "prop": "lines"
+    },
+    {
+      "name": "Start",
+      "prop": "start",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "Highlight",
+      "prop": "highlight",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string",
+      "default": "Code"
+    },
+    {
+      "name": "MaxHeight",
+      "prop": "maxHeight",
+      "type": "string"
+    },
+    {
+      "name": "OnLineClick",
+      "event": "pk-line-click"
+    },
+    {
+      "name": "ChildContent",
+      "text": "",
+      "type": "string"
+    }
+  ],
+  "notes": "Pass the code as Lines, or as ChildContent text. The per-line colouring (segments) is a script-only property."
+}

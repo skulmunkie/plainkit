@@ -89,3 +89,22 @@ test('whenDefined waits for every custom element, gives up after the limit, and 
     await whenDefined(fakeFrame(['div'], new Set()), 5000);
     await whenDefined({ contentDocument: null, contentWindow: null }, 5000);
 });
+
+test('whenDefined also waits for elements a defined element adds later (a page type building its own children)', async () => {
+    const names = ['pk-page'];
+    const defined = new Set(['pk-page']);
+    const waiters = [];
+    const frame = {
+        contentDocument: { querySelectorAll: () => names.map(localName => ({ localName })) },
+        contentWindow: {
+            requestAnimationFrame: cb => setTimeout(cb, 0),
+            customElements: { whenDefined: tag => (defined.has(tag) ? Promise.resolve() : new Promise(r => waiters.push([tag, r]))) },
+        },
+    };
+    const done = whenDefined(frame, 2000).then(() => 'done');
+    names.push('pk-child'); // appears after the first pass began
+    const early = await Promise.race([done, new Promise(r => setTimeout(() => r('waiting'), 80))]);
+    assert.equal(early, 'waiting', 'the late tag holds the frame back');
+    defined.add('pk-child'); waiters.forEach(([, r]) => r());
+    assert.equal(await done, 'done');
+});
