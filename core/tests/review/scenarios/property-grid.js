@@ -10,6 +10,7 @@ const CONFIG = { groups: [
         { key: 'note', type: 'text', label: 'Export note', disabled: true },
         { key: 'quality', type: 'range', label: 'Quality', min: 0, max: 100, visibleWhen: { key: 'format', equals: 'JPEG' } },
         { key: 'accent', type: 'color', label: 'Accent colour' },
+        { key: 'margin', type: 'unit', label: 'Margin', units: ['px', '%', 'rem'], min: 0, max: 100 },
     ] },
     { heading: 'Advanced (collapsed)', collapsed: true, fields: [{ key: 'seed', type: 'number', label: 'Seed' }] },
 ] };
@@ -22,11 +23,11 @@ export default {
     setup(frame) {
         const g = frame.querySelector('#g');
         g.config = CONFIG;
-        g.values = { width: 0, height: 600, format: 'PNG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc' };
+        g.values = { width: 0, height: 600, format: 'PNG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc', margin: { value: 140, unit: '%' } };
     },
     steps: [
         { wait: 'settle' }, { shot: 'invalid' },
-        { set: '#g', prop: 'values', value: { width: 0, height: 600, format: 'JPEG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc' } }, { wait: 300 }, { shot: 'jpeg-quality-visible' },
+        { set: '#g', prop: 'values', value: { width: 0, height: 600, format: 'JPEG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc', margin: { value: 140, unit: '%' } } }, { wait: 300 }, { shot: 'jpeg-quality-visible' },
         { click: '#g >>> pk-accordion-item:last-child >>> summary' }, { wait: 300 }, { shot: 'group-open' },
     ],
     expect(t) {

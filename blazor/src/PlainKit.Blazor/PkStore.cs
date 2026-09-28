@@ -14,8 +14,10 @@ public sealed record PkStoreRule(IReadOnlyList<object>? Allowed = null, double? 
 /// </summary>
 public sealed class PkStoreSpec
 {
-    /// <summary>The version written with the data. Stored data of another version falls back to the defaults (there is no migration hook yet).</summary>
+    /// <summary>The version written with the data. Stored data of a newer version, or of an older one without <see cref="Migrate"/>, falls back to the defaults.</summary>
     public int Version { get; init; } = 1;
+    /// <summary>Turns stored data of an older version (data, fromVersion) into the current shape; the result is validated like any stored data. Return null or throw for defaults.</summary>
+    public Func<IReadOnlyDictionary<string, object?>, int, IReadOnlyDictionary<string, object?>?>? Migrate { get; init; }
     /// <summary>Every key of the module with its default. Keys outside this list are refused.</summary>
     public IReadOnlyDictionary<string, object?> Defaults { get; init; } = new Dictionary<string, object?>();
     /// <summary>The keys written to browser storage; the rest stay in memory.</summary>
@@ -130,6 +132,13 @@ internal sealed partial class PkStore(IPkStorage storage) : IPkStore
             return JsonSerializer.Serialize(n).Length <= (rule?.MaxLength ?? 1024);
         }
 
+        // A migration that is missing, returns null or throws means unusable data (the caller's warning and defaults).
+        private IReadOnlyDictionary<string, object?> Migrated(IReadOnlyDictionary<string, object?> src, int from)
+        {
+            try { return _spec.Migrate?.Invoke(src, from) ?? throw new JsonException(); }
+            catch (Exception e) when (e is not JsonException) { throw new JsonException("migration failed", e); }
+        }
+
         // Replaces the state from untrusted stored text; a wrong key gets its default, with ONE warning.
         internal void Load(string? raw)
         {
@@ -142,17 +151,18 @@ internal sealed partial class PkStore(IPkStorage storage) : IPkStore
                     if (raw.Length > MaxStored) throw new JsonException();
                     using var doc = JsonDocument.Parse(raw);
                     var root = doc.RootElement;
-                    if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("v", out var v) || !v.TryGetInt32(out var ver) || ver != _spec.Version
+                    if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("v", out var v) || !v.TryGetInt32(out var ver) || ver > _spec.Version
                         || !root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object) throw new JsonException();
-                    foreach (var p in data.EnumerateObject())
+                    IReadOnlyDictionary<string, object?> src = data.EnumerateObject().ToDictionary(p => p.Name, p => (object?)(p.Value.ValueKind switch { JsonValueKind.String => p.Value.GetString(), JsonValueKind.True => true, JsonValueKind.False => false, JsonValueKind.Number => p.Value.GetDouble(), _ => null }));
+                    if (ver < _spec.Version) src = Migrated(src, ver);
+                    foreach (var (name, val) in src)
                     {
-                        object? val = p.Value.ValueKind switch { JsonValueKind.String => p.Value.GetString(), JsonValueKind.True => true, JsonValueKind.False => false, JsonValueKind.Number => p.Value.GetDouble(), _ => null };
-                        if (!Persists(p.Name)) why.Add($"unknown {p.Name}");
-                        else if (val is not null && Valid(p.Name, val)) next[p.Name] = val;
-                        else why.Add($"invalid {p.Name}");
+                        if (!Persists(name)) why.Add($"unknown {name}");
+                        else if (val is not null && Valid(name, val)) next[name] = val;
+                        else why.Add($"invalid {name}");
                     }
                 }
-                catch (Exception e) when (e is JsonException or InvalidOperationException) { why.Add("unusable data"); }
+                catch (Exception e) when (e is JsonException or InvalidOperationException or ArgumentException) { why.Add("unusable data"); }
             }
             if (why.Count > 0) _owner.Storage.Warn($"{_ns}: {string.Join(", ", why)}; defaults used");
             Put(next);

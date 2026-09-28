@@ -16,7 +16,7 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = { body: fakeEl('div'), filters: fakeEl('div') };
+    const parts = { body: fakeEl('div'), filters: fakeEl('div'), header: fakeEl('div') };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }

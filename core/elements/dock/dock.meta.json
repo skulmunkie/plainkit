@@ -1,0 +1,112 @@
+{
+  "tag": "pk-dock",
+  "title": "Dock",
+  "group": "Layout",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group. The arrangement is one JSON layout document you can read, store and set. Step 1 of #432: docked panels only; moving panels, floating, collapse and saved layouts come in later steps.",
+  "props": [
+    {
+      "name": "layout",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "commit": "pk-layout-change",
+      "description": "The arrangement: { version, seq, root } where root is a split { id, type: 'split', orientation, size, min, max, a, b } or a tab group { id, type: 'tabs', active, panels }. Leave it unset for the default arrangement derived from each panel's data-group. The element validates what it is given (panels that are not declared are dropped, panels the layout lacks are added, bad numbers are repaired). While the user resizes or chooses a tab the element owns it; after pk-layout-change the host does. Property or a JSON attribute."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Accessible name of a tab group (aria-label), for example the workspace's name. A single-panel group is named by its heading."
+    },
+    {
+      "name": "resizeLabel",
+      "type": "string",
+      "default": "Resize panels",
+      "reflect": false,
+      "description": "Accessible name of every separator between two panels (aria-label)."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) instead of --pk-dock-height."
+    }
+  ],
+  "slots": [
+    {
+      "name": "<panel id>",
+      "description": "One panel: any element with slot=\"<id>\" (a lowercase id, letters, digits, - and _, up to 40 characters). data-heading is its title (the id when missing) and data-group (left, center, right, bottom) places it in the default arrangement. Panels are slotted, never moved, so a form or a scroll position inside one survives resizing and switching tabs.",
+      "dynamic": true
+    },
+    {
+      "name": "empty",
+      "description": "Shown when there is no panel."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-layout-change",
+      "detail": "{ layout: object, reason: string }",
+      "detailProps": {
+        "layout": "object",
+        "reason": "string"
+      },
+      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
+      "cancelable": false
+    }
+  ],
+  "parts": [
+    {
+      "name": "root",
+      "description": "The frame that holds the rendered tree."
+    },
+    {
+      "name": "group",
+      "description": "One tab group or single panel, with its header."
+    },
+    {
+      "name": "header",
+      "description": "The title bar of a single-panel group."
+    },
+    {
+      "name": "body",
+      "description": "The scrolling area around a panel's content."
+    },
+    {
+      "name": "empty",
+      "description": "The empty state."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-dock-height",
+      "description": "Height when fill is not set.",
+      "default": "28rem"
+    },
+    {
+      "name": "--pk-dock-header-height",
+      "description": "Minimum height of a single-panel header.",
+      "default": "var(--space-8)"
+    },
+    {
+      "name": "--pk-dock-pad",
+      "description": "Padding around a panel's content.",
+      "default": "var(--space-3)"
+    }
+  ],
+  "methods": [],
+  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree.",
+  "mobile": "Below 640px a splitter tree cannot show real panels, so the dock draws every open panel in reading order as one tab strip with one panel visible. The layout document is untouched, so widening the window restores the arrangement.",
+  "examples": [
+    {
+      "title": "Toolbox, canvas and properties",
+      "html": "<pk-dock label=\"Editor workspace\" resize-label=\"Resize panels\">\n  <div slot=\"tools\" data-heading=\"Toolbox\" data-group=\"left\" class=\"stack\"><span>Select</span><span>Rectangle</span><span>Text</span></div>\n  <div slot=\"canvas\" data-heading=\"Canvas\" class=\"stack\"><span>The canvas fills the middle.</span><span>Drag a separator, or focus it and press an arrow key.</span></div>\n  <div slot=\"props\" data-heading=\"Properties\" data-group=\"right\" class=\"stack\"><span>Width 120</span><span>Height 80</span></div>\n</pk-dock>"
+    },
+    {
+      "title": "Tab groups and a bottom panel",
+      "html": "<pk-dock label=\"Project workspace\">\n  <div slot=\"files\" data-heading=\"Files\" data-group=\"left\" class=\"stack\"><span>app.js</span><span>README.md</span></div>\n  <div slot=\"outline\" data-heading=\"Outline\" data-group=\"left\" class=\"stack\"><span>run()</span><span>render()</span></div>\n  <div slot=\"editor\" data-heading=\"Editor\" class=\"stack\"><span>Choose Files or Outline to switch the left tab.</span></div>\n  <div slot=\"log\" data-heading=\"Log\" data-group=\"bottom\" class=\"stack\"><span>Ready.</span></div>\n</pk-dock>"
+    }
+  ]
+}
