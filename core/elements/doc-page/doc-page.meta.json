@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home?: { title, summary } }. id null shows the home list (every item, linked); id set loads and shows that item through loadItem(id). anchor scrolls the article to that heading once the item is shown, retried once on the very first load (the elements around the article are still upgrading)."
+      "description": "{ items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home?: { title, summary }, level?: 1|2|3 }. level is the article title's heading level (default 1 for a page of its own; use 2 when the doc page sits inside a page that already has an h1), read once when the element is built. id null shows the home list (every item, linked); id set loads and shows that item through loadItem(id). anchor scrolls the article to that heading once the item is shown, retried once on the very first load (the elements around the article are still upgrading)."
     }
   ],
   "slots": [
@@ -41,7 +41,7 @@
   "examples": [
     {
       "title": "A small set of documents (set loadItem/href from script: an inline script cannot run under this site's CSP)",
-      "html": "<pk-doc-page id=\"docs-example\"></pk-doc-page>"
+      "html": "<pk-doc-page id=\"docs-example\" config='{\"level\":2}'></pk-doc-page>"
     }
   ],
   "methods": []

@@ -7,7 +7,7 @@ import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 // article scrolls the article, not the whole shell, and gets its own address via the pk-navigate event), focus on the title after a real
 // navigation, and the first-load anchor settle (the elements below the article are still upgrading, so the scroll position is retried once).
 //
-// config (JSON): { items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home: { title, summary } }.
+// config (JSON): { items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home: { title, summary }, level: 1 }.
 // id === null shows the home list (every item, linked); id set loads and shows that item.
 // Callback properties (business logic, never JSON - STANDARDS.md): loadItem(id) -> { title, summary, html } | Promise<...>; href(id, anchor?) ->
 // string, used for nav items, the pager and the home list's links. (The element's own load(id) method drives loadItem; do not confuse the two.)
@@ -44,7 +44,7 @@ export default Base => class extends Base {
         this.$nav = el(doc, 'pk-side-nav', { slot: 'nav', label: 'Contents' });
         this.$toggle = el(doc, 'pk-button', { slot: 'bar', class: 'doc-page-toggle', variant: 'ghost', toggle: true }, 'Menu');
         this.$toc = el(doc, 'pk-toc', { slot: 'aside', for: `#${this.$bodyId}`, levels: 'h2,h3', heading: 'On this page' });
-        this.$title = el(doc, 'h1', { class: 'doc-page-title', tabindex: '-1' });
+        this.$title = el(doc, `h${[1, 2, 3].includes(this.config?.level) ? this.config.level : 1}`, { class: 'doc-page-title', tabindex: '-1' }); // config.level: read once, when the shell is built
         this.$summary = el(doc, 'p', { class: 'doc-page-summary' });
         this.$body = el(doc, 'div', { class: 'prose', id: this.$bodyId });
         this.$pager = el(doc, 'pk-pager', { label: 'Page navigation' });
