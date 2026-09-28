@@ -318,6 +318,23 @@ A future component that needs to know "where is the app right now" (a route-deri
 
 `AddPlainKit()` also registers three scoped services for per-viewer state in browser storage: `IPkTheme` (`Current`, `SetAsync`, `ToggleAsync`, `Changed`; persisted as `pk.theme` and applied as `data-theme`), `IPkSettings` (`GetAsync<T>(module, key, fallback)`, `SetAsync`; stored as `pk.settings-<module>`) and `IPkStore` (`OpenAsync(id, PkStoreSpec)` gives an `IPkStoreModule` with typed defaults, allowed values and ranges, persisted and published keys, and `Changed`). They use the same `{"v":1,"data":{...}}` envelope and `pk.<module>` key format as the JavaScript `createStore` (js/store.js), so a JavaScript app and a Blazor app on one origin read each other's data. Stored data is untrusted: corrupt, oversized, wrong-type, unknown-key or other-version data gives the defaults and one logged warning, never an exception; a module cannot read another module's private keys (published keys only, as a copy). Nothing reaches JavaScript until a module is opened, so call `Theme.InitializeAsync()` and open modules from `OnAfterRenderAsync(firstRender)`; storage that is blocked or unavailable keeps the state in memory. Never store secrets: it is plain `localStorage`. Not yet: a migration hook for older versions, cross-tab sync, and change notification for settings.
 
+### Toasts and dialogs: `IPkNotifications`, `IPkDialogs`
+
+`AddPlainKit()` also registers `IPkNotifications` (`InfoAsync`, `SuccessAsync`, `WarnAsync`, `ErrorAsync`: title, optional details, optional `TimeSpan` duration) and `IPkDialogs` (`ConfirmAsync`, `AlertAsync`, `PromptAsync`, `OpenAsync(PkDialogOptions)`), the Blazor side of `ctx.notify` and `ctx.dialogs` in the JavaScript app framework, over the existing `pk-toast` and `pk-dialog` elements. Toasts share one bottom-end stack: info and success last 4 s, warn 8 s, error stays until dismissed, the same kind and title within 2 s is merged. Dialogs queue (one open at a time), move focus in and back, cancel on Escape and the close button (the backdrop only with `Backdrop = true`, nothing but a button with `Blocking = true`) and go full screen on a phone; a cancelled dialog answers `false` or `null`, and disposing the service (leaving the page) cancels its dialogs. Text is shown as text, never markup.
+
+```razor
+@inject IPkNotifications Notify
+@inject IPkDialogs Dialogs
+
+async Task DeleteAsync()
+{
+    var sure = await Dialogs.ConfirmAsync(new() { Heading = "Delete order 1042?", Message = "This cannot be undone.", ConfirmLabel = "Delete", Danger = true });
+    if (sure) await Notify.SuccessAsync("Order deleted");
+}
+```
+
+Call them from an event handler or `OnAfterRenderAsync`: prerendering has no page, so a call there does nothing and logs one warning. Not yet: a dialog `template` or a `validate` callback (use `Required` and `MaxLength`), and a handle to dismiss a toast early.
+
 ### PageBase: the state a page repeats by hand
 
 A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
