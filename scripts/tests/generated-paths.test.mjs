@@ -25,7 +25,7 @@ test('.gitignore ignores exactly the generated paths listed in scripts/generated
 test('no tracked file is generated, and the release artefacts and sources are tracked', { skip: !inGit && 'not a git checkout' }, () => {
     const tracked = git(['ls-files']).stdout.split('\n').filter(Boolean);
     assert.deepEqual(tracked.filter(isGenerated), [], 'generated files must not be committed: git rm --cached them (node scripts/generated.mjs list)');
-    for (const f of ['core/VERSION', 'core/site/scorecard/api.baseline.json', 'core/tests/browser/report.json', 'core/js/element.js', 'blazor/mappings/button.json', 'scripts/bootstrap.mjs'])
+    for (const f of ['core/VERSION', 'core/site/scorecard/api.baseline.json', 'core/js/element.js', 'blazor/mappings/button.json', 'scripts/bootstrap.mjs'])
         assert.ok(tracked.includes(f) && !isGenerated(f), `${f} is a tracked source or release artefact`);
 });
 
@@ -34,7 +34,10 @@ test('git ignores every generated sample path and none of the tracked sources', 
         'core/site/gallery/gallery.data.js', 'core/site/guides/guides.data.js', 'core/site/files/snapshot.json', 'core/site/scorecard/api.current.json', 'blazor/src/PlainKit.Blazor/Generated/PkButton.razor',
         'blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js', 'blazor/src/PlainKit.Blazor/wwwroot/plainkit/manifest.json'];
     for (const f of samples) { assert.ok(isGenerated(f), `${f} is listed as generated`); assert.equal(git(['check-ignore', '-q', f]).status, 0, `${f} is git-ignored`); }
-    for (const f of ['core/site/scorecard/api.baseline.json', 'core/tests/browser/report.json', 'core/VERSION', 'core/elements/button/button.js', 'blazor/src/PlainKit.Blazor/wwwroot/plainkit.blazor.js'])
+    // Not generated (isGenerated is false), but still gitignored: the browser suite's local report, no longer a release artefact (issue #451).
+    assert.ok(!isGenerated('core/tests/browser/report.json'));
+    assert.equal(git(['check-ignore', '-q', 'core/tests/browser/report.json']).status, 0, 'core/tests/browser/report.json is git-ignored');
+    for (const f of ['core/site/scorecard/api.baseline.json', 'core/VERSION', 'core/elements/button/button.js', 'blazor/src/PlainKit.Blazor/wwwroot/plainkit.blazor.js'])
         assert.equal(git(['check-ignore', '-q', f]).status, 1, `${f} is not ignored`);
 });
 

@@ -21,7 +21,8 @@ function job(id) {
 }
 
 test('the job table of ci-report.mjs, the groups of verify.mjs and ci.yml agree', () => {
-    assert.deepEqual(Object.keys(JOBS).sort(), [...GROUPS].sort());
+    // 'browser' is a verify.mjs group with no ci.yml job: a manual-only local check (issue #451), not gated or reported by CI.
+    assert.deepEqual(Object.keys(JOBS).sort(), [...GROUPS].filter(g => g !== 'browser').sort());
     for (const [id, meta] of Object.entries(JOBS)) {
         assert.ok(job(id).includes(`    name: ${meta.name}\n`), `job ${id} is named "${meta.name}"`);
         assert.ok(job(id).includes(`node scripts/verify.mjs --only ${id}`), `job ${id} runs its verify group`);
@@ -30,11 +31,10 @@ test('the job table of ci-report.mjs, the groups of verify.mjs and ci.yml agree'
     assert.ok(job('ci-summary').includes(`    name: ${SUMMARY_JOB}\n`));
 });
 
-test('every job has a timeout; node 10, dotnet 15, browser 10', () => {
+test('every job has a timeout; node 10, dotnet 15', () => {
     for (const id of [...Object.keys(JOBS), 'ci-summary']) assert.match(job(id), /^    timeout-minutes: \d+$/m, `${id} has timeout-minutes`);
     assert.match(job('node'), /timeout-minutes: 10\n/);
     assert.match(job('dotnet'), /timeout-minutes: 15\n/);
-    assert.match(job('browser'), /timeout-minutes: 10\n/);
 });
 
 test('required check names in REPO-SETTINGS.md are the job names', () => {
@@ -52,7 +52,7 @@ test('concurrency cancels superseded runs; permissions are minimal and only the 
     assert.equal((ci.match(/pull-requests: write/g) || []).length, 1, 'exactly one job writes to pull requests');
     assert.ok(job('ci-summary').includes('pull-requests: write'));
     assert.match(job('ci-summary'), /if: always\(\) && github\.event_name == 'pull_request'/);
-    assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, browser, pack, scorecard\]/);
+    assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, pack, scorecard\]/);
     assert.match(job('ci-summary'), /actions\/github-script@[0-9a-f]{40} # v7\.\d+\.\d+/);
 });
 
@@ -63,7 +63,7 @@ test('only first-party actions are used (actions/*), pinned to a commit SHA', ()
 });
 
 test('the jobs that need generated files bootstrap through verify, the path gate comes before the work', () => {
-    for (const id of ['node', 'dotnet', 'browser', 'pack']) {
+    for (const id of ['node', 'dotnet', 'pack']) {
         const j = job(id);
         assert.ok(j.includes(`node scripts/ci-changes.mjs ${id}`), `${id} gates itself`);
         assert.ok(j.indexOf('ci-changes.mjs') < j.indexOf('scripts/verify.mjs --only'), `${id}: gate first`);
@@ -79,14 +79,9 @@ test('the dotnet job caches NuGet on the props and project files; the pack job d
     assert.doesNotMatch(job('pack'), /cache: true/);
 });
 
-test('the browser job reruns once, reports flaky, keeps the report and is not required', () => {
-    const b = job('browser');
-    assert.ok(b.includes('id: first') && b.includes('id: second') && b.includes('flaky=true'));
-    assert.ok(b.includes('continue-on-error: true'));
-    assert.match(b, /actions\/upload-artifact@[0-9a-f]{40} # v4\.\d+\.\d+/);
-    assert.ok(b.includes('core/tests/browser/report.json'));
-    assert.ok(b.includes('PK_CHROME: /usr/bin/google-chrome'));
-    assert.equal(JOBS.browser.required, false);
+test('there is no browser CI job any more (issue #451)', () => {
+    assert.ok(!/^  browser:\n/m.test(ci));
+    assert.ok(!JOBS.browser);
 });
 
 test('the scorecard job gates on the same paths as the browser suite, uses Chrome, is not required', () => {
