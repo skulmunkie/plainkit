@@ -242,3 +242,12 @@ test('settle does not retry when this was not the first load', t => {
     t.mock.timers.tick(1000);
     assert.equal(heading.$scrolled, 1);
 });
+
+test('config.level sets the article title heading level (default h1; only 1, 2 or 3)', () => {
+    for (const [level, tag] of [[undefined, 'h1'], [2, 'h2'], [3, 'h3'], [6, 'h1']]) {
+        const { el } = make();
+        el.config = level ? { level } : {};
+        el.connected();
+        assert.equal(el.$title.localName, tag);
+    }
+});
