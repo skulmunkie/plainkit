@@ -32,7 +32,7 @@
     {
       "name": "ChildContent",
       "slot": "",
-      "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id)."
+      "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id). slot=\"empty\" and slot=\"toolbar-start\" are reserved (the empty state, and a host app's own top-level toolbar menus) and are never treated as a panel."
     }
   ]
 }

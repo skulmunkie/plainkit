@@ -43,6 +43,10 @@
     {
       "name": "empty",
       "description": "Shown when there is no panel."
+    },
+    {
+      "name": "toolbar-start",
+      "description": "The start of the toolbar (part toolbar), before the dock's own Panels menu: a place for a host app's own top-level menus (File, Edit, View...). The dock draws none of this; it only gives it a stable spot next to its own controls. The toolbar shows whenever this slot holds something or a panel is closed, and collapses away when both are empty."
     }
   ],
   "events": [
@@ -58,6 +62,10 @@
     }
   ],
   "parts": [
+    {
+      "name": "toolbar",
+      "description": "The bar above the tree: slot toolbar-start (a host app's own menus) then the dock's own Panels menu. Collapses away while both are empty."
+    },
     {
       "name": "root",
       "description": "The frame that holds the rendered tree."

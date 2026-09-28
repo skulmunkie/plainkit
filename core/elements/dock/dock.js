@@ -10,13 +10,16 @@ import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, doc
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
 
 const PANEL = /^[a-z][\w-]{0,39}$/;
+// Slot names the element already gives a fixed meaning: a panel id can otherwise be any string PANEL allows, so these are reserved rather than let a
+// host's <div slot="empty"> or <div slot="toolbar-start"> become a phantom panel with no group of its own.
+const RESERVED_SLOTS = new Set(['empty', 'toolbar-start']);
 
 // Pure: the panels a host declares, from its child elements: [{ id, title, group }] in DOM order; a child without a usable slot name or with a repeated one is not a panel.
 export function readPanels(children) {
     const seen = new Set(), out = [];
     for (const c of children) {
         const id = c.getAttribute?.('slot');
-        if (!id || !PANEL.test(id) || seen.has(id)) continue;
+        if (!id || RESERVED_SLOTS.has(id) || !PANEL.test(id) || seen.has(id)) continue;
         seen.add(id);
         out.push({ id, title: c.getAttribute('data-heading') || id, group: c.getAttribute('data-group') || 'center' });
     }
@@ -36,6 +39,7 @@ export default Base => class extends Base {
             root.addEventListener('pk-resize', e => this.onResize(e));
             root.addEventListener('pk-tab-change', e => this.onTab(e));
             root.addEventListener('pk-select', e => this.onMove(e));
+            this.part('toolbar').addEventListener('pk-select', e => this.onPanels(e));
             this.$mo = new MutationObserver(() => this.requestUpdate());
             if (typeof matchMedia === 'function') { this.$mq = mediaBelow('phone'); this.$mqf = () => this.requestUpdate(); }
         }
@@ -44,15 +48,20 @@ export default Base => class extends Base {
     }
     disconnected() { this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf); }
     updated() {
-        const panels = readPanels(this.children), phone = Boolean(this.$mq?.matches);
-        const key = JSON.stringify(panels) + phone;
+        this.$closed ??= new Set(); // update() runs once from connectedCallback before connected() gets to set anything up
+        const all = readPanels(this.children), phone = Boolean(this.$mq?.matches);
+        // A closed panel stays a host child (so its state, and the memory that it exists, are not lost) but is left out of what the model is told is
+        // declared: fromJson then drops it from its group like any panel that is no longer declared, and reopening (removing it from $closed) is just
+        // the mirror of a panel newly appearing, which fromJson already re-adds to a group. No dock-model.js change needed for either direction.
+        const panels = all.filter(p => !this.$closed.has(p.id));
+        const key = JSON.stringify(panels) + phone + this.slotted('toolbar-start').length; // a toolbar-start child added or removed redraws the toolbar too
         if (this.layout === this.$given && key === this.$key) return;
         const first = !this.$doc, own = this.layout === this.$given;
         const source = own ? this.$doc && toJson(this.$doc) : this.layout;
         const r = source == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(source, { panels });
         for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
         const repaired = !first && own && toJson(r.doc) !== toJson(this.$doc);
-        this.$doc = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(panels.map(p => [p.id, p.title]));
+        this.$doc = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(all.map(p => [p.id, p.title]));
         this.draw(phone);
         if (repaired) this.commit('panels');
     }
@@ -63,6 +72,7 @@ export default Base => class extends Base {
     draw(phone) {
         const doc = this.$doc, root = this.part('root'), d = this.ownerDocument;
         this.$phoneStrip = Boolean(phone); // the phone strip flattens every group into one reading-order tab list, so "move to another group" has no target there
+        this.drawToolbar(d);
         this.part('empty').hidden = Boolean(doc.root);
         if (!doc.root) return root.replaceChildren();
         if (phone) {
@@ -88,7 +98,7 @@ export default Base => class extends Base {
             h.id = `h-${panel}`;
             const label = make(d, 'span', { part: 'title', class: 'title' }); label.textContent = title(panel);
             h.append(label);
-            if (movable) h.append(this.moveTrigger(d, panel, n.id));
+            if (!this.$phoneStrip) h.append(this.panelTrigger(d, panel, n.id, movable));
             body.append(make(d, 'slot', { name: panel }));
             g.setAttribute('aria-labelledby', h.id);
             return g;
@@ -101,21 +111,22 @@ export default Base => class extends Base {
             const panel = make(d, 'pk-tab-panel', { value: id }), body = make(d, 'div', { part: 'body', class: 'body' }); body.append(make(d, 'slot', { name: id })); panel.append(body);
             tabs.append(tab, panel);
         }
-        if (movable) {
+        if (!this.$phoneStrip) {
             const trailing = make(d, 'div', { slot: 'trailing', class: 'trailing' });
-            trailing.append(this.moveTrigger(d, n.active, n.id));
+            trailing.append(this.panelTrigger(d, n.active, n.id, movable));
             tabs.append(trailing);
         }
         g.append(tabs);
         return g;
     }
-    // A "Move to..." trigger for panel (the group's active tab, or its only panel): one pk-dropdown listing every other group, "Add as tab" plus the
-    // four dockPanel zones beside it. group is panel's current group id, so the menu never offers moving a panel next to its own group.
-    moveTrigger(d, panel, group) {
+    // A panel menu for panel (the group's active tab, or its only panel): "Move to..." (every other group, "Add as tab" plus the four dockPanel
+    // zones) when movable, and always a Close (this.$closed, taken back out by the toolbar's Panels menu). group is panel's current group id, so
+    // the menu never offers moving a panel next to its own group.
+    panelTrigger(d, panel, group, movable) {
         const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
-        const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'more', label: `Move ${this.$titles.get(panel) ?? panel}...` });
+        const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'more', label: `${this.$titles.get(panel) ?? panel} panel menu` });
         dd.append(btn);
-        for (const target of groups(this.$doc)) {
+        if (movable) for (const target of groups(this.$doc)) {
             if (target.id === group) continue;
             const targetTitle = this.$titles.get(target.active) ?? target.active;
             const header = make(d, 'pk-menu-item', { type: 'header' }); header.textContent = targetTitle;
@@ -126,7 +137,28 @@ export default Base => class extends Base {
                 dd.append(item);
             }
         }
+        if (movable) dd.append(make(d, 'pk-menu-item', { type: 'divider' }));
+        const close = make(d, 'pk-menu-item', { value: `close:${panel}` }); close.textContent = 'Close';
+        dd.append(close);
         return dd;
+    }
+    // The toolbar: a stable, always-there row (host apps fill slot toolbar-start with their own File/Edit/View-style menus; the dock never invents
+    // their content, only gives it a place next to its own controls) plus, at its end, the Panels menu once something is closed. The toolbar itself
+    // shows whenever the host gave it something (the slot) or the dock has (a closed panel); with neither, it collapses to nothing rather than
+    // reserving an empty bar.
+    drawToolbar(d) {
+        const bar = this.part('toolbar'), closed = [...this.$titles ?? []].map(([id]) => id).filter(id => this.$closed.has(id));
+        bar.querySelector('.panels')?.remove();
+        bar.hidden = closed.length === 0 && this.slotted('toolbar-start').length === 0;
+        if (!closed.length) return;
+        const panels = make(d, 'div', { class: 'panels' });
+        const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
+        const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'dashboard', label: `Panels (${closed.length} closed)` });
+        dd.append(btn);
+        for (const id of closed) { const item = make(d, 'pk-menu-item', { value: `open:${id}` }); item.textContent = `Open ${this.$titles.get(id) ?? id}`; dd.append(item); }
+        panels.append(dd);
+        bar.append(panels);
+        loadElements(bar);
     }
     onResize(e) {
         e.stopPropagation();
@@ -140,12 +172,13 @@ export default Base => class extends Base {
         const r = activate(this.$doc, { panel: e.detail.value });
         if (r.doc !== this.$doc) { this.$doc = r.doc; this.commit('activate'); }
     }
-    // A choice from a moveTrigger menu: "tab:<panel>:<group>" (moveTab, join as a tab) or "dock:<panel>:<group>:<zone>" (dockPanel, split beside it).
+    // A choice from a panelTrigger menu: "tab:<panel>:<group>" (moveTab), "dock:<panel>:<group>:<zone>" (dockPanel), or "close:<panel>".
     onMove(e) {
         const value = e.detail?.value;
         if (typeof value !== 'string') return;
         e.stopPropagation();
         const [kind, panel, group, zone] = value.split(':');
+        if (kind === 'close' && panel) return this.closePanel(panel);
         const title = id => this.$titles.get(id) ?? id, targetTitle = groups(this.$doc).find(g => g.id === group);
         let r, said;
         if (kind === 'tab' && panel && group) { r = moveTab(this.$doc, { panel, group }); said = `${title(panel)} added as a tab in ${title(targetTitle?.active)}`; }
@@ -158,6 +191,34 @@ export default Base => class extends Base {
         // Unlike a resize or a tab choice (already reflected by the splitter/tabs the user just touched), a move changes which shadow group holds a
         // panel's slot: draw() moves it there. this.layout now equals this.$given (commit set both), so updated()'s own redraw would no-op; draw it here.
         this.draw(Boolean(this.$mq?.matches));
+        this.part('status').textContent = said;
+        this.focusPanel(panel);
+    }
+    // A choice from the toolbar's Panels menu: "open:<panel>".
+    onPanels(e) {
+        const value = e.detail?.value;
+        if (typeof value !== 'string') return;
+        e.stopPropagation();
+        const [kind, panel] = value.split(':');
+        if (kind === 'open' && panel) this.openPanel(panel);
+    }
+    // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
+    // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
+    closePanel(panel) {
+        if (this.$closed.has(panel) || !this.$titles.has(panel)) return;
+        const said = `${this.$titles.get(panel) ?? panel} closed`;
+        this.$closed.add(panel);
+        this.updated(); // synchronous, like a move: the redraw (a panel leaving its group, or the group itself) needs to happen before focus moves
+        this.part('status').textContent = said;
+        this.part('toolbar').querySelector('pk-button[slot="trigger"]')?.focus?.();
+    }
+    // Reopen a closed panel: declaring it again makes updated() add it back (to a group, per the same "a declared panel the layout lacks" repair a
+    // panel newly appearing in the DOM already takes; no memory of its last group in this smallest version, see #432).
+    openPanel(panel) {
+        if (!this.$closed.has(panel)) return;
+        const said = `${this.$titles.get(panel) ?? panel} opened`;
+        this.$closed.delete(panel);
+        this.updated();
         this.part('status').textContent = said;
         this.focusPanel(panel);
     }
