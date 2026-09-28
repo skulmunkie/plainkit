@@ -1,0 +1,108 @@
+{
+  "tag": "pk-heading",
+  "title": "Heading",
+  "group": "Layout",
+  "summary": "A real h1 to h6 heading in the shadow tree, with a visual size decoupled from the level: the semantic counterpart of pk-text's look-only h1 to h6 variants, for a strict module that cannot write a raw heading tag.",
+  "props": [
+    {
+      "name": "level",
+      "type": "number",
+      "default": 2,
+      "reflect": true,
+      "description": "The heading level exposed to assistive technology (1 to 6, clamped and rounded; out of range falls back to 2 and warns once). Rendered as a real h1 to h6 in the shadow tree, so it takes its place in the page outline."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6"
+      ],
+      "reflect": true,
+      "description": "The visual size on the --text-h1 to --text-h6 scale, independent of level: a section can be an h3 in the outline but look like an h1, or the reverse. Default inherit: the size matches level."
+    },
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "default",
+        "muted",
+        "accent",
+        "positive",
+        "warning",
+        "critical"
+      ],
+      "reflect": true,
+      "description": "Text colour from the theme, as on pk-text. Default inherit: the colour around it."
+    },
+    {
+      "name": "weight",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "regular",
+        "medium",
+        "semibold",
+        "bold"
+      ],
+      "reflect": true,
+      "description": "Font weight. Default inherit: bold, the native heading weight."
+    },
+    {
+      "name": "truncate",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Keep it to one line and end with an ellipsis when it does not fit."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The heading text: phrasing content only."
+    }
+  ],
+  "a11y": "The shadow tree renders a real h1 to h6 for the level prop, so it keeps the heading role and level in the accessibility tree and the page outline; use one h1 per page and do not skip levels. variant changes only the look: a section that must be an h3 in the outline but look larger sets level=\"3\" variant=\"h1\", never the reverse (a level chosen for the look breaks the outline). For a look-only heading that is not a real heading (a figure label, a number in a card), use pk-text's h1 to h6 variant instead.",
+  "examples": [
+    {
+      "title": "Levels",
+      "html": "<pk-heading level=\"1\">Billing</pk-heading><pk-heading level=\"2\">Invoices</pk-heading><pk-heading level=\"3\">Payment methods</pk-heading>"
+    },
+    {
+      "title": "Level and look decoupled",
+      "html": "<pk-heading level=\"1\">Page title</pk-heading><pk-heading level=\"2\" variant=\"h4\">A quiet section heading</pk-heading><pk-heading level=\"3\" variant=\"h1\">A section that must look bigger than its outline level</pk-heading>"
+    },
+    {
+      "title": "Tone and weight",
+      "html": "<pk-heading level=\"2\" tone=\"muted\" weight=\"medium\">Archived</pk-heading>"
+    },
+    {
+      "title": "Truncated",
+      "html": "<pk-heading level=\"3\" truncate>A very long record title that will not fit in a narrow card header</pk-heading>"
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "heading",
+      "description": "The rendered h1 to h6 element."
+    }
+  ],
+  "methods": [],
+  "cssProperties": [
+    {
+      "name": "--pk-heading-size",
+      "description": "The font size used when variant is inherit; set from level. An explicit variant overrides it.",
+      "default": "var(--text-h2)"
+    }
+  ]
+}
