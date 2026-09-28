@@ -1,0 +1,16 @@
+:host { display: block; --_w: var(--content-md); --_p: var(--space-4); }
+:host([hidden]) { display: none; }
+:host([size="sm"]) { --_w: var(--content-sm); }
+:host([size="lg"]) { --_w: var(--content-lg); }
+:host([size="full"]) { --_w: none; }
+:host([padding="none"]) { --_p: 0px; }
+:host([padding="xs"]) { --_p: var(--space-1); }
+:host([padding="sm"]) { --_p: var(--space-2); }
+:host([padding="lg"]) { --_p: var(--space-6); }
+:host([padding="xl"]) { --_p: var(--space-8); }
+:host([fill]) { block-size: 100%; min-block-size: 0; }
+[part="root"] { box-sizing: border-box; min-inline-size: 0; max-inline-size: var(--pk-container-width, var(--_w)); margin-inline: auto; padding: var(--pk-container-pad, var(--_p)); }
+:host([align="start"]) [part="root"] { margin-inline: 0; }
+:host([fill]) [part="root"] { block-size: 100%; min-block-size: 0; }
+:host([scroll="y"]) [part="root"] { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+:host([scroll="both"]) [part="root"] { overflow: auto; overscroll-behavior: contain; }
