@@ -11,6 +11,7 @@
 //           { path: '*', page: 'not-found' },
 //       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
+//       footer: { text: 'Run by Finance', links: [] },                // optional: replaces the app footer (config.footer) while this module is active; false draws none (#373)
 //       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; else, or a throw, denies (fail closed)
 //       mount(ctx) { return () => {}; }, unmount(ctx) {},             // optional; a function returned from mount is cleanup
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }
