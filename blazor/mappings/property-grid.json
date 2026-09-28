@@ -1,0 +1,10 @@
+{
+  "component": "PkPropertyGrid",
+  "params": [
+    { "name": "Config", "type": "string", "default": "{}", "map": "prop", "prop": "config", "note": "Sent as a JSON attribute: { groups: [{ heading, collapsed?, fields: [{ key, type, label, required?, disabled?, options?, min?, max?, step? }] }] }." },
+    { "name": "Values", "type": "string", "default": "{}", "map": "prop", "prop": "values", "note": "Sent as a JSON attribute: the property values keyed by field key." },
+    { "name": "Errors", "type": "string", "default": "{}", "map": "prop", "prop": "errors", "note": "Sent as a JSON attribute: host-side validation messages keyed by field key." },
+    { "name": "Disabled", "prop": "disabled", "type": "bool" }
+  ],
+  "notes": "New component (issue #429). The pk-property-change event is not mapped as a Blazor callback yet; left for a follow-up together with dynamic binding."
+}
