@@ -1,0 +1,51 @@
+{
+  "component": "PkFrame",
+  "params": [
+    {
+      "name": "Title",
+      "prop": "title",
+      "type": "string"
+    },
+    {
+      "name": "Html",
+      "prop": "html",
+      "type": "string"
+    },
+    {
+      "name": "Src",
+      "prop": "src",
+      "type": "string"
+    },
+    {
+      "name": "Sandbox",
+      "prop": "sandbox",
+      "type": "string"
+    },
+    {
+      "name": "AllowSameOrigin",
+      "prop": "allowSameOrigin",
+      "type": "bool"
+    },
+    {
+      "name": "Preset",
+      "prop": "preset",
+      "type": "string"
+    },
+    {
+      "name": "Height",
+      "prop": "height",
+      "type": "string"
+    },
+    {
+      "name": "Theme",
+      "prop": "theme",
+      "type": "string"
+    },
+    {
+      "name": "Loading",
+      "prop": "loading",
+      "type": "string"
+    }
+  ],
+  "notes": "New component (issue #523). Replaces raw iframe/srcdoc writes in the gallery sample stage and the layout builder and theme editor previews."
+}
