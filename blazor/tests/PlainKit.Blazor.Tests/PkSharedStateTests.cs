@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using PlainKit.Blazor;
@@ -89,6 +90,63 @@ public sealed class PkSharedStateTests : BunitContext, IAsyncLifetime
         m = await Services.GetRequiredService<IPkStore>().OpenAsync("gallery", Gallery);
         Assert.Equal(1.0, m.Get("scale"));
         Assert.Single(Storage.Warnings);
+    }
+
+    // The fixture file core/tests/fixtures/store-envelopes.json is also read by core/tests/store.test.mjs: the two stores must agree on every case.
+    private static readonly JsonElement Fixture = JsonDocument.Parse(File.ReadAllText(FixturePath())).RootElement;
+
+    private static string FixturePath()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var file = Path.Combine(dir.FullName, "core", "tests", "fixtures", "store-envelopes.json");
+            if (File.Exists(file)) return file;
+        }
+        throw new FileNotFoundException("core/tests/fixtures/store-envelopes.json");
+    }
+
+    public static IEnumerable<object[]> FixtureCases() => Fixture.GetProperty("cases").EnumerateArray().Select(c => new object[] { c.GetProperty("name").GetString()! });
+
+    [Theory]
+    [MemberData(nameof(FixtureCases))]
+    public async Task Shared_fixture_gives_the_same_result_as_the_javascript_store(string name)
+    {
+        var c = Fixture.GetProperty("cases").EnumerateArray().Single(x => x.GetProperty("name").GetString() == name);
+        var spec = Fixture.GetProperty("spec");
+        static object? Plain(JsonElement e) => e.ValueKind switch { JsonValueKind.String => e.GetString(), JsonValueKind.True => true, JsonValueKind.False => false, _ => e.GetDouble() };
+        var rules = new Dictionary<string, PkStoreRule>();
+        foreach (var r in spec.GetProperty("schema").EnumerateObject())
+            rules[r.Name] = new(Allowed: r.Value.TryGetProperty("enum", out var en) ? en.EnumerateArray().Select(Plain).OfType<object>().ToList() : null,
+                Min: r.Value.TryGetProperty("min", out var mn) ? mn.GetDouble() : null, Max: r.Value.TryGetProperty("max", out var mx) ? mx.GetDouble() : null);
+        var migrate = c.TryGetProperty("migrate", out _)
+            ? new Func<IReadOnlyDictionary<string, object?>, int, IReadOnlyDictionary<string, object?>?>((d, _) => d.ToDictionary(k => k.Key, k => k.Key == "width" && Equals(k.Value, "w") ? "wide" : k.Value))
+            : null;
+        Storage.Items["pk.a"] = new string(' ', c.TryGetProperty("pad", out var pad) ? pad.GetInt32() : 0) + c.GetProperty("stored").GetString();
+        var m = await Services.GetRequiredService<IPkStore>().OpenAsync("a", new PkStoreSpec
+        {
+            Version = c.TryGetProperty("version", out var ver) ? ver.GetInt32() : 1,
+            Defaults = spec.GetProperty("defaults").EnumerateObject().ToDictionary(p => p.Name, p => Plain(p.Value)),
+            Persist = spec.GetProperty("persist").EnumerateArray().Select(p => p.GetString()!).ToList(),
+            Rules = rules,
+            Migrate = migrate
+        });
+        var expect = c.GetProperty("expect");
+        foreach (var p in expect.EnumerateObject().Where(p => p.Name is "scale" or "width" or "open")) Assert.Equal(Plain(p.Value), m.Get(p.Name));
+        Assert.Equal(expect.GetProperty("warnings").GetInt32(), Storage.Warnings.Count);
+        if (expect.TryGetProperty("contains", out var contains)) foreach (var part in contains.EnumerateArray()) Assert.Contains(part.GetString()!, Storage.Warnings[0]);
+    }
+
+    [Fact]
+    public async Task Settings_Changed_fires_with_module_key_and_value_only_on_a_change()
+    {
+        var s = Services.GetRequiredService<IPkSettings>();
+        var seen = new List<string>();
+        s.Changed += (m, k, v) => seen.Add($"{m}/{k}={v}");
+        await s.SetAsync("reports", "compact", true);
+        await s.SetAsync("reports", "compact", true);
+        await s.SetAsync("reports", "page-size", 25);
+        await s.SetAsync("reports", "x", new object());
+        Assert.Equal(["reports/compact=True", "reports/page-size=25"], seen);
     }
 
     [Fact]
