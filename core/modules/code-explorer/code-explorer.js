@@ -11,7 +11,8 @@
 //
 // Options: snapshot (a URL of a snapshot JSON, or the parsed object), provider (a ready provider instead of a snapshot), file (open
 // this path, `line` picks the row), search (run this query), theme ('dark' | 'light'), height (any CSS length, or 'fill'; default 32rem),
-// patterns (host-defined [{ name, pattern, label? }], see reports.js -- lights up the Reports tab's pattern report).
+// patterns (host-defined [{ name, pattern, label? }], see reports.js -- adds a "Patterns" choice to the Reports tab, which
+// always offers largest files, longest methods and duplicate blocks even with no patterns set).
 // Returns { element, openFile(path, { line }), search(query), destroy() }. The document must be able to load the SDK stylesheets; any
 // that are missing are added (the explorer's own stylesheet is added by the element).
 
