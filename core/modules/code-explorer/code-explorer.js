@@ -10,7 +10,8 @@
 //   const explorer = await mountCodeExplorer(el, { provider, file: 'src/app.js' });
 //
 // Options: snapshot (a URL of a snapshot JSON, or the parsed object), provider (a ready provider instead of a snapshot), file (open
-// this path, `line` picks the row), search (run this query), theme ('dark' | 'light'), height (any CSS length, or 'fill'; default 32rem).
+// this path, `line` picks the row), search (run this query), theme ('dark' | 'light'), height (any CSS length, or 'fill'; default 32rem),
+// patterns (host-defined [{ name, pattern, label? }], see reports.js -- lights up the Reports tab's pattern report).
 // Returns { element, openFile(path, { line }), search(query), destroy() }. The document must be able to load the SDK stylesheets; any
 // that are missing are added (the explorer's own stylesheet is added by the element).
 
@@ -24,7 +25,7 @@ const log = createLogger('code-explorer');
 const STYLES = ['../../plainkit.css'];
 
 export async function mountCodeExplorer(container, options = {}) {
-    const { snapshot, provider, file, line, search, theme, height } = options;
+    const { snapshot, provider, file, line, search, theme, height, patterns } = options;
     log.debug('mounted', { module: 'code-explorer', options: Object.keys(options) });
     if (!snapshot && !provider) throw new Error('mountCodeExplorer needs a snapshot (a URL or an object) or a provider');
     await ensureStyles(styleUrls(STYLES, import.meta.url), container.ownerDocument);
@@ -36,6 +37,7 @@ export async function mountCodeExplorer(container, options = {}) {
     if (file && line) element.setAttribute('initial-line', String(line));
     if (search) element.setAttribute('search', search);
     element.provider = source;
+    if (patterns) element.patterns = patterns;
     container.replaceChildren(element);
     return { element, openFile: (path, o) => element.openFile(path, o), search: q => element.search(q), destroy: () => element.remove() };
 }

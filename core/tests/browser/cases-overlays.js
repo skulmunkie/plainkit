@@ -392,6 +392,19 @@ export const overlaysCases = [
         t.key(drafts, 'ArrowLeft'); await t.settle(); t.eq(document.activeElement, products, 'ArrowLeft returns to the branch');
     }],
 
+    ['side nav rail: a branch with a current descendant shows an indicator on its own row (issue 387)', async t => {
+        if (mediaBelow('tablet').matches) return;
+        const el = await t.mount('<pk-side-nav open collapsed><pk-nav-item href="#">Orders</pk-nav-item><pk-nav-item>Products<pk-nav-item slot="children" href="#">Drafts</pk-nav-item><pk-nav-item slot="children" href="#" current>Archive</pk-nav-item></pk-nav-item></pk-side-nav>');
+        await t.settle();
+        const [orders, products] = el.querySelectorAll('pk-nav-item');
+        t.ok(products.hasAttribute('data-current-branch'), 'the collapsed branch is marked: one of its flyout children is current');
+        t.ok(!orders.hasAttribute('data-current-branch'), 'a leaf with no current descendant is not marked');
+        const link = products.shadowRoot.querySelector('[part="link"]');
+        t.ok(getComputedStyle(link).boxShadow !== 'none', 'the rail row itself gets the current visual treatment');
+        products.querySelector('[current]').removeAttribute('current'); await t.settle();
+        t.ok(!products.hasAttribute('data-current-branch'), 'clearing current on the descendant clears the branch indicator');
+    }],
+
     ['side nav: the brand hides in the icon rail even inside a Blazor-style display: contents wrapper (issue 297)', async t => {
         const el = await t.mount('<pk-side-nav open><span slot="brand" class="u-contents"><a href="#">App</a></span><pk-nav-item href="#">Orders</pk-nav-item></pk-side-nav>');
         const brand = el.querySelector('span[slot="brand"]'); await t.settle();

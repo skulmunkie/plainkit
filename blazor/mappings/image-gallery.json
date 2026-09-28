@@ -41,6 +41,13 @@
       "prop": "editable"
     },
     {
+      "name": "HideAdd",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "hideAdd"
+    },
+    {
       "name": "AddLabel",
       "type": "string",
       "default": "Add image",
