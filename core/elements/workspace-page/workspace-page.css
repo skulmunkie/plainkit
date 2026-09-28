@@ -1,4 +1,7 @@
-:host { position: relative; display: block; inline-size: 100%; min-inline-size: 0; }
-:host([fill]) { flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+:host([fill]) { display: flex; flex-direction: column; flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+[part="frame"] { position: relative; }
+:host([fill]) [part="frame"] { flex: 1 1 auto; min-block-size: 0; }
 [part="state"]:empty { display: none; }
 [part="state"] { position: absolute; inset: 0; z-index: 1; padding: var(--space-6); background: var(--color-bg); overflow: auto; }
+[part="header"] { margin-block-end: var(--space-4); }

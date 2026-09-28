@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -20,6 +20,7 @@ export default Base => class extends Base {
     changed(name) { if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId'); }
 
     sync(moved) {
+        showTitleBar(this, this.part('header'));
         const c = this.config ?? {}, id = this.recordId || '', was = this.$id ?? '';
         this.part('list').config = c.list ?? {};
         this.part('back').textContent = '\u2190 ' + (c.backLabel ?? 'Back');

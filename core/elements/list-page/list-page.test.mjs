@@ -23,7 +23,8 @@ const make = () => {
     const pagination = fakeEl('pk-pagination');
     const state = fakeEl('div');
     for (const p of [table, filters, actions, pagination, state]) p.ownerDocument = { createElement: fakeEl };
-    const parts = { table, filters, actions, pagination, state };
+    const header = fakeEl('div');
+    const parts = { header, table, filters, actions, pagination, state };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }

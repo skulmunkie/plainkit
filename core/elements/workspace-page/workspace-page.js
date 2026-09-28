@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -18,6 +18,7 @@ export default Base => class extends Base {
 
     // Which panes exist is data: config.panes (default nav + main; main always exists). A pane not listed is taken out so pk-workspace hides its column.
     sync() {
+        showTitleBar(this, this.part('header'));
         const c = this.config ?? {}, want = new Set(['main', ...(c.panes ?? ['nav'])]);
         const ws = this.part('workspace');
         for (const p of ['nav', 'aside']) { if (want.has(p)) ws.append(this.$p[p]); else this.$p[p].remove(); }

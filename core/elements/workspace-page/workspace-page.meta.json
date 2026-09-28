@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ panes?, navLabel?, mainLabel?, asideLabel?, asideOpen?, label? }. panes lists the optional panes to create: any of 'nav' and 'aside' (default ['nav']; the main pane always exists). navLabel, mainLabel and asideLabel are the panes' accessible names and phone tabs (pk-workspace's own defaults otherwise). asideOpen is true unless set to false. label names the loading state."
+      "description": "{ panes?, navLabel?, mainLabel?, asideLabel?, asideOpen?, label? }. panes lists the optional panes to create: any of 'nav' and 'aside' (default ['nav']; the main pane always exists). navLabel, mainLabel and asideLabel are the panes' accessible names and phone tabs (pk-workspace's own defaults otherwise). asideOpen is true unless set to false. label names the loading state. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant? }] (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "fill",
@@ -20,8 +20,12 @@
     }
   ],
   "slots": [],
-  "events": [],
+  "events": [
+    { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." }
+  ],
   "parts": [
+    { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
+    { "name": "frame", "description": "Positions the state overlay so it covers the panes but never the title bar." },
     { "name": "workspace", "description": "The pk-workspace that lays out the panes." },
     { "name": "nav", "description": "The nav pane's content; mount() draws into it." },
     { "name": "main", "description": "The main pane's content; mount() draws into it." },

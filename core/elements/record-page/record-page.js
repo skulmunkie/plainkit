@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -27,7 +27,7 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else this.render(); }
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.render(); } }
         else if (name === 'mode') this.render();
     }
 
@@ -35,6 +35,7 @@ export default Base => class extends Base {
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state'), id = this.config?.id ?? null;
         this.$id = id;
+        this.bar();
         this.part('layout').hidden = true;
         for (const p of ['edit', 'cancel', 'save']) this.part(p).hidden = true;
         if (id == null || typeof this.load !== 'function') { this.$values = {}; this.done(); return; }
@@ -51,6 +52,8 @@ export default Base => class extends Base {
             showState(box, 'error', { error: err, retry: () => this.fetch() });
         }
     }
+    // The shared title bar; config.heading already titles the field list, so the page's own heading is config.title.
+    bar() { showTitleBar(this, this.part('header'), { ...this.config, heading: this.config?.title }); }
     done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.render(); }
     get editing() { return this.mode === 'edit' || this.$id == null; }
     get fields() { return this.config?.fields ?? []; }

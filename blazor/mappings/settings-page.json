@@ -1,22 +1,19 @@
 {
   "component": "PkSettingsPage",
+  "existing": true,
   "params": [
     {
       "name": "Config",
       "type": "string",
-      "default": "{}",
-      "map": "prop",
       "prop": "config",
       "note": "Sent as a JSON attribute: { sections: [{ heading, fields: [{ key, type, label, placeholder?, required?, options?, min?, max?, step? }] }] }."
     },
     {
       "name": "Values",
       "type": "string",
-      "default": "{}",
-      "map": "prop",
       "prop": "values",
       "note": "Sent as a JSON attribute: the current values keyed by field key."
     }
   ],
-  "notes": "New component: App framework step 5 (issue #351). Save is a callback property (business logic), not a Blazor parameter mapped here yet - it needs JS interop from the component (Func<Dictionary<string,string>, Task> or similar); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run and PkListPage's Load/Save callbacks."
+  "notes": "Hand-written (issue #366): save(values) is a callback property, set from script, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Save parameter, Func<IReadOnlyDictionary<string, JsonElement>, Task>. Not a mapped param: the generator only maps props, slots and events."
 }

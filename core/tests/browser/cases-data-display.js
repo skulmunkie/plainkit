@@ -539,4 +539,31 @@ export const dataDisplayCases = [
         await until(atBottom, 'the log keeps following across separate frames');
         t.ok(!el.paused, 'never paused itself while it was the one scrolling');
     }],
+    ['table (editable): Ctrl+Z undoes the last committed cell edit and Ctrl+Y redoes it, each through pk-cell-edit, and the value shows in the cell', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const seen = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.key}:${e.detail.previous}>${e.detail.value}`));
+        const press = (n, k, mods = {}) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }));
+        await until(() => cell(1, 'name')?.tabIndex === 0, 'the grid');
+        cell(1, 'name').focus(); press(cell(1, 'name'), 'Enter');
+        const input = await until(() => cell(1, 'name').querySelector('input'), 'the editor');
+        input.value = 'Widget XL'; press(input, 'Enter');
+        await until(() => cell(1, 'name').textContent === 'Widget XL', 'the edit to show');
+        cell(2, 'qty').focus(); press(cell(2, 'qty'), 'Enter');
+        const q = await until(() => cell(2, 'qty').querySelector('input'), 'the number editor');
+        q.value = '11'; press(q, 'Enter');
+        await until(() => cell(2, 'qty').textContent === '11', 'the number edit to show');
+        press(cell(2, 'qty'), 'z', { ctrlKey: true });
+        await until(() => cell(2, 'qty').textContent === '9', 'undo to restore 9');
+        t.eq(el.rows[1].qty, 9, 'undo went into the rows');
+        press(cell(2, 'qty'), 'z', { ctrlKey: true });
+        await until(() => cell(1, 'name').textContent === 'Widget', 'a second undo to restore the first edit');
+        press(cell(1, 'name'), 'y', { ctrlKey: true });
+        await until(() => cell(1, 'name').textContent === 'Widget XL', 'redo to reapply it');
+        t.eq(seen.join(), 'name:Widget>Widget XL,qty:9>11,qty:11>9,name:Widget XL>Widget,name:Widget>Widget XL', 'every step raised pk-cell-edit with its previous value');
+        el.addEventListener('pk-cell-edit', e => e.preventDefault());
+        press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
+        t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
+    }],
 ];

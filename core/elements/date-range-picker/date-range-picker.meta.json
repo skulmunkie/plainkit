@@ -51,6 +51,13 @@
       "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, year. Empty for none. A range is cut to min and max."
     },
     {
+      "name": "calendar",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Adds a calendar button after the end field that opens a pk-calendar in range mode in a pk-popover. The first click sets the start, the second the end and closes it; the fields stay, so the calendar is an addition and the native inputs are the fallback. Focus moves into the calendar on open, and Escape closes it and returns focus to the button."
+    },
+    {
       "name": "label",
       "type": "string",
       "default": "",
@@ -158,6 +165,18 @@
     {
       "name": "error",
       "description": "The inline error text (role=alert), hidden when the range is fine."
+    },
+    {
+      "name": "popover",
+      "description": "The calendar popover (a pk-popover), present with the calendar attribute."
+    },
+    {
+      "name": "opener",
+      "description": "The calendar button that opens the popover."
+    },
+    {
+      "name": "calendar",
+      "description": "The range pk-calendar inside the popover."
     }
   ],
   "cssProperties": [
@@ -187,11 +206,15 @@
       "description": "Empties both dates and raises pk-range-change."
     }
   ],
-  "a11y": "A role=group named by label with two native date inputs named Start date and End date (segments move with the arrow keys, the platform picker opens from the field). Quick ranges are buttons in a named group with aria-pressed on the one that matches the current range and disabled when they fall outside min and max. An invalid range sets aria-invalid on both fields and shows a role=alert message tied to them with aria-describedby. On a phone every control is at least 44px tall.",
+  "a11y": "A role=group named by label with two native date inputs named Start date and End date (segments move with the arrow keys, the platform picker opens from the field). Quick ranges are buttons in a named group with aria-pressed on the one that matches the current range and disabled when they fall outside min and max. An invalid range sets aria-invalid on both fields and shows a role=alert message tied to them with aria-describedby. With the calendar attribute the button carries the popover disclosure (aria-expanded, aria-haspopup=dialog), focus moves to the calendar day on open and returns to the button on Escape or after the range is chosen. On a phone every control is at least 44px tall.",
   "examples": [
     {
       "title": "Quick ranges",
       "html": "<pk-date-range-picker label=\"Reporting period\" start=\"2026-09-01\" end=\"2026-09-14\"></pk-date-range-picker>"
+    },
+    {
+      "title": "Calendar popover",
+      "html": "<pk-date-range-picker calendar label=\"Reporting period\" start=\"2026-09-08\" end=\"2026-09-17\"></pk-date-range-picker>"
     },
     {
       "title": "Limited to a window, no quick ranges",
