@@ -459,4 +459,55 @@ export const appCases = [
         t.eq(attempts, 2);
         page.destroy();
     }],
+
+    ['doc page type (#353): mounted and destroyed 100 times, each time showing an item, leaves no listener, observer, timer or element behind', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        const config = { items: [{ id: 'a', title: 'Alpha' }, { id: 'b', title: 'Beta' }], id: 'a', search: true, loadItem: id => ({ title: 'Doc ' + id, summary: 's', html: '<h2 id="x">Head</h2><p>text</p>' }), href: (id, anchor) => '/docs/' + id + (anchor ? '?anchor=' + anchor : '') };
+        const cycle = async () => {
+            const page = await mountPage(box, { type: 'doc', config });
+            const el = box.querySelector('pk-doc-page');
+            await t.load(box);
+            await until(() => /Doc a/.test(el.textContent) && !el.querySelector('pk-skeleton'), 'the item to render', 200);
+            page.destroy();
+            t.eq(box.children.length, 0, 'destroy removes the page');
+        };
+        await cycle(); await t.settle(); await wait(100);
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(100);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(JSON.stringify(after.listeners), JSON.stringify(before.listeners), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline');
+        t.eq(after.timers, before.timers, 'timers are back to the baseline');
+    }],
+
+    ['doc page type (#353): loading while loadItem() is pending, a rejection shows the danger alert with a working Retry, an unknown item shows not found', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let attempts = 0, release;
+        const page = await mountPage(box, { type: 'doc', config: { items: [{ id: 'a', title: 'Alpha' }], id: 'a', loadItem: id => {
+            if (id === 'gone') return null;
+            if (++attempts === 1) return new Promise((_, reject) => { release = () => reject(new Error('docs down')); });
+            return { title: 'Recovered', html: '<p>ok</p>' };
+        } } });
+        const el = box.querySelector('pk-doc-page');
+        await t.load(box);
+        const body = () => el.querySelector('.prose');
+        await until(() => body().querySelector('pk-skeleton'), 'the loading state');
+        release();
+        await until(() => body().querySelector('pk-alert'), 'the error state');
+        t.eq(body().querySelector('pk-alert').getAttribute('kind'), 'danger'); t.ok(/docs down/.test(body().textContent));
+        await t.load(body());
+        body().querySelector('pk-button').click();
+        await until(() => /ok/.test(body().textContent) && !body().querySelector('pk-alert'), 'Retry to recover');
+        t.eq(attempts, 2);
+        el.config = { ...el.config, id: 'gone' };
+        await until(() => /Not found/.test(el.querySelector('.doc-page-title').textContent) && /Not found/.test(body().textContent), 'the not-found state');
+        page.destroy();
+    }],
 ];

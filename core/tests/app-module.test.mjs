@@ -570,7 +570,7 @@ test('unknown page types and layouts, unknown module routes and route guards sho
         layouts: { own: (host) => host },
         routes: [
             { path: '/board', page: { type: 'board', config: { n: 3 } }, layout: 'framed' },
-            { path: '/record', page: 'wizard' },
+            { path: '/record', page: 'not-a-page-type' },
             { path: '/nolayout', page: 'custom', layout: 'nope' },
             { path: '/secret', page: 'custom', config: { mount: () => {} }, can: () => false },
             { path: '/gone', page: 'not-found' },
@@ -835,4 +835,25 @@ test("'master-detail' (step 7, #353) creates a pk-master-detail-page, selects th
     el2.open({ id: 3 }); el2.close();
     assert.deepEqual(go, ['/things/3', '/things'], 'row and Back navigate through ctx.navigate');
     assert.deepEqual(el2.load('q'), ['q', ctx]); assert.deepEqual(el2.mountDetail('p', '7'), ['p', '7', ctx]);
+});
+
+test("'doc' (step 7, #353) creates a pk-doc-page, takes id and anchor from the route, keeps loadItem/href as callbacks bound to ctx and sends pk-navigate through ctx.navigate", async () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; this.on = new Map(); } addEventListener(n, f) { this.on.set(n, f); } removeEventListener(n) { this.on.delete(n); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const factory = (await import('../js/app/pages/doc.js')).default;
+    const seen = [], host = new Host();
+    const cleanup = factory(host, { items: [{ id: 'a', title: 'A' }], search: true, loadItem: (id, ctx) => { seen.push(['load', id, ctx.tag]); return { title: id }; }, href: (id, anchor) => `/docs/${id}${anchor ? '?anchor=' + anchor : ''}` },
+        { tag: 'x', route: { params: { id: 'a' }, query: { anchor: 'h2' } }, navigate: (p, o) => seen.push(['nav', p, o]) });
+    const el = host.children[0];
+    assert.equal(el.localName, 'pk-doc-page');
+    assert.deepEqual(el.config, { items: [{ id: 'a', title: 'A' }], search: true, id: 'a', anchor: 'h2' }, 'callbacks are not config data');
+    assert.deepEqual(el.loadItem('a'), { title: 'a' });
+    assert.equal(el.href('a', 'h2'), '/docs/a?anchor=h2');
+    el.on.get('pk-navigate')({ detail: { id: 'a', anchor: 'h3', replace: false } });
+    assert.deepEqual(seen, [['load', 'a', 'x'], ['nav', '/docs/a?anchor=h3', { replace: false }]]);
+    cleanup();
+    assert.deepEqual(host.children, []); assert.equal(el.on.size, 0, 'the listener is removed');
+    const bare = new Host(); factory(bare, {}, {});
+    assert.equal(bare.children[0].config.id, null, 'no route param: the home list');
+    assert.equal(bare.children[0].loadItem, undefined);
 });

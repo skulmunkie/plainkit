@@ -20,7 +20,7 @@
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
 // Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
-// 'list', 'dashboard', 'workspace', 'master-detail' and 'record' are built in (each a chunk in js/app/pages/, below), the rest arrive later. Extend the set three ways, all through the same factory shape
+// 'list', 'dashboard', 'workspace', 'master-detail', 'record' and 'doc' are built in (each a chunk in js/app/pages/, below), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -108,7 +108,7 @@ export const registerLayout = (id, factory) => register(layouts, 'layout', id, f
 
 // The built-in page types live in js/app/pages/<id>.js (a default-exported factory each), fetched by the first route that names one (#346). pageTypeFor stays
 // synchronous: a built-in answers a wrapper whose promise (awaited by the host and mountPage) is the factory's own result; a failed import rejects it, so the boundary shows it like any page error.
-const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record'].map(id => [id, (host, config, ctx) => import(`./pages/${id}.js`).then(m => m.default(host, config, ctx))]));
+const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc'].map(id => [id, (host, config, ctx) => import(`./pages/${id}.js`).then(m => m.default(host, config, ctx))]));
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));
