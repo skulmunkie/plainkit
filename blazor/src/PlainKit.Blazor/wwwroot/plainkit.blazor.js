@@ -92,6 +92,13 @@ export const setThemeMode = (container, name) => mounted.get(container)?.setThem
 // A pk-form wraps a native <form>: either element can be passed.
 export const formValues = el => Object.fromEntries([...new FormData(el instanceof HTMLFormElement ? el : el.querySelector('form'))].filter(([, v]) => typeof v === 'string'));
 
+// Browser storage for IPkStore (PkStorage): only keys in the store's `pk.` namespace; a blocked storage throws and the .NET side keeps the state in memory.
+const storageKey = key => { if (typeof key !== 'string' || !key.startsWith('pk.')) throw new TypeError('storage key outside the pk. namespace'); return key; };
+export const storageGet = key => localStorage.getItem(storageKey(key));
+export const storageSet = (key, value) => localStorage.setItem(storageKey(key), value);
+// The theme IPkTheme applies (the same attribute js/theme.js setTheme writes).
+export const applyTheme = name => document.documentElement.setAttribute('data-theme', name === 'light' ? 'light' : 'dark');
+
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {
     return (await import('./plainkit/js/version.js')).PK_VERSION;

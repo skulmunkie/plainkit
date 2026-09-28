@@ -1,6 +1,6 @@
 ---
 title: Responsive design and breakpoints
-order: 5
+order: 6
 summary: The three named breakpoints (phone, tablet, wide), what the elements already do at each, how to respond in your own CSS and scripts, and how a different set is built.
 ---
 
