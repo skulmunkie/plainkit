@@ -2,8 +2,22 @@
   "tag": "pk-field-list",
   "title": "Field list",
   "group": "Data display",
-  "summary": "A titled description list: term and value pairs as slotted dt and dd, beside each other, stacked or run in; with dividers and a dense mode.",
+  "summary": "A titled description list: term and value pairs as slotted dt and dd, or a data-driven items property, beside each other, stacked or run in; with dividers and a dense mode.",
   "props": [
+    {
+      "name": "items",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Data-driven rows, rendered as dt/dd pairs alongside any slotted ones: { label, value, hidden?, href? }[]. value is text only (no HTML); a rich value still uses the slot form. A row with an empty value (null, undefined or '') hides itself unless showEmpty is set; hidden always hides it. href renders value as a link."
+    },
+    {
+      "name": "showEmpty",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows items rows whose value is empty instead of hiding them (issue #207)."
+    },
     {
       "name": "heading",
       "type": "string",
@@ -47,7 +61,7 @@
   "slots": [
     {
       "name": "",
-      "description": "dt and dd pairs; a dd may hold chips, links or code."
+      "description": "dt and dd pairs; a dd may hold chips, links or code. Renders alongside any items rows."
     },
     {
       "name": "heading",
@@ -67,6 +81,22 @@
     {
       "name": "list",
       "description": "The description list."
+    },
+    {
+      "name": "items",
+      "description": "The wrapper around the rows rendered from the items property."
+    },
+    {
+      "name": "term",
+      "description": "A dt rendered from an items row."
+    },
+    {
+      "name": "value",
+      "description": "A dd rendered from an items row."
+    },
+    {
+      "name": "value-link",
+      "description": "The link inside a value, when an items row has an href."
     }
   ],
   "cssProperties": [
@@ -87,7 +117,7 @@
     }
   ],
   "methods": [],
-  "a11y": "A real description list: slotted dt and dd are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
+  "a11y": "A real description list: slotted dt and dd, and rows rendered from items, are exposed as terms and definitions. The heading names the section. Below 640px the pairs stack.",
   "examples": [
     {
       "title": "Product fields",
@@ -96,8 +126,12 @@
     {
       "title": "Stacked, dense",
       "html": "<pk-field-list layout=\"stacked\" dense>\n  <dt>Cost</dt><dd>$2.10</dd>\n</pk-field-list>"
+    },
+    {
+      "title": "Data-driven items",
+      "html": "<pk-field-list heading=\"Order\" items='[{\"label\":\"Order\",\"value\":\"A-1042\"},{\"label\":\"PO\",\"value\":\"\"},{\"label\":\"Tracking\",\"value\":\"1Z999\",\"href\":\"#\"}]'></pk-field-list>"
     }
   ],
   "contentStyles": [],
-  "contentStylesNote": "Slotted dt and dd are styled from the shadow root with ::slotted (they are direct children). Anything inside them (a code element, an info tip) is light DOM and takes the page styles."
+  "contentStylesNote": "Slotted dt and dd are styled from the shadow root with ::slotted (they are direct children). Anything inside them (a code element, an info tip) is light DOM and takes the page styles. Rows from items are shadow-tree dt/dd the element owns and styles directly (parts term/value/value-link); their value is set as text, never parsed as markup."
 }
