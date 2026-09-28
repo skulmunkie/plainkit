@@ -19,8 +19,9 @@ export function hostDeclarations(css) {
     return new Set(m[1].split(';').map(d => d.split(':')[0]?.trim().toLowerCase()).filter(Boolean));
 }
 
-// An explicit inline size: `inline-size`, `width`, or a shorthand that sets one (`inset-inline`/`inset` are position, not size, so excluded on purpose).
-const SIZE_PROPS = ['inline-size', 'width', 'min-inline-size', 'min-width'];
+// An explicit inline size: `inline-size` or `width`. `min-inline-size`/`min-width` alone only constrain the minimum — they don't establish an
+// actual size, so they don't prevent the 0-width collapse (issue #412) and are not accepted as a substitute here.
+const SIZE_PROPS = ['inline-size', 'width'];
 
 test('hostDeclarations reads the plain :host rule, not :host(...)', () => {
     assert.deepEqual(hostDeclarations(':host { display: block; container-type: inline-size; }'), new Set(['display', 'container-type']));
