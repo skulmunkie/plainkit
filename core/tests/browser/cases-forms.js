@@ -4,6 +4,8 @@ const ev = (type, init = {}) => new Event(type, { bubbles: true, composed: true,
 const press = (el, key) => { const e = new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
 const type = async (t, inner, text) => { inner.value = text; inner.dispatchEvent(ev('input')); await t.settle(); };
 
+const ready = async t => { for (const n of ['pk-popover', 'pk-button', 'pk-calendar']) await customElements.whenDefined(n); await t.settle(); await t.settle(); };
+
 export const formCases = [
     ['field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
         const { mountFieldGroup } = await import('../../modules/field-group/field-group.js');
@@ -433,7 +435,7 @@ export const formCases = [
         await new Promise(r => setTimeout(r, 200)); t.eq(f.contentWindow.innerWidth, 375);
         for (const b of buttons) { const r = b.part('control').getBoundingClientRect(); t.ok(r.width >= 43.5 && r.height >= 43.5, `${b.getAttribute('size') ?? 'link'} is ${r.width}x${r.height}, not under 44px`); if (!b.querySelector('pk-icon')) t.eq(b.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0, 'the text takes no room'); }
     }],
-    ['property-grid unit: the unit picker shares the number input's row, changing it emits { value, unit }, and an out-of-range value shows its message', async t => {
+    ['property-grid unit: the unit picker shares the row of the number input, changing it emits { value, unit }, and an out-of-range value shows its message', async t => {
         const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
         const g = host.querySelector('pk-property-grid');
         g.config = { groups: [{ heading: 'Size', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 0, max: 100 }] }] };
@@ -447,5 +449,54 @@ export const formCases = [
         const got = []; g.addEventListener('pk-property-change', e => got.push(e.detail));
         unit.value = 'px'; unit.dispatchEvent(ev('pk-value-change')); await t.settle();
         t.eq(JSON.stringify(got.at(-1)?.value), JSON.stringify({ value: 140, unit: 'px' }));
+    }],
+
+    ['date-range-picker calendar: the opener opens a range calendar under the field, focus moves in, two picks set the range, commit once and close', async t => {
+        const el = await t.mount('<pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
+        await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);
+        const got = []; el.addEventListener('pk-range-change', e => got.push(e.detail));
+        t.ok(!pop.open && getComputedStyle(pop.part('panel')).display === 'none', 'closed at rest');
+        opener.click(); await t.settle();
+        t.ok(pop.open, 'the opener opens the popover'); t.eq(opener.getAttribute('aria-expanded'), 'true');
+        const panel = pop.part('panel').getBoundingClientRect(), field = el.part('fields').getBoundingClientRect();
+        t.ok(panel.top >= field.bottom - 1 && panel.width > 200, 'the panel sits under the fields and holds a whole month');
+        t.eq(cal.shadowRoot.activeElement?.dataset.date, '2026-09-08', 'focus moves onto the start day of the calendar');
+        t.eq(day('2026-09-12').dataset.range, 'mid', 'the calendar shows the picker range');
+        day('2026-09-12').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true })); await t.settle();
+        t.ok(pop.open, 'a press inside the calendar does not close the popover');
+        day('2026-09-20').click(); await t.settle(); t.ok(pop.open && got.length === 0, 'the first click only sets the start');
+        day('2026-09-25').click(); await t.settle();
+        t.ok(!pop.open, 'the second click closes it'); t.eq(got.length, 1, 'one pk-range-change');
+        t.eq(JSON.stringify(got[0]), JSON.stringify({ start: '2026-09-20', end: '2026-09-25', valid: true }));
+        t.eq(el.start, '2026-09-20'); t.eq(el.end, '2026-09-25'); t.eq(el.part('start').value, '2026-09-20', 'the native field follows');
+        t.ok(el.part('opener').matches(':focus-within') || el.shadowRoot.activeElement === opener, 'focus returns to the opener');
+    }],
+
+    ['date-range-picker calendar: Escape closes and returns focus (a pending start first), min and max reach the calendar, typing in the fields updates it, no calendar attribute means no opener', async t => {
+        const el = await t.mount('<pk-date-range-picker calendar min="2026-09-05" max="2026-09-25" start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
+        await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);
+        opener.click(); await t.settle();
+        t.ok(day('2026-09-03').disabled && day('2026-09-28').disabled && !day('2026-09-10').disabled, 'min and max disable days in the calendar');
+        day('2026-09-10').click(); await t.settle();
+        t.key(day('2026-09-10'), 'Escape'); await t.settle();
+        t.ok(pop.open && el.start === '2026-09-08' && el.end === '2026-09-17', 'the first Escape gives the pending start up and the range stays');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await t.settle();
+        t.ok(!pop.open, 'the next Escape closes'); t.eq(el.shadowRoot.activeElement?.getAttribute('slot') ?? el.shadowRoot.activeElement?.part?.value, 'trigger', 'focus is back on the opener');
+        el.part('end').value = '2026-09-22'; el.part('end').dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(cal.end, '2026-09-22', 'a typed date reaches the calendar');
+        const plain = await t.mount('<pk-date-range-picker></pk-date-range-picker>');
+        t.ok(getComputedStyle(plain.part('popover')).display === 'none', 'without the attribute the opener is not drawn');
+        const off = await t.mount('<pk-date-range-picker calendar disabled></pk-date-range-picker>'); await ready(t);
+        t.ok(off.part('opener').disabled, 'a disabled picker disables the opener');
+    }],
+
+    ['date-range-picker calendar: right to left mirrors the panel under the field, and a phone keeps it inside the viewport', async t => {
+        const el = await t.mount('<div dir="rtl"><pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div>');
+        const picker = el.querySelector('pk-date-range-picker'); await ready(t); picker.part('opener').click(); await t.settle(); await new Promise(r => setTimeout(r, 200));
+        const panel = picker.part('popover').part('panel').getBoundingClientRect(), vw = document.documentElement.clientWidth;
+        t.ok(panel.left >= 0 && panel.right <= vw + 1, `the panel (${Math.round(panel.left)}..${Math.round(panel.right)}) stays inside the viewport (${vw})`);
+        const opener = picker.part('opener').getBoundingClientRect(), fields = picker.part('fields').getBoundingClientRect();
+        t.ok(opener.left >= fields.left - 1 && opener.right <= fields.right + 1, 'the opener sits inside the fields row');
+        t.ok(opener.right <= picker.part('end').getBoundingClientRect().left + 1, 'in right to left the opener is after the end field, at its left');
     }],
 ];

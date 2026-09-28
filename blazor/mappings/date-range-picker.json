@@ -46,6 +46,11 @@
       "type": "string"
     },
     {
+      "name": "Calendar",
+      "prop": "calendar",
+      "type": "bool"
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"
