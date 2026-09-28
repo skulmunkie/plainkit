@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ tiles, sections? }. tiles is [{ key, label, kind: 'stat'|'chart', empty? }][] - key identifies the tile (passed to load(key)), label becomes the pk-stat label or pk-chart caption, kind picks the composed element (default stat), empty is the empty-state text shown when there is no load callback. sections is [{ heading?, tiles: string[] }][], each naming the keys it groups, in the order to render them; without sections every tile in config.tiles renders in one ungrouped grid, in array order."
+      "description": "{ tiles, sections?, empty? }. tiles is [{ key, label, kind: 'stat'|'chart', empty? }][] - key identifies the tile (passed to load(key)), label becomes the pk-stat label or pk-chart caption, kind picks the composed element (default stat), empty is the empty-state text shown when there is no load callback. sections is [{ heading?, tiles: string[] }][], each naming the keys it groups, in the order to render them; without sections every tile in config.tiles renders in one ungrouped grid, in array order. empty is { heading?, description? } shown in place of the whole grid when tiles is empty."
     }
   ],
   "slots": [],

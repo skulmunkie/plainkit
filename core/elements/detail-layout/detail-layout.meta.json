@@ -100,15 +100,15 @@
   "examples": [
     {
       "title": "Order detail",
-      "html": "<pk-detail-layout>\n  <pk-page-header heading=\"Order 1042\"></pk-page-header>\n  <p>Line items go here.</p>\n  <div slot=\"sidebar\">\n    <pk-card><h3>Status</h3><p>Shipped</p></pk-card>\n    <pk-card><h3>Customer</h3><p>Ada Lovelace</p></pk-card>\n  </div>\n</pk-detail-layout>"
+      "html": "<pk-detail-layout>\n  <pk-page-header heading=\"Order 1042\"></pk-page-header>\n  <p>Line items go here.</p>\n  <pk-card slot=\"sidebar\"><h3>Status</h3><p>Shipped</p></pk-card>\n  <pk-card slot=\"sidebar\"><h3>Customer</h3><p>Ada Lovelace</p></pk-card>\n</pk-detail-layout>"
     },
     {
       "title": "Sidebar first, two-up once collapsed",
-      "html": "<pk-detail-layout sidebar-first sidebar-two-up>\n  <p>Main content.</p>\n  <div slot=\"sidebar\">\n    <pk-card><h3>Total</h3><p>$412.00</p></pk-card>\n    <pk-card><h3>Items</h3><p>3</p></pk-card>\n  </div>\n</pk-detail-layout>"
+      "html": "<pk-detail-layout sidebar-first sidebar-two-up>\n  <p>Main content.</p>\n  <pk-card slot=\"sidebar\"><h3>Total</h3><p>$412.00</p></pk-card>\n  <pk-card slot=\"sidebar\"><h3>Items</h3><p>3</p></pk-card>\n</pk-detail-layout>"
     },
     {
       "title": "Record page with phone tabs",
-      "html": "<pk-detail-layout>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n  <div slot=\"sidebar\">\n    <pk-card heading=\"Status\" data-pk-section=\"details\"><p>Active</p></pk-card>\n    <pk-card heading=\"Channels\" data-pk-section=\"pricing\"><p>Web, store</p></pk-card>\n  </div>\n</pk-detail-layout>"
+      "html": "<pk-detail-layout>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Status\" data-pk-section=\"details\"><p>Active</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Channels\" data-pk-section=\"pricing\"><p>Web, store</p></pk-card>\n</pk-detail-layout>"
     }
   ],
   "writes": [
