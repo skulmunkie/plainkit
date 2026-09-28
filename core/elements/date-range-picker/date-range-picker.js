@@ -81,7 +81,7 @@ export default Base => class extends Base {
         pop.addEventListener('pk-open', ev => {
             ev.stopPropagation();
             cal.month = cleanIso(this.start);
-            queueMicrotask(() => cal.focus());
+            queueMicrotask(() => cal.focus({ focusVisible: true }));
         });
         pop.addEventListener('pk-close', ev => { ev.stopPropagation(); if (ev.detail.reason === 'escape') opener.focus(); });
     }

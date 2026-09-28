@@ -1,15 +1,15 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace PlainKit.Blazor;
 
-/// <summary>What JavaScript calls when a page element runs a callback property (<c>run</c>, <c>save</c>): the element's values in, an optional result out.</summary>
-internal sealed class PkCallbackHost(Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>> call)
+/// <summary>What JavaScript calls when a page element runs a callback property: the one argument the element passes (its values for <c>run</c> and <c>save</c>, a query for <c>load</c>) in, an optional result out.</summary>
+/// <typeparam name="TArg">What the element passes, deserialised from JSON.</typeparam>
+internal sealed class PkCallbackHost<TArg>(Func<TArg, Task<object?>> call)
 {
-    /// <summary>The values the element holds, keyed by field key.</summary>
+    /// <summary>The argument the element passed.</summary>
     [JSInvokable]
-    public Task<object?> Invoke(Dictionary<string, JsonElement> values) => call(values);
+    public Task<object?> Invoke(TArg argument) => call(argument);
 }
 
 /// <summary>
@@ -18,21 +18,22 @@ internal sealed class PkCallbackHost(Func<IReadOnlyDictionary<string, JsonElemen
 /// </summary>
 internal sealed class PkCallbackSlot(string name) : IDisposable
 {
-    private DotNetObjectReference<PkCallbackHost>? _ref;
+    private IDisposable? _ref;
 
-    /// <summary>Makes the element's property <c>name</c> call <paramref name="call"/> while <paramref name="wanted"/>, and removes it otherwise.</summary>
-    public async Task SyncAsync(IJSObjectReference bridge, ElementReference element, bool wanted, Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>> call)
+    /// <summary>Makes the element's property <c>name</c> call <paramref name="call"/> while <paramref name="wanted"/>, and removes it otherwise. <paramref name="refresh"/> asks the element to redraw once the callback is set (a list that already showed its empty state).</summary>
+    public async Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, Task<object?>> call, bool refresh = false)
     {
         if (wanted == (_ref is not null)) return;
         if (wanted)
         {
-            _ref = DotNetObjectReference.Create(new PkCallbackHost(call));
-            await bridge.InvokeVoidAsync("setCallback", element, name, _ref);
+            var reference = DotNetObjectReference.Create(new PkCallbackHost<TArg>(call));
+            _ref = reference;
+            await bridge.InvokeVoidAsync("setCallback", element, name, reference, refresh);
         }
         else
         {
             Dispose();
-            await bridge.InvokeVoidAsync("setCallback", element, name, null);
+            await bridge.InvokeVoidAsync("setCallback", element, name, null, false);
         }
     }
 

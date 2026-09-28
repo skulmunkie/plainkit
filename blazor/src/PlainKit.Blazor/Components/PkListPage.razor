@@ -1,0 +1,43 @@
+@namespace PlainKit.Blazor
+@typeparam TItem
+@using System.Text.Json
+@inherits PkElementBase
+@implements IDisposable
+
+@* Hand-written (blazor/mappings/list-page.json marks it "existing"): the element's load(query) is a callback property, set from script, so this
+   component hands it a .NET reference (PkCallbackSlot) that calls Load with the page, sort, search and filters the element holds. A Load that
+   throws rejects the JavaScript promise, which the element shows as its own error state with Retry. *@
+<pk-list-page config="@Config"
+              @ref="Element"
+              class="@Css()"
+              @attributes="Splat"></pk-list-page>
+
+@code {
+    [Inject] private PkRuntime Runtime { get; set; } = default!;
+
+    private readonly PkCallbackSlot _load = new("load");
+
+    /// <summary>{ columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, heading?, breadcrumb? }, sent as a JSON attribute. A column <c>key</c> names a property of <typeparamref name="TItem"/> in camel case (<c>orderNo</c> for <c>OrderNo</c>).</summary>
+    [Parameter] public string? Config { get; set; } = "{}";
+
+    /// <summary>
+    /// Loads one page of the list for the request's page, sort, search and filters, and returns its items and the total count of the whole (searched) list.
+    /// Throwing shows the element's error state with Retry; zero items show the configured empty state. Called again on every sort, search, filter or page change.
+    /// </summary>
+    [Parameter] public Func<PkListRequest, Task<PkListResult<TItem>>>? Load { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        // The callback delegates to the current Load, so a new delegate needs no new setup; only set versus unset matters.
+        await _load.SyncAsync<PkListPageQuery>(await Runtime.BridgeAsync(Assets), Element, Load is not null, async query =>
+        {
+            var result = await Load!(query.ToRequest());
+            return new { rows = result.Items, total = result.Total };
+        }, refresh: true);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _load.Dispose();
+}
