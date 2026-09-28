@@ -1,0 +1,135 @@
+{
+  "tag": "pk-frame",
+  "title": "Frame",
+  "group": "Media",
+  "summary": "A sandboxed iframe (an inline srcdoc document or a same-site src) with named width presets and a light/dark theme hand-off.",
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The framed document's accessible name; warns once when empty."
+    },
+    {
+      "name": "html",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An inline document, written as the frame's srcdoc. Ignored when src is set."
+    },
+    {
+      "name": "src",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A same-site path or an http(s) address to load; takes priority over html."
+    },
+    {
+      "name": "sandbox",
+      "type": "string",
+      "default": "allow-scripts",
+      "reflect": false,
+      "description": "Space-separated sandbox tokens. allow-same-origin is dropped when allow-scripts is also present, unless allowSameOrigin opts in."
+    },
+    {
+      "name": "allowSameOrigin",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Adds allow-same-origin to sandbox even alongside allow-scripts; only for a trusted, cooperating document."
+    },
+    {
+      "name": "preset",
+      "type": "enum",
+      "default": "full",
+      "values": [
+        "phone",
+        "tablet",
+        "desktop",
+        "full"
+      ],
+      "reflect": true,
+      "description": "A named width cap from tokens/breakpoints.json (phone, tablet, desktop -> the wide breakpoint) or full (no cap)."
+    },
+    {
+      "name": "height",
+      "type": "string",
+      "default": "auto",
+      "reflect": false,
+      "description": "auto keeps a fallback height until a cooperating document posts pk-frame-resize; any other value is a CSS length."
+    },
+    {
+      "name": "theme",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "light",
+        "dark",
+        "inherit"
+      ],
+      "reflect": true,
+      "description": "Handed to a cooperating document as ?pk-theme= on a same-origin src and as a postMessage; inherit sends nothing."
+    },
+    {
+      "name": "loading",
+      "type": "enum",
+      "default": "lazy",
+      "values": [
+        "lazy",
+        "eager"
+      ],
+      "reflect": true,
+      "description": "The native iframe loading mode."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-frame-load",
+      "detail": {},
+      "description": "The framed document finished loading."
+    },
+    {
+      "name": "pk-frame-resize",
+      "detail": {
+        "height": "number"
+      },
+      "description": "A cooperating document reported its height (height=\"auto\" only)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "frame",
+      "description": "The iframe."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-frame-background",
+      "description": "Frame background before the document paints.",
+      "default": "var(--color-surface-alt)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "resolveSandbox(sandbox, allowSameOrigin)",
+      "description": "The sandbox token string actually applied."
+    },
+    {
+      "name": "withThemeParam(url, theme, base)",
+      "description": "url with ?pk-theme= appended when it is same-origin with base."
+    }
+  ],
+  "a11y": "title is the framed document's accessible name (like an ordinary iframe title, required for assistive tech); pk-frame warns once when it is empty. The framed document is a separate document for a screen reader - its own headings and landmarks are not part of this page's outline. Reduced motion: pk-frame never animates the resize itself, so it respects whatever the OS setting already does to the surrounding page.",
+  "examples": [
+    {
+      "title": "Inline document, tablet width",
+      "html": "<pk-frame title=\"Preview\" preset=\"tablet\" html='<!doctype html><body>Hello from the frame</body>'></pk-frame>"
+    },
+    {
+      "title": "Full width",
+      "html": "<pk-frame title=\"Wide preview\" preset=\"full\" html='<!doctype html><body>A full-width sandboxed document</body>'></pk-frame>"
+    }
+  ]
+}

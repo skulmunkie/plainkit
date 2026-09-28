@@ -584,4 +584,29 @@ export const dataDisplayCases = [
         await until(() => cell(2, 'qty').querySelector('[data-cell-error]'), 'the message');
         t.eq(widths().join(), before.join(), 'the validation message changed a column width');
     }],
+    ['frame: the default sandbox is allow-scripts alone, a preset caps the width to the named breakpoint, and the framed document loads', async t => {
+        const { breakpoint } = await import('../../js/breakpoints.js');
+        const host = t.stage(`<pk-frame title="Preview" html="&lt;!doctype html&gt;&lt;body&gt;hi&lt;/body&gt;"></pk-frame>`);
+        await t.load(host);
+        const el = host.querySelector('pk-frame');
+        const frame = () => el.shadowRoot.querySelector('[part="frame"]');
+        const loaded = new Promise(r => el.addEventListener('pk-frame-load', r, { once: true }));
+        await loaded;
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts', 'the default sandbox never carries allow-same-origin');
+        t.eq(frame().hasAttribute('src'), false, 'an inline document sets srcdoc, not src');
+        t.ok(frame().srcdoc.includes('hi'), 'the html prop became the frame srcdoc');
+        // sandbox="allow-scripts" alone (no allow-same-origin) makes the framed document an opaque origin: contentDocument is not
+        // reachable from here, by design - which is what the resize/theme contract (postMessage) is for.
+        t.eq(frame().contentDocument, null, 'the sandboxed document is not readable from the host page');
+        for (const [preset, name] of [['phone', 'phone'], ['tablet', 'tablet'], ['desktop', 'wide']]) {
+            el.setAttribute('preset', preset); await t.settle();
+            t.eq(frame().style.maxInlineSize, `${breakpoint(name)}px`, `preset=${preset} caps the width at the ${name} breakpoint`);
+        }
+        el.setAttribute('preset', 'full'); await t.settle();
+        t.eq(frame().style.maxInlineSize, '', 'preset=full has no width cap');
+        el.setAttribute('sandbox', 'allow-scripts allow-same-origin'); await t.settle();
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts', 'allow-same-origin is dropped without allow-same-origin opted in');
+        el.setAttribute('allow-same-origin', ''); await t.settle();
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts allow-same-origin', 'allow-same-origin opts the combination back in');
+    }],
 ];
