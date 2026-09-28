@@ -60,6 +60,33 @@
       "default": false,
       "reflect": true,
       "description": "Fills a flex parent (a workspace pane): the card takes the remaining height, has no padding, and its body is the scroll region."
+    },
+    {
+      "name": "state",
+      "type": "enum",
+      "default": "ready",
+      "values": [
+        "ready",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "reflect": true,
+      "description": "Which body shows. ready shows the slotted content; loading, empty and error hide it and draw the matching built-in state (a labelled skeleton, pk-empty-state, a danger pk-alert) in its place. The heading, actions, footer and media are unchanged in every state. For error, set the retry callback property (business logic, never an attribute, called with no arguments) to show a Retry action."
+    },
+    {
+      "name": "stateHeading",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Heading of the empty or error state (the loading skeleton uses it as its label). Sensible defaults apply when empty."
+    },
+    {
+      "name": "stateDescription",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Explanation shown under the empty or error state heading."
     }
   ],
   "slots": [
@@ -97,6 +124,10 @@
     {
       "name": "body",
       "description": "The body wrapper."
+    },
+    {
+      "name": "state",
+      "description": "The loading, empty or error state; shown instead of the body when state is not ready."
     },
     {
       "name": "footer",
@@ -138,7 +169,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The title is exposed as a heading whose level you choose with level, so the card fits the page outline wherever it sits. With href the card holds one link named by the heading, so there is a single tab stop and no nested interactive content.",
+  "a11y": "The title is exposed as a heading whose level you choose with level, so the card fits the page outline wherever it sits. With href the card holds one link named by the heading, so there is a single tab stop and no nested interactive content. A loading state is announced by its pk-skeleton and an error by its pk-alert, so the card adds no live region of its own.",
   "examples": [
     {
       "title": "Titled card with an action",
@@ -151,6 +182,18 @@
     {
       "title": "Media, horizontal",
       "html": "<pk-card heading=\"Widget 1\" orientation=\"horizontal\">\n  <svg slot=\"media\" viewBox=\"0 0 4 3\" role=\"img\" aria-label=\"Cover\"><rect width=\"4\" height=\"3\" fill=\"currentColor\" opacity=\"0.15\"></rect></svg>\n  <p>First printing, near mint.</p>\n</pk-card>"
+    },
+    {
+      "title": "Loading",
+      "html": "<pk-card heading=\"Revenue\" state=\"loading\" state-heading=\"Loading revenue\"></pk-card>"
+    },
+    {
+      "title": "Empty",
+      "html": "<pk-card heading=\"Recent orders\" state=\"empty\" state-heading=\"No orders yet\" state-description=\"Orders appear here once a customer checks out.\"></pk-card>"
+    },
+    {
+      "title": "Error (set the retry callback as a property to add Retry)",
+      "html": "<pk-card heading=\"Revenue\" state=\"error\" state-heading=\"Could not load revenue\" state-description=\"The request timed out.\"></pk-card>"
     }
   ]
 }
