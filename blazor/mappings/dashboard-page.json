@@ -7,8 +7,8 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { tiles: [{ key, label, kind?: 'stat'|'chart', empty? }], sections?: [{ heading?, tiles: string[] }] }."
+      "note": "Sent as a JSON attribute: { tabs?: [{ id, label }], widgets: [{ key, tab?, label, kind?: 'stat'|'chart', empty? }], sections?: [{ heading?, tab?, widgets: string[] }], filters?: [{ key, type, label, options? }], empty? }. Breaking: this replaces the earlier { tiles } shape."
     }
   ],
-  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352). Load is a callback property (business logic), not a Blazor parameter mapped here yet - it needs JS interop from the component (Func<string, Task<object>> or similar, called once per tile key, independently); left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and RowHref, PkToolPage's Run and PkSettingsPage's Save callbacks."
+  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load is a callback property (business logic), not a Blazor parameter mapped here yet - it needs JS interop from the component (Func<string, Task<object>> or similar, called once per widget key, independently, with the current filter selections available as the page's context); left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and RowHref, PkToolPage's Run and PkSettingsPage's Save callbacks."
 }

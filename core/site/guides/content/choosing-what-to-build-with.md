@@ -31,7 +31,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | `PkFieldList`, `PkStat` |
 | Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | `PkForm` with `PkFormSection` |
 | Long form built from a list of fields | Pattern `forms` for the controls | `PkFieldGroup` with `PkFieldSpec` |
-| Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart` | `PkStat`, `PkChart` |
+| Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | `PkStat`, `PkChart`, `PkDashboardPage` |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `PkAppBarSearch`, `PkCommandPalette` |
 | Filtered table | Pattern `filter-table`; element `pk-table-filters` | `PkTableFilters`, `PkDataList` |
 | Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | `PkStepper` |

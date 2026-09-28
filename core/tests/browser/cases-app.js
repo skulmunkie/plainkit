@@ -195,30 +195,58 @@ export const appCases = [
         await host.destroy();
     }],
 
-    ['pk-dashboard-page: each tile is its own async boundary - a fast tile and a rejecting tile settle immediately while a slow sibling is still loading, and the slow tile finishing does not touch what the others already drew (#436)', async t => {
+    ['pk-dashboard-page: each widget is its own pk-card async boundary - a fast widget and a rejecting widget settle immediately while a slow sibling is still loading, and the slow one finishing does not touch what the others already drew (#436, #489)', async t => {
         const el = document.createElement('pk-dashboard-page');
-        el.config = { tiles: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };
+        el.config = { widgets: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };
         const SLOW_MS = 300;
         el.load = async key => {
             if (key === 'slow') { await wait(SLOW_MS); return { value: '2' }; }
-            if (key === 'bad') throw new Error('tile boom');
+            if (key === 'bad') throw new Error('widget boom');
             return { value: '1' };
         };
         const host = t.stage(''); host.append(el);
         await t.load(host);
         await t.settle();
-        const tileBox = key => el.shadowRoot.querySelector(`[part="tile"][data-key="${key}"]`);
+        const card = key => el.shadowRoot.querySelector(`pk-card[data-key="${key}"]`);
         const started = performance.now();
-        t.ok(tileBox('fast').querySelector('pk-stat'), 'the fast tile rendered without waiting for the slow one');
-        t.eq(tileBox('fast').querySelector('pk-stat').value, '1');
-        t.ok(tileBox('bad').querySelector('pk-alert'), 'the rejecting tile shows its own error, not a stuck skeleton');
+        t.ok(card('fast').querySelector('pk-stat'), 'the fast widget rendered without waiting for the slow one');
+        t.eq(card('fast').querySelector('pk-stat').value, '1');
+        t.eq(card('bad').state, 'error', 'the rejecting widget shows its own error, not a stuck skeleton');
+        t.ok(card('bad').shadowRoot.querySelector('[part="state"] pk-alert'), 'the error is drawn by the card');
         const elapsed = performance.now() - started;
-        t.ok(elapsed < SLOW_MS, `the fast and bad tiles were already settled well before the slow tile's ${SLOW_MS}ms load could finish (checked after ${elapsed.toFixed(0)}ms)`);
-        t.ok(tileBox('slow').querySelector('pk-skeleton'), 'the slow tile is still loading');
-        await until(() => tileBox('slow').querySelector('pk-stat'), 'the slow tile to resolve');
-        t.eq(tileBox('slow').querySelector('pk-stat').value, '2');
-        t.eq(tileBox('fast').querySelector('pk-stat').value, '1', 'the fast tile was never touched by the slow tile settling');
-        t.ok(tileBox('bad').querySelector('pk-alert'), 'the bad tile was never touched by the slow tile settling');
+        t.ok(elapsed < SLOW_MS, `the fast and bad widgets were already settled well before the slow one's ${SLOW_MS}ms load could finish (checked after ${elapsed.toFixed(0)}ms)`);
+        t.eq(card('slow').state, 'loading', 'the slow widget is still loading');
+        await until(() => card('slow').querySelector('pk-stat'), 'the slow widget to resolve');
+        t.eq(card('slow').querySelector('pk-stat').value, '2');
+        t.eq(card('fast').querySelector('pk-stat').value, '1', 'the fast widget was never touched by the slow one settling');
+        t.eq(card('bad').state, 'error', 'the bad widget was never touched by the slow one settling');
+    }],
+
+    ['pk-dashboard-page tabs (#489): a tab that was never opened never calls load(), opening it loads its widgets once, a revisit reloads nothing, and a filter change reloads only widgets that already loaded', async t => {
+        const el = document.createElement('pk-dashboard-page');
+        el.config = {
+            tabs: [{ id: 'one', label: 'One' }, { id: 'two', label: 'Two' }],
+            widgets: [{ key: 'a', tab: 'one', label: 'A' }, { key: 'b', tab: 'two', label: 'B' }],
+            filters: [{ key: 'range', type: 'select', label: 'Range', options: ['7d', '30d'] }],
+        };
+        const calls = [];
+        el.load = async function (key) { calls.push(key + ':' + (this.context.range ?? '')); return { value: '1' }; };
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        await t.settle();
+        t.eq(calls.join(), 'a:', 'only the initial tab loaded');
+        const strip = el.shadowRoot.querySelector('pk-tabs');
+        const tab = v => [...strip.querySelectorAll('pk-tab')].find(x => x.value === v);
+        tab('two').click();
+        await until(() => calls.includes('b:'), 'the second tab to load');
+        tab('one').click(); await t.settle(); tab('two').click(); await t.settle();
+        t.eq(calls.join(), 'a:,b:', 'a revisit reloads nothing');
+        const select = el.shadowRoot.querySelector('[part="filters"] pk-select');
+        select.value = '30d';
+        select.dispatchEvent(new CustomEvent('pk-value-change', { bubbles: true, composed: true, detail: { value: '30d' } }));
+        await until(() => calls.length === 4, 'both loaded widgets to reload');
+        t.eq(el.context.range, '30d');
+        t.eq(calls.slice(2).sort().join(), 'a:30d,b:30d');
     }],
 
     ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
