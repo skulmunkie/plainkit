@@ -2,15 +2,10 @@
 // pk-table, pk-tabs, pk-badge, pk-button, pk-cluster, pk-empty-state). No markup strings: every node is built with the DOM, every text is set as text.
 
 import { band, metricRows, budgetRows, budgetSummary, apiDiff, securitySummary, sweepSummary, historyCategories, historyRows, severityVariant, kb, signed } from '../../js/framework-checks.js';
+import { h } from '../../js/mount-support.js';
+export { h };
 
 const STAT_TONE = { ok: 'positive', warn: 'warning', danger: 'critical', '': 'neutral' };
-
-export function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 export const card = (doc, heading, ...children) => h(doc, 'pk-card', { heading, class: 'sc-section' }, ...children);
 export const note = (doc, text) => h(doc, 'p', { class: 'muted' }, text);
