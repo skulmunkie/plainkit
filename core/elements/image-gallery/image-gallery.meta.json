@@ -9,6 +9,7 @@
     { "name": "columns", "type": "number", "default": 0, "reflect": true, "description": "A fixed number of equal columns (1 to 12). 0 fits as many as min allows." },
     { "name": "min", "type": "string", "default": "6.25rem", "reflect": true, "description": "The narrowest a thumbnail may get, as a css length in px, rem or em. Used when columns is 0." },
     { "name": "editable", "type": "boolean", "default": false, "reflect": true, "description": "Show make-primary and remove buttons under each image and the add tile." },
+    { "name": "hideAdd", "type": "boolean", "default": false, "reflect": true, "description": "Editable, keep make-primary, remove and reorder but skip drawing the add tile, so the host supplies its own add control elsewhere (a real Blazor InputFile, say) instead of reading pk-add, which only carries file name/size/type, never the bytes." },
     { "name": "addLabel", "type": "string", "default": "Add image", "reflect": false, "description": "Text on the add tile." },
     { "name": "accept", "type": "string", "default": "image/*", "reflect": false, "description": "The file types the add tile's picker offers." }
   ],
@@ -48,7 +49,7 @@
     { "name": "removeImage(index)", "description": "Removes an image, as the button does (raises pk-remove first)." },
     { "name": "reorder(from, to)", "description": "Moves an image to a new index, as a drag or Alt+Up/Alt+Down does (raises pk-reorder first)." }
   ],
-  "a11y": "The grid is a list (pk-sortable, role=list). Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). Editable, each tile is also a pk-sortable-item (role=listitem): its handle drags to reorder, or Alt+Up/Alt+Down on the focused tile moves it and announces the new position through a visually-hidden live region. The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring. After a removal focus moves to the next image, or the add tile when none is left. Primary and status are text badges, never colour alone.",
+  "a11y": "The grid is a list (pk-sortable, role=list). Each thumbnail is a button that opens the lightbox (Enter or Space); its name is the image's alt text. Make primary and Remove name their image (\"Remove: Back view\"). Editable, each tile is also a pk-sortable-item (role=listitem): its handle drags to reorder, or Alt+Up/Alt+Down on the focused tile moves it and announces the new position through a visually-hidden live region. The add tile is a real file input, reachable and operable by keyboard, with a visible focus ring, unless hideAdd is set, in which case it is not drawn at all and the host's own add control (elsewhere on the page) carries its own accessible name and focus order. After a removal focus moves to the next image, or the add tile when one is drawn and none is left. Primary and status are text badges, never colour alone.",
   "mobile": "Thumbnails wrap to as many columns as fit (three at 375px with the default min); the buttons, the add tile and the drag handle are 44px high, and there is no hover step (Alt+Up/Alt+Down reorders without a drag).",
   "examples": [
     {
@@ -58,6 +59,10 @@
     {
       "title": "Read-only, two fixed columns",
       "html": "<pk-image-gallery columns=\"2\" primary=\"1\" images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\"},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAm0lEQVR42gXBkRIAIAwA0H1iFmZhNky6ZJiFWXeTolEWRaP9T+9BcUxuNyfdneHudG85FWdQPJPfzUv3Z/g7/VtexRuUwBR2C9LDGeHO8FZQCQYlMsXdovR4RrwzvhVVokFJTGm3JD2dke5MbyWVZFCQCXdD6XgG3olvoQoalMyUd8vS8xn5zvxWVskGpTLV3ar0eka9s75VVap9GM1xYYXoGKsAAAAASUVORK5CYII=\",\"alt\":\"Detail\"}]'></pk-image-gallery>"
+    },
+    {
+      "title": "Editable without the add tile: make primary, remove and reorder, the host supplies its own add control (a real Blazor InputFile, say) elsewhere",
+      "html": "<pk-image-gallery editable hide-add images='[{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAmklEQVR42gXBIQ4AIAgAQB/GD/yBP6DQ2Cw2N4uNzUJjs9iINqLP8i4BvUxR6CJ5pTPIFukmScAvcxS+yF75DLbFulkStJdblHaxeW1nNFtNd5ME/eUepV/sXvsZ3VbX3SXBfHlGmRen13nGtDV1T0kgL0sUuShe5QyxJbpFEujLGkUvqlc9Q22pbpUE9rJFsYvm1c4wW6bb5AMXIGmBJ4HH0wAAAABJRU5ErkJggg==\",\"alt\":\"Front view\",\"primary\":true},{\"src\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAiklEQVR42gXBEQIAMAgAwD0xSZLJZJJM4jiO4ziOe9bu1giMwhiMwwRMwhRMw2rBVmzDduzATuzCblwlVEplVE4VVElVVE0rZafutJ2+M3bmztrZe4Wc0BN2wk/EiTxRJ/osl+t63a779bie1+t632XCpmzG5mzBlmzF1rxUnupTe+pP42k+raf9PlY/aGHmDWEHAAAAAElFTkSuQmCC\",\"alt\":\"Back view\",\"status\":\"Staged\"}]'></pk-image-gallery>"
     }
   ]
 }
