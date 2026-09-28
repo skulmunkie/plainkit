@@ -61,6 +61,7 @@ export default {
             if (crumbsRect && chips) t.ok(chips.y >= crumbsRect.bottom + 1, `the chips (from y=${Math.round(chips.y)}) sit flush against the crumbs (to y=${Math.round(crumbsRect.bottom)}), no visible gap`);
         }
         if (t.shot === 'tab-close-focus') {
+            if (phone) { t.atLeast(CLOSE, 'height', 44); t.atLeast(CLOSE, 'width', 44); } // issue 551: the close button is a tap target on a phone
             t.ringVisible(CLOSE);
             t.ringUnclipped(CLOSE);
         }
