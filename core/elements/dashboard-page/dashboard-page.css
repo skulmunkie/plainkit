@@ -1,0 +1,5 @@
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="section"] + [part="section"] { margin-block-start: var(--space-6); }
+[part="section-heading"] { margin: 0 0 var(--space-3); font-size: var(--text-lg); }
+[part="grid"] { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--space-4); align-items: start; }
+[part="tile"] { min-inline-size: 0; }

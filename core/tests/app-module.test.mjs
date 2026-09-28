@@ -104,6 +104,7 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
     assert.equal(typeof pageTypeFor(def, 'settings'), 'function');
     assert.equal(typeof pageTypeFor(def, 'not-found'), 'function');
     assert.equal(typeof pageTypeFor(def, 'list'), 'function');
+    assert.equal(typeof pageTypeFor(def, 'dashboard'), 'function');
     for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) assert.equal(pageTypeFor(def, name), undefined, name);
 });
 
@@ -246,6 +247,33 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
     el2.rowHref({ id: 42 });
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
+});
+
+test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tiles, sections), wires load(key) with the page ctx, and cleanup removes the element", () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const def = mod('dashboard-host');
+    const factory = pageTypeFor(def, 'dashboard');
+
+    const host1 = new Host();
+    const cleanup1 = factory(host1, {}, {});
+    const el1 = host1.children[0];
+    assert.equal(el1.localName, 'pk-dashboard-page');
+    assert.deepEqual(el1.config, { tiles: undefined, sections: undefined });
+    assert.equal(el1.load, undefined, 'no load callback unless given');
+    cleanup1();
+    assert.deepEqual(host1.children, [], 'cleanup removes the element');
+
+    const tiles = [{ key: 'orders', label: 'Open orders' }];
+    const sections = [{ heading: 'Sales', tiles: ['orders'] }];
+    const seen = [];
+    const ctx = { id: 'x' };
+    const host2 = new Host();
+    factory(host2, { tiles, sections, load: (key, c) => { seen.push([key, c]); return { value: '12' }; } }, ctx);
+    const el2 = host2.children[0];
+    assert.deepEqual(el2.config, { tiles, sections });
+    assert.deepEqual(el2.load('orders'), { value: '12' });
+    assert.deepEqual(seen, [['orders', ctx]], 'load receives the tile key and the page ctx');
 });
 
 test('mountPage: the one-page consumer - mounts a page type into a container with no module or app around it, and destroy() tears it down and stops its tracked resources', async () => {
@@ -511,7 +539,7 @@ test('unknown page types and layouts, unknown module routes and route guards sho
         layouts: { own: (host) => host },
         routes: [
             { path: '/board', page: { type: 'board', config: { n: 3 } }, layout: 'framed' },
-            { path: '/dashboard', page: 'dashboard' },
+            { path: '/record', page: 'record' },
             { path: '/nolayout', page: 'custom', layout: 'nope' },
             { path: '/secret', page: 'custom', config: { mount: () => {} }, can: () => false },
             { path: '/gone', page: 'not-found' },
@@ -525,8 +553,8 @@ test('unknown page types and layouts, unknown module routes and route guards sho
     assert.equal(pageHost.children[0].getAttribute('data-board'), '3', 'the page type mounted into the layout element with its config');
     assert.equal(await host.show('pages', { path: '/cfg/%3Cimg%20onerror%3E' }), 'ok');
     assert.equal(bodyOf(container).children[0].getAttribute('data-n'), '<img onerror>', 'params arrive as text, decoded once');
-    assert.equal(await host.show('pages', { path: '/dashboard' }), 'error');
-    assert.match(errorOf(container).textContent, /page type "dashboard" is not available/);
+    assert.equal(await host.show('pages', { path: '/record' }), 'error');
+    assert.match(errorOf(container).textContent, /page type "record" is not available/);
     assert.equal(await host.show('pages', { path: '/nolayout' }), 'error');
     assert.match(errorOf(container).textContent, /layout "nope" is not available/);
     assert.equal(await host.show('pages', { path: '/secret' }), 'forbidden');
