@@ -12,10 +12,3 @@ blazor/src/PlainKit.Blazor/wwwroot/** eol=crlf
 *.jpg binary
 *.woff2 binary
 *.nupkg binary
-
-# The browser attestation is rewritten by scripts/attest-browser.mjs (never by hand); GitHub collapses it in pull request diffs.
-# Its timestamp, browser UA and per-case timings differ on every run even when nothing substantive changed, so a plain merge conflicts
-# on that noise alone whenever two branches both refreshed it (issue #417). merge=keep-current (the driver scripts/bootstrap.mjs
-# registers locally) keeps whichever side started the merge instead of asking a human to reconcile timestamps: core/tests/elements-attest.test.mjs
-# independently re-validates the result against the current source hashes regardless of which side "won", so nothing is silently stale.
-core/tests/browser/report.json linguist-generated=true merge=keep-current

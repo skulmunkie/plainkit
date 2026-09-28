@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { buildReport, budgetNote, parseFailures, MARKER, JOBS, RUN_BUDGET } from '../ci-report.mjs';
 
 const failure = { id: 'node-tests', name: 'node-tests', fix: 'run `node --test <file>`', excerpt: 'failing tests:\nAssertionError ```x```' };
-const jobs = [{ name: JOBS.node.name, html_url: 'https://example.test/job/1' }, { name: JOBS.browser.name, html_url: 'https://example.test/job/2' }];
+const jobs = [{ name: JOBS.node.name, html_url: 'https://example.test/job/1' }, { name: JOBS.pack.name, html_url: 'https://example.test/job/2' }];
 
 test('a failed job lists its checks, FIX lines, excerpt and log link under the marker', () => {
     const r = buildReport({ needs: { lint: { result: 'success', outputs: {} }, node: { result: 'failure', outputs: { failures: JSON.stringify([failure]) } } }, jobs, runSeconds: 41 });
@@ -23,10 +23,10 @@ test('a job that failed outside the checks says so and points at the log', () =>
     assert.ok(r.body.includes('failed outside them') && r.body.includes('https://example.test/run') && r.body.includes('gh run view'));
 });
 
-test('a browser failure is marked not required; a flaky pass is reported', () => {
-    const f = buildReport({ needs: { browser: { result: 'failure', outputs: { failures: JSON.stringify([{ ...failure, id: 'browser', name: 'browser' }]) } } }, jobs });
-    assert.ok(f.body.includes('Browser (element suite) (not a required check)'));
-    const k = buildReport({ needs: { browser: { result: 'success', outputs: { flaky: 'true' } } }, jobs });
+test('a pack failure is marked not required; a flaky pass is reported', () => {
+    const f = buildReport({ needs: { pack: { result: 'failure', outputs: { failures: JSON.stringify([{ ...failure, id: 'pack', name: 'pack' }]) } } }, jobs });
+    assert.ok(f.body.includes('Package (contents) (not a required check)'));
+    const k = buildReport({ needs: { pack: { result: 'success', outputs: { flaky: 'true' } } }, jobs });
     assert.equal(k.problems, 1);
     assert.ok(k.body.includes('flaky') && k.body.includes('rerun passed'));
 });

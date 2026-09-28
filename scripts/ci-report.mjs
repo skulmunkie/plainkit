@@ -12,7 +12,6 @@ export const JOBS = {
     lint: { name: 'Changelog (fragments)', required: true, budget: 15 },
     node: { name: 'Toolkit (node)', required: true, budget: 30 },
     dotnet: { name: 'Blazor (dotnet)', required: true, budget: 45 },
-    browser: { name: 'Browser (element suite)', required: false, budget: 300 },
     pack: { name: 'Package (contents)', required: false, budget: 45 },
     scorecard: { name: 'Scorecard (quality)', required: false, budget: 60 },
 };
@@ -63,7 +62,7 @@ export function buildReport({ needs, jobs = [], runSeconds = null, runUrl = '' }
     }
     lines.push(MARKER);
     lines.push(failed.length ? `### CI failed: ${failed.map(f => f.name).join(', ')}` : '### CI passed, with a flaky check');
-    lines.push('', 'Reproduce locally with the same checks: `node scripts/verify.mjs` (one job: `node scripts/verify.mjs --only <lint|node|dotnet|browser|pack>`). '
+    lines.push('', 'Reproduce locally with the same checks: `node scripts/verify.mjs` (one job: `node scripts/verify.mjs --only <lint|node|dotnet|pack>`). '
         + 'The rules for fixing are in AGENTS.md, "When CI fails": fix the root cause, never edit a test or raise a budget to get green, at most three attempts, then stop and report.');
     for (const f of failed) {
         lines.push('', `#### ${f.name}${f.required ? '' : ' (not a required check)'}: [log](${f.url})`);

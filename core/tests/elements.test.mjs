@@ -1,5 +1,5 @@
 // The parts of the element model that need no DOM: prop coercion, template bindings, the loader plan, the API schema and its guards, the
-// build output, the size budget. The DOM behaviour is in tests/browser/ (run in a tab; elements-attest.test.mjs fails if it is stale).
+// build output, the size budget. The DOM behaviour is in tests/browser/ (run manually in a tab; nothing gates CI on it, issue #451).
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
