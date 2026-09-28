@@ -32,9 +32,22 @@ class Node {
     set textContent(v) { this.text = v; }
     closest(sel) { return this.tag === sel ? this : null; }
     remove() { this.removed = true; }
+    // A minimal class-selector query, recursive, enough for the template's own lookups ('.header', '.body', '.collapse-toggle', '.title').
+    querySelector(sel) {
+        const cls = sel.replace(/^\./, '');
+        const search = n => { for (const k of n.kids) { if (k.attrs.class === cls) return k; const r = search(k); if (r) return r; } return null; };
+        return search(this);
+    }
 }
-// The group template: a section holding a header and a body, cloned per group.
-const groupTemplate = () => { const s = new Node('section'), h = new Node('div'), b = new Node('div'); s.kids = [h, b]; s.querySelector = sel => (sel === '.header' ? h : b); s.cloneNode = groupTemplate; return s; };
+const el = (tag, cls) => { const n = new Node(tag); n.attrs.class = cls; return n; };
+// The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span) and a body, cloned per group.
+const groupTemplate = () => {
+    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body');
+    const toggle = el('button', 'collapse-toggle'), chevron = el('span', 'chevron'), titleSpan = el('span', 'title');
+    toggle.kids = [chevron, titleSpan]; h.kids = [toggle]; s.kids = [h, b];
+    s.cloneNode = groupTemplate;
+    return s;
+};
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
 const make = (panels, props = {}) => {
     const root = new Node('root'), empty = new Node('empty');
@@ -91,6 +104,43 @@ test('a layout the host sets raises nothing; a panel that appears is added and r
     el.updated();
     assert.deepEqual(el.events.map(e => e.detail.reason), ['panels']);
     assert.ok(findGroup(el.layout, 'extra'));
+});
+
+test('a single-panel header has a collapse-toggle button naming its title, aria-expanded and the body it controls', () => {
+    const { root } = make(P);
+    // A multi-panel group's header (with its own unused template button) is detached by the real .remove(); this stand-in only flags it removed,
+    // so tell the wired-up ones (they carry data-panel) from the leftover template button of the tools/assets tab group.
+    const toggles = find(root, 'button').filter(b => b.getAttribute('data-panel'));
+    assert.equal(toggles.length, 2, 'the two single-panel groups (canvas, props); tools/assets is a tab group with no chevron yet');
+    const canvasToggle = toggles.find(b => b.getAttribute('data-panel') === 'canvas');
+    assert.equal(canvasToggle.getAttribute('aria-expanded'), 'true');
+    assert.ok(canvasToggle.getAttribute('aria-controls'));
+    assert.deepEqual(find(canvasToggle, 'span').map(s => s.text), ['', 'Canvas']);
+});
+
+test('clicking the collapse-toggle folds the panel, commits reason collapse, and toggling back expands it', () => {
+    const { el, root } = make(P);
+    const btn = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    btn.closest = sel => (sel === 'button' ? btn : null);
+    root.listeners.click({ stopPropagation() {}, target: btn });
+    assert.deepEqual(el.$doc.collapsed, ['canvas']);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse']);
+    const bodyAfter = find(root, 'div').find(n => n.id === btn.getAttribute('aria-controls'));
+    assert.equal(bodyAfter.hidden, true);
+    const toggleAfter = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    assert.equal(toggleAfter.getAttribute('aria-expanded'), 'false');
+    toggleAfter.closest = sel => (sel === 'button' ? toggleAfter : null);
+    root.listeners.click({ stopPropagation() {}, target: toggleAfter });
+    assert.deepEqual(el.$doc.collapsed, []);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse', 'collapse']);
+});
+
+test('a click that is not on a collapse-toggle button does nothing', () => {
+    const { el, root } = make(P);
+    const before = el.events.length;
+    const other = { closest: () => null };
+    root.listeners.click({ stopPropagation() {}, target: other });
+    assert.equal(el.events.length, before);
 });
 
 test('no panels shows the empty state', () => {

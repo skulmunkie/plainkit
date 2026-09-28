@@ -4,7 +4,7 @@
 // tab strip of every panel and the layout is left untouched.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson } from '../../js/dock-model.js';
+import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel } from '../../js/dock-model.js';
 
 const PANEL = /^[a-z][\w-]{0,39}$/;
 
@@ -32,6 +32,7 @@ export default Base => class extends Base {
             const root = this.part('root');
             root.addEventListener('pk-resize', e => this.onResize(e));
             root.addEventListener('pk-tab-change', e => this.onTab(e));
+            root.addEventListener('click', e => this.onToggle(e));
             this.$mo = new MutationObserver(() => this.requestUpdate());
             if (typeof matchMedia === 'function') { this.$mq = mediaBelow('phone'); this.$mqf = () => this.requestUpdate(); }
         }
@@ -79,8 +80,16 @@ export default Base => class extends Base {
         g.setAttribute('data-node', n.id);
         const h = g.querySelector('.header'), body = g.querySelector('.body');
         if (n.panels.length === 1) {
-            h.textContent = title(n.panels[0]); h.id = `h-${n.panels[0]}`;
-            body.append(make(d, 'slot', { name: n.panels[0] }));
+            const panel = n.panels[0], collapsed = (this.$doc.collapsed ?? []).includes(panel), bodyId = `b-${panel}`;
+            h.id = `h-${panel}`;
+            const toggle = h.querySelector('.collapse-toggle');
+            toggle.setAttribute('aria-expanded', String(!collapsed));
+            toggle.setAttribute('aria-controls', bodyId);
+            toggle.setAttribute('data-panel', panel);
+            toggle.querySelector('.title').textContent = title(panel);
+            body.id = bodyId;
+            body.hidden = collapsed;
+            body.append(make(d, 'slot', { name: panel }));
             g.setAttribute('aria-labelledby', h.id);
             return g;
         }
@@ -106,5 +115,21 @@ export default Base => class extends Base {
         if (e.target.closest?.('section')?.getAttribute('data-node') === 'phone') { this.$phone = e.detail.value; return; }
         const r = activate(this.$doc, { panel: e.detail.value });
         if (r.doc !== this.$doc) { this.$doc = r.doc; this.commit('activate'); }
+    }
+    // The chevron button in a single-panel header (Enter/Space activate it like any button, no extra keyboard code needed). Multi-panel tab groups do not
+    // offer this yet (see the model's collapsePanel doc comment); a click anywhere else in the header, or on a button with no data-panel, is ignored.
+    onToggle(e) {
+        const btn = e.target.closest?.('button');
+        const panel = btn?.getAttribute('data-panel');
+        if (!panel) return;
+        e.stopPropagation();
+        const collapsed = (this.$doc.collapsed ?? []).includes(panel);
+        const r = (collapsed ? expandPanel : collapsePanel)(this.$doc, { panel });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc; this.commit('collapse');
+        this.draw(Boolean(this.$mq?.matches));
+        // draw() rebuilds the whole group subtree (a new button), so the one the pointer or keyboard just used is gone: without this the next
+        // Tab (or the next Enter, for a screen reader user who does not re-locate the button) would land somewhere else.
+        this.part('root').querySelector?.(`[data-panel="${panel}"]`)?.focus?.();
     }
 };

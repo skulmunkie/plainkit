@@ -2,7 +2,7 @@
   "tag": "pk-dock",
   "title": "Dock",
   "group": "Layout",
-  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group. The arrangement is one JSON layout document you can read, store and set. Step 1 of #432: docked panels only; moving panels, floating, collapse and saved layouts come in later steps.",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, or use a single-panel header's chevron to collapse it to just its title. The arrangement is one JSON layout document you can read, store and set. Docked panels and header-collapse only; moving panels, floating and saved layouts come in later steps of #432.",
   "props": [
     {
       "name": "layout",
@@ -10,7 +10,7 @@
       "default": null,
       "reflect": false,
       "commit": "pk-layout-change",
-      "description": "The arrangement: { version, seq, root } where root is a split { id, type: 'split', orientation, size, min, max, a, b } or a tab group { id, type: 'tabs', active, panels }. Leave it unset for the default arrangement derived from each panel's data-group. The element validates what it is given (panels that are not declared are dropped, panels the layout lacks are added, bad numbers are repaired). While the user resizes or chooses a tab the element owns it; after pk-layout-change the host does. Property or a JSON attribute."
+      "description": "The arrangement: { version, seq, root, collapsed } where root is a split { id, type: 'split', orientation, size, min, max, a, b } or a tab group { id, type: 'tabs', active, panels }, and collapsed is the list of open panel ids folded to their header. Leave it unset for the default arrangement derived from each panel's data-group. The element validates what it is given (panels that are not declared are dropped, panels the layout lacks are added, bad numbers are repaired). While the user resizes, chooses a tab or collapses a panel the element owns it; after pk-layout-change the host does. Property or a JSON attribute."
     },
     {
       "name": "label",
@@ -53,7 +53,7 @@
         "layout": "object",
         "reason": "string"
       },
-      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
+      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen), collapse (a single-panel header's chevron toggled its body) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
       "cancelable": false
     }
   ],
@@ -69,6 +69,18 @@
     {
       "name": "header",
       "description": "The title bar of a single-panel group."
+    },
+    {
+      "name": "collapse-toggle",
+      "description": "The button in a single-panel header that collapses or expands its body."
+    },
+    {
+      "name": "chevron",
+      "description": "The direction indicator inside collapse-toggle."
+    },
+    {
+      "name": "title",
+      "description": "The panel's heading text inside collapse-toggle."
     },
     {
       "name": "body",
@@ -97,7 +109,7 @@
     }
   ],
   "methods": [],
-  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree.",
+  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. A single-panel header's collapse-toggle is a native button (Tab to reach it, Enter or Space to activate, no extra key handling needed) with aria-expanded and aria-controls naming the body it hides; a tab group does not offer collapse yet.",
   "mobile": "Below 640px a splitter tree cannot show real panels, so the dock draws every open panel in reading order as one tab strip with one panel visible. The layout document is untouched, so widening the window restores the arrangement.",
   "examples": [
     {
