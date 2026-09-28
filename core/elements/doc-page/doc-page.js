@@ -33,7 +33,7 @@ export default Base => class extends Base {
         this.$pending = this.paint();
     }
     disconnected() { clearTimeout(this.$settleTimer); }
-    changed(name) { if (name === 'config') this.$pending = this.paint(); }
+    changed(name) { if (this.$w && name === 'config') this.$pending = this.paint(); }
 
     // Every light-DOM child this element shows is one it creates and owns itself (never a host-given node), slotted into its own shadow
     // template - like pk-states-page (core/elements/states-page/states-page.js): the SDK's on-demand loader watches only the document's light
