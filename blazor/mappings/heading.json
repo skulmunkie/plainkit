@@ -1,0 +1,35 @@
+{
+  "component": "PkHeading",
+  "params": [
+    {
+      "name": "Level",
+      "prop": "level",
+      "type": "double"
+    },
+    {
+      "name": "Variant",
+      "prop": "variant",
+      "type": "PkHeadingVariant"
+    },
+    {
+      "name": "Tone",
+      "prop": "tone",
+      "type": "PkHeadingTone"
+    },
+    {
+      "name": "Weight",
+      "prop": "weight",
+      "type": "PkHeadingWeight"
+    },
+    {
+      "name": "Truncate",
+      "prop": "truncate",
+      "type": "bool"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment"
+    }
+  ]
+}
