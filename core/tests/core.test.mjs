@@ -13,6 +13,7 @@ import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
 import { tokenize, buildSegments, wordAt, languageOf } from '../js/code-explorer/tokenize.js';
 import { buildTree } from '../js/code-explorer/element.js';
+import { compilePattern, patternReport } from '../modules/code-explorer/reports.js';
 import { SCORING, TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
 import { runStaticAudit } from '../site/scorecard/static-audit.mjs';
 
@@ -402,4 +403,42 @@ test('tokens.css: the named space aliases map onto the numeric steps', () => {
     const b = parseTokenBlocks(read('tokens/tokens.css'));
     const map = { '2xs': 1, xs: 2, sm: 3, md: 4, lg: 5, xl: 6, '2xl': 8, '3xl': 12 };
     for (const [name, step] of Object.entries(map)) assert.equal(b.root[`--space-${name}`], `var(--space-${step})`);
+});
+
+// ---- code-explorer reports (reports.js) ---------------------------------------------------------------------------------
+test('compilePattern treats a plain string as a literal, "/x/flags" as a regex convention, and a RegExp as itself', () => {
+    assert.equal(compilePattern('foo.bar').test('a foo.bar b'), true);
+    assert.equal(compilePattern('foo.bar').test('a fooXbar b'), false, 'a literal string is escaped, not a wildcard');
+    assert.equal(compilePattern('/foo.bar/i').test('A FOOXBAR B'), true, 'the /source/flags convention compiles a regex with its flags');
+    assert.equal(compilePattern(/foo\d+/).test('foo42'), true, 'a JS RegExp compiles as itself');
+    assert.ok(compilePattern('a').global, 'always compiled global so every hit on a line counts');
+});
+
+test('patternReport counts matches per file and pattern, ranked by count, opening at the first hit', () => {
+    const files = [
+        { path: 'a.js', lines: ['import x from "y"', 'const z = 1', 'import w from "v"'] },
+        { path: 'b.js', lines: ['const z = 2'] },
+        { path: 'c.js', lines: ['import one from "two"'] },
+    ];
+    const patterns = [{ name: 'import', pattern: /^\s*import\s/, label: 'ESM import' }];
+    const rows = patternReport(files, patterns);
+    assert.deepEqual(rows.map(r => [r.path, r.count, r.line]), [['a.js', 2, 1], ['c.js', 1, 1]]);
+    assert.equal(rows[0].label, 'ESM import');
+});
+
+test('patternReport with a literal-string pattern (the directive-count use case is just this with one pattern) counts every occurrence', () => {
+    const files = [{ path: 'x.razor', lines: ['@inject Foo Foo', 'plain line', '@inject Bar Bar'] }];
+    const rows = patternReport(files, [{ name: '@inject', pattern: '@inject' }]);
+    assert.equal(rows[0].count, 2);
+    assert.equal(rows[0].line, 1);
+});
+
+test('patternReport skips files with no hits and sorts by count descending across multiple patterns', () => {
+    const files = [
+        { path: 'few.js', lines: ['TODO: a'] },
+        { path: 'many.js', lines: ['TODO: a', 'TODO: b', 'TODO: c'] },
+        { path: 'none.js', lines: ['nothing here'] },
+    ];
+    const rows = patternReport(files, [{ name: 'todo', pattern: 'TODO' }]);
+    assert.deepEqual(rows.map(r => r.path), ['many.js', 'few.js']);
 });
