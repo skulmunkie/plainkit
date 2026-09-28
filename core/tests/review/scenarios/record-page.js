@@ -5,14 +5,14 @@ const MAIN = `${RP} >>> [part=main]`;
 
 export default {
     name: 'record-page',
-    elements: ['record-page', 'detail-layout', 'field-list', 'form', 'field', 'input', 'textarea', 'select', 'card', 'button'],
+    elements: ['record-page', 'detail-layout', 'field-list', 'form', 'field', 'input', 'textarea', 'select', 'card', 'button', 'page-header', 'breadcrumb'],
     html: '<pk-record-page></pk-record-page>',
     setup(frame) {
         const el = frame.querySelector(RP);
         el.load = () => ({ name: 'Widget 1 Cover A', sku: 'AC-1001', status: 'active', notes: 'Ships in two boxes.' });
         el.save = () => Promise.reject(Object.assign(new Error('The record was not saved.'), { errors: { sku: 'SKU AC-1001 is already used.' } }));
         el.config = {
-            id: '1', heading: 'Product',
+            id: '1', heading: 'Product', title: 'Widget 1', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Products', href: '#' }], actions: [{ key: 'archive', label: 'Archive', variant: 'secondary' }],
             fields: [
                 { name: 'name', label: 'Name', required: true },
                 { name: 'sku', label: 'SKU', required: true },
@@ -29,6 +29,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(RP);
+        t.visible(`${RP} >>> [part=header] pk-page-header`, 'the shared title bar');
+        t.noOverlap(`${RP} >>> [part=header]`, `${RP} >>> [part=bar]`);
         if (t.shot === 'view') {
             t.hasText(MAIN, 'Widget 1 Cover A');
             t.visible(`${RP} >>> [part=edit]`, 'the Edit button');

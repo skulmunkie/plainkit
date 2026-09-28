@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit."
+      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant? }] (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
@@ -29,6 +29,7 @@
   ],
   "slots": [],
   "events": [
+    { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },
     {
       "name": "pk-record-dirty",
       "detail": "{ dirty }",
@@ -43,6 +44,7 @@
     }
   ],
   "parts": [
+    { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "layout", "description": "The pk-detail-layout holding the main column and the sidebar." },
     { "name": "main", "description": "The field list or the form." },
     { "name": "side", "description": "The sidebar cards." },

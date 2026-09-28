@@ -5,7 +5,7 @@ const MAIN = `${WS} >>> [part=main]`;
 
 export default {
     name: 'workspace-page',
-    elements: ['workspace-page', 'workspace', 'alert'],
+    elements: ['workspace-page', 'workspace', 'alert', 'page-header', 'breadcrumb', 'button'],
     html: '<pk-stack gap="md"><pk-button id="fail" variant="secondary" size="sm">Make mount fail</pk-button><pk-workspace-page></pk-workspace-page></pk-stack>',
     setup(frame) {
         const el = frame.querySelector('pk-workspace-page');
@@ -16,7 +16,7 @@ export default {
             draw(panes.nav, 'Nav pane'); draw(panes.main, 'Main pane'); draw(panes.aside, 'Aside pane');
             return () => {};
         };
-        el.config = { panes: ['nav', 'aside'], navLabel: 'Files', mainLabel: 'Editor', asideLabel: 'Outline' };
+        el.config = { heading: 'Orders', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Orders', href: '#' }], actions: [{ key: 'export', label: 'Export', variant: 'secondary' }], panes: ['nav', 'aside'], navLabel: 'Files', mainLabel: 'Editor', asideLabel: 'Outline' };
         frame.querySelector('#fail').addEventListener('click', () => { failing = true; el.config = { ...el.config }; });
     },
     steps: [
@@ -25,6 +25,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(WS);
+        t.visible(`${WS} >>> [part=header] pk-page-header`, 'the shared title bar');
+        t.noOverlap(`${WS} >>> [part=header]`, `${WS} >>> pk-workspace`);
         if (t.shot === 'panes') {
             t.hasText(MAIN, 'Main pane');
             t.absent(`${WS} >>> [part=state] pk-alert`);
