@@ -9,6 +9,20 @@ import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, doc
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
 
+// The pointer drop zone a position within a group's rect means: the outer EDGE fraction of each side is that edge (dockPanel), the rest is center
+// (moveTab). Pure; the hit test that finds the rect (elementFromPoint) only runs in a browser (browser suite, review scenario).
+const EDGE = 0.25;
+export function dropZone(rect, x, y) {
+    const w = rect.width, h = rect.height;
+    if (!(w > 0) || !(h > 0)) return 'center';
+    const relX = (x - rect.left) / w, relY = (y - rect.top) / h;
+    if (relX < EDGE) return 'left';
+    if (relX > 1 - EDGE) return 'right';
+    if (relY < EDGE) return 'top';
+    if (relY > 1 - EDGE) return 'bottom';
+    return 'center';
+}
+
 const PANEL = /^[a-z][\w-]{0,39}$/;
 // Slot names the element already gives a fixed meaning: a panel id can otherwise be any string PANEL allows, so these are reserved rather than let a
 // host's <div slot="empty"> or <div slot="toolbar-start"> become a phantom panel with no group of its own.
@@ -30,6 +44,7 @@ export function readPanels(children) {
 export const readingOrder = doc => groups(doc).flatMap(g => g.panels);
 
 const make = (doc, tag, attrs = {}) => { const e = doc.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+const gid = (doc, id) => groups(doc).find(g => g.id === id);
 
 export default Base => class extends Base {
     connected() {
@@ -40,6 +55,13 @@ export default Base => class extends Base {
             root.addEventListener('pk-tab-change', e => this.onTab(e));
             root.addEventListener('pk-select', e => this.onMove(e));
             this.part('toolbar').addEventListener('pk-select', e => this.onMove(e));
+            // Pointer drag-to-dock: the same moveTab/dockPanel calls the Move menu makes. Pointer capture pins move/up/cancel to the drag's own
+            // handle, so onDragMove hit-tests the group under the pointer's coordinates rather than trusting e.target.
+            root.addEventListener('pointerdown', e => this.onDragStart(e));
+            root.addEventListener('pointermove', e => this.onDragMove(e));
+            root.addEventListener('pointerup', e => this.onDragEnd(e));
+            root.addEventListener('pointercancel', e => this.onDragEnd(e));
+            root.addEventListener('lostpointercapture', e => this.onDragEnd(e));
             this.$mo = new MutationObserver(() => this.requestUpdate());
             if (typeof matchMedia === 'function') { this.$mq = mediaBelow('phone'); this.$mqf = () => this.requestUpdate(); }
         }
@@ -118,6 +140,8 @@ export default Base => class extends Base {
         const g = this.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true), title = id => this.$titles.get(id) ?? id;
         g.setAttribute('data-node', n.id);
         const h = g.querySelector('.header'), body = g.querySelector('.body'), movable = !this.$phoneStrip && groups(this.$doc).length > 1;
+        // A grab cursor where a pointer drag can actually pick this group up.
+        g.toggleAttribute('data-movable', movable);
         if (n.panels.length === 1) {
             const panel = n.panels[0];
             h.id = `h-${panel}`;
@@ -206,10 +230,14 @@ export default Base => class extends Base {
         const [kind, panel, group, zone] = value.split(':');
         if (kind === 'close' && panel) return this.closePanel(panel);
         if (kind === 'open' && panel) return this.openPanel(panel);
-        const title = id => this.$titles.get(id) ?? id, targetTitle = groups(this.$doc).find(g => g.id === group);
+        this.applyMove(kind, panel, group, zone);
+    }
+    // The one place moveTab/dockPanel are called: from the Move menu (onMove) and a pointer drop (onDragEnd), so both commit, announce and focus alike.
+    applyMove(kind, panel, group, zone) {
+        const title = id => this.$titles.get(id) ?? id, targetGroup = gid(this.$doc, group);
         let r, said;
-        if (kind === 'tab' && panel && group) { r = moveTab(this.$doc, { panel, group }); said = `${title(panel)} added as a tab in ${title(targetTitle?.active)}`; }
-        else if (kind === 'dock' && panel && group && zone) { r = dockPanel(this.$doc, { panel, target: group, zone }); said = `${title(panel)} docked ${zone === 'top' ? 'above' : zone === 'bottom' ? 'below' : zone + ' of'} ${title(targetTitle?.active)}`; }
+        if (kind === 'tab' && panel && group) { r = moveTab(this.$doc, { panel, group }); said = `${title(panel)} added as a tab in ${title(targetGroup?.active)}`; }
+        else if (kind === 'dock' && panel && group && zone) { r = dockPanel(this.$doc, { panel, target: group, zone }); said = `${title(panel)} docked ${zone === 'top' ? 'above' : zone === 'bottom' ? 'below' : zone + ' of'} ${title(targetGroup?.active)}`; }
         else return;
         for (const p of r.problems) this.warnOnce(`move:${p.code}:${p.path}`, p.message, { code: p.code });
         if (r.doc === this.$doc) return;
@@ -220,6 +248,57 @@ export default Base => class extends Base {
         this.draw(Boolean(this.$mq?.matches));
         this.part('status').textContent = said;
         this.focusPanel(panel);
+    }
+    // ---- pointer drag-to-dock: the moveTab/dockPanel calls above, reached by dragging a header or a pk-tab onto another group. Pointer capture is
+    // set right away (like pk-sortable-item), but nothing else happens (no overlay, no preventDefault) until the pointer actually moves, so a plain
+    // click still selects a tab. Grabbing needs another group to drop on (panelTrigger's own "movable"), and never the panel-menu trigger itself.
+    onDragStart(e) {
+        if (e.button > 0 || this.$phoneStrip || groups(this.$doc).length < 2) return;
+        if (e.target.closest?.('pk-dropdown, pk-button')) return;
+        const tab = e.target.closest?.('pk-tab');
+        const handle = tab || e.target.closest?.('[part="header"]');
+        const groupEl = handle?.closest?.('[data-node]');
+        const groupId = groupEl?.getAttribute('data-node');
+        const group = groupId && gid(this.$doc, groupId);
+        if (!group) return;
+        const panel = tab ? tab.getAttribute('value') : group.active;
+        if (!panel) return;
+        try { handle.setPointerCapture(e.pointerId); } catch (err) { this.debug?.('pointer capture refused (no synthetic pointer active)', err); }
+        this.$drag = { panel, from: groupId, target: null, zone: null, pointerId: e.pointerId, moved: false, startX: e.clientX, startY: e.clientY, handle };
+    }
+    // Past a small movement threshold (a click is never mistaken for a drag), hit-test the group under the pointer with shadowRoot.elementFromPoint
+    // (e.target stays pinned to the captured handle) and mark its zone, or clear the mark over no group, a splitter, or the panel's own group.
+    onDragMove(e) {
+        const d = this.$drag;
+        if (!d || e.pointerId !== d.pointerId) return;
+        if (!d.moved) {
+            if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < 4) return;
+            d.moved = true;
+            this.toggleAttribute('dragging', true);
+        }
+        e.preventDefault();
+        const hit = this.shadowRoot.elementFromPoint?.(e.clientX, e.clientY);
+        const groupEl = hit?.closest?.('[data-node]');
+        const groupId = groupEl?.getAttribute('data-node');
+        const group = groupId && groupId !== d.from && gid(this.$doc, groupId);
+        if (!group) { this.clearDropZone(); d.target = null; d.zone = null; return; }
+        const zone = dropZone(groupEl.getBoundingClientRect(), e.clientX, e.clientY);
+        if (groupId === d.target && zone === d.zone) return;
+        this.clearDropZone();
+        d.target = groupId; d.zone = zone;
+        groupEl.setAttribute('drop-zone', zone);
+    }
+    clearDropZone() { this.part('root').querySelectorAll?.('[drop-zone]')?.forEach(el => el.removeAttribute('drop-zone')); }
+    // Zone center is moveTab, any edge is dockPanel, exactly like the matching Move menu item. Never moved, cancelled, or nowhere valid: no-op.
+    onDragEnd(e) {
+        const d = this.$drag;
+        if (!d || e.pointerId !== d.pointerId) return;
+        if (d.handle?.hasPointerCapture?.(d.pointerId)) d.handle.releasePointerCapture(d.pointerId);
+        this.toggleAttribute('dragging', false);
+        this.clearDropZone();
+        this.$drag = null;
+        if (!d.moved || e.type === 'pointercancel' || !d.target) return;
+        this.applyMove(d.zone === 'center' ? 'tab' : 'dock', d.panel, d.target, d.zone);
     }
     // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
     // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
