@@ -79,6 +79,12 @@ test('customTags lists each custom element name once and ignores plain tags', ()
     assert.deepEqual(customTags(null), []);
 });
 
+test('customTags reads open shadow roots too (a page type keeps its own children there)', () => {
+    const inner = { localName: 'pk-list-page' };
+    const host = { localName: 'pk-master-detail-page', shadowRoot: { querySelectorAll: () => [{ localName: 'div' }, inner] } };
+    assert.deepEqual(customTags({ querySelectorAll: () => [host] }), ['pk-master-detail-page', 'pk-list-page']);
+});
+
 test('whenDefined waits for every custom element, gives up after the limit, and is immediate with none or with no window', async () => {
     const t0 = Date.now();
     await whenDefined(fakeFrame(['pk-avatar', 'pk-progress'], new Set(['pk-avatar', 'pk-progress'])), 5000);
