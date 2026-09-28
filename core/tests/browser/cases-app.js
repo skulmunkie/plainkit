@@ -220,4 +220,40 @@ export const appCases = [
         t.eq(tileBox('fast').querySelector('pk-stat').value, '1', 'the fast tile was never touched by the slow tile settling');
         t.ok(tileBox('bad').querySelector('pk-alert'), 'the bad tile was never touched by the slow tile settling');
     }],
+
+    ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
+        const el = document.createElement('pk-doc-page');
+        el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
+        el.loadItem = async id => ({ title: `Guide ${id.toUpperCase()}`, summary: 'A summary', html: '<h2 id="one">One</h2><p>text</p><h2 id="two">Two</h2><p><a href="#two">to two</a></p>' });
+        el.href = (id, anchor) => `#/${id}${anchor ? `/${anchor}` : ''}`;
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        await until(() => el.querySelector('h2#two'), 'the article body to render');
+        const toc = el.querySelector('pk-toc');
+        await t.load(host);
+        await until(() => toc.shadowRoot?.querySelectorAll('a').length === 2, 'the table of contents to list both headings');
+        t.eq(el.querySelector('pk-side-nav').querySelectorAll('pk-nav-item').length, 2, 'one nav item per config.items entry');
+        t.ok(el.querySelector('pk-nav-item[current]')?.getAttribute('href') === '#/a', 'the current item is marked and linked through href()');
+        let detail = null;
+        el.addEventListener('pk-navigate', e => { detail = e.detail; });
+        const before = location.href;
+        el.querySelector('a[href="#two"]').click();
+        t.eq(location.href, before, 'the element never touches history itself');
+        t.eq(detail?.anchor, 'two', 'pk-navigate reports the heading');
+        t.eq(detail?.id, 'a');
+        host.replaceChildren();
+
+        const inst = instrument();
+        try {
+            const baseline = inst.snapshot().listeners.length;
+            for (let i = 0; i < 100; i++) {
+                const one = document.createElement('pk-doc-page');
+                one.config = { items: [{ id: 'a', title: 'A' }] };
+                host.append(one);
+                await t.load(host);
+                one.remove();
+            }
+            t.eq(inst.snapshot().listeners.length, baseline, 'no document/window listener is left behind after 100 mount/unmount cycles');
+        } finally { inst.restore(); }
+    }],
 ];
