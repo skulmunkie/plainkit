@@ -1,0 +1,54 @@
+// pk-dock (issue 432, step 1): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
+// same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels
+// themselves: they are the page's own children, slotted.
+const PANELS = `
+  <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
+  <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
+  <div slot="canvas" data-heading="Canvas" class="stack"><strong>Canvas</strong><span>The middle panel takes the space the side panels leave.</span></div>
+  <div slot="props" data-heading="Properties" data-group="right" class="stack"><strong>Properties</strong><span>Width 120</span><span>Height 80</span></div>`;
+
+export default {
+    name: 'dock',
+    elements: ['dock', 'splitter', 'tabs', 'tab', 'tab-panel'],
+    html: `<pk-dock id="dock" label="Editor workspace">${PANELS}</pk-dock>
+<pk-dock id="bottom" label="Project workspace"><div slot="files" data-heading="Files" data-group="left">app.js</div><div slot="editor" data-heading="Editor">Editor</div><div slot="log" data-heading="Log" data-group="bottom">Ready.</div></pk-dock>`,
+    setup(frame) {
+        const dock = frame.querySelector('#dock');
+        // A still screenshot of a drag needs the pointer events the separator listens to: grab it, move it to 45 percent of the room, release.
+        Object.defineProperty(dock, 'demoDrag', { set(on) {
+            const s = dock.shadowRoot.querySelector('pk-splitter'), h = s.part('handle'), root = s.part('root').getBoundingClientRect(), r = h.getBoundingClientRect();
+            const ptr = (type, x) => h.dispatchEvent(new PointerEvent(type, { pointerId: 5, clientX: x, clientY: r.top + 5, button: 0, bubbles: true, composed: true }));
+            ptr('pointerdown', r.left + r.width / 2);
+            ptr('pointermove', root.left + r.width / 2 + (root.width - r.width) * 0.45);
+            if (on === 'release') ptr('pointerup', 0);
+        } });
+    },
+    steps: [
+        { shot: 'rest' },
+        { focus: '#dock >>> pk-splitter >>> [part=handle]', on: ['desktop'] }, { key: 'ArrowRight', times: 3, on: ['desktop'] }, { wait: 100 },
+        { shot: 'keyboard', on: ['desktop'] },
+        { set: '#dock', prop: 'demoDrag', value: 'release', on: ['desktop'] }, { wait: 100 },
+        { shot: 'pointer', on: ['desktop'] },
+        { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
+        { shot: 'tab' },
+        { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
+        { shot: 'rtl' },
+    ],
+    expect(t) {
+        t.inViewport('#dock');
+        t.exists('#dock >>> [part=group]');
+        t.visible('#dock >>> [part=group]', 'the dock draws its groups');
+        const d = t.rect('#dock');
+        if (d && t.viewport.name === 'desktop') {
+            t.exists('#dock >>> pk-splitter');
+            t.ok(t.metric('#dock', 'scrollWidth') <= t.metric('#dock', 'clientWidth') + 1, 'the dock does not overflow sideways');
+        }
+        if (t.viewport.name === 'phone') {
+            t.absent('#dock >>> pk-splitter');
+            t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
+        }
+        if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
+        const bottom = t.rect('#bottom');
+        if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
+    },
+};
