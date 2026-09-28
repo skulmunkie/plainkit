@@ -433,4 +433,19 @@ export const formCases = [
         await new Promise(r => setTimeout(r, 200)); t.eq(f.contentWindow.innerWidth, 375);
         for (const b of buttons) { const r = b.part('control').getBoundingClientRect(); t.ok(r.width >= 43.5 && r.height >= 43.5, `${b.getAttribute('size') ?? 'link'} is ${r.width}x${r.height}, not under 44px`); if (!b.querySelector('pk-icon')) t.eq(b.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0, 'the text takes no room'); }
     }],
+    ['property-grid unit: the unit picker shares the number input's row, changing it emits { value, unit }, and an out-of-range value shows its message', async t => {
+        const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
+        const g = host.querySelector('pk-property-grid');
+        g.config = { groups: [{ heading: 'Size', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 0, max: 100 }] }] };
+        g.values = { w: { value: 140, unit: '%' } };
+        await t.settle(); await t.settle();
+        const input = g.shadowRoot.querySelector('pk-input'), unit = input.querySelector('pk-select[slot="suffix"]');
+        t.ok(unit, 'a pk-select sits in the suffix slot');
+        const a = input.getBoundingClientRect(), b = unit.getBoundingClientRect();
+        t.ok(b.width > 0 && b.left >= a.left - 1 && b.right <= a.right + 1 && b.top >= a.top - 1 && b.bottom <= a.bottom + 1, 'the unit picker is inside the input box');
+        t.ok(g.shadowRoot.querySelector('pk-alert:not([hidden])')?.textContent.includes('at most 100 %'), 'the message names the unit');
+        const got = []; g.addEventListener('pk-property-change', e => got.push(e.detail));
+        unit.value = 'px'; unit.dispatchEvent(ev('pk-value-change')); await t.settle();
+        t.eq(JSON.stringify(got.at(-1)?.value), JSON.stringify({ value: 140, unit: 'px' }));
+    }],
 ];
