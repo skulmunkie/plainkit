@@ -48,7 +48,7 @@
 // left (a route change or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
 import { flattenRoutes } from '../route-tree.js';
 import { createLogger } from '../log.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
 export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'custom', 'not-found', 'states']);
 
@@ -109,7 +109,11 @@ export const registerLayout = (id, factory) => register(layouts, 'layout', id, f
 
 // The built-in page types live in js/app/pages/<id>.js (a default-exported factory each), fetched by the first route that names one (#346). pageTypeFor stays
 // synchronous: a built-in answers a wrapper whose promise (awaited by the host and mountPage) is the factory's own result; a failed import rejects it, so the boundary shows it like any page error.
-const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc', 'wizard'].map(id => [id, (host, config, ctx) => import(`./pages/${id}.js`).then(m => m.default(host, config, ctx))]));
+const chunk = id => import(`./pages/${id}.js`);
+const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc', 'wizard'].map(id => [id, (host, config, ctx) => chunk(id).then(m => m.default(host, config, ctx))]));
+// The framework's own lazy services (js/app/lazy.js) are chunks in the same folder, named svc-<name>.js: a fixed allow-list, so nothing else reaches the import above.
+const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs']);
+export const loadChunk = id => (SERVICE_CHUNKS.has(id) ? chunk(id) : Promise.reject(new TypeError(`loadChunk: "${id}" is not a framework chunk`)));
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
 export const pageTypeFor = (def, id) => (own(def.pageTypes, id) ? def.pageTypes[id] : types.get(id) ?? BUILT_IN.get(id));

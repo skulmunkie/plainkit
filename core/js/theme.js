@@ -8,16 +8,8 @@ export const MAX_VALUE_LENGTH = 200;
 const NAME = /^--[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const VALUE = /^[A-Za-z0-9#%.,\s()\-+/]+$/;
 
-export function setTheme(element, name) {
-    element.setAttribute('data-theme', name === 'light' ? 'light' : 'dark');
-    return element.getAttribute('data-theme');
-}
+export { setTheme, currentTheme, toggleTheme } from './theme-core.js';
 
-export const currentTheme = element => (element.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-
-export function toggleTheme(element) {
-    return setTheme(element, currentTheme(element) === 'dark' ? 'light' : 'dark');
-}
 
 // Why a token name is unusable, or null.
 export function nameProblem(name) {

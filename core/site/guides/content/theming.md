@@ -1,6 +1,6 @@
 ---
 title: Theming and tokens
-order: 4
+order: 5
 summary: How themes and density work, how to change a colour or a size without touching an element, and how to keep text readable when you do.
 ---
 

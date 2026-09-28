@@ -13,7 +13,7 @@ export default Base => class extends Base {
     grab(e) {
         if (this.disabled || e.button > 0) return;
         this.$id = e.pointerId;
-        try { this.part('handle').setPointerCapture(e.pointerId); } catch { /* a synthetic pointer is not active: the drag still follows the handle's own events */ }
+        try { this.part('handle').setPointerCapture(e.pointerId); } catch (err) { this.debug('pointer capture refused (a synthetic pointer is not active): the drag still follows the handle\'s own events', err); }
         this.emit('pk-sortable-grab', { x: e.clientX, y: e.clientY }, { cancelable: false });
     }
     drag(e) {

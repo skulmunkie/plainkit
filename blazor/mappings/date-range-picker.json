@@ -17,7 +17,7 @@
       "type": "DateOnly?",
       "bind": {
         "event": "pk-range-change",
-        "value": "detail.end"
+        "field": "end"
       }
     },
     {

@@ -98,6 +98,15 @@ public static class PkMappingInfo
             else parameters.Add(new(name, "parameter", type, null, false, null, reason));
         }
 
+        // "events" (a list of event names, or "pk") generates On<Event> callbacks the params list does not name; the component says which exist and their type.
+        var comp = typeof(PkMappingInfo).Assembly.GetType($"PlainKit.Blazor.{component}");
+        if (comp is not null && root.TryGetProperty("events", out var evs))
+            foreach (var pi in comp.GetProperties().Where(x => x.PropertyType.FullName?.Contains("EventCallback") == true && x.Name.StartsWith("On", StringComparison.Ordinal) && parameters.All(q => q.Name != x.Name)))
+            {
+                var argType = pi.PropertyType.IsGenericType ? pi.PropertyType.GetGenericArguments()[0].Name : null;
+                parameters.Add(new(pi.Name, "event", argType is null ? "EventCallback" : $"EventCallback<{argType}>", null, false, "pk-" + Kebab(pi.Name[2..]), null));
+            }
+
         return new(component, tag, status, note.Length > 0 ? note : null, parameters, Markup(component, tag, root, manifest, parameters, attributes, text));
     }
 

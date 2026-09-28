@@ -314,6 +314,10 @@ This is a hand-written component (`blazor/mappings/side-nav.json` marks it `"exi
 
 A future component that needs to know "where is the app right now" (a route-derived breadcrumb) follows the same shape: inject `NavigationManager`, keep the tracked value private, offer an explicit override parameter that always wins, unsubscribe in `Dispose`.
 
+### Shared state: `IPkStore`, `IPkSettings`, `IPkTheme`
+
+`AddPlainKit()` also registers three scoped services for per-viewer state in browser storage: `IPkTheme` (`Current`, `SetAsync`, `ToggleAsync`, `Changed`; persisted as `pk.theme` and applied as `data-theme`), `IPkSettings` (`GetAsync<T>(module, key, fallback)`, `SetAsync`; stored as `pk.settings-<module>`) and `IPkStore` (`OpenAsync(id, PkStoreSpec)` gives an `IPkStoreModule` with typed defaults, allowed values and ranges, persisted and published keys, and `Changed`). They use the same `{"v":1,"data":{...}}` envelope and `pk.<module>` key format as the JavaScript `createStore` (js/store.js), so a JavaScript app and a Blazor app on one origin read each other's data. Stored data is untrusted: corrupt, oversized, wrong-type, unknown-key or other-version data gives the defaults and one logged warning, never an exception; a module cannot read another module's private keys (published keys only, as a copy). Nothing reaches JavaScript until a module is opened, so call `Theme.InitializeAsync()` and open modules from `OnAfterRenderAsync(firstRender)`; storage that is blocked or unavailable keeps the state in memory. Never store secrets: it is plain `localStorage`. Not yet: a migration hook for older versions, cross-tab sync, and change notification for settings.
+
 ### PageBase: the state a page repeats by hand
 
 A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
@@ -345,6 +349,15 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 `BusyAsync` holds a busy token around the action. Busy is counted: overlapping `BusyAsync` calls each hold their own token, `IsBusy` stays true until the last one ends, and `BusyLabel` is the label of the most recent action still running. `BeginBusy(label)` returns a disposable for work that is not one awaited action (`using var busy = BeginBusy("Saving…");`). Bind the overlay to `ShowBusyOverlay`, not `IsBusy`: it turns true only when busy lasts longer than `BusyDelay` (150 ms, so a fast action never flashes it) and stays for at least `BusyMinTime` (300 ms, so it never flickers); both are `protected virtual` and can be overridden. The page releases every token and timer when Blazor disposes it (a page with its own `Dispose` calls `ReleaseBusy()` from it). An exception it throws is logged through `IPkLog` (so it lands beside the SDK's own log entries, under a scope named after the page's type by default — override `LogScope` to change it) and shown as a danger status, then rethrown so the caller's own handling still runs. This is the same small model `core/js/page.js`'s `createPage` gives a vanilla page — title, status, busy, breadcrumbs and logging built from elements already on the page — so a Blazor page and a hand-written one wire the same three concerns the same way.
 
 `Crumbs` is host-supplied (`IReadOnlyList<PkCrumb>`, the same shape `PkPageHeader` already takes), not derived from a route tree: core has no router today, and `PkSideNav`/`PkAppBarSearch` above resolve their own route state the same explicit way. A route-derived breadcrumb (and other route-driven page state) is tracked as a separate, later piece of work — see issue 219.
+
+## Declaring events and bindings in a mapping
+
+A mapping (`blazor/mappings/<name>.json`) stays declarative; `scripts/generate-blazor.mjs` writes the C# from it:
+
+- `"events": ["pk-property-change"]` (or `"events": "pk"` for every `pk-*` event) generates an `On<Event>` parameter per event (`OnPropertyChange`), an `EventCallback<PkPropertyChangeEventArgs>` typed from the element's `detailProps` (a plain `EventCallback` when the event has no detail). An event that already has an `event` parameter in `params` keeps it; native events (`click`) use the normal `@onclick`.
+- `"bind": { "event": "pk-range-change", "field": "end" }` on a parameter makes it two-way from that field of that event (`EndChanged`, so `@bind-End`). `bind` may be a list of events, and every parameter can have its own, so one event can drive several parameters. `"value": "detail.end"` is the same as `"field": "end"`, and a literal `"value": false` sets a constant.
+- A callback cannot cancel a cancelable event: the browser does not wait for the server. Refuse in your model, or report the refusal through a parameter (`CellErrors` on `PkTable`).
+- Not covered: callbacks that take a JavaScript function (the page types' `load`, `save`, `validate`, ...) need interop design (#346).
 
 ## How binding works
 
