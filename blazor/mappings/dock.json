@@ -33,7 +33,7 @@
     {
       "name": "ChildContent",
       "slot": "",
-      "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id)."
+      "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id). slot=\"empty\" and slot=\"toolbar-start\" are reserved (the empty state, and a host app's own top-level toolbar menus) and are never treated as a panel."
     }
   ],
   "notes": "Hand-written (issue #592): controlled mode. confirmLayout(arg) is a callback property (business logic, not config data, set from script the same way pk-tool-page's run is), so the component hands it a .NET reference (PkCallbackSlot) built from the ConfirmLayout parameter. Not set, the element is free-running (unchanged from PR #540): a resize or tab change applies right away and then fires pk-layout-change. ConfirmLayout set, every change holds until it resolves with the confirmed layout json (or null to keep the previous one); a rejection also keeps the previous layout. Not a mapped param: the generator only maps props, slots and events."

@@ -91,4 +91,60 @@ export const dockCases = [
         t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'choosing a tab shows that panel');
         t.eq(dock.layout, null, 'a phone render writes no layout');
     }],
+
+    ['dock: a group with company gets a keyboard-reachable Move button; choosing "Add as tab" from its menu moves the panel with moveTab, commits reason move, and the moved tab keeps focus', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const leftGroup = [...root.querySelectorAll('[part=group]')][0];
+        const move = leftGroup.querySelector('pk-dropdown');
+        t.ok(move, 'the left group (more than one panel, more than one group total) has a Move dropdown');
+        const trigger = move.querySelector('[slot=trigger]');
+        t.eq(trigger.tagName.toLowerCase(), 'pk-button'); t.ok(trigger.getAttribute('label').endsWith('panel menu'));
+        trigger.focus(); trigger.click(); await t.settle(); await wait(60);
+        t.eq(move.open, true, 'Enter/click on the trigger opens the menu (keyboard-reachable, no drag)');
+        const items = [...move.querySelectorAll('pk-menu-item')];
+        const addAsTab = items.find(i => i.textContent === 'Add as tab');
+        t.ok(addAsTab, 'an "Add as tab" item is offered for the other group');
+        addAsTab.click(); await t.settle(); await wait(60);
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        t.ok(seen[0].layout.root, 'a new layout was committed');
+        const movedTab = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Toolbox');
+        t.ok(movedTab && movedTab.getAttribute('selected') !== null, 'the moved panel is the active tab of its new group');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Toolbox/.test(status.textContent), 'the move is announced in the visually hidden status region');
+    }],
+
+    ['dock: closing a panel from its panel menu removes it from the tree and shows the toolbar\'s Panels menu; reopening puts it back and hides the toolbar again, in session only', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const toolbar = dock.shadowRoot.querySelector('[part=toolbar]');
+        t.eq(toolbar.hidden, true, 'nothing closed yet');
+        // Find the Canvas group by its own title (a single-panel header), not by textContent: a group's panel menu also names Canvas as a Move
+        // target, so a plain textContent search can match the wrong group.
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasGroup = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle);
+        t.ok(canvasGroup, 'the Canvas group (a single panel, so a titled header) is found by its own title');
+        const menu = canvasGroup.querySelector('pk-dropdown');
+        menu.querySelector('[slot=trigger]').click(); await t.settle(); await wait(60);
+        const close = [...menu.querySelectorAll('pk-menu-item')].find(i => i.textContent === 'Close');
+        t.ok(close, 'the panel menu offers Close');
+        close.click(); await t.settle(); await wait(60);
+        t.ok(![...root.querySelectorAll('[part=group]')].some(hasCanvasTitle), 'canvas is gone from the tree');
+        t.eq(toolbar.hidden, false, 'the toolbar appears with something to reopen');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Canvas closed/.test(status.textContent), 'the close is announced');
+        const panels = toolbar.querySelector('pk-dropdown');
+        panels.querySelector('[slot=trigger]').click(); await t.settle(); await wait(60);
+        const open = [...panels.querySelectorAll('pk-menu-item')].find(i => i.textContent === 'Open Canvas');
+        t.ok(open, 'the toolbar\'s Panels menu offers to reopen it');
+        open.click(); await t.settle(); await wait(60);
+        // Reopening adds it back to the first group (this smallest version keeps no memory of its last group, see #432), so it may now be a tab
+        // rather than its own titled section: look for its name either way.
+        const hasCanvas = el => el.textContent === 'Canvas';
+        t.ok([...root.querySelectorAll('[part=title]')].some(hasCanvas) || [...root.querySelectorAll('pk-tab')].some(hasCanvas), 'canvas is back in the tree');
+        t.eq(toolbar.hidden, true, 'nothing closed any more');
+        t.ok(/Canvas opened/.test(status.textContent), 'the reopen is announced too');
+        t.eq(dock.layout.version, 1, 'still a plain layout document: closing/reopening keeps no separate persisted state');
+    }],
 ];
