@@ -19,7 +19,7 @@ const fakeEl = (tag = 'div') => ({
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = { state: fakeEl(), workspace: fakeEl('pk-workspace'), nav: fakeEl(), main: fakeEl(), aside: fakeEl() };
+    const parts = { header: fakeEl('div'), state: fakeEl(), workspace: fakeEl('pk-workspace'), nav: fakeEl(), main: fakeEl(), aside: fakeEl() };
     const errors = [];
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {

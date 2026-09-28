@@ -12,3 +12,4 @@
     [part="layout"][data-view] [part="master"], [part="layout"][data-view] [part="detail"] { display: block; }
     [part="bar"] { display: none; }
 }
+[part="header"] { margin-block-end: var(--space-4); }

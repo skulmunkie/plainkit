@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -35,6 +35,7 @@ export default Base => class extends Base {
     // An optional load() returns draft answers before the first step (loading and error-with-Retry as on the record page).
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state');
+        showTitleBar(this, this.part('header'));
         this.$panes = new Map(); this.$i = 0; this.$far = 0; this.$draft = {};
         this.part('panes').replaceChildren();
         this.part('card').hidden = this.part('stepper').hidden = true;

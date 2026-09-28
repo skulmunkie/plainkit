@@ -1,5 +1,5 @@
 import { loadElements } from '../../js/loader.js';
-import { renderState } from '../../js/page-states.js';
+import { showState } from '../../js/page-shell.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 
 // pk-doc-page (App framework tracker #346, step 7, issue #353): a side nav of items + an article + a table of contents + a pager, built from
@@ -98,7 +98,7 @@ export default Base => class extends Base {
         this.$title.textContent = known?.title ?? '';
         this.$summary.textContent = known?.summary ?? '';
         this.paintPager(items, id);
-        renderState(this.$body, 'loading', { label: 'Loading' });
+        showState(this.$body, 'loading', { label: 'Loading' });
         this.syncToc();
         loadElements(this.$body);
         try {
@@ -111,7 +111,7 @@ export default Base => class extends Base {
         } catch (err) {
             if (id !== this.$currentId) return;
             this.log?.error?.('pk-doc-page: loadItem failed', err);
-            renderState(this.$body, 'error', { description: err?.message ?? String(err), retry: () => this.load(id, this.config ?? {}) });
+            showState(this.$body, 'error', { error: err, retry: () => this.load(id, this.config ?? {}) });
             this.syncToc();
             loadElements(this.$body);
         }
@@ -135,7 +135,7 @@ export default Base => class extends Base {
     paintMissing(id) {
         this.$title.textContent = 'Not found';
         this.$summary.textContent = '';
-        renderState(this.$body, 'empty', { heading: 'Not found', description: `There is nothing called "${id}" here.` });
+        showState(this.$body, 'empty', { heading: 'Not found', description: `There is nothing called "${id}" here.` });
         loadElements(this.$body);
         this.$pager.replaceChildren();
         this.syncToc();
