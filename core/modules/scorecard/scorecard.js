@@ -35,7 +35,8 @@ import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('scorecard');
 import { sameOrigin } from '../../js/framework-checks.js';
-import { watchVitals, timeRows, recalcMs, readTexts, measureSizes } from './measure.js';
+import { watchVitals, recalcMs } from '../../js/measure.js';
+import { timeRows, readTexts, measureSizes } from './measure.js';
 import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
 const STYLES = ['../../plainkit.css'];
