@@ -568,7 +568,7 @@ test('unknown page types and layouts, unknown module routes and route guards sho
         layouts: { own: (host) => host },
         routes: [
             { path: '/board', page: { type: 'board', config: { n: 3 } }, layout: 'framed' },
-            { path: '/record', page: 'record' },
+            { path: '/record', page: 'wizard' },
             { path: '/nolayout', page: 'custom', layout: 'nope' },
             { path: '/secret', page: 'custom', config: { mount: () => {} }, can: () => false },
             { path: '/gone', page: 'not-found' },
@@ -791,4 +791,23 @@ test("'workspace' (step 7, #353) creates a pk-workspace-page, splits config into
     assert.equal(el2.fill, true);
     assert.equal(el2.mount({ main: 1 }), 'handle');
     assert.deepEqual(seen, [[{ main: 1 }, { id: 'x' }]], 'mount receives the panes and the page ctx');
+});
+
+test("'record' (step 7, #353) creates a pk-record-page, takes the id from the route param, keeps load/save as callbacks bound to ctx and the rest as data", async () => {
+    class El { constructor(tag, host) { this.localName = tag; this.host = host; } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
+    const factory = (await import('../js/app/pages/record.js')).default;
+    const seen = [], host = new Host();
+    const cleanup = factory(host, { fields: [{ name: 'a' }], mode: 'edit', load: (id, ctx) => { seen.push(['load', id, ctx.tag]); return 'rec'; }, save: (v, ctx) => { seen.push(['save', v, ctx.tag]); } }, { tag: 'x', route: { params: { id: '42' } } });
+    const el = host.children[0];
+    assert.equal(el.localName, 'pk-record-page');
+    assert.deepEqual(el.config, { fields: [{ name: 'a' }], id: '42' }, 'load, save and mode are not config data');
+    assert.equal(el.mode, 'edit');
+    assert.equal(el.load('42'), 'rec'); el.save({ a: 1 });
+    assert.deepEqual(seen, [['load', '42', 'x'], ['save', { a: 1 }, 'x']]);
+    cleanup();
+    assert.deepEqual(host.children, []);
+    const bare = new Host(); factory(bare, {}, {});
+    assert.equal(bare.children[0].config.id, undefined, 'no route param: a new record');
+    assert.equal(bare.children[0].load, undefined);
 });
