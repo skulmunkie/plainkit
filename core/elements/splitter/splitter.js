@@ -38,7 +38,7 @@ export default Base => class extends Base {
         if (this.disabled || e.button > 0) return;
         const h = this.part('handle'), r = h.getBoundingClientRect(), horiz = this.horizontal();
         this.$drag = { id: e.pointerId, from: this.now(), grab: horiz ? e.clientX - (r.left + r.width / 2) : e.clientY - (r.top + r.height / 2) };
-        try { h.setPointerCapture(e.pointerId); } catch { /* a synthetic pointer is not active: the drag still follows the handle's own events */ }
+        try { h.setPointerCapture(e.pointerId); } catch (err) { this.debug('pointer capture refused (a synthetic pointer is not active): the drag still follows the handle\'s own events', err); }
         this.part('root').toggleAttribute('data-dragging', true);
     }
     drag(e) {
