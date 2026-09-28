@@ -72,9 +72,12 @@ test('the server answers only requests for a local host name (DNS rebinding), un
     });
 });
 
-test('with --write-reports, a report is written only by a same-origin request: a cross-site page cannot overwrite the browser attestation', async () => {
+test('with --write-reports, a report is written only by a same-origin request: a cross-site page cannot overwrite the local report', async () => {
+    // core/tests/browser/report.json is local-only scratch output (issue #451, not committed), so a fresh checkout has none: seed one for this test.
     const report = path.join(core, 'tests', 'browser', 'report.json');
-    const before = fs.readFileSync(report, 'utf8');
+    const existed = fs.existsSync(report);
+    const before = existed ? fs.readFileSync(report, 'utf8') : JSON.stringify({ passed: 0, failed: 0, results: [], sources: {} });
+    if (!existed) fs.writeFileSync(report, before);
     try {
         await withServer(['--write-reports'], async port => {
             const body = JSON.stringify({ hostile: true });
@@ -82,5 +85,5 @@ test('with --write-reports, a report is written only by a same-origin request: a
             assert.equal((await post('http://evil.example')).status, 403);
             assert.equal(fs.readFileSync(report, 'utf8'), before, 'a cross-site POST changed report.json');
         });
-    } finally { fs.writeFileSync(report, before); } // never leave the attestation damaged, even when the server is not fixed
+    } finally { if (existed) fs.writeFileSync(report, before); else fs.rmSync(report, { force: true }); } // leave a pre-existing report untouched; remove the one we seeded
 });
