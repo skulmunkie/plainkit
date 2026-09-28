@@ -1,0 +1,46 @@
+{
+  "tag": "pk-kanban",
+  "title": "Kanban board",
+  "group": "Layout",
+  "summary": "A board of pk-kanban-column children, each holding pk-sortable-item cards (usually a pk-card inside). Drag a card's handle to another column or position (pointer or touch), or focus a card and press Alt+Arrow. It never moves its own children: pk-move carries the move and the host applies it.",
+  "props": [
+    { "name": "label", "type": "string", "default": "", "reflect": false, "description": "Accessible name for the board (aria-label)." },
+    { "name": "disabled", "type": "boolean", "default": false, "reflect": true, "description": "No card can be grabbed or moved by the keyboard." },
+    { "name": "dragging", "type": "boolean", "default": false, "reflect": true, "description": "True while a card is being dragged. A styling hook the element sets itself." }
+  ],
+  "slots": [
+    { "name": "", "description": "pk-kanban-column children, in board order." }
+  ],
+  "events": [
+    {
+      "name": "pk-move",
+      "detail": "{ item, from, to, fromIndex, toIndex }",
+      "detailProps": { "item": "string", "from": "string", "to": "string", "fromIndex": "number", "toIndex": "number" },
+      "description": "A card move was committed: a drag ended over a new column or position, or Alt+Arrow moved the focused card. item is the card's value, from and to are the columns' values, and fromIndex and toIndex are the card's index in its old column and the index it takes in the new one (the same list with the card lifted out, so within one column it is where the card ends up). The host applies it: pk-kanban never moves its own children. Cancelable: preventDefault declines the move, and the live region says it was cancelled.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    { "name": "board", "description": "The horizontally scrolling row of columns." },
+    { "name": "announcer", "description": "The visually-hidden aria-live region that announces a grab, a move or a cancelled move for a screen reader." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-kanban-gap", "description": "Gap between columns.", "default": "var(--space-3)" },
+    { "name": "--pk-kanban-column-width", "description": "Width of a column on a wide screen (a phone shows 85%).", "default": "18rem" }
+  ],
+  "methods": [
+    { "name": "dropTarget(cols, x, y)", "description": "The column and index a pointer position means; pure." },
+    { "name": "keyDestination(key, col, index, lens, rtl)", "description": "The column and index Alt+Arrow asks for; pure." }
+  ],
+  "writes": [
+    { "target": "the pk-kanban-column and pk-sortable-item children", "attributes": ["dragging", "drop-indicator", "drop-target", "tabindex"], "why": "dragging marks the card being dragged; drop-indicator draws the insertion line against a neighbour and drop-target highlights the column under the pointer (both cleared when the drag ends); tabindex is the roving focus stop across every card of the board. None is undone on disconnect, like pk-sortable." }
+  ],
+  "a11y": "role=group; each column is a role=list and each card a listitem. One tab stop across the board (roving tabindex): Up and Down move between cards of a column, Left and Right to the neighbouring column (mirrored right to left). Alt+Up and Alt+Down reorder the focused card, Alt+Left and Alt+Right move it to the next column; focus stays on it. A visually-hidden aria-live=polite region announces \"Card moved to Done, position 2 of 4.\" Escape cancels a drag.",
+  "mobile": "The card handle is a 44px touch target with touch-action off, so a drag moves the card instead of scrolling; the columns scroll sideways and each is 85% wide so the next one peeks in.",
+  "examples": [
+    {
+      "title": "A three-column board",
+      "html": "<pk-kanban label=\"Sprint board\">\n  <pk-kanban-column value=\"todo\" label=\"To do\">\n    <pk-sortable-item value=\"t1\"><pk-card heading=\"Write the spec\" level=\"3\">Two pages.</pk-card></pk-sortable-item>\n    <pk-sortable-item value=\"t2\"><pk-card heading=\"Design the header\" level=\"3\">Before Friday.</pk-card></pk-sortable-item>\n  </pk-kanban-column>\n  <pk-kanban-column value=\"doing\" label=\"In progress\">\n    <pk-sortable-item value=\"d1\"><pk-card heading=\"Build the board\" level=\"3\">Pointer, touch and keys.</pk-card></pk-sortable-item>\n  </pk-kanban-column>\n  <pk-kanban-column value=\"done\" label=\"Done\" empty-text=\"Nothing shipped yet\"></pk-kanban-column>\n</pk-kanban>"
+    }
+  ]
+}
