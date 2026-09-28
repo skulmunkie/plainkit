@@ -93,6 +93,9 @@ export default {
             t.hasText('#pk-nav', 'Orders');
             t.hasText('#pk-nav', 'All orders');
             t.exists('#pk-nav pk-nav-item[current][href="#/orders"]');
+            // #385: no empty band (the desktop place of the rail chevron, hidden here) above the first row of the drawer.
+            const nav = t.rect('#pk-nav'), first = t.rect('#pk-nav pk-nav-item');
+            if (nav && first) t.ok(first.y - nav.y <= 16, `the drawer's first row starts ${Math.round(first.y - nav.y)}px below its top (an empty band); expected within 16px`);
         }
         if (t.shot === 'search-open') {
             t.visible('pk-app-bar-search >>> [part=popup]', 'the results');

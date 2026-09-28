@@ -38,17 +38,9 @@ export function announceMove(label, column, index, total) {
     return `${label} moved to ${column}, position ${index + 1} of ${total}.`;
 }
 
-// Auto-scroll while a card is dragged: the pointer within SCROLL_ZONE px of an edge of a scroller scrolls it, up to SCROLL_MAX px a frame at the very edge (and past it).
-export const SCROLL_ZONE = 64, SCROLL_MAX = 18;
-
-// The scroll step for one axis, in px: negative toward the start edge, positive toward the end edge, 0 in the middle. It grows with how deep the pointer is
-// in the zone (a pointer past the edge counts as at the edge). reduced = prefers-reduced-motion: no ramp, a steady half speed, so it stays functional without easing.
-export function edgeSpeed(pos, start, end, reduced = false, zone = SCROLL_ZONE, max = SCROLL_MAX) {
-    const z = Math.min(zone, (end - start) / 2);
-    if (!(z > 0)) return 0;
-    const near = pos - start < z ? -(z - Math.max(pos - start, 0)) / z : end - pos < z ? (z - Math.max(end - pos, 0)) / z : 0;
-    return reduced ? Math.sign(near) * max / 2 : near * max;
-}
+// Auto-scroll while a card is dragged lives in js/drag-scroll.js (shared with pk-sortable); edgeSpeed stays exported from here for the Node tests.
+import { edgeSpeed, frameLoop, reducedMotion, scrollPageStep } from '../../js/drag-scroll.js';
+export { edgeSpeed };
 
 export default Base => class extends Base {
     connected() {
@@ -78,16 +70,15 @@ export default Base => class extends Base {
         card.toggleAttribute('dragging', true);
         this.dragging = true;
         this.say(`Grabbed ${card.value || 'the card'}.`);
-        this.$raf = requestAnimationFrame(() => this.scrollTick());
+        (this.$loop ??= frameLoop(() => this.scrollTick())).start();
     }
     // ---- auto-scroll: one frame loop while a drag is active. The board scrolls sideways near its left or right edge, and the column under the pointer scrolls
     // up or down near its top or bottom; whatever moved, the drop target is worked out again because the columns and cards slid under a still pointer.
     scrollTick() {
         const d = this.$drag;
-        this.$raf = 0;
         if (!d) return;
         if (d.x !== undefined) {
-            const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches, board = this.part('board'), b = board.getBoundingClientRect();
+            const reduced = reducedMotion(), board = this.part('board'), b = board.getBoundingClientRect();
             let moved = false;
             const dx = edgeSpeed(d.x, b.left, b.right, reduced);
             if (dx) { const was = board.scrollLeft; board.scrollLeft += dx; moved = board.scrollLeft !== was; }
@@ -96,11 +87,11 @@ export default Base => class extends Base {
                 const r = list.getBoundingClientRect(), dy = edgeSpeed(d.y, r.top, r.bottom, reduced);
                 if (dy) { const was = list.scrollTop; list.scrollTop += dy; moved = moved || list.scrollTop !== was; }
             }
+            moved = scrollPageStep(this, d.y, reduced) !== 0 || moved; // and the page itself, near the top or bottom of the window
             if (moved) this.continueDrag(d.x, d.y);
         }
-        if (this.$drag) this.$raf = requestAnimationFrame(() => this.scrollTick());
     }
-    stopScroll() { if (this.$raf) cancelAnimationFrame(this.$raf); this.$raf = 0; }
+    stopScroll() { this.$loop?.stop(); }
     continueDrag(x, y) {
         const d = this.$drag;
         d.x = x; d.y = y;

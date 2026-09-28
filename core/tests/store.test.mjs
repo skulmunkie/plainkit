@@ -18,6 +18,8 @@ const spec = () => ({ defaults: { scale: 1, width: 'wide', tags: [], on: false }
 const warnings = () => getLogBuffer().filter(e => e.level === 'warn' && ['store', 'settings'].includes(e.scope));
 const fresh = init => { clearLogBuffer(); const storage = memory(init); return { storage, store: createStore({ storage }) }; };
 const env = data => JSON.stringify({ v: 1, data });
+const fixtures = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/store-envelopes.json'), 'utf8'));
+const migrations = { 'w-to-wide': d => ({ ...d, width: d.width === 'w' ? 'wide' : d.width }) };
 
 test('get, set, patch and the { v, data } envelope under <prefix>.<id>', () => {
     const { storage, store } = fresh();
@@ -53,6 +55,17 @@ for (const [name, text] of [['corrupt JSON', '{not json'], ['not an object', '42
         assert.equal(m.get('scale'), 1);
         assert.equal(m.get('width'), 'wide');
         assert.equal(warnings().length, 1);
+    });
+}
+
+// The same fixture file drives PkSharedStateTests.cs (PlainKit.Blazor): a rule that drifts on either side fails a test.
+for (const c of fixtures.cases) {
+    test(`shared fixture: ${c.name}`, () => {
+        const { store } = fresh({ 'pk.a': ' '.repeat(c.pad ?? 0) + c.stored });
+        const m = store.module('a', { ...fixtures.spec, version: c.version, migrate: migrations[c.migrate] });
+        for (const k of ['scale', 'width', 'open']) assert.equal(m.get(k), c.expect[k], k);
+        assert.equal(warnings().length, c.expect.warnings);
+        for (const part of c.expect.contains ?? []) assert.match(warnings()[0].message, new RegExp(part));
     });
 }
 
