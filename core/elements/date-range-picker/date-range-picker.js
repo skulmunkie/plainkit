@@ -1,5 +1,6 @@
 // pk-date-range-picker behaviour: a start and an end date as two native date fields (keyboard, touch and the platform picker come with them) plus quick ranges.
 // Dates are ISO strings ("2026-09-19"), computed in UTC so a time zone never shifts a day; the pure rules are exported for the Node tests.
+import { loadElements } from '../../js/loader.js';
 import { addDays, addMonths, isoDate, parseIso } from '../../js/iso-date.js';
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -69,6 +70,31 @@ export default Base => class extends Base {
             this.start = r.start; this.end = r.end; this.commit(true);
         });
     }
+    // The calendar popover (the calendar attribute): the field's opener opens a range pk-calendar that shares this picker's range. It commits like the fields do and closes on the second click.
+    wireCalendar() {
+        const pop = this.part('popover'), cal = this.part('calendar'), opener = this.part('opener');
+        cal.addEventListener('pk-range-change', ev => {
+            ev.stopPropagation();
+            this.start = ev.detail.start; this.end = ev.detail.end; this.commit(true);
+            pop.open = false; opener.focus();
+        });
+        pop.addEventListener('pk-open', ev => {
+            ev.stopPropagation();
+            cal.month = cleanIso(this.start);
+            queueMicrotask(() => cal.focus());
+        });
+        pop.addEventListener('pk-close', ev => { ev.stopPropagation(); if (ev.detail.reason === 'escape') opener.focus(); });
+    }
+    // The calendar, popover and button load on demand (only a picker with the calendar attribute pays for them); props are written once they are upgraded.
+    syncCalendar(start, end, min, max) {
+        if (!this.calendar) return;
+        const tags = ['pk-popover', 'pk-button', 'pk-calendar'];
+        if (!this.$loaded) { this.$loaded = true; this.wireCalendar(); loadElements(this.shadowRoot); Promise.all(tags.map(n => customElements.whenDefined(n))).then(() => this.requestUpdate()); }
+        if (!tags.every(n => customElements.get(n))) return;
+        const cal = this.part('calendar'), ordered = start && end && end >= start;
+        cal.start = ordered ? start : ''; cal.end = ordered ? end : ''; cal.min = min; cal.max = max;
+        this.part('opener').disabled = this.disabled || this.readonly;
+    }
     // Raise the change events; `done` is true for a committed change (a preset, a picked date) and false while typing in a field.
     commit(done) {
         const { start, end } = this, valid = !rangeProblems(start, end, { min: this.min, max: this.max }).invalid;
@@ -82,6 +108,7 @@ export default Base => class extends Base {
         const min = cleanIso(this.min), max = cleanIso(this.max), start = cleanIso(this.start), end = cleanIso(this.end);
         if (!this.$typing) { if (s.value !== start) s.value = start; if (e.value !== end) e.value = end; }
         this.$typing = false;
+        this.syncCalendar(start, end, min, max);
         s.disabled = e.disabled = this.disabled; s.readOnly = e.readOnly = this.readonly; s.required = e.required = this.required;
         s.setAttribute('aria-label', this.startLabel || 'Start date'); e.setAttribute('aria-label', this.endLabel || 'End date');
         const problem = rangeProblems(start, end, { min, max, required: this.required });

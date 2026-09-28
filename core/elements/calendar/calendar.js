@@ -81,6 +81,7 @@ export default Base => class extends Base {
         this.shadowRoot.addEventListener('focusin', over);
         this.shadowRoot.addEventListener('mouseout', e => { if (!e.relatedTarget?.closest?.('.day')) { this.$over = this.shadowRoot.activeElement?.dataset?.date || ''; this.paint(); } });
     }
+    focus(o) { this.shadowRoot.querySelector('.day[tabindex="0"]')?.focus(o); }
     get sel() { return this.range ? this.start : this.value; }
     get viewIso() { return this.month || this.sel || todayIso(); }
     showMonth(iso) { if (iso.slice(0, 7) !== this.viewIso.slice(0, 7)) { this.month = iso; this.emit('pk-month', { month: iso.slice(0, 7) }); } }

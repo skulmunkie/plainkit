@@ -164,6 +164,10 @@
   ],
   "methods": [
     {
+      "name": "focus()",
+      "description": "Focuses the day that holds the roving focus (the selected or first day of the shown month)."
+    },
+    {
       "name": "monthGrid(year, month, weekStart)",
       "description": "Weeks of a month."
     },
