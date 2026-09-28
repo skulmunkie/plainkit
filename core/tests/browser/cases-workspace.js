@@ -302,4 +302,35 @@ export const workspaceCases = [
             t.ok(el.part('workspace').getBoundingClientRect().height >= el.getBoundingClientRect().height - 2, `${w}x${h}: the workspace fills its page`);
         }
     }],
+
+    ['master-detail page (1200px and 375px): wide shows the list and the record side by side with no Back; narrow shows one pane, the record replaces the list, Back is shown, and focus moves to the record and back to the list (#353)', async t => {
+        const html = '<pk-master-detail-page></pk-master-detail-page>';
+        for (const width of [1200, 375]) {
+            const { doc, win } = await frame(t, html, width, 700);
+            await until(() => win.customElements.get('pk-master-detail-page') && win.customElements.get('pk-list-page'), 'the page elements');
+            const el = doc.querySelector('pk-master-detail-page');
+            el.config = { list: { columns: [{ key: 'name', label: 'Name' }] }, backLabel: 'Things' };
+            el.load = () => ({ rows: [{ id: '1', name: 'Blue' }, { id: '2', name: 'Red' }] });
+            el.mountDetail = (pane, id) => { pane.textContent = 'Record ' + id; };
+            await t.settle(); await wait(200);
+            const master = el.part('master'), detail = el.part('detail'), back = el.part('back');
+            if (width > 500) {
+                el.recordId = '2'; await t.settle(); await wait(100);
+                const a = master.getBoundingClientRect(), b = detail.getBoundingClientRect();
+                t.ok(shown(master) && shown(detail), 'both panes show');
+                t.ok(a.right <= b.left + 1 && Math.abs(a.top - b.top) < 2, 'the list is left of the record, on one row');
+                t.ok(!shown(back), 'no Back button when both panes show');
+            } else {
+                t.ok(shown(master) && !shown(detail), 'nothing selected: only the list');
+                el.recordId = '2'; await t.settle(); await wait(100);
+                t.ok(!shown(master) && shown(detail), 'a selection: only the record'); t.ok(shown(back), 'Back is shown');
+                t.eq(back.textContent.trim(), '← Things');
+                t.ok(back.getBoundingClientRect().width > 0 && detail.getBoundingClientRect().width <= doc.documentElement.clientWidth + 1, 'the record fits the phone');
+                t.eq(el.shadowRoot.activeElement, detail, 'focus moved to the record');
+                el.recordId = ''; await t.settle(); await wait(100);
+                t.ok(shown(master) && !shown(detail), 'clearing the selection shows the list again');
+            }
+            t.eq(el.part('record').textContent, width > 500 ? 'Record 2' : '');
+        }
+    }],
 ];

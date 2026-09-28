@@ -1,0 +1,28 @@
+{
+  "component": "PkMasterDetailPage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { list?, backLabel?, none?, label? }."
+    },
+    {
+      "name": "RecordId",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "recordId"
+    },
+    {
+      "name": "Fill",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "fill"
+    }
+  ],
+  "notes": "New component: App framework step 7 (issue #353). Load, Open, Close and MountDetail are callback properties (business logic), not Blazor parameters mapped here yet; left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and PkWorkspacePage's Mount."
+}

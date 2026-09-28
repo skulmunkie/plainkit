@@ -1,0 +1,51 @@
+{
+  "tag": "pk-master-detail-page",
+  "title": "Master-detail page",
+  "group": "Page types",
+  "summary": "A list of records and the record the route selected. Wide, they sit side by side (a pk-list-page and the record pane); narrow, one shows at a time and the record has a Back button. The host owns the selection: set recordId from the route (a deep link works), and the element reports what the reader did through callback properties. load(query) feeds the list exactly as pk-list-page's does; open(row) is called when a row is chosen and close() when Back is pressed, so the host changes the route. mountDetail(pane, id) draws the record into the pane and returns a cleanup function or a { destroy() } handle, called when the record changes or the element leaves the page. While mountDetail is pending the built-in loading state shows over the record, a rejection shows the error state with Retry. Focus moves to the record once it is drawn, and back to the row that was open when the selection clears.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ list?, backLabel?, none?, label? }. list is pk-list-page's own config ({ columns, filters?, actions?, empty?, pageSize? }). backLabel is the Back button's text (default 'Back'). none is { heading?, description? } shown in the record pane while nothing is selected. label names the loading state."
+    },
+    {
+      "name": "recordId",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The id of the selected record, from the route; empty when none is. Untrusted text: it is only passed to mountDetail."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Take all the room a flex column parent leaves."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "layout", "description": "The grid holding both panes." },
+    { "name": "master", "description": "The list pane." },
+    { "name": "list", "description": "The pk-list-page." },
+    { "name": "bar", "description": "Holds the Back button." },
+    { "name": "detail", "description": "The record pane (focused once its record is drawn)." },
+    { "name": "back", "description": "The Back button; shown only when one pane shows at a time." },
+    { "name": "none", "description": "The nothing-selected message." },
+    { "name": "record", "description": "The record's content; mountDetail draws into it." },
+    { "name": "state", "description": "Shows the loading or error state in place of the record." }
+  ],
+  "cssProperties": [],
+  "a11y": "The list keeps pk-list-page's table, filter and pagination semantics. The record pane is focusable and takes focus when a record opens, so a keyboard or screen reader user lands on it; Back returns focus to the row that was open. The loading and error states use pk-skeleton and pk-alert's own roles.",
+  "examples": [
+    {
+      "title": "Things and their record (set config, load and mountDetail from script: an inline script cannot run under this site's CSP, so wire it the way pk-list-page's load is wired)",
+      "html": "<pk-master-detail-page id=\"things\" record-id=\"2\"></pk-master-detail-page>"
+    }
+  ],
+  "methods": []
+}
