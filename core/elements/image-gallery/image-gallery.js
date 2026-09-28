@@ -128,6 +128,9 @@ export default Base => class extends Base {
     updated() {
         this.toggleAttribute('has-input', this.slotted('input').length > 0);
         const grid = this.part('grid'); const add = this.part('add-tile'); const tpl = this.shadowRoot.querySelector('template[data-tile]');
+        // data-if="editable" (element.js) already hides the tile when not editable; hideAdd only narrows that further, so it never
+        // overrides data-if's own hidden when not editable, and never shows the tile when editable is false.
+        if (this.editable) add.hidden = this.hideAdd;
         const rule = gridRule(this.columns, this.min);
         this.style.setProperty('--_cols', rule.cols); this.style.setProperty('--_min', rule.min);
         const list = this.$list = normalize(this.images); const p = primaryIndex(list, this.primary);
