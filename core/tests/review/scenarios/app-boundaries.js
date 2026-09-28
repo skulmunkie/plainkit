@@ -50,6 +50,7 @@ export default {
         if (t.shot === 'loading-first') {
             t.visible('#app pk-skeleton', 'the skeleton that holds the space');
             t.atLeast('#app pk-skeleton', 'height', 200);
+            t.ok(t.style('#app pk-skeleton', 'background-color') !== t.style('body', 'background-color'), 'the skeleton fill differs from the page background');
             t.hidden(ALERT, 'the error alert');
         }
         if (t.shot === 'loaded') { t.absent('#app pk-skeleton'); t.hasText('#app pk-card', 'is loaded'); t.hidden(ALERT, 'the error alert'); }
