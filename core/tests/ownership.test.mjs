@@ -318,6 +318,7 @@ const NOT_TWO_WAY = {
     'nav-item.current': 'the route marker the host sets; the element never changes it',
     'progress.value': 'output only: nothing the user can change',
     'sortable-item.value': 'the row\'s identifier, reported in pk-sortable\'s pk-reorder event; the user moves the row, not this',
+    'swatch.value': 'the literal colour the host supplies to sample; the user never changes it',
     'step.index': 'the step\'s position, set by its stepper',
     'stat.value': 'output only: a figure the host supplies',
     'stat.values': 'output only: the series the host supplies',
