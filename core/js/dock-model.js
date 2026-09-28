@@ -3,7 +3,7 @@
 // (an ordered list of panel ids and the active one). A panel is not a node: it is a declared id, held by exactly one group. Every operation returns
 // { doc, problems } and never mutates or throws on data: a request that cannot be applied returns the input unchanged plus a problem.
 // Step 1 of the spec: floating panels, collapse, close/open and undo add their fields and operations in later steps (fromJson drops keys it does not know).
-import { clampSize } from '../elements/splitter/splitter.js';
+import { clampSize } from './size.js';
 
 export const VERSION = 1;
 export const LIMITS = Object.freeze({ depth: 12, groups: 64, panels: 128, bytes: 65536 });
