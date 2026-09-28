@@ -1,0 +1,26 @@
+{
+  "component": "PkSwatch",
+  "params": [
+    {
+      "name": "Token",
+      "prop": "token",
+      "type": "string"
+    },
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Compare",
+      "prop": "compare",
+      "type": "string"
+    },
+    {
+      "name": "Large",
+      "prop": "large",
+      "type": "bool"
+    }
+  ],
+  "notes": "New component (issue #525)."
+}
