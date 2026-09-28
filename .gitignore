@@ -23,6 +23,9 @@ Thumbs.db
 scratch*/
 *.log
 
+## The in-browser element suite's local report (node scripts/attest-browser.mjs): not gated by CI, not a release artefact any more (issue #451).
+/core/tests/browser/report.json
+
 ## The last full size sweep (node scripts/scorecard-sweep.mjs --write-report): a local report that goes stale with every gallery edit, so it is not tracked.
 /core/site/scorecard/sweep-report.json
 
@@ -33,7 +36,7 @@ _site/
 
 ## Generated output: NOT in git. Produce it with `node scripts/bootstrap.mjs` (build, Blazor wrappers, skills, package copy), and never commit it.
 ## The list is scripts/generated.mjs (node scripts/generated.mjs list); scripts/tests/generated-paths.test.mjs keeps the two in step.
-## Release artefacts (core/site/scorecard/api.baseline.json, core/tests/browser/report.json, core/VERSION) are NOT generated and stay tracked.
+## Release artefacts (core/site/scorecard/api.baseline.json, core/VERSION) are NOT generated and stay tracked.
 /core/dist/
 /core/plainkit.css
 /core/elements/elements.css
