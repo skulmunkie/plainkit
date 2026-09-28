@@ -42,6 +42,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `layouts/<id>/` | Page anatomies (list, record, setup, tool, wizard): `<id>.html` + `<id>.meta.json` listing the elements used |
 | `samples/templates/<id>/`, `samples/patterns/<id>/` | Full-page templates and composed patterns, each in its own folder with `.html`, `.meta.json` (and `.js`: a template's page script, a pattern's optional `mount(root)` script) |
 | `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (its `content/*.md` are the guides; `spacing/` only redirects to the gallery) |
+| `site2/` | The Site V2 / strict-module-mode rebuild target (`docs/superpowers/specs/2026-09-28-site-v2-strict-modules-design.md`, tracker #346); empty until the design's open questions are answered. `site/` (above) is the live Gallery App and is not touched by this work until cutover |
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/modules/<tool>/` (their own unit, see "Tool modules"); the site pages are thin hosts on them |
