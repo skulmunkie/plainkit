@@ -70,6 +70,7 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot);
         for (const type of ['pk-value-change', 'pk-change', 'pk-range']) this.part('groups').addEventListener(type, e => this.onChange(e));
+        this.part('groups').addEventListener('keydown', e => this.onKey(e));
         // Two columns (label beside value) once the grid itself is wide; stacked otherwise. Follows the grid's own width, not the viewport.
         if (typeof ResizeObserver === 'function') {
             this.$ro = new ResizeObserver(([e]) => this.layout(e.contentRect.width >= 480));
@@ -152,6 +153,23 @@ export default Base => class extends Base {
             if (r.unit) r.unit.disabled = c.disabled;
             if (r.swatch?.style) r.swatch.style.background = HEX.test(values[key]) ? values[key] : 'transparent';
         }
+    }
+    // Moving between rows without trapping Tab: Ctrl+Up/Down step to the previous/next enabled, visible property, Ctrl+Home/End jump to the first/last. Plain arrows
+    // and Home/End already mean something inside a number, select, range or text control, so only a switch (which has no such use) takes them without Ctrl.
+    onKey(e) {
+        const rows = Object.values(this.$rows ?? {});
+        const path = e.composedPath();
+        const at = rows.findIndex(r => path.includes(r.c));
+        const plain = rows[at]?.f.type === 'switch';
+        if (at < 0 || e.altKey || e.shiftKey || e.metaKey || !(plain ? !e.ctrlKey : e.ctrlKey)) return;
+        const open = rows.filter(r => !r.row.hidden && !r.c.disabled && r.c.closest('pk-accordion-item')?.open !== false);
+        const i = open.findIndex(r => r === rows[at]);
+        const to = { ArrowUp: i - 1, ArrowDown: i + 1, Home: 0, End: open.length - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        const c = open[Math.max(0, Math.min(open.length - 1, to))]?.c;
+        // A pk-input's own focus() lands on its first stepper button; the value control is the part="control" inside it.
+        (c?.shadowRoot?.querySelector('[part="control"]') ?? c)?.focus();
     }
     onChange(e) {
         const hit = Object.entries(this.$rows ?? {}).find(([, r]) => r.c === e.target || r.unit === e.target);

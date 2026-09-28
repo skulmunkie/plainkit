@@ -65,7 +65,7 @@
     { "target": "swatch", "attributes": ["slot"], "why": "The colour editor's swatch is created by the grid itself inside its own shadow tree and slotted into the pk-input prefix." },
     { "target": "r.row", "attributes": ["hidden"], "why": "A property row (a pk-field or switch the grid created in its own shadow tree) is hidden by visibleWhen or state." }
   ],
-  "a11y": "Each property is a labelled real control (pk-input, pk-select, pk-switch), so Tab, arrow keys and Space work as in those elements (a unit property's picker is its own labelled select, named \"<label> unit\"); groups are pk-accordion-item disclosures (Enter or Space toggles). An invalid property sets aria-invalid and shows its message as a pk-alert next to it, so an error is never colour alone.",
+  "a11y": "Each property is a labelled real control (pk-input, pk-select, pk-switch), so Tab, arrow keys and Space work as in those elements (a unit property's picker is its own labelled select, named \"<label> unit\"); groups are pk-accordion-item disclosures (Enter or Space toggles). An invalid property sets aria-invalid and shows its message as a pk-alert next to it, so an error is never colour alone. Keyboard: Ctrl+Up/Down move to the previous or next enabled, visible property (Ctrl+Home/End the first or last); a switch takes the plain arrows and Home/End as well. Tab is never trapped.",
   "examples": [
     {
       "title": "Unit editor: a number with a unit picker; Width is above its maximum, so it shows its message naming the unit",
