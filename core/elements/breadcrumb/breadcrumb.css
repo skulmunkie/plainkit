@@ -37,4 +37,7 @@
 
 [part="more"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
-@media (--phone) { ::slotted(a), [part="more"] { min-height: var(--touch-target); } [part="more"] { min-width: var(--touch-target); } }
+/* A crumb's own width tracks its label, so a short one (a single word, or the chevron gap after it) can stay
+   under the 44px tap-target width even once its height clears it. Below tablet, pad the hit area out to the
+   target width without changing the visible label. */
+@media (--phone) { ::slotted(a), [part="more"] { min-height: var(--touch-target); min-width: var(--touch-target); justify-content: center; } }

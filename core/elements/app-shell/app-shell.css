@@ -35,6 +35,10 @@
 
 [part="footer"][hidden] { display: none; }
 
+/* The footer's own height (--app-footer-h) centres slotted content, but a link's tap target is its own box, not
+   the row it sits in: a plain <a slot="footer"> is only as tall as its line box (~17px) unless it stretches. */
+::slotted([slot="footer"]) { display: inline-flex; align-items: center; }
+
 /* Wide screens: the nav toggle hides the nav column altogether. Hide the slot, not the slotted node (a Blazor wrapper span is display: contents). */
 @media (--above-tablet) {
     :host([nav-hidden]) { grid-template-columns: minmax(0, 1fr); }
@@ -43,4 +47,7 @@
 
 @media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } }
 
-@media (--phone) { [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--space-4)); padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); } }
+@media (--phone) {
+    [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--space-4)); padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); }
+    ::slotted([slot="footer"]) { min-height: var(--touch-target); min-width: var(--touch-target); justify-content: center; }
+}
