@@ -1,3 +1,4 @@
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -34,17 +35,16 @@ export default Base => class extends Base {
     // An optional load() returns draft answers before the first step (loading and error-with-Retry as on the record page).
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state');
+        showTitleBar(this, this.part('header'));
         this.$panes = new Map(); this.$i = 0; this.$far = 0; this.$draft = {};
         this.part('panes').replaceChildren();
         this.part('card').hidden = this.part('stepper').hidden = true;
         if (typeof this.load === 'function') {
-            renderState(box, 'loading', { label: this.config?.label });
-            loadElements(box);
+            showState(box, 'loading', { label: this.config?.label });
             try { this.$draft = { ...(await this.load()) }; } catch (err) {
                 if (gen !== this.$gen) return;
                 this.log.error('wizard load failed', err);
-                renderState(box, 'error', { description: err?.message ?? String(err), retry: () => this.fetch() });
-                loadElements(box);
+                showState(box, 'error', { error: err, retry: () => this.fetch() });
                 return;
             }
             if (gen !== this.$gen) return;
@@ -163,14 +163,12 @@ export default Base => class extends Base {
             for (const [c, m] of found) c.closest('pk-field')?.setAttribute('error', text(m));
             if (found.length) { this.part('stepper').errors = String(this.steps.indexOf(owner)); found[0][0].focus(); return; }
         }
-        renderState(this.part('notice'), 'error', { heading: 'Could not continue', description: err?.message ?? String(err) });
-        loadElements(this.part('notice'));
+        showState(this.part('notice'), 'error', { heading: 'Could not continue', error: err });
     }
     finish(values) {
         this.setDirty(false);
         this.part('card').hidden = this.part('stepper').hidden = true;
-        renderState(this.part('state'), 'empty', { heading: this.config?.doneHeading || 'All done', description: this.config?.doneDescription });
-        loadElements(this.part('state'));
+        showState(this.part('state'), 'empty', { heading: this.config?.doneHeading || 'All done', description: this.config?.doneDescription });
         this.emit('pk-wizard-submit', { values });
     }
     go(i) { if (i >= 0 && i < this.steps.length && i <= this.$far && !this.$busy) this.show(i); }

@@ -13,8 +13,10 @@
 
 import { configureLogging, getLoggingConfig, resetLogging, getLogBuffer, getLogOutputs, addLogSink, createLogger } from '../../js/log.js';
 import { INHERIT, draftFrom, configFrom, scopeRows, addScope, removeScope, setScopeLevel, setGlobalLevel, setRoute, routeRows, sameDraft, levelOverride, describeOverride, outputsFor, testMessages, TEST_SCOPE } from '../../js/log-settings-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+
+const modLog = createLogger('log-settings');
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./log-settings.css'];
@@ -22,12 +24,6 @@ const OWN_STYLES = ['./log-settings.css'];
 const LEVEL_OPTIONS = [['debug', 'Debug (everything)'], ['info', 'Info'], ['warn', 'Warn'], ['error', 'Error (errors only)'], ['silent', 'Silent (nothing)']];
 const LEVEL_NAMES = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
 
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 const options = (doc, list, selected) => list.map(([value, label]) => h(doc, 'option', { value, selected: value === selected }, label));
 
 export async function mountLogSettings(container, opts = {}) {
@@ -65,7 +61,7 @@ export async function mountLogSettings(container, opts = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => { /* loadElements logs its own failures */ });
+    loadElements(root).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
 
     // ---- drawing: rebuilt from the draft; the table cells are slotted SDK controls ---------------------------------------------
     const changed = () => !sameDraft(draft, saved);
@@ -87,7 +83,7 @@ export async function mountLogSettings(container, opts = {}) {
         }
         scopeTable.replaceChildren(...cells, h(doc, 'pk-empty-state', { slot: 'empty', tone: 'compact', heading: 'No scopes yet', description: 'A scope is listed once it has logged. Add one by name to set its level ahead of time.' }));
         scopeTable.setAttribute('rows', JSON.stringify(rows.map(r => ({ id: r.id, scope: r.scope }))));
-        loadElements(scopeTable).catch(() => { /* loadElements logs its own failures */ });
+        loadElements(scopeTable).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
     }
 
     function drawRoutes() {
@@ -104,7 +100,7 @@ export async function mountLogSettings(container, opts = {}) {
         }
         routeTable.replaceChildren(...cells);
         routeTable.setAttribute('rows', JSON.stringify(rows.map(r => ({ id: r.id, level: LEVEL_NAMES[r.level] }))));
-        loadElements(routeTable).catch(() => { /* loadElements logs its own failures */ });
+        loadElements(routeTable).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
     }
 
     function touched() {

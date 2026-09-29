@@ -66,7 +66,7 @@ export function createPage({ title = null, alert = null, overlay = null, breadcr
     const hold = minTime ?? (owned ? BUSY_MIN_TIME : 0);
 
     function setTitle(text) {
-        try { if (globalThis.document) globalThis.document.title = text; } catch { /* no document (SSR, a worker) */ }
+        try { if (globalThis.document) globalThis.document.title = text; } catch (err) { log.debug('title not set', err); }
         if (title) title.textContent = text;
     }
 

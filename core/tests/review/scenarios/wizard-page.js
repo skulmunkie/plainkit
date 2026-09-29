@@ -5,7 +5,7 @@ const P = `${WP} >>> `;
 
 export default {
     name: 'wizard-page',
-    elements: ['wizard-page', 'stepper', 'step', 'card', 'form', 'field', 'input', 'select', 'field-list', 'button'],
+    elements: ['wizard-page', 'stepper', 'step', 'card', 'form', 'field', 'input', 'select', 'field-list', 'button', 'page-header', 'breadcrumb'],
     html: '<pk-wizard-page></pk-wizard-page>',
     setup(frame) {
         // Unsent answers arm the page's beforeunload guard, which would hold the harness's reload for the next theme: swallow the event first.
@@ -14,6 +14,7 @@ export default {
         el.validate = async (id, v) => (id === 'plan' && v.seats > 50 ? { errors: { seats: 'The Team plan has at most 50 seats.' } } : undefined);
         el.submit = () => Promise.reject(Object.assign(new Error('not saved'), { errors: { email: 'That email is already registered.' } }));
         el.config = {
+            heading: 'Orders', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Orders', href: '#' }], actions: [{ key: 'export', label: 'Export', variant: 'secondary' }],
             review: true, submitLabel: 'Create account',
             steps: [
                 { id: 'account', label: 'Account', description: 'Who you are', fields: [{ name: 'email', label: 'Email', type: 'email', required: true }, { name: 'name', label: 'Name', required: true }] },
@@ -31,6 +32,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(WP);
+        t.visible(`${P}[part=header] pk-page-header`, 'the shared title bar');
+        t.noOverlap(`${P}[part=header]`, `${P}[part=card]`);
         if (t.shot === 'blocked') t.hasText(`${P}[part=heading]`, 'Account');
         if (t.shot === 'step-two') t.hasText(`${P}[part=heading]`, 'Plan');
         if (t.shot === 'review') { t.hasText(`${P}[part=heading]`, 'Review'); t.hasText(`${P}[part=next]`, 'Create account'); }

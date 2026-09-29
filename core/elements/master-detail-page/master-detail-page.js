@@ -1,3 +1,4 @@
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -19,12 +20,13 @@ export default Base => class extends Base {
     changed(name) { if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId'); }
 
     sync(moved) {
+        showTitleBar(this, this.part('header'));
         const c = this.config ?? {}, id = this.recordId || '', was = this.$id ?? '';
         this.part('list').config = c.list ?? {};
         this.part('back').textContent = '\u2190 ' + (c.backLabel ?? 'Back');
         this.part('layout').dataset.view = id ? 'detail' : 'list';
         const none = this.part('none');
-        if (id) none.replaceChildren(); else { renderState(none, 'empty', c.none ?? { heading: 'Select a record', description: 'Pick one from the list to see it here.' }); loadElements(none); }
+        if (id) none.replaceChildren(); else { showState(none, 'empty', c.none ?? { heading: 'Select a record', description: 'Pick one from the list to see it here.' }); }
         if (id === was && !moved) return;
         this.$id = id;
         if (id) this.start(id);
@@ -47,8 +49,7 @@ export default Base => class extends Base {
         const gen = this.$gen, box = this.part('state'), pane = this.part('record');
         pane.replaceChildren();
         if (typeof this.mountDetail !== 'function') { renderState(box, 'ready'); return; }
-        renderState(box, 'loading', { label: this.config?.label });
-        loadElements(box);
+        showState(box, 'loading', { label: this.config?.label });
         try {
             const out = await this.mountDetail(pane, id);
             const stop = typeof out === 'function' ? out : out?.destroy?.bind(out);
@@ -59,8 +60,7 @@ export default Base => class extends Base {
         } catch (err) {
             if (gen !== this.$gen) return;
             this.log.error('master-detail record failed', err);
-            renderState(box, 'error', { description: err?.message ?? String(err), retry: () => this.start(id) });
-            loadElements(box);
+            showState(box, 'error', { error: err, retry: () => this.start(id) });
         }
     }
 };

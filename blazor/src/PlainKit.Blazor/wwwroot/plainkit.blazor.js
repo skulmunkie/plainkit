@@ -80,7 +80,12 @@ export async function mountDevTools(container, options, host) {
     mounted.set(container, await mountDevTools(mode === 'inline' ? container : null, { mode, ...rest, panels }));
 }
 
-export const openTools = container => mounted.get(container)?.open?.();
+// A callback property of a page element (pk-tool-page run, pk-settings-page save, pk-list-page load): config is data, so a callback is set from script. host is a DotNetObjectReference
+// of PkCallbackHost<TArg>; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it. refresh: an element
+// that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.
+export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = arg => host.invokeMethodAsync('Invoke', arg); if (refresh) el.refresh?.(); } else delete el[name]; };
+
+export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();
 export const selectTool = (container, id) => mounted.get(container)?.select?.(id);
@@ -91,6 +96,13 @@ export const setThemeMode = (container, name) => mounted.get(container)?.setThem
 // What a form holds right now, by control name (PkRuntime.ReadFormValuesAsync): files are left out, a repeated name keeps its last value.
 // A pk-form wraps a native <form>: either element can be passed.
 export const formValues = el => Object.fromEntries([...new FormData(el instanceof HTMLFormElement ? el : el.querySelector('form'))].filter(([, v]) => typeof v === 'string'));
+
+// Browser storage for IPkStore (PkStorage): only keys in the store's `pk.` namespace; a blocked storage throws and the .NET side keeps the state in memory.
+const storageKey = key => { if (typeof key !== 'string' || !key.startsWith('pk.')) throw new TypeError('storage key outside the pk. namespace'); return key; };
+export const storageGet = key => localStorage.getItem(storageKey(key));
+export const storageSet = (key, value) => localStorage.setItem(storageKey(key), value);
+// The theme IPkTheme applies (the same attribute js/theme.js setTheme writes).
+export const applyTheme = name => document.documentElement.setAttribute('data-theme', name === 'light' ? 'light' : 'dark');
 
 // The Plainkit release of the JavaScript assets this page loaded.
 export async function version() {
@@ -105,6 +117,28 @@ export const resume = container => { const m = mounted.get(container); return (m
 export const sendTest = container => mounted.get(container)?.test?.();
 export const save = container => { mounted.get(container)?.save?.(); };
 export const reset = container => mounted.get(container)?.reset?.();
+
+// Notifications and dialogs (IPkNotifications, IPkDialogs): one notify manager and one dialogs manager per page, made on first use from the SDK modules (js/notify.js,
+// js/dialogs.js). Config comes in as plain data; a dialog answers its result as data (a bool, text or { action, values }, null when cancelled or for an alert). Each
+// service instance (one per circuit) has its own dialogs scope, so disposing it cancels its open and queued dialogs.
+const managers = {};
+const manager = (file, load, make) => managers[file] ??= Promise.all([load(), import('./plainkit/js/loader.js')]).then(([m, l]) => make(m, l.loadElements));
+const scopes = new Map();
+
+export async function notify(kind, title, details, duration) {
+    const n = await manager('notify', () => import('./plainkit/js/notify.js'), (m, load) => m.createNotify({ container: document.body, load }));
+    if (['info', 'success', 'warn', 'error'].includes(kind)) n[kind](title, details, { duration });
+}
+
+export async function dialog(scopeId, kind, config) {
+    if (!scopes.has(scopeId)) scopes.set(scopeId, (await manager('dialogs', () => import('./plainkit/js/dialogs.js'), (m, load) => m.createDialogs({ container: document.body, load }))).scope());
+    return (await scopes.get(scopeId)[kind]?.(config)) ?? null;
+}
+
+export function endDialogs(scopeId) {
+    scopes.get(scopeId)?.end();
+    scopes.delete(scopeId);
+}
 
 // Logging. configureLogging applies the app's settings to the SDK logger; writeLog is how .NET writes into it (IPkLog); the forwarder is a
 // sink that hands entries to a .NET object, which writes them to ILogger.

@@ -17,6 +17,9 @@ const h = (doc, tag, attrs = {}, text) => {
     return el;
 };
 
+// The footer's slotted nodes (text as a span, links as anchors); the app footer and a module's own one are drawn by the same code. Text only, hrefs already checked by readFooter.
+export const footerNodes = (doc, footer) => (footer ? [footer.text && h(doc, 'span', { slot: 'footer' }, footer.text), ...footer.links.map(l => h(doc, 'a', { slot: 'footer', href: l.href }, l.label))].filter(Boolean) : []);
+
 export function buildShell(doc, cfg, hrefOf) {
     const settings = cfg.modules.filter(m => m.menu === 'settings');
     const skip = h(doc, 'pk-skip-link', { href: '#pk-main' }, 'Skip to content');
@@ -44,7 +47,7 @@ export function buildShell(doc, cfg, hrefOf) {
     main.append(body);
     const shell = h(doc, 'pk-app-shell');
     shell.append(navbar, main);
-    if (cfg.footer) shell.append(...[cfg.footer.text && h(doc, 'span', { slot: 'footer' }, cfg.footer.text), ...cfg.footer.links.map(l => h(doc, 'a', { slot: 'footer', href: l.href }, l.label))].filter(Boolean));
+    shell.append(...footerNodes(doc, cfg.footer));
     const live = h(doc, 'div', { role: 'status', 'aria-live': 'polite', class: 'u-sr-only' });
     const toasts = h(doc, 'pk-toast-stack', { position: 'bottom-end' });
     const dialogs = h(doc, 'div', { 'data-pk-dialogs': true });

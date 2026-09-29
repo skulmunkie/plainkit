@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ list?, backLabel?, none?, label? }. list is pk-list-page's own config ({ columns, filters?, actions?, empty?, pageSize? }). backLabel is the Back button's text (default 'Back'). none is { heading?, description? } shown in the record pane while nothing is selected. label names the loading state."
+      "description": "{ list?, backLabel?, none?, label? }. list is pk-list-page's own config ({ columns, filters?, actions?, empty?, pageSize? }). backLabel is the Back button's text (default 'Back'). none is { heading?, description? } shown in the record pane while nothing is selected. label names the loading state. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "recordId",
@@ -27,8 +27,11 @@
     }
   ],
   "slots": [],
-  "events": [],
+  "events": [
+    { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." }
+  ],
   "parts": [
+    { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "layout", "description": "The grid holding both panes." },
     { "name": "master", "description": "The list pane." },
     { "name": "list", "description": "The pk-list-page." },

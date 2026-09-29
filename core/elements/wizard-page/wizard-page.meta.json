@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }. steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers."
+      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }. steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "dirty",
@@ -21,6 +21,7 @@
   ],
   "slots": [],
   "events": [
+    { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },
     {
       "name": "pk-wizard-dirty",
       "detail": "{ dirty }",
@@ -35,6 +36,7 @@
     }
   ],
   "parts": [
+    { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "stepper", "description": "The pk-stepper showing progress; a reached step can be clicked to go back." },
     { "name": "card", "description": "The pk-card holding the heading, the step and the buttons." },
     { "name": "heading", "description": "The current step's heading; it receives focus on every step change." },

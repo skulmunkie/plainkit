@@ -19,6 +19,8 @@ export function walk(dir = root) {
 const rel = f => path.relative(root, f).split(path.sep).join('/');
 const isTest = f => /\.test\.mjs$|(^|\/)tests\//.test(f);
 
+const APP_FILES = /^js\/app(\.js|\/.*\.js)$/;
+
 // Each rule: { id, severity, files: regex, pattern: regex, message, skipTests? }
 export const RULES = [
     { id: 'no-eval', severity: 'critical', files: /\.(js|mjs|html)$/, pattern: /\beval\s*\(/, message: 'eval() runs arbitrary code', skipTests: true },
@@ -34,6 +36,11 @@ export const RULES = [
     { id: 'secret-assignment', severity: 'high', files: /\.(js|mjs|json|html)$/, pattern: /\b(password|passwd|secret|api[_-]?key|access[_-]?token)\b["']?\s*[:=]\s*["'][^"'\s]{8,}["']/i, message: 'credential-like literal', skipTests: true },
     { id: 'secret-email', severity: 'low', files: /\.(js|mjs|json|html|md|css)$/, pattern: /\b[A-Za-z0-9._%+-]+@(?!example\.(com|org)|localhost)[A-Za-z0-9.-]+\.[a-z]{2,}\b/, message: 'email address in the repository' },
     { id: 'no-external-request', severity: 'high', files: /\.(js|mjs|html|css)$/, pattern: /(?:src|href|url\(|import\s*\(|from\s+|fetch\s*\()\s*=?\s*["'(]?\s*https?:\/\/(?!localhost|www\.w3\.org)/, message: 'third-party or CDN request at runtime', skipTests: true },
+    // The app framework (js/app.js, js/app/**; tracker #346, step 16): no polling, no direct storage (the store owns it), no console, and import() only for the fixed page-type chunks.
+    { id: 'app-no-polling', severity: 'high', files: APP_FILES, pattern: /^(?!\s*\/\/).*\b(setInterval|requestAnimationFrame)\b/, message: 'polling in the framework: use ctx.after for a one-off and a subscription for changes', skipTests: true },
+    { id: 'app-no-direct-storage', severity: 'high', files: APP_FILES, pattern: /^(?!\s*\/\/).*\b(localStorage|sessionStorage)\b/, message: 'the framework reads and writes storage only through js/store.js (validated, versioned)', skipTests: true },
+    { id: 'app-no-console', severity: 'medium', files: APP_FILES, pattern: /^(?!\s*\/\/).*\bconsole\./, message: 'bare console in the framework: use createLogger(scope) from js/log.js', skipTests: true },
+    { id: 'app-import-only-allowed', severity: 'high', files: APP_FILES, pattern: /^(?!\s*\/\/)(?!.*import\(`\.\/pages\/\$\{id\}\.js`\)).*\bimport\(/, message: 'import() in the framework other than the fixed ./pages/<id>.js chunk: modules load only through the app config\'s static loaders', skipTests: true },
 ];
 
 // innerHTML-style sinks: allowed per file up to the count in security.allow.json, each documented there with its source of markup.

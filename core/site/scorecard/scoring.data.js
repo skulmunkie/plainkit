@@ -82,6 +82,8 @@ export const BUDGETS = {
     elementGzKb: { target: 2, limit: 4.5, note: 'one dist/elements/<name>.js: template, css and behaviour together; raised from 4 for pk-input\'s copyable feature (issue #209) after trimming its clear/reveal icons to glyphs closed most, not all, of the gap' },
     baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
     jsModuleGzKb: { target: 3, limit: 6 },
+    appEntryGzKb: { target: 6, limit: 22, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6, the limit is today\'s measured size (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use, #514) and only comes down' },
+    appPageTypeGzKb: { target: 1, limit: 3, note: 'one js/app/pages/<type>.js chunk (found by folder, so a new one is budgeted at once)' },
     baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },
 };
 

@@ -1,3 +1,4 @@
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -26,7 +27,7 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else this.render(); }
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.render(); } }
         else if (name === 'mode') this.render();
     }
 
@@ -34,24 +35,25 @@ export default Base => class extends Base {
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state'), id = this.config?.id ?? null;
         this.$id = id;
+        this.bar();
         this.part('layout').hidden = true;
         for (const p of ['edit', 'cancel', 'save']) this.part(p).hidden = true;
         if (id == null || typeof this.load !== 'function') { this.$values = {}; this.done(); return; }
-        renderState(box, 'loading', { label: this.config?.label });
-        loadElements(box);
+        showState(box, 'loading', { label: this.config?.label });
         try {
             const rec = await this.load(id);
             if (gen !== this.$gen) return;
-            if (rec == null) { renderState(box, 'empty', { heading: this.config?.emptyHeading || 'Record not found' }); loadElements(box); return; }
+            if (rec == null) { showState(box, 'empty', { heading: this.config?.emptyHeading || 'Record not found' }); return; }
             this.$values = { ...rec };
             this.done();
         } catch (err) {
             if (gen !== this.$gen) return;
             this.log.error('record load failed', err);
-            renderState(box, 'error', { description: err?.message ?? String(err), retry: () => this.fetch() });
-            loadElements(box);
+            showState(box, 'error', { error: err, retry: () => this.fetch() });
         }
     }
+    // The shared title bar; config.heading already titles the field list, so the page's own heading is config.title.
+    bar() { showTitleBar(this, this.part('header'), { ...this.config, heading: this.config?.title }); }
     done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.render(); }
     get editing() { return this.mode === 'edit' || this.$id == null; }
     get fields() { return this.config?.fields ?? []; }
@@ -145,7 +147,7 @@ export default Base => class extends Base {
             const fields = Object.entries(err?.errors ?? {}).map(([n, m]) => [this.controls().find(c => c.getAttribute('name') === n), m]).filter(([c]) => c);
             for (const [c, m] of fields) this.$fields.get(c.getAttribute('name')).setAttribute('error', text(m));
             if (fields.length) fields[0][0].focus();
-            else { renderState(this.part('notice'), 'error', { heading: 'Could not save', description: err?.message ?? String(err) }); loadElements(this.part('notice')); }
+            else { showState(this.part('notice'), 'error', { heading: 'Could not save', error: err }); }
         } finally { this.$saving = false; save.busy = false; }
     }
 };

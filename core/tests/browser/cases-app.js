@@ -574,7 +574,39 @@ export const appCases = [
         await until(() => /ok/.test(body().textContent) && !body().querySelector('pk-alert'), 'Retry to recover');
         t.eq(attempts, 2);
         el.config = { ...el.config, id: 'gone' };
-        await until(() => /Not found/.test(el.querySelector('.doc-page-title').textContent) && /Not found/.test(body().textContent), 'the not-found state');
+        await until(() => /Not found/.test(el.querySelector('.doc-page-title').textContent) && body().querySelector('pk-empty-state')?.getAttribute('heading') === 'Not found', 'the not-found state');
         page.destroy();
+    }],
+
+    ['pk-link + mountRouter intercept (#522): a plain click on `to` is handled by the router (no history entry beyond the one pushed, no full navigation), a modified click is left to the browser, and destroy() removes the listener', async t => {
+        const { mountRouter } = await dist('js/router.js');
+        const host = t.stage('<pk-link>Order 7</pk-link><pk-link>Reports</pk-link>');
+        await t.load(host);
+        const [routedEl, plainEl] = host.querySelectorAll('pk-link');
+        routedEl.to = '/orders/7'; // set as properties, not inline attributes: the carveout test bans a root-absolute href in a static source file
+        plainEl.href = '/reports';
+        await t.settle();
+        const before = location.pathname;
+        const router = mountRouter(host, { routes: [{ path: '/', label: 'Home', children: [{ path: '/orders/:id', label: p => `Order ${p.id}` }] }], intercept: true, base: '/__pk-link-test' });
+        const routed = routedEl, plain = plainEl;
+        let seen = null;
+        routed.addEventListener('pk-navigate', e => { seen = e.detail; }, { once: true });
+        routed.shadowRoot.querySelector('a').click();
+        t.eq(seen?.to, '/orders/7', 'pk-link reports the pk-navigate detail before the router cancels it');
+        t.eq(router.current()?.label, 'Order 7', 'the router picked up the route: history.pushState ran, not a full navigation (the test script kept executing)');
+        t.eq(location.pathname, `/__pk-link-test/orders/7`, 'pushState moved the address bar under the router base, as a client route does');
+        history.replaceState(null, '', before); // leave the address where the run started; router.destroy() below does not touch history itself
+        // an ordinary href link is untouched: it keeps a real anchor with no interception wiring of its own.
+        t.eq(plain.shadowRoot.querySelector('a').getAttribute('href'), '/reports');
+        // destroy() removes the container's pk-navigate listener too: a further pk-navigate is left uncancelled (pk-link falls back to a
+        // real navigation from here, node-tested in router.test.mjs; not fired here to avoid actually navigating this test page away).
+        router.destroy();
+        let afterDestroy = 'not called';
+        const stillCancels = e => { afterDestroy = e.defaultPrevented; e.preventDefault(); };
+        host.addEventListener('pk-navigate', stillCancels);
+        routed.dispatchEvent(new CustomEvent('pk-navigate', { detail: { to: '/orders/7' }, bubbles: true, composed: true, cancelable: true }));
+        host.removeEventListener('pk-navigate', stillCancels);
+        t.eq(afterDestroy, false, 'the event reaches the host uncancelled: the router stopped listening once destroyed');
+        host.replaceChildren();
     }],
 ];

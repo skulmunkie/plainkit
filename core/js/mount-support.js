@@ -36,3 +36,11 @@ export async function loadJson(value, fetchFn = globalThis.fetch) {
     if (!res.ok) throw new Error(`${value}: ${res.status}`);
     return res.json();
 }
+
+// The small DOM builder the tool modules share: h(doc, 'div', { class: 'x', hidden: true }, ...children). A null, undefined or false attribute is skipped, true sets it empty; a null, undefined or false child is dropped.
+export function h(doc, tag, props = {}, ...children) {
+    const el = doc.createElement(tag);
+    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
+    el.append(...children.filter(c => c !== null && c !== undefined && c !== false));
+    return el;
+}

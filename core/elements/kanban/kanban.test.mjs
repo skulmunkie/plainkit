@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import behaviour, { dropIndex, dropTarget, keyDestination, announceMove } from './kanban.js';
+import behaviour, { dropIndex, dropTarget, keyDestination, announceMove, edgeSpeed } from './kanban.js';
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./kanban.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json')); const css = read('css'); const src = read('js');
@@ -46,7 +46,7 @@ function card(value, top, attrs = {}) {
 }
 function column(value, left, cards) {
     const col = { localName: 'pk-kanban-column', value, label: value.toUpperCase(), attrs: {}, children: cards,
-        toggleAttribute(n, on) { col.attrs[n] = on || undefined; }, getBoundingClientRect: () => ({ left, right: left + 100 }) };
+        toggleAttribute(n, on) { col.attrs[n] = on || undefined; }, part: n => col.parts?.[n], getBoundingClientRect: () => ({ left, right: left + 100 }) };
     cards.forEach(c => { c.parentElement = col; });
     return col;
 }
@@ -60,6 +60,14 @@ function make(cols) {
     return el;
 }
 globalThis.getComputedStyle = () => ({ direction: 'ltr' });
+// A frame queue the tests step by hand, and a reduced-motion switch.
+const frames = new Map(); let frameId = 0, reducedMotion = false;
+globalThis.requestAnimationFrame = fn => { frames.set(++frameId, fn); return frameId; };
+globalThis.cancelAnimationFrame = id => frames.delete(id);
+// No page in Node: a stub document whose scroller the page-level auto-scroll (js/drag-scroll.js) may move, and a window tall enough that the tests' points are mid-window.
+globalThis.document = { body: {}, documentElement: {}, scrollingElement: { scrollTop: 0 } }; globalThis.innerHeight = 100000;
+globalThis.matchMedia = () => ({ matches: reducedMotion });
+const step = () => { const q = [...frames]; frames.clear(); q.forEach(([, fn]) => fn()); };
 const board = () => { const a = [card('a', 0), card('b', 40)], b = [card('c', 0)], c = []; const cols = [column('todo', 0, a), column('doing', 110, b), column('done', 220, c)]; return { el: make(cols), a, b, cols }; };
 
 test('a drag into another column marks it, draws the line, and pk-move carries from, to and both indexes', () => {
@@ -130,4 +138,35 @@ test('the css uses tokens only, and the source never changes DOM structure or li
     assert.ok(css.includes('clip-path'));
     assert.ok(!/\.(appendChild|insertBefore|removeChild|replaceChildren|append|prepend|remove)\(/.test(src));
     assert.ok(!/\b(document|window)\s*\.\s*addEventListener|innerHTML/.test(src));
+});
+
+test('edgeSpeed: 0 in the middle, proportional to depth in the zone, capped past the edge, steady half speed when motion is reduced', () => {
+    assert.equal(edgeSpeed(500, 0, 1000), 0);
+    assert.equal(edgeSpeed(0, 0, 1000), -18); assert.equal(edgeSpeed(-40, 0, 1000), -18); assert.equal(edgeSpeed(1000, 0, 1000), 18);
+    assert.equal(edgeSpeed(32, 0, 1000), -9); assert.equal(edgeSpeed(968, 0, 1000), 9);
+    assert.ok(Math.abs(edgeSpeed(16, 0, 1000)) > Math.abs(edgeSpeed(48, 0, 1000)), 'closer to the edge scrolls faster');
+    assert.equal(edgeSpeed(63, 0, 1000, true), -9); assert.equal(edgeSpeed(2, 0, 1000, true), -9, 'reduced motion: no ramp');
+    assert.equal(edgeSpeed(5, 0, 0), 0, 'a zero-size scroller never scrolls');
+});
+
+test('a drag near the board edge scrolls the board each frame and works the drop target out again; the loop stops on drop, cancel and disconnect', () => {
+    const { el, a, cols } = board();
+    const scroller = rect => ({ scrollLeft: 0, scrollTop: 0, getBoundingClientRect: () => rect });
+    const boardEl = scroller({ left: -100, right: 400, top: 0, bottom: 300 });
+    const list = scroller({ left: 0, right: 100, top: 0, bottom: 300 });
+    el.parts = { board: boardEl, announcer: { textContent: '' } }; cols[0].parts = { list };
+    frames.clear();
+    el.beginDrag(a[0]);
+    assert.equal(frames.size, 1, 'one frame loop while the drag is active');
+    step(); assert.equal(boardEl.scrollLeft, 0, 'no pointer position yet, nothing scrolls');
+    el.continueDrag(398, 150); // at the right edge of the board, mid column height
+    step(); assert.ok(boardEl.scrollLeft > 15, 'scrolls toward the right edge'); assert.equal(list.scrollTop, 0);
+    el.continueDrag(50, 298); // over "todo", near the bottom of its list
+    const before = boardEl.scrollLeft; step();
+    assert.equal(boardEl.scrollLeft, before, 'mid board horizontally: no sideways scroll'); assert.ok(list.scrollTop > 0, 'the column under the pointer scrolls down');
+    reducedMotion = true; const t0 = list.scrollTop; step(); reducedMotion = false;
+    assert.equal(list.scrollTop - t0, 9, 'reduced motion scrolls at a steady half speed');
+    el.endDrag(false); assert.equal(frames.size, 0, 'drop stops the loop');
+    el.beginDrag(a[0]); assert.equal(frames.size, 1); el.endDrag(true); assert.equal(frames.size, 0, 'cancel stops the loop');
+    el.beginDrag(a[0]); assert.equal(frames.size, 1); el.disconnected(); assert.equal(frames.size, 0, 'disconnect stops the loop and ends the drag'); assert.equal(el.$drag, null);
 });

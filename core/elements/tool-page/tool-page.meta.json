@@ -9,7 +9,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a select's options are [{ value, label? }] or plain strings); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
+      "description": "{ input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options?, hint? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a hint, or help, adds an info button beside the label that opens a tooltip) (a select's options are [{ value, label? }] or plain strings); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
     },
     {
       "name": "runLabel",

@@ -13,8 +13,9 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { createLogger } from '../../js/log.js';
 import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
 
@@ -27,14 +28,8 @@ export const DEFAULTS = Object.freeze({ max: 500, capture: ['console', 'errors',
 const FALLBACK_EVENTS = ['pk-change', 'pk-value-change', 'pk-dismiss', 'pk-close', 'pk-tab-change', 'pk-tab-close', 'pk-select', 'pk-sort', 'pk-filter', 'pk-toggle', 'pk-activate', 'pk-search', 'pk-row-click', 'pk-copy', 'pk-remove', 'pk-page-change'];
 
 const TABS = [['console', 'Console'], ['events', 'Events'], ['network', 'Network'], ['elements', 'Elements'], ['environment', 'Environment']];
+const log = createLogger('console');
 const CONSOLE_METHODS = { debug: 'debug', log: 'log', info: 'info', warn: 'warn', error: 'error' };
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([], { hour12: false })}.${String(d.getMilliseconds()).padStart(3, '0')}`; };
 
@@ -43,7 +38,7 @@ async function eventNames(win, given) {
     try {
         const res = await win.fetch(runtimeUrl('../../dist/elements/api.json', import.meta.url));
         if (res.ok) return [...new Set((await res.json()).flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
-    } catch { /* no api.json next to this module */ }
+    } catch (err) { log.debug('no api.json next to this module: using the built-in event list', err); }
     return FALLBACK_EVENTS;
 }
 
@@ -87,7 +82,7 @@ export async function mountConsole(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => { /* loadElements logs its own failures */ });
+    loadElements(root).catch(err => log.debug('elements did not load (loadElements reports it)', err));
 
     // ---- rendering: throttled, one panel at a time ------------------------------------------------------------------------
     const setRows = (key, rows) => { const s = JSON.stringify(rows); if (tables[key].getAttribute('rows') !== s) tables[key].setAttribute('rows', s); };
@@ -151,7 +146,7 @@ export async function mountConsole(container, options = {}) {
             const po = new win.PerformanceObserver(list => { for (const r of list.getEntries()) record('info', `${shortName(r.name)}  ${formatMs(r.duration)}  ${formatBytes(r.transferSize)}  (${r.initiatorType})`, { source: 'network', at: Date.now() }); });
             po.observe({ type: 'resource', buffered: true });
             undo.push(() => po.disconnect());
-        } catch { /* resource timing unavailable */ }
+        } catch (err) { log.debug('resource timing is unavailable: no network rows', err); }
     }
 
     // ---- controls ---------------------------------------------------------------------------------------------------------
@@ -159,7 +154,7 @@ export async function mountConsole(container, options = {}) {
     search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
     levels.addEventListener('pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
     clear.addEventListener('click', () => { entries = []; render(); });
-    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(() => { /* clipboard blocked: nothing to copy to */ }));
+    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
     const timer = win.setInterval(() => { if (active === 'elements' || active === 'environment') render(); }, 2000);
 
     render();

@@ -2,8 +2,10 @@ import { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteS
 export { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteShortcut };
 
 import { syncDialog, wireDialog, nextIndex, safeLink } from '../../js/menu-logic.js';
+import { createLogger } from '../../js/log.js';
 
-const store = { read(key) { try { return JSON.parse(localStorage.getItem(key) ?? '[]'); } catch { return []; } }, write(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage blocked */ } } };
+const log = createLogger('pk-command-palette');
+const store = { read(key) { try { return JSON.parse(localStorage.getItem(key) ?? '[]'); } catch { return []; } }, write(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (err) { log.debug('the recent items could not be saved (storage blocked)', err); } } };
 const el = (tag, part, text) => { const e = document.createElement(tag); if (part) e.setAttribute('part', part); if (text) e.textContent = text; return e; };
 
 // pk-command-palette: Ctrl/Cmd+K opens a native modal dialog; type to filter, arrows and Enter to run. `items` is a property, not an attribute.

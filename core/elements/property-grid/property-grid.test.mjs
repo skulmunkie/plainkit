@@ -37,12 +37,15 @@ test('builds one accordion item per group with a labelled control per field; col
     const [dims, out] = parts.groups.children;
     assert.equal(dims.heading, 'Dimensions'); assert.equal(dims.open, true);
     assert.equal(out.open, false);
-    const [width] = dims.children[0].children;
-    assert.equal(width.localName, 'pk-input'); assert.equal(width.type, 'number'); assert.equal(width.label, 'Width'); assert.equal(width.showLabel, true); assert.equal(width.min, 1);
-    const [field, alpha, note] = out.children[0].children.filter(c => c.localName !== 'pk-alert');
+    const [wfield] = dims.children[0].children;
+    const width = wfield.children[0];
+    assert.equal(wfield.localName, 'pk-field'); assert.equal(wfield.label, 'Width');
+    assert.equal(width.localName, 'pk-input'); assert.equal(width.type, 'number'); assert.equal(width.min, 1);
+    const [field, alpha, nfield] = out.children[0].children.filter(c => c.localName !== 'pk-alert');
+    const note = nfield.children[0];
     assert.equal(field.localName, 'pk-field'); assert.equal(field.label, 'Format');
     const format = field.children[0];
-    assert.equal(format.localName, 'pk-select'); assert.equal(format.children.length, 2);
+    assert.equal(format.localName, 'pk-select'); assert.deepEqual(format.options, [{ value: 'PNG', label: 'PNG' }, { value: 'jpg', label: 'JPEG' }]);
     assert.equal(alpha.localName, 'pk-switch'); assert.equal(alpha.textContent, 'Alpha');
     assert.equal(note.disabled, true);
 });
@@ -105,4 +108,69 @@ test('disabled disables every control except it keeps a field-level disabled', (
     el.disabled = false; el.changed('disabled');
     assert.equal(el.$rows.width.c.disabled, false);
     assert.equal(el.$rows.note.c.disabled, true);
+});
+
+const DYN = { groups: [{ heading: 'G', fields: [
+    { key: 'mode', type: 'select', label: 'Mode', options: ['a', 'b'] },
+    { key: 'size', type: 'range', label: 'Size', min: 0, max: 10, visibleWhen: { key: 'mode', equals: 'b' } },
+    { key: 'tint', type: 'color', label: 'Tint' },
+    { key: 'n', type: 'number', label: 'N', required: true },
+] }] };
+
+test('setValue updates one control in place without rebuilding; visibleWhen hides and shows a row; hidden rows are not validated', () => {
+    const { el, parts } = make(DYN);
+    el.values = { mode: 'a', n: 1 };
+    el.connected();
+    const built = parts.groups.children;
+    assert.equal(el.$rows.size.row.hidden, true);
+    assert.equal(el.$rows.size.c.output, true);
+    el.setValue('mode', 'b');
+    assert.equal(el.$rows.size.row.hidden, false);
+    assert.equal(parts.groups.children, built);
+    el.setValue('mode', 'a'); el.setValue('n', '');
+    assert.equal(el.valid, false);
+    el.state = { n: { hidden: true } }; el.changed('state');
+    assert.equal(el.$rows.n.row.hidden, true); assert.equal(el.valid, true);
+});
+
+test('state updates disabled per property; range reads as a number; colour must be a hex value and drives the swatch', () => {
+    const { el } = make(DYN);
+    el.values = { n: 1 };
+    el.connected();
+    el.state = { n: { disabled: true } }; el.changed('state');
+    assert.equal(el.$rows.n.c.disabled, true); assert.equal(el.$rows.mode.c.disabled, false);
+    el.setValue('size', '7');
+    assert.equal(el.currentValues().size, 7);
+    el.$rows.tint.swatch.style = {};
+    el.setValue('tint', 'red');
+    assert.match(el.$rows.tint.msg.textContent, /colour like/);
+    el.setValue('tint', '#1a2b3c');
+    assert.equal(el.$rows.tint.msg.hidden, true); assert.equal(el.$rows.tint.swatch.style.background, '#1a2b3c');
+});
+
+test('wide layout puts the label beside the value on fields, not on switches', () => {
+    const { el } = make(CONFIG);
+    el.connected();
+    el.layout(true);
+    assert.equal(el.$rows.width.row.layout, 'row');
+    el.layout(false);
+    assert.equal(el.$rows.width.row.layout, 'stack');
+});
+
+test('unit property: a number plus a unit picker in the suffix slot; value is { value, unit }; range messages name the unit; changing the unit emits', () => {
+    const { el, emitted } = make({ groups: [{ heading: 'G', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 1, max: 100, required: true }] }] });
+    el.values = { w: { value: 50, unit: '%' } };
+    el.connected();
+    const r = el.$rows.w;
+    assert.equal(r.c.type, 'number'); assert.equal(r.unit.slot, 'suffix'); assert.equal(r.unit.label, 'Width unit'); assert.deepEqual(r.unit.options, [{ value: 'px', label: 'px' }, { value: '%', label: '%' }]);
+    assert.deepEqual(el.currentValues().w, { value: 50, unit: '%' });
+    el.setValue('w', { value: 500, unit: 'px' });
+    assert.match(r.msg.textContent, /at most 100 px/); assert.equal(el.valid, false);
+    el.setValue('w', { value: '', unit: 'px' });
+    assert.match(r.msg.textContent, /required/);
+    r.unit.value = '%'; r.c.value = 20;
+    el.onChange({ target: r.unit });
+    assert.deepEqual(emitted.at(-1).detail.value, { value: 20, unit: '%' }); assert.equal(emitted.at(-1).detail.valid, true);
+    el.disabled = true; el.changed('disabled');
+    assert.equal(r.unit.disabled, true);
 });

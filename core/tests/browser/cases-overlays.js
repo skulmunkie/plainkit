@@ -165,7 +165,7 @@ export const overlaysCases = [
         el.addEventListener('pk-open', e => {
             opened = e.detail;
             el.querySelectorAll('[slot="menu"]').forEach(n => n.remove());
-            const swapped = document.createElement('pk-menu-item'); swapped.slot = 'menu'; swapped.textContent = 'New'; el.append(swapped);
+            const swapped = el.ownerDocument.createElement('pk-menu-item'); swapped.slot = 'menu'; swapped.textContent = 'New'; el.append(swapped);
         });
         const button = el.querySelector('button'); button.focus();
         button.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, composed: true, cancelable: true }));
@@ -414,6 +414,13 @@ export const overlaysCases = [
         t.ok(el.part('collapse').getBoundingClientRect().right <= el.getBoundingClientRect().right, 'the collapse button stays inside the rail');
     }],
 
+    ['side nav: an empty footer takes no space and a filled one shows (issue 552)', async t => {
+        const el = await t.mount('<pk-side-nav open><pk-nav-item href="#">Orders</pk-nav-item></pk-side-nav>'); await t.settle();
+        t.eq(el.part('foot').getBoundingClientRect().height, 0, 'no footer content: the footer row has no box');
+        const foot = el.ownerDocument.createElement('span'); foot.slot = 'footer'; foot.textContent = 'v1'; el.append(foot); await t.settle();
+        t.ok(el.part('foot').getBoundingClientRect().height > 0, 'a slotted footer shows its row');
+    }],
+
     ['side nav: collapsed state and open branches persist under the persist key', async t => {
         const key = 'pk-test-nav';
         try { localStorage.removeItem(key); } catch { /* blocked */ }
@@ -561,7 +568,7 @@ export const overlaysCases = [
     ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';
-        const host = t.stage(''), f = document.createElement('iframe');
+        const host = t.stage(''), f = el.ownerDocument.createElement('iframe');
         f.title = 'sample'; f.style.width = '375px'; f.style.height = '400px'; f.style.border = '0';
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
         const until = async fn => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await new Promise(r => setTimeout(r, 50)); } throw new Error('did not upgrade'); };

@@ -440,6 +440,20 @@ export const dataDisplayCases = [
         c.part('prev').click(); await t.settle(); t.eq(c.part('title').textContent, 'September 2026');
     }],
 
+    ['calendar: arrow, Home/End and Page keys clamp at min and max and focus stays on an enabled day, across months, in single and range mode', async t => {
+        for (const range of ['', ' range']) {
+            const c = await t.mount(`<pk-calendar${range} month="2026-09-01" min="2026-09-05" max="2026-10-02"></pk-calendar>`);
+            const press = async (key, shiftKey = false) => { c.shadowRoot.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey, bubbles: true, composed: true, cancelable: true })); await t.settle(); };
+            const at = () => c.shadowRoot.activeElement;
+            c.part('days').querySelector('[data-date="2026-09-06"]').focus();
+            await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); await press('ArrowLeft'); t.eq(at()?.dataset.date, '2026-09-05'); t.ok(!at().disabled);
+            await press('ArrowUp'); t.eq(at()?.dataset.date, '2026-09-05'); await press('Home'); t.eq(at()?.dataset.date, '2026-09-05'); await press('PageUp'); t.eq(at()?.dataset.date, '2026-09-05');
+            await press('PageDown'); t.eq(c.part('title').textContent, 'October 2026'); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(!at().disabled);
+            await press('ArrowRight'); t.eq(at()?.dataset.date, '2026-10-02'); await press('ArrowDown'); t.eq(at()?.dataset.date, '2026-10-02'); await press('End'); t.eq(at()?.dataset.date, '2026-10-02');
+            await press('PageDown', true); t.eq(at()?.dataset.date, '2026-10-02'); t.ok(c.shadowRoot.contains(at()), 'focus is still inside the calendar');
+        }
+    }],
+
     ['divider, media and hint: separator role, ratio and lightbox event, and a hint that toggles in flow', async t => {
         const d = await t.mount('<pk-divider vertical>or</pk-divider>'); t.eq(d.internals.role, 'separator'); t.eq(d.internals.ariaOrientation, 'vertical'); t.eq(d.hasAttribute('data-labelled'), true);
         const m = await t.mount('<pk-media ratio="4/3" lightbox caption="C"><img alt="cover" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></pk-media>');
@@ -474,8 +488,9 @@ export const dataDisplayCases = [
         const doc = await until(() => el.part('frame').contentDocument?.querySelector('#gx-nav pk-nav-item') && el.part('frame').contentDocument, 'the nav');
         t.eq([...doc.querySelectorAll('#gx-nav pk-nav-item[slot][href]')].map(a => a.textContent.trim()).join(), 'Button');
         t.ok(doc.querySelector('.gx-bar'), 'the toolbar is there');
-        t.ok(doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'it opens on the control');
-        t.ok(doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector shows the live markup of the element page');
+        // The element page is drawn asynchronously (elementSlot loads the element's API data first), later than the nav: wait for the page and the inspector it feeds.
+        await until(() => doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the page to open on the control');
+        await until(() => doc.querySelector('#gx-inspector-body pk-code-block'), 'the Details inspector to show the live markup of the element page');
     }],
     ['log: role=log with a name, rows from append() and rows, level words, the cap trims the oldest, it sticks to the bottom until the user scrolls up, then a 44px resume button jumps back and pk-pause is raised', async t => {
         const el = await t.mount('<pk-log label="Build output" max="50" style="--pk-log-height: 8rem">Nothing yet.</pk-log>');
@@ -523,5 +538,75 @@ export const dataDisplayCases = [
         for (let f = 0; f < 5; f++) { el.append('frame ' + f); await new Promise(r => requestAnimationFrame(r)); await new Promise(r => requestAnimationFrame(r)); }
         await until(atBottom, 'the log keeps following across separate frames');
         t.ok(!el.paused, 'never paused itself while it was the one scrolling');
+    }],
+    ['table (editable): Ctrl+Z undoes the last committed cell edit and Ctrl+Y redoes it, each through pk-cell-edit, and the value shows in the cell', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const seen = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.key}:${e.detail.previous}>${e.detail.value}`));
+        const press = (n, k, mods = {}) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }));
+        await until(() => cell(1, 'name')?.tabIndex === 0, 'the grid');
+        cell(1, 'name').focus(); press(cell(1, 'name'), 'Enter');
+        const input = await until(() => cell(1, 'name').querySelector('input'), 'the editor');
+        input.value = 'Widget XL'; press(input, 'Enter');
+        await until(() => cell(1, 'name').textContent === 'Widget XL', 'the edit to show');
+        cell(2, 'qty').focus(); press(cell(2, 'qty'), 'Enter');
+        const q = await until(() => cell(2, 'qty').querySelector('input'), 'the number editor');
+        q.value = '11'; press(q, 'Enter');
+        await until(() => cell(2, 'qty').textContent === '11', 'the number edit to show');
+        press(cell(2, 'qty'), 'z', { ctrlKey: true });
+        await until(() => cell(2, 'qty').textContent === '9', 'undo to restore 9');
+        t.eq(el.rows[1].qty, 9, 'undo went into the rows');
+        press(cell(2, 'qty'), 'z', { ctrlKey: true });
+        await until(() => cell(1, 'name').textContent === 'Widget', 'a second undo to restore the first edit');
+        press(cell(1, 'name'), 'y', { ctrlKey: true });
+        await until(() => cell(1, 'name').textContent === 'Widget XL', 'redo to reapply it');
+        t.eq(seen.join(), 'name:Widget>Widget XL,qty:9>11,qty:11>9,name:Widget XL>Widget,name:Widget>Widget XL', 'every step raised pk-cell-edit with its previous value');
+        el.addEventListener('pk-cell-edit', e => e.preventDefault());
+        press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
+        t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
+    }],
+    ['table (editable): a switch column draws a pk-switch (no bare checkbox), and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
+        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed","editor":"switch"}]' rows='[{"id":1,"name":"Widget number one","qty":4,"on":true},{"id":2,"name":"Gadget number two","qty":9,"on":false}]'></pk-table></div>`);
+        host.firstElementChild.style.inlineSize = '320px';
+        await t.load(host);
+        const el = host.querySelector('pk-table'); await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const widths = () => [...el.shadowRoot.querySelectorAll('thead th')].map(h => Math.round(h.getBoundingClientRect().width));
+        await until(() => cell(1, 'on')?.querySelector('pk-switch'), 'the pk-switch');
+        t.ok(!cell(1, 'on').querySelector('input'), 'no bare checkbox in the switch column');
+        t.ok(cell(1, 'on').querySelector('pk-switch').checked === true, 'the switch shows the value');
+        const before = widths();
+        cell(2, 'qty').focus(); cell(2, 'qty').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        const q = await until(() => cell(2, 'qty').querySelector('input'), 'the editor');
+        t.eq(widths().join(), before.join(), 'opening the editor changed a column width');
+        q.value = 'lots'; q.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        await until(() => cell(2, 'qty').querySelector('[data-cell-error]'), 'the message');
+        t.eq(widths().join(), before.join(), 'the validation message changed a column width');
+    }],
+    ['frame: the default sandbox is allow-scripts alone, a preset caps the width to the named breakpoint, and the framed document loads', async t => {
+        const { breakpoint } = await import('../../js/breakpoints.js');
+        const host = t.stage(`<pk-frame title="Preview" html="&lt;!doctype html&gt;&lt;body&gt;hi&lt;/body&gt;"></pk-frame>`);
+        await t.load(host);
+        const el = host.querySelector('pk-frame');
+        const frame = () => el.shadowRoot.querySelector('[part="frame"]');
+        const loaded = new Promise(r => el.addEventListener('pk-frame-load', r, { once: true }));
+        await loaded;
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts', 'the default sandbox never carries allow-same-origin');
+        t.eq(frame().hasAttribute('src'), false, 'an inline document sets srcdoc, not src');
+        t.ok(frame().srcdoc.includes('hi'), 'the html prop became the frame srcdoc');
+        // sandbox="allow-scripts" alone (no allow-same-origin) makes the framed document an opaque origin: contentDocument is not
+        // reachable from here, by design - which is what the resize/theme contract (postMessage) is for.
+        t.eq(frame().contentDocument, null, 'the sandboxed document is not readable from the host page');
+        for (const [preset, name] of [['phone', 'phone'], ['tablet', 'tablet'], ['desktop', 'wide']]) {
+            el.setAttribute('preset', preset); await t.settle();
+            t.eq(frame().style.maxInlineSize, `${breakpoint(name)}px`, `preset=${preset} caps the width at the ${name} breakpoint`);
+        }
+        el.setAttribute('preset', 'full'); await t.settle();
+        t.eq(frame().style.maxInlineSize, '', 'preset=full has no width cap');
+        el.setAttribute('sandbox', 'allow-scripts allow-same-origin'); await t.settle();
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts', 'allow-same-origin is dropped without allow-same-origin opted in');
+        el.setAttribute('allow-same-origin', ''); await t.settle();
+        t.eq(frame().getAttribute('sandbox'), 'allow-scripts allow-same-origin', 'allow-same-origin opts the combination back in');
     }],
 ];

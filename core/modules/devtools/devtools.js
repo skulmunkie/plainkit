@@ -18,10 +18,12 @@ import { mountPerformance } from '../performance/performance.js';
 import { mountConsole } from '../console/console.js';
 import { mountLogs } from '../logs/logs.js';
 import { mountLogSettings } from '../log-settings/log-settings.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { createLogger } from '../../js/log.js';
 import { qualityPanel, inspectorPanel, themePanel, layoutBuilderPanel } from './panels.js';
 
+const log = createLogger('devtools');
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./devtools.css'];
 
@@ -42,13 +44,6 @@ export const BUILT_IN = Object.freeze([
     themePanel,
     layoutBuilderPanel,
 ]);
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 // Does this key event match a chord like "Ctrl+`" or "Ctrl+Shift+D"?
 export function matchesHotkey(event, chord) {
@@ -102,8 +97,8 @@ export async function mountDevTools(container, options = {}) {
     } else {
         container.replaceChildren(surface);
     }
-    loadElements(surface).catch(() => { /* loadElements logs its own failures */ });
-    if (toggleButton) loadElements(toggleButton).catch(() => { /* loadElements logs its own failures */ });
+    loadElements(surface).catch(err => log.debug('elements did not load (loadElements reports it)', err));
+    if (toggleButton) loadElements(toggleButton).catch(err => log.debug('elements did not load (loadElements reports it)', err));
 
     // Every panel mounts up front (the console must record from the start); activate/deactivate follow what is visible.
     // whileHidden runs a measurement with the tools out of the way (so the page is measured, not the tools); isTool says whether an element is ours.

@@ -262,4 +262,97 @@ export const layoutCases = [
             t.ok(el.scrollWidth > el.clientWidth, `${el.inline ? 'inline' : 'block'}: the text overflows its box`); t.ok(el.getBoundingClientRect().width <= 121, 'and the box stays in the column');
         }
     }],
+    // Pointer events are synthesized on the card's handle (the same way the sortable case does): a real drag needs a live pointer, but the element only reads the handle's own events and their coordinates.
+    ['kanban (#332): dragging near a column edge scrolls the column, near the board edge scrolls the board, the loop stops on drop, and 100 abandoned drags leave no frame callback behind', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const cards = n => Array.from({ length: n }, (_, i) => `<pk-sortable-item value="c${i}"><pk-card heading="Task ${i + 1}" level="3">Something to do.</pk-card></pk-sortable-item>`).join('');
+        const html = `<div style="inline-size:420px"><pk-kanban label="Board"><pk-kanban-column value="a" label="A">${cards(12)}</pk-kanban-column><pk-kanban-column value="b" label="B">${cards(1)}</pk-kanban-column><pk-kanban-column value="c" label="C"></pk-kanban-column></pk-kanban></div>`;
+        const host = t.stage(html); await t.load(host); await t.settle();
+        const el = host.querySelector('pk-kanban'), col = el.querySelector('pk-kanban-column'), card = col.querySelector('pk-sortable-item');
+        const board = el.part('board'), list = col.part('list');
+        t.ok(board.scrollWidth > board.clientWidth + 50, 'the board is wider than its box, so it can scroll sideways');
+        t.ok(list.scrollHeight > list.clientHeight + 50, 'the long column can scroll inside itself');
+        const h = card.part('handle'), hr = h.getBoundingClientRect();
+        const ptr = (type, x, y) => h.dispatchEvent(new PointerEvent(type, { pointerId: 21, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', hr.left + hr.width / 2, hr.top + hr.height / 2);
+        t.ok(el.hasAttribute('dragging'), 'the drag started');
+        const lr = list.getBoundingClientRect(), cx = lr.left + lr.width / 2;
+        ptr('pointermove', cx, lr.top + lr.height / 2); await wait(150);
+        t.eq(list.scrollTop, 0, 'a pointer in the middle of the column scrolls nothing');
+        ptr('pointermove', cx, lr.bottom - 4); await wait(400);
+        t.ok(list.scrollTop > 20, `the column scrolled down while the pointer sat near its bottom edge (scrollTop ${Math.round(list.scrollTop)})`);
+        const br = board.getBoundingClientRect();
+        ptr('pointermove', br.right - 4, lr.top + lr.height / 2); await wait(400);
+        t.ok(board.scrollLeft > 20, `the board scrolled sideways while the pointer sat near its right edge (scrollLeft ${Math.round(board.scrollLeft)})`);
+        ptr('pointerup', br.right - 4, lr.top + lr.height / 2); await t.settle();
+        const rest = [list.scrollTop, board.scrollLeft]; await wait(250);
+        t.ok(!el.hasAttribute('dragging') && list.scrollTop === rest[0] && board.scrollLeft === rest[1], 'after the drop nothing scrolls any more');
+
+        // Mount, start a drag near an edge and remove the board mid-drag, 100 times: no animation frame callback may stay pending.
+        const live = new Set(), raf = window.requestAnimationFrame, caf = window.cancelAnimationFrame;
+        window.requestAnimationFrame = fn => { const id = raf(ts => { live.delete(id); fn(ts); }); live.add(id); return id; };
+        window.cancelAnimationFrame = id => { live.delete(id); caf(id); };
+        try {
+            for (let i = 0; i < 100; i++) {
+                const box = t.stage(html); await t.load(box);
+                const k = box.querySelector('pk-kanban'), hh = k.querySelector('pk-sortable-item').part('handle'), r = hh.getBoundingClientRect(), b = k.part('board').getBoundingClientRect();
+                hh.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 22, clientX: r.left + 5, clientY: r.top + 5, button: 0, bubbles: true, composed: true }));
+                hh.dispatchEvent(new PointerEvent('pointermove', { pointerId: 22, clientX: b.right - 4, clientY: r.top + 5, bubbles: true, composed: true }));
+                box.remove();
+            }
+            await wait(100);
+        } finally { window.requestAnimationFrame = raf; window.cancelAnimationFrame = caf; }
+        t.eq(live.size, 0, '100 boards removed mid-drag left no pending animation frame');
+    }],
+    // The page itself scrolls while dragging (#332): a drag near the top or bottom edge of the nearest scrolling ancestor (here a 300px box) or of the window scrolls it, in the shared js/drag-scroll.js.
+    ['drag auto-scroll (#332): pk-sortable and pk-kanban scroll the nearest scrolling ancestor, and pk-sortable the window, when the pointer nears its edge; the row under a still pointer is recomputed; a drop stops it', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const rows = n => Array.from({ length: n }, (_, i) => `<pk-sortable-item value="r${i}">Row ${i + 1}</pk-sortable-item>`).join('');
+        const drag = (h, id) => (type, x, y) => h.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+
+        // pk-sortable inside a scrolling box.
+        let host = t.stage(`<div style="block-size:300px;overflow:auto"><pk-sortable label="Rows">${rows(30)}</pk-sortable></div>`); await t.load(host); await t.settle();
+        let box = host.firstElementChild, el = box.firstElementChild; const seen = []; el.addEventListener('pk-reorder', e => seen.push(e.detail));
+        t.ok(box.scrollHeight > box.clientHeight + 200, 'the box can scroll');
+        let h = el.querySelector('pk-sortable-item').part('handle'), hr = h.getBoundingClientRect(), br = box.getBoundingClientRect(), p = drag(h, 31);
+        p('pointerdown', hr.left + 5, hr.top + 5);
+        p('pointermove', hr.left + 5, br.top + br.height / 2); await wait(150);
+        t.eq(box.scrollTop, 0, 'the pointer in the middle of the box scrolls nothing');
+        p('pointermove', hr.left + 5, br.bottom - 4); await wait(500);
+        t.ok(box.scrollTop > 40, `the box scrolled down while the pointer sat near its bottom edge (scrollTop ${Math.round(box.scrollTop)})`);
+        p('pointerup', hr.left + 5, br.bottom - 4); await t.settle();
+        t.ok(seen.length === 1 && seen[0].to > 3, `the drop landed on a row that scrolled under the pointer (to ${seen[0]?.to})`);
+        const rest = box.scrollTop; await wait(200);
+        t.eq(box.scrollTop, rest, 'after the drop nothing scrolls any more');
+
+        // pk-sortable in the page: the window scrolls down near its bottom edge and back up near its top edge.
+        host = t.stage(`<pk-sortable label="Rows">${rows(80)}</pk-sortable>`); await t.load(host); await t.settle();
+        el = host.firstElementChild; window.scrollTo(0, 0);
+        try {
+            t.ok(document.scrollingElement.scrollHeight > innerHeight + 300, 'the page is taller than the window');
+            h = el.querySelector('pk-sortable-item').part('handle'); hr = h.getBoundingClientRect(); p = drag(h, 32);
+            p('pointerdown', hr.left + 5, hr.top + 5);
+            p('pointermove', hr.left + 5, innerHeight - 4); await wait(500);
+            const down = window.scrollY;
+            t.ok(down > 40, `the window scrolled down while the pointer sat near the bottom of the window (scrollY ${Math.round(down)})`);
+            p('pointermove', hr.left + 5, 4); await wait(400);
+            t.ok(window.scrollY < down, `and back up near the top edge (scrollY ${Math.round(window.scrollY)})`);
+            p('pointerup', hr.left + 5, 4); await t.settle();
+            const y = window.scrollY; await wait(200);
+            t.eq(window.scrollY, y, 'after the drop the window stays put');
+        } finally { window.scrollTo(0, 0); }
+
+        // pk-kanban inside a scrolling box: the column is taller than the box, so the box scrolls.
+        const cards = n => Array.from({ length: n }, (_, i) => `<pk-sortable-item value="c${i}"><pk-card heading="Task ${i + 1}" level="3">Something to do.</pk-card></pk-sortable-item>`).join('');
+        host = t.stage(`<div style="block-size:300px;overflow:auto"><pk-kanban label="Board"><pk-kanban-column value="a" label="A">${cards(8)}</pk-kanban-column><pk-kanban-column value="b" label="B"></pk-kanban-column></pk-kanban></div>`); await t.load(host); await t.settle();
+        box = host.firstElementChild; el = box.firstElementChild;
+        t.ok(box.scrollHeight > box.clientHeight + 100, 'the box around the board can scroll');
+        h = el.querySelector('pk-sortable-item').part('handle'); hr = h.getBoundingClientRect(); br = box.getBoundingClientRect(); p = drag(h, 33);
+        p('pointerdown', hr.left + 5, hr.top + 5);
+        p('pointermove', hr.left + 5, br.bottom - 4); await wait(500);
+        t.ok(box.scrollTop > 40, `the box around the board scrolled while the pointer sat near its bottom edge (scrollTop ${Math.round(box.scrollTop)})`);
+        p('pointerup', hr.left + 5, br.bottom - 4); await t.settle();
+        const kept = box.scrollTop; await wait(200);
+        t.eq(box.scrollTop, kept, 'after the drop the box stays put');
+    }],
 ];

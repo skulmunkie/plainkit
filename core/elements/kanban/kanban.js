@@ -38,6 +38,10 @@ export function announceMove(label, column, index, total) {
     return `${label} moved to ${column}, position ${index + 1} of ${total}.`;
 }
 
+// Auto-scroll while a card is dragged lives in js/drag-scroll.js (shared with pk-sortable); edgeSpeed stays exported from here for the Node tests.
+import { edgeSpeed, frameLoop, reducedMotion, scrollPageStep } from '../../js/drag-scroll.js';
+export { edgeSpeed };
+
 export default Base => class extends Base {
     connected() {
         if (this.$init) return;
@@ -48,6 +52,8 @@ export default Base => class extends Base {
         this.addEventListener('pk-sortable-drop', e => { if (this.$drag && e.target === this.$drag.item) this.endDrag(Boolean(e.detail.cancelled)); });
         this.addEventListener('keydown', e => this.onKey(e));
     }
+    // A drag in progress must not outlive the element: stop the frame loop and clear the drag marks.
+    disconnected() { if (this.$drag) this.endDrag(true); this.stopScroll(); }
     get columns() { return Array.from(this.children).filter(c => c.localName === 'pk-kanban-column'); }
     cards(col) { return Array.from(col.children).filter(c => c.localName === 'pk-sortable-item'); }
     // The column and index a card is at now, or null when it is not a direct child of one of this board's columns.
@@ -64,9 +70,31 @@ export default Base => class extends Base {
         card.toggleAttribute('dragging', true);
         this.dragging = true;
         this.say(`Grabbed ${card.value || 'the card'}.`);
+        (this.$loop ??= frameLoop(() => this.scrollTick())).start();
     }
+    // ---- auto-scroll: one frame loop while a drag is active. The board scrolls sideways near its left or right edge, and the column under the pointer scrolls
+    // up or down near its top or bottom; whatever moved, the drop target is worked out again because the columns and cards slid under a still pointer.
+    scrollTick() {
+        const d = this.$drag;
+        if (!d) return;
+        if (d.x !== undefined) {
+            const reduced = reducedMotion(), board = this.part('board'), b = board.getBoundingClientRect();
+            let moved = false;
+            const dx = edgeSpeed(d.x, b.left, b.right, reduced);
+            if (dx) { const was = board.scrollLeft; board.scrollLeft += dx; moved = board.scrollLeft !== was; }
+            const col = this.columns[d.to ? d.to.col : 0], list = col?.part('list');
+            if (list) {
+                const r = list.getBoundingClientRect(), dy = edgeSpeed(d.y, r.top, r.bottom, reduced);
+                if (dy) { const was = list.scrollTop; list.scrollTop += dy; moved = moved || list.scrollTop !== was; }
+            }
+            moved = scrollPageStep(this, d.y, reduced) !== 0 || moved; // and the page itself, near the top or bottom of the window
+            if (moved) this.continueDrag(d.x, d.y);
+        }
+    }
+    stopScroll() { this.$loop?.stop(); }
     continueDrag(x, y) {
         const d = this.$drag;
+        d.x = x; d.y = y;
         // Read on every move: a column can scroll, and a card lifted out leaves a gap the others close over.
         const cols = this.columns.map(c => {
             const r = c.getBoundingClientRect();
@@ -88,6 +116,7 @@ export default Base => class extends Base {
     endDrag(cancelled) {
         const d = this.$drag;
         this.$drag = null;
+        this.stopScroll();
         d.item.toggleAttribute('dragging', false);
         this.dragging = false;
         this.markAll(d.item, null);

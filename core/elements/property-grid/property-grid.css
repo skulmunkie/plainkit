@@ -1,2 +1,5 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
 [part="empty"] { color: var(--color-muted); }
+[hidden] { display: none; }
+.swatch { display: inline-block; inline-size: 1rem; block-size: 1rem; margin-inline-start: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+[slot="suffix"] { --pk-control-border: transparent; --pk-control-bg: transparent; }

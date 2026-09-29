@@ -1,0 +1,42 @@
+{
+  "component": "PkDock",
+  "params": [
+    {
+      "name": "Layout",
+      "type": "string",
+      "map": "prop",
+      "prop": "layout",
+      "bind": {
+        "event": "pk-layout-change",
+        "value": "detail.layout"
+      },
+      "note": "The layout document as a JSON string (round-tripped by the same validation as the JavaScript side); leave it null for the default arrangement. The bound value is the JSON of the new layout."
+    },
+    {
+      "name": "Label",
+      "prop": "label"
+    },
+    {
+      "name": "ResizeLabel",
+      "prop": "resizeLabel"
+    },
+    {
+      "name": "Fill",
+      "prop": "fill"
+    },
+    {
+      "name": "PersistKey",
+      "prop": "persistKey"
+    },
+    {
+      "name": "OnLayoutChange",
+      "event": "pk-layout-change",
+      "type": "EventCallback<PkLayoutChangeEventArgs>"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id)."
+    }
+  ]
+}

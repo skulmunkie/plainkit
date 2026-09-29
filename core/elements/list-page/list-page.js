@@ -1,3 +1,4 @@
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 import { filterControl } from '../../js/filter-controls.js';
@@ -64,6 +65,8 @@ export default Base => class extends Base {
     // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant), never a callback - a page that
     // needs one wired to app logic points its href at another route, the same way a module's own nav does.
     buildActions() {
+        // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
+        showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
         const key = JSON.stringify(this.config?.actions ?? []);
         if (key === this.$actionsFor) return;
         this.$actionsFor = key;
@@ -92,21 +95,19 @@ export default Base => class extends Base {
         table.sortDir = this.$query.sortDir;
         const token = (this.$token = {});
         table.hidden = true;
-        renderState(state, 'loading', { label: 'Loading' });
-        loadElements(state);
-        if (typeof this.load !== 'function') { renderState(state, 'empty', this.config?.empty); loadElements(state); return; }
+        showState(state, 'loading', { label: 'Loading' });
+        if (typeof this.load !== 'function') { showState(state, 'empty', this.config?.empty); return; }
         let result;
         try {
             result = await this.load({ ...this.$query });
         } catch (err) {
             if (this.$token !== token) return;
-            renderState(state, 'error', { description: err?.message ?? String(err), retry: () => this.refresh() });
-            loadElements(state);
+            showState(state, 'error', { error: err, retry: () => this.refresh() });
             return;
         }
         if (this.$token !== token) return;
         const rows = result?.rows ?? [], total = result?.total ?? rows.length;
-        if (rows.length === 0) { renderState(state, 'empty', this.config?.empty); loadElements(state); return; }
+        if (rows.length === 0) { showState(state, 'empty', this.config?.empty); return; }
         renderState(state, 'ready');
         table.hidden = false;
         table.rows = rows;

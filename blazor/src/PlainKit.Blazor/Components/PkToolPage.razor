@@ -1,0 +1,43 @@
+@namespace PlainKit.Blazor
+@using System.Text.Json
+@inherits PkElementBase
+@implements IDisposable
+
+@* Hand-written (blazor/mappings/tool-page.json marks it "existing"): the element's run(values) is a callback property, set from script, so this
+   component hands it a .NET reference (PkCallbackSlot) that calls Run. A Run that throws rejects the JavaScript promise, which the element shows as
+   its error state with Retry. *@
+<pk-tool-page config="@Config"
+              run-label="@RunLabel"
+              @ref="Element"
+              class="@Css()"
+              @attributes="Splat"></pk-tool-page>
+
+@code {
+    [Inject] private PkRuntime Runtime { get; set; } = default!;
+
+    private readonly PkCallbackSlot _run = new("run");
+
+    /// <summary>{ input: [{ key, type, label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }, sent as a JSON attribute.</summary>
+    [Parameter] public string? Config { get; set; } = "{}";
+
+    /// <summary>Text of the Run button. Defaults to "Run".</summary>
+    [Parameter] public string? RunLabel { get; set; } = "";
+
+    /// <summary>
+    /// Runs the action with the values of the input fields, keyed by field key (read text with <c>GetString()</c>, a number with <c>GetDouble()</c>). What it
+    /// returns is drawn as the outcome: for <c>text</c> a string or an object with <c>text</c>, for <c>stat</c> an object with <c>value</c> and <c>label</c>, for
+    /// <c>table</c> an object with <c>columns</c> and <c>rows</c>, for <c>code</c> a string or an object with <c>code</c>. Throwing shows the error state with Retry.
+    /// </summary>
+    [Parameter] public Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>>? Run { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        // The callback delegates to the current Run, so a new delegate needs no new setup; only set versus unset matters.
+        await _run.SyncAsync<Dictionary<string, JsonElement>>(await Runtime.BridgeAsync(Assets), Element, Run is not null, values => Run!(values));
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _run.Dispose();
+}

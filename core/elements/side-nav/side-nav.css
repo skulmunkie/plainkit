@@ -32,7 +32,7 @@
 
 [part="foot"] { flex: none; padding: var(--space-2); border-top: 1px solid var(--color-border); }
 
-[part="foot"]:not(:has(::slotted(*))) { display: none; }
+[part="foot"][data-empty] { display: none; }
 
 [part="backdrop"] { display: none; }
 
@@ -41,6 +41,10 @@
     :host([open]) { transform: none; visibility: visible; transition-delay: 0s; }
     :host([open]) [part="backdrop"] { display: block; position: fixed; inset: 0 0 0 auto; width: calc(100vw - min(var(--shell-nav-w), 88vw)); z-index: var(--z-flyout-backdrop); background: var(--flyout-backdrop-bg); }
     [part="collapse"] { display: none; }
+    /* The drawer has no rail chevron, so a brand row with no brand in it is only an empty band above the first row. */
+    [part="brand"][data-empty] { display: none; }
+    /* The drawer is what a phone shows, and the filter is a tap target there (issue 550). */
+    [part="filter-input"] { min-height: var(--touch-target); }
 }
 
 @media (prefers-reduced-motion: reduce) { :host, :host([collapsed]) { transition: none; } }

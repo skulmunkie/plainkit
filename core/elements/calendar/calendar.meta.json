@@ -55,6 +55,28 @@
       "description": "ISO dates that get a dot."
     },
     {
+      "name": "range",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pick a range of days instead of one: the first click sets the start, the second the end (swapped when earlier), the days between are highlighted and a pending range previews under the pointer or focus. Escape drops a pending start."
+    },
+    {
+      "name": "start",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-range-change",
+      "description": "Range mode: the first day of the range, an ISO date such as 2026-09-01."
+    },
+    {
+      "name": "end",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Range mode: the last day of the range, an ISO date such as 2026-09-14."
+    },
+    {
       "name": "readonly",
       "type": "boolean",
       "default": false,
@@ -78,6 +100,17 @@
       },
       "description": "A day was chosen. Cancel to keep the current value.",
       "cancelable": true
+    },
+    {
+      "name": "pk-range-change",
+      "detail": "{ start: string, end: string, valid: boolean }",
+      "detailProps": {
+        "start": "string",
+        "end": "string",
+        "valid": "bool"
+      },
+      "description": "Range mode: the second click set the end and the range is complete. The same detail as pk-date-range-picker; valid is always true here because min and max cannot be picked past.",
+      "cancelable": false
     },
     {
       "name": "pk-month",
@@ -116,6 +149,10 @@
     {
       "name": "days",
       "description": "The day rows."
+    },
+    {
+      "name": "status",
+      "description": "A visually hidden polite live region for range mode (Range start set to ..., Range: ... to ...)."
     }
   ],
   "cssProperties": [
@@ -126,6 +163,10 @@
     }
   ],
   "methods": [
+    {
+      "name": "focus()",
+      "description": "Focuses the day that holds the roving focus (the selected or first day of the shown month)."
+    },
     {
       "name": "monthGrid(year, month, weekStart)",
       "description": "Weeks of a month."
@@ -139,7 +180,7 @@
       "description": "Clamped month step."
     }
   ],
-  "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels.",
+  "a11y": "role=grid with a live month title; one roving focused day; arrows move by a day or a week, Home and End to the month edges, PageUp and PageDown by a month (Shift a year). The selected day has aria-selected, today aria-current=date; out-of-range days are disabled buttons with full-date labels. In range mode the start and end days have aria-selected and their labels add range start, range end or in range; a polite live region announces Range start set to X and Range: X to Y; Enter or Space picks the focused day, arrows move focus and preview a pending range, Escape drops a pending start.",
   "examples": [
     {
       "title": "Selected day with marks",
@@ -148,6 +189,14 @@
     {
       "title": "Monday start, limited range",
       "html": "<pk-calendar week-start=\"1\" min=\"2026-09-10\" max=\"2026-09-28\"></pk-calendar>"
+    },
+    {
+      "title": "Range mode",
+      "html": "<pk-calendar range start=\"2026-09-08\" end=\"2026-09-17\" month=\"2026-09-01\"></pk-calendar>"
+    },
+    {
+      "title": "Range mode with minimum and maximum, Monday start",
+      "html": "<pk-calendar range week-start=\"1\" month=\"2026-09-01\" min=\"2026-09-07\" max=\"2026-09-25\" start=\"2026-09-14\" end=\"2026-09-18\"></pk-calendar>"
     }
   ]
 }

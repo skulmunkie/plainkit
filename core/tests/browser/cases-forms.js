@@ -4,6 +4,8 @@ const ev = (type, init = {}) => new Event(type, { bubbles: true, composed: true,
 const press = (el, key) => { const e = new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
 const type = async (t, inner, text) => { inner.value = text; inner.dispatchEvent(ev('input')); await t.settle(); };
 
+const ready = async t => { for (const n of ['pk-popover', 'pk-button', 'pk-calendar']) await customElements.whenDefined(n); await t.settle(); await t.settle(); };
+
 export const formCases = [
     ['field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
         const { mountFieldGroup } = await import('../../modules/field-group/field-group.js');
@@ -432,5 +434,103 @@ export const formCases = [
         const buttons = await until(() => { const l = [...f.contentDocument.querySelectorAll('pk-button')]; return l.length === 4 && l.every(b => b.shadowRoot?.querySelector('[part="icon"]')) && l; });
         await new Promise(r => setTimeout(r, 200)); t.eq(f.contentWindow.innerWidth, 375);
         for (const b of buttons) { const r = b.part('control').getBoundingClientRect(); t.ok(r.width >= 43.5 && r.height >= 43.5, `${b.getAttribute('size') ?? 'link'} is ${r.width}x${r.height}, not under 44px`); if (!b.querySelector('pk-icon')) t.eq(b.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0, 'the text takes no room'); }
+    }],
+    ['property-grid unit: the unit picker shares the row of the number input, changing it emits { value, unit }, and an out-of-range value shows its message', async t => {
+        const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
+        const g = host.querySelector('pk-property-grid');
+        g.config = { groups: [{ heading: 'Size', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 0, max: 100 }] }] };
+        g.values = { w: { value: 140, unit: '%' } };
+        await t.settle(); await t.settle();
+        const input = g.shadowRoot.querySelector('pk-input'), unit = input.querySelector('pk-select[slot="suffix"]');
+        t.ok(unit, 'a pk-select sits in the suffix slot');
+        const a = input.getBoundingClientRect(), b = unit.getBoundingClientRect();
+        t.ok(b.width > 0 && b.left >= a.left - 1 && b.right <= a.right + 1 && b.top >= a.top - 1 && b.bottom <= a.bottom + 1, 'the unit picker is inside the input box');
+        t.ok(g.shadowRoot.querySelector('pk-alert:not([hidden])')?.textContent.includes('at most 100 %'), 'the message names the unit');
+        const got = []; g.addEventListener('pk-property-change', e => got.push(e.detail));
+        unit.value = 'px'; unit.dispatchEvent(ev('pk-value-change')); await t.settle();
+        t.eq(JSON.stringify(got.at(-1)?.value), JSON.stringify({ value: 140, unit: 'px' }));
+    }],
+    ['property-grid keyboard: Ctrl+Up/Down/Home/End move between enabled visible rows (skipping disabled, hidden and collapsed), a switch takes plain arrows, plain arrows in a number are left alone', async t => {
+        const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
+        const g = host.querySelector('pk-property-grid');
+        g.config = { groups: [
+            { heading: 'A', fields: [{ key: 'a', type: 'number', label: 'A' }, { key: 'off', type: 'text', label: 'Off', disabled: true }, { key: 'gone', type: 'text', label: 'Gone', hidden: true }, { key: 'sw', type: 'switch', label: 'S' }, { key: 'z', type: 'text', label: 'Z' }] },
+            { heading: 'B', collapsed: true, fields: [{ key: 'b', type: 'text', label: 'B' }] },
+        ] };
+        await t.settle(); await t.settle();
+        const rows = g.$rows, send = (el, key, ctrlKey) => { const e = new KeyboardEvent('keydown', { key, ctrlKey, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
+        const inner = r => r.c.shadowRoot?.querySelector('input') ?? r.c;
+        const focusedKey = () => Object.keys(rows).find(k => rows[k].c.matches(':focus-within') || rows[k].c.shadowRoot?.activeElement || g.shadowRoot.activeElement === rows[k].c);
+        inner(rows.a).focus();
+        t.eq(send(inner(rows.a), 'ArrowDown', false).defaultPrevented, false, 'a plain arrow in a number is left to the stepper');
+        send(inner(rows.a), 'ArrowDown', true); await t.settle(); t.eq(focusedKey(), 'sw', 'Ctrl+Down skips the disabled and hidden rows');
+        t.eq(send(rows.sw.c, 'ArrowDown', false).defaultPrevented, true, 'a switch takes a plain arrow'); await t.settle(); t.eq(focusedKey(), 'z');
+        send(inner(rows.z), 'ArrowDown', true); await t.settle(); t.eq(focusedKey(), 'z', 'the collapsed group and the end are not entered');
+        send(inner(rows.z), 'Home', true); await t.settle(); t.eq(focusedKey(), 'a', 'Ctrl+Home is the first row');
+        send(inner(rows.a), 'End', true); await t.settle(); t.eq(focusedKey(), 'z', 'Ctrl+End is the last row');
+        send(inner(rows.z), 'ArrowUp', true); await t.settle(); t.eq(focusedKey(), 'sw');
+        t.eq(send(inner(rows.z), 'Tab', false).defaultPrevented, false, 'Tab is never trapped');
+    }],
+
+    ['date-range-picker calendar: the opener opens a range calendar under the field, focus moves in, two picks set the range, commit once and close', async t => {
+        const el = await t.mount('<pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
+        await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);
+        const got = []; el.addEventListener('pk-range-change', e => got.push(e.detail));
+        t.ok(!pop.open && getComputedStyle(pop.part('panel')).display === 'none', 'closed at rest');
+        opener.click(); await t.settle();
+        t.ok(pop.open, 'the opener opens the popover'); t.eq(opener.getAttribute('aria-expanded'), 'true');
+        const panel = pop.part('panel').getBoundingClientRect(), field = el.part('fields').getBoundingClientRect();
+        t.ok(panel.top >= field.bottom - 1 && panel.width > 200, 'the panel sits under the fields and holds a whole month');
+        t.eq(cal.shadowRoot.activeElement?.dataset.date, '2026-09-08', 'focus moves onto the start day of the calendar');
+        t.eq(day('2026-09-12').dataset.range, 'mid', 'the calendar shows the picker range');
+        day('2026-09-12').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true })); await t.settle();
+        t.ok(pop.open, 'a press inside the calendar does not close the popover');
+        day('2026-09-20').click(); await t.settle(); t.ok(pop.open && got.length === 0, 'the first click only sets the start');
+        day('2026-09-25').click(); await t.settle();
+        t.ok(!pop.open, 'the second click closes it'); t.eq(got.length, 1, 'one pk-range-change');
+        t.eq(JSON.stringify(got[0]), JSON.stringify({ start: '2026-09-20', end: '2026-09-25', valid: true }));
+        t.eq(el.start, '2026-09-20'); t.eq(el.end, '2026-09-25'); t.eq(el.part('start').value, '2026-09-20', 'the native field follows');
+        t.ok(el.part('opener').matches(':focus-within') || el.shadowRoot.activeElement === opener, 'focus returns to the opener');
+    }],
+
+    ['date-range-picker calendar: the day that takes focus on open shows the focus ring, and in right-to-left the panel aligns to the inline-start (right) edge of the opener', async t => {
+        const host = await t.mount('<div><pk-date-range-picker id="pk-drp-l" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker><div dir="rtl" style="display:flex;justify-content:flex-end"><pk-date-range-picker id="pk-drp-r" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div></div>');
+        await ready(t);
+        const ltr = host.querySelector('#pk-drp-l'), rtl = host.querySelector('#pk-drp-r');
+        ltr.part('opener').click(); await t.settle();
+        const focused = ltr.part('calendar').shadowRoot.activeElement, st = focused && getComputedStyle(focused);
+        t.ok(focused?.matches(':focus-visible'), 'the day focused on open matches :focus-visible');
+        t.ok(st && parseFloat(st.outlineWidth) > 0 && st.outlineStyle !== 'none', 'the focused day draws an outline');
+        rtl.part('opener').click(); await t.settle();
+        const ro = rtl.part('opener').getBoundingClientRect(), rp = rtl.part('popover').part('panel').getBoundingClientRect();
+        t.ok(Math.abs(rp.right - ro.right) <= 1, `right to left: the panel right edge (${Math.round(rp.right)}) matches the opener right edge (${Math.round(ro.right)})`);
+    }],
+
+    ['date-range-picker calendar: Escape closes and returns focus (a pending start first), min and max reach the calendar, typing in the fields updates it, no calendar attribute means no opener', async t => {
+        const el = await t.mount('<pk-date-range-picker calendar min="2026-09-05" max="2026-09-25" start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
+        await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);
+        opener.click(); await t.settle();
+        t.ok(day('2026-09-03').disabled && day('2026-09-28').disabled && !day('2026-09-10').disabled, 'min and max disable days in the calendar');
+        day('2026-09-10').click(); await t.settle();
+        t.key(day('2026-09-10'), 'Escape'); await t.settle();
+        t.ok(pop.open && el.start === '2026-09-08' && el.end === '2026-09-17', 'the first Escape gives the pending start up and the range stays');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await t.settle();
+        t.ok(!pop.open, 'the next Escape closes'); t.eq(el.shadowRoot.activeElement?.getAttribute('slot') ?? el.shadowRoot.activeElement?.part?.value, 'trigger', 'focus is back on the opener');
+        el.part('end').value = '2026-09-22'; el.part('end').dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(cal.end, '2026-09-22', 'a typed date reaches the calendar');
+        const plain = await t.mount('<pk-date-range-picker></pk-date-range-picker>');
+        t.ok(getComputedStyle(plain.part('popover')).display === 'none', 'without the attribute the opener is not drawn');
+        const off = await t.mount('<pk-date-range-picker calendar disabled></pk-date-range-picker>'); await ready(t);
+        t.ok(off.part('opener').disabled, 'a disabled picker disables the opener');
+    }],
+
+    ['date-range-picker calendar: right to left mirrors the panel under the field, and a phone keeps it inside the viewport', async t => {
+        const el = await t.mount('<div dir="rtl"><pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div>');
+        const picker = el.querySelector('pk-date-range-picker'); await ready(t); picker.part('opener').click(); await t.settle(); await new Promise(r => setTimeout(r, 200));
+        const panel = picker.part('popover').part('panel').getBoundingClientRect(), vw = document.documentElement.clientWidth;
+        t.ok(panel.left >= 0 && panel.right <= vw + 1, `the panel (${Math.round(panel.left)}..${Math.round(panel.right)}) stays inside the viewport (${vw})`);
+        const opener = picker.part('opener').getBoundingClientRect(), fields = picker.part('fields').getBoundingClientRect();
+        t.ok(opener.left >= fields.left - 1 && opener.right <= fields.right + 1, 'the opener sits inside the fields row');
+        t.ok(opener.right <= picker.part('end').getBoundingClientRect().left + 1, 'in right to left the opener is after the end field, at its left');
     }],
 ];

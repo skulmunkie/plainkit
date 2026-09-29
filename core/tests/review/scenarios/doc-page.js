@@ -56,6 +56,7 @@ export default {
         if (t.shot === 'menu-open') {
             t.visible('#doc pk-side-nav', 'the nav drawer, opened by the Menu button');
             t.hasText('#doc pk-side-nav', 'Theming');
+            if (phone) t.atLeast('#doc pk-side-nav >>> [part=filter-input]', 'height', 44); // issue 550: the filter is a tap target on a phone
         }
         if (t.shot === 'loading') {
             t.visible('#doc pk-skeleton', 'the skeleton that holds the space while the item loads');

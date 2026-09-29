@@ -1,11 +1,8 @@
 // pk-splitter behaviour: two panes and a separator that resizes them by pointer or arrow keys. Sizes are percentages of the room the two panes share.
 // The pure rules are exported for the Node tests.
+import { clampSize } from '../../js/size.js';
 
-// A size held to the range (either order of min and max), to one decimal; a size that is not a number is the middle.
-export const clampSize = (v, min, max) => {
-    const lo = Math.min(min, max), hi = Math.max(min, max);
-    return Math.round(Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : (lo + hi) / 2)) * 10) / 10;
-};
+export { clampSize };
 
 // The size a key asks for, or null when the key does nothing here. Side by side (horizontal): Left and Right, mirrored in a right-to-left page; stacked: Up and Down.
 export function keySize(key, size, { min, max, step, horizontal, rtl = false }) {
@@ -38,7 +35,7 @@ export default Base => class extends Base {
         if (this.disabled || e.button > 0) return;
         const h = this.part('handle'), r = h.getBoundingClientRect(), horiz = this.horizontal();
         this.$drag = { id: e.pointerId, from: this.now(), grab: horiz ? e.clientX - (r.left + r.width / 2) : e.clientY - (r.top + r.height / 2) };
-        try { h.setPointerCapture(e.pointerId); } catch { /* a synthetic pointer is not active: the drag still follows the handle's own events */ }
+        try { h.setPointerCapture(e.pointerId); } catch (err) { this.debug('pointer capture refused (a synthetic pointer is not active): the drag still follows the handle\'s own events', err); }
         this.part('root').toggleAttribute('data-dragging', true);
     }
     drag(e) {

@@ -1,6 +1,7 @@
 // In-browser test runner for the SDK's custom elements. Open /tests/browser/ in a visible tab. With node tools/serve.mjs --write-reports it
 // also posts its report (tests/browser/report.json, local scratch output): the results plus a SHA-256 of every element source it covered, so a guard
 // (nothing checks it against the sources any more; it is a local manual safety net).
+// Filter: /tests/browser/?only=<text>[&times=N] runs only the cases whose name contains <text> (N times over, default 1) and posts no report, to hammer one intermittent case.
 import { loadElements } from '../../js/loader.js';
 import { cases } from './cases.js';
 
@@ -33,7 +34,7 @@ async function sha(text) {
 async function sources() {
     const registry = (await import(registryUrl)).default;
     const names = Object.keys(registry).map(tag => tag.slice(3));
-    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'samples/app/top.html', 'tests/browser/runner.js'];
+    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-dock.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'samples/app/top.html', 'tests/browser/runner.js'];
     for (const n of names) for (const ext of ['html', 'css', 'meta.json', 'js']) files.push(`elements/${n}/${n}.${ext}`);
     const out = {};
     for (const f of files.sort()) { const res = await fetch(new URL(`../../${f}`, import.meta.url)); if (res.ok) out[f] = await sha(await res.text()); }
@@ -43,7 +44,9 @@ async function sources() {
 const list = document.getElementById('results');
 const results = [];
 const CASE_TIMEOUT_MS = 60000;
-for (const [name, fn] of cases) {
+const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
+const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : cases;
+for (const [name, fn] of chosen) {
     const started = performance.now();
     const li = document.createElement('li');
     // A case that never settles must fail by name, not stall the whole run (and the report) forever.

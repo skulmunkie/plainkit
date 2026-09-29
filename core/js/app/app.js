@@ -21,24 +21,28 @@
 //   prefetch       hovering or focusing a module link for 100 ms calls that module's own allow-listed loader once (the browser keeps the chunk), never on saveData
 //   regions        an empty pk-toast-stack and dialog host are mounted for the toast and dialog services (#373); nothing shows until they are used
 //
+// What is in the entry and what loads later (#514, the pattern for an app that stays small): the entry holds only what the first paint of a route needs (the config check, the router,
+// the module host and its boundaries, the shell, the nav, the page overlay, the store and the three theme calls of js/theme-core.js; the override and colour code of js/theme.js stays out). Everything that waits for a user or a module loads on first use through the ONE
+// allowed import() (js/app/module.js): a page type when a route names it (js/app/pages/<type>.js), and the task, notification and dialog services when a module first calls
+// ctx.tasks, ctx.notify or ctx.dialogs (js/app/lazy.js: same contract, the code arrives with the first call; the chunks are js/app/pages/svc-*.js). Each chunk file stays under the
+// per-chunk budget, and tests/app-budgets.test.mjs holds the entry's size down (limits only ever come down).
+//
 // destroy() ends the router, the host (which unmounts the module), the store subscriptions, the theme observer and the prefetch timer, and removes what mountApp added:
 // mount and destroy 100 times leave the listener, observer and timer counts where they were.
 import { createLogger } from '../log.js';
 import { createPage } from '../page.js';
 import { createStore } from '../store.js';
-import { createTasks } from '../tasks.js';
-import { createNotify } from '../notify.js';
-import { createDialogs } from '../dialogs.js';
 import { withLegacy } from '../store-extras.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme.js';
+import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 import { loadElements } from '../loader.js';
 import { mountRouter } from '../router.js';
 import { mediaBelow } from '../breakpoints.js';
 import { navRoutes } from '../route-tree.js';
 import { MODULE_ID } from './module.js';
 import { createModuleHost } from './host.js';
-import { readConfig } from './config.js';
-import { buildShell } from './shell.js';
+import { lazyServices } from './lazy.js';
+import { readConfig, readFooter } from './config.js';
+import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, menuTree, paintNav, paintLinks, locate, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
@@ -49,7 +53,7 @@ export function mountApp(container, config) {
     const cfg = readConfig(config);
     const doc = container.ownerDocument, root = doc.documentElement, win = doc.defaultView;
     const entries = new Map(cfg.modules.map(m => [m.id, m]));
-    let router, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
+    let router, footerCustom = false, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
     const hrefOf = path => router.href(path);
     const moduleHref = (id, path = '/') => hrefOf(`/${id}${path === '/' ? '' : path}`);
 
@@ -65,8 +69,8 @@ export function mountApp(container, config) {
     let query = '';
     const search = { get query() { return query; }, subscribe: fn => (subs.add(fn), () => subs.delete(fn)) };
     const box = doc.createElement('div');
-    const tasks = createTasks({ container, log }); // its toasts go to the shell's bottom-end pk-toast-stack (found when the first task runs)
-    const notify = createNotify({ container, log }), dialogs = createDialogs({ container, log, load: loadElements }); // the same stack; one dialog at a time for the whole app
+    // The three services load on first use (js/app/lazy.js, #514): toasts go to the shell's bottom-end pk-toast-stack (found when the first one shows), one dialog at a time for the whole app.
+    const { tasks, notify, dialogs } = lazyServices({ container, log, load: loadElements });
     const host = createModuleHost(box, {
         modules: cfg.modules, auth: cfg.auth, can: cfg.can, store, settings, tasks, notify, dialogs, services: { search },
         router: { navigate: (...a) => router.navigate(...a), href: (...a) => router.href(...a) },
@@ -118,10 +122,18 @@ export function mountApp(container, config) {
         return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: entries.get(a.id).title, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
     }
 
+    // A module's own `footer` ({ text, links }, or false for none) replaces the app's while it is active; a bad one is logged and the app footer stays.
+    function drawFooter(a) {
+        let footer = cfg.footer;
+        if (a?.def.footer !== undefined) try { footer = a.def.footer === false ? null : readFooter(a.def.footer, `${a.id}.footer`); } catch (e) { log.error(`the footer of "${a.id}" is invalid; the app footer stays`, e); }
+        for (const el of ui.shell.querySelectorAll(':scope > [slot="footer"]')) el.remove();
+        ui.shell.append(...footerNodes(doc, footer));
+    }
+
     function settle(result) {
         const a = host.current();
         status = result === 'error' && a ? 'ok' : result; // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
-        if (a?.id !== active) { active = a?.id ?? null; drawNav(); }
+        if (a?.id !== active) { active = a?.id ?? null; drawNav(); if (a?.def.footer !== undefined || footerCustom) drawFooter(a); footerCustom = a?.def.footer !== undefined; }
         mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
         const label = crumbs[crumbs.length - 1].label;

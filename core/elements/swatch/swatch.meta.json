@@ -1,0 +1,79 @@
+{
+  "tag": "pk-swatch",
+  "title": "Swatch",
+  "group": "Data display",
+  "summary": "A colour or design-token sample with its resolved value and a WCAG AA contrast label against a comparison colour.",
+  "props": [
+    {
+      "name": "token",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A CSS custom property to sample, for example \"--color-accent\"; resolved against this element's computed style. Takes precedence over value."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A literal colour to sample when token is not set, for example \"#4e93e3\"; useful for showing what a literal would look like (the scorecard and docs tooling, for example)."
+    },
+    {
+      "name": "compare",
+      "type": "string",
+      "default": "--color-bg",
+      "reflect": false,
+      "description": "A token or literal colour the swatch is contrasted against; a token is resolved the same way as token. Defaults to the page background."
+    },
+    {
+      "name": "large",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Grade against the WCAG AA large-text threshold (3:1) instead of normal text (4.5:1)."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    {
+      "name": "swatch",
+      "description": "The coloured box."
+    },
+    {
+      "name": "info",
+      "description": "The wrapper around the value, ratio and grade text."
+    },
+    {
+      "name": "value",
+      "description": "The resolved colour value."
+    },
+    {
+      "name": "ratio",
+      "description": "The measured contrast ratio, such as \"4.63:1\"."
+    },
+    {
+      "name": "grade",
+      "description": "The AA pass/fail badge."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-swatch-size",
+      "description": "The swatch box's width and height.",
+      "default": "2.5rem"
+    }
+  ],
+  "methods": [],
+  "a11y": "The swatch box is decorative (aria-hidden); the resolved value, the ratio and the pass/fail grade are all text, so the result never depends on colour alone.",
+  "examples": [
+    {
+      "title": "A token against the page background",
+      "html": "<pk-swatch token=\"--color-accent\"></pk-swatch>\n<pk-swatch token=\"--color-accent-fill\" compare=\"--color-text\"></pk-swatch>"
+    },
+    {
+      "title": "A literal colour",
+      "html": "<pk-swatch value=\"#4e93e3\" compare=\"#ffffff\"></pk-swatch>\n<pk-swatch value=\"#ffe08a\" compare=\"#1e1e1e\" large></pk-swatch>"
+    }
+  ]
+}

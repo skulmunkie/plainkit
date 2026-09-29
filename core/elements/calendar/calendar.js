@@ -2,6 +2,7 @@
 // computed in UTC so a time zone never shifts a day. Framework-free; the date helpers live in js/iso-date.js.
 
 import { isoDate, parseIso, utc, fromDate, addDays, addMonths } from '../../js/iso-date.js';
+import { clickRange, dayRole, shownRange, roleLabel, announce } from '../../js/range-logic.js';
 export { isoDate, parseIso, addDays, addMonths };
 
 // Weeks of a month: array of weeks, each 7 cells { date, day, inMonth }. weekStart 0 = Sunday, 1 = Monday. Trims to 5 weeks when it can.
@@ -41,6 +42,13 @@ export function dateForKey(iso, key, shift = false) {
 
 export const isBetween = (iso, min, max) => (!min || iso >= min) && (!max || iso <= max);
 
+// Where a key moves focus: dateForKey clamped into min..max, so focus lands on the nearest enabled day (a disabled button cannot hold focus). An empty window (min after max) keeps the day.
+export function focusForKey(iso, key, shift = false, min = '', max = '') {
+    const to = dateForKey(iso, key, shift);
+    if (!to || (min && max && min > max)) return to && iso;
+    return min && to < min ? min : max && to > max ? max : to;
+}
+
 const todayIso = () => { const d = new Date(); return isoDate(d.getFullYear(), d.getMonth(), d.getDate()); };
 
 export default Base => class extends Base {
@@ -55,25 +63,56 @@ export default Base => class extends Base {
         this.$k = e => {
             const day = e.target.closest?.('.day');
             if (!day) return;
-            const next = dateForKey(day.dataset.date, e.key, e.shiftKey);
+            if (e.key === 'Escape' && this.$pend) { e.preventDefault(); e.stopPropagation(); this.cancelRange(); return; }
+            const next = focusForKey(day.dataset.date, e.key, e.shiftKey, this.min, this.max);
             if (!next) return;
             e.preventDefault();
             this.$focus = next; this.$refocus = true;
+            if (this.$pend) { this.$over = next; this.paint(); }
             const { y, m0 } = parseIso(next);
             this.showMonth(isoDate(y, m0, 1));
             this.requestUpdate();
         };
         this.shadowRoot.addEventListener('click', this.$c);
         this.shadowRoot.addEventListener('keydown', this.$k);
+        // Range mode: the pending range follows the pointer and the focused day. Only data-range changes, so no button is replaced under the pointer.
+        const over = e => { const d = e.target.closest?.('.day'); if (this.$pend && d && !d.disabled) { this.$over = d.dataset.date; this.paint(); } };
+        this.shadowRoot.addEventListener('mouseover', over);
+        this.shadowRoot.addEventListener('focusin', over);
+        this.shadowRoot.addEventListener('mouseout', e => { if (!e.relatedTarget?.closest?.('.day')) { this.$over = this.shadowRoot.activeElement?.dataset?.date || ''; this.paint(); } });
     }
-    get viewIso() { return this.month || this.value || todayIso(); }
+    focus(o) { this.shadowRoot.querySelector('.day[tabindex="0"]')?.focus(o); }
+    get sel() { return this.range ? this.start : this.value; }
+    get viewIso() { return this.month || this.sel || todayIso(); }
     showMonth(iso) { if (iso.slice(0, 7) !== this.viewIso.slice(0, 7)) { this.month = iso; this.emit('pk-month', { month: iso.slice(0, 7) }); } }
     moveMonth(n) { const next = addMonths(this.viewIso, n); this.$focus = next; this.showMonth(next); }
-    pick(iso) { if (this.readonly || this.disabled || !isBetween(iso, this.min, this.max)) return; if (this.emit('pk-select', { value: iso })) { this.value = iso; this.$focus = iso; } }
+    pick(iso) {
+        if (this.range) return this.pickRange(iso);
+        if (this.readonly || this.disabled || !isBetween(iso, this.min, this.max)) return; if (this.emit('pk-select', { value: iso })) { this.value = iso; this.$focus = iso; }
+    }
+    // Range mode: the first click sets the start, the second the end (pk-range-change, like pk-date-range-picker); Escape gives a pending start up.
+    pickRange(iso) {
+        if (this.readonly || this.disabled || !isBetween(iso, this.min, this.max)) return;
+        const r = clickRange({ pending: this.$pend, start: this.start }, iso);
+        if (!this.$pend) this.$prev = { start: this.start, end: this.end };
+        this.$pend = r.pending; this.$over = ''; this.$focus = iso; this.$refocus = true;
+        this.start = r.start; this.end = r.end;
+        this.say(announce(r, x => this.dayName(x)));
+        if (r.done) this.emit('pk-range-change', { start: r.start, end: r.end, valid: true });
+    }
+    cancelRange() { Object.assign(this, this.$prev); this.$pend = false; this.$over = ''; this.$refocus = true; this.say('Range selection cancelled'); }
+    say(text) { this.part('status').textContent = text; }
+    dayName(iso) { return new Intl.DateTimeFormat(this.locale || this.ownerDocument.documentElement.lang || 'en', { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)); }
+    paint() {
+        if (!this.range) return;
+        const r = shownRange({ start: this.start, end: this.end, pending: this.$pend }, this.$over);
+        for (const b of this.shadowRoot.querySelectorAll('.day')) b.dataset.range = dayRole(b.dataset.date, r);
+        this.toggleAttribute('data-pending', Boolean(this.$pend));
+    }
     updated() {
         const doc = this.ownerDocument, view = parseIso(this.viewIso), locale = this.locale || doc.documentElement.lang || 'en';
         const start = this.weekStart === 1 ? 1 : 0, today = todayIso();
-        const focus = this.$focus && this.$focus.slice(0, 7) === this.viewIso.slice(0, 7) ? this.$focus : (this.value && this.value.slice(0, 7) === this.viewIso.slice(0, 7) ? this.value : isoDate(view.y, view.m0, 1));
+        let focus = this.$focus && this.$focus.slice(0, 7) === this.viewIso.slice(0, 7) ? this.$focus : (this.sel && this.sel.slice(0, 7) === this.viewIso.slice(0, 7) ? this.sel : isoDate(view.y, view.m0, 1));
         this.part('title').textContent = monthTitle(view.y, view.m0, locale);
         const tr = doc.createElement('tr');
         weekdayNames(locale, start, 'short').forEach((n, i) => { const th = doc.createElement('th'); th.scope = 'col'; th.textContent = n; th.setAttribute('abbr', weekdayNames(locale, start, 'long')[i]); tr.append(th); });
@@ -84,17 +123,19 @@ export default Base => class extends Base {
             for (const c of week) {
                 const td = doc.createElement('td'), b = doc.createElement('button');
                 b.type = 'button'; b.className = 'day'; b.textContent = String(c.day); b.dataset.date = c.date;
-                b.setAttribute('aria-label', new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(`${c.date}T00:00:00Z`)));
+                const role = this.range ? dayRole(c.date, this) : '';
+                b.setAttribute('aria-label', this.dayName(c.date) + (role ? `, ${roleLabel(role, this.$pend)}` : ''));
                 b.tabIndex = c.date === focus ? 0 : -1;
                 if (!c.inMonth) b.dataset.outside = '';
                 if (marks.has(c.date)) b.dataset.mark = '';
                 if (c.date === today) b.setAttribute('aria-current', 'date');
-                if (c.date === this.value) b.setAttribute('aria-selected', 'true');
+                if (c.date === this.value && !this.range || role && role !== 'mid') b.setAttribute('aria-selected', 'true');
                 b.disabled = this.disabled || !isBetween(c.date, this.min, this.max);
                 td.setAttribute('role', 'gridcell'); td.append(b); row.append(td);
             }
             return row;
         }));
+        this.paint();
         if (this.$refocus) { this.$refocus = false; this.shadowRoot.querySelector('.day[tabindex="0"]')?.focus(); }
     }
 };

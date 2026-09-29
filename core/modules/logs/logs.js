@@ -13,10 +13,12 @@
 // Returns { pause(), resume(), isPaused(), clear(), entries(), select(id), filter({ level, scopes, text }), destroy() }. pause() freezes what
 // is drawn (entries keep arriving and show on resume()). clear() empties the view and the SDK's ring buffer. Pure logic is js/log-view-logic.js.
 
-import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer } from '../../js/log.js';
+import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer, createLogger } from '../../js/log.js';
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+
+const modLog = createLogger('logs');
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./logs.css'];
@@ -25,13 +27,6 @@ export const DEFAULTS = Object.freeze({ max: 1000, level: 'debug', order: 'newes
 const LEVEL_LABEL = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
 const LEVEL_TONE = { debug: 'muted', info: 'outline', warn: 'warn', error: 'danger' };
 const COLUMNS = [{ key: 'time', label: 'Time' }, { key: 'level', label: 'Level' }, { key: 'scope', label: 'Scope' }, { key: 'message', label: 'Message' }, { key: 'output', label: 'Output', hidePhone: true }];
-
-function h(doc, tag, props = {}, ...children) {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children.filter(c => c !== null && c !== undefined));
-    return el;
-}
 
 export async function mountLogs(container, options = {}) {
     const { theme, height, max = DEFAULTS.max } = options;
@@ -77,7 +72,7 @@ export async function mountLogs(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
     container.replaceChildren(root);
-    loadElements(root).catch(() => { /* loadElements logs its own failures */ });
+    loadElements(root).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
 
     // ---- drawing --------------------------------------------------------------------------------------------------------------
     const setAttr = (el, k, v) => { if (el.getAttribute(k) !== v) el.setAttribute(k, v); };
@@ -107,7 +102,7 @@ export async function mountLogs(container, options = {}) {
                 d.kind === 'none' ? null : h(doc, 'pk-code-block', { label: d.kind === 'error' ? 'Error stack' : d.kind === 'text' ? 'Detail' : 'Detail (JSON)', wrap: true, maxHeight: '14rem' }, d.text)));
         detail.replaceChildren(card);
         detail.hidden = false;
-        loadElements(detail).catch(() => { /* loadElements logs its own failures */ });
+        loadElements(detail).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
     }
 
     function render() {

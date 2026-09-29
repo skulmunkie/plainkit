@@ -1,3 +1,4 @@
+import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
@@ -17,6 +18,7 @@ export default Base => class extends Base {
 
     // Which panes exist is data: config.panes (default nav + main; main always exists). A pane not listed is taken out so pk-workspace hides its column.
     sync() {
+        showTitleBar(this, this.part('header'));
         const c = this.config ?? {}, want = new Set(['main', ...(c.panes ?? ['nav'])]);
         const ws = this.part('workspace');
         for (const p of ['nav', 'aside']) { if (want.has(p)) ws.append(this.$p[p]); else this.$p[p].remove(); }
@@ -35,8 +37,7 @@ export default Base => class extends Base {
         if (typeof this.mount !== 'function') return;
         const gen = this.$gen, box = this.part('state'), panes = {};
         for (const [p, el] of Object.entries(this.$p)) if (el.isConnected) { el.replaceChildren(); panes[p] = el; }
-        renderState(box, 'loading', { label: this.config?.label });
-        loadElements(box);
+        showState(box, 'loading', { label: this.config?.label });
         try {
             const out = await this.mount(panes);
             const stop = typeof out === 'function' ? out : out?.destroy?.bind(out);
@@ -46,8 +47,7 @@ export default Base => class extends Base {
         } catch (err) {
             if (gen !== this.$gen) return;
             this.log.error('workspace mount failed', err);
-            renderState(box, 'error', { description: err?.message ?? String(err), retry: () => this.start() });
-            loadElements(box);
+            showState(box, 'error', { error: err, retry: () => this.start() });
         }
     }
 };
