@@ -1,5 +1,6 @@
 {
   "tag": "pk-textarea",
+  "a11yRequires": ["label"],
   "replaces": ["textarea"],
   "title": "Textarea",
   "group": "Form controls",

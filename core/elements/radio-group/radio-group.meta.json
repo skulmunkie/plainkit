@@ -1,5 +1,6 @@
 {
   "tag": "pk-radio-group",
+  "a11yRequires": ["label"],
   "title": "Radio group",
   "group": "Form controls",
   "summary": "One choice from a few options, as radios or as a segmented bar. The options are its own option children; the radios are native inputs, so arrow keys and grouping are the browser's.",
