@@ -1,5 +1,6 @@
 {
   "tag": "pk-divider",
+  "replaces": ["hr"],
   "title": "Divider",
   "group": "Layout",
   "summary": "A rule between content, horizontal or vertical, with an optional label.",
