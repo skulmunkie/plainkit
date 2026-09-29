@@ -1,0 +1,120 @@
+@using System.Linq
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+
+@* A Blazor wrapper around mountToolDock (core/modules/tool-dock/tool-dock.js, issue #644 PR1): a tabbed panel that floats/docks over the
+   page, or fills this component inline. Unlike pk-dock (PkDock.razor), whose panels are light-DOM children slotted straight into the
+   element, mountToolDock takes callback-shaped panels ({ id, title, mount(el) }), so JavaScript cannot simply be handed this component's
+   ChildContent. Instead each PkToolDockPanel child registers itself here through a CascadingValue (the same cascading-registration pattern
+   PkDock's own children would use), rendering its content into its own hidden host div; after render this component hands JavaScript a
+   client-built panels array of { id, title, host } - host being that div's ElementReference - so the bridge's mount(el) can append the
+   already-rendered div and toggle its hidden attribute, never owning or generating markup of its own (STANDARDS.md "Ownership and
+   reactivity"). The marker element below is only how the component finds its tools again, exactly as PkDevTools does. *@
+<div @ref="_host" hidden="@(Mode == PkToolDockMode.Dock)">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    private readonly List<PkToolDockPanel> _panels = new();
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private string? _mounted;
+    private string? _tab;
+    private bool? _open;
+
+    /// <summary><see cref="PkToolDockMode.Dock"/> (the default) floats over the page; <see cref="PkToolDockMode.Inline"/> fills this component's element.</summary>
+    [Parameter] public PkToolDockMode Mode { get; set; }
+
+    /// <summary>The tab shown first (a PkToolDockPanel's Id), and the one selected when this changes.</summary>
+    [Parameter] public string? Tab { get; set; }
+
+    /// <summary>Dock only: start open, and open or close it when this changes.</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Dock only: the key that toggles the dock. Null is Ctrl+`; an empty string turns the hotkey off.</summary>
+    [Parameter] public string? Hotkey { get; set; }
+
+    /// <summary>Dock only: the dock's height at first.</summary>
+    [Parameter] public PkToolDockSize Size { get; set; }
+
+    /// <summary>The theme of the tools themselves.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>The surface's accessible name (required).</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+
+    /// <summary>The floating launcher button's text (dock mode; required).</summary>
+    [Parameter, EditorRequired] public string LauncherLabel { get; set; } = default!;
+
+    /// <summary>The panels, as PkToolDockPanel children.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    internal void RegisterPanel(PkToolDockPanel panel) { if (!_panels.Contains(panel)) _panels.Add(panel); }
+
+    internal void UnregisterPanel(PkToolDockPanel panel) => _panels.Remove(panel);
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _bridge ??= await Runtime.BridgeAsync(Assets);
+        var key = $"{Mode}|{Hotkey}|{Size}|{Theme}|{Label}|{LauncherLabel}|{string.Join(',', _panels.Select(p => p.Id))}";
+        if (key != _mounted)
+        {
+            _mounted = key;
+            _tab = Tab;
+            _open = Open;
+            var panelHosts = _panels.Select(p => new { id = p.Id, title = p.Title, host = p.Host }).ToArray();
+            await _bridge.InvokeVoidAsync("mountToolDock", _host, new
+            {
+                mode = Mode == PkToolDockMode.Inline ? "inline" : "dock",
+                hotkey = Hotkey,
+                tab = Tab,
+                open = Open,
+                size = Size.Attr(),
+                theme = Theme.Attr(),
+                label = Label,
+                launcherLabel = LauncherLabel,
+            }, panelHosts);
+            return;
+        }
+        // Same tools, a new tab or open state: drive them rather than mount again.
+        if (Tab != _tab && !string.IsNullOrEmpty(Tab)) await SelectAsync(Tab);
+        _tab = Tab;
+        if (Mode == PkToolDockMode.Dock && Open != _open) { if (Open) await OpenAsync(); else await CloseAsync(); }
+        _open = Open;
+    }
+
+    /// <summary>Shows the dock.</summary>
+    public async Task OpenAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("openTools", _host);
+    }
+
+    /// <summary>Hides the dock.</summary>
+    public async Task CloseAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("closeTools", _host);
+    }
+
+    /// <summary>Shows the dock if it is hidden and hides it if it is shown.</summary>
+    public async Task ToggleAsync()
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("toggleTools", _host);
+    }
+
+    /// <summary>Selects a panel by id (an unknown id is ignored).</summary>
+    public async Task SelectAsync(string id)
+    {
+        if (_bridge is not null) await _bridge.InvokeVoidAsync("selectTool", _host, id);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}

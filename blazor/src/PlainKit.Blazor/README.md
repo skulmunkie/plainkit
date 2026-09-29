@@ -366,6 +366,30 @@ bindable default.
 }
 ```
 
+### PkToolDock and PkToolDockPanel: an app's own tool-type panels
+
+`PkDock` is a fixed workspace of resizable splits and tab groups; `mountToolDock` (the SDK's `core/modules/tool-dock/tool-dock.js`, the shell
+`PkDevTools` itself uses for the console/logs/quality tabs) is one panel with a tab strip that floats over the page or fills a container, for
+an app's own tool-type panels (properties, history, an outline, a console, a chat) around a canvas, record or page. `PkToolDock` wraps it in
+Razor: put `PkToolDockPanel` children inside it, one per tab, each rendering ordinary Blazor content.
+
+```razor
+<PkToolDock Label="Editor tools" LauncherLabel="Tools">
+    <PkToolDockPanel Id="properties" Title="Properties">
+        <PropertiesForm Item="_selected" />
+    </PkToolDockPanel>
+    <PkToolDockPanel Id="history" Title="History">
+        <HistoryList Entries="_history" />
+    </PkToolDockPanel>
+</PkToolDock>
+```
+
+`Label` and `LauncherLabel` are required (the surface's accessible name and the floating launcher button's text). `Mode` (`Dock`, the default,
+or `Inline`), `Tab`, `Open`, `Hotkey` and `Size` mirror `PkDevTools`'s own parameters, and `OpenAsync`/`CloseAsync`/`ToggleAsync`/`SelectAsync`
+drive an already-mounted dock the same way. JavaScript never owns a panel's content: each `PkToolDockPanel` renders into its own hidden host
+div, and the two components only hand JavaScript that div's reference to reveal or hide as its tab is shown or hidden - the same rule as every
+other tool (Blazor renders no children inside JavaScript's own elements; here it is JavaScript that renders nothing of its own).
+
 ### PageBase: the state a page repeats by hand
 
 A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to hand-roll the same few things: a `_status`/`_error` field, manual `try`/`catch` around every action, a `_busy` flag, a page title, a breadcrumb trail. `PageBase` (issue 204) is that bookkeeping as one small base class instead — `@inherits PageBase` gets you `Title`/`Crumbs` (bind straight into `PkPageHeader`), `SetStatus`/`ClearStatus`, `SetErrorAsync`, and `BusyAsync`:
