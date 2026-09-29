@@ -1,12 +1,15 @@
 // Plainkit quality checks, plain JS. Two halves: collect() reads a document into plain measures, evaluate() turns measures
 // into findings. evaluate() and the text scanners are pure, so Node tests them without a browser.
 // Thresholds live in one object (DEFAULTS) that a caller overrides; the scorecard keeps its own copy in scoring.data.js.
-// Framework-free; no imports.
+// literalColours/literalSizes are re-exported from the shared scanner (core/tools/audit/scanners/literals.mjs, #625
+// A-4) so this module and the consumer-facing T1-T3 audit rules read one implementation.
+import { LITERAL_COLOUR, literalColours, literalSizes } from '../tools/audit/scanners/literals.mjs';
+export { literalColours, literalSizes };
 
 export const DEFAULTS = Object.freeze({
     touchTargetPx: 44,          // interactive controls smaller than this (either side) fail on a phone
     maxNestedScrollers: 0,      // a scroll container inside another scroll container
-    literalColour: /#[0-9a-fA-F]{3,8}\b|\brgba?\(/,
+    literalColour: LITERAL_COLOUR,
     interactive: 'a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="tab"], [tabindex]:not([tabindex="-1"])',
     // Custom elements whose control lives in a shadow root, so none of the selectors above reach it: measured and named here (a pk-button's ring is drawn inside its shadow root, so they are not focus-probed).
     hosts: 'pk-button',
@@ -153,25 +156,6 @@ export function evaluate(m, options = {}) {
     if (m.visibleChildren === 0) add('empty-preview', 'look', 'error', 'body', 'the preview stage has no visible content');
     if (m.overflowX > 0) add('horizontal-overflow', 'look', 'error', 'document', `page is ${m.overflowX}px wider than the ${m.width}px viewport`);
     return out;
-}
-
-// Literal colours in stylesheet text (tokens.css is where they belong, so callers skip it): [{ line, text }].
-export function literalColours(cssText, literal = DEFAULTS.literalColour) {
-    const clean = cssText.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '));
-    const found = [];
-    clean.split('\n').forEach((line, i) => { const m = literal.exec(line); if (m) found.push({ line: i + 1, text: line.trim() }); });
-    return found;
-}
-
-// Literal lengths (px or rem/em) declared in stylesheet text that are not a token: a rough adherence measure. [{ line, text }].
-export function literalSizes(cssText) {
-    const clean = cssText.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '));
-    const found = [];
-    clean.split('\n').forEach((line, i) => {
-        if (/^\s*--/.test(line) || /@media|@container/.test(line)) return;
-        if (/(padding|margin|gap|font-size|border-radius|width|height)[a-z-]*\s*:[^;]*\b\d*\.?\d+(px|rem|em)\b/.test(line) && !/var\(--/.test(line)) found.push({ line: i + 1, text: line.trim() });
-    });
-    return found;
 }
 
 // Stylesheet statistics from its text: bytes, rule count, selector count, declaration count.

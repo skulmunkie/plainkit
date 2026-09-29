@@ -6,10 +6,16 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import behaviour, { readPanels, readingOrder, dropZone } from './dock.js';
 import { defaultLayout, findGroup, groups } from '../../js/dock-model.js';
+import { setLogLevel } from '../../js/log.js';
+
+setLogLevel('silent');
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./dock.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json')); const css = read('css'); const src = read('js');
 const child = (slot, extra = {}) => ({ getAttribute: n => (n === 'slot' ? slot : extra[n] ?? null) });
+
+// An in-memory localStorage stand-in (core/tests/store.test.mjs's pattern), so persistence is exercised without touching real storage.
+const memoryStorage = (init = {}) => { const m = new Map(Object.entries(init)); return { m, getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: k => m.delete(k) }; };
 
 test('readPanels takes the slotted children with a usable, unique id, and reads the heading and group hints; the reserved slots (empty, toolbar-start) are never panels', () => {
     const got = readPanels([child('tools', { 'data-heading': 'Toolbox', 'data-group': 'left' }), child('canvas'), child('tools'), child('Bad Id'), child(null), child('9x'), child('a'.repeat(41)), { }, child('empty'), child('toolbar-start')]);
@@ -52,18 +58,26 @@ class Node {
     }
     remove() { this.removed = true; if (this.parent) this.parent.kids = this.parent.kids.filter(k => k !== this); }
 }
-// The group template: a section holding a header and a body, cloned per group.
-const groupTemplate = () => { const s = new Node('section'), h = new Node('div'), b = new Node('div'); s.kids = [h, b]; s.querySelector = sel => (sel === '.header' ? h : b); s.cloneNode = groupTemplate; return s; };
+const el = (tag, cls) => { const n = new Node(tag); n.attrs.class = cls; return n; };
+// The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span), a body and a rail-button, cloned per group.
+const groupTemplate = () => {
+    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body'), rail = el('button', 'rail-button');
+    const toggle = el('button', 'collapse-toggle'), chevron = el('span', 'chevron'), titleSpan = el('span', 'title');
+    toggle.kids = [chevron, titleSpan]; h.kids = [toggle]; s.kids = [h, b, rail];
+    s.cloneNode = groupTemplate;
+    return s;
+};
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
 const make = (panels, props = {}) => {
-    const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), toolbar = new Node('toolbar'), parts = { root, empty, status, toolbar };
+    const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), toolbar = new Node('toolbar'), flyout = new Node('flyout');
+    const parts = { root, empty, status, toolbar, flyout };
     const shadow = { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }), elementFromPoint: () => null };
     const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? empty; } get shadowRoot() { return shadow; } requestUpdate() {} slotted() { return []; } toggleAttribute() {} }))();
     Object.assign(el, { events: [], layout: null, label: '', resizeLabel: 'Resize panels', children: panels.map(p => child(p.id, { 'data-heading': p.title, 'data-group': p.group })), ownerDocument: { createElement: t => new Node(t) } });
     Object.assign(el, props);
     globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
     el.connected(); el.updated();
-    return { el, root, empty, status, toolbar };
+    return { el, root, empty, status, toolbar, flyout };
 };
 const P = [{ id: 'tools', title: 'Toolbox', group: 'left' }, { id: 'assets', title: 'Assets', group: 'left' }, { id: 'canvas', title: 'Canvas' }, { id: 'props', title: 'Properties', group: 'right' }];
 
@@ -245,6 +259,135 @@ test('a layout the host sets raises nothing; a panel that appears is added and r
     el.updated();
     assert.deepEqual(el.events.map(e => e.detail.reason), ['panels']);
     assert.ok(findGroup(el.layout, 'extra'));
+});
+
+test('a single-panel header has a collapse-toggle button naming its title, aria-expanded and the body it controls', () => {
+    const { root } = make(P);
+    // A multi-panel group's header (with its own unused template button) is detached by the real .remove(); this stand-in only flags it removed,
+    // so tell the wired-up ones (they carry data-panel) from the leftover template button of the tools/assets tab group.
+    const toggles = find(root, 'button').filter(b => b.getAttribute('data-panel'));
+    assert.equal(toggles.length, 2, 'the two single-panel groups (canvas, props); tools/assets is a tab group with no chevron yet');
+    const canvasToggle = toggles.find(b => b.getAttribute('data-panel') === 'canvas');
+    assert.equal(canvasToggle.getAttribute('aria-expanded'), 'true');
+    assert.ok(canvasToggle.getAttribute('aria-controls'));
+    assert.deepEqual(find(canvasToggle, 'span').map(s => s.text), ['', 'Canvas']);
+});
+
+test('clicking the collapse-toggle folds the panel, commits reason collapse, and toggling back expands it', () => {
+    const { el, root } = make(P);
+    const btn = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    btn.closest = sel => (sel === 'button' ? btn : null);
+    root.listeners.click({ stopPropagation() {}, target: btn });
+    assert.deepEqual(el.$doc.collapsed, ['canvas']);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse']);
+    const bodyAfter = find(root, 'div').find(n => n.id === btn.getAttribute('aria-controls'));
+    assert.equal(bodyAfter.hidden, true);
+    const toggleAfter = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    assert.equal(toggleAfter.getAttribute('aria-expanded'), 'false');
+    toggleAfter.closest = sel => (sel === 'button' ? toggleAfter : null);
+    root.listeners.click({ stopPropagation() {}, target: toggleAfter });
+    assert.deepEqual(el.$doc.collapsed, []);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse', 'collapse']);
+});
+
+test('collapsing an edge group (props, on the right) folds it to a rail button instead of a header; the centre group (canvas) still gets a header', () => {
+    const { el, root } = make(P);
+    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: propsToggle });
+    assert.deepEqual(el.$doc.collapsed, ['props']);
+    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    assert.ok(rail, 'a rail button replaces the header for the collapsed edge group');
+    assert.equal(rail.getAttribute('aria-expanded'), 'false');
+    assert.equal(rail.getAttribute('aria-haspopup'), 'true');
+    assert.equal(rail.text, 'Properties');
+    assert.equal(find(root, 'button').some(b => b.getAttribute('data-panel') === 'props'), false, 'no header chevron left for it');
+    // canvas is not at a screen edge (boxed in by left and right columns), so it keeps the accordion-style header-only fold.
+    const canvasToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    canvasToggle.closest = sel => (sel === 'button' ? canvasToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: canvasToggle });
+    assert.deepEqual(el.$doc.collapsed, ['props', 'canvas']);
+    assert.equal(find(root, 'button').some(b => b.getAttribute('data-rail-panel') === 'canvas'), false, 'canvas stays a header, not a rail');
+});
+
+test('a rail button opens the panel as a flyout on click, closes on a second click, and the toggle raises no layout change', () => {
+    const { el, root } = make(P);
+    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: propsToggle });
+    const before = el.events.length;
+    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    rail.closest = sel => (sel === 'button' ? rail : null);
+    rail.getBoundingClientRect = () => ({ left: 0, top: 0, right: 40, bottom: 40, width: 40, height: 40 });
+    const flyoutEl = el.part('flyout');
+    flyoutEl.style = {}; flyoutEl.getBoundingClientRect = () => ({ width: 200, height: 200 });
+    globalThis.document ??= { documentElement: { clientWidth: 1024, clientHeight: 768 }, addEventListener() {}, removeEventListener() {} };
+    globalThis.getComputedStyle ??= () => ({ direction: 'ltr' });
+    root.listeners.click({ stopPropagation() {}, target: rail });
+    assert.equal(el.$flyout, 'props', 'the panel opened as a flyout');
+    assert.equal(el.events.length, before, 'opening a flyout is a transient view, not a layout change');
+    assert.equal(flyoutEl.hidden, false);
+    assert.deepEqual(flyoutEl.kids.map(k => k.getAttribute('name')), ['props']);
+    root.listeners.click({ stopPropagation() {}, target: rail });
+    assert.equal(el.$flyout, null, 'a second click on the same rail button closes it again');
+    assert.equal(flyoutEl.hidden, true);
+});
+
+test('a click that is not on a collapse-toggle button does nothing', () => {
+    const { el, root } = make(P);
+    const before = el.events.length;
+    const other = { closest: () => null };
+    root.listeners.click({ stopPropagation() {}, target: other });
+    assert.equal(el.events.length, before);
+});
+
+test('persistKey saves the committed layout and restores it on a later connect, but not a layout the host sets', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        const first = make(P, { persistKey: 'demo' });
+        const split = find(first.root, 'pk-splitter')[0];
+        split.closest = () => split;
+        first.root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 33 } });
+        assert.equal(first.el.layout.root.size, 33);
+        assert.ok(globalThis.localStorage.m.has('pk-dock:demo.layout'), 'the commit was persisted');
+        first.el.disconnected();
+
+        const second = make(P, { persistKey: 'demo' });
+        assert.equal(second.el.layout.root.size, 33, 'a fresh element with no layout prop restores the saved layout');
+
+        const before = JSON.parse(globalThis.localStorage.m.get('pk-dock:demo.layout')).data.layout.root.size;
+        const third = make(P, { persistKey: 'demo', layout: defaultLayout(P) });
+        assert.notEqual(third.el.layout.root.size, before, 'a layout the host sets is used as-is, not overridden by storage');
+        assert.equal(JSON.parse(globalThis.localStorage.m.get('pk-dock:demo.layout')).data.layout.root.size, before, 'and a host-set layout is not itself persisted');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
+});
+
+test('no persistKey never touches storage; a bad or hostile stored layout falls back quietly', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        make(P);
+        assert.equal(globalThis.localStorage.m.size, 0, 'no persistKey means no store module');
+
+        globalThis.localStorage = memoryStorage({ 'pk-dock:demo.layout': '{not json' });
+        const { el } = make(P, { persistKey: 'demo' });
+        assert.ok(el.$doc.root, 'corrupt storage falls back to the default layout, not a throw');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
+});
+
+test('disconnected() releases the persistence store: a later commit while disconnected is not saved', () => {
+    const saved = globalThis.localStorage;
+    try {
+        globalThis.localStorage = memoryStorage();
+        const { el, root } = make(P, { persistKey: 'demo' });
+        el.disconnected();
+        assert.equal(el.$mod, undefined);
+        const split = find(root, 'pk-splitter')[0];
+        split.closest = () => split;
+        root.listeners['pk-resize']({ stopPropagation() {}, target: split, detail: { size: 40 } });
+        assert.equal(globalThis.localStorage.m.has('pk-dock:demo.layout'), false, 'commit() after disconnected has no store to write to');
+    } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
 });
 
 test('no panels shows the empty state', () => {

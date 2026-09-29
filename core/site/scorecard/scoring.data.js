@@ -82,7 +82,14 @@ export const BUDGETS = {
     elementGzKb: { target: 2, limit: 4.5, note: 'one dist/elements/<name>.js: template, css and behaviour together; raised from 4 for pk-input\'s copyable feature (issue #209) after trimming its clear/reveal icons to glyphs closed most, not all, of the gap' },
     baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
     jsModuleGzKb: { target: 3, limit: 6 },
-    appEntryGzKb: { target: 6, limit: 22, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6, the limit is today\'s measured size (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use, #514) and only comes down' },
+    // HARD CAP, not a ratchet (#514): every other limit in this table only ever comes down, but splitting the entry graph alone could not
+    // reach the 6 KB target (#346), so the owner made a one-time, documented exception and revised this limit UP to match today's actual
+    // measured size (21.84 KB on main as of #514, rounded up to 22). This is not license to raise it again: from here on the number must
+    // never simply go up. Any future addition to js/app.js's static import graph (host, router, page, store, theme-core, nav) must be paired,
+    // in the SAME pull request, with an equal-or-greater reduction elsewhere in that graph (move something to lazy-load on first use, the way
+    // tasks/notify/dialogs already do, or cut it) so the total stays at or under this ceiling. If you hit this test failing, the fix is not
+    // "shrink your new code" alone — it's "the entry graph as a whole must not have grown," which usually means removing something else too.
+    appEntryGzKb: { target: 6, limit: 22, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6 but splitting alone cannot reach it (#514); the limit is a hard cap at today\'s measured size and must not grow again without an offsetting cut elsewhere in the graph (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use)' },
     appPageTypeGzKb: { target: 1, limit: 3, note: 'one js/app/pages/<type>.js chunk (found by folder, so a new one is budgeted at once)' },
     baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },
 };

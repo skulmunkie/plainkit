@@ -1,7 +1,7 @@
 // The dock-tree model (js/dock-model.js): the layout, its operations, the invariants after every one, and fromJson on hostile input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS } from '../js/dock-model.js';
+import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS, floatPanel, dockFloating, moveFloater, resizeFloater, raiseFloater, floaters, findFloater, isEdgeGroup } from '../js/dock-model.js';
 
 const P = [{ id: 'tools', group: 'left' }, { id: 'assets', group: 'left' }, { id: 'canvas' }, { id: 'props', group: 'right' }, { id: 'log', group: 'bottom' }];
 const ids = P.map(p => p.id);
@@ -92,6 +92,46 @@ test('dockPanel refuses a panel beside its own single-panel group, an unknown zo
     assert.deepEqual(r.problems, []); assert.deepEqual(validate(r.doc, ids), []);
 });
 
+test('isEdgeGroup: a left or right column is an edge group, the centre and a full-width bottom bar are not', () => {
+    const d = fresh(); // left [tools, assets] | centre canvas | right props, bottom log
+    assert.equal(isEdgeGroup(d, findGroup(d, 'tools').id), true, 'left column');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'props').id), true, 'right column');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'canvas').id), false, 'centre column, boxed in on both sides');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'log').id), false, 'a full-width bottom bar is never beside another column');
+    assert.equal(isEdgeGroup(d, 'no-such-id'), false, 'an unknown id is never an edge group');
+    const one = defaultLayout([{ id: 'a' }]);
+    assert.equal(isEdgeGroup(one, one.root.id), false, 'the sole group has no horizontal sibling to be an edge beside');
+});
+
+test('collapsePanel folds a panel and expandPanel restores it, both idempotent and total', () => {
+    const d = fresh();
+    const c = collapsePanel(d, { panel: 'canvas' });
+    assert.deepEqual(c.doc.collapsed, ['canvas']); assert.deepEqual(c.problems, []); assert.deepEqual(validate(c.doc, ids), []);
+    assert.equal(collapsePanel(c.doc, { panel: 'canvas' }).doc, c.doc, 'collapsing an already-collapsed panel is a no-op');
+    const e = expandPanel(c.doc, { panel: 'canvas' });
+    assert.deepEqual(e.doc.collapsed, []); assert.deepEqual(e.problems, []);
+    assert.equal(expandPanel(d, { panel: 'canvas' }).doc, d, 'expanding an already-open panel is a no-op');
+    assert.equal(expandPanel(d, { panel: 'zzz' }).doc, d, 'expanding an unknown panel is a no-op, not a problem');
+    const bad = collapsePanel(d, { panel: 'zzz' });
+    assert.equal(bad.doc, d); assert.equal(bad.problems[0].code, 'unknown-panel');
+    assert.deepEqual(collapsePanel(d, { panel: 'tools' }).doc.collapsed, ['tools'], 'a panel in a multi-panel group can also be marked collapsed in the model');
+});
+
+test('collapsed is dropped for a panel that moves out or is no longer declared, and round-trips through toJson/fromJson', () => {
+    let d = collapsePanel(fresh(), { panel: 'props' }).doc;
+    assert.deepEqual(fromJson(toJson(d), { panels: P }).doc, d, 'round trip keeps collapsed');
+    const removed = fromJson(toJson(d), { panels: P.filter(p => p.id !== 'props') });
+    assert.deepEqual(removed.doc.collapsed, [], 'a panel that leaves the declared set also leaves collapsed');
+    assert.deepEqual(validate(removed.doc, ids.filter(i => i !== 'props')), []);
+});
+
+test('validate flags a stale or malformed collapsed list', () => {
+    const d = fresh();
+    assert.deepEqual(validate({ ...d, collapsed: undefined }, ids).map(p => p.code), ['shape']);
+    assert.deepEqual(validate({ ...d, collapsed: ['canvas', 'canvas'] }, ids).map(p => p.code), ['collapsed-twice']);
+    assert.deepEqual(validate({ ...d, collapsed: ['ghost'] }, ids).map(p => p.code), ['collapsed-unknown']);
+});
+
 test('the last group is removed cleanly: the root becomes null', () => {
     let d = defaultLayout([{ id: 'a' }, { id: 'b' }]);
     assert.equal(d.root.type, 'tabs');
@@ -161,6 +201,74 @@ test('fromJson caps depth and repeats of an id, and gives every node a unique id
     assert.deepEqual(validate(r.doc, ids), []);
     const all = []; const walk = n => { all.push(n.id); if (n.type === 'split') { walk(n.a); walk(n.b); } }; walk(r.doc.root);
     assert.equal(new Set(all).size, all.length);
+});
+
+test('floatPanel lifts a panel into a new floater inside the given bounds, and dockFloating returns it to the tree', () => {
+    const d = fresh();
+    const f = floatPanel(d, { panel: 'assets', rect: { x: -10, y: 9999, w: 50, h: 900 }, bounds: { w: 400, h: 300 } });
+    assert.deepEqual(f.problems, []);
+    assert.deepEqual(validate(f.doc, ids), []);
+    assert.equal(findGroup(f.doc, 'assets'), null, 'no longer in the tree');
+    assert.equal(floaters(f.doc).length, 1);
+    const fl = floaters(f.doc)[0];
+    assert.equal(fl.x, 0, 'clamped into bounds'); assert.equal(fl.w, 120, 'held to the minimum width'); assert.equal(fl.h, 300, 'clamped to bounds height');
+    assert.deepEqual(fl.group.panels, ['assets']);
+
+    const back = dockFloating(f.doc, { floater: fl.id, target: findGroup(f.doc, 'canvas').id, zone: 'right' });
+    assert.deepEqual(back.problems, []);
+    assert.deepEqual(validate(back.doc, ids), []);
+    assert.equal(floaters(back.doc).length, 0);
+    assert.deepEqual(findGroup(back.doc, 'assets').panels, ['assets']);
+
+    const center = dockFloating(f.doc, { floater: fl.id, target: findGroup(f.doc, 'canvas').id, zone: 'center' });
+    assert.deepEqual(findGroup(center.doc, 'canvas').panels, ['canvas', 'assets']);
+    assert.equal(floaters(center.doc).length, 0);
+});
+
+test('floatPanel and dockFloating report unknown ids without mutating the document', () => {
+    const d = fresh();
+    assert.equal(floatPanel(d, { panel: 'zzz', rect: {} }).problems[0].code, 'unknown-panel');
+    assert.equal(dockFloating(d, { floater: 'zzz', target: findGroup(d, 'canvas').id, zone: 'left' }).problems[0].code, 'unknown-floater');
+    const f = floatPanel(d, { panel: 'assets', rect: {} }).doc;
+    assert.equal(dockFloating(f, { floater: findFloater(f, floaters(f)[0].id).id, target: 'zzz', zone: 'left' }).problems[0].code, 'unknown-group');
+    assert.equal(dockFloating(f, { floater: floaters(f)[0].id, target: findGroup(f, 'canvas').id, zone: 'diagonal' }).problems[0].code, 'unknown-zone');
+});
+
+test('moveFloater, resizeFloater and raiseFloater clamp and report unknown floaters', () => {
+    let d = floatPanel(fresh(), { panel: 'assets', rect: { x: 10, y: 10, w: 200, h: 150 }, bounds: { w: 400, h: 300 } }).doc;
+    const id = floaters(d)[0].id;
+    d = moveFloater(d, { floater: id, x: 390, y: 290, bounds: { w: 400, h: 300 } }).doc;
+    assert.equal(findFloater(d, id).x, 200, 'moved but held inside the bounds given its width');
+    d = resizeFloater(d, { floater: id, w: 1000, h: 1000, bounds: { w: 400, h: 300 } }).doc;
+    assert.equal(findFloater(d, id).w, 400); assert.equal(findFloater(d, id).h, 300);
+    const raised = raiseFloater(d, { floater: id });
+    assert.equal(raised.doc, d, 'already the only, topmost floater');
+    assert.equal(moveFloater(d, { floater: 'zzz', x: 0, y: 0 }).problems[0].code, 'unknown-floater');
+    assert.equal(resizeFloater(d, { floater: 'zzz', w: 10, h: 10 }).problems[0].code, 'unknown-floater');
+    assert.equal(raiseFloater(d, { floater: 'zzz' }).problems[0].code, 'unknown-floater');
+});
+
+test('activate reaches a panel in a floater (a no-op path is a no-op), and toJson/fromJson round-trips two floaters', () => {
+    let d = floatPanel(fresh(), { panel: 'assets', rect: { x: 5, y: 5, w: 150, h: 150 } }).doc;
+    d = floatPanel(d, { panel: 'props', rect: { x: 20, y: 20, w: 150, h: 150 } }).doc;
+    assert.equal(floaters(d).length, 2);
+    assert.equal(activate(d, { panel: 'assets' }).doc, d, 'already the active (only) panel of its floater');
+    assert.deepEqual(validate(d, ids), []);
+    const back = fromJson(toJson(d), { panels: P });
+    assert.deepEqual(back.problems, []);
+    assert.deepEqual(back.doc, d);
+});
+
+test('fromJson drops a malformed floater without failing the rest of the layout, and caps their count', () => {
+    const d = fresh();
+    const withBad = { ...JSON.parse(toJson(d)), floating: [{ id: 'd1', x: 0, y: 0, w: 10, h: 10, z: 1, group: { type: 'tabs', panels: ['tools'] } }, { not: 'a floater' }, null] };
+    const r = fromJson(withBad, { panels: P });
+    assert.deepEqual(validate(r.doc, ids), []);
+    assert.ok(r.problems.some(p => p.code === 'repaired'));
+    const many = { version: 1, seq: 1, root: { id: 'd1', type: 'tabs', panels: ['canvas'] }, floating: Array.from({ length: LIMITS.floaters + 5 }, (_, i) => ({ id: `d${100 + i * 2}`, x: 0, y: 0, w: 10, h: 10, z: 1, group: { id: `d${101 + i * 2}`, type: 'tabs', panels: [P[i % P.length].id] } })) };
+    const capped = fromJson(many, { panels: P });
+    assert.ok(floaters(capped.doc).length <= LIMITS.floaters);
+    assert.deepEqual(validate(capped.doc, ids), []);
 });
 
 test('a randomised sequence of operations keeps every invariant (seeded)', () => {

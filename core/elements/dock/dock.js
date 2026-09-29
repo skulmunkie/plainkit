@@ -1,10 +1,13 @@
 // pk-dock behaviour: renders a dock-tree layout (js/dock-model.js) with pk-splitter for every split and pk-tabs for every group of panels, and turns a resize or a tab
 // choice into a pk-layout-change. Panels are the host's own children: any element with slot="<panel id>" (and data-heading, data-group hints). They are slotted, never moved,
 // so a panel keeps its state wherever it is docked. The layout logic lives in the model; this file only draws it. Below the phone breakpoint the tree is drawn as one
-// tab strip of every panel and the layout is left untouched.
+// tab strip of every panel and the layout is left untouched. A collapsed group at a screen edge (js/dock-model.js's isEdgeGroup) folds to a rail button instead
+// of a header; activating it opens the panel as a flyout, positioned with js/positioning.js like pk-context-menu's own menu.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup } from '../../js/dock-model.js';
+import { createStore } from '../../js/store.js';
+import { place, onOutside, unplace } from '../../js/positioning.js';
+import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup } from '../../js/dock-model.js';
 
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
@@ -27,6 +30,8 @@ const PANEL = /^[a-z][\w-]{0,39}$/;
 // Slot names the element already gives a fixed meaning: a panel id can otherwise be any string PANEL allows, so these are reserved rather than let a
 // host's <div slot="empty"> or <div slot="toolbar-start"> become a phantom panel with no group of its own.
 const RESERVED_SLOTS = new Set(['empty', 'toolbar-start']);
+// The layout document can be large (up to dock-model's own 64 KB limit): the store's default 1 KB per-key limit is raised for it.
+const PERSIST_SCHEMA = { layout: { maxLength: 65536 } };
 
 // Pure: the panels a host declares, from its child elements: [{ id, title, group }] in DOM order; a child without a usable slot name or with a repeated one is not a panel.
 export function readPanels(children) {
@@ -55,6 +60,8 @@ export default Base => class extends Base {
             root.addEventListener('pk-tab-change', e => this.onTab(e));
             root.addEventListener('pk-select', e => this.onMove(e));
             this.part('toolbar').addEventListener('pk-select', e => this.onMove(e));
+            root.addEventListener('click', e => this.onToggle(e));
+            this.part('flyout').addEventListener('focusout', e => this.onFlyoutBlur(e));
             // Pointer drag-to-dock: the same moveTab/dockPanel calls the Move menu makes. Pointer capture pins move/up/cancel to the drag's own
             // handle, so onDragMove hit-tests the group under the pointer's coordinates rather than trusting e.target.
             root.addEventListener('pointerdown', e => this.onDragStart(e));
@@ -68,8 +75,25 @@ export default Base => class extends Base {
         this.$mo.observe(this, { childList: true, attributes: true, attributeFilter: ['slot', 'data-heading', 'data-group'] });
         this.$mq?.addEventListener('change', this.$mqf);
     }
-    disconnected() { this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf); }
+    disconnected() {
+        this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf);
+        this.$mod?.destroy(); this.$store?.destroy();
+        this.$o?.(); this.$o = undefined;
+        this.$mod = this.$store = this.$persisted = undefined;
+    }
+    // Creates (or replaces) the per-element store when persistKey changes; restores a saved layout the first time there is no layout prop yet.
+    syncPersist() {
+        if (this.persistKey === this.$persisted) return;
+        this.$mod?.destroy(); this.$store?.destroy(); this.$mod = this.$store = undefined;
+        this.$persisted = this.persistKey;
+        if (!this.persistKey) return;
+        this.$store = createStore({ prefix: `pk-dock:${this.persistKey}` });
+        this.$mod = this.$store.module('layout', { defaults: { layout: {} }, schema: PERSIST_SCHEMA, persist: ['layout'] });
+        const saved = this.$mod.get('layout');
+        if (this.layout == null && saved && saved.version) this.layout = saved;
+    }
     updated() {
+        this.syncPersist();
         this.$closed ??= new Set(); // update() runs once from connectedCallback before connected() gets to set anything up
         const all = readPanels(this.children), phone = Boolean(this.$mq?.matches);
         // A closed panel stays a host child (so its state, and the memory that it exists, are not lost) but is left out of what the model is told is
@@ -92,7 +116,8 @@ export default Base => class extends Base {
     // not config data). arg is { layout: <JSON string>, reason }; the settled result (a JSON string to apply, or null/undefined to keep the
     // previous layout) is validated the same way an incoming layout attribute is, then applied and pk-layout-change fires with the confirmed doc.
     // A rejection keeps the previous layout. this.$applied always holds the last confirmed/drawn doc (unlike this.$doc, which the caller already
-    // moved to the proposed one before commit runs), so it is what a null result or a rejection falls back to.
+    // moved to the proposed one before commit runs), so it is what a null result or a rejection falls back to. Either way, once a layout is actually
+    // confirmed and drawn, it is what persistKey saves (never a proposed-but-rejected one).
     commit(reason) {
         const proposed = this.$doc;
         if (this.confirmLayout) {
@@ -104,6 +129,7 @@ export default Base => class extends Base {
                     for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
                     this.$doc = this.$applied = this.$given = this.layout = r.doc;
                     this.draw(phone);
+                    this.$mod?.set('layout', this.$doc);
                     this.emit('pk-layout-change', { layout: r.doc, reason }, { cancelable: false });
                 })
                 .catch(error => {
@@ -114,6 +140,7 @@ export default Base => class extends Base {
             return;
         }
         this.layout = this.$given = this.$applied = this.$doc;
+        this.$mod?.set('layout', this.$doc);
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
     }
     draw(phone) {
@@ -121,14 +148,26 @@ export default Base => class extends Base {
         this.$phoneStrip = Boolean(phone); // the phone strip flattens every group into one reading-order tab list, so "move to another group" has no target there
         this.drawToolbar(d);
         this.part('empty').hidden = Boolean(doc.root);
-        if (!doc.root) return root.replaceChildren();
+        if (!doc.root) { root.replaceChildren(); return this.reflyout(); }
         if (phone) {
             const list = readingOrder(doc);
             root.replaceChildren(this.group(d, { id: 'phone', type: 'tabs', panels: list, active: list.includes(this.$phone) ? this.$phone : list[0] }));
-            return loadElements(root);
+            loadElements(root);
+            return this.reflyout();
         }
         root.replaceChildren(this.node(d, doc.root));
         loadElements(root);
+        this.reflyout();
+    }
+    // Re-finds the rail button for an open flyout after a redraw (draw() rebuilds the tree from scratch, so the old button is gone) and repositions
+    // over it; closes the flyout quietly when its panel is no longer a collapsed edge group (it moved, expanded, or the layout changed under it).
+    reflyout() {
+        if (!this.$flyout) return;
+        const btn = this.part('root').querySelector?.(`[data-rail-panel="${this.$flyout}"]`);
+        const el = this.part('flyout');
+        if (!btn) { this.$flyout = null; this.$o?.(); this.$o = undefined; unplace(el); el.hidden = true; el.replaceChildren(); return; }
+        btn.setAttribute('aria-expanded', 'true');
+        place(btn, el, { placement: 'right-start', offset: 4 });
     }
     node(d, n) {
         if (n.type === 'tabs') return this.group(d, n);
@@ -140,24 +179,46 @@ export default Base => class extends Base {
         const g = this.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true), title = id => this.$titles.get(id) ?? id;
         g.setAttribute('data-node', n.id);
         const h = g.querySelector('.header'), body = g.querySelector('.body'), movable = !this.$phoneStrip && groups(this.$doc).length > 1;
+        const railBtn = g.querySelector('.rail-button');
         // A grab cursor where a pointer drag can actually pick this group up.
         g.toggleAttribute('data-movable', movable);
         if (n.panels.length === 1) {
-            const panel = n.panels[0];
+            const panel = n.panels[0], collapsed = (this.$doc.collapsed ?? []).includes(panel), bodyId = `b-${panel}`;
+            // A collapsed group at a screen edge folds to a narrow rail button (icon strip in miniature: title only for now) that opens the panel as a
+            // flyout on click, the familiar IDE behaviour; a collapsed group that is not at an edge (the centre column) keeps the header-only fold.
+            if (collapsed && isEdgeGroup(this.$doc, n.id)) {
+                h.remove(); body.remove();
+                g.setAttribute('class', `${g.getAttribute('class') || 'group'} rail`);
+                g.setAttribute('aria-label', title(panel));
+                railBtn.hidden = false;
+                railBtn.setAttribute('data-rail-panel', panel);
+                railBtn.setAttribute('aria-haspopup', 'true');
+                railBtn.setAttribute('aria-expanded', String(this.$flyout === panel));
+                railBtn.setAttribute('aria-controls', 'flyout');
+                railBtn.textContent = title(panel);
+                return g;
+            }
+            railBtn.remove();
             h.id = `h-${panel}`;
-            const label = make(d, 'span', { part: 'title', class: 'title' }); label.textContent = title(panel);
-            h.append(label);
+            const toggle = h.querySelector('.collapse-toggle');
+            toggle.setAttribute('aria-expanded', String(!collapsed));
+            toggle.setAttribute('aria-controls', bodyId);
+            toggle.setAttribute('data-panel', panel);
+            toggle.querySelector('.title').textContent = title(panel);
             if (!this.$phoneStrip) h.append(this.panelTrigger(d, panel, n.id, movable));
+            body.id = bodyId;
+            body.hidden = collapsed;
             body.append(make(d, 'slot', { name: panel }));
             g.setAttribute('aria-labelledby', h.id);
             return g;
         }
-        h.remove(); body.remove();
+        h.remove(); body.remove(); railBtn.remove();
         g.setAttribute('aria-label', this.label || 'Panels');
-        const tabs = make(d, 'pk-tabs', { value: n.active });
+        // scroll: a group's tab list never wraps onto a second row (a narrow group, or the phone strip's own row) — it scrolls sideways instead, like pk-tabs elsewhere.
+        const tabs = make(d, 'pk-tabs', { value: n.active, scroll: '' });
         for (const id of n.panels) {
             const tab = make(d, 'pk-tab', { value: id }); tab.textContent = title(id);
-            const panel = make(d, 'pk-tab-panel', { value: id }), body = make(d, 'div', { part: 'body', class: 'body' }); body.append(make(d, 'slot', { name: id })); panel.append(body);
+            const panel = make(d, 'pk-tab-panel', { value: id }), pbody = make(d, 'div', { part: 'body', class: 'body' }); pbody.append(make(d, 'slot', { name: id })); panel.append(pbody);
             tabs.append(tab, panel);
         }
         if (!this.$phoneStrip) {
@@ -327,5 +388,60 @@ export default Base => class extends Base {
         if (tab) return tab.focus?.();
         const group = findGroup(this.$doc, panel), section = group && root.querySelector(`[data-node="${group.id}"]`);
         section?.querySelector('pk-button[slot="trigger"]')?.focus?.();
+    }
+    // The chevron button in a single-panel header, or a rail button (Enter/Space activate either like any button, no extra keyboard code needed).
+    // Multi-panel tab groups do not offer collapse yet (see the model's collapsePanel doc comment); a click anywhere else, or on a button with
+    // neither data-panel nor data-rail-panel, is ignored.
+    onToggle(e) {
+        const btn = e.target.closest?.('button');
+        const railPanel = btn?.getAttribute('data-rail-panel');
+        if (railPanel) { e.stopPropagation(); this.toggleFlyout(railPanel, btn); return; }
+        const panel = btn?.getAttribute('data-panel');
+        if (!panel) return;
+        e.stopPropagation();
+        const collapsed = (this.$doc.collapsed ?? []).includes(panel);
+        const r = (collapsed ? expandPanel : collapsePanel)(this.$doc, { panel });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc; this.commit('collapse');
+        this.draw(Boolean(this.$mq?.matches));
+        // draw() rebuilds the whole group subtree (a new button), so the one the pointer or keyboard just used is gone: without this the next
+        // Tab (or the next Enter, for a screen reader user who does not re-locate the button) would land somewhere else.
+        this.part('root').querySelector?.(`[data-panel="${panel}"]`)?.focus?.();
+    }
+    // Opens (or, on a second activation of the same rail button, closes) a panel as a flyout positioned over the content area, next to the rail
+    // button it belongs to. The panel stays collapsed in the model throughout: the flyout is a transient view, not a layout change, so it raises
+    // no pk-layout-change. Only one flyout is open at a time (a second rail button replaces it, IDE-fashion).
+    toggleFlyout(panel, btn) {
+        if (this.$flyout === panel) { this.closeFlyout(); return; }
+        this.$flyout = panel;
+        const el = this.part('flyout');
+        el.hidden = false;
+        el.replaceChildren(make(this.ownerDocument, 'slot', { name: panel }));
+        loadElements(el);
+        place(btn, el, { placement: 'right-start', offset: 4 });
+        btn.setAttribute('aria-expanded', 'true');
+        this.$o?.();
+        this.$o = onOutside([btn, el], ev => this.closeFlyout(ev));
+    }
+    // Closes the open flyout (a no-op when none is open). Escape returns focus to the rail button that opened it; an outside click or a blur out of
+    // the flyout does not steal focus back, since it has already moved somewhere the user chose.
+    closeFlyout(e) {
+        const panel = this.$flyout;
+        if (!panel) return;
+        this.$flyout = null;
+        this.$o?.(); this.$o = undefined;
+        const el = this.part('flyout');
+        unplace(el); el.hidden = true; el.replaceChildren();
+        const btn = this.part('root').querySelector?.(`[data-rail-panel="${panel}"]`);
+        btn?.setAttribute('aria-expanded', 'false');
+        if (e?.type === 'keydown') btn?.focus?.();
+    }
+    // Closes when focus leaves both the flyout and its rail button (Tab out, not just a pointerdown elsewhere, which onOutside already covers).
+    onFlyoutBlur(e) {
+        if (!this.$flyout) return;
+        const el = this.part('flyout'), btn = this.part('root').querySelector?.(`[data-rail-panel="${this.$flyout}"]`);
+        const to = e.relatedTarget;
+        if (to && (el.contains?.(to) || to === btn)) return;
+        this.closeFlyout();
     }
 };

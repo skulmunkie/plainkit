@@ -1,5 +1,6 @@
 {
   "tag": "pk-combobox",
+  "a11yRequires": ["label"],
   "title": "Combobox",
   "group": "Form controls",
   "summary": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children.",

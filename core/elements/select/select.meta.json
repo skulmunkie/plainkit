@@ -1,5 +1,7 @@
 {
   "tag": "pk-select",
+  "a11yRequires": ["label"],
+  "replaces": ["select"],
   "title": "Select",
   "group": "Form controls",
   "summary": "The browser select in the same skin as the text input. Its options are its own option and optgroup children; a phone shows its native picker.",

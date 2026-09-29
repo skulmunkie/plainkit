@@ -193,6 +193,16 @@ export const PK_VERSION = '${version}';
         if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f)) w(`dist/js/${f.replace(/\\/g, '/')}`, read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'")); // in dist the gallery sits next to js/, not under site/
     }
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
+    // The conformance-audit CLI (core/package.json's `bin`, issue #629) and the pure strict-module engine it is
+    // built on (#605) ship as plain .mjs source, copied verbatim so the folder layout (and therefore every
+    // relative import between them) is identical in dist/: a consumer's `npx plainkit audit` runs the same code
+    // this repository tests. Test files never ship.
+    for (const sub of ['tools/audit', 'tools/strict']) {
+        for (const f of fs.readdirSync(path.join(root, sub), { recursive: true })) {
+            const src = path.join(root, sub, f);
+            if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, read(src));
+        }
+    }
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).
     w('site/scorecard/api.current.json', JSON.stringify(surface(), null, 1) + '\n');
     for (const [f, text] of galleryDist(read, root, out.get('site/gallery/gallery.data.js'), [...out].filter(([f]) => f.startsWith('site/gallery/elements/')).map(([f, t]) => [f.slice('site/gallery/'.length), t]))) w(`dist/gallery/${f}`, text);

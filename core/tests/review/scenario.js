@@ -88,6 +88,7 @@ export const expectationFinding = (scenario, shot, failure) => ({
 const KEYS = {
     Tab: [9, 'Tab'], Enter: [13, 'Enter', '\r'], Escape: [27, 'Escape'], ' ': [32, 'Space', ' '], Backspace: [8, 'Backspace'], Shift: [16, 'ShiftLeft'],
     ArrowLeft: [37, 'ArrowLeft'], ArrowUp: [38, 'ArrowUp'], ArrowRight: [39, 'ArrowRight'], ArrowDown: [40, 'ArrowDown'], Home: [36, 'Home'], End: [35, 'End'],
+    ContextMenu: [93, 'ContextMenu'], F10: [121, 'F10'], // the keyboard's Menu key, and Shift+F10: both open pk-context-menu at the focused element (js/shortcuts.js)
 };
 const MODS = { Alt: 1, Control: 2, Meta: 4, Shift: 8 };
 

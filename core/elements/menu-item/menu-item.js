@@ -1,6 +1,7 @@
 import { place, unplace } from '../../js/positioning.js';
 import { moveFocus, checkedAfter, safeLink, labelOf } from '../../js/menu-logic.js';
 import { mediaBelow } from '../../js/breakpoints.js';
+import { isActivateKey } from '../../js/activate-key.js';
 
 // pk-menu-item: a row of a dropdown or context menu. It carries its own role and state, activates on click, Enter or Space, and opens a slotted submenu.
 const ROLE = { item: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio', header: 'presentation', divider: 'separator' };
@@ -55,7 +56,7 @@ export default Base => class extends Base {
             if (e.defaultPrevented) e.stopPropagation();
             return;
         }
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.activate(); }
+        if (isActivateKey(e)) { e.preventDefault(); this.activate(); }
         else if (e.key === 'ArrowRight' && this.hasAttribute('has-submenu')) { e.preventDefault(); e.stopPropagation(); this.activate(); }
     }
 };

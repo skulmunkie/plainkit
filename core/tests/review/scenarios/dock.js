@@ -1,14 +1,18 @@
-// pk-dock (issue 432): step 1's resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
-// same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen; step 2's keyboard/menu move between
-// groups (a group's panel menu opened by keyboard, and the panel it moves) and close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it back);
-// issue 607's pointer drag-to-dock: dragging Canvas's header toward Properties, shown mid-drag over its center (the moveTab drop zone) and over its left edge (a
-// dockPanel zone), each with the accent drop-zone highlight visible. The drag is cancelled rather than dropped (pointercancel), so the layout the later Move-menu
-// and close/reopen steps rely on is unchanged - a second scenario would be needed to also show the *result* of a drop, which the browser suite already covers
-// (core/tests/browser/cases-dock.js), pointer events and all; a still screenshot only needs the mid-drag state, not a full end-to-end commit.
-// The dock applies nothing to the panels themselves: they are the page's own children, slotted.
+// pk-dock (issue 432, step 1; step 2's keyboard/menu move, close/reopen; issue 607's pointer drag-to-dock; issue 609's header-collapse; issue 608 step 1's
+// collapse-to-rail and its flyout): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the
+// left group, a pointer drag-to-dock of Canvas's header toward Properties (shown mid-drag over its center and its left edge, each with the accent drop-zone
+// highlight; cancelled rather than dropped, so later steps' layout is untouched - the browser suite covers the actual dropped result), the keyboard/menu move
+// of a panel between groups (a group's panel menu opened by keyboard) and close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it
+// back), a single-panel header's chevron collapsed then expanded by keyboard, the right column (an edge group) collapsed to a rail button and its flyout
+// opened then closed with Escape, the same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with
+// a panel chosen. The dock applies nothing to the panels themselves: they are the page's own children, slotted.
+// The left group carries four panels (issue #602): at its default ~20% split width its tab list must scroll sideways instead of wrapping onto a second row, and the
+// same reading-order tab list (all six panels, on a phone) must stay on one row too.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
   <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
+  <div slot="layers" data-heading="Layers" data-group="left" class="stack"><strong>Layers</strong><span>Background</span><span>Foreground</span></div>
+  <div slot="styles" data-heading="Styles" data-group="left" class="stack"><strong>Styles</strong><span>Primary</span><span>Secondary</span></div>
   <div slot="canvas" data-heading="Canvas" class="stack"><strong>Canvas</strong><span>The middle panel takes the space the side panels leave.</span></div>
   <div slot="props" data-heading="Properties" data-group="right" class="stack"><strong>Properties</strong><span>Width 120</span><span>Height 80</span></div>`;
 // Placeholder content for toolbar-start: a host app's own top-level menus. pk-dock draws none of this; it is here only to show the slot laid out
@@ -64,20 +68,17 @@ export default {
         { set: '#dock', prop: 'demoPanelDrag', value: 'cancel', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
         { shot: 'tab' },
-        { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { shot: 'move-menu', on: ['desktop'] },
-        { click: '#dock >>> [part=group] pk-dropdown pk-menu-item:nth-of-type(2)', on: ['desktop'] }, { wait: 150 },
-        { shot: 'move-done', on: ['desktop'] },
-        // The Properties trigger is picked by its own accessible label (its group's panel menu names it), not by DOM position: every group sits
-        // under its own single-child wrapper, so a position-based :last-of-type matches the first group everywhere, not the last in the page.
-        // Close is the last item of the Properties menu (every other group's Move options come first): reach it with End rather than a click, since
-        // the long list scrolls and a menu item below the fold has nothing to point a pointer step at.
-        { focus: '#dock >>> pk-button[slot="trigger"][label="Properties panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { key: 'End', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { shot: 'closed', on: ['desktop'] },
-        { focus: '#dock >>> [part=toolbar] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> [data-panel=canvas]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'collapsed', on: ['desktop'] },
         { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { shot: 'reopened', on: ['desktop'] },
+        { shot: 'expanded', on: ['desktop'] },
+        // Issue #608, step 1: the right column (an edge group) folds to a rail button instead of a header when collapsed; activating it opens the
+        // panel as a flyout over the content area.
+        { focus: '#dock >>> [data-panel=props]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'rail', on: ['desktop'] },
+        { click: '#dock >>> [part=rail-button]', on: ['desktop'] }, { wait: 150 },
+        { shot: 'flyout-open', on: ['desktop'] },
+        { key: 'Escape', on: ['desktop'] }, { wait: 150 },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
     ],
@@ -96,10 +97,14 @@ export default {
         if (d && t.viewport.name === 'desktop') {
             t.exists('#dock >>> pk-splitter');
             t.ok(t.metric('#dock', 'scrollWidth') <= t.metric('#dock', 'clientWidth') + 1, 'the dock does not overflow sideways');
+            // Issue #602: the left group's tab list (four panels in a narrow, ~20%-wide column) scrolls sideways instead of wrapping onto a second row.
+            t.ok(t.metric('#dock >>> pk-tabs >>> [part=list]', 'scrollHeight') <= t.metric('#dock >>> pk-tabs >>> [part=list]', 'clientHeight') + 1, 'the narrow group tab list wraps onto a second row instead of scrolling');
         }
         if (t.viewport.name === 'phone') {
             t.absent('#dock >>> pk-splitter');
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
+            // Issue #602: the reading-order strip (all six panels) stays on one scrollable row.
+            t.ok(t.metric('#dock >>> pk-tabs >>> [part=list]', 'scrollHeight') <= t.metric('#dock >>> pk-tabs >>> [part=list]', 'clientHeight') + 1, 'the phone tab strip wraps onto a second row instead of scrolling');
         }
         if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
         if (t.shot === 'drag-center') {
@@ -110,17 +115,28 @@ export default {
             t.exists('#dock >>> [part=group][drop-zone="left"]', 'the target group is marked with the left edge drop zone while the pointer hovers its edge');
             t.absent('#dock >>> [part=group][drop-zone="center"]');
         }
-        if (t.shot === 'move-menu') { t.visible('#dock >>> [part=group] pk-dropdown', 'the Move menu opened'); t.exists('#dock >>> [part=group] pk-menu-item'); }
-        if (t.shot === 'move-done') { t.hidden('#dock >>> [part=empty]'); t.exists('#dock >>> [part=group]'); }
-        if (t.shot === 'closed') {
-            t.visible('#dock >>> [part=toolbar]', 'the Panels menu shows once something is closed');
-            t.exists('#dock >>> [part=toolbar] pk-button[icon-name="dashboard"]', 'the Panels control appears next to the host\'s own toolbar-start content');
-            t.noOverlap('#dock >>> [part=toolbar]', '#dock >>> [part=root]');
+        if (t.shot === 'collapsed') {
+            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'false', 'the toggle reports collapsed');
+            t.hidden('#dock >>> #b-canvas', 'the collapsed body is hidden');
+            t.visible('#dock >>> #h-canvas', 'the header stays, showing only the title and chevron');
         }
-        if (t.shot === 'reopened') {
-            t.visible('#dock >>> [part=toolbar]', 'the toolbar stays up (the host\'s own content is still there)');
-            t.absent('#dock >>> [part=toolbar] pk-button[icon-name="dashboard"]', 'but the dock\'s own Panels control is gone: nothing closed any more');
-            t.hidden('#dock >>> [part=empty]');
+        if (t.shot === 'expanded') {
+            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'true', 'the toggle reports expanded again');
+            t.visible('#dock >>> #b-canvas', 'the body is back');
+        }
+        if (t.shot === 'rail') {
+            t.exists('#dock >>> [part=rail-button]');
+            t.visible('#dock >>> [part=rail-button]', 'the collapsed right column shows a rail button');
+            t.absent('#dock >>> [data-panel=props]', 'no header chevron is left for it');
+            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'false', 'the flyout is not open yet');
+        }
+        if (t.shot === 'flyout-open') {
+            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'true', 'the rail button reports the flyout open');
+            t.visible('#dock >>> [part=flyout]', 'the flyout is shown');
+            t.visible('[slot=props]', 'the panel content is shown inside the flyout');
+            // positioning.js flips sides to stay in the viewport, so the flyout can land to either side of the rail button; it must not cover it either way.
+            t.noOverlap('#dock >>> [part=rail-button]', '#dock >>> [part=flyout]');
+            t.ringUnclipped('#dock >>> [part=flyout]');
         }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');

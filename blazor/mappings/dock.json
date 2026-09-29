@@ -26,6 +26,10 @@
       "prop": "fill"
     },
     {
+      "name": "PersistKey",
+      "prop": "persistKey"
+    },
+    {
       "name": "OnLayoutChange",
       "event": "pk-layout-change",
       "type": "EventCallback<PkLayoutChangeEventArgs>"

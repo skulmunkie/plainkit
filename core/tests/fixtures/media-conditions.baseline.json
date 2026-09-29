@@ -59,6 +59,9 @@
   "(max-width: 1280px)",
   "(max-width: 1024px)"
  ],
+ "dock": [
+  "(prefers-reduced-motion: reduce)"
+ ],
  "drawer": [
   "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
@@ -109,6 +112,7 @@
  ],
  "nav-item": [
   "(max-width: 640px)",
+  "(max-width: 1024px)",
   "(prefers-reduced-motion: reduce)"
  ],
  "navbar": [
