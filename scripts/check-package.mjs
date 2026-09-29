@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,6 +35,10 @@ export const FORBIDDEN = [
     // scripts/publish-dist.mjs excludes them from the wwwroot/plainkit copy entirely; they must never come back as static web assets here.
     ...['custom-elements.json', 'web-types.json', 'vscode.html-custom-data.json', 'elements.d.ts', 'elements.vue.d.ts', 'AGENTS.md', 'llms.txt', 'llms-full.txt']
         .map(f => [new RegExp(`^staticwebassets/plainkit/${f.replace(/[.]/g, '\\.')}$`), `staticwebassets/plainkit/${f} (design-time/editor file, must be excluded by scripts/publish-dist.mjs; see #186)`]),
+    // The `plainkit audit` CLI is a Node program shipped through npm's `bin` entry (core/package.json); the design
+    // (2026-09-28-conformance-audit-cli-design.md, "Blazor package") says the NuGet package does not ship it - the Blazor skill
+    // documents `npx plainkit audit` instead. scripts/publish-dist.mjs excludes dist/tools/** from wwwroot/plainkit for this (#518 A-10a).
+    [/^staticwebassets\/plainkit\/tools\//, 'staticwebassets/plainkit/tools/ (the audit CLI must not ship in the Blazor package; see scripts/publish-dist.mjs)'],
 ];
 
 /** Problems with a package, from its entry names, its nuspec text, its file name and the expected version. Pure. */
@@ -96,6 +101,36 @@ export function findNupkg(target) {
     return path.join(target, files[0]);
 }
 
+// The npm package (`plainkit`, published from core/) is the CLI's real home: core/package.json's `bin` points at
+// dist/tools/audit/cli.mjs and `files` is `["dist", ...]`. Nothing checked this before #518 A-10a - a step that stopped
+// building dist/tools (or a files/bin edit that dropped it) would only surface once a consumer ran `npx plainkit audit`.
+export const NPM_REQUIRED = [
+    [/^dist\/tools\/audit\/cli\.mjs$/, 'the audit CLI entry point (dist/tools/audit/cli.mjs; core/package.json "bin")'],
+    [/^dist\/tools\/audit\/rules\.mjs$/, 'the audit rule table (dist/tools/audit/rules.mjs)'],
+    [/^dist\/tools\/strict\/engine\.mjs$/, 'the engine the audit CLI is built on (dist/tools/strict/engine.mjs)'],
+];
+
+/** Problems with the npm package's file list (as `npm pack --dry-run` reports it): the CLI's own files, and the `bin` field pointing at one of them. Pure. */
+export function checkNpmPackage(files, pkg) {
+    const problems = [];
+    for (const [re, what] of NPM_REQUIRED) if (!files.some(f => re.test(f))) problems.push(`missing ${what}`);
+    const bin = typeof pkg?.bin === 'object' ? Object.values(pkg.bin)[0] : pkg?.bin;
+    if (!bin) problems.push('core/package.json has no "bin" entry for the audit CLI');
+    else if (!files.includes(bin)) problems.push(`"bin" points at ${bin}, which is not in the packed files`);
+    return problems;
+}
+
+/** The file list npm would publish for core/ ({@link checkNpmPackage}'s `files`), via `npm pack --dry-run --json`. */
+export function npmPackFiles(coreDir) {
+    // `npm` itself is a .cmd/shell script on Windows, so it needs a shell to resolve via PATH; passed as one string (no interpolated
+    // arguments) so there is nothing to inject and no need for the array-plus-shell form node warns about.
+    const r = spawnSync('npm pack --dry-run --json --loglevel=silent', { cwd: coreDir, encoding: 'utf8', shell: true });
+    if (r.error) throw new Error(`npm pack --dry-run failed to run: ${r.error.message}`);
+    if (r.status !== 0) throw new Error(`npm pack --dry-run failed: ${r.stderr || r.stdout}`);
+    const [{ files }] = JSON.parse(r.stdout);
+    return files.map(f => f.path);
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const target = process.argv[2];
     if (!target) { console.error('usage: node scripts/check-package.mjs <folder-or-.nupkg>   (after: dotnet pack blazor/src/PlainKit.Blazor -c Release -o <folder>)'); process.exit(2); }
@@ -106,5 +141,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     } catch (e) { console.error(`check-package: ${e.message}`); process.exit(2); }
     const problems = checkPackage(info);
     if (problems.length) { console.error(`${info.fileName} is not right:\n- ${problems.join('\n- ')}`); process.exit(1); }
+
+    let npmProblems;
+    try {
+        const files = npmPackFiles(path.join(root, 'core'));
+        const pkg = JSON.parse(fs.readFileSync(path.join(root, 'core', 'package.json'), 'utf8'));
+        npmProblems = checkNpmPackage(files, pkg);
+    } catch (e) { console.error(`check-package: npm package check failed: ${e.message}`); process.exit(2); }
+    if (npmProblems.length) { console.error(`the npm package (core/) is not right:\n- ${npmProblems.join('\n- ')}`); process.exit(1); }
+
     console.log(`${info.fileName}: ${info.entries.length} entries, version ${info.version}, no content/ or contentFiles/, static web assets and skills present`);
+    console.log('npm package (core/): audit CLI entry point and files present');
 }

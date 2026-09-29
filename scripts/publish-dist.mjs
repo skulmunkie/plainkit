@@ -28,10 +28,16 @@ const EXCLUDE_FROM_BLAZOR = new Set([
     'llms-full.txt',
 ]);
 
-const list = (dir, exclude = null) => (fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => path.relative(dir, path.join(e.parentPath, e.name)).replaceAll('\\', '/')).filter(f => !exclude || !exclude.has(f)).sort() : []);
+// The `plainkit audit` CLI (dist/tools/**: the audit rule engine and the pure `strict` engine it is built on, #518 A-10a) is a Node program
+// shipped through the npm `bin` entry, not a browser asset: no Blazor component, PkRuntime or dev tool ever imports it, and the design
+// (docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md, "Blazor package") says explicitly the NuGet package does not ship it -
+// the Blazor skill documents `npx plainkit audit` instead. Excluding the whole `tools/` folder here keeps it out of staticwebassets/plainkit/.
+const EXCLUDE_PREFIXES_FROM_BLAZOR = ['tools/'];
+
+const list = (dir, exclude = null, excludePrefixes = null) => (fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => path.relative(dir, path.join(e.parentPath, e.name)).replaceAll('\\', '/')).filter(f => !exclude || !exclude.has(f)).filter(f => !excludePrefixes || !excludePrefixes.some(p => f.startsWith(p))).sort() : []);
 
 export function differences(from = source, to = target) {
-    const a = list(from, EXCLUDE_FROM_BLAZOR), b = new Set(list(to));
+    const a = list(from, EXCLUDE_FROM_BLAZOR, EXCLUDE_PREFIXES_FROM_BLAZOR), b = new Set(list(to));
     const out = [];
     for (const f of a) {
         if (!b.has(f)) out.push(`missing: ${f}`);
@@ -43,7 +49,7 @@ export function differences(from = source, to = target) {
 
 export function publish(from = source, to = target) {
     fs.rmSync(to, { recursive: true, force: true });
-    for (const f of list(from, EXCLUDE_FROM_BLAZOR)) {
+    for (const f of list(from, EXCLUDE_FROM_BLAZOR, EXCLUDE_PREFIXES_FROM_BLAZOR)) {
         fs.mkdirSync(path.dirname(path.join(to, f)), { recursive: true });
         fs.copyFileSync(path.join(from, f), path.join(to, f));
     }
