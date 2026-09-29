@@ -1,6 +1,6 @@
 {
   "name": "plainkit",
-  "version": "0.8.0-alpha.1",
+  "version": "0.8.0-alpha.2",
   "description": "A dependency-free UI toolkit: plain HTML, CSS custom properties and small ES modules, with pk-* custom elements.",
   "type": "module",
   "bin": { "plainkit": "dist/tools/audit/cli.mjs" },
