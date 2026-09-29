@@ -9,10 +9,17 @@ import { TEXT_PAIRS } from '../scorecard/scoring.data.js';
 async function main() {
     mountShell({ page: 'theme', title: 'Theme editor' });
     const host = document.getElementById('te-host');
+    const loading = document.getElementById('te-loading');
     // Cleared before the editor mounts, not after (#135): the notice and the editor's content never occupy the page in the same frame,
     // so removing it does not shift the editor content that a later removal would have already pushed onto the page.
     document.getElementById('boot-notice')?.remove();
-    await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides', readHash: true });
+    try {
+        await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides', readHash: true });
+    } finally {
+        // #637: pk-loading-overlay covers the token fetch and initial render (roughly 1-2s for 198 tokens) so the page never paints
+        // fully blank; cleared here whether the editor mounted or threw, so a boot error is never shown behind a stuck spinner.
+        loading?.removeAttribute('busy');
+    }
     new MutationObserver(() => writeSetting('pk-site-theme', document.documentElement.getAttribute('data-theme'))).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }
 
