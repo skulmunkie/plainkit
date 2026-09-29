@@ -40,19 +40,27 @@ function resolveRules(options) {
 // real hit count no longer matches its declared `count` (fewer hits: lower the count; zero hits: dead entry,
 // remove it). It never changes which findings are suppressed - only `applyAllow` does that, unconditionally
 // honouring the declared budget - so a stale entry is reported, not silently corrected.
-export function describeAllow(rawFindings, allow) {
+//
+// `scannedPaths`, when given, is the set of file paths this run actually scanned (config discovery walks up
+// from cwd, so a config can be found by a run that targets only part of the tree it covers - a narrower `path`
+// argument, or another tool's own fixture directory, see #518 A-10b). An entry whose file was never part of
+// this run is not evaluated at all (neither "ok" nor "dead"): there is nothing to say about a file nobody
+// looked at, and reporting one "dead" would fail every unrelated run that happens to share the same config.
+export function describeAllow(rawFindings, allow, scannedPaths) {
     if (!allow || !allow.length) return [];
     const counts = new Map();
     for (const f of rawFindings) {
         const key = `${f.rule}\u0000${f.file}`;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
-    return allow.map(entry => {
-        const actual = counts.get(`${entry.rule}\u0000${entry.path}`) ?? 0;
-        const want = entry.count ?? 0;
-        const status = actual === want ? 'ok' : actual === 0 ? 'dead' : 'stale';
-        return { ...entry, actual, status };
-    });
+    return allow
+        .filter(entry => !scannedPaths || scannedPaths.has(entry.path))
+        .map(entry => {
+            const actual = counts.get(`${entry.rule}\u0000${entry.path}`) ?? 0;
+            const want = entry.count ?? 0;
+            const status = actual === want ? 'ok' : actual === 0 ? 'dead' : 'stale';
+            return { ...entry, actual, status };
+        });
 }
 
 function applyAllow(findings, allow) {
@@ -102,6 +110,6 @@ export function checkFiles(files, options = {}) {
     // treat the result as a plain findings array (every test before A-6, including `assert.deepEqual` against
     // a plain array) keep working unchanged; the CLI's allow-status report (A-6) reads this property when it
     // wants to report a stale or dead allow entry.
-    Object.defineProperty(kept, 'allowReport', { value: describeAllow(findings, options.allow), enumerable: false });
+    Object.defineProperty(kept, 'allowReport', { value: describeAllow(findings, options.allow, new Set(files.map(f => f.path))), enumerable: false });
     return kept;
 }

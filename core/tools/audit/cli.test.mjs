@@ -193,6 +193,20 @@ test('a dead allow-list entry (no matching finding) fails the run', async () => 
     assert.match(c.err.join('\n'), /no matching finding/);
 });
 
+test('an allow-list entry for a file outside the current scan is neither dead nor stale (#518 A-10b): a shared config at a monorepo root must not fail a narrower run', async () => {
+    const cwd = scratchFixture('plain-html');
+    fs.writeFileSync(path.join(cwd, 'plainkit.audit.json'), JSON.stringify({
+        allow: [
+            { rule: 'D1', path: 'index.html', count: 1, reason: 'placeholder while the app is migrated', issue: 'https://example.test/1' },
+            { rule: 'T1', path: 'somewhere/else/not-scanned.html', count: 3, reason: 'a real allow entry for a file this run never touches', issue: 'https://example.test/2' },
+        ],
+    }));
+    const c = capture();
+    const code = await run(['--strict'], { cwd, ...c });
+    assert.equal(code, 1); // D1 (in scope) is a real strict-mode error, unrelated to the allow-list ratchet
+    assert.doesNotMatch(c.err.join('\n'), /not-scanned\.html/);
+});
+
 // End-to-end regression coverage (#518 A-10a): the exact shape of every finding for the two fixture apps, not just which rule ids fired, so a
 // change to a rule's message, its fix text, or the JSON/SARIF/text formatting is caught here rather than by a future consumer's broken CI output.
 // cwd is the fixture dir itself (see scratchFixture's comment) so paths in the output are fixture-relative and portable across machines; `seconds`
