@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
-import { checkPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
+import { checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
 
 const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
     'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md'];
@@ -44,6 +44,29 @@ test('the version is stamped: nuspec and file name must equal core/VERSION', () 
     assert.match(checkPackage(input({ nuspec: nuspec('0.0.1') }))[0], /nuspec version is 0\.0\.1 but core\/VERSION is 1\.2\.3-alpha\.1/);
     assert.match(checkPackage(input({ fileName: 'PlainKit.Blazor.0.0.1.nupkg' }))[0], /file name/);
     assert.match(checkPackage(input({ nuspec: '<package/>' }))[0], /no <version>/);
+});
+
+test('the audit CLI must not ship in the Blazor package (#518 A-10a: it is a Node program shipped via npm bin instead)', () => {
+    const p = checkPackage(input({ entries: [...GOOD, 'staticwebassets/plainkit/tools/audit/cli.mjs', 'staticwebassets/plainkit/tools/strict/engine.mjs'] }));
+    assert.equal(p.length, 1);
+    assert.match(p[0], /must not contain staticwebassets\/plainkit\/tools\/.*found staticwebassets\/plainkit\/tools\/audit\/cli\.mjs/);
+});
+
+// checkNpmPackage: the files `npm pack --dry-run` would publish for core/ (the plainkit package), and its package.json.
+const NPM_GOOD = ['LICENSE', 'README.md', 'dist/tools/audit/cli.mjs', 'dist/tools/audit/rules.mjs', 'dist/tools/strict/engine.mjs', 'dist/js/plainkit.js'];
+const npmPkg = (over = {}) => ({ bin: { plainkit: 'dist/tools/audit/cli.mjs' }, ...over });
+
+test('a good npm package has no problems', () => assert.deepEqual(checkNpmPackage(NPM_GOOD, npmPkg()), []));
+
+test('a missing audit CLI file is named', () => {
+    const p = checkNpmPackage(NPM_GOOD.filter(f => f !== 'dist/tools/audit/rules.mjs'), npmPkg());
+    assert.equal(p.length, 1);
+    assert.match(p[0], /missing the audit rule table/);
+});
+
+test('a missing or mismatched "bin" is refused', () => {
+    assert.match(checkNpmPackage(NPM_GOOD, npmPkg({ bin: undefined }))[0], /no "bin" entry/);
+    assert.match(checkNpmPackage(NPM_GOOD, npmPkg({ bin: { plainkit: 'dist/tools/audit/missing.mjs' } }))[0], /is not in the packed files/);
 });
 
 // A tiny zip writer (stored or deflated) so the reader is tested without a zip tool.

@@ -192,3 +192,61 @@ test('a dead allow-list entry (no matching finding) fails the run', async () => 
     assert.equal(code, 1);
     assert.match(c.err.join('\n'), /no matching finding/);
 });
+
+// End-to-end regression coverage (#518 A-10a): the exact shape of every finding for the two fixture apps, not just which rule ids fired, so a
+// change to a rule's message, its fix text, or the JSON/SARIF/text formatting is caught here rather than by a future consumer's broken CI output.
+// cwd is the fixture dir itself (see scratchFixture's comment) so paths in the output are fixture-relative and portable across machines; `seconds`
+// is timing and is normalized before comparing.
+function normalize(findings) {
+    return findings.map(({ file, line, column, id, severity, message, fix }) => ({ file, line, column, id, severity, message, fix }));
+}
+
+test('plain-html fixture: exact findings snapshot (json)', async () => {
+    const cwd = scratchFixture('plain-html');
+    const c = capture();
+    const code = await run(['--strict', '--format', 'json', '--no-color'], { cwd, ...c });
+    assert.equal(code, 1);
+    const json = JSON.parse(c.out.join(''));
+    assert.equal(json.summary.errors, 13);
+    assert.equal(json.summary.warnings, 1);
+    assert.equal(json.summary.files, 2);
+    assert.deepEqual(normalize(json.findings), [
+        { file: 'app.js', line: 4, column: 15, id: 'S7', severity: 'warn', message: 'document.', fix: "FIX: app.js:4 touches the platform directly (document.). Fine in a bootstrap file; inside a module this belongs behind the SDK's own APIs. [S7]" },
+        { file: 'app.js', line: 5, column: 7, id: 'D6', severity: 'error', message: 'manual interactive ARIA role set from script (role="dialog")', fix: 'FIX: app.js:5 sets manual interactive ARIA role set from script (role="dialog") from script. An existing pk-* element likely already owns this role; compose one, or allow-list this file with a reason. [D6]' },
+        { file: 'index.html', line: 1, column: 1, id: 'A7', severity: 'error', message: 'no viewport meta', fix: 'FIX: index.html:1 the page has no <meta name="viewport"> tag. [A7]' },
+        { file: 'index.html', line: 1, column: 1, id: 'A7', severity: 'error', message: 'no main landmark', fix: 'FIX: index.html:1 the page has no <main> landmark and does not use pk-app-shell. [A7]' },
+        { file: 'index.html', line: 5, column: 8, id: 'S3', severity: 'error', message: 'class=', fix: 'FIX: index.html:5 uses class=. Compose pk-* elements instead of adding classes to style them. [S3]' },
+        { file: 'index.html', line: 5, column: 3, id: 'D2', severity: 'error', message: 'class="modal"', fix: 'FIX: index.html:5 hand-rolls class="modal". PlainKit already ships pk-dialog. docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#31-elements-tag-alias-and-api-hints. [D2]' },
+        { file: 'index.html', line: 6, column: 5, id: 'S4', severity: 'error', message: 'table', fix: 'FIX: index.html:6 writes a raw <table>. PlainKit ships pk-* elements for the standard controls; use one instead of the raw tag. [S4]' },
+        { file: 'index.html', line: 6, column: 5, id: 'D1', severity: 'error', message: '<table>', fix: 'FIX: index.html:6 writes <table>. PlainKit already ships pk-table: use <pk-table>. docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#31-elements-tag-alias-and-api-hints. If a real gap remains, file it under #336; do not keep a copy. [D1]' },
+        { file: 'index.html', line: 10, column: 8, id: 'S3', severity: 'error', message: 'class=', fix: 'FIX: index.html:10 uses class=. Compose pk-* elements instead of adding classes to style them. [S3]' },
+        { file: 'index.html', line: 10, column: 3, id: 'D2', severity: 'error', message: 'class="tabs"', fix: 'FIX: index.html:10 hand-rolls class="tabs". PlainKit already ships pk-tabs. docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#31-elements-tag-alias-and-api-hints. [D2]' },
+        { file: 'index.html', line: 11, column: 10, id: 'S3', severity: 'error', message: 'class=', fix: 'FIX: index.html:11 uses class=. Compose pk-* elements instead of adding classes to style them. [S3]' },
+        { file: 'index.html', line: 11, column: 5, id: 'D2', severity: 'error', message: 'class="tab"', fix: 'FIX: index.html:11 hand-rolls class="tab". PlainKit already ships pk-tab. docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#31-elements-tag-alias-and-api-hints. [D2]' },
+        { file: 'index.html', line: 12, column: 10, id: 'S3', severity: 'error', message: 'class=', fix: 'FIX: index.html:12 uses class=. Compose pk-* elements instead of adding classes to style them. [S3]' },
+        { file: 'index.html', line: 12, column: 5, id: 'D2', severity: 'error', message: 'class="tab"', fix: 'FIX: index.html:12 hand-rolls class="tab". PlainKit already ships pk-tab. docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#31-elements-tag-alias-and-api-hints. [D2]' },
+    ]);
+});
+
+test('strict-clean fixture: exact findings snapshot (json)', async () => {
+    const cwd = scratchFixture('strict-clean');
+    const c = capture();
+    const code = await run(['--strict', '--format', 'json', '--no-color'], { cwd, ...c });
+    assert.equal(code, 0, c.out.join('\n'));
+    const json = JSON.parse(c.out.join(''));
+    assert.equal(json.summary.errors, 0);
+    assert.ok(json.findings.every(f => f.severity !== 'error'), 'strict-clean has warnings at most, never an error, even in --strict');
+});
+
+test('plain-html fixture: exact text-format output snapshot', async () => {
+    const cwd = scratchFixture('plain-html');
+    const c = capture();
+    const code = await run(['--rule', 'D6', '--format', 'text', '--no-color'], { cwd, ...c });
+    assert.equal(code, 0);
+    assert.equal(c.out.join('\n'), [
+        'app.js:5:7  warn  [D6]  manual interactive ARIA role set from script (role="dialog")',
+        '  FIX: app.js:5 sets manual interactive ARIA role set from script (role="dialog") from script. An existing pk-* element likely already owns this role; compose one, or allow-list this file with a reason. [D6]',
+        '',
+        'plainkit audit: 0 errors, 1 warning, 2 files, 0s (normal; skipped rules: S1, S2, S3, S4, S5, S6, S7, S8, S9, D1, D2, D3, D4, D5, D7, D8, D9, P1, P2, P3, P4, P5, P6, P7, P8, P9, T1, T2, T3, T4, T5, T6, T7, T8, A1, A2, A3, A4, A5, A6, A7, A8, B1, B2, B3, B4, B5, B6)',
+    ].join('\n'));
+});
