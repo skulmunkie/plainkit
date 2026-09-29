@@ -139,6 +139,8 @@ if (location.hostname === 'localhost') {
 
 Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
 
+`mountDevTools` is itself a thin consumer of `mountToolDock` (`./plainkit/modules/tool-dock/tool-dock.js`), the generic floating/docked tabbed panel underneath it — a single tool panel that docks to the bottom of the page or fills a container, toggled by a hotkey, resizable between named sizes, given its own `panels` (`{ id, title, mount(el, context) }`, same shape as `mountDevTools`'s). Point it at your own app content (`mountToolDock(null, { mode: 'dock', panels, label: 'My tools', launcherLabel: 'Tools' })`) when you want that pattern — a canvas/record/page as the main surface with tool-type panels (properties, history, an outline, a console, a chat) docked around it — for something other than the dev tools. It is not `pk-dock`: `pk-dock` is the multi-pane workspace element (Palette | Canvas | Properties, drag-to-dock, layout builder's own chrome above), while `mountToolDock` is one floating tabbed panel, not a workspace of panes.
+
 ### Let people build pages with the layout builder
 
 Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
