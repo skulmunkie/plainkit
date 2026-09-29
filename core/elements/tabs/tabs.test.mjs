@@ -1,24 +1,31 @@
 // Unit tests for pk-tabs: selection sync, ARIA wiring, choosing a tab and arrow-key navigation. Stub base, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour from './tabs.js';
+import behaviour, { hiddenTabs } from './tabs.js';
 
-const tab = (value, props = {}) => ({ localName: 'pk-tab', value, disabled: false, offsetParent: {}, selected: false, tabIndex: -1, id: '', attrs: {}, focused: 0,
-    setAttribute(n, v) { this.attrs[n] = v; }, focus() { this.focused++; }, scrollIntoView() { this.scrolled = true; }, closest() { return this; }, ...props });
+const tab = (value, props = {}) => ({ localName: 'pk-tab', value, disabled: false, offsetParent: {}, selected: false, tabIndex: -1, id: '', attrs: {}, focused: 0, textContent: value, overflowHidden: false,
+    setAttribute(n, v) { this.attrs[n] = v; }, focus() { this.focused++; }, scrollIntoView() { this.scrolled = true; }, closest() { return this; },
+    getBoundingClientRect() { return { width: this.width ?? 40 }; },
+    toggleAttribute(n, on) { if (n === 'data-overflow-hidden') this.overflowHidden = Boolean(on); }, removeAttribute(n) { if (n === 'data-overflow-hidden') this.overflowHidden = false; }, ...props });
 const panel = value => ({ localName: 'pk-tab-panel', value, selected: false, tabIndex: -1, id: '', attrs: {}, setAttribute(n, v) { this.attrs[n] = v; } });
 
 const make = (props = {}, tabs = [], panels = []) => {
     const emitted = []; const warned = []; const listAttrs = {}; const listeners = {};
     const list = { scrollWidth: 300, clientWidth: 100, scrollLeft: 0, setAttribute: (n, v) => { listAttrs[n] = v; }, removeAttribute: n => { delete listAttrs[n]; }, addEventListener(t, fn) { listeners[t] = fn; } };
+    const more = { hidden: true, children: [], attrs: {}, getBoundingClientRect() { return { width: this.width ?? 30 }; }, setAttribute(n, v) { this.attrs[n] = v; }, appendChild(c) { this.children.push(c); } };
+    const moreTrigger = { attrs: {}, setAttribute(n, v) { this.attrs[n] = v; } };
+    const parts = { list, more, 'more-trigger': moreTrigger };
+    const hostListeners = {};
     const el = new (behaviour(class {
         slotted(name) { return name === 'tab' ? tabs : panels; }
-        part() { return list; }
+        part(name) { return parts[name] ?? list; }
         watchSlot() {}
+        addEventListener(t, fn) { hostListeners[t] = fn; }
         emit(n, d) { emitted.push([n, d]); return el.allow !== false; }
         warnOnce(k) { warned.push(k); }
     }))();
-    Object.assign(el, { value: '', noneActive: false, scroll: false, activation: 'auto' }, props);
-    return { el, emitted, warned, list, listAttrs, listeners };
+    Object.assign(el, { value: '', noneActive: false, overflow: 'scroll', activation: 'auto' }, props);
+    return { el, emitted, warned, list, more, moreTrigger, listAttrs, listeners, hostListeners };
 };
 const key = (k, target) => { const e = { key: k, target, prevented: false, preventDefault() { this.prevented = true; } }; return e; };
 
@@ -146,12 +153,68 @@ test('other keys and keys from outside a tab are left alone', () => {
 });
 
 test('the scroll fade marks the side that still has tabs beyond it, and clears when not scrolling', () => {
-    const m = make({ scroll: true }, [tab('a')]);
+    const m = make({ overflow: 'scroll' }, [tab('a')]);
     m.el.fade(); assert.equal(m.listAttrs['data-fade'], 'end');
     m.list.scrollLeft = 50; m.el.fade(); assert.equal(m.listAttrs['data-fade'], 'both');
     m.list.scrollLeft = 200; m.el.fade(); assert.equal(m.listAttrs['data-fade'], 'start');
     m.list.scrollWidth = 100; m.el.fade(); assert.equal('data-fade' in m.listAttrs, false);
-    m.list.scrollWidth = 300; m.el.scroll = false; m.el.fade(); assert.equal('data-fade' in m.listAttrs, false);
+    m.list.scrollWidth = 300; m.el.overflow = 'wrap'; m.el.fade(); assert.equal('data-fade' in m.listAttrs, false);
+});
+
+// overflow="menu": which tabs collapse behind the "..." button. Pure, mirrors breadcrumb.test.mjs's coverage of hiddenCrumbs.
+test('hiddenTabs: a strip that fits keeps every tab', () => {
+    assert.deepEqual(hiddenTabs([40, 40, 40], 200, 30), []);
+    assert.deepEqual(hiddenTabs([], 200, 30), []);
+});
+
+test('hiddenTabs: a strip that does not fit hides tabs from the end until the rest, plus the trigger, fits', () => {
+    assert.deepEqual(hiddenTabs([40, 40, 40, 40, 40], 120, 30), [2, 3, 4]);
+});
+
+test('hiddenTabs: the active tab is pinned and never hidden, however far along the strip it sits', () => {
+    assert.deepEqual(hiddenTabs([40, 40, 40, 40, 40], 120, 30, 4), [1, 2, 3]);
+    assert.deepEqual(hiddenTabs([40, 40, 40, 40, 40], 120, 30, 0), [2, 3, 4]);
+});
+
+test('overflowMenu hides the tabs that do not fit behind the "..." trigger and lists them in its menu, pinning the active tab', () => {
+    globalThis.document = { createElement: tag => ({ tag, attrs: {}, setAttribute(n, v) { this.attrs[n] = v; }, set value(v) { this.attrs.value = v; }, get value() { return this.attrs.value; } }) };
+    try {
+        const tabs = [tab('a', { width: 40 }), tab('b', { width: 40 }), tab('c', { width: 40, disabled: true }), tab('d', { width: 40 })];
+        const m = make({ value: 'd', overflow: 'menu' }, tabs);
+        m.list.clientWidth = 120;
+        m.el.overflowMenu();
+        assert.deepEqual(tabs.map(t => t.overflowHidden), [false, true, true, false], 'the tabs that do not fit (from the end, skipping the active one) are hidden; a (fits) and d (active, pinned) stay visible');
+        assert.equal(m.more.hidden, false);
+        assert.equal(m.more.children.length, 2);
+        assert.equal(m.more.children[0].attrs.value, 'b'); assert.equal(m.more.children[1].attrs.value, 'c');
+        assert.equal(m.more.children[1].disabled, true, 'a disabled hidden tab is a disabled menu item');
+    } finally { delete globalThis.document; }
+});
+
+test('overflowMenu shows nothing extra and hides the trigger when every tab fits, or the mode is not menu', () => {
+    const tabs = [tab('a', { width: 40 }), tab('b', { width: 40 })];
+    const m = make({ value: 'a', overflow: 'menu' }, tabs);
+    m.list.clientWidth = 300;
+    m.el.overflowMenu();
+    assert.equal(m.more.hidden, true); assert.deepEqual(tabs.map(t => t.overflowHidden), [false, false]);
+    m.el.overflow = 'scroll'; m.more.hidden = false; tabs[0].overflowHidden = true;
+    m.el.overflowMenu();
+    assert.equal(m.more.hidden, true); assert.deepEqual(tabs.map(t => t.overflowHidden), [false, false]);
+});
+
+test('picking a tab from the overflow menu (pk-select) selects it; other events and other modes are ignored', () => {
+    const [a, b] = [tab('a'), tab('b')];
+    const { el, hostListeners } = make({ value: 'a', overflow: 'menu' }, [a, b]);
+    globalThis.ResizeObserver = undefined;
+    globalThis.document = { createElement: () => ({ attrs: {}, setAttribute(n, v) { this.attrs[n] = v; } }) };
+    try {
+        el.connected();
+        hostListeners['pk-select']({ detail: { value: 'b' } });
+        assert.equal(el.value, 'b'); assert.equal(b.focused, 1);
+        el.overflow = 'scroll';
+        hostListeners['pk-select']({ detail: { value: 'a' } });
+        assert.equal(el.value, 'b', 'ignored outside overflow="menu"');
+    } finally { delete globalThis.document; }
 });
 
 test('a click on a tab in the strip chooses it; changed() re-syncs for value and none-active only', () => {
