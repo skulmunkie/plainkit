@@ -17,7 +17,10 @@ export function scanCss(text) {
 
 // Blanks out comment bodies (preserving length and newlines, so offsets stay valid) and passes string
 // contents through untouched, so a `{` or `;` inside a quoted value never confuses the block/declaration split.
-function stripCommentsAndKeepStrings(text) {
+// Exported so a regex-based CSS rule (audit family S9) can scan comment-free, offset-stable text too, instead
+// of scanning raw file text (and matching prose inside a comment, e.g. "a 375px device") or re-deriving its
+// own, possibly-inconsistent comment/string disambiguation.
+export function stripCommentsAndKeepStrings(text) {
     let out = '';
     const n = text.length;
     let i = 0;
