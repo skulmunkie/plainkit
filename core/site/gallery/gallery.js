@@ -25,6 +25,7 @@ import { renderElement } from './elements-view.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
+import { clampSize, keySize, pointerSize } from '../../js/size.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -484,19 +485,28 @@ function setInspector(open, remember = true) {
     if (remember) writeSetting('pk-gallery-inspector', open ? '1' : '0');
 }
 
+// The inspector's own drag-resize handle: pk-splitter's pointer/keyboard/clamp engine (js/size.js, shared with pk-splitter rather than
+// duplicated), but not the pk-splitter element itself. The docked drawer it resizes positions itself absolutely (via --inspector-w) and
+// becomes a full-width bottom sheet on phone (drawer.css); nesting it as a splitter pane would fight that sizing on the very breakpoint
+// where the handle is hidden anyway, so this stays a plain handle that reports a width in pixels (unit: 'px'), with the box's end edge
+// standing in for pk-splitter's "start" via rtl: true (see #391).
 function initResize() {
     const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('.gx-body');
-    const apply = px => { const w = Math.min(Math.max(px, 320), Math.round(innerWidth * 0.7)); shell.style.setProperty('--inspector-w', w + 'px'); return w; };
+    const bounds = () => ({ min: 320, max: Math.round(innerWidth * 0.7) });
+    const width = () => parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0;
+    const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.style.setProperty('--inspector-w', w + 'px'); return w; };
     const saved = Number(readSetting('pk-gallery-inspector-w')); if (saved) apply(saved);
     handle.addEventListener('pointerdown', e => {
         e.preventDefault(); handle.setPointerCapture(e.pointerId);
-        const move = ev => apply(body.getBoundingClientRect().right - ev.clientX);
-        const up = () => { handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); writeSetting('pk-gallery-inspector-w', String(parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0)); };
+        const move = ev => { const box = body.getBoundingClientRect(); apply(pointerSize(ev.clientX, 0, box.left, box.width, 0, true, 'px')); };
+        const up = () => { handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); writeSetting('pk-gallery-inspector-w', String(width())); };
         handle.addEventListener('pointermove', move); handle.addEventListener('pointerup', up);
     });
     handle.addEventListener('keydown', e => {
-        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-        const cur = body.getBoundingClientRect().right - handle.getBoundingClientRect().right; const w = apply(cur + (e.key === 'ArrowLeft' ? 24 : -24)); writeSetting('pk-gallery-inspector-w', String(w));
+        const { min, max } = bounds();
+        const next = keySize(e.key, width(), { min, max, step: 24, horizontal: true, rtl: true });
+        if (next === null) return;
+        writeSetting('pk-gallery-inspector-w', String(apply(next)));
     });
 }
 
