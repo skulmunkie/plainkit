@@ -1,5 +1,4 @@
 import { defineModule } from '../../../js/app.js';
-import { table, facts, note } from './page.js';
 
 const ORDERS = [
     { id: '7', customer: 'Ada Lovelace', status: 'Open', total: '$120.00' },
@@ -8,10 +7,30 @@ const ORDERS = [
     { id: '10', customer: 'Edsger Dijkstra', status: 'Shipped', total: '$64.00' },
 ];
 const COLUMNS = [{ key: 'id', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'status', label: 'Status' }, { key: 'total', label: 'Total', type: 'number' }];
-const list = (heading, rows) => ({ mount: table(heading, COLUMNS, rows) });
-const record = id => {
-    const o = ORDERS.find(x => x.id === id);
-    return { mount: o ? facts(`Order ${o.id}`, [['Customer', o.customer], ['Status', o.status], ['Total', o.total]]) : note('Order not found', `There is no order ${id}.`) };
+const FIELDS = [{ name: 'customer', label: 'Customer' }, { name: 'status', label: 'Status' }, { name: 'total', label: 'Total' }];
+
+// A list page: the built-in type draws the table, filters and pager from `load`; a status filter narrows the "All orders" list into the Open and
+// Shipped routes with no separate config of their own.
+const listFor = status => ({
+    columns: COLUMNS,
+    empty: { heading: 'No orders', description: status ? `No ${status.toLowerCase()} orders.` : 'There are no orders yet.' },
+    load: async () => {
+        const rows = status ? ORDERS.filter(o => o.status === status) : ORDERS;
+        return { rows, total: rows.length };
+    },
+    rowHref: row => `/${row.id}`,
+});
+
+// A record page: `load` rejects for an id that does not exist, and the built-in type shows its own error state (with Retry) instead of a blank form.
+const recordConfig = {
+    heading: 'Order',
+    fields: FIELDS,
+    editable: false,
+    load: async id => {
+        const o = ORDERS.find(x => x.id === id);
+        if (!o) throw new Error(`There is no order ${id}.`);
+        return o;
+    },
 };
 
 // The nav is structure: three destinations. The orders themselves are the rows of a list page, and an order is a record route under the list, so the list's entry stays
@@ -22,9 +41,9 @@ export default defineModule({
     // The header search asks the active module: here it finds records (a module without `search` is searched through its nav).
     search: query => ORDERS.filter(o => `order ${o.id} ${o.customer}`.toLowerCase().includes(query.trim().toLowerCase())).map(o => ({ id: o.id, label: `Order ${o.id}`, sub: o.customer, route: `/${o.id}` })),
     routes: [
-        { path: '/', label: 'All orders', page: 'custom', config: list('All orders', ORDERS), children: [{ path: '/:id', label: p => `Order ${p.id}`, page: 'custom', config: ({ params }) => record(params.id) }] },
-        { path: '/open', label: 'Open', page: 'custom', config: list('Open orders', ORDERS.filter(o => o.status === 'Open')) },
-        { path: '/shipped', label: 'Shipped', page: 'custom', config: list('Shipped orders', ORDERS.filter(o => o.status === 'Shipped')) },
+        { path: '/', label: 'All orders', page: 'list', config: listFor(null), children: [{ path: '/:id', label: p => `Order ${p.id}`, page: 'record', config: recordConfig }] },
+        { path: '/open', label: 'Open', page: 'list', config: listFor('Open') },
+        { path: '/shipped', label: 'Shipped', page: 'list', config: listFor('Shipped') },
         { path: '*', page: 'not-found' },
     ],
 });

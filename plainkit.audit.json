@@ -1,0 +1,88 @@
+{
+    "allow": [
+        {
+            "rule": "P2",
+            "path": "core/samples/app/app.js",
+            "count": 1,
+            "reason": "mountApp's own lazy-loaded modules (js/app/config.js's documented { id, title, load } shape) call defineModule() in the module file the loader imports, not in this bootstrap file; P2 is a single-file text scan (core/tools/audit/families/p-rules.mjs) and cannot see across the dynamic import() boundary of this documented, canonical pattern (see core/site/guides/guides.data.js's own copy of this exact file). #518's own breakdown parks exactly this kind of cross-file exactness at optional slice A-11 (\"parser mode for P2/P8 exactness\").",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "P2",
+            "path": "core/samples/app/pages.js",
+            "count": 1,
+            "reason": "Same as app.js: the lazily-loaded module (modules/tour.js) calls defineModule() in its own file; P2's single-file scan cannot follow the dynamic import(). See #518, optional slice A-11 (parser mode for P2/P8 exactness).",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "P2",
+            "path": "core/samples/app/top.js",
+            "count": 1,
+            "reason": "Same as app.js: the lazily-loaded modules (about.js, overview.js) call defineModule() in their own files; P2's single-file scan cannot follow the dynamic import(). See #518, optional slice A-11 (parser mode for P2/P8 exactness).",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "A7",
+            "path": "core/samples/app/index.html",
+            "count": 1,
+            "reason": "mountApp builds a real <main id=\"pk-main\"> landmark at runtime (js/app/shell.js) inside the pk-app-shell it mounts into #app; A7 scans only the static HTML text and cannot see DOM built by JS. Adding a static <main> wrapper around #app would instead create a nested/duplicate <main> landmark once mountApp mounts (a real accessibility regression), so that is not a safe fix here.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "A7",
+            "path": "core/samples/app/pages.html",
+            "count": 1,
+            "reason": "Same as index.html: mountApp builds the real <main> landmark at runtime; a static <main> wrapper would nest landmarks once mounted. See #518.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "A7",
+            "path": "core/samples/app/top.html",
+            "count": 1,
+            "reason": "Same as index.html: mountApp builds the real <main> landmark at runtime; a static <main> wrapper would nest landmarks once mounted. See #518.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "S1",
+            "path": "core/samples/app/index.html",
+            "count": 1,
+            "reason": "This is the framework's own required base stylesheet (../../plainkit.css: tokens, reset, the u-sr-only utility the shell itself uses), not app-authored CSS; a plain static HTML entry with no bundler has no other way to load it. The design doc's own rule table (docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md, S1 row) lists an `allowCss: ['app.css']` config knob meant for exactly this kind of case, but it was never implemented in core/tools/audit/families/s-rules.mjs (checked: no allowCss reference anywhere in core/tools/audit). Using the generic allow-list here instead of inventing a local workaround.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "S1",
+            "path": "core/samples/app/pages.html",
+            "count": 1,
+            "reason": "Same as index.html: the framework's own required plainkit.css link, not app CSS. See #518.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "S1",
+            "path": "core/samples/app/top.html",
+            "count": 1,
+            "reason": "Same as index.html: the framework's own required plainkit.css link, not app CSS. See #518.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/518"
+        },
+        {
+            "rule": "S8",
+            "path": "core/samples/app/modules/about.js",
+            "count": 1,
+            "reason": "A single static informational page (heading + text card, no data, no callbacks); no built-in page type fits (list/record/dashboard/tool/settings/doc/workspace/master-detail/wizard all bind to data or, for doc, a browsable multi-item collection). Genuine SDK gap, filed and tracked.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
+        },
+        {
+            "rule": "S8",
+            "path": "core/samples/app/modules/overview.js",
+            "count": 1,
+            "reason": "Same static-informational-page gap as about.js: no built-in page type fits a heading-plus-text-card page with no data.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
+        },
+        {
+            "rule": "S8",
+            "path": "core/samples/app/modules/reports.js",
+            "count": 2,
+            "reason": "Same static-informational-page gap as about.js (two routes: Summary and Exports), no built-in page type fits.",
+            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
+        }
+    ]
+}
