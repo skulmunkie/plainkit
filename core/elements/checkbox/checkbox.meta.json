@@ -1,5 +1,6 @@
 {
   "tag": "pk-checkbox",
+  "a11yRequires": ["label"],
   "title": "Checkbox",
   "group": "Form controls",
   "summary": "A checkbox drawn from tokens, with an indeterminate state and select-all groups: a master checkbox mirrors every checkbox of its group.",

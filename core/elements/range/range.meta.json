@@ -1,5 +1,6 @@
 {
   "tag": "pk-range",
+  "a11yRequires": ["label"],
   "title": "Range",
   "group": "Form controls",
   "summary": "A slider, or with dual a minimum and maximum slider, drawn from tokens with a live value output.",
