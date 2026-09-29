@@ -1,14 +1,16 @@
 import { place, onOutside, unplace } from '../../js/positioning.js';
 import { safeHref } from '../../js/safe-url.js';
+import { isActivateKey } from '../../js/activate-key.js';
 
 // pk-nav-item: a link row, or a branch (no href) that folds its `children`; in the icon rail a branch opens as a flyout beside the rail.
+// Works as a row inside pk-navbar (horizontal) or pk-side-nav / standalone (vertical tree): connected() reads which by ancestry.
 export default Base => class extends Base {
-    connected() { this.setup(); if (this.flyout) this.layer(); }
+    connected() { this.setup(); this.horizontal = Boolean(this.closest('pk-navbar')); if (this.flyout) this.layer(); }
     setup() {
         if (this.$w) return;
         this.$w = true;
         this.shadowRoot.addEventListener('click', e => { if (!this.href && e.target.closest?.('[part="link"]')) this.branch(); });
-        this.shadowRoot.addEventListener('keydown', e => { if (!this.href && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.branch(); } });
+        this.shadowRoot.addEventListener('keydown', e => { if (!this.href && isActivateKey(e)) { e.preventDefault(); this.branch(); } });
         this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && this.rail && !this.href && !this.flyout && this.children.length) this.flyout = true; });
         this.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && this.flyout) this.$t = setTimeout(() => { if (!this.matches(':hover')) this.flyout = false; }, 250); });
         // A branch has no href of its own; watch its slotted children so the collapsed rail can mark it when one of them (in the flyout) is current.

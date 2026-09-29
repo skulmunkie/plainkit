@@ -112,6 +112,7 @@
  ],
  "nav-item": [
   "(max-width: 640px)",
+  "(max-width: 1024px)",
   "(prefers-reduced-motion: reduce)"
  ],
  "navbar": [

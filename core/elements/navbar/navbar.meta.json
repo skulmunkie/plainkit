@@ -42,7 +42,7 @@
     },
     {
       "name": "",
-      "description": "Links and pk-dropdown menus."
+      "description": "Links, pk-dropdown menus, or pk-nav-item rows (it detects the navbar itself, no attribute to set)."
     },
     {
       "name": "actions",
@@ -98,6 +98,10 @@
     {
       "title": "Navbar with a menu and actions",
       "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">Orders</a><pk-dropdown><pk-button slot=\"trigger\" variant=\"ghost\">More</pk-button><pk-menu-item href=\"#\">Customers</pk-menu-item><pk-menu-item href=\"#\">Reports</pk-menu-item></pk-dropdown><pk-button slot=\"actions\" variant=\"ghost\" size=\"mini\">Account</pk-button></pk-navbar>"
+    },
+    {
+      "title": "Navbar with pk-nav-item rows",
+      "html": "<pk-navbar label=\"Main\"><a slot=\"brand\" href=\"#\">Brand</a><pk-nav-item href=\"#\" current>Dashboard</pk-nav-item><pk-nav-item href=\"#\">Orders</pk-nav-item><pk-nav-item href=\"#\" disabled>Reports</pk-nav-item></pk-navbar>"
     },
     {
       "title": "Navbar with a mega menu",

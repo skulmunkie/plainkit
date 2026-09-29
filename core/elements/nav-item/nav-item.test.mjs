@@ -16,6 +16,25 @@ test('group is a boolean prop and its css shows static muted text, not a row', (
     assert.ok(css.includes(':host([group][rail])'));
 });
 
+test('connected() reads placement from ancestry: horizontal inside pk-navbar, not otherwise (#381)', () => {
+    const NavItem = navItem(class {});
+    const inNavbar = { setup() {}, flyout: false, closest: sel => (sel === 'pk-navbar' ? {} : null) };
+    NavItem.prototype.connected.call(inNavbar);
+    assert.equal(inNavbar.horizontal, true);
+    const inSideNav = { setup() {}, flyout: false, closest: () => null };
+    NavItem.prototype.connected.call(inSideNav);
+    assert.equal(inSideNav.horizontal, false);
+});
+
+test('the horizontal prop is registered (reflected) so pk-navbar rows style and query correctly', () => {
+    const meta = JSON.parse(read('meta.json'));
+    assert.equal(prop('horizontal').type, 'boolean');
+    assert.equal(prop('horizontal').reflect, true);
+    const css = read('css');
+    assert.ok(css.includes(':host([horizontal])'));
+    assert.ok(meta.props.some(p => p.name === 'horizontal'));
+});
+
 test('a group title is plain text: no href, tabindex, state attributes or branch toggling', () => {
     const NavItem = navItem(class {});
     const removed = []; const set = {};
