@@ -262,22 +262,9 @@ A standalone Blazor WebAssembly app needs no server and no extra package; the sa
 }
 ```
 
-A page has one `<h1>`, in one place: the header's title, or the app shell's title slot. To put it in the shell's top bar, give the layout a `SectionOutlet` in the `title` slot of `pk-app-shell` and name it in `ShellSection`; the header then writes the title there and does not draw it a second time (it still draws the breadcrumb, the suffix and the actions):
+A page has one `<h1>`: the page header's title, drawn in page space. `pk-app-shell` is app space and has no title concept of its own.
 
-```razor
-@* MainLayout.razor: the shell's title slot holds the one h1 (the shell's title slot, back-href and back-label) *@
-<pk-app-shell back-href="@_parentHref" back-label="@_parentLabel">
-    <h1 slot="title"><SectionOutlet SectionName="shell-title" /></h1>
-    ...
-</pk-app-shell>
-
-@* the page *@
-<PkPageHeader ShellSection="shell-title" Crumbs="@_crumbs" />
-```
-
-**Back link.** `BackLink="true"` draws a chevron link to the parent page (icon mode: the text `Back to <label>` is hidden visually and stays its accessible name): the last crumb before the current one that has an `Href` (crumbs without an address are skipped; with none there is no link). It is a ghost `PkButton` with `Href` (a real anchor, touch-sized on a phone, focus ring, no inline style). With `ShellSection` it is written into the outlet before the title, so the layout's element around the outlet contains it (an `h1` then names the link too; a wrapper element that is not the heading avoids that); without `ShellSection` it sits just above the header. It is off by default because `pk-app-shell` has its own back link (`BackHref` and `BackLabel`, set in the layout, which a page's header cannot reach): use one or the other, never both. If the layout owns the shell, feed `BackHref` and `BackLabel` from the same crumbs; if it does not, set `BackLink`.
-
-Apart from the back link the header writes plain text into the outlet, so the layout decides the element around it (an `h1` here). `PkAppShell` has `TitleContent`, `BackHref` and `BackLabel` parameters too; the example uses the element directly so the `h1` sits in the `title` slot itself (a `TitleContent` fragment is wrapped in a `<span slot="title">`).
+**Back link.** `BackLink="true"` draws a chevron link to the parent page (icon mode: the text `Back to <label>` is hidden visually and stays its accessible name): the last crumb before the current one that has an `Href` (crumbs without an address are skipped; with none there is no link). It is a ghost `PkButton` with `Href` (a real anchor, touch-sized on a phone, focus ring, no inline style), drawn just above the header. It is off by default because `pk-app-shell` has its own back link (`BackHref` and `BackLabel`, set in the layout, which a page's header cannot reach): use one or the other, never both. If the layout owns the shell, feed `BackHref` and `BackLabel` from the same crumbs; if it does not, set `BackLink`.
 
 ### Route-aware components
 
