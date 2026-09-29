@@ -201,3 +201,7 @@ Forwarded entries use the fixed category `PlainKit.Browser`. Inject `IPkLog` to 
 
 ### Upgrade this app to a newer PlainKit.Blazor
 `references/upgrading.md`: a blast-radius recipe, not a changelog summary. Also check the app against `references/choosing.md`: a hand-written wrapper, table or record page that a newer component now covers is worth replacing. Find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, turn the matches into a severity-ordered checklist. Mechanical renames get done; a judgment call gets flagged. Format text and numbers for `pk-input type="date"`/`type="number"` with `PkInputFormat` (`references/input-format.md`) rather than hand-rolling the invariant-culture parse.
+
+### Check your work
+
+{{conformanceChecklist}}

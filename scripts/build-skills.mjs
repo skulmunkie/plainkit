@@ -21,6 +21,8 @@ import { loadSamples, build } from '../core/tools/build.mjs';
 import { MODULES } from '../core/tools/modules-dist.mjs';
 import { parseTokenBlocks } from '../core/js/theme.js';
 import { loadBreakpoints } from '../core/tools/breakpoints.mjs';
+import { RULES } from '../core/tools/audit/rules.mjs';
+import { EXAMPLES, MANUALLY_TESTED } from '../core/tools/audit/examples.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const root = path.resolve(here, '..');
@@ -501,6 +503,64 @@ function choosingMd(src, skill) {
         ...cat('templates (full pages, templates.md)', src.samples.templates), ...cat('layouts (page anatomies, layouts.md)', src.samples.layouts), ...cat('patterns (small compositions, patterns.md)', src.samples.patterns)].join('\n');
 }
 
+// ---------------------------------------------------------------- conformance audit (issue #518, A-8)
+//
+// The rule table (core/tools/audit/rules.mjs) is the single source (design "Where the rules live in the
+// skills"): the CLI (`plainkit audit`), `--list-rules`, `--explain <id>` and this reference all read the same
+// RULES array, so the skill documentation cannot describe a rule the engine does not implement. The wrong/right
+// snippet for each rule comes from core/tools/audit/examples.mjs, the same table core/tools/audit/rules.test.mjs
+// runs through the engine (a "wrong" snippet must produce the rule's id, a "right" one must not), so a rendered
+// example is also a tested one. scripts/tests/audit-rules.test.mjs is the parity test that fails when a rule has
+// no example, when an id in this file has no RULES entry (or the reverse), or when the CLI and this file disagree.
+const FAMILY_TITLES = {
+    S: 'S — strict-module standards (security, styling, structure) carried over for a consumer app',
+    D: 'D — duplicating an element or its interaction logic instead of using the one that exists',
+    P: 'P — pages and app structure: mountApp/defineModule usage versus a hand-built page',
+    T: 'T — tokens and standards: literal colours/sizes/fonts, deprecated names, the wrong import path',
+    A: 'A — accessibility attributes an element needs to have an accessible name or state',
+};
+const exampleFor = id => EXAMPLES.find(e => e.id === id);
+
+/** references/conformance-rules.md: the full rule catalogue, sorted by family, id, category, normal/strict
+ * severity, what it detects, the doc anchor, and (when the rule has one) the wrong/right snippet from examples.mjs. */
+function conformanceRulesMd(src) {
+    const byFamily = new Map();
+    for (const rule of RULES) { const list = byFamily.get(rule.category) ?? []; list.push(rule); byFamily.set(rule.category, list); }
+    const sections = [...byFamily.keys()].sort().flatMap(fam => {
+        const rules = byFamily.get(fam);
+        const rows = table(['id', 'normal', 'strict', 'detects'], rules.map(r => [r.id, r.severity.normal, r.severity.strict, r.detects]));
+        const perRule = rules.flatMap(r => {
+            const ex = exampleFor(r.id);
+            const lines = [`### ${r.id}`, '', r.detects, '', `Docs: ${code(r.docs)}`];
+            // Fenced as `text`, not `html`/`js`/`css`: several "wrong" snippets are deliberately invalid or use a
+            // typo'd tag/import on purpose (that is what the rule catches), and scripts/tests/skills.test.mjs
+            // runs every real html/js/css fence in the bundle through the sample checkers, which would reject
+            // them. `text` keeps them out of that pass while still rendering as code for a reader.
+            if (ex) lines.push('', 'Wrong:', '', fence('text', ex.wrong), '', 'Right:', '', fence('text', ex.right));
+            else if (!MANUALLY_TESTED.has(r.id)) lines.push('', '_No wrong/right example yet._');
+            lines.push('');
+            return lines;
+        });
+        return [`## ${FAMILY_TITLES[fam] ?? fam}`, '', rows, '', ...perRule];
+    });
+    return ['# Conformance rules', '', stamp(src, 'core/tools/audit/rules.mjs and core/tools/audit/examples.mjs'), '',
+        `Every rule \`npx plainkit audit\` can report, one row per id: the CLI is the same rule table, so \`--list-rules\` lists these exact ids and \`--explain <id>\` shows the same detects/severity/docs. "normal" and "strict" are the finding's severity in the two modes (\`off\` means the rule does not run at all in that mode); run \`--strict\` before finishing to see errors and warnings both.`, '',
+        ...sections].join('\n');
+}
+
+const CONFORMANCE_INTRO = 'Before you finish, run `npx plainkit audit --strict` from the app root and fix each finding by its rule id (`references/conformance-rules.md` explains the id; `npx plainkit audit --explain <id>` shows the same thing from the command line). A finding that is a real gap in the SDK — nothing else does the job — goes to the tracker (issue #336 in this repository, or the app\'s own tracker for a consumer project), never a local workaround. For an agent that cannot run Node, the rule families below are the checklist: read the ones that apply to what you just wrote.';
+
+/** The "Check your work" workflow step, filled into {{conformanceChecklist}} in both SKILL.md templates: the
+ * `npx plainkit audit --strict` instruction plus the rule families as an inline checklist for an agent that
+ * cannot run the CLI (design "for an agent that cannot run Node, the top 10 rules inline as a checklist" —
+ * done here per family, since a family is the unit an agent reasons in, not an arbitrary top-10 cut). */
+function conformanceChecklistMd() {
+    const byFamily = new Map();
+    for (const rule of RULES) { const list = byFamily.get(rule.category) ?? []; list.push(rule); byFamily.set(rule.category, list); }
+    const lines = [...byFamily.keys()].sort().map(fam => `- **${FAMILY_TITLES[fam] ?? fam}**: ${byFamily.get(fam).map(r => code(r.id)).join(', ')}`);
+    return [CONFORMANCE_INTRO, '', ...lines].join('\n');
+}
+
 // The "Build an app" reference: the Guide "Build an app" (core/site/guides/content) is the one source, flattened like the choosing guide (a skill has no Guides page).
 export const BUILD_AN_APP_GUIDE = 'core/site/guides/content/build-an-app.md';
 function buildAnAppMd(src) {
@@ -934,15 +994,18 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/known-gaps.md', sdkGapsMd(src));
     put('plainkit-sdk', 'references/upgrading.md', upgradingMd(src, 'The installed version is `dist/manifest.json`\'s `version` field, or the `PK_VERSION` export of `dist/js/version.js`. The target is the version you are moving to (latest release unless the user names one).'));
     put('plainkit-sdk', 'references/choosing.md', choosingMd(src, 'plainkit-sdk'));
+    put('plainkit-sdk', 'references/conformance-rules.md', conformanceRulesMd(src));
     for (const [rel, text] of blazor.files) put('plainkit-blazor', rel, text);
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
     put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).'));
+    put('plainkit-blazor', 'references/conformance-rules.md', conformanceRulesMd(src));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
-    const describe = { 'choosing.md': CHOOSING_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, layout builder, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`, measuring a page (`measurePage`, `watchVitals`)', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'page.md': '`createPage`: busy overlay, breadcrumbs from a route tree, a self-loading `pk-card`, `pk-property-grid`', 'custom-sdk.md': 'exporting a themed or re-breakpointed `dist` from the theme editor, and the `.zip` builder underneath', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'build-an-app.md': 'build an app: `mountPage` or `mountApp`, a module, every page type with a running example, routes, nav, state, guards, the speed, reliability and security tenets', 'app.md': 'app modules: `defineModule`, `moduleFromMount`, `createModuleHost` (lifecycle, boundaries, ctx, custom page types and layouts)', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
+    const CONFORMANCE_DESC = 'the audit CLI\'s full rule catalogue (id, normal/strict severity, what it detects, a wrong/right snippet) - what `npx plainkit audit --explain <id>` also shows';
+    const describe = { 'choosing.md': CHOOSING_DESC, 'conformance-rules.md': CONFORMANCE_DESC, 'elements-index.md': 'every tag, its group and the file that documents it (start here to find an element)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, layout builder, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`, measuring a page (`measurePage`, `watchVitals`)', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'page.md': '`createPage`: busy overlay, breadcrumbs from a route tree, a self-loading `pk-card`, `pk-property-grid`', 'custom-sdk.md': 'exporting a themed or re-breakpointed `dist` from the theme editor, and the `.zip` builder underneath', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'build-an-app.md': 'build an app: `mountPage` or `mountApp`, a module, every page type with a running example, routes, nav, state, guards, the speed, reliability and security tenets', 'app.md': 'app modules: `defineModule`, `moduleFromMount`, `createModuleHost` (lifecycle, boundaries, ctx, custom page types and layouts)', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
-    const bzDescribe = { 'choosing.md': CHOOSING_DESC, 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'record-editor.md': '`PkRecordEditor`: the load, validate, save and delete state of a record page, and `IPkUserFacingException`', 'record-form.md': '`PkRecordForm`: the page template of a create-or-edit record page (toolbar, tabs, error, cards and sidebar)', 'field-list-row.md':'`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
+    const bzDescribe = { 'choosing.md': CHOOSING_DESC, 'conformance-rules.md': CONFORMANCE_DESC, 'components-index.md': 'every element, its component, status and file (start here to find a component; for parts, CSS custom properties, methods and a11y notes, open the same tag in the plainkit-sdk skill instead)', 'data-list.md': '`PkDataList`: a searchable, sortable, server-paged list (`Load`, `PkListRequest`, `PkListResult`)', 'field-group.md': '`PkFieldGroup`: a plain field bound to a model property, from a list of `PkFieldSpec<TItem>`', 'record-editor.md': '`PkRecordEditor`: the load, validate, save and delete state of a record page, and `IPkUserFacingException`', 'record-form.md': '`PkRecordForm`: the page template of a create-or-edit record page (toolbar, tabs, error, cards and sidebar)', 'field-list-row.md':'`PkFieldListRow`: an optional term/value row for `PkFieldList` that hides itself when empty', 'raw-table.md': '`PkRawTable`: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', 'file-upload.md': '`PkDropzone`/`PkImageGallery` with `InputFile`: reading picked and dropped files', 'input-format.md': '`PkInputFormat`: typed round-trip for pk-input type="date"/"number"', 'setup-and-options.md': '`AddPlainKit`, `PkOptions`, `PkRuntime`, `PkAssets`', 'devtools.md': '`/_plainkit` and the tool components', 'logging.md': '`IPkLog` and the `ILogger` bridge', 'events.md': 'event args classes', 'enums.md': 'enum values', 'known-gaps.md': 'what does not exist yet, WebAssembly status', 'upgrading.md': 'moving this app to a newer PlainKit.Blazor version: a blast-radius checklist, not a changelog readout' };
     for (const skill of SKILL_NAMES) {
         const tpl = fs.readFileSync(path.join(here, 'skills', skill, 'SKILL.md'), 'utf8');
         const isSdk = skill === 'plainkit-sdk';
@@ -952,6 +1015,7 @@ export function generate(src = collect()) {
             missing: src.manifest.skipped.filter(s => !s.handWritten).map(s => '`' + s.component + '`').join(', ') || 'none (every element has a component)',
             breakpoints: src.breakpoints.map(b => `\`${b.name}\` ${b.width}`).join(', '),
             wrapperCount: String(src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour')).length),
+            conformanceChecklist: conformanceChecklistMd(),
         });
         out.set(`${skill}/SKILL.md`, text.replace(/\n*$/, '\n'));
     }
