@@ -147,4 +147,65 @@ export const dockCases = [
         t.ok(/Canvas opened/.test(status.textContent), 'the reopen is announced too');
         t.eq(dock.layout.version, 1, 'still a plain layout document: closing/reopening keeps no separate persisted state');
     }],
+
+    ['dock: dragging a single-panel header onto another group\'s center shows a center drop-zone highlight and, on drop, adds it as a tab (moveTab), same as the Move menu', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasHeader = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle).querySelector('[part=header]');
+        const propsGroup = [...root.querySelectorAll('[part=group]')].find(g => g.querySelector('[part=title]')?.textContent === 'Properties');
+        const from = rect(canvasHeader), to = rect(propsGroup);
+        const ptr = (type, x, y) => canvasHeader.dispatchEvent(new win.PointerEvent(type, { pointerId: 9, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', from.left + from.width / 2, from.top + from.height / 2);
+        ptr('pointermove', to.left + to.width / 2, to.top + to.height / 2); // dead center of Properties: the "add as tab" zone
+        await t.settle();
+        t.eq(propsGroup.getAttribute('drop-zone'), 'center', 'the target group is marked with the zone the pointer is over');
+        ptr('pointerup', to.left + to.width / 2, to.top + to.height / 2);
+        await t.settle(); await wait(60);
+        t.eq(propsGroup.getAttribute('drop-zone'), null, 'the highlight clears once the drag ends');
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        const movedTab = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Canvas');
+        t.ok(movedTab && movedTab.getAttribute('selected') !== null, 'canvas is now a tab of the Properties group, and the active one');
+    }],
+
+    ['dock: dragging a header onto another group\'s left edge shows an edge drop-zone highlight and, on drop, docks it there (dockPanel) rather than adding it as a tab, same as "Dock left of" in the Move menu', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasHeader = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle).querySelector('[part=header]');
+        const propsGroup = [...root.querySelectorAll('[part=group]')].find(g => g.querySelector('[part=title]')?.textContent === 'Properties');
+        const from = rect(canvasHeader), to = rect(propsGroup);
+        const ptr = (type, x, y) => canvasHeader.dispatchEvent(new win.PointerEvent(type, { pointerId: 10, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', from.left + from.width / 2, from.top + from.height / 2);
+        ptr('pointermove', to.left + 2, to.top + to.height / 2); // the outer left edge of Properties: a dockPanel zone, not the tab center
+        await t.settle();
+        t.eq(propsGroup.getAttribute('drop-zone'), 'left');
+        ptr('pointerup', to.left + 2, to.top + to.height / 2);
+        await t.settle(); await wait(60);
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        // A left-edge drop is dockPanel, not moveTab: canvas keeps its own titled header (never becomes a Properties tab), same as choosing "Dock
+        // left of" from the Move menu would. (Canvas's old middle split also collapses away as it is lifted out, so the splitter count alone would
+        // not tell dockPanel and moveTab apart here - checking what canvas became does.)
+        t.ok([...root.querySelectorAll('[part=group]')].some(hasCanvasTitle), 'canvas still has its own titled header, not merged into a tab strip');
+        t.ok(![...root.querySelectorAll('pk-tab')].some(x => x.textContent === 'Canvas'), 'canvas is not a tab of the Properties group');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Canvas docked left of Properties/.test(status.textContent), 'the dock is announced');
+    }],
+
+    ['dock: a pointerdown/up with no movement in between is a plain click, not a drag: only the tab\'s own selection fires, with no extra "move" layout change', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const assets = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Assets'), r = rect(assets);
+        const ptr = (type, x, y) => assets.dispatchEvent(new win.PointerEvent(type, { pointerId: 11, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', r.left + r.width / 2, r.top + r.height / 2);
+        ptr('pointerup', r.left + r.width / 2, r.top + r.height / 2); // no move at all: never becomes a drag
+        assets.click(); // the browser's own click selects the tab, exactly as before this feature existed; pointerdown/up alone do not
+        await t.settle(); await wait(60);
+        t.eq(seen.length, 1, 'exactly the tab\'s own activate, no extra move from the click-sized pointer gesture');
+        t.eq(seen[0].reason, 'activate');
+        t.ok(assets.getAttribute('selected') !== null, 'the plain click still selects the tab');
+    }],
 ];

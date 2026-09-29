@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import behaviour, { readPanels, readingOrder } from './dock.js';
+import behaviour, { readPanels, readingOrder, dropZone } from './dock.js';
 import { defaultLayout, findGroup, groups } from '../../js/dock-model.js';
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./dock.${ext}`, import.meta.url)), 'utf8');
@@ -26,6 +26,9 @@ class Node {
     constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.text = ''; this.listeners = {}; }
     setAttribute(k, v) { this.attrs[k] = String(v); }
     getAttribute(k) { return this.attrs[k] ?? null; }
+    hasAttribute(k) { return k in this.attrs; }
+    toggleAttribute(k, on) { if (on) this.attrs[k] = ''; else delete this.attrs[k]; }
+    removeAttribute(k) { delete this.attrs[k]; }
     append(...n) { for (const c of n) c.parent = this; this.kids.push(...n); }
     replaceChildren(...n) { for (const c of n) c.parent = this; this.kids = n; }
     addEventListener(t, f) { this.listeners[t] = f; }
@@ -54,7 +57,8 @@ const groupTemplate = () => { const s = new Node('section'), h = new Node('div')
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
 const make = (panels, props = {}) => {
     const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), toolbar = new Node('toolbar'), parts = { root, empty, status, toolbar };
-    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? empty; } get shadowRoot() { return { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }) }; } requestUpdate() {} slotted() { return []; } }))();
+    const shadow = { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }), elementFromPoint: () => null };
+    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? empty; } get shadowRoot() { return shadow; } requestUpdate() {} slotted() { return []; } toggleAttribute() {} }))();
     Object.assign(el, { events: [], layout: null, label: '', resizeLabel: 'Resize panels', children: panels.map(p => child(p.id, { 'data-heading': p.title, 'data-group': p.group })), ownerDocument: { createElement: t => new Node(t) } });
     Object.assign(el, props);
     globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
@@ -264,4 +268,98 @@ test('the css uses tokens only and logical properties', () => {
 test('the source keeps its one outside subscription (the phone media query) removed on disconnect and logs through the element', () => {
     assert.ok(src.includes('removeEventListener') && src.includes('disconnect()'));
     assert.ok(!/console\./.test(src) && !/innerHTML/.test(src));
+});
+
+// ---- pointer drag-to-dock (issue 607): dropZone is the pure hit test; onDragStart/onDragMove/onDragEnd are exercised on the same DOM stand-in as
+// every other event above, with shadowRoot.elementFromPoint stubbed to say what the pointer is over (a real elementFromPoint only exists in a browser).
+const RECT = { left: 100, top: 100, width: 200, height: 100 };
+test('dropZone: the outer quarter of each side is that edge, the rest is center; a zero-size rect never throws and stays center', () => {
+    assert.equal(dropZone(RECT, 100 + 10, 100 + 50), 'left');
+    assert.equal(dropZone(RECT, 100 + 190, 100 + 50), 'right');
+    assert.equal(dropZone(RECT, 100 + 100, 100 + 5), 'top');
+    assert.equal(dropZone(RECT, 100 + 100, 100 + 95), 'bottom');
+    assert.equal(dropZone(RECT, 100 + 100, 100 + 50), 'center');
+    assert.equal(dropZone({ left: 0, top: 0, width: 0, height: 0 }, 0, 0), 'center');
+});
+
+test('a drag that never moves past the threshold is a no-op: no dragging attribute, no drop zone, no move applied on release', () => {
+    const { el, root } = make(P);
+    const [left] = groups(el.$doc);
+    const groupEl = find(root, 'section').find(s => s.getAttribute('data-node') === left.id);
+    const header = groupEl.querySelector('.header');
+    header.closest = sel => (sel === '[part="header"]' ? header : sel === '[data-node]' ? groupEl : null);
+    el.shadowRoot.elementFromPoint = () => null;
+    root.listeners['pointerdown']({ button: 0, pointerId: 1, clientX: 0, clientY: 0, target: { closest: s => (s === 'pk-dropdown, pk-button' ? null : header.closest(s)) } });
+    root.listeners['pointermove']({ pointerId: 1, clientX: 1, clientY: 1, preventDefault() {} });
+    root.listeners['pointerup']({ pointerId: 1, type: 'pointerup' });
+    assert.equal(el.events.length, 0, 'a plain click-sized movement never becomes a move');
+});
+
+test('a drag dropped on another group\'s center adds the panel as a tab (moveTab), and on an edge docks it (dockPanel), same as the matching Move menu item', () => {
+    const { el, root, status } = make(P);
+    const [left, , right] = groups(el.$doc);
+    const canvasSection = find(root, 'section').find(s => s.getAttribute('data-node') === findGroup(el.$doc, 'canvas').id);
+    const targetSection = find(root, 'section').find(s => s.getAttribute('data-node') === right.id);
+    const handle = canvasSection.querySelector('.header');
+    handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? canvasSection : null);
+    handle.setPointerCapture = () => {}; handle.hasPointerCapture = () => true; handle.releasePointerCapture = () => {};
+    targetSection.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 });
+    el.shadowRoot.elementFromPoint = () => ({ closest: sel => (sel === '[data-node]' ? targetSection : null) });
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle.closest(s)) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 2, clientX: 0, clientY: 0, target });
+    root.listeners['pointermove']({ pointerId: 2, clientX: 50, clientY: 50, preventDefault() {} }); // dead center of the stubbed rect: zone center
+    root.listeners['pointerup']({ pointerId: 2, type: 'pointerup' });
+    assert.equal(findGroup(el.$doc, 'canvas').id, right.id, 'canvas landed in the Properties group, added as a tab');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['move']);
+    assert.match(status.text, /Canvas added as a tab in Properties/);
+
+    const { el: el2, root: root2, status: status2 } = make(P);
+    const canvas2 = find(root2, 'section').find(s => s.getAttribute('data-node') === findGroup(el2.$doc, 'canvas').id);
+    const rightSection2 = find(root2, 'section').find(s => s.getAttribute('data-node') === groups(el2.$doc)[2].id);
+    const handle2 = canvas2.querySelector('.header');
+    handle2.closest = sel => (sel === '[part="header"]' ? handle2 : sel === '[data-node]' ? canvas2 : null);
+    handle2.setPointerCapture = () => {}; handle2.hasPointerCapture = () => true; handle2.releasePointerCapture = () => {};
+    rightSection2.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 });
+    el2.shadowRoot.elementFromPoint = () => ({ closest: sel => (sel === '[data-node]' ? rightSection2 : null) });
+    const target2 = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle2.closest(s)) };
+    root2.listeners['pointerdown']({ button: 0, pointerId: 3, clientX: 0, clientY: 0, target: target2 });
+    root2.listeners['pointermove']({ pointerId: 3, clientX: 5, clientY: 50, preventDefault() {} }); // left 5% of the stubbed rect: zone left
+    root2.listeners['pointerup']({ pointerId: 3, type: 'pointerup' });
+    assert.notEqual(findGroup(el2.$doc, 'canvas').id, groups(el2.$doc)[2]?.id, 'canvas is in a fresh group split to the left of Properties');
+    assert.deepEqual(el2.events.map(e => e.detail.reason), ['move']);
+    assert.match(status2.text, /Canvas docked left of Properties/);
+});
+
+test('a drag cannot land on its own source group: no drop zone is offered there, so releasing over it does nothing', () => {
+    const { el, root } = make(P);
+    const left = groups(el.$doc)[0];
+    const leftSection = find(root, 'section').find(s => s.getAttribute('data-node') === left.id);
+    const handle = leftSection.querySelector('.header');
+    handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? leftSection : null);
+    handle.setPointerCapture = () => {}; handle.hasPointerCapture = () => true; handle.releasePointerCapture = () => {};
+    el.shadowRoot.elementFromPoint = () => ({ closest: sel => (sel === '[data-node]' ? leftSection : null) });
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle.closest(s)) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 4, clientX: 0, clientY: 0, target });
+    root.listeners['pointermove']({ pointerId: 4, clientX: 50, clientY: 50, preventDefault() {} });
+    root.listeners['pointerup']({ pointerId: 4, type: 'pointerup' });
+    assert.equal(el.events.length, 0);
+});
+
+test('a pointerdown on the panel menu trigger never starts a drag (the menu still opens normally)', () => {
+    const { el, root } = make(P);
+    const trigger = { closest: s => (s === 'pk-dropdown, pk-button' ? trigger : null) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 6, clientX: 0, clientY: 0, target: trigger });
+    root.listeners['pointermove']({ pointerId: 6, clientX: 50, clientY: 50, preventDefault() {} });
+    root.listeners['pointerup']({ pointerId: 6, type: 'pointerup' });
+    assert.equal(el.events.length, 0);
+});
+
+test('a single group (nothing to drop on) never starts a drag: onDragStart bails before setPointerCapture is even reached', () => {
+    const single = make([{ id: 'only' }]);
+    const section = find(single.root, 'section')[0];
+    const handle = section.querySelector('.header');
+    handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? section : null);
+    handle.setPointerCapture = () => assert.fail('a lone group has nowhere to dock: no drag should ever start');
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle.closest(s)) };
+    single.root.listeners['pointerdown']({ button: 0, pointerId: 7, clientX: 0, clientY: 0, target });
 });

@@ -1,6 +1,10 @@
 // pk-dock (issue 432): step 1's resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
 // same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen; step 2's keyboard/menu move between
-// groups (a group's panel menu opened by keyboard, and the panel it moves) and close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it back).
+// groups (a group's panel menu opened by keyboard, and the panel it moves) and close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it back);
+// issue 607's pointer drag-to-dock: dragging Canvas's header toward Properties, shown mid-drag over its center (the moveTab drop zone) and over its left edge (a
+// dockPanel zone), each with the accent drop-zone highlight visible. The drag is cancelled rather than dropped (pointercancel), so the layout the later Move-menu
+// and close/reopen steps rely on is unchanged - a second scenario would be needed to also show the *result* of a drop, which the browser suite already covers
+// (core/tests/browser/cases-dock.js), pointer events and all; a still screenshot only needs the mid-drag state, not a full end-to-end commit.
 // The dock applies nothing to the panels themselves: they are the page's own children, slotted.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
@@ -31,6 +35,20 @@ export default {
             ptr('pointermove', root.left + r.width / 2 + (root.width - r.width) * 0.45);
             if (on === 'release') ptr('pointerup', 0);
         } });
+        // A pointer drag of Canvas's header toward Properties, one call per state: grab it, move over the target's center (the "add as tab" zone) or
+        // its left edge (a dockPanel zone), or cancel. Cancelling (rather than dropping) leaves the layout untouched for every step after this one.
+        Object.defineProperty(dock, 'demoPanelDrag', { set(state) {
+            const root = dock.shadowRoot.querySelector('[part=root]'), groups = [...root.querySelectorAll('[part=group]')];
+            const byTitle = title => groups.find(g => g.querySelector('[part=title]')?.textContent === title);
+            const header = byTitle('Canvas')?.querySelector('[part=header]'), target = byTitle('Properties');
+            if (!header || !target) return;
+            const fr = header.getBoundingClientRect(), tr = target.getBoundingClientRect();
+            const ptr = (type, x, y) => header.dispatchEvent(new PointerEvent(type, { pointerId: 8, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+            if (state === 'start') ptr('pointerdown', fr.left + fr.width / 2, fr.top + fr.height / 2);
+            else if (state === 'center') ptr('pointermove', tr.left + tr.width / 2, tr.top + tr.height / 2);
+            else if (state === 'left') ptr('pointermove', tr.left + 2, tr.top + tr.height / 2);
+            else if (state === 'cancel') ptr('pointercancel', 0, 0);
+        } });
     },
     steps: [
         { shot: 'rest' },
@@ -38,6 +56,12 @@ export default {
         { shot: 'keyboard', on: ['desktop'] },
         { set: '#dock', prop: 'demoDrag', value: 'release', on: ['desktop'] }, { wait: 100 },
         { shot: 'pointer', on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'start', on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'center', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'drag-center', on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'left', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'drag-edge', on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'cancel', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
         { shot: 'tab' },
         { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
@@ -78,6 +102,14 @@ export default {
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
         }
         if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
+        if (t.shot === 'drag-center') {
+            t.exists('#dock >>> [part=group][drop-zone="center"]', 'the target group is marked with the center drop zone while the pointer hovers its middle');
+            t.absent('#dock >>> [part=group][drop-zone="left"]');
+        }
+        if (t.shot === 'drag-edge') {
+            t.exists('#dock >>> [part=group][drop-zone="left"]', 'the target group is marked with the left edge drop zone while the pointer hovers its edge');
+            t.absent('#dock >>> [part=group][drop-zone="center"]');
+        }
         if (t.shot === 'move-menu') { t.visible('#dock >>> [part=group] pk-dropdown', 'the Move menu opened'); t.exists('#dock >>> [part=group] pk-menu-item'); }
         if (t.shot === 'move-done') { t.hidden('#dock >>> [part=empty]'); t.exists('#dock >>> [part=group]'); }
         if (t.shot === 'closed') {

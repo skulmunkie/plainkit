@@ -9,9 +9,18 @@
 .root { flex: 1; min-block-size: 0; }
 .root pk-splitter { --pk-splitter-height: 100%; }
 .cell { block-size: 100%; }
-.group { display: flex; flex-direction: column; block-size: 100%; background: var(--color-surface); }
+.group { display: flex; flex-direction: column; block-size: 100%; background: var(--color-surface); position: relative; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex: none; min-block-size: var(--pk-dock-header-height, var(--space-8)); padding-inline: var(--space-3); border-block-end: 1px solid var(--color-border); font-size: var(--text-sm); font-weight: 600; }
+.group[data-movable] .header, .group[data-movable] pk-tabs::part(list) { cursor: grab; }
+:host([dragging]) { cursor: grabbing; user-select: none; }
 .title { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A pointer drag's drop-zone indicator: an accent overlay covering the whole group (center, add as tab) or clipped to one edge band (dockPanel's
+   left/right/top/bottom split), matching dropZone's own EDGE fraction in dock.js. Pointer events are off so it never steals the drag it is showing. */
+.group[drop-zone]::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--color-accent); opacity: 0.16; border: 2px solid var(--color-accent); box-sizing: border-box; }
+.group[drop-zone="left"]::after { inset-inline-end: 75%; }
+.group[drop-zone="right"]::after { inset-inline-start: 75%; }
+.group[drop-zone="top"]::after { inset-block-end: 75%; }
+.group[drop-zone="bottom"]::after { inset-block-start: 75%; }
 .group pk-tabs::part(list) { align-items: center; }
 .trailing { display: flex; align-items: center; flex: none; padding-inline-end: var(--space-2); }
 .sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
