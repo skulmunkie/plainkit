@@ -17,6 +17,7 @@ import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer, createLogge
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
 import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const modLog = createLogger('logs');
 
@@ -70,7 +71,7 @@ export async function mountLogs(container, options = {}) {
             h(doc, 'pk-cluster', {}, pause, order, clear, copy, exportBtn, importBtn, file),
             table, detail));
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
+    if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
 
