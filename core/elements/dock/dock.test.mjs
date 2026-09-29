@@ -37,6 +37,7 @@ class Node {
     removeAttribute(k) { delete this.attrs[k]; }
     append(...n) { for (const c of n) c.parent = this; this.kids.push(...n); }
     replaceChildren(...n) { for (const c of n) c.parent = this; this.kids = n; }
+    get firstElementChild() { return this.kids[0]; }
     addEventListener(t, f) { this.listeners[t] = f; }
     set textContent(v) { this.text = v; }
     closest(sel) { return this.tag === sel ? this : null; }
@@ -68,8 +69,13 @@ const groupTemplate = () => {
     return s;
 };
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
+// dock.html's flyout carries a static Expand button (issue #636, same class/part as a header's own collapse-toggle) ahead of whatever panel slot
+// toggleFlyout appends: the build validates meta.parts against exactly this markup, so the stand-in mirrors it rather than letting the element
+// create its own button node.
+const flyoutExpandButton = () => el('button', 'collapse-toggle');
 const make = (panels, props = {}) => {
     const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), toolbar = new Node('toolbar'), flyout = new Node('flyout');
+    flyout.append(flyoutExpandButton());
     const parts = { root, empty, status, toolbar, flyout };
     const shadow = { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }), elementFromPoint: () => null };
     const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? empty; } get shadowRoot() { return shadow; } requestUpdate() {} slotted() { return []; } toggleAttribute() {} }))();
@@ -327,10 +333,39 @@ test('a rail button opens the panel as a flyout on click, closes on a second cli
     assert.equal(el.$flyout, 'props', 'the panel opened as a flyout');
     assert.equal(el.events.length, before, 'opening a flyout is a transient view, not a layout change');
     assert.equal(flyoutEl.hidden, false);
-    assert.deepEqual(flyoutEl.kids.map(k => k.getAttribute('name')), ['props']);
+    assert.deepEqual(flyoutEl.kids.map(k => k.tag), ['button', 'slot'], 'the Expand button comes before the panel slot');
+    assert.deepEqual(find(flyoutEl, 'slot').map(s => s.getAttribute('name')), ['props']);
+    assert.equal(flyoutEl.kids[0].getAttribute('data-panel'), 'props', 'the Expand button carries the same data-panel as the panel\'s own header toggle');
     root.listeners.click({ stopPropagation() {}, target: rail });
     assert.equal(el.$flyout, null, 'a second click on the same rail button closes it again');
     assert.equal(flyoutEl.hidden, true);
+});
+
+test('the flyout\'s own Expand button, a separate action from opening/closing the flyout, restores the panel to a normal docked header and closes the (now stale) flyout (issue #636)', () => {
+    const { el, root } = make(P);
+    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: propsToggle }); // collapse props to a rail button
+    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    rail.closest = sel => (sel === 'button' ? rail : null);
+    rail.getBoundingClientRect = () => ({ left: 0, top: 0, right: 40, bottom: 40, width: 40, height: 40 });
+    const flyoutEl = el.part('flyout');
+    flyoutEl.style = {}; flyoutEl.getBoundingClientRect = () => ({ width: 200, height: 200 });
+    globalThis.document ??= { documentElement: { clientWidth: 1024, clientHeight: 768 }, addEventListener() {}, removeEventListener() {} };
+    globalThis.getComputedStyle ??= () => ({ direction: 'ltr' });
+    root.listeners.click({ stopPropagation() {}, target: rail }); // open the flyout
+    const before = el.events.length;
+    const expandBtn = flyoutEl.kids[0];
+    assert.ok(expandBtn, 'the flyout offers an Expand button distinct from the rail button itself');
+    expandBtn.closest = sel => (sel === 'button' ? expandBtn : null);
+    flyoutEl.listeners.click({ stopPropagation() {}, target: expandBtn }); // the flyout carries its own click listener (dock.html: a sibling of root)
+    assert.deepEqual(el.$doc.collapsed, [], 'expandPanel ran: the panel is no longer collapsed');
+    assert.deepEqual(el.events.slice(before).map(e => e.detail.reason), ['collapse'], 'restoring from the flyout commits reason collapse, the same as the header chevron');
+    assert.equal(el.$flyout, null, 'the stale flyout is closed once the panel is expanded (reflyout finds no rail button left for it)');
+    assert.equal(flyoutEl.hidden, true);
+    const header = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    assert.ok(header, 'props is drawn as a normal header again, not a rail button');
+    assert.equal(find(root, 'button').some(b => b.getAttribute('data-rail-panel') === 'props'), false);
 });
 
 test('a click that is not on a collapse-toggle button does nothing', () => {

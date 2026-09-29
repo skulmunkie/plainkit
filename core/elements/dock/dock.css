@@ -44,3 +44,4 @@
 .rail-button[aria-expanded="true"] { background: var(--color-surface-alt); }
 .flyout { position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: var(--z-pop); box-sizing: border-box; inline-size: var(--pk-dock-flyout-width, 18rem); max-inline-size: calc(100vw - 2 * var(--space-4)); max-block-size: min(24rem, calc(100dvh - 2 * var(--space-4))); overflow: auto; padding: var(--pk-dock-pad, var(--space-3)); background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); }
 .flyout[hidden] { display: none; }
+/* The Expand button (issue 636) reuses .collapse-toggle's own class and part: a named, full-width, keyboard-reachable row, no new rule needed. */
