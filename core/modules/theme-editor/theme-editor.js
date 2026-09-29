@@ -40,6 +40,7 @@ import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSav
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
 import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
 import { createLogger } from '../../js/log.js';
@@ -138,8 +139,9 @@ export async function mountThemeEditor(container, options = {}) {
     function applyToTarget(css) {
         if (sheet) { sheet.replaceSync(css); return; }
         const next = inlineEntries(state.overrides, theme());
-        for (const n of setInline) if (!(n in next)) themeHost.style.removeProperty(n);
-        for (const [n, v] of Object.entries(next)) themeHost.style.setProperty(n, v);
+        const stale = [...setInline].filter(n => !(n in next));
+        themeHost.dataset.dyn = [...stale.map(n => `${n}:`), ...Object.entries(next).map(([n, v]) => `${n}:${v}`)].join('; ');
+        applyDynamic(themeHost);
         setInline = new Set(Object.keys(next));
     }
 
@@ -235,7 +237,7 @@ export async function mountThemeEditor(container, options = {}) {
         topNote,
         h(doc, 'pk-cluster', { justify: 'between' }, count, shown, h(doc, 'pk-cluster', {}, undoBtn, redoBtn, resetAll)),
         tabs);
-    if (height) { root.classList.add('te--fixed'); root.style.height = height; }
+    if (height) { root.classList.add('te--fixed'); root.dataset.dyn = `height:${height}`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
@@ -305,8 +307,8 @@ export async function mountThemeEditor(container, options = {}) {
         contrastTab.textContent = sum.bad ? `Contrast (${sum.bad} below AA)` : 'Contrast';
         const jump = (name, theme) => h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-jump': name, 'data-jump-theme': theme, label: `Go to ${name} in the ${theme} theme` }, name.replace(/^--/, ''));
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).sort((x, y) => Number(y.bad) - Number(x.bad)).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}` }, 'Aa');
-            sample.style.setProperty('--te-fg', r.fgValue); sample.style.setProperty('--te-bg', r.bgValue);
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--te-fg:${r.fgValue}; --te-bg:${r.bgValue}` }, 'Aa');
+            applyDynamic(sample);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : r.ratio === null ? 'muted' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(2)}:1 ${r.grade}`),
                 h(doc, 'pk-cluster', { class: 'te-pair-jump' }, jump(r.fg, r.theme), jump(r.bg, r.theme)));
@@ -343,8 +345,8 @@ export async function mountThemeEditor(container, options = {}) {
             : h(doc, 'pk-alert', { kind: 'success' }, `The brand colour ${p.brand} meets 4.5:1 as it is in both themes.`));
         const rows = paletteRows(p.overrides, tokens);
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}` }, 'Aa');
-            sample.style.setProperty('--te-fg', r.fgValue); sample.style.setProperty('--te-bg', r.bgValue);
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--te-fg:${r.fgValue}; --te-bg:${r.bgValue}` }, 'Aa');
+            applyDynamic(sample);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(1)}:1 ${r.grade}`));
         })];
@@ -595,7 +597,7 @@ export async function mountThemeEditor(container, options = {}) {
             sdk?.destroy();
             for (const off of listeners) off();
             if (sheet) targetDoc.adoptedStyleSheets = targetDoc.adoptedStyleSheets.filter(s => s !== sheet);
-            else for (const n of setInline) themeHost.style.removeProperty(n);
+            else if (setInline.size) { themeHost.dataset.dyn = [...setInline].map(n => `${n}:`).join('; '); applyDynamic(themeHost); }
             root.remove();
         },
     };
