@@ -41,6 +41,10 @@
       "count": 3,
       "source": "Static example-page chrome from constants; page title and crumbs come from the page's own script."
     },
+    "tools/audit/families/s-rules.mjs": {
+      "count": 9,
+      "source": "S5's own rule text: the words innerHTML/outerHTML/insertAdjacentHTML appear only as detector regex sources, a doc comment and a fix message string that names the sinks it flags in a consumer's code; this file never assigns to any of them."
+    },
     "elements/frame/frame.js": {
       "count": 0,
       "source": "pk-frame is the one place that writes an iframe's srcdoc (issue #523); the scanner's html-sink rule matches innerHTML/outerHTML/insertAdjacentHTML only, so srcdoc scores 0 hits here, but it is the same kind of sink and is documented for the same reason: the string is host-authored data rendered by the sandboxed frame's own document, never parsed into this page."
