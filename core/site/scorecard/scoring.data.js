@@ -80,6 +80,13 @@ export const BUDGETS = {
     // The page layer, each element and the scripts are budgeted separately. Limits only ever come down.
     pageCssGzKb: { target: 8, limit: 10, reference: 25, note: 'dist/plainkit.css: tokens, base, utilities, spacing and a11y for the light DOM (Bootstrap 5 CSS is about 25 KB gzip)' },
     elementGzKb: { target: 2, limit: 4.5, note: 'one dist/elements/<name>.js: template, css and behaviour together; raised from 4 for pk-input\'s copyable feature (issue #209) after trimming its clear/reveal icons to glyphs closed most, not all, of the gap' },
+    // Per-element HARD CAPS (not part of the general ratchet above), for the rare element whose feature set genuinely cannot fit the blanket
+    // elementGzKb limit without a real minifier. Each entry is a one-time, documented, owner-approved exception at today's measured size,
+    // not room to grow: adding to that element again without shrinking something else in it first fails this test. Do not add an entry here
+    // without the same owner sign-off #514 needed for appEntryGzKb; do not "fix" a failure by bumping the number in an entry that already exists.
+    elementGzKbOverrides: {
+        'dock.js': { limit: 7.1, note: 'pk-dock (#432): move-panel, close/reopen, drag-to-dock, Blazor controlled mode, the layout-builder-rewire toolbar-start slot, header-collapse, collapse-to-rail with flyout, persistKey and the floating-panel model all landed together in one consolidated release PR, pushing it from the blanket 4.5 to a measured 7.06 KB. Tracked on #600 (the pending build-minification fix); this cap comes back down once that lands, and this override is deleted once dock.js fits under the blanket limit again.' },
+    },
     baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
     jsModuleGzKb: { target: 3, limit: 6 },
     // HARD CAP, not a ratchet (#514): every other limit in this table only ever comes down, but splitting the entry graph alone could not

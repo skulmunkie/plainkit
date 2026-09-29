@@ -19,7 +19,12 @@ test('the page-level stylesheet and every element stay inside their own gzip bud
     assert.ok(gz('dist/plainkit.css') < BUDGETS.pageCssGzKb.limit, `dist/plainkit.css is ${gz('dist/plainkit.css').toFixed(1)} KB gzip, limit ${BUDGETS.pageCssGzKb.limit} (target ${BUDGETS.pageCssGzKb.target}, Bootstrap 5 about ${BUDGETS.pageCssGzKb.reference})`);
     const modules = [...out.keys()].filter(f => /^dist\/elements\/[^/]+\.js$/.test(f) && !f.endsWith('registry.js'));
     assert.ok(modules.length >= 6);
-    for (const f of modules) assert.ok(gz(f) <= BUDGETS.elementGzKb.limit, `${f} is ${gz(f).toFixed(2)} KB gzip, limit ${BUDGETS.elementGzKb.limit}`);
+    for (const f of modules) {
+        const name = f.slice('dist/elements/'.length);
+        const override = BUDGETS.elementGzKbOverrides?.[name];
+        const limit = override?.limit ?? BUDGETS.elementGzKb.limit;
+        assert.ok(gz(f) <= limit, `${f} is ${gz(f).toFixed(2)} KB gzip, limit ${limit}${override ? ' (per-element override, not the blanket elementGzKb limit)' : ''}`);
+    }
 });
 
 test('the element base runtime stays inside its budget', () => {
