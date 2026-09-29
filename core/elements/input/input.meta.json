@@ -1,5 +1,6 @@
 {
   "tag": "pk-input",
+  "a11yRequires": ["label"],
   "replaces": ["input"],
   "title": "Input",
   "group": "Form controls",

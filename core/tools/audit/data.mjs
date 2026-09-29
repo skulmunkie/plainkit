@@ -42,6 +42,10 @@ export function buildElementHints(metas) {
     const roleHints = {};
     const apiHints = [];
     const elementsByTag = {};
+    const elementAttrs = {};
+    const a11yRequires = {};
+    const deprecatedElements = [];
+    const deprecatedAttrs = {};
     for (const m of metas) {
         elementsByTag[m.tag] = m;
         const bare = m.tag.replace(/^pk-/, '');
@@ -53,8 +57,19 @@ export function buildElementHints(metas) {
             else if (kind === 'role') roleHints[name] = m.tag;
             else if (kind === 'api') apiHints.push({ api: name, element: m.tag });
         }
+        if (Array.isArray(m.a11yRequires) && m.a11yRequires.length) a11yRequires[m.tag] = m.a11yRequires;
+        if (m.deprecated) deprecatedElements.push({ tag: m.tag, message: m.deprecated.message ?? `${m.tag} is deprecated` });
+        // T6 (unknown attribute value): only attributes whose meta declares an enum `values` list, so a free-form
+        // string or data attribute never false-positives. T7 (deprecated attribute): props[] entries carrying
+        // their own `deprecated`.
+        const attrs = {};
+        for (const prop of m.props ?? []) {
+            if (Array.isArray(prop.values) && prop.values.length) attrs[prop.name] = prop.values;
+            if (prop.deprecated) (deprecatedAttrs[m.tag] ??= {})[prop.name] = prop.deprecated.message ?? `${prop.name} is deprecated`;
+        }
+        if (Object.keys(attrs).length) elementAttrs[m.tag] = attrs;
     }
-    return { tagHints, classHints, roleHints, apiHints, elementsByTag };
+    return { tagHints, classHints, roleHints, apiHints, elementsByTag, elementAttrs, a11yRequires, deprecatedElements, deprecatedAttrs };
 }
 
 // --- Tokens (design 3.3): parse core/tokens/tokens.css into { name, value, group } entries. ------------------------
@@ -120,6 +135,16 @@ export const CLASS_HINTS = ${JSON.stringify(data.elements.classHints, null, 4)};
 export const ROLE_HINTS = ${JSON.stringify(data.elements.roleHints, null, 4)};
 
 export const API_HINTS = ${JSON.stringify(data.elements.apiHints, null, 4)};
+
+export const ELEMENT_TAGS = ${JSON.stringify(Object.keys(data.elements.elementsByTag).sort(), null, 4)};
+
+export const ELEMENT_ATTRS = ${JSON.stringify(data.elements.elementAttrs, null, 4)};
+
+export const A11Y_REQUIRES = ${JSON.stringify(data.elements.a11yRequires, null, 4)};
+
+export const DEPRECATED_ELEMENTS = ${JSON.stringify(data.elements.deprecatedElements, null, 4)};
+
+export const DEPRECATED_ATTRS = ${JSON.stringify(data.elements.deprecatedAttrs, null, 4)};
 
 export const TOKENS = ${JSON.stringify(data.tokens, null, 4)};
 
