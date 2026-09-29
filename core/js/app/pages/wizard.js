@@ -2,6 +2,14 @@
 // 'wizard' (#353): <pk-wizard-page>; config: { steps, review, reviewLabel, submitLabel, doneHeading, doneDescription } as data, and the callbacks
 // validate(stepId, values, ctx), submit(values, ctx), load(ctx) -> draft answers and mountStep(pane, step, ctx) for a step without fields
 // (reject or return { errors: { field: message } } from validate or submit for inline errors).
+// PAGE_TYPE: read at build time by core/tools/audit/data.mjs (design section 3.2); not used at runtime.
+export const PAGE_TYPE = {
+    id: 'wizard',
+    summary: 'A multi-step flow with per-step validation, a review step and one submit.',
+    configKeys: ['steps', 'review', 'reviewLabel', 'submitLabel', 'doneHeading', 'doneDescription', 'validate', 'submit', 'load', 'mountStep'],
+    states: ['done'],
+    useWhen: 'A sequence of steps that must be completed in order before one submit.',
+};
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-wizard-page');
     const { validate, submit, load, mountStep, ...data } = config;

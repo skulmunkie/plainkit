@@ -52,6 +52,7 @@ _site/
 /core/icons.svg
 /core/icons/icons.json
 /core/icons/icons.d.ts
+/core/tools/audit/generated.data.mjs
 /blazor/src/PlainKit.Blazor/Generated/
 /blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js
 /blazor/src/PlainKit.Blazor/wwwroot/plainkit/
