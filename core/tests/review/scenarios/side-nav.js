@@ -20,7 +20,6 @@ export default {
 </pk-nav-item>
 <pk-nav-item id="settings" slot="footer" href="#"><pk-icon slot="icon" name="settings"></pk-icon>Settings</pk-nav-item>
 </pk-side-nav>
-<h2 slot="title">Catalogue</h2>
 <pk-stack><p>The page body sits beside the rail.</p></pk-stack>
 </pk-app-shell>`,
     steps: [

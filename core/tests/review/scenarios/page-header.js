@@ -20,7 +20,7 @@ export default {
     elements: ['page-header', 'badge-popover', 'breadcrumb', 'tabs', 'app-shell'],
     html: `<pk-app-shell>
 <pk-side-nav slot="nav" label="Main" collapsed><span slot="brand" class="u-contents"><a href="#">Acme</a></span><pk-nav-item href="#" current><pk-icon slot="icon" name="products"></pk-icon>Products</pk-nav-item></pk-side-nav>
-<h2 slot="title">Products</h2>
+<pk-button slot="header" data-nav-toggle variant="ghost" size="mini" icon aria-label="Toggle the menu"><pk-icon name="menu"></pk-icon></pk-button>
 <pk-page-header id="ph" variant="record" heading="Blue mug" sticky>
 <pk-breadcrumb slot="breadcrumb"><a href="#" aria-label="Dashboard"><pk-icon name="dashboard"></pk-icon></a><a href="#">Products</a><span aria-current="page">Blue mug</span></pk-breadcrumb>
 <pk-badge variant="ok">Active</pk-badge>
