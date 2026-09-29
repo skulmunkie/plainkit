@@ -15,6 +15,7 @@
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
 import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
@@ -80,7 +81,7 @@ export async function mountConsole(container, options = {}) {
 
     const root = h(doc, 'section', { 'aria-label': 'Dev console', class: 'dc-module' }, tabs);
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
+    if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root).catch(err => log.debug('elements did not load (loadElements reports it)', err));
 
