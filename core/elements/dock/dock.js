@@ -2,7 +2,9 @@
 // choice into a pk-layout-change. Panels are the host's own children: any element with slot="<panel id>" (and data-heading, data-group hints). They are slotted, never moved,
 // so a panel keeps its state wherever it is docked. The layout logic lives in the model; this file only draws it. Below the phone breakpoint the tree is drawn as one
 // tab strip of every panel and the layout is left untouched. A collapsed group at a screen edge (js/dock-model.js's isEdgeGroup) folds to a rail button instead
-// of a header; activating it opens the panel as a flyout, positioned with js/positioning.js like pk-context-menu's own menu.
+// of a header; activating it opens the panel as a flyout, positioned with js/positioning.js like pk-context-menu's own menu. The flyout opens with
+// an Expand button (issue #636) ahead of the panel's own content, that restores the panel to a normal docked header - the only way back from a
+// collapsed rail short of reloading or clearing persistKey's stored layout, and deliberately a separate action from opening/closing the flyout.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
 import { createStore } from '../../js/store.js';
@@ -60,7 +62,10 @@ export default Base => class extends Base {
             root.addEventListener('pk-tab-change', e => this.onTab(e));
             root.addEventListener('pk-select', e => this.onMove(e));
             this.part('toolbar').addEventListener('pk-select', e => this.onMove(e));
-            root.addEventListener('click', e => this.onToggle(e));
+            // The flyout (part=flyout) is a sibling of root, not a descendant, so its own Expand button (issue #636) needs the same listener too.
+            const toggle = e => this.onToggle(e);
+            root.addEventListener('click', toggle);
+            this.part('flyout').addEventListener('click', toggle);
             this.part('flyout').addEventListener('focusout', e => this.onFlyoutBlur(e));
             // Pointer drag-to-dock: the same moveTab/dockPanel calls the Move menu makes. Pointer capture pins move/up/cancel to the drag's own
             // handle, so onDragMove hit-tests the group under the pointer's coordinates rather than trusting e.target.
@@ -165,7 +170,7 @@ export default Base => class extends Base {
         if (!this.$flyout) return;
         const btn = this.part('root').querySelector?.(`[data-rail-panel="${this.$flyout}"]`);
         const el = this.part('flyout');
-        if (!btn) { this.$flyout = null; this.$o?.(); this.$o = undefined; unplace(el); el.hidden = true; el.replaceChildren(); return; }
+        if (!btn) { this.$flyout = null; this.$o?.(); this.$o = undefined; unplace(el); el.hidden = true; return; }
         btn.setAttribute('aria-expanded', 'true');
         place(btn, el, { placement: 'right-start', offset: 4 });
     }
@@ -389,9 +394,11 @@ export default Base => class extends Base {
         const group = findGroup(this.$doc, panel), section = group && root.querySelector(`[data-node="${group.id}"]`);
         section?.querySelector('pk-button[slot="trigger"]')?.focus?.();
     }
-    // The chevron button in a single-panel header, or a rail button (Enter/Space activate either like any button, no extra keyboard code needed).
-    // Multi-panel tab groups do not offer collapse yet (see the model's collapsePanel doc comment); a click anywhere else, or on a button with
-    // neither data-panel nor data-rail-panel, is ignored.
+    // The chevron button in a single-panel header, a rail button, or the flyout's own Expand button (issue #636 - it carries the same data-panel
+    // as the header's collapse-toggle, since restoring from the flyout is the same expandPanel call; reflyout(), called from the draw() below,
+    // then notices the rail button is gone and closes the now-stale flyout on its own). Enter/Space activate any of them, no extra key handling
+    // needed. Multi-panel tab groups do not offer collapse yet (see the model's collapsePanel doc comment); a click on a button with neither
+    // data-panel nor data-rail-panel is ignored.
     onToggle(e) {
         const btn = e.target.closest?.('button');
         const railPanel = btn?.getAttribute('data-rail-panel');
@@ -414,9 +421,10 @@ export default Base => class extends Base {
     toggleFlyout(panel, btn) {
         if (this.$flyout === panel) { this.closeFlyout(); return; }
         this.$flyout = panel;
-        const el = this.part('flyout');
+        const el = this.part('flyout'), x = el.firstElementChild;
         el.hidden = false;
-        el.replaceChildren(make(this.ownerDocument, 'slot', { name: panel }));
+        x.setAttribute('data-panel', panel);
+        el.replaceChildren(x, make(this.ownerDocument, 'slot', { name: panel }));
         loadElements(el);
         place(btn, el, { placement: 'right-start', offset: 4 });
         btn.setAttribute('aria-expanded', 'true');
@@ -431,7 +439,7 @@ export default Base => class extends Base {
         this.$flyout = null;
         this.$o?.(); this.$o = undefined;
         const el = this.part('flyout');
-        unplace(el); el.hidden = true; el.replaceChildren();
+        unplace(el); el.hidden = true;
         const btn = this.part('root').querySelector?.(`[data-rail-panel="${panel}"]`);
         btn?.setAttribute('aria-expanded', 'false');
         if (e?.type === 'keydown') btn?.focus?.();

@@ -1,11 +1,15 @@
 // pk-dock (issue 432, step 1; step 2's keyboard/menu move, close/reopen; issue 607's pointer drag-to-dock; issue 609's header-collapse; issue 608 step 1's
-// collapse-to-rail and its flyout): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the
-// left group, a pointer drag-to-dock of Canvas's header toward Properties (shown mid-drag over its center and its left edge, each with the accent drop-zone
-// highlight; cancelled rather than dropped, so later steps' layout is untouched - the browser suite covers the actual dropped result), the keyboard/menu move
-// of a panel between groups (a group's panel menu opened by keyboard) and close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it
-// back), a single-panel header's chevron collapsed then expanded by keyboard, the right column (an edge group) collapsed to a rail button and its flyout
-// opened then closed with Escape, the same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with
-// a panel chosen. The dock applies nothing to the panels themselves: they are the page's own children, slotted.
+// collapse-to-rail and its flyout; issue 636's Expand affordance back out of it): the resting workspace (tab group | canvas | properties), a separator moved
+// by keyboard and by pointer, a tab chosen in the left group, a pointer drag-to-dock of Canvas's header toward Properties (shown mid-drag over its center and
+// its left edge, each with the accent drop-zone highlight; cancelled rather than dropped, so later steps' layout is untouched - the browser suite covers the
+// actual dropped result), the keyboard/menu move of a panel between groups (a group's panel menu opened by keyboard, moving Styles into Canvas as a tab) and
+// close/reopen (Close in that same menu, then the toolbar's Panels menu to bring it back) - immediately closing the just-moved panel back out again so Canvas
+// is a single-panel group again by the time the steps below need it to be (issue #634 dropped this coverage for exactly that reason: any ordering that left
+// Canvas or Properties multi-panel made the collapse/rail steps that follow unsafe), a single-panel header's chevron collapsed then expanded by keyboard, the
+// right column (an edge group) collapsed to a rail button, its flyout opened, and the flyout's own Expand button used to restore Properties to a normal
+// docked header (issue #636: the only click path back from a collapsed rail, distinct from the flyout's own open/close), the same workspace mirrored right
+// to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels
+// themselves: they are the page's own children, slotted.
 // The left group carries four panels (issue #602): at its default ~20% split width its tab list must scroll sideways instead of wrapping onto a second row, and the
 // same reading-order tab list (all six panels, on a phone) must stay on one row too.
 const PANELS = `
@@ -66,6 +70,22 @@ export default {
         { set: '#dock', prop: 'demoPanelDrag', value: 'left', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
         { shot: 'drag-edge', on: ['desktop'] },
         { set: '#dock', prop: 'demoPanelDrag', value: 'cancel', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        // Step 2's keyboard/menu move and close/reopen, restored next to the collapse/rail steps below (issue #636; dropped in #634 because no
+        // ordering could combine them safely - see the file comment). Left of a tab pick (so the left group's own trailing trigger is still bound
+        // to its default active tab, Toolbox: dock.js only redraws that binding on a structural change, not a plain tab activation), the left
+        // group's Move menu adds Toolbox as a tab in Canvas, then closes it straight back out of Canvas's now-merged group and reopens it from the
+        // toolbar - demonstrating the whole move/close/reopen path without leaving Canvas a multi-panel group for the single-panel collapse/rail
+        // steps further down.
+        { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'move-menu', on: ['desktop'] },
+        { click: '#dock >>> [part=group] pk-dropdown pk-menu-item:nth-of-type(2)', on: ['desktop'] }, { wait: 150 },
+        { shot: 'move-done', on: ['desktop'] },
+        { focus: '#dock >>> pk-button[slot="trigger"][label="Toolbox panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { key: 'End', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'closed', on: ['desktop'] },
+        { focus: '#dock >>> [part=toolbar] .panels pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'reopened', on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
         { shot: 'tab' },
         { focus: '#dock >>> [data-panel=canvas]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
@@ -78,7 +98,10 @@ export default {
         { shot: 'rail', on: ['desktop'] },
         { click: '#dock >>> [part=rail-button]', on: ['desktop'] }, { wait: 150 },
         { shot: 'flyout-open', on: ['desktop'] },
-        { key: 'Escape', on: ['desktop'] }, { wait: 150 },
+        // Issue #636: the flyout's own Expand button is the click path back to a normal docked header - a different action from the rail button
+        // that opened this flyout (which only opens/closes it). Activating it restores Properties, closes the flyout, and clears the rail.
+        { click: '#dock >>> [part=flyout] > [part=collapse-toggle]', on: ['desktop'] }, { wait: 150 },
+        { shot: 'expanded-from-rail', on: ['desktop'] },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
     ],
@@ -134,9 +157,29 @@ export default {
             t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'true', 'the rail button reports the flyout open');
             t.visible('#dock >>> [part=flyout]', 'the flyout is shown');
             t.visible('[slot=props]', 'the panel content is shown inside the flyout');
+            t.visible('#dock >>> [part=flyout] > [part=collapse-toggle]', 'the flyout offers its own Expand affordance back to a docked header');
             // positioning.js flips sides to stay in the viewport, so the flyout can land to either side of the rail button; it must not cover it either way.
             t.noOverlap('#dock >>> [part=rail-button]', '#dock >>> [part=flyout]');
             t.ringUnclipped('#dock >>> [part=flyout]');
+        }
+        if (t.shot === 'expanded-from-rail') {
+            // Issue #636: the Expand button in the flyout restored Properties to a normal docked header, closed the flyout, and left no rail behind.
+            t.hidden('#dock >>> [part=flyout]', 'the flyout closed once Properties expanded');
+            t.absent('#dock >>> [part=rail-button]', 'no rail button is left: the right column is a normal header again');
+            t.ok(t.attr('#dock >>> [data-panel=props]', 'aria-expanded') === 'true', 'the restored header reports expanded');
+            t.visible('#dock >>> #b-props', 'the panel body is back in its normal docked position');
+        }
+        if (t.shot === 'move-menu') { t.visible('#dock >>> [part=group] pk-dropdown', 'the Move menu opened'); t.exists('#dock >>> [part=group] pk-menu-item'); }
+        if (t.shot === 'move-done') { t.hidden('#dock >>> [part=empty]'); t.exists('#dock >>> [part=group]'); }
+        if (t.shot === 'closed') {
+            t.visible('#dock >>> [part=toolbar]', 'the Panels menu shows once something is closed');
+            t.exists('#dock >>> [part=toolbar] pk-button[icon-name="dashboard"]', 'the Panels control appears next to the host\'s own toolbar-start content');
+            t.noOverlap('#dock >>> [part=toolbar]', '#dock >>> [part=root]');
+        }
+        if (t.shot === 'reopened') {
+            t.visible('#dock >>> [part=toolbar]', 'the toolbar stays up (the host\'s own content is still there)');
+            t.absent('#dock >>> [part=toolbar] pk-button[icon-name="dashboard"]', 'but the dock\'s own Panels control is gone: nothing closed any more');
+            t.hidden('#dock >>> [part=empty]');
         }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
