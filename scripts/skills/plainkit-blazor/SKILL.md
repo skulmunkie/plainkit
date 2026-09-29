@@ -15,8 +15,8 @@ PlainKit.Blazor wraps the Plainkit elements as Razor components and serves the w
 
 ## Rules
 
-- Use only components and parameters listed in the references. Find a component in `references/components-index.md`, then open the file it names. Do not invent parameters. An attribute that is not a parameter (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, and a `class` is added to the component's own, so `<PkButton id="save" data-test="x" class="wide">` works. Inline `style` is blocked by the CSP: use a class or a CSS custom property set in a stylesheet, and no inline scripts either. Text is `PkText`, not a `<p>` or `<span>` with a class: `<PkText Tone="PkTextTone.Muted">` for a paragraph, `Inline="true"` for a run inside a line, `Variant="PkTextVariant.Eyebrow"` or `Lead`, `Font="PkTextFont.Mono"` for ids and amounts. Real headings stay native `<h1>` to `<h6>`; `Variant="PkTextVariant.H2"` is only the look. Layout is `PkStack`, `PkCluster` and `PkGrid`, not a styled `<div>`. A max-width, padded content region is `PkContainer` (`Size`, `Padding`, `Scroll`, `Label`), not a hand-styled `<div>` with `max-width`, padding and `overflow`. A prop with a fixed set of values is an enum (`ButtonVariant.Primary`); a null enum leaves the default. Values: `references/enums.md`. Named slots are `RenderFragment` parameters (`FooterContent`); when you use one, write the body as an explicit `<ChildContent>` too. Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, and `@bind-Open` on `PkCombobox`, `PkCommandPalette` and `PkMenuItem` (its submenu), and `@bind-Selected` on `PkTable`. A form reset raises no change event, so a value you mirror is stale afterwards: in the form's `OnReset` callback call `await Runtime.ReadFormValuesAsync(form.Element)` (inject `PkRuntime`, keep the `PkForm` with `@ref`, name the controls) and copy the values back. Events are `EventCallback` or `EventCallback<PkXxxEventArgs>` (`references/events.md`); an element event a component has no callback for is still delivered to `@onpk-...` on the component (for example `<PkTooltip @onpk-show="...">`). A callback cannot cancel an event (the browser does not wait for the server): guard in your model or report the refusal through a parameter such as `CellErrors`. To read uploaded files put `<InputFile slot="input" OnChange="..." />` inside `PkDropzone` (in `<ChildContent>` when `HintContent` is used); drops and the picker both reach that `OnChange`, and `OnFiles` only counts (`references/file-upload.md`).
-- The components respond on their own at the SDK's named breakpoints ({{breakpoints}} px, desktop-first: a rule applies at that width and below). In your own CSS write the literal query with the same width (`@media (max-width: 640px)`); the widths are also `--pk-bp-phone`, `--pk-bp-tablet` and `--pk-bp-wide` on `:root`. Other widths need a rebuilt `dist`, which the theme editor's Custom SDK tab exports (`<PkThemeEditor />` shows it); its theme-only export is a small `plainkit-theme.css` to put in `wwwroot` and link after `<PkStyles />` for colours and styles alone (no breakpoint or SDK file changes). Exporting from Blazor code and using a custom `dist` as the app's assets are not built yet. A button that navigates is `<PkButton Href="/reports">`: a real anchor (middle and ctrl-click and enhanced navigation work; `Target`, `Rel`, `Download`; `Disabled` and `Busy` drop the href; `OnClick` still fires, `@onclick:preventDefault` replaces the navigation). An icon-only button is `<PkButton Icon="true" IconName="plus">Add item</PkButton>`: with `Icon` the text is hidden visually and stays the name (and the hover tooltip); `AriaLabel` overrides it; one with no name fails the scorecard.
+- Use only components and parameters listed in the references. Find a component in `references/components-index.md`, then open the file it names. Do not invent parameters. An attribute that is not a parameter (`id`, `data-*`, `aria-*`, `class`, ...) is put on the element as it is, and a `class` is added to the component's own, so `<PkButton id="save" data-test="x" class="wide">` works. Inline `style` is blocked by the CSP: use a class or a CSS custom property set in a stylesheet, and no inline scripts either. Text is `PkText`, not a `<p>` or `<span>` with a class; real headings stay native `<h1>` to `<h6>`. Layout is `PkStack`, `PkCluster` and `PkGrid`, not a styled `<div>`; a max-width, padded content region is `PkContainer`. A prop with a fixed set of values is an enum (`ButtonVariant.Primary`; values in `references/enums.md`); a null enum leaves the default. Named slots are `RenderFragment` parameters; when you use one, write the body as an explicit `<ChildContent>` too. Two-way values are `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, `@bind-Open` (`PkCombobox`, `PkCommandPalette`, `PkMenuItem`) and `@bind-Selected` (`PkTable`); a form reset needs `Runtime.ReadFormValuesAsync(form.Element)` to pick up the new values (`references/setup-and-options.md`). Events are `EventCallback`/`EventCallback<PkXxxEventArgs>` (`references/events.md`); an event a component has no callback for still reaches `@onpk-...` on it. A callback cannot cancel an event: guard in your model or report the refusal through a parameter such as `CellErrors`. Reading uploaded files: `references/file-upload.md`.
+- The components respond on their own at the SDK's named breakpoints ({{breakpoints}} px, desktop-first); write the literal query in your own CSS (`@media (max-width: 640px)`, also `--pk-bp-phone`/`--pk-bp-tablet`/`--pk-bp-wide`). Other widths need a rebuilt `dist` (the theme editor's Custom SDK tab, `<PkThemeEditor />`); its theme-only export, a small `plainkit-theme.css`, is the way to ship a theme today. A button that navigates is `<PkButton Href="/reports">` (a real anchor: `Target`, `Rel`, `Download`; `Disabled`/`Busy` drop the href). An icon-only button is `<PkButton Icon="true" IconName="plus">Add item</PkButton>` (`AriaLabel` overrides the accessible name; one with no name fails the scorecard).
 
 ## References (open on demand)
 
@@ -45,9 +45,9 @@ app.MapRazorComponents<App>()
 
 ### Choose before you build
 
-Before writing markup for a page or a job, open `references/choosing.md` (decision path, use-case table, anti-patterns): name the page type, find it in the table, open the template, layout or pattern (`plainkit-sdk` skill: `templates.md`, `layouts.md`, `patterns.md`) or the component it names, and change only content, slots, parameters and tokens. A page with a title, breadcrumbs, status or busy state derives from `PageBase` (busy is counted: overlapping `BusyAsync` calls do not clear each other; bind `PkLoadingOverlay Busy` to `ShowBusyOverlay`, which appears after 150 ms and stays 300 ms). A create-or-edit record page is `PkRecordForm` + `PkFieldGroup` (a `PkFieldSpec<T>` per field) + `PkRecordEditor`, never a hand-written `PkField` wrapper per field. A list is `PkTable`, or `PkDataList` when the server pages it. The frame is `PkAppShell` with `PkSideNav` and `PkAppBarSearch`. An element with no component is raw markup with `@onpk-...` handlers. Never wrap a slotted child in a `display: contents` element or add `!important`. Write your own only when nothing fits, from existing components and tokens, and say which gap it fills. The SDK app framework (`mountApp`, modules, page types: the Guide "Build an app") has no Blazor surface yet: a Blazor app keeps `PkAppShell`, `PageBase` and its router.
+Before writing markup for a page or a job, open `references/choosing.md` (decision path, use-case table, anti-patterns): name the page type, find it in the table, open the template, layout or pattern (`plainkit-sdk` skill) or the component it names, and change only content, slots, parameters and tokens. A page derives from `PageBase` (title, breadcrumbs, busy, status); a create-or-edit record page is `PkRecordForm` + `PkFieldGroup` + `PkRecordEditor`; a list is `PkTable` or `PkDataList`; the frame is `PkAppShell`. An element with no component is raw markup with `@onpk-...` handlers. Write your own only when nothing fits, and say which gap it fills. The SDK app framework (`mountApp`, modules, page types) has no Blazor surface yet: a Blazor app keeps `PkAppShell`, `PageBase` and its router.
 
-### Add a page (a bound input, a list and a toast)
+### Add a page (a bound input and a list)
 
 ```razor
 @page "/tasks"
@@ -60,33 +60,24 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
     </PkField>
     <PkButton Variant="ButtonVariant.Primary" OnClick="Add">Add</PkButton>
     <PkListGroup Label="Tasks">
-        @foreach (var task in _tasks)
-        {
-            <div>@task</div>
-        }
+        @foreach (var task in _tasks) { <div>@task</div> }
     </PkListGroup>
 </PkStack>
 
-<PkToastStack Position="ToaststackPosition.BottomEnd">
-    @if (_toast is not null)
-    {
-        <PkToast Kind="ToastKind.Success" OnDismiss="@(() => _toast = null)">@_toast</PkToast>
-    }
-</PkToastStack>
-
 @code {
-    private string? _title, _toast;
+    private string? _title;
     private readonly List<string> _tasks = [];
     private async Task Add()
     {
         if (string.IsNullOrWhiteSpace(_title)) return;
         _tasks.Add(_title);
-        _toast = $"Added {_title}";
         await PkLog.WriteAsync(PkLogLevel.Info, "tasks", "task added", _title);
         _title = null;
     }
 }
 ```
+
+A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="...">` (see "Turn on ILogger forwarding..." below for `IPkNotifications`, the simpler way to show one).
 
 ### Add a form
 `PkForm` shows the browser's validation in each field and a summary; `OnValid` fires when a submit passes (`OnInvalid` when it is stopped).
@@ -111,19 +102,7 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 ```
 
 ### Give a page a header with breadcrumbs
-`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)`; the last crumb is the current page (`aria-current="page"`) and is the title unless `Title` overrides it. The app looks the route up and passes the list. A page has one h1: with `ShellSection` naming a `SectionOutlet` in the layout's shell title slot, the header writes the title there instead of drawing it. `BackLink` (off by default) adds a chevron link `Back to <crumb>` to the last parent crumb that has an `Href`, before the title in that outlet (above the header without `ShellSection`); `Sticky` pins the header to the top of the scrolling page body (flush under the app bar in `PkAppShell`); leave `BackLink` off when the layout's `PkAppShell` already sets `BackHref` and `BackLabel`, which the header cannot reach.
-
-```razor
-<PkPageHeader Crumbs="@_crumbs" Title="@_name">
-    <SuffixContent><PkBadge>Open</PkBadge></SuffixContent>
-    <ActionsContent><PkButton>Receive</PkButton></ActionsContent>
-</PkPageHeader>
-
-@code {
-    private string _name = "Acme Supply order";
-    private readonly PkCrumb[] _crumbs = [new("Stock", "/stock"), new("Purchase orders", "/stock/orders"), new("PO 1042")];
-}
-```
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `ShellSection`, `BackLink` and `Sticky`: `references/components-navigation.md`.
 
 ### Open a dialog from C#
 `Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
@@ -162,7 +141,7 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 
 ### Show a searchable, server-paged list (`PkDataList`)
 
-`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time; a new search, sort or page size goes back to page 1, a superseded request is cancelled (pass `request.CancellationToken` to the database), a total that shrinks below the current page settles on the last page, `ReloadAsync()` reloads. Every parameter: `references/data-list.md`. Page anything over a few hundred rows (here or with `Manual` and `PkPagination`): `pk-table` windows its body at 500 rows or more (draws only the rows near the scroll frame's viewport, not an expandable table), but every row still crosses the wire, and the ids of a selection would travel back in one message (SignalR closes the circuit above its 32 KB `MaximumReceiveMessageSize`: about 5,000 numeric ids or 800 GUIDs), so `PkTable` sends a selection of 64 rows or more as runs of row indexes and expands them to ids itself (`Selected` and `OnSelect` still get the ids, in row order); a raw `<pk-table @onpk-select>` gets the whole detail, so raise `AddHubOptions(o => o.MaximumReceiveMessageSize = ...)` if you select thousands of rows there. **Editing cells in place:** give `PkTable` `Editable` and set `Editor` (a `PkTableEditor`: `Text`, `Number`, `Select` with `Options`, `Switch`; `Required`, `Min`, `Max`, `MaxLength` are checked first) on each `PkTableColumn<TItem>` that may change (a column with a `Cell` template stays read-only). `OnCellEdit` gets `Id`, `Item`, `Key`, `Value` and `Previous` for each accepted value: update your item there, then `Refresh()`. The event cannot be cancelled from the server, so to refuse a value put a message in `CellErrors["<id>:<key>"]` and put the old value back. No paste, undo, column resize or bulk edit yet. **A list that opens a record page:** `OnRowClick` calls `Nav.NavigateTo($"/locations/{row.Item.Id}")`, `OnAdd` navigates to `/locations/new`, and the record page (`@page "/locations/new"` and `@page "/locations/{Id:int}"`) is a `PkRecordForm` whose save, cancel and delete navigate back to the list; the route is the only state. The whole routed recipe, list page and record page, is in `references/record-form.md`; the load, validate and save state can be `PkRecordEditor` (`references/record-editor.md`).
+`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time (a new search/sort/page size goes back to page 1, a superseded request is cancelled, `ReloadAsync()` reloads). Every parameter, paging a selection past SignalR's message-size limit, editing cells in place (`Editable`, `Editor`, `OnCellEdit`) and the routed list-and-record-page recipe (`PkRecordForm`, `references/record-form.md`, `references/record-editor.md`): `references/data-list.md`.
 
 ```razor
 <PkDataList TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
@@ -213,13 +192,12 @@ builder.Services.AddPlainKit(o =>
 });
 ```
 
-Forwarded entries always use the fixed category `PlainKit.Browser`, rate-limited and stripped of control characters (the browser is untrusted input). Inject `IPkLog` to write your own entries into the browser-side SDK log (they are not echoed back to `ILogger`); show both with `<PkLogs />`. Details: `references/logging.md`. **Toasts and modal dialogs**: inject `IPkNotifications` (`SuccessAsync(title)`, `ErrorAsync`...) and `IPkDialogs` (`ConfirmAsync`, `AlertAsync`, `PromptAsync`, `OpenAsync(new PkDialogOptions{...})`; cancelled is false or null; no template or validate callback from C#). **Per-viewer state** (theme, settings, a module's state): inject `IPkTheme`, `IPkSettings` or `IPkStore` and use them from `OnAfterRenderAsync(firstRender)` only (prerender); same `{v, data}` envelope and `pk.<id>` keys as the JavaScript store, bad stored data gives the defaults and a warning, plain `localStorage` so never a secret. Example and members for both: `references/setup-and-options.md`.
+Forwarded entries use the fixed category `PlainKit.Browser`. Inject `IPkLog` to write your own entries into the browser-side SDK log; show both with `<PkLogs />`. Details: `references/logging.md`. **Toasts and modal dialogs**: inject `IPkNotifications` and `IPkDialogs`. **Per-viewer state**: inject `IPkTheme`, `IPkSettings` or `IPkStore` (from `OnAfterRenderAsync(firstRender)` only). Both, with examples and members: `references/setup-and-options.md`.
 
-### Wire the dev tools
-In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs. Elsewhere set `o.DevTools = true`. Place a single tool on your own page with its component (`<PkLogs Height="26rem" />`, `<PkPerformance />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`. `PkGallery Chrome="PkChrome.Full"` takes `Sections` (a list of `PkGallerySection`: text rows for the Details drawer, per element tag; `PkGallerySection.ForBlazor()` is the component, parameters and Razor section that `/_plainkit` shows), and `Src` may be relative (resolved against the document's base).
+### More workflows
 
-### Share a context menu across targets
-Several rows or cards with the same always-visible icon buttons competing for space: wrap the region in one `<PkContextMenu>` instead. `OnOpen`'s `Context` field (on `PkOpenEventArgs`) names what was targeted (the nearest ancestor's `data-pk-context`; `PkTable` sets one per row already), so `OnOpen="@(e => _menu = MenuFor(e.Context))"` can rebuild `<MenuContent>@_menu</MenuContent>` per target before it paints.
+- **Wire the dev tools.** In Development, `/_plainkit` serves Gallery, Files, Scorecard, Performance, Console and Logs (elsewhere set `o.DevTools = true`); a single tool also works on your own page (`<PkLogs Height="26rem" />`, `<PkGallery Kind="PkGalleryKind.Elements" />`): `references/devtools.md`.
+- **Share a context menu across targets.** Several rows or cards with the same always-visible icon buttons competing for space: wrap the region in one `<PkContextMenu>` instead of a button row. `OnOpen`'s `Context` field names what was targeted, so the handler rebuilds `<MenuContent>` per target before it paints: `references/components-overlays.md`.
 
 ### Upgrade this app to a newer PlainKit.Blazor
 `references/upgrading.md`: a blast-radius recipe, not a changelog summary. Also check the app against `references/choosing.md`: a hand-written wrapper, table or record page that a newer component now covers is worth replacing. Find the installed and target versions, read `CHANGELOG.md` between them (Breaking/Removed/Changed first), grep this app for what those entries name, turn the matches into a severity-ordered checklist. Mechanical renames get done; a judgment call gets flagged. Format text and numbers for `pk-input type="date"`/`type="number"` with `PkInputFormat` (`references/input-format.md`) rather than hand-rolling the invariant-culture parse.

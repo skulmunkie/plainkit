@@ -115,7 +115,8 @@ export default Base => class extends Base {
         }
         h.remove(); body.remove();
         g.setAttribute('aria-label', this.label || 'Panels');
-        const tabs = make(d, 'pk-tabs', { value: n.active });
+        // scroll: a group's tab list never wraps onto a second row (a narrow group, or the phone strip's own row) — it scrolls sideways instead, like pk-tabs elsewhere.
+        const tabs = make(d, 'pk-tabs', { value: n.active, scroll: '' });
         for (const id of n.panels) {
             const tab = make(d, 'pk-tab', { value: id }); tab.textContent = title(id);
             const panel = make(d, 'pk-tab-panel', { value: id }), body = make(d, 'div', { part: 'body', class: 'body' }); body.append(make(d, 'slot', { name: id })); panel.append(body);
