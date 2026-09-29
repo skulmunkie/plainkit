@@ -322,6 +322,16 @@
     --ce-active-bar-w: 3px;
 }
 
+/* Guides chrome (core/site/guides/guides.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --gd-nav-w: 18rem;
+    --gd-border-w: 1px;
+    --gd-article-max-w: 46rem;
+    --gd-aside-w: 14rem;
+    --gd-card-min-w: 16rem;
+    --gd-focus-offset: 2px;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
