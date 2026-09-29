@@ -4,6 +4,9 @@
 // elements/<name>/<name>.meta.json:
 //   tag, title, summary, group          identity (tag is pk-<name>)
 //   aliases[]       optional other words people search for it by (e.g. dialog's "modal"), searched alongside title/tag in the gallery and the skills' elements index
+//   replaces[]      optional native tags, attribute-role selectors and APIs this element replaces, consumed by core/tools/audit/data.mjs (conformance audit, #616):
+//                   a bare tag ("button"), a tag+role selector ("a[role=button]" or "[role=tablist]"), or an API name ("api:showModal"). Only add an entry where
+//                   a real, unambiguous native counterpart exists - a gap with no obvious 1:1 mapping stays undeclared rather than guessed
 //   delegatesFocus, formAssociated      optional booleans
 //   props[]         { name, type: string|boolean|number|enum|json (object or array: a JSON attribute or a property), default, values?, reflect, commit?, description }
 //                   commit: the event (or events) that announce a change the user made to a two-way prop (value, open, checked...); each must be in events[]
@@ -37,6 +40,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     for (const k of ['title', 'summary', 'group', 'a11y']) need(isText(meta[k]), `${k} is required`);
     for (const k of ['props', 'slots', 'events', 'parts', 'cssProperties', 'methods', 'examples']) need(Array.isArray(meta[k]), `${k} must be an array (empty when there is none)`);
     if ('aliases' in meta) need(Array.isArray(meta.aliases) && meta.aliases.every(isText), 'aliases must be an array of non-empty strings');
+    if ('replaces' in meta) need(Array.isArray(meta.replaces) && meta.replaces.every(isText) && meta.replaces.every(r => /^(api:[\w.]+|[a-z][a-z0-9]*(\[[^\]]+\])?|\[[^\]]+\])$/.test(r)), 'replaces must be an array of tag names, tag[attr=value] selectors or "api:name" entries');
     if (p.length) return p;
 
     const names = new Set();

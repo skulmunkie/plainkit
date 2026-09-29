@@ -1,5 +1,6 @@
 {
   "tag": "pk-tabs",
+  "replaces": ["[role=tablist]"],
   "title": "Tabs",
   "group": "Navigation",
   "summary": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, slide sideways with edge fades, and hold trailing content after the last tab.",

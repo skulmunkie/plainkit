@@ -1,5 +1,6 @@
 {
   "tag": "pk-field",
+  "replaces": ["label"],
   "title": "Field",
   "group": "Form layout",
   "summary": "The label, help, error, warning and counter around a form control, with the wiring between them. It hands its label and messages to the control, because ids do not cross shadow roots.",

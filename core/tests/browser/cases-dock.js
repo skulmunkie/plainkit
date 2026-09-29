@@ -78,6 +78,25 @@ export const dockCases = [
         doc.documentElement.dir = 'ltr';
     }],
 
+    ['dock: a single-panel header\'s collapse-toggle folds and restores its body, moves aria-expanded, and raises pk-layout-change reason collapse', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = () => dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const toggle = () => [...root().querySelectorAll('[part=collapse-toggle]')].find(b => b.getAttribute('data-panel') === 'canvas');
+        t.eq(toggle().getAttribute('aria-expanded'), 'true');
+        const bodyId = toggle().getAttribute('aria-controls');
+        toggle().click(); await t.settle();
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'collapse'); t.ok(seen[0].layout.collapsed.includes('canvas'));
+        t.eq(toggle().getAttribute('aria-expanded'), 'false');
+        const body = root().querySelector(`#${bodyId}`);
+        t.ok(body.hidden, 'the panel\'s body is hidden while collapsed');
+        t.ok(rect(doc.querySelector('[slot=canvas]')).width === 0, 'the slotted panel content is out of layout too');
+        toggle().click(); await t.settle();
+        t.eq(seen.length, 2); t.eq(seen[1].reason, 'collapse'); t.ok(!seen[1].layout.collapsed.includes('canvas'));
+        t.eq(toggle().getAttribute('aria-expanded'), 'true');
+        t.ok(!root().querySelector(`#${bodyId}`).hidden, 'expanding restores the body');
+    }],
+
     ['dock: on a phone the tree is one tab strip of every panel with one panel showing, no horizontal overflow, and the layout is untouched', async t => {
         const { doc } = await frame(t, DOCK, 375);
         const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
