@@ -309,7 +309,15 @@ async function pagesStage(cdp, port, widths, deadline) {
     });
     await cdp.send('Network.enable'); await cdp.send('Runtime.enable'); await cdp.send('Page.enable'); await cdp.send('Performance.enable');
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: OBSERVERS });
-    const urls = routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }));
+    // The gallery's own hash routes are every product-template sample; the shell pages that wrap them (the gallery's own root, the scorecard and
+    // the theme editor) are loaded once each too, undecorated, so a CLS regression in core/site/shell.js or a page's own late content shows up
+    // here instead of only in the ad hoc node scripts/bench/pages.mjs run (#135).
+    const shellPages = [
+        { label: 'gallery', url: `http://localhost:${port}/site/gallery/index.html?theme=dark` },
+        { label: 'scorecard', url: `http://localhost:${port}/site/scorecard/index.html?theme=dark` },
+        { label: 'theme editor', url: `http://localhost:${port}/site/theme/index.html?theme=dark` },
+    ];
+    const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }))];
     let n = 0;
     for (const width of widths) {
         await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: width <= 640 ? 812 : 900, deviceScaleFactor: 1, mobile: false });

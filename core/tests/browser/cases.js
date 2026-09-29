@@ -218,7 +218,7 @@ export const cases = [
         t.ok(![...el.querySelectorAll('pk-tab')].some(x => x.selected), 'no tab is selected'); t.eq(a.tabIndex, 0);
         let n = 0; el.addEventListener('pk-tab-change', () => n++);
         a.click(); a.click(); await t.settle(); t.eq(n, 2, 'clicking the same tab twice raises twice');
-        const s = await t.mount('<pk-tabs scroll value="a">' + Array.from({ length: 30 }, (_, i) => `<pk-tab value="${i}">Tab number ${i}</pk-tab>`).join('') + '</pk-tabs>');
+        const s = await t.mount('<pk-tabs overflow="scroll" value="a">' + Array.from({ length: 30 }, (_, i) => `<pk-tab value="${i}">Tab number ${i}</pk-tab>`).join('') + '</pk-tabs>');
         await t.settle(); await t.settle();
         const list = s.part('list');
         t.eq(getComputedStyle(list).flexWrap, 'nowrap'); t.eq(list.getAttribute('data-fade'), 'end', 'the fade is on the side that has more tabs');
@@ -230,7 +230,7 @@ export const cases = [
         const NAMES = ['Overview', 'Line items', 'Shipping', 'Payments', 'Returns', 'Documents', 'Notes', 'History'];
         const still = async list => { let last = NaN, n = 0; while (n < 3) { await new Promise(r => setTimeout(r, 60)); n = list.scrollLeft === last ? n + 1 : 0; last = list.scrollLeft; } };
         for (const width of [375, 520]) {
-            const host = t.stage('<pk-tabs scroll value="s0">' + NAMES.map((n, i) => `<pk-tab value="s${i}">${n}</pk-tab>`).join('') + '</pk-tabs>');
+            const host = t.stage('<pk-tabs overflow="scroll" value="s0">' + NAMES.map((n, i) => `<pk-tab value="s${i}">${n}</pk-tab>`).join('') + '</pk-tabs>');
             host.style.width = width + 'px'; await t.load(host);
             const el = host.firstElementChild, list = el.part('list'), tabs = [...el.querySelectorAll('pk-tab')];
             t.ok(list.scrollWidth > list.clientWidth, `${width}px: the strip overflows`);
@@ -247,7 +247,7 @@ export const cases = [
 
     ['tabs scroll: the overflow affordance is on the sides with more tabs, follows the scroll and the tab list, and is absent when the tabs fit (issue 339)', async t => {
         const still = async list => { let last = NaN, n = 0; while (n < 3) { await new Promise(r => setTimeout(r, 60)); n = list.scrollLeft === last ? n + 1 : 0; last = list.scrollLeft; } };
-        const html = n => '<pk-tabs scroll value="a">' + Array.from({ length: n }, (_, i) => `<pk-tab value="${i ? 'x' + i : 'a'}">Tab number ${i}</pk-tab>`).join('') + '</pk-tabs>';
+        const html = n => '<pk-tabs overflow="scroll" value="a">' + Array.from({ length: n }, (_, i) => `<pk-tab value="${i ? 'x' + i : 'a'}">Tab number ${i}</pk-tab>`).join('') + '</pk-tabs>';
         const host = t.stage(html(12)); host.style.width = '375px'; await t.load(host);
         const el = host.firstElementChild, list = el.part('list');
         const mask = () => getComputedStyle(list).maskImage;
@@ -267,7 +267,7 @@ export const cases = [
     }],
 
     ['tabs scroll: the focus ring of a tab is inside the strip and is not clipped, focus from the keyboard (issue 338)', async t => {
-        const host = t.stage('<pk-tabs scroll value="a"><pk-tab value="a">One</pk-tab><pk-tab value="b">Two</pk-tab><pk-tab value="c">Three</pk-tab></pk-tabs>');
+        const host = t.stage('<pk-tabs overflow="scroll" value="a"><pk-tab value="a">One</pk-tab><pk-tab value="b">Two</pk-tab><pk-tab value="c">Three</pk-tab></pk-tabs>');
         await t.load(host);
         const el = host.firstElementChild, list = el.part('list'), [a, b] = el.querySelectorAll('pk-tab');
         a.focus(); t.key(a, 'ArrowRight'); await t.settle();
@@ -275,6 +275,28 @@ export const cases = [
         t.ok(cs.outlineStyle !== 'none' && b.matches(':focus-visible'), 'the focused tab shows its ring');
         const r = b.getBoundingClientRect(), l = list.getBoundingClientRect();
         t.ok(r.top - (off + w) >= l.top - 0.5 && r.bottom + off + w <= l.bottom + 0.5 && r.left - (off + w) >= l.left - 0.5 && r.right + off + w <= l.right + 0.5, `the ring (offset ${off}, width ${w}) fits in the strip: tab ${Math.round(r.top)}-${Math.round(r.bottom)}, strip ${Math.round(l.top)}-${Math.round(l.bottom)}`);
+    }],
+
+    // Issue 659: overflow="menu" collapses the tabs that do not fit behind a trailing "..." button (a menubutton) whose menu lists them.
+    ['tabs overflow="menu": tabs that do not fit collapse behind the trailing button, stay one row, and are chosen from its menu', async t => {
+        const names = ['Console', 'Logs', 'Logging', 'Performance', 'Quality', 'Inspector', 'Theme', 'Layout builder'];
+        const html = '<pk-tabs overflow="menu" value="m0">' + names.map((n, i) => `<pk-tab value="m${i}">${n}</pk-tab>`).join('') + '</pk-tabs>';
+        const host = t.stage(html); host.style.width = '360px'; await t.load(host);
+        const el = host.firstElementChild, list = el.part('list'), trigger = el.shadowRoot.querySelector('[part="more-trigger"]');
+        t.ok(list.getBoundingClientRect().height < 60, 'the strip stays one row (nothing wrapped)');
+        t.ok(getComputedStyle(trigger).display !== 'none', 'the overflow trigger is shown once tabs do not fit');
+        const m0 = el.querySelector('pk-tab[value="m0"]');
+        t.ok(getComputedStyle(m0).display !== 'none', 'the selected (first) tab stays visible even if it would otherwise overflow');
+        trigger.focus(); trigger.click(); await t.settle();
+        t.eq(trigger.getAttribute('aria-expanded'), 'true', 'opening the menu is announced');
+        const item = el.shadowRoot.querySelector('[part="more"] pk-menu-item');
+        t.ok(item, 'the menu lists a hidden tab');
+        const value = item.value;
+        item.click(); await t.settle();
+        t.eq(el.value, value, 'choosing a hidden tab from the menu selects it');
+        t.eq(trigger.getAttribute('aria-expanded'), 'false', 'choosing an item closes the menu');
+        const chosen = el.querySelector(`pk-tab[value="${value}"]`);
+        t.ok(getComputedStyle(chosen).display !== 'none', 'the tab just chosen from the menu is now shown in the strip (pinned as the active tab)');
     }],
 
     ['mounting 200 buttons is fast enough to be unnoticeable', async t => {

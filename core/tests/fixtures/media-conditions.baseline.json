@@ -191,6 +191,9 @@
  "table-filters": [
   "(max-width: 640px)"
  ],
+ "tabs": [
+  "(max-width: 640px)"
+ ],
  "tag-input": [
   "(max-width: 640px)"
  ],
