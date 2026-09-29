@@ -1,0 +1,12 @@
+/* Tool dock chrome: the dock and its launcher. Everything inside is SDK components or app-supplied content; this only places and themes the surface. */
+
+.td-surface { color: var(--color-text); background: var(--color-bg); }
+
+.td-surface--dock { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-flyout); block-size: var(--td-height, 40vh); overflow: auto; border-top: 1px solid var(--color-border); box-shadow: var(--shadow-flyout); }
+
+.td-surface--dock[hidden] { display: none; }
+
+/* Room under the last row for the launcher (fixed, bottom end, over the open dock): a dock tab always scrolls clear of it. */
+.td-panel-body { padding: var(--space-3); padding-block-end: calc(var(--touch-target) + var(--space-3) * 2); }
+
+.td-launcher { position: fixed; inset-inline-end: var(--space-3); bottom: var(--space-3); z-index: var(--z-pop); }

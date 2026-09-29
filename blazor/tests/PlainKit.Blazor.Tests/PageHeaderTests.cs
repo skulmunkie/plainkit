@@ -1,6 +1,5 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Sections;
 using Microsoft.Extensions.DependencyInjection;
 using PlainKit.Blazor;
 
@@ -56,13 +55,37 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void The_title_is_the_last_crumb_unless_a_Title_overrides_it()
+    public void An_explicit_Title_draws_its_own_heading_and_the_last_crumb_stays_a_plain_current_page_marker()
     {
-        Assert.Equal("PO 1042", Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).Find("pk-page-header").GetAttribute("heading"));
-
         var named = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Title, "Acme Supply order"));
+
         Assert.Equal("Acme Supply order", named.Find("pk-page-header").GetAttribute("heading"));
-        Assert.Equal("PO 1042", named.Find("pk-breadcrumb").Children[2].TextContent);
+        var last = named.Find("pk-breadcrumb").Children[2];
+        Assert.Equal("PO 1042", last.TextContent);
+        Assert.Equal("page", last.GetAttribute("aria-current"));
+        Assert.Null(last.GetAttribute("role"));
+        Assert.Null(last.GetAttribute("aria-level"));
+    }
+
+    [Fact]
+    public void Without_a_Title_the_heading_attribute_stays_unset_and_the_last_crumb_carries_the_heading_role_itself()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
+
+        Assert.Null(cut.Find("pk-page-header").GetAttribute("heading"));
+        var last = cut.Find("pk-breadcrumb").Children[2];
+        Assert.Equal("PO 1042", last.TextContent);
+        Assert.Equal("page", last.GetAttribute("aria-current"));
+        Assert.Equal("heading", last.GetAttribute("role"));
+        Assert.Equal("1", last.GetAttribute("aria-level"));
+    }
+
+    [Fact]
+    public void The_last_crumb_heading_role_matches_a_custom_Level()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Level, 2));
+
+        Assert.Equal("2", cut.Find("pk-breadcrumb").Children[2].GetAttribute("aria-level"));
     }
 
     [Fact]
@@ -110,68 +133,13 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void With_a_ShellSection_the_title_goes_into_the_shell_title_slot_and_is_not_drawn_twice()
-    {
-        var cut = Render(builder =>
-        {
-            builder.OpenComponent<SectionOutlet>(0);
-            builder.AddAttribute(1, nameof(SectionOutlet.SectionName), "shell-title");
-            builder.CloseComponent();
-            builder.OpenComponent<PkPageHeader>(2);
-            builder.AddAttribute(3, nameof(PkPageHeader.ShellSection), "shell-title");
-            builder.AddAttribute(4, nameof(PkPageHeader.Crumbs), (IReadOnlyList<PkCrumb>)Trail);
-            builder.AddAttribute(5, nameof(PkPageHeader.Title), "Acme Supply order");
-            builder.CloseComponent();
-        });
-
-        var slotted = cut.Nodes.OfType<AngleSharp.Dom.IText>().Single(n => n.Data.Trim().Length > 0);
-        Assert.Equal("Acme Supply order", slotted.Data.Trim());
-        Assert.Null(cut.Find("pk-page-header").GetAttribute("heading"));
-        Assert.Equal(3, cut.Find("pk-breadcrumb").Children.Length);
-    }
-
-    private IRenderedComponent<IComponent> RenderInShell(bool backLink, IReadOnlyList<PkCrumb> crumbs) => Render(builder =>
-    {
-        builder.OpenComponent<SectionOutlet>(0);
-        builder.AddAttribute(1, nameof(SectionOutlet.SectionName), "shell-title");
-        builder.CloseComponent();
-        builder.OpenComponent<PkPageHeader>(2);
-        builder.AddAttribute(3, nameof(PkPageHeader.ShellSection), "shell-title");
-        builder.AddAttribute(4, nameof(PkPageHeader.Crumbs), crumbs);
-        builder.AddAttribute(5, nameof(PkPageHeader.BackLink), backLink);
-        builder.CloseComponent();
-    });
-
-    [Fact]
     public void BackLink_is_off_by_default()
     {
         Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-button"));
-        Assert.Empty(RenderInShell(false, Trail).FindAll("pk-button"));
     }
 
     [Fact]
-    public void BackLink_in_a_shell_section_is_a_ghost_link_to_the_parent_crumb_before_the_title()
-    {
-        var cut = RenderInShell(true, Trail);
-        var back = cut.Find("pk-button");
-
-        Assert.Equal("/stock/orders", back.GetAttribute("href"));
-        Assert.Equal("ghost", back.GetAttribute("variant"));
-        // the name is the button text (hidden visually by icon mode), not an aria-label
-        Assert.Null(back.GetAttribute("label"));
-        Assert.Equal("Back to Purchase orders", back.TextContent.Trim());
-        Assert.True(back.HasAttribute("icon"));
-        Assert.Equal("chevron-left", back.QuerySelector("pk-icon")!.GetAttribute("name"));
-        Assert.Null(back.GetAttribute("style"));
-        // before the title text, outside the header element
-        var nodes = cut.Nodes.ToList();
-        Assert.True(nodes.IndexOf(back) < nodes.IndexOf(cut.Nodes.OfType<AngleSharp.Dom.IText>().Single(n => n.Data.Trim() == "PO 1042")));
-        Assert.Single(cut.FindAll("pk-button"));
-        Assert.Empty(cut.Find("pk-page-header").QuerySelectorAll("pk-button"));
-    }
-
-    [Fact]
-    public void BackLink_without_a_shell_section_is_drawn_above_the_header()
+    public void BackLink_is_drawn_above_the_header()
     {
         var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.BackLink, true));
         Assert.Equal("Back to Purchase orders", cut.Find("pk-button").TextContent.Trim());

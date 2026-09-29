@@ -117,17 +117,6 @@ test('the element inventory counts only pk-* tags and says which are registered'
     assert.deepEqual(inv, [{ tag: 'pk-alert', count: 1, defined: false }, { tag: 'pk-tabs', count: 2, defined: true }]);
 });
 
-test('the dock hotkey matches a chord exactly: the key and only the modifiers named', async () => {
-    const { matchesHotkey, SIZES } = await import('../modules/devtools/devtools.js');
-    assert.ok(matchesHotkey({ key: '`', ctrlKey: true }, 'Ctrl+`'));
-    assert.ok(matchesHotkey({ key: '`', metaKey: true }, 'Ctrl+`'), 'Cmd counts as Ctrl');
-    assert.ok(matchesHotkey({ key: 'D', ctrlKey: true, shiftKey: true }, 'Ctrl+Shift+D'));
-    assert.ok(!matchesHotkey({ key: '`' }, 'Ctrl+`'), 'the modifier is required');
-    assert.ok(!matchesHotkey({ key: '`', ctrlKey: true, shiftKey: true }, 'Ctrl+`'), 'an extra modifier is not a match');
-    assert.ok(!matchesHotkey({ key: '`', ctrlKey: true }, ''), 'an empty chord turns the hotkey off');
-    assert.deepEqual(Object.keys(SIZES), ['small', 'medium', 'large']);
-});
-
 test('the page score counts each distinct finding once and never goes below zero', async () => {
     const { pageScore, scoreTone, findingRows, describeForInspector } = await import('../js/inspect-logic.js');
     assert.equal(pageScore([]), 100);

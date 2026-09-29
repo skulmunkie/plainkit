@@ -1,6 +1,7 @@
 {
  "accordion-item": [
-  "(prefers-reduced-motion: reduce)"
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
  ],
  "alert": [
   "(max-width: 640px)"

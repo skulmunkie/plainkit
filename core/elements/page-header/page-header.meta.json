@@ -117,7 +117,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics.",
+  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics. A record with no heading attribute renders single-row, with the last breadcrumb crumb (already aria-current=\"page\") standing in for the title; pk-page-header does not own pk-breadcrumb's slotted content, so it cannot add a heading role to that crumb for you — add role=\"heading\" and the matching aria-level (matching level) on that last crumb yourself, as in the record example below.",
   "examples": [
     {
       "title": "Page: crumbs, title and actions",
@@ -129,7 +129,7 @@
     },
     {
       "title": "Record: home crumb, chips, actions and docked tabs",
-      "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
+      "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
     },
     {
       "title": "Record: status chips and actions",

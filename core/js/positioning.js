@@ -63,7 +63,11 @@ export function place(anchor, floating, options = {}) {
     style.position = 'fixed'; style.left = '0px'; style.top = '0px';
     const box = floating.getBoundingClientRect();
     const view = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
-    const rtl = options.rtl ?? getComputedStyle(typeof anchor.getBoundingClientRect === 'function' ? anchor : floating).direction === 'rtl';
+    // Only a real element has a direction to read; a synthetic anchor (a point, or badge-popover's phone-width virtual box) is
+    // never the rtl source, so fall back to the floating element (also covers the synthetic-anchor case, since anchor and
+    // floating share an ancestor's direction in practice). nodeType === 1 (ELEMENT_NODE) duck-types this without relying on
+    // a global Element constructor, which some test environments do not provide.
+    const rtl = options.rtl ?? getComputedStyle(anchor.nodeType === 1 ? anchor : floating).direction === 'rtl';
     const r = computePosition(rectOf(anchor), { width: box.width, height: box.height }, view, { ...options, rtl });
     style.left = `${Math.round(r.x)}px`; style.top = `${Math.round(r.y)}px`;
     floating.setAttribute('data-placement', r.side);
