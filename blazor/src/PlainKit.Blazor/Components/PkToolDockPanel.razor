@@ -1,0 +1,38 @@
+@implements IDisposable
+
+@* A tab of a PkToolDock, in Razor: registers itself with the enclosing PkToolDock (the CascadingValue it wraps its children in) so the dock
+   can find it after render, the same way PkDock's children find their pk-dock (issue #644, PR2). Blazor renders this panel's content into
+   its own hidden host div; PkToolDock hands that div's ElementReference to JavaScript, which appends it into the tab body and toggles its
+   hidden attribute as the tab is shown or hidden. Nothing here is shown until the dock mounts it: the div starts, and stays, hidden until
+   JavaScript un-hides it on activation. *@
+<div @ref="_host" hidden>
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter] private PkToolDock? Parent { get; set; }
+
+    private ElementReference _host;
+
+    /// <summary>The tab's id (unique among the dock's panels): the value pk-tabs uses, and what PkToolDock.Tab and SelectAsync select by.</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = default!;
+
+    /// <summary>The tab's label.</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+
+    /// <summary>The panel's content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The hidden host div JavaScript moves into the dock's tab body and reveals or hides as this tab is activated or deactivated.</summary>
+    internal ElementReference Host => _host;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Parent is null) throw new InvalidOperationException($"{nameof(PkToolDockPanel)} must be rendered inside a {nameof(PkToolDock)}.");
+        Parent.RegisterPanel(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Parent?.UnregisterPanel(this);
+}
