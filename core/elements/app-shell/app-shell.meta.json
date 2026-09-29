@@ -47,10 +47,6 @@
       "description": "A pk-side-nav."
     },
     {
-      "name": "title",
-      "description": "The page title in the top bar (a heading or plain text), after the back link and before the header slot; one line, truncated with an ellipsis. Put the page's only h1 here."
-    },
-    {
       "name": "header",
       "description": "Top bar content after the title: page actions, an account menu. A direct child marked data-nav-toggle stays first."
     },
@@ -83,10 +79,6 @@
       "description": "The back link"
     },
     {
-      "name": "title",
-      "description": "The title area"
-    },
-    {
       "name": "header",
       "description": "Header row"
     },
@@ -104,7 +96,7 @@
   "writes": [
     { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect. The wide-screen hide is done in the shell's own shadow tree (its nav slot), not on the nav." }
   ],
-  "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot. The back link is a real link (keyboard reachable, 44px target, focus ring) named by back-label; the arrow is aria-hidden. Put the page's h1 in the title slot so there is exactly one page heading; do not repeat it in the body.",
+  "a11y": "Landmarks: header, main content region and footer are exposed; only the body scrolls, so there is never a nested scrollbar; the skip link belongs first in the header slot. The back link is a real link (keyboard reachable, 44px target, focus ring) named by back-label; the arrow is aria-hidden. The page's h1 belongs in the body, usually as pk-page-header's heading, so there is exactly one page heading.",
   "mobile": "The nav becomes a drawer; the body padding narrows; env(safe-area-inset-*) keeps content clear of the notch and home bar. The back link keeps a 44px target and a long title is truncated to one line.",
   "examples": [
     {
@@ -112,8 +104,8 @@
       "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h2>Home</h2><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
     },
     {
-      "title": "Title and back link",
-      "html": "<pk-app-shell back-href=\"#invoices\" back-label=\"Back to Invoices\"><h2 slot=\"title\">Invoice 1042</h2><pk-button slot=\"header\" variant=\"ghost\">Edit</pk-button><pk-stack><p>The title is the page heading; the back link goes to the list.</p></pk-stack></pk-app-shell>"
+      "title": "Back link",
+      "html": "<pk-app-shell back-href=\"#invoices\" back-label=\"Back to Invoices\"><pk-button slot=\"header\" variant=\"ghost\">Edit</pk-button><pk-stack><pk-page-header heading=\"Invoice 1042\"></pk-page-header><p>The page title is the page's own pk-page-header; the back link goes to the list.</p></pk-stack></pk-app-shell>"
     }
   ]
 }

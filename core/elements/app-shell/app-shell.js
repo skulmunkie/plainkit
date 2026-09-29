@@ -15,7 +15,7 @@ export default Base => class extends Base {
         });
         this.addEventListener('pk-close', e => { if (e.target === this.nav && !e.defaultPrevented) this.navOpen = false; });
         this.addEventListener('pk-open', e => { if (e.target === this.nav) this.navOpen = true; });
-        for (const slot of ['title', 'header', 'footer']) this.watchSlot(slot, () => this.requestUpdate());
+        for (const slot of ['header', 'footer']) this.watchSlot(slot, () => this.requestUpdate());
         this.watchSlot('nav', () => this.restoreNav());
     }
     // Not slotted('nav')[0]: a host framework's own wrapper element (Blazor's generated <span slot="nav"> for a multi-root RenderFragment,
@@ -43,15 +43,10 @@ export default Base => class extends Base {
     // The back link goes only to a same-site path or an http(s) address; anything else (a script or data address) is dropped and said once.
     updated() {
         this.restoreNav();
-        this.part('title').hidden = this.slotted('title').length === 0; // an empty title area would push the header slot to the far side
-        // A centred field (pk-app-bar-search: flex-grow with auto inline margins, issue 295) shares the header's free space with the title's
-        // own flex-grow (issue 318) unless the title stops growing, so the field's auto margins get the whole leftover space and it lands
-        // centred between the title/menu group and the trailing actions.
-        this.part('title').classList.toggle('with-search', this.slotted('header').some(e => e.localName === 'pk-app-bar-search'));
         this.part('footer').hidden = this.slotted('footer').length === 0; // a strip with nothing in it is not drawn (the header's own check is below, once the back link is known)
         const a = this.part('back'), href = this.backHref, go = safeLink(href);
         if (go) a.setAttribute('href', go); else a.removeAttribute('href');
-        this.part('header').hidden = !go && this.slotted('title').length + this.slotted('header').length === 0;
+        this.part('header').hidden = !go && this.slotted('header').length === 0;
         if (href && !go) { a.hidden = true; this.warnOnce('back-href', `back-href=${JSON.stringify(href)} is not a same-site path or an http(s) address: no back link`, { href }); }
     }
 };

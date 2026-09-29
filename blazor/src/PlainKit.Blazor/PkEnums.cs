@@ -79,6 +79,26 @@ public enum PkDevToolsSize
     Large,
 }
 
+/// <summary>Where a <see cref="PkToolDock"/> shows its tabs.</summary>
+public enum PkToolDockMode
+{
+    /// <summary>A floating launcher button and a dock at the bottom of the page, shown and hidden with a hotkey.</summary>
+    Dock,
+    /// <summary>The same tabs, filling the component's own element.</summary>
+    Inline,
+}
+
+/// <summary>How tall a docked <see cref="PkToolDock"/> is at first (the dock itself has buttons to change it).</summary>
+public enum PkToolDockSize
+{
+    /// <summary>40% of the window height.</summary>
+    Medium,
+    /// <summary>25% of the window height.</summary>
+    Small,
+    /// <summary>65% of the window height.</summary>
+    Large,
+}
+
 internal static class PkEnumExtensions
 {
     /// <summary>The lower-case attribute value, or null for the first member (the "leave it to the toolkit" default).</summary>

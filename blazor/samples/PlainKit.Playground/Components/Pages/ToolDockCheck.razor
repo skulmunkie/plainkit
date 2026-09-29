@@ -1,0 +1,19 @@
+@page "/tool-dock-check"
+
+@* Manual screenshot page for PkToolDock/PkToolDockPanel (issue #644 PR2): a dock with two panels, opened inline so both the tab strip and
+   panel switching are visible without driving the floating launcher. *@
+<div style="padding:1rem">
+    <h1>PkToolDock check</h1>
+    <PkToolDock Mode="PkToolDockMode.Inline" Label="Editor tools" LauncherLabel="Tools" Tab="properties">
+        <PkToolDockPanel Id="properties" Title="Properties">
+            <p>Name: <code>widget-42</code></p>
+            <p>Kind: <code>Gadget</code></p>
+        </PkToolDockPanel>
+        <PkToolDockPanel Id="history" Title="History">
+            <ul>
+                <li>Created 2 min ago</li>
+                <li>Renamed 1 min ago</li>
+            </ul>
+        </PkToolDockPanel>
+    </PkToolDock>
+</div>

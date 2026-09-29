@@ -13,8 +13,7 @@ export default {
 <pk-side-nav slot="nav" id="nav" label="Main"><a slot="brand" href="#">Acme</a>
 <pk-nav-item href="#" current>Dashboard</pk-nav-item><pk-nav-item href="#">Orders</pk-nav-item><pk-nav-item href="#">Products</pk-nav-item><pk-nav-item href="#">Customers</pk-nav-item>
 </pk-side-nav>
-<h2 slot="title">Dashboard</h2>
-<pk-button slot="header" id="menu" data-nav-toggle variant="ghost" aria-label="Toggle the menu">Menu</pk-button>
+<pk-button slot="header" id="menu" data-nav-toggle variant="ghost" size="mini" icon aria-label="Toggle the menu"><pk-icon name="menu"></pk-icon></pk-button>
 <div id="content"><pk-stack>${paragraphs(40)}</pk-stack></div>
 <span slot="footer">Acme Inc.</span>
 </pk-app-shell>`,
