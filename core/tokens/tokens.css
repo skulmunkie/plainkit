@@ -287,6 +287,17 @@
     --gal-shell-min-h: 10rem;
 }
 
+/* Scorecard chrome (core/modules/scorecard/scorecard.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --sc-scores-tile-min-w: 10rem;
+    --sc-table-col1-w: 8rem;
+    --sc-table-col-last-w: 14rem;
+    --sc-frames-w: 1280px;
+    --sc-frames-h: 700px;
+    --sc-frames-offscreen: -10000px;
+    --sc-measure-host-w: 900px;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
