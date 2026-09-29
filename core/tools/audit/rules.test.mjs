@@ -59,6 +59,60 @@ const CASES = [
     { id: 'A6', path: 'app.html', wrong: '<pk-badge variant="danger"></pk-badge>', right: '<pk-badge variant="danger">Failed</pk-badge>' },
     { id: 'A7', path: 'index.html', wrong: '<html><body></body></html>', right: '<html lang="en"><head><meta name="viewport" content="width=device-width"></head><body><main></main></body></html>' },
     { id: 'A8', path: 'app.css', wrong: 'pk-button { min-height: 0; }', right: 'pk-button { min-height: 44px; }' },
+    {
+        id: 'P1',
+        path: 'index.html',
+        wrong: '<html><body><header>Site</header><nav>Home</nav><script type="module" src="app.js"></script></body></html>',
+        right: '<html><body><script type="module">mountApp(document.body, { modules: [] });</script></body></html>',
+    },
+    {
+        id: 'P2',
+        path: 'app.js',
+        wrong: "mountApp(document.body, { pages: { home: {} } });",
+        right: "mountApp(document.body, { modules: [orders] }); defineModule({ id: 'orders', title: 'Orders', routes: [] });",
+    },
+    {
+        id: 'P3',
+        path: 'app.js',
+        wrong: "defineModule({ id: 'orders', routes: [{ path: '/', page: 'custom', config: { mount(host) { host.innerHTML = '<pk-table></pk-table><pk-toolbar></pk-toolbar>'; } } }] });",
+        right: "defineModule({ id: 'orders', routes: [{ path: '/', page: 'list', config: { columns: [] } }] });",
+    },
+    {
+        id: 'P4',
+        path: 'app.html',
+        wrong: '<pk-app-shell></pk-app-shell><header>Custom header</header><nav>Custom nav</nav>',
+        right: '<pk-app-shell><pk-navbar></pk-navbar></pk-app-shell>',
+    },
+    {
+        id: 'P5',
+        path: 'app.js',
+        wrong: "defineModule({ routes: [{ path: '/', page: 'list', config: { mount(host) { host.innerHTML = '<div class=\"pager\">Next</div>'; } } }] });",
+        right: "defineModule({ routes: [{ path: '/', page: 'list', config: { columns: [], empty: 'None yet' } }] });",
+    },
+    {
+        id: 'P6',
+        path: 'app.js',
+        wrong: "mountApp(document.body, {}); const q = localStorage.getItem('q');",
+        right: "defineModule({ id: 'orders', state: { defaults: { q: '' } } });",
+    },
+    {
+        id: 'P7',
+        path: 'app.js',
+        wrong: "defineModule({ routes: [{ path: '/', page: 'list', config: { columns: [] } }] });",
+        right: "defineModule({ routes: [{ path: '/', page: 'list', config: { columns: [], empty: 'No rows', error: 'Failed', loading: true } }] });",
+    },
+    {
+        id: 'P8',
+        path: 'app.js',
+        wrong: "defineModule({ routes: [{ path: '/', page: 'lsit', config: {} }] });",
+        right: "defineModule({ routes: [{ path: '/', page: 'list', config: {} }] });",
+    },
+    {
+        id: 'P9',
+        path: 'app.html',
+        wrong: '<a href="#/orders/42">Order</a>',
+        right: '<pk-nav-link onclick="ctx.navigate(\'/orders/42\')">Order</pk-nav-link>',
+    },
 ];
 
 test('every S/D/T/A rule in the table has a test case', () => {

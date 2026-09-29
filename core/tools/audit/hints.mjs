@@ -5,7 +5,7 @@
 // core/tools/audit/data.mjs; regenerate with `node core/tools/audit/data.mjs` (part of `node scripts/bootstrap.mjs`).
 // This file itself stays free of repository paths - it only re-exports the generated module's tables, so the rule families keep
 // importing from here unchanged.
-export { TAG_HINTS, CLASS_HINTS, ROLE_HINTS, ELEMENT_TAGS, ELEMENT_ATTRS, A11Y_REQUIRES, DEPRECATED_ELEMENTS, DEPRECATED_ATTRS, TOKENS } from './generated.data.mjs';
+export { TAG_HINTS, CLASS_HINTS, ROLE_HINTS, ELEMENT_TAGS, ELEMENT_ATTRS, A11Y_REQUIRES, DEPRECATED_ELEMENTS, DEPRECATED_ATTRS, TOKENS, PAGE_TYPES } from './generated.data.mjs';
 import { API_HINTS as GENERATED_API_HINTS } from './generated.data.mjs';
 
 // D7 rules match a hint by regexing the source for the API's call/reference shape; the generated table only carries the API
