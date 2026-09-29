@@ -1,9 +1,13 @@
 // pk-dock (issue 432, step 1): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
 // same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels
 // themselves: they are the page's own children, slotted.
+// The left group carries four panels (issue #602): at its default ~20% split width its tab list must scroll sideways instead of wrapping onto a second row, and the
+// same reading-order tab list (all six panels, on a phone) must stay on one row too.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
   <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
+  <div slot="layers" data-heading="Layers" data-group="left" class="stack"><strong>Layers</strong><span>Background</span><span>Foreground</span></div>
+  <div slot="styles" data-heading="Styles" data-group="left" class="stack"><strong>Styles</strong><span>Primary</span><span>Secondary</span></div>
   <div slot="canvas" data-heading="Canvas" class="stack"><strong>Canvas</strong><span>The middle panel takes the space the side panels leave.</span></div>
   <div slot="props" data-heading="Properties" data-group="right" class="stack"><strong>Properties</strong><span>Width 120</span><span>Height 80</span></div>`;
 
@@ -42,10 +46,14 @@ export default {
         if (d && t.viewport.name === 'desktop') {
             t.exists('#dock >>> pk-splitter');
             t.ok(t.metric('#dock', 'scrollWidth') <= t.metric('#dock', 'clientWidth') + 1, 'the dock does not overflow sideways');
+            // Issue #602: the left group's tab list (four panels in a narrow, ~20%-wide column) scrolls sideways instead of wrapping onto a second row.
+            t.ok(t.metric('#dock >>> pk-tabs >>> [part=list]', 'scrollHeight') <= t.metric('#dock >>> pk-tabs >>> [part=list]', 'clientHeight') + 1, 'the narrow group tab list wraps onto a second row instead of scrolling');
         }
         if (t.viewport.name === 'phone') {
             t.absent('#dock >>> pk-splitter');
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
+            // Issue #602: the reading-order strip (all six panels) stays on one scrollable row.
+            t.ok(t.metric('#dock >>> pk-tabs >>> [part=list]', 'scrollHeight') <= t.metric('#dock >>> pk-tabs >>> [part=list]', 'clientHeight') + 1, 'the phone tab strip wraps onto a second row instead of scrolling');
         }
         if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
         const bottom = t.rect('#bottom');
