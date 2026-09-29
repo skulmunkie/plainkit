@@ -21,7 +21,7 @@ A finding is one line - file, line, column, severity, rule id, message - followe
 
 ## The rule families
 
-Every rule belongs to one of five families; the id's letter says which. Full ids, severities and a wrong/right snippet for each one: the agent skills' `references/conformance-rules.md` (`plainkit-sdk` and `plainkit-blazor` ship the same file, generated from the same rule table the list-rules flag above reads, so the two can never drift apart), or the explain flag shown above, for one rule id from the command line.
+Every rule belongs to one of six families; the id's letter says which. Full ids, severities and a wrong/right snippet for each one: the agent skills' `references/conformance-rules.md` (`plainkit-sdk` and `plainkit-blazor` ship the same file, generated from the same rule table the list-rules flag above reads, so the two can never drift apart), or the explain flag shown above, for one rule id from the command line.
 
 | Family | Catches |
 |---|---|
@@ -30,8 +30,9 @@ Every rule belongs to one of five families; the id's letter says which. Full ids
 | P | Pages and app structure - a page with its own header and nav instead of `mountApp`, a `mountApp` with no `defineModule` modules, a module missing `id`/`title`/`routes`, state kept in `localStorage` instead of the module's own state. |
 | T | Tokens and standards - a literal colour, size or font instead of a token, a typo'd or deprecated tag or import path. |
 | A | Accessibility attributes - an icon-only button, dialog, tab or image with no accessible name; a page shell with no `lang`, viewport meta or main landmark. |
+| B | Blazor and Razor only - a raw tag in a `.razor`/`.cshtml` where a `Pk*` component exists, `Class`/`Style` set on a component instead of its own parameters, an unknown component or parameter, a `@page` with no `PageBase`, JS interop duplicating a component, a `<script>`/inline `onclick`/non-literal `MarkupString`. |
 
-Two rule families reserved by the design (`docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md`) are not built yet: `B` (Razor-specific checks against `blazor/mappings`) is tracked as its own step on issue [#518](https://github.com/skulmunkie/plainkit/issues/518).
+`.razor` and `.cshtml` files run every family's markup rules too (S, D, T, A and P apply to Razor markup the same as HTML - the tokenizer is already Razor-aware: `@* *@` comments, `@{ }`/`@( )` blocks and `Pk*` components are recognised); `B` only covers what the Blazor surface adds. Data for `B` comes from `blazor/mappings/*.json`, the same source the `plainkit-blazor` skill and `scripts/generate-blazor.mjs` already read.
 
 ## Severity: normal versus strict
 

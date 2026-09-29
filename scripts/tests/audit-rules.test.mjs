@@ -13,7 +13,7 @@ import { run } from '../../core/tools/audit/cli.mjs';
 import { SKILL_NAMES } from '../build-skills.mjs';
 
 const gen = generate();
-const RULE_ID = /^[SDTAP]\d+$/;
+const RULE_ID = /^[SDTAPB]\d+$/;
 
 function capture() {
     const out = [];
@@ -42,7 +42,7 @@ test('references/conformance-rules.md (both skills) documents every rule id, and
     for (const skill of SKILL_NAMES) {
         const text = gen.get(`${skill}/references/conformance-rules.md`);
         assert.ok(text, `FIX: ${skill} has no references/conformance-rules.md - build-skills.mjs should generate one for every skill in SKILL_NAMES`);
-        const headings = [...text.matchAll(/^### ([SDTAP]\d+)$/gm)].map(m => m[1]);
+        const headings = [...text.matchAll(/^### ([SDTAPB]\d+)$/gm)].map(m => m[1]);
         assert.deepEqual(headings.sort(), RULES.map(r => r.id).sort(), `FIX: ${skill}/references/conformance-rules.md's rule headings do not match RULES - run node scripts/bootstrap.mjs`);
     }
 });

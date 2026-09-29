@@ -1,12 +1,14 @@
 // Builds the audit's hint data from the repository's own catalogues (design section 3), at build/bootstrap time only.
 //
-// This is the one file under core/tools/audit/ allowed to read core/elements/*/*.meta.json, core/js/app/pages/*.js and
-// core/tokens/tokens.css: it is a build step (run by node core/tools/audit/data.mjs, wired into scripts/bootstrap.mjs), not part of
-// what an audit run against a consumer's own project executes. Its output, core/tools/audit/generated.data.mjs, is a plain data
-// module with no imports of its own; hints.mjs and the rule families read only that generated file, never these repository paths -
-// that is what keeps core/tools/audit pure and standalone (design section 11, "the pure, no repository paths property of #515").
+// This is the one file under core/tools/audit/ allowed to read core/elements/*/*.meta.json, core/js/app/pages/*.js,
+// core/tokens/tokens.css and blazor/mappings/*.json: it is a build step (run by node core/tools/audit/data.mjs, wired into
+// scripts/bootstrap.mjs), not part of what an audit run against a consumer's own project executes. Its output,
+// core/tools/audit/generated.data.mjs, is a plain data module with no imports of its own; hints.mjs and the rule families
+// read only that generated file, never these repository paths - that is what keeps core/tools/audit pure and standalone
+// (design section 11, "the pure, no repository paths property of #515").
 //
-// Regenerate after any element meta, page-type or token change: node core/tools/audit/data.mjs (bootstrap.mjs does this already).
+// Regenerate after any element meta, page-type, token or Blazor mapping change: node core/tools/audit/data.mjs
+// (bootstrap.mjs does this already).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -72,6 +74,22 @@ export function buildElementHints(metas) {
     return { tagHints, classHints, roleHints, apiHints, elementsByTag, elementAttrs, a11yRequires, deprecatedElements, deprecatedAttrs };
 }
 
+// --- Blazor components (design section 7, A-9): tag -> { component, params[] } from blazor/mappings/*.json,
+// the same source scripts/generate-blazor.mjs and the skills already read. Used by family B (Razor-only rules)
+// to map a raw tag or a Pk* component name to the mapping's own data instead of a hand-listed table. -----------
+
+export function loadBlazorMappings(rootDir = root) {
+    const dir = path.join(rootDir, 'blazor', 'mappings');
+    const out = {};
+    if (!fs.existsSync(dir)) return out;
+    for (const name of fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort()) {
+        const tag = `pk-${name.replace(/\.json$/, '')}`;
+        const mapping = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+        out[tag] = { component: mapping.component, params: (mapping.params ?? []).map(p => p.name) };
+    }
+    return out;
+}
+
 // --- Tokens (design 3.3): parse core/tokens/tokens.css into { name, value, group } entries. ------------------------
 
 const TOKEN_GROUPS = ['color', 'space', 'text', 'radius', 'shadow', 'duration', 'ease'];
@@ -121,7 +139,8 @@ export async function buildAuditData(rootDir = root) {
     const elements = buildElementHints(metas);
     const tokens = loadTokens(rootDir);
     const pageTypes = await loadPageTypes(rootDir);
-    return { elements, tokens, pageTypes };
+    const blazorComponents = loadBlazorMappings(rootDir);
+    return { elements, tokens, pageTypes, blazorComponents };
 }
 
 function renderModule(data) {
@@ -149,6 +168,8 @@ export const DEPRECATED_ATTRS = ${JSON.stringify(data.elements.deprecatedAttrs, 
 export const TOKENS = ${JSON.stringify(data.tokens, null, 4)};
 
 export const PAGE_TYPES = ${JSON.stringify(data.pageTypes, null, 4)};
+
+export const BLAZOR_COMPONENTS = ${JSON.stringify(data.blazorComponents, null, 4)};
 `;
 }
 

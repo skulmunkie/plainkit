@@ -2,9 +2,9 @@
 // template, doc anchor), built on the pure engine of core/tools/strict/engine.mjs (#605, A-1). #612 (A-2) supplied
 // the S family (kept from #515, severities made concrete for a consumer) and the D family (duplicating an element
 // or its interaction logic). #625 (A-4) added T (tokens and standards) and A (accessibility attributes). This PR
-// (A-7) adds P (pages and app structure: mountApp/defineModule usage versus ad hoc page structure, design
-// section 2.3). Family B and the CLI that consumes this table are later slices; this module is usable standalone
-// today via `checkFiles`.
+// (A-7) added P (pages and app structure: mountApp/defineModule usage versus ad hoc page structure, design
+// section 2.3). A-9 adds B (Blazor/Razor only: a raw tag versus a Pk* component, a component's own parameters,
+// design section 2.6), sourced from blazor/mappings/*.json through core/tools/audit/data.mjs.
 //
 // Constraint (design section 11): this module, and everything under core/tools/audit/, must never import from
 // core/js, core/elements or core/site - it stays pure and standalone, runnable from a consumer's own project.
@@ -15,9 +15,10 @@ import { D_RULES } from './families/d-rules.mjs';
 import { T_RULES } from './families/t-rules.mjs';
 import { A_RULES } from './families/a-rules.mjs';
 import { P_RULES } from './families/p-rules.mjs';
+import { B_RULES } from './families/b-rules.mjs';
 
 // The table: every row from every family, in id order for a stable --list-rules/--explain rendering later.
-export const RULES = [...S_RULES, ...D_RULES, ...P_RULES, ...T_RULES, ...A_RULES];
+export const RULES = [...S_RULES, ...D_RULES, ...P_RULES, ...T_RULES, ...A_RULES, ...B_RULES];
 
 export function getRuleMeta(id) {
     return RULES.find(r => r.id === id);

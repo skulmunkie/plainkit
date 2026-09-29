@@ -108,4 +108,10 @@ export const EXAMPLES = [
         wrong: '<a href="#/orders/42">Order</a>',
         right: '<pk-nav-link onclick="ctx.navigate(\'/orders/42\')">Order</pk-nav-link>',
     },
+    { id: 'B1', path: 'App.razor', wrong: '<table></table>', right: '<PkTable></PkTable>' },
+    { id: 'B2', path: 'App.razor', wrong: '<PkButton Class="primary"></PkButton>', right: '<PkButton Variant="ButtonVariant.Primary"></PkButton>' },
+    { id: 'B3', path: 'App.razor', wrong: '<PkButton Sizee="ButtonSize.Small"></PkButton>', right: '<PkButton Size="ButtonSize.Small"></PkButton>' },
+    { id: 'B4', path: 'App.razor', wrong: '@page "/orders"\n<PkTable></PkTable>', right: '@page "/orders"\n@inherits OrdersPageBase\n<PkTable></PkTable>' },
+    { id: 'B5', path: 'App.razor', wrong: 'await JS.InvokeVoidAsync("dialog.showModal", elementRef);', right: 'await dialogRef.ShowAsync();' },
+    { id: 'B6', path: 'App.razor', wrong: '<div onclick="go()"></div>', right: '<PkButton OnClick="Go">Go</PkButton>' },
 ];
