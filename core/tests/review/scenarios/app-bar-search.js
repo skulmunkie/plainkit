@@ -19,8 +19,7 @@ export default {
     elements: ['app-bar-search', 'app-shell'],
     html: `<pk-app-shell>
 <pk-side-nav slot="nav" label="Main"><a slot="brand" href="#">Acme</a><pk-nav-item href="#" current>Orders</pk-nav-item><pk-nav-item href="#">Products</pk-nav-item></pk-side-nav>
-<h2 slot="title" id="title">Orders</h2>
-<pk-button slot="header" id="menu" data-nav-toggle variant="ghost" aria-label="Menu">Menu</pk-button>
+<pk-button slot="header" id="menu" data-nav-toggle variant="ghost" size="mini" icon aria-label="Menu"><pk-icon name="menu"></pk-icon></pk-button>
 <pk-app-bar-search slot="header" id="q" placeholder="Search products and orders"><a slot="footer" href="#all">Full search</a></pk-app-bar-search>
 <pk-button slot="header" id="account" variant="ghost">Account</pk-button>
 <pk-stack><p>Recent orders appear here.</p></pk-stack>
