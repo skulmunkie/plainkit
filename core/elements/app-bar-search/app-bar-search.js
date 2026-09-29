@@ -8,7 +8,7 @@
 import { drawIcon } from '../../js/icon-sprite.js';
 import { nextIndex } from '../../js/menu-logic.js';
 
-const el = (tag, part, text) => { const e = document.createElement(tag); if (part) e.setAttribute('part', part); if (text) e.textContent = text; return e; };
+const el = (tag, part, text) => { const e = document.createElement(tag); if (part) { e.setAttribute('part', part); e.className = part; } if (text) e.textContent = text; return e; };
 
 export default Base => class extends Base {
     constructor() { super(); this.$rows = []; this.$a = -1; }

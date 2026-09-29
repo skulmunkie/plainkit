@@ -13,7 +13,6 @@ export default {
     elements: ['detail-layout', 'tabs', 'app-shell'],
     html: `<pk-app-shell>
 <pk-side-nav slot="nav" label="Main" collapsed><span slot="brand" class="u-contents"><a href="#">Acme</a></span><pk-nav-item href="#" current><pk-icon slot="icon" name="orders"></pk-icon>Orders</pk-nav-item></pk-side-nav>
-<h2 slot="title">Order 1042</h2>
 <pk-detail-layout id="dl">
 <pk-card id="details" heading="Details" data-pk-section="details"><div>${lines(45, 'Details')}</div></pk-card>
 <pk-card id="pricing" heading="Pricing" data-pk-section="pricing"><div>${lines(45, 'Pricing')}</div></pk-card>

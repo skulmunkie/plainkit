@@ -16,12 +16,6 @@
 
 [part="back"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-[part="title"] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-lg); font-weight: 600; }
-
-[part="title"][hidden] { display: none; }
-
-::slotted([slot="title"]) { display: block; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: inherit; }
-
 ::slotted([data-nav-toggle]) { order: -1; }
 
 /* A pk-navbar in the header slot is the bar itself: it takes the row (its brand left, its actions right) and leaves the borders, background and side padding to the header. */

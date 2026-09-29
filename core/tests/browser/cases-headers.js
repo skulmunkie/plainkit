@@ -82,7 +82,7 @@ export const headerCases = [
     }],
 
     ['page-header: sticky keeps it flush under the app bar while the app shell body scrolls, and pins in a plain scroller too', async t => {
-        const sh = await t.mount('<pk-app-shell style="height:400px"><span slot="title">App</span><pk-page-header sticky heading="Record"><button slot="actions">Sync</button></pk-page-header><div style="height:1500px">Long</div></pk-app-shell>');
+        const sh = await t.mount('<pk-app-shell style="height:400px"><pk-page-header sticky heading="Record"><button slot="actions">Sync</button></pk-page-header><div style="height:1500px">Long</div></pk-app-shell>');
         await t.settle();
         const body = sh.part('body'), h = sh.querySelector('pk-page-header');
         body.scrollTop = 600; await t.settle();
@@ -96,7 +96,7 @@ export const headerCases = [
     }],
 
     ['app-shell: the scrolling body is a containing block, so an absolutely positioned page element resolves against the body, not the page (#302)', async t => {
-        const sh = await t.mount('<pk-app-shell style="height:400px"><span slot="title">App</span><div id="abs" style="position:absolute;top:0;left:0;width:10px;height:10px"></div><div style="height:1500px">Long</div></pk-app-shell>');
+        const sh = await t.mount('<pk-app-shell style="height:400px"><div id="abs" style="position:absolute;top:0;left:0;width:10px;height:10px"></div><div style="height:1500px">Long</div></pk-app-shell>');
         await t.settle();
         const body = sh.part('body'), abs = sh.querySelector('#abs');
         t.ok(Math.abs(rect(abs).top - rect(body).top) <= 1, 'the element at top:0 sits at the top of the body (' + rect(body).top + '), not of the page: ' + rect(abs).top);
