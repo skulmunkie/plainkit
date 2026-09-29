@@ -166,6 +166,9 @@ test('Enter and Space on the row itself activate a clickable row; keys on contro
 
 const { default: V, THRESHOLD } = await import('../../js/table-vw.js');
 const hv = (tag, attrs = {}, ...kids) => ({ tag, attrs, kids, style: { setProperty(k, v) { attrs[k] = v; } } });
+// No DOM (and no CSS global) in a node:test run: a small real escaper, not a passthrough, so a test that puts a quote in a
+// row key actually exercises the escaping table-vw.js/table.js rely on (issue 640).
+globalThis.CSS ??= { escape: s => String(s).replace(/["\\]/g, '\\$&') };
 
 test('THRESHOLD is one named constant, not a magic number scattered across the source', () => {
     assert.equal(THRESHOLD, 500);
@@ -203,6 +206,32 @@ test('body() returns null (table.js then draws every row itself) under THRESHOLD
     const base = { rowKey: 'id', selected: [], columns: [], list: () => [], part: () => ({ querySelector: () => null }), querySelector: () => null };
     assert.equal(V.body({ ...base, expandable: false }, small, hv), null, 'under the threshold');
     assert.equal(V.body({ ...base, expandable: true }, big, hv), null, 'expandable never windows, however many rows');
+});
+
+// A stand-in for a real querySelector's strictness: `[slot="..."]` only parses when the quoted value is either free of
+// quotes/backslashes or properly backslash-escaped (what CSS.escape produces); an unescaped `"` in the value is exactly the
+// syntax error issue 640 crashed on, so this throws where a browser would too.
+const strictQuerySelector = selector => {
+    let i = 0;
+    while ((i = selector.indexOf('="', i)) !== -1) {
+        i += 2;
+        const start = i;
+        while (i < selector.length && selector[i] !== '"') i += selector[i] === '\\' ? 2 : 1;
+        if (i >= selector.length) throw new SyntaxError(`'${selector}' is not a valid selector`); // the quoted value never closes
+        if (selector[i + 1] !== ']') throw new SyntaxError(`'${selector}' is not a valid selector`); // an unescaped quote closed the value early
+        i++;
+    }
+    return null;
+};
+
+test('issue 640: a row key containing a double quote does not crash body()\'s slot-name querySelector (windowed path)', () => {
+    const total = THRESHOLD + 10;
+    const data = Array.from({ length: total }, (_, i) => (i === 40 ? { id: 'warn|[browser:compat] "quoted" message {"a":1}' } : { id: i + 1 }));
+    const el = { rowKey: 'id', clickable: false, selectable: false, currentRow: '', selected: [], expandable: false, columns: [{ key: 'id' }], list: n => el[n], $rowH: 20, part: n => (n === 'scroll' ? { scrollTop: 1000, clientHeight: 100, addEventListener() {} } : { querySelector: strictQuerySelector }), querySelector: strictQuerySelector };
+    let out;
+    assert.doesNotThrow(() => { out = V.body(el, data, hv); }, 'CSS.escape keeps the selector valid however the row key is spelled');
+    const drawn = out.slice(1, -1);
+    assert.equal(drawn[0].attrs['data-pk-context'], 'warn|[browser:compat] "quoted" message {"a":1}');
 });
 
 test('currentRow marks one row with aria-current and a tint and is a host-set string', async () => {
