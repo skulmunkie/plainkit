@@ -5,6 +5,7 @@
 // `{slot}`s in `fixTemplate` from what `scan` returns on each hit (`found`, plus whatever else a hit carries).
 import { hitsForEach, hitAt, fileIs, MARKUP_EXTENSIONS, SCRIPT_EXTENSIONS, CSS_EXTENSIONS } from '../util.mjs';
 import { TAG_HINTS } from '../hints.mjs';
+import { stripCommentsAndKeepStrings } from '../../strict/scanners/css.mjs';
 
 const isCss = file => fileIs(file, CSS_EXTENSIONS);
 const isMarkupOrScript = file => fileIs(file, [...MARKUP_EXTENSIONS, ...SCRIPT_EXTENSIONS]);
@@ -190,6 +191,10 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} uses the literal value {found}. Use a design token (--color-*, --space-*, --text-*, --radius-*) instead. [S9]',
         applies: isCss,
         scan(file) {
+            // Scan comment-free text (length- and offset-preserving, so a hit's index still lands on the
+            // right character in file.text) rather than the raw file text, so prose inside a `/* ... */`
+            // comment (e.g. "a page framed as a 375px device") never matches as if it were a real value.
+            const stripped = stripCommentsAndKeepStrings(file.text);
             const hits = [];
             for (const [re, label] of [
                 [/#[0-9a-fA-F]{3,8}\b/g, 'a literal hex colour'],
@@ -197,7 +202,7 @@ export const S_RULES = [
                 [/(?<!var\([^)]*)\b\d+(?:\.\d+)?(?:px|rem|em)\b/g, 'a literal length'],
                 [/\bz-index\s*:\s*\d+/g, 'a literal z-index'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, m[0], { found: m[0] })));
+                hits.push(...hitsForEach(stripped, re, m => hitAt(file.text, m.index, m[0], { found: m[0] })));
             }
             return hits;
         },

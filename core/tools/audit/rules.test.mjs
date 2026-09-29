@@ -45,6 +45,22 @@ for (const c of CASES) {
     });
 }
 
+test('S9: does not flag a literal-looking value inside a CSS comment, but still flags a real one', () => {
+    const commentOnly = checkFiles(
+        [{ path: 'app.css', text: '/* a page framed as a 375px device */\n.a { color: var(--color-danger); }' }],
+        { ruleset: 'consumer' },
+    );
+    assert.ok(!commentOnly.some(f => f.rule === 'S9'), `FIX: S9 flagged a value inside a comment, got ${JSON.stringify(commentOnly.filter(f => f.rule === 'S9'))}`);
+
+    const mixed = checkFiles(
+        [{ path: 'app.css', text: '/* a page framed as a 375px device */\n.a { width: 375px; }' }],
+        { ruleset: 'consumer' },
+    );
+    const hit = mixed.find(f => f.rule === 'S9');
+    assert.ok(hit, 'FIX: S9 did not flag a real literal length outside a comment');
+    assert.equal(hit.line, 2, `FIX: S9 reported the wrong line for a hit after a comment, got line ${hit.line}`);
+});
+
 test('every rule carries a doc anchor and a fix template with the rule id in brackets', () => {
     for (const rule of RULES) {
         assert.ok(rule.docs && rule.docs.length > 0, `FIX: rule ${rule.id} has no doc anchor`);
