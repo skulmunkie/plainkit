@@ -51,6 +51,13 @@
 .gx-el-group { margin-top: var(--space-5); }
 .gx-el-group > h2 { margin-bottom: var(--space-2); font-size: var(--text-base); }
 
+/* pk-grid only lays its children into columns once it upgrades (its shadow CSS sets display:grid); until then it is a plain inline
+   element and its pk-card children stack in one column at their content width, so the Elements overview's card grids grow tall and then
+   jump short the moment pk-grid (and pk-card) define -- the biggest layout shift on that route (#135). Reserved here with the same
+   formula the element uses (grid.css), close enough to the gallery's own min="14rem" grids that there is no visible jump once it
+   upgrades for real. */
+.gx-el-group pk-grid:not(:defined) { display: grid; inline-size: 100%; box-sizing: border-box; grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)); gap: var(--space-4); }
+
 /* Element pages: the playground puts the live element beside its controls; the reference folds. */
 .gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .gx-el-live { padding: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-start; }

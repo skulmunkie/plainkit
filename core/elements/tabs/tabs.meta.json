@@ -3,12 +3,12 @@
   "replaces": ["[role=tablist]"],
   "title": "Tabs",
   "group": "Navigation",
-  "summary": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, slide sideways with edge fades, and hold trailing content after the last tab.",
+  "summary": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, and hold trailing content after the last tab. When the tabs outgrow the width it slides with edge fades (overflow=\"scroll\", the default), collapses the tabs that do not fit behind a \"...\" menu button (overflow=\"menu\"), or wraps onto more rows (overflow=\"wrap\").",
   "props": [
     { "name": "value", "type": "string", "default": "", "reflect": true, "commit": "pk-tab-change", "description": "The value of the selected tab. Empty selects the first enabled tab." },
     { "name": "activation", "type": "enum", "default": "auto", "values": ["auto", "manual"], "reflect": true, "description": "auto selects a tab when arrow keys focus it; manual moves focus and waits for Enter or Space." },
     { "name": "noneActive", "type": "boolean", "default": false, "reflect": true, "description": "No tab is shown as selected, and choosing any tab (even the last one chosen) raises pk-tab-change. For a page whose cross-cutting view sits above its tabs." },
-    { "name": "scroll", "type": "boolean", "default": false, "reflect": true, "description": "One row that slides (touch swipe, mouse wheel, trackpad, drag) when the tabs outgrow the width, instead of wrapping onto more rows. A fade marks the edge that has more tabs (it follows the scroll, the tab list and the width, and mirrors in right-to-left); moving to a tab with the arrow keys, Home, End or a click scrolls it fully into view, clear of the fade, smoothly unless the reader prefers reduced motion." }
+    { "name": "overflow", "type": "enum", "default": "scroll", "values": ["scroll", "menu", "wrap"], "reflect": true, "description": "How the strip behaves when the tabs outgrow its width. scroll (the default): one row that slides (touch swipe, mouse wheel, trackpad, drag); a fade marks the edge that has more tabs (it follows the scroll, the tab list and the width, and mirrors in right-to-left), and moving to a tab with the arrow keys, Home, End or a click scrolls it fully into view, clear of the fade, smoothly unless the reader prefers reduced motion. menu: one row, nothing slides; tabs that stop fitting are hidden behind a trailing \"...\" button (a menu button) whose menu lists them, so a hidden tab is still one click or Enter away and stays selectable; the selected tab is always pinned visible, even when it would otherwise be the one to overflow. wrap: the tabs wrap onto more rows instead of scrolling or collapsing; the explicit opt-in for what used to be the only behavior." }
   ],
   "slots": [
     { "name": "tab", "description": "pk-tab children (they assign themselves to this slot).", "selfAssigned": true },
@@ -20,17 +20,20 @@
   ],
   "parts": [
     { "name": "list", "description": "The tab strip." },
-    { "name": "panels", "description": "The panel area." }
+    { "name": "panels", "description": "The panel area." },
+    { "name": "more", "description": "The overflow menu (a pk-dropdown), present only for overflow=\"menu\"." },
+    { "name": "more-trigger", "description": "The trailing \"...\" button that opens the overflow menu." }
   ],
   "cssProperties": [],
   "methods": [],
   "writes": [
-    { "target": "pk-tab children", "attributes": ["selected","tabindex","id","aria-controls"], "why": "selected and tabindex (roving) are set on every sync from the value; id is set only when the tab has none; aria-controls names the paired panel. selected is a reflected prop of pk-tab. Kept when the element disconnects." },
+    { "target": "pk-tab children", "attributes": ["selected","tabindex","id","aria-controls","data-overflow-hidden"], "why": "selected and tabindex (roving) are set on every sync from the value; id is set only when the tab has none; aria-controls names the paired panel. selected is a reflected prop of pk-tab. data-overflow-hidden is set only for overflow=\"menu\", on the tabs that do not fit (never the selected one); it is the styling hook that hides them (display: none), which is what keeps them out of the roving tab order automatically. Kept when the element disconnects." },
     { "target": "pk-tab-panel children", "attributes": ["selected","tabindex","id","aria-labelledby"], "why": "selected and tabindex follow the value; id is set only when the panel has none; aria-labelledby names the paired tab. Both live in the same tree, so the ids resolve. Kept when the element disconnects." }
   ],
-  "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus and skip hidden and disabled tabs.",
+  "a11y": "The strip has role=tablist; tabs and panels are related with aria-controls and aria-labelledby set on the light-DOM children (both live in the same tree, so the ids resolve). Roving tabindex: only the selected tab is in the Tab order (every tab when none is active); arrow keys move focus among the visible, enabled tabs (Home/End jump to the first/last of those) and wrap at the ends; they do not reach into the overflow menu. For overflow=\"menu\" the \"...\" trigger is a normal tab stop after the tablist (menubutton pattern: aria-haspopup=\"menu\", aria-expanded, from pk-dropdown) with its own aria-label naming how many tabs it hides; ArrowDown/ArrowUp on it opens the menu and moves focus to its first/last item (pk-dropdown), and choosing a hidden tab there activates it (pk-select) and moves focus to it in the strip. The selected tab is always pinned visible and is never one of the ones collapsed into the menu.",
   "examples": [
     { "title": "Tabs with panels", "html": "<pk-tabs value=\"details\">\n  <pk-tab value=\"details\">Details</pk-tab>\n  <pk-tab value=\"history\">History</pk-tab>\n  <pk-tab-panel value=\"details\">Item details.</pk-tab-panel>\n  <pk-tab-panel value=\"history\">Item history.</pk-tab-panel>\n</pk-tabs>" },
-    { "title": "Scrolling strip with counts and trailing content", "html": "<pk-tabs scroll value=\"a\">\n  <pk-tab value=\"a\" count=\"12\">Pending</pk-tab>\n  <pk-tab value=\"b\" count=\"3\">Failed</pk-tab>\n  <pk-tab value=\"c\">Done</pk-tab>\n  <span slot=\"trailing\">Updated a minute ago</span>\n</pk-tabs>" }
+    { "title": "Scrolling strip with counts and trailing content", "html": "<pk-tabs overflow=\"scroll\" value=\"a\">\n  <pk-tab value=\"a\" count=\"12\">Pending</pk-tab>\n  <pk-tab value=\"b\" count=\"3\">Failed</pk-tab>\n  <pk-tab value=\"c\">Done</pk-tab>\n  <span slot=\"trailing\">Updated a minute ago</span>\n</pk-tabs>" },
+    { "title": "Overflow menu", "html": "<pk-tabs overflow=\"menu\" value=\"a\">\n  <pk-tab value=\"a\">Console</pk-tab>\n  <pk-tab value=\"b\">Logs</pk-tab>\n  <pk-tab value=\"c\">Logging</pk-tab>\n  <pk-tab value=\"d\">Performance</pk-tab>\n  <pk-tab value=\"e\">Quality</pk-tab>\n  <pk-tab value=\"f\">Inspector</pk-tab>\n  <pk-tab value=\"g\">Theme</pk-tab>\n  <pk-tab value=\"h\">Layout builder</pk-tab>\n</pk-tabs>" }
   ]
 }

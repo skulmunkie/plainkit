@@ -14,8 +14,8 @@
       "prop": "noneActive"
     },
     {
-      "name": "Scroll",
-      "prop": "scroll"
+      "name": "Overflow",
+      "prop": "overflow"
     },
     {
       "name": "OnChange",
