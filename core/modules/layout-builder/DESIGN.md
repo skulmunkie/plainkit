@@ -154,7 +154,7 @@ and turns them into `pk-tabs` under 720px.
 | Property grid / form from metadata | No element | **Worked around** in the module: a function that draws `pk-field-list` rows of `pk-input`, `pk-select`, `pk-switch` and `pk-textarea` from a prop's `type`, `values` and `default`. Flagged as a candidate for a `pk-property-grid` element. |
 | Canvas selection overlay (outline, handles, drop line) | No element | **Worked around:** the selected node's element gets an outline through an attribute the module's stylesheet styles (tokens only); selection is from rectangles because the page is inert. A per-element Edit/Delete chip (issue #174) is positioned the same way, from `getBoundingClientRect()`, following the hovered or selected node; a drop line comes from `pk-sortable-item`'s own indicator (top-level reorder) or a dashed outline on the hit-tested container (an external drop). |
 | Tree | `pk-tree` exists | Used for structure; selection is shared with the canvas. |
-| Resizable panes | `pk-splitter`, `pk-workspace` exist | Used later; v1 uses fixed proportions. |
+| Resizable panes | `pk-dock` (#432) | Used: the builder's chrome is a `pk-dock`. |
 
 ## 7. Plan
 
@@ -166,7 +166,8 @@ and turns them into `pk-tabs` under 720px.
 | 4 | The dev-tools dock entry (a Layout builder panel in `modules/devtools/panels.js`, added to `BUILT_IN`) and the standalone site page (`site/layout-builder/`), reachable from the site's top nav. | done |
 | 5a | `pk-sortable` and `pk-sortable-item` (#170): the pointer/touch/keyboard reorder primitive drag-and-drop needs, and a drop target for a palette-to-canvas insert. | done |
 | 5b | Full drag-and-drop, icon-only controls, mobile is 100% drag-and-drop (#174): the top-level canvas wired to `pk-sortable`, palette-to-canvas external drop (slot-aware onto a container), icon-only Undo/Redo, a per-element Edit/Delete chip, the toolbar row hidden at phone width. | done |
-| 5c | Phone-reachable Save (#181): a floating `.lb-save-fab` button shown only at phone width, calling the same `save()` as the toolbar button and Ctrl+S. | done |
+| 5c | Phone-reachable Save (#181): a floating `.lb-save-fab` button shown only at phone width, calling the same `save()` as the toolbar button and Ctrl+S. | done, replaced by 5d |
+| 5d | On `pk-dock` (#432): the `pk-workspace` panes, the `pk-toolbar` row and the floating Save button are gone; Palette, Structure and HTML are tabs of the dock's left group, the canvas its center, Properties its right; File (Save) and Edit menus (`pk-dropdown` + `pk-menu-item`, shortcuts shown) sit in the dock's `toolbar-start` slot and call the same functions as the keys; `pk-context-menu` gives canvas elements their element menu and palette buttons Add. | done |
 | 5d | Not built yet: reordering *inside* a container (nesting `pk-sortable` would break `::slotted()` styling across ~30 elements, see the gap table above), a compact context menu if Duplicate/Wrap need one later, the structure tree wired to drag, the iframe device preview, the blocks UI (`blocks`, `onblock`), `draftKey`, the Blazor wrapper `PkLayoutBuilder` and its Razor exporter. | later |
 
 Each step leaves `main` releasable, is tested, and updates the docs and changelog in the same pull request.

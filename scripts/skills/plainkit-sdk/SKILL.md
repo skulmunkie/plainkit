@@ -137,7 +137,23 @@ if (location.hostname === 'localhost') {
 }
 ```
 
-Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` into the runtime `dist` folder so it lands at `plainkit/modules/`. Every other tool (`mountLogs`, `mountLayoutBuilder`, `mountScorecard`, `mountThemeEditor`, ...), their options and the layout builder's model (`js/layout-model.js`): `references/tools.md`.
+Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
+
+### Let people build pages with the layout builder
+
+Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
+
+```js
+import { mountLayoutBuilder } from './plainkit/modules/layout-builder/layout-builder.js';
+
+const builder = await mountLayoutBuilder(document.getElementById('editor'), {
+    html: startingMarkup,   // or model: a saved document
+    onchange: ({ model, reason }) => keepDraft(model),
+    onsave: ({ model, html }) => savePage(model, html),
+});
+```
+
+The palette lists every element in `elements/api.json`, so a new element appears without a change. The chrome is a `pk-dock` (Palette, Structure and HTML tabs | canvas | Properties: resize, drag or use the Move menu to move a panel between groups, close and reopen panels) with File (Save, only when `onsave` is given) and Edit menus in its toolbar, each item showing its shortcut. Selection, moving (Alt+arrows or Edit > Move), duplicate, wrap, delete, undo and redo work by keyboard, menu and touch; right click (or Shift+F10, or a long press) on a canvas element opens its element menu, and on a palette button offers Add; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the dock becomes one tab strip and the File and Edit menus stay in its toolbar, so Save is reachable by touch. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
 
 ### Enable logging
 
@@ -191,4 +207,4 @@ Several always-visible per-row or per-card icon buttons competing for space is t
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, and no on-screen Save in the layout builder at phone width).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, ).

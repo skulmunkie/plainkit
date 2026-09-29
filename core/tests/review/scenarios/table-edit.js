@@ -1,5 +1,6 @@
 // pk-table in edit mode (issue 331): the grid at rest (active cell, read-only cells, the switch column), a text cell open for editing, a number cell holding an invalid
-// draft (its message, aria-invalid, the editor kept open), and a select cell, and an edit undone with Ctrl+Z. Each state must stay inside the scroll frame; on a phone the editor keeps a tap target.
+// draft (its message, aria-invalid, the editor kept open), and a select cell, an edit undone with Ctrl+Z, arrow-key navigation to a new active cell, and typing a
+// character to start editing that cell with it. Each state must stay inside the scroll frame; on a phone the editor keeps a tap target.
 const columns = JSON.stringify([
     { key: 'sku', label: 'SKU' },
     { key: 'name', label: 'Product', editor: 'text', required: true },
@@ -31,6 +32,9 @@ export default {
         { focus: cell(1, 'name') }, { key: 'Enter' }, { wait: 200 }, { key: 'End' }, { type: ' XL' }, { key: 'Enter' }, { wait: 200 }, { shot: 'edited' },
         { key: 'Control+z' }, { wait: 200 }, { shot: 'undone' },
         { focus: cell(3, 'status') }, { key: 'Enter' }, { wait: 200 }, { shot: 'select' },
+        { key: 'Escape' }, { wait: 200 },
+        { focus: cell(2, 'name') }, { key: 'ArrowDown' }, { key: 'ArrowRight' }, { wait: 200 }, { shot: 'nav' },
+        { key: '9' }, { wait: 200 }, { shot: 'typed' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways (the grid must scroll inside its own frame)');
@@ -60,5 +64,13 @@ export default {
         if (t.shot === 'edited') t.hasText(cell(1, 'name'), 'Widget number one XL');
         if (t.shot === 'undone') { t.hasText(cell(1, 'name'), 'Widget number one'); t.ok(t.attr(cell(1, 'name'), 'aria-selected') === 'true', 'the undone cell is not the active one'); }
         if (t.shot === 'select') { t.exists(`${cell(3, 'status')} select`); t.within(`${cell(3, 'status')} select`, cell(3, 'status'), 1); }
+        if (t.shot === 'nav') {
+            t.ok(t.attr(cell(3, 'qty'), 'aria-selected') === 'true', 'ArrowDown then ArrowRight did not land on qty, row 3');
+            t.ok(t.attr(cell(2, 'name'), 'aria-selected') !== 'true', 'the cell navigation started from is still marked active');
+        }
+        if (t.shot === 'typed') {
+            t.visible(`${cell(3, 'qty')} input`, 'typing a character did not open the cell editor');
+            t.ok(t.attr(cell(3, 'qty'), 'data-editing') === '', 'the qty cell opened by typing is not marked data-editing');
+        }
     },
 };

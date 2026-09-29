@@ -595,6 +595,42 @@ export const dataDisplayCases = [
         press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
         t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
     }],
+    ['table (editable): arrow keys move the active cell, Enter commits and moves down, Tab moves right within the row and leaves the grid at its last cell, and typing a character starts editing with it', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
+        await t.settle();
+        // The render re-draws the cells on every change (a fresh td instance each time), so a moved-to cell is found again by selector, never held onto.
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const active = () => el.shadowRoot.querySelector('td[data-key][tabindex="0"]');
+        const press = (n, k, mods = {}) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }));
+        const isActive = (r, k) => cell(r, k)?.getAttribute('aria-selected') === 'true';
+        await until(() => cell(1, 'name')?.tabIndex === 0, 'the grid');
+        cell(1, 'name').focus();
+        press(active(), 'ArrowRight');
+        await until(() => isActive(1, 'qty'), 'ArrowRight did not move the active cell to the next column');
+        press(active(), 'ArrowDown');
+        await until(() => isActive(2, 'qty'), 'ArrowDown did not move the active cell to the next row');
+        press(active(), 'ArrowLeft');
+        await until(() => isActive(2, 'name'), 'ArrowLeft did not move the active cell back a column');
+        press(active(), 'ArrowUp');
+        await until(() => isActive(1, 'name'), 'ArrowUp did not move the active cell back a row');
+        // Enter opens the cell, commits the draft, and moves the active cell down one row.
+        press(active(), 'Enter');
+        const input = await until(() => cell(1, 'name').querySelector('input'), 'the editor');
+        input.value = 'Widget XL'; press(input, 'Enter');
+        await until(() => cell(1, 'name').textContent === 'Widget XL', 'the edit to show');
+        await until(() => isActive(2, 'name'), 'Enter did not move the active cell down a row after committing');
+        // Tab moves right within the row without opening an editor; at the row's last cell it is left alone so focus leaves the grid.
+        press(active(), 'Tab');
+        await until(() => isActive(2, 'qty'), 'Tab did not move the active cell right within the row');
+        t.ok(!cell(2, 'qty').hasAttribute('data-editing'), 'a non-editing Tab opened an editor');
+        const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, composed: true, cancelable: true });
+        cell(2, 'qty').dispatchEvent(tabEvent);
+        t.ok(!tabEvent.defaultPrevented, 'Tab at the last cell of the row was intercepted instead of leaving the grid');
+        // Typing a printable character on the active (non-editing) cell starts editing it, replacing its content.
+        press(active(), '7');
+        const q = await until(() => cell(2, 'qty').querySelector('input'), 'the editor opened by typing');
+        t.eq(q.value, '7', 'typing a character did not replace the cell content with it');
+    }],
     ['table (editable): a switch column draws a pk-switch (no bare checkbox), and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
         const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed","editor":"switch"}]' rows='[{"id":1,"name":"Widget number one","qty":4,"on":true},{"id":2,"name":"Gadget number two","qty":9,"on":false}]'></pk-table></div>`);
         host.firstElementChild.style.inlineSize = '320px';

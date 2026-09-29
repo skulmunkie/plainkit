@@ -2,7 +2,7 @@
   "tag": "pk-dock",
   "title": "Dock",
   "group": "Layout",
-  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, or use a single-panel header's chevron to collapse it to just its title. A collapsed group at a screen edge folds to a narrow rail button instead; activating it opens the panel as a flyout over the content, closing on Escape, an outside click or a blur. The arrangement is one JSON layout document you can read, store and set. Docked panels, header-collapse and collapse-to-rail only; moving panels, floating UI and saved layouts come in later steps of #432.",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, drag a panel's header or tab onto another group (its center to add as a tab, an edge to split and dock there) or use a group's Move button to do the same without a mouse, Close/reopen a panel from the toolbar's Panels menu, or use a single-panel header's chevron to collapse it to just its title. A collapsed group at a screen edge folds to a narrow rail button instead; activating it opens the panel as a flyout over the content, closing on Escape, an outside click or a blur. A toolbar-start slot lets a host add its own menus (File/Edit/View-style) alongside it - the dock draws none of that content itself. The layout can be saved and restored across reloads through persistKey. The arrangement is one JSON layout document you can read, store and set. Free-running by default (a change applies right away, then fires pk-layout-change); a host that wants every change to round-trip first sets confirmLayout(arg) as a callback property (business logic, not config data, like pk-tool-page's run) - arg is { layout: json, reason }, and the settled result (a layout JSON string, or null/undefined to keep the previous one) is what gets applied and reported. Step 2 of #432: docked panels, move, drag-to-dock, close/reopen, header-collapse, collapse-to-rail and persistence; floating panels (model operations landed, no UI yet) and a pk-dock-panel element come in later steps.",
   "props": [
     {
       "name": "layout",
@@ -50,6 +50,10 @@
     {
       "name": "empty",
       "description": "Shown when there is no panel."
+    },
+    {
+      "name": "toolbar-start",
+      "description": "The start of the toolbar (part toolbar), before the dock's own Panels menu: a place for a host app's own top-level menus (File, Edit, View...). The dock draws none of this; it only gives it a stable spot next to its own controls. The toolbar shows whenever this slot holds something or a panel is closed, and collapses away when both are empty."
     }
   ],
   "events": [
@@ -60,11 +64,15 @@
         "layout": "object",
         "reason": "string"
       },
-      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen), collapse (a single-panel header's chevron toggled its body) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
+      "description": "The arrangement changed because of the user or because panels were added or removed: reason is resize (a drag ended or a key moved a separator), activate (a tab was chosen), move (a panel was moved to another group from its Move menu or a pointer drag), collapse (a single-panel header's chevron toggled its body) or panels (the declared panels changed and the layout was repaired). layout is the new document. Not raised for a layout the host set, nor for the first render. Not cancelable.",
       "cancelable": false
     }
   ],
   "parts": [
+    {
+      "name": "toolbar",
+      "description": "The bar above the tree: slot toolbar-start (a host app's own menus) then the dock's own Panels menu. Collapses away while both are empty."
+    },
     {
       "name": "root",
       "description": "The frame that holds the rendered tree."
@@ -104,6 +112,10 @@
     {
       "name": "empty",
       "description": "The empty state."
+    },
+    {
+      "name": "status",
+      "description": "The visually hidden live region that announces a move."
     }
   ],
   "cssProperties": [
@@ -134,7 +146,7 @@
     }
   ],
   "methods": [],
-  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. A single-panel header's collapse-toggle is a native button (Tab to reach it, Enter or Space to activate, no extra key handling needed) with aria-expanded and aria-controls naming the body it hides; a tab group does not offer collapse yet. A collapsed group at a screen edge is instead a rail button (also a native button, same Enter/Space activation) with aria-haspopup and aria-expanded naming the flyout it opens; the flyout closes and returns focus to the rail button on Escape, and closes (without moving focus) on an outside pointerdown or when focus leaves it.",
+  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. When there is more than one group, its header (or its tab strip, in the trailing slot) carries a Move button (a pk-dropdown, reachable by Tab and opened with Enter or Space) listing every other group: Add as tab in it, or Dock left/right/above/below it; choosing one moves the active panel with dockPanel/moveTab and moves focus to it, and the visually hidden status part announces the result. A pointer can instead drag a header or tab onto another group's center (add as tab) or an edge (split and dock there), shown with an accent drop-zone highlight while dragging; this calls the same dockPanel/moveTab operations and is purely additive - the Move menu keeps working unchanged and needs no mouse. A single-panel header's collapse-toggle is a native button (Tab to reach it, Enter or Space to activate, no extra key handling needed) with aria-expanded and aria-controls naming the body it hides; a tab group does not offer collapse yet. A collapsed group at a screen edge is instead a rail button (also a native button, same Enter/Space activation) with aria-haspopup and aria-expanded naming the flyout it opens; the flyout closes and returns focus to the rail button on Escape, and closes (without moving focus) on an outside pointerdown or when focus leaves it.",
   "mobile": "Below 640px a splitter tree cannot show real panels, so the dock draws every open panel in reading order as one tab strip with one panel visible; the strip scrolls sideways rather than wrapping onto a second row, the same as a narrow group's tab list. The layout document is untouched, so widening the window restores the arrangement.",
   "examples": [
     {

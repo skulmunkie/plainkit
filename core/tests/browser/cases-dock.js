@@ -137,4 +137,121 @@ export const dockCases = [
         t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'choosing a tab shows that panel');
         t.eq(dock.layout, null, 'a phone render writes no layout');
     }],
+
+    ['dock: a group with company gets a keyboard-reachable Move button; choosing "Add as tab" from its menu moves the panel with moveTab, commits reason move, and the moved tab keeps focus', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const leftGroup = [...root.querySelectorAll('[part=group]')][0];
+        const move = leftGroup.querySelector('pk-dropdown');
+        t.ok(move, 'the left group (more than one panel, more than one group total) has a Move dropdown');
+        const trigger = move.querySelector('[slot=trigger]');
+        t.eq(trigger.tagName.toLowerCase(), 'pk-button'); t.ok(trigger.getAttribute('label').endsWith('panel menu'));
+        trigger.focus(); trigger.click(); await t.settle(); await wait(60);
+        t.eq(move.open, true, 'Enter/click on the trigger opens the menu (keyboard-reachable, no drag)');
+        const items = [...move.querySelectorAll('pk-menu-item')];
+        const addAsTab = items.find(i => i.textContent === 'Add as tab');
+        t.ok(addAsTab, 'an "Add as tab" item is offered for the other group');
+        addAsTab.click(); await t.settle(); await wait(60);
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        t.ok(seen[0].layout.root, 'a new layout was committed');
+        const movedTab = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Toolbox');
+        t.ok(movedTab && movedTab.getAttribute('selected') !== null, 'the moved panel is the active tab of its new group');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Toolbox/.test(status.textContent), 'the move is announced in the visually hidden status region');
+    }],
+
+    ['dock: closing a panel from its panel menu removes it from the tree and shows the toolbar\'s Panels menu; reopening puts it back and hides the toolbar again, in session only', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const toolbar = dock.shadowRoot.querySelector('[part=toolbar]');
+        t.eq(toolbar.hidden, true, 'nothing closed yet');
+        // Find the Canvas group by its own title (a single-panel header), not by textContent: a group's panel menu also names Canvas as a Move
+        // target, so a plain textContent search can match the wrong group.
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasGroup = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle);
+        t.ok(canvasGroup, 'the Canvas group (a single panel, so a titled header) is found by its own title');
+        const menu = canvasGroup.querySelector('pk-dropdown');
+        menu.querySelector('[slot=trigger]').click(); await t.settle(); await wait(60);
+        const close = [...menu.querySelectorAll('pk-menu-item')].find(i => i.textContent === 'Close');
+        t.ok(close, 'the panel menu offers Close');
+        close.click(); await t.settle(); await wait(60);
+        t.ok(![...root.querySelectorAll('[part=group]')].some(hasCanvasTitle), 'canvas is gone from the tree');
+        t.eq(toolbar.hidden, false, 'the toolbar appears with something to reopen');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Canvas closed/.test(status.textContent), 'the close is announced');
+        const panels = toolbar.querySelector('pk-dropdown');
+        panels.querySelector('[slot=trigger]').click(); await t.settle(); await wait(60);
+        const open = [...panels.querySelectorAll('pk-menu-item')].find(i => i.textContent === 'Open Canvas');
+        t.ok(open, 'the toolbar\'s Panels menu offers to reopen it');
+        open.click(); await t.settle(); await wait(60);
+        // Reopening adds it back to the first group (this smallest version keeps no memory of its last group, see #432), so it may now be a tab
+        // rather than its own titled section: look for its name either way.
+        const hasCanvas = el => el.textContent === 'Canvas';
+        t.ok([...root.querySelectorAll('[part=title]')].some(hasCanvas) || [...root.querySelectorAll('pk-tab')].some(hasCanvas), 'canvas is back in the tree');
+        t.eq(toolbar.hidden, true, 'nothing closed any more');
+        t.ok(/Canvas opened/.test(status.textContent), 'the reopen is announced too');
+        t.eq(dock.layout.version, 1, 'still a plain layout document: closing/reopening keeps no separate persisted state');
+    }],
+
+    ['dock: dragging a single-panel header onto another group\'s center shows a center drop-zone highlight and, on drop, adds it as a tab (moveTab), same as the Move menu', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasHeader = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle).querySelector('[part=header]');
+        const propsGroup = [...root.querySelectorAll('[part=group]')].find(g => g.querySelector('[part=title]')?.textContent === 'Properties');
+        const from = rect(canvasHeader), to = rect(propsGroup);
+        const ptr = (type, x, y) => canvasHeader.dispatchEvent(new win.PointerEvent(type, { pointerId: 9, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', from.left + from.width / 2, from.top + from.height / 2);
+        ptr('pointermove', to.left + to.width / 2, to.top + to.height / 2); // dead center of Properties: the "add as tab" zone
+        await t.settle();
+        t.eq(propsGroup.getAttribute('drop-zone'), 'center', 'the target group is marked with the zone the pointer is over');
+        ptr('pointerup', to.left + to.width / 2, to.top + to.height / 2);
+        await t.settle(); await wait(60);
+        t.eq(propsGroup.getAttribute('drop-zone'), null, 'the highlight clears once the drag ends');
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        const movedTab = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Canvas');
+        t.ok(movedTab && movedTab.getAttribute('selected') !== null, 'canvas is now a tab of the Properties group, and the active one');
+    }],
+
+    ['dock: dragging a header onto another group\'s left edge shows an edge drop-zone highlight and, on drop, docks it there (dockPanel) rather than adding it as a tab, same as "Dock left of" in the Move menu', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const hasCanvasTitle = g => g.querySelector('[part=title]')?.textContent === 'Canvas';
+        const canvasHeader = [...root.querySelectorAll('[part=group]')].find(hasCanvasTitle).querySelector('[part=header]');
+        const propsGroup = [...root.querySelectorAll('[part=group]')].find(g => g.querySelector('[part=title]')?.textContent === 'Properties');
+        const from = rect(canvasHeader), to = rect(propsGroup);
+        const ptr = (type, x, y) => canvasHeader.dispatchEvent(new win.PointerEvent(type, { pointerId: 10, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', from.left + from.width / 2, from.top + from.height / 2);
+        ptr('pointermove', to.left + 2, to.top + to.height / 2); // the outer left edge of Properties: a dockPanel zone, not the tab center
+        await t.settle();
+        t.eq(propsGroup.getAttribute('drop-zone'), 'left');
+        ptr('pointerup', to.left + 2, to.top + to.height / 2);
+        await t.settle(); await wait(60);
+        t.eq(seen.length, 1); t.eq(seen[0].reason, 'move');
+        // A left-edge drop is dockPanel, not moveTab: canvas keeps its own titled header (never becomes a Properties tab), same as choosing "Dock
+        // left of" from the Move menu would. (Canvas's old middle split also collapses away as it is lifted out, so the splitter count alone would
+        // not tell dockPanel and moveTab apart here - checking what canvas became does.)
+        t.ok([...root.querySelectorAll('[part=group]')].some(hasCanvasTitle), 'canvas still has its own titled header, not merged into a tab strip');
+        t.ok(![...root.querySelectorAll('pk-tab')].some(x => x.textContent === 'Canvas'), 'canvas is not a tab of the Properties group');
+        const status = dock.shadowRoot.querySelector('[part=status]');
+        t.ok(status && /Canvas docked left of Properties/.test(status.textContent), 'the dock is announced');
+    }],
+
+    ['dock: a pointerdown/up with no movement in between is a plain click, not a drag: only the tab\'s own selection fires, with no extra "move" layout change', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const assets = [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Assets'), r = rect(assets);
+        const ptr = (type, x, y) => assets.dispatchEvent(new win.PointerEvent(type, { pointerId: 11, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        ptr('pointerdown', r.left + r.width / 2, r.top + r.height / 2);
+        ptr('pointerup', r.left + r.width / 2, r.top + r.height / 2); // no move at all: never becomes a drag
+        assets.click(); // the browser's own click selects the tab, exactly as before this feature existed; pointerdown/up alone do not
+        await t.settle(); await wait(60);
+        t.eq(seen.length, 1, 'exactly the tab\'s own activate, no extra move from the click-sized pointer gesture');
+        t.eq(seen[0].reason, 'activate');
+        t.ok(assets.getAttribute('selected') !== null, 'the plain click still selects the tab');
+    }],
 ];
