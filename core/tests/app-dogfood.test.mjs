@@ -83,7 +83,7 @@ const KNOWN = new Set([
     'site/layout-builder/layout-builder.js::storage',
 ]);
 // Internal files the site still reaches into (ledgered by pattern so the list needs no per-file entry); also only shrinks.
-const KNOWN_IMPORTS = /::non-public-import:(js\/settings\.js|js\/sanitized-html\.js|js\/size\.js|modules\/code-explorer\/providers\.js)$/;
+const KNOWN_IMPORTS = /::non-public-import:(modules\/code-explorer\/providers\.js)$/;
 
 const readSite = () => new Map(listFiles('site', f => /\.(js|html)$/.test(f) && !/\.data\.js$/.test(f)).map(f => [f, fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n')]));
 const realContext = () => ({
@@ -97,7 +97,7 @@ test('dogfood: the site adds no framework code, imports only public entries and 
     assert.deepEqual(fresh.map(v => `${v}\n${fixFor(v)}`), [], 'the site has framework code, a non-public import or an extra HTML page that is not in the known-violations ledger');
     const stale = [...KNOWN].filter(v => !now.has(v));
     assert.deepEqual(stale, [], 'FIX: these violations are gone: delete them from KNOWN in core/tests/app-dogfood.test.mjs (the ledger only shrinks)');
-    const staleImports = ['js/settings.js', 'js/sanitized-html.js', 'js/size.js', 'modules/code-explorer/providers.js'].filter(f => ![...now].some(v => v.endsWith(`::non-public-import:${f}`)));
+    const staleImports = ['modules/code-explorer/providers.js'].filter(f => ![...now].some(v => v.endsWith(`::non-public-import:${f}`)));
     assert.deepEqual(staleImports, [], 'FIX: the site no longer imports these: remove them from KNOWN_IMPORTS in core/tests/app-dogfood.test.mjs');
 });
 

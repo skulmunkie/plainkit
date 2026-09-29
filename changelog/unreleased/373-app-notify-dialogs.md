@@ -1,5 +1,0 @@
----
-type: added
-issue: 373
----
-`createNotify` (js/notify.js) and `createDialogs` (js/dialogs.js), exposed to modules and pages as `ctx.notify` and `ctx.dialogs` (`mountApp` wires both; a plain `createModuleHost` without them gives null). `ctx.notify.info|success|warn|error(title, details?, opts?)` shows a `pk-toast` in the same bottom-end `pk-toast-stack` as the task toasts: info and success 4 s, warn 8 s, error sticky, identical kind and title within 2 s merged, at most `max` (5) kept; an unmounted module's toasts finish. `ctx.dialogs.confirm|alert|prompt|open(config)` returns a promise (true/false, undefined, the text or null, `{ action, values }` or null), composed over `pk-dialog` with `pk-field` and `pk-input` for fields and a `<template>` id for extra content, one modal at a time app-wide (later calls queue), focus into the dialog and back to the trigger, `blocking` refuses Escape and close, `backdrop: true` lets a backdrop click cancel; an unmounted module's dialogs are cancelled. Hints, the footer and Blazor follow in a later step.
