@@ -518,6 +518,7 @@ const FAMILY_TITLES = {
     P: 'P — pages and app structure: mountApp/defineModule usage versus a hand-built page',
     T: 'T — tokens and standards: literal colours/sizes/fonts, deprecated names, the wrong import path',
     A: 'A — accessibility attributes an element needs to have an accessible name or state',
+    B: 'B — Blazor and Razor only: a raw tag or a hand-styled/unknown Pk* component, a Razor-only syntax shape',
 };
 const exampleFor = id => EXAMPLES.find(e => e.id === id);
 

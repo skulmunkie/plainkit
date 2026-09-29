@@ -35,6 +35,8 @@ export function fileIs(file, extensions) {
 export const MARKUP_EXTENSIONS = ['.html', '.htm', '.razor', '.cshtml', '.jsx', '.tsx'];
 export const SCRIPT_EXTENSIONS = ['.js', '.mjs', '.jsx', '.ts', '.tsx'];
 export const CSS_EXTENSIONS = ['.css'];
+// Family B (Blazor/Razor only, design section 2.6) applies only to Razor files, never plain HTML/JSX.
+export const RAZOR_EXTENSIONS = ['.razor', '.cshtml'];
 
 // Fills a FIX template's `{slot}` placeholders. An unknown slot is left as-is rather than throwing, so a rule
 // that does not supply every slot a family's generic template happens to define still renders something sane.
