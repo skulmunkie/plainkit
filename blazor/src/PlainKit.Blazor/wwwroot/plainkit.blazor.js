@@ -80,6 +80,25 @@ export async function mountDevTools(container, options, host) {
     mounted.set(container, await mountDevTools(mode === 'inline' ? container : null, { mode, ...rest, panels }));
 }
 
+// mountToolDock, wrapping core/modules/tool-dock/tool-dock.js for PkToolDock.razor. Blazor renders each panel's content into its own hidden
+// host div (JS never owns Blazor-rendered content, STANDARDS.md "Ownership and reactivity"); panelHosts is [{ id, title, host }] built by the
+// component from its registered PkToolDockPanel children, host being that panel's ElementReference. A panel's mount(el) appends the host div
+// into the tab body once, and activate/deactivate simply toggle its hidden attribute as the tab is shown or hidden.
+export async function mountToolDock(container, options, panelHosts) {
+    const { mountToolDock } = await import('./plainkit/modules/tool-dock/tool-dock.js');
+    destroy(container);
+    const panels = (panelHosts ?? []).map(({ id, title, host }) => ({
+        id, title,
+        mount(el) {
+            el.appendChild(host);
+            return { activate: () => { host.hidden = false; }, deactivate: () => { host.hidden = true; } };
+        },
+    }));
+    // a null option means "not set" (.NET sends null for it): leave it out so the module's own default applies
+    const { mode, ...rest } = Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null));
+    mounted.set(container, await mountToolDock(mode === 'inline' ? container : null, { mode, ...rest, panels }));
+}
+
 // A callback property of a page element (pk-tool-page run, pk-settings-page save, pk-list-page load): config is data, so a callback is set from script. host is a DotNetObjectReference
 // of PkCallbackHost<TArg>; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it. refresh: an element
 // that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.

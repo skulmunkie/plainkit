@@ -573,7 +573,7 @@ function tableFacts(src) {
     return facts;
 }
 
-const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage'];
+const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage', 'PkToolDock', 'PkToolDockPanel'];
 
 function blazorFiles(src) {
     const files = new Map();
@@ -861,7 +861,7 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
     });
     const members = (title, ms) => ms.length ? [`## ${title}`, '', table(['Member', 'Description'], ms.map(m => [code(m.decl), m.doc])), ''].join('\n') : '';
     files.set('references/devtools.md', ['# Dev tools and tool components', '', stamp(src, 'Components/*.razor and the C# sources'), '',
-        'In the Development environment, `/_plainkit` serves the toolkit\'s own tools: the Gallery, Files and Scorecard workspaces, and the SDK\'s dev tools dock (`PkDevTools`: Console, Logs, Logging, Performance, Quality, Inspector, Theme, plus the Blazor and Components tabs of PlainKit.Blazor). Serve it elsewhere with `AddPlainKit(o => o.DevTools = true)`. The Files tab reads a folder on the server (`PkOptions.SourceRoot`), so it does not work in a browser-only app. Each tool is also a component you can place on a page of your own:', '',
+        'In the Development environment, `/_plainkit` serves the toolkit\'s own tools: the Gallery, Files and Scorecard workspaces, and the SDK\'s dev tools dock (`PkDevTools`: Console, Logs, Logging, Performance, Quality, Inspector, Theme, plus the Blazor and Components tabs of PlainKit.Blazor). Serve it elsewhere with `AddPlainKit(o => o.DevTools = true)`. The Files tab reads a folder on the server (`PkOptions.SourceRoot`), so it does not work in a browser-only app. `PkDevTools` is built on the same generic shell (`mountToolDock`) that `PkToolDock`/`PkToolDockPanel` wrap for an app\'s own tool-type panels (properties, history, an outline, a console, a chat) - see `PkToolDock` below. Each tool is also a component you can place on a page of your own:', '',
         toolRows.join('\n\n'), '', members('PkScoreTarget', src.cs.scoreTarget), members('PkSnapshot', src.cs.snapshot), ''].join('\n'));
     files.set('references/setup-and-options.md', ['# Setup, options and services', '', stamp(src, 'PkOptions.cs, PkLogging.cs, PkTimeZone.cs, PkRuntime.cs, PkAssets.cs and the extension methods'), '',
         'Register the services, add `<PkStyles />` once, first in the `<head>` of `App.razor` (a plain in-place link: it must come before the app\'s own stylesheets), and add the assembly to the router only when you serve the dev tools page. `AddPlainKit(Action<PkOptions>?)` registers `PkRuntime`, `IPkLog`, the options and the dev tools services. `AddPlainKitDevTools()` (chained after `MapRazorComponents`) makes `/_plainkit` routable. At startup the runtime compares the JavaScript version with `PkAssets.Version` and logs one warning (`ILogger` category `PlainKit.blazor`, SDK scope `blazor`) when they differ. The toolkit is served as static web assets under `' + (src.cs.assets.find(m => /Root/.test(m.decl)) ? '_content/PlainKit.Blazor/plainkit/' : '') + '`.', '',

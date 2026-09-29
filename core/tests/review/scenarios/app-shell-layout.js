@@ -11,7 +11,7 @@ export default {
     issue: [320, 308, 302],
     elements: ['app-shell'],
     html: `<pk-app-shell>
-<h2 slot="title">Title and back link</h2>
+<pk-button slot="header" variant="ghost" size="mini">Account</pk-button>
 <pk-card id="card" heading="A page with no nav"><p>The shell has nothing in its nav slot, so this page takes the full width.</p></pk-card>
 <pk-table id="t" label="Products" caption="Stock by product" columns='${columns}' rows='${rows}'></pk-table>
 <span slot="footer">Acme Inc.</span>

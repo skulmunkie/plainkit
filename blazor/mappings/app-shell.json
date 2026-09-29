@@ -14,12 +14,6 @@
       "slot": "header"
     },
     {
-      "name": "TitleContent",
-      "type": "RenderFragment?",
-      "map": "slot",
-      "slot": "title"
-    },
-    {
       "name": "BackHref",
       "type": "string",
       "default": "",
