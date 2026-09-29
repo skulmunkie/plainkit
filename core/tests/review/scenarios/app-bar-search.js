@@ -10,8 +10,8 @@ const ITEMS = [
 const HEADER = 'pk-app-shell >>> [part=header]';
 const BOX = '#q >>> [part=box]';
 const POP = '#q >>> [part=popup]';
-// Defects found by this scenario that are filed as issues (t.known: a warning; change to t.ok when fixed).
-const CENTRE_ISSUE = 318, GROUP_ISSUE = 317; // contrast of the sub text and badge (319) is reported by the audit
+// group/note styling (317), the centring with a title present (318) and the contrast of the sub text and badge (319) are all fixed;
+// contrast is reported by the audit.
 
 export default {
     name: 'app-bar-search',
@@ -41,9 +41,9 @@ export default {
             if (desktop) {
                 t.visible(BOX, 'the search field');
                 t.hidden('#q >>> [part=expand]', 'the icon button (only the phone has it)');
-                // Centred in the free space between the menu button and the account button (issue 295): within 24px.
+                // Centred in the free space between the menu button and the account button (issues 295, 318): within 24px.
                 const menu = t.rect('#menu'), account = t.rect('#account'), box = t.rect(BOX);
-                if (menu && account && box) t.known(CENTRE_ISSUE, Math.abs(box.cx - (menu.right + account.x) / 2) <= 24, `with a page title in the header the field is centred at x=${Math.round(box.cx)}, but the free space between the menu and the account button is centred at x=${Math.round((menu.right + account.x) / 2)}: the field is pushed against the account button`);
+                if (menu && account && box) t.ok(Math.abs(box.cx - (menu.right + account.x) / 2) <= 24, `with a page title in the header the field is centred at x=${Math.round(box.cx)}, but the free space between the menu and the account button is centred at x=${Math.round((menu.right + account.x) / 2)}`);
                 t.noOverlap(BOX, '#account');
             } else {
                 t.visible('#q >>> [part=expand]', 'the search icon button');
@@ -64,8 +64,8 @@ export default {
             t.visible('#q >>> [part=footer]', 'the footer slot');
             t.within('#q >>> [part=footer]', POP);
             const pop = t.rect(POP), group = t.rect('#q >>> [part=group]'), note = t.rect('#q >>> [part=note]');
-            if (pop && group) t.known(GROUP_ISSUE, group.x - pop.x >= 8, `the group heading starts ${Math.round(group.x - pop.x)}px from the panel's edge (rows are indented 12px); it and the "+12 more" note are unstyled because the rows carry a part attribute where the CSS selects a class`);
-            if (pop && note) t.known(GROUP_ISSUE, note.x - pop.x >= 8, `the note row starts ${Math.round(note.x - pop.x)}px from the panel's edge`);
+            if (pop && group) t.ok(group.x - pop.x >= 8, `the group heading starts ${Math.round(group.x - pop.x)}px from the panel's edge (rows are indented 12px)`);
+            if (pop && note) t.ok(note.x - pop.x >= 8, `the note row starts ${Math.round(note.x - pop.x)}px from the panel's edge`);
             t.ok(t.rect(POP)?.width >= (desktop ? 383 : 300), `the results panel is ${Math.round(t.rect(POP)?.width ?? 0)}px wide, too narrow to read`);
         }
     },

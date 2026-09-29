@@ -18,6 +18,16 @@
 
 [part="title"] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-lg); font-weight: 600; }
 
+/* A centred field (pk-app-bar-search: flex-grow with auto inline margins, issue 295) shares the header's free space with the title's own
+   flex-grow (issue 318): both compete for the same leftover space, pushing the field toward the actions instead of centring it between the
+   menu and the actions. With a title present (the host's own updated() sets .with-search on the part; a :host(:has(pk-app-bar-search))
+   selector is not reliable across supported browsers) the title stops taking part in that layout math (0-width flex item) so the field's
+   auto margins get the whole leftover space and land it centred between the menu and the trailing actions; the title still renders at its
+   usual place (overflow: visible) since a short page title, the only kind paired with a header search field, has room to spare beside it. */
+[part="title"].with-search { flex: 0 0 0; width: 0; overflow: visible; }
+/* The slotted title element itself is a block, so at the wrapper's new 0 width it would size (and clip) to 0 too: let it size to its text. */
+[part="title"].with-search ::slotted([slot="title"]) { width: max-content; overflow: visible; }
+
 [part="title"][hidden] { display: none; }
 
 ::slotted([slot="title"]) { display: block; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: inherit; }

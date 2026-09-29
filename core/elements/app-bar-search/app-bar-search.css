@@ -16,8 +16,12 @@
 
 /* A field near the right edge of the window opens its results towards the start, so the panel stays inside the window. */
 .pop[data-align="end"] { left: auto; }
-.group { padding: var(--space-2) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
-.note { padding: var(--space-1) var(--space-3) var(--space-2); color: var(--color-muted); font-size: var(--text-meta); }
+/* --color-muted reads 4.3:1 on --color-flyout in the dark theme, just under WCAG AA: --color-muted-strong instead. */
+/* margin-inline (not padding-inline): neither row has a background, so the two read identically, but a margin moves the row's own box
+   in from the panel's edge (padding only moves the text inside a box that still spans the full width) - the option rows read the same
+   inline offset from their own padding since flex lays their children out from the padding edge. */
+.group { margin-inline: var(--space-3); padding-block: var(--space-2) var(--space-1); color: var(--color-muted-strong); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
+.note { margin-inline: var(--space-3); padding-block: var(--space-1) var(--space-2); color: var(--color-muted-strong); font-size: var(--text-meta); }
 .ft { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }
 .em { padding: var(--space-3); color: var(--color-muted); }
 .op { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
