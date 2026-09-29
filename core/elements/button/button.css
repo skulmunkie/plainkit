@@ -25,9 +25,11 @@
 :host([has-busy-text]) .bt { display: inline; }
 :host([has-busy-text]) .lbl { display: none; }
 .ic { display: block; flex: none; inline-size: 1.25em; block-size: 1.25em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chv { flex: none; inline-size: 0.5em; block-size: 0.5em; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform var(--duration-fast) ease; }
+:host([disclosure][pressed]) .chv { transform: rotate(-135deg); }
 :host([icon]) .lbl { font-size: 0; line-height: 0; }
 :host([icon]) ::slotted(*) { font-size: var(--text-read); }
 :host([icon][size="mini"]) ::slotted(*) { font-size: var(--text-meta); }
 :host([icon][busy]) .ic, :host([icon][busy]) ::slotted(*) { display: none; }
 @media (--phone) { [part="control"], :host([size]) [part="control"], :host([icon]) [part="control"] { min-height: var(--touch-target); } :host([icon]) [part="control"], :host([size="mini"]) [part="control"] { min-width: var(--touch-target); } }
-@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } .chv { transition: none; } }

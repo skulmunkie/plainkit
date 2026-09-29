@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { linkAttrs, tipText } from './button.js';
+import behaviour, { linkAttrs, tipText } from './button.js';
 import { accessibleName, evaluate, DEFAULTS } from '../../js/quality.js';
 
 const base = { href: '/a', target: '', rel: '', download: null, disabled: false, busy: false, label: '' };
@@ -45,6 +45,66 @@ test('the quality checks see a pk-button and name it from label, text or aria-la
     assert.equal(accessibleName(fakeButton({}, ' Back to Orders ')), 'Back to Orders');
     assert.equal(accessibleName(fakeButton({ 'aria-label': 'Close' }, '')), 'Close');
     assert.equal(accessibleName(fakeButton({ 'icon-name': 'plus' }, '')), '', 'an icon and nothing else has no name');
+});
+
+// ---- disclosure: press() flips pressed, updated() wires aria-expanded (not aria-pressed) and the click-swallowing rules stay the same
+function makeButton(props) {
+    const attrs = {};
+    const control = {
+        localName: 'button',
+        setAttribute(k, v) { attrs[k] = v; },
+        removeAttribute(k) { delete attrs[k]; },
+        getAttribute(k) { return attrs[k] ?? null; },
+    };
+    const use = { setAttribute() {}, removeAttribute() {}, getAttribute() { return null; } };
+    const icon = { toggleAttribute() {}, firstChild: use };
+    const emitted = [];
+    const el = new (behaviour(class {
+        part(n) { return n === 'control' ? control : n === 'icon' ? icon : null; }
+        emit(n, d) { emitted.push([n, d]); return true; }
+        hasAttribute() { return false; }
+        closest() { return null; }
+        toggleAttribute() {}
+        warnOnce() {}
+    }))();
+    Object.assign(el, { href: '', disabled: false, busy: false, toggle: false, disclosure: false, pressed: false, value: '', type: 'button', busyText: '', icon: false, iconName: '', textContent: '', ...props });
+    Object.defineProperty(el, '$', { get() { return el; } });
+    return { el, attrs, emitted };
+}
+
+test('a disclosure click flips pressed and announces pk-toggle, like a toggle button', () => {
+    const { el, emitted } = makeButton({ disclosure: true, value: 'row-1' });
+    el.press({});
+    assert.equal(el.pressed, true);
+    assert.deepEqual(emitted, [['pk-toggle', { pressed: true, value: 'row-1' }]]);
+});
+
+test('a disabled or busy disclosure button ignores the click', () => {
+    const { el, emitted } = makeButton({ disclosure: true, disabled: true });
+    let stopped = false, prevented = false;
+    el.press({ stopImmediatePropagation() { stopped = true; }, preventDefault() { prevented = true; } });
+    assert.equal(el.pressed, false); assert.deepEqual(emitted, []); assert.ok(stopped && prevented);
+});
+
+test('updated() reports aria-expanded for a disclosure button, never aria-pressed', () => {
+    const { el, attrs } = makeButton({ disclosure: true, pressed: true });
+    el.updated();
+    assert.equal(attrs['aria-expanded'], 'true');
+    assert.equal(attrs['aria-pressed'], undefined);
+});
+
+test('updated() reports aria-pressed for a plain toggle, never aria-expanded', () => {
+    const { el, attrs } = makeButton({ toggle: true, pressed: false });
+    el.updated();
+    assert.equal(attrs['aria-pressed'], 'false');
+    assert.equal(attrs['aria-expanded'], undefined);
+});
+
+test('neither aria-pressed nor aria-expanded is set on a plain button', () => {
+    const { el, attrs } = makeButton({});
+    el.updated();
+    assert.equal(attrs['aria-pressed'], undefined);
+    assert.equal(attrs['aria-expanded'], undefined);
 });
 
 test('an icon-only button with no accessible name is a failure', () => {

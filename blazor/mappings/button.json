@@ -82,6 +82,11 @@
       "type": "bool"
     },
     {
+      "name": "Disclosure",
+      "prop": "disclosure",
+      "type": "bool"
+    },
+    {
       "name": "OnClick",
       "event": "click",
       "type": "MouseEventArgs"

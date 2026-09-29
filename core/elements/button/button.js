@@ -20,7 +20,7 @@ export default Base => class extends Base {
     press(e) {
         if (this.disabled || this.busy) { e.stopImmediatePropagation(); e.preventDefault(); return; }
         if (this.href) return;
-        if (this.toggle) { this.pressed = !this.pressed; this.emit('pk-toggle', { pressed: this.pressed, value: this.value }); }
+        if (this.toggle || this.disclosure) { this.pressed = !this.pressed; this.emit('pk-toggle', { pressed: this.pressed, value: this.value }); }
         if (this.type === 'submit') this.form?.requestSubmit();
         else if (this.type === 'reset') this.form?.reset();
     }
@@ -38,7 +38,9 @@ export default Base => class extends Base {
             if (!safeHref(this.href)) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the link has no destination`, { href: this.href });
             const download = this.download || (this.hasAttribute('download') ? '' : null);
             for (const [k, v] of Object.entries(linkAttrs({ ...this.$, download }))) if (v == null) c.removeAttribute(k); else c.setAttribute(k, v);
-        } else if (this.toggle) c.setAttribute('aria-pressed', String(this.pressed)); else c.removeAttribute('aria-pressed');
+        } else if (this.disclosure) { c.setAttribute('aria-expanded', String(this.pressed)); c.removeAttribute('aria-pressed'); }
+        else if (this.toggle) { c.setAttribute('aria-pressed', String(this.pressed)); c.removeAttribute('aria-expanded'); }
+        else { c.removeAttribute('aria-pressed'); c.removeAttribute('aria-expanded'); }
         // An icon button keeps its name while busy (the spinner replaces the icon, not the words), so busy-text does not swap it.
         this.toggleAttribute('has-busy-text', this.busy && this.busyText !== '' && !this.icon);
         const icon = this.part('icon');
