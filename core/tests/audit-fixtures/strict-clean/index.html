@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Strict clean fixture</title></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Strict clean fixture</title></head>
 <body>
-  <pk-dialog id="about">
-    <pk-tabs>
-      <pk-tab-panel label="One">One</pk-tab-panel>
-      <pk-tab-panel label="Two">Two</pk-tab-panel>
-    </pk-tabs>
-  </pk-dialog>
+  <main>
+    <pk-dialog id="about" heading="About">
+      <pk-tabs>
+        <pk-tab-panel label="One">One</pk-tab-panel>
+        <pk-tab-panel label="Two">Two</pk-tab-panel>
+      </pk-tabs>
+    </pk-dialog>
+  </main>
   <script type="module" src="app.js"></script>
 </body>
 </html>
