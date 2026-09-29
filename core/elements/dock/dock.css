@@ -20,3 +20,9 @@
 .group > .body[hidden] { display: none; }
 .empty { display: grid; place-items: center; block-size: 100%; }
 .empty[hidden] { display: none; }
+.group.rail { flex: none; inline-size: var(--pk-dock-rail-width, 2.75rem); }
+.rail-button { display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; text-orientation: mixed; inline-size: 100%; block-size: 100%; min-block-size: var(--touch-target); padding-block: var(--space-3); margin: 0; border: none; background: none; color: inherit; font: inherit; font-weight: 600; font-size: var(--text-sm); text-align: start; cursor: pointer; }
+.rail-button:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.rail-button[aria-expanded="true"] { background: var(--color-surface-alt); }
+.flyout { position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: var(--z-pop); box-sizing: border-box; inline-size: var(--pk-dock-flyout-width, 18rem); max-inline-size: calc(100vw - 2 * var(--space-4)); max-block-size: min(24rem, calc(100dvh - 2 * var(--space-4))); overflow: auto; padding: var(--pk-dock-pad, var(--space-3)); background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); }
+.flyout[hidden] { display: none; }

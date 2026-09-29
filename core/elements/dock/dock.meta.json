@@ -2,7 +2,7 @@
   "tag": "pk-dock",
   "title": "Dock",
   "group": "Layout",
-  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, or use a single-panel header's chevron to collapse it to just its title. The arrangement is one JSON layout document you can read, store and set. Docked panels and header-collapse only; moving panels, floating and saved layouts come in later steps of #432.",
+  "summary": "A workspace of panels (Toolbox | Canvas | Properties) laid out as a tree of resizable splits and tab groups. Drag a separator or use its arrow keys to resize, choose a tab to switch a group, or use a single-panel header's chevron to collapse it to just its title. A collapsed group at a screen edge folds to a narrow rail button instead; activating it opens the panel as a flyout over the content, closing on Escape, an outside click or a blur. The arrangement is one JSON layout document you can read, store and set. Docked panels, header-collapse and collapse-to-rail only; moving panels, floating UI and saved layouts come in later steps of #432.",
   "props": [
     {
       "name": "layout",
@@ -94,6 +94,14 @@
       "description": "The scrolling area around a panel's content."
     },
     {
+      "name": "rail-button",
+      "description": "The button a collapsed edge group folds to instead of a header; opens the panel as a flyout."
+    },
+    {
+      "name": "flyout",
+      "description": "The floating layer a rail button opens its panel into, positioned next to the button."
+    },
+    {
       "name": "empty",
       "description": "The empty state."
     }
@@ -113,10 +121,20 @@
       "name": "--pk-dock-pad",
       "description": "Padding around a panel's content.",
       "default": "var(--space-3)"
+    },
+    {
+      "name": "--pk-dock-rail-width",
+      "description": "Width of a collapsed edge group's rail button.",
+      "default": "2.75rem"
+    },
+    {
+      "name": "--pk-dock-flyout-width",
+      "description": "Width of the flyout a rail button opens.",
+      "default": "18rem"
     }
   ],
   "methods": [],
-  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. A single-panel header's collapse-toggle is a native button (Tab to reach it, Enter or Space to activate, no extra key handling needed) with aria-expanded and aria-controls naming the body it hides; a tab group does not offer collapse yet.",
+  "a11y": "Each separator is a pk-splitter: role=separator with aria-valuenow, aria-valuemin, aria-valuemax and its own arrow keys (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked; Home and End), so every resize has a keyboard path. A group of several panels is a pk-tabs tablist (roving tabindex, arrow keys); a single panel is a labelled section named by its heading. Hidden tab panels are out of the tab order and the accessibility tree. A single-panel header's collapse-toggle is a native button (Tab to reach it, Enter or Space to activate, no extra key handling needed) with aria-expanded and aria-controls naming the body it hides; a tab group does not offer collapse yet. A collapsed group at a screen edge is instead a rail button (also a native button, same Enter/Space activation) with aria-haspopup and aria-expanded naming the flyout it opens; the flyout closes and returns focus to the rail button on Escape, and closes (without moving focus) on an outside pointerdown or when focus leaves it.",
   "mobile": "Below 640px a splitter tree cannot show real panels, so the dock draws every open panel in reading order as one tab strip with one panel visible; the strip scrolls sideways rather than wrapping onto a second row, the same as a narrow group's tab list. The layout document is untouched, so widening the window restores the arrangement.",
   "examples": [
     {
