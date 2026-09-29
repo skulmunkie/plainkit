@@ -83,9 +83,20 @@
             for (var i = 0; i < Crumbs!.Count; i++)
             {
                 var crumb = Crumbs[i];
+                // The crumb element defaults to a span (a plain a when it also links, e.g. an unusual last-crumb Href): role="heading" is valid on either.
                 builder.OpenElement(3, crumb.Href is null ? "span" : "a");
                 if (crumb.Href is not null) builder.AddAttribute(4, "href", crumb.Href);
-                if (i == Crumbs.Count - 1) builder.AddAttribute(5, "aria-current", "page");
+                if (i == Crumbs.Count - 1)
+                {
+                    builder.AddAttribute(5, "aria-current", "page");
+                    // The last crumb doubles as the page's only title exactly when no explicit Title is drawn
+                    // elsewhere as a real heading: give it the heading role itself.
+                    if (string.IsNullOrEmpty(Title))
+                    {
+                        builder.AddAttribute(15, "role", "heading");
+                        builder.AddAttribute(16, "aria-level", Level);
+                    }
+                }
                 builder.AddContent(6, crumb.Label);
                 builder.CloseElement();
             }
@@ -122,5 +133,7 @@
 
     private bool HasCrumbs => Crumbs is { Count: > 0 };
 
-    private string? InPageTitle => !string.IsNullOrEmpty(Title) ? Title : HasCrumbs ? Crumbs![^1].Label : null;
+    // No fallback to the last crumb's label: an explicit Title always draws its own heading; without one, the
+    // last crumb doubles as the title (see Trail above) and must not also get a duplicate heading from here.
+    private string? InPageTitle => Title;
 }

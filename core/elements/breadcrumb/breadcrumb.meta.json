@@ -60,7 +60,7 @@
     { "target": "the slotted crumbs", "attributes": ["data-folded"], "why": "Toggled on the crumbs the fold hides (the styling hook that collapses them); removed for the crumbs shown again. Kept when the element disconnects." },
     { "target": "the last crumb", "attributes": ["aria-current"], "why": "Set to page on the last crumb when no crumb carries aria-current already (the host may mark the current page itself). Not removed if the crumbs change later. Kept when the element disconnects." }
   ],
-  "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded.",
+  "a11y": "A nav landmark labelled Breadcrumb; the current page has aria-current=\"page\"; the fold button says what it reveals and reflects aria-expanded. When the last crumb is also doing duty as the page's only title (pk-page-header's record variant with no heading set), pk-breadcrumb does not add a heading role on its own — see pk-page-header's a11y notes for the composition that adds role=\"heading\" and aria-level to that crumb.",
   "mobile": "More than three crumbs fold the middle ones; links and the fold button are 44px tall.",
   "examples": [
     {
