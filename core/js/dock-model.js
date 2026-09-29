@@ -26,6 +26,19 @@ export const findNode = (doc, id) => { let f = null; walk(doc.root, n => { if (n
 const depth = n => (isSplit(n) ? 1 + Math.max(depth(n.a), depth(n.b)) : 1);
 export const floaters = doc => doc.floating ?? [];
 export const findFloater = (doc, id) => floaters(doc).find(f => f.id === id) ?? null;
+// Whether a group is a docked column at a screen edge: every horizontal-split ancestor keeps it in the branch nearest that edge, and it is actually
+// inside at least one horizontal split (a vertical split is transparent to edge-ness — stacking a group above or below does not move it off a
+// horizontal edge, but a group that is never beside another column, such as a full-width bottom bar, is not a "column" at all). Rail rendering
+// (dock.js) only applies to an edge group; a group that is not one (the centre column, a bottom bar, or a column with something beside it on
+// both sides) collapses to a header instead, per the design.
+function edgeWalk(n, id, left, right, sawSplit) {
+    if (!n) return null;
+    if (n.id === id) return sawSplit ? { left, right } : { left: false, right: false };
+    if (!isSplit(n)) return null;
+    if (n.orientation === 'horizontal') return edgeWalk(n.a, id, left, false, true) ?? edgeWalk(n.b, id, false, right, true);
+    return edgeWalk(n.a, id, left, right, sawSplit) ?? edgeWalk(n.b, id, left, right, sawSplit);
+}
+export const isEdgeGroup = (doc, id) => { const e = edgeWalk(doc.root, id, true, true, false); return Boolean(e && (e.left || e.right)); };
 const findFloaterGroup = (doc, panel) => floaters(doc).find(f => f.group.panels.includes(panel)) ?? null;
 const editFloater = (doc, id, fn) => floaters(doc).map(f => (f.id === id ? fn(f) : f));
 const nextFloaterZ = doc => floaters(doc).reduce((m, f) => Math.max(m, f.z), 0) + 1;

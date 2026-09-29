@@ -32,6 +32,7 @@ class Node {
     constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.text = ''; this.listeners = {}; }
     setAttribute(k, v) { this.attrs[k] = String(v); }
     getAttribute(k) { return this.attrs[k] ?? null; }
+    removeAttribute(k) { delete this.attrs[k]; }
     append(...n) { this.kids.push(...n); }
     replaceChildren(...n) { this.kids = n; }
     addEventListener(t, f) { this.listeners[t] = f; }
@@ -46,18 +47,19 @@ class Node {
     }
 }
 const el = (tag, cls) => { const n = new Node(tag); n.attrs.class = cls; return n; };
-// The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span) and a body, cloned per group.
+// The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span), a body and a rail-button, cloned per group.
 const groupTemplate = () => {
-    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body');
+    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body'), rail = el('button', 'rail-button');
     const toggle = el('button', 'collapse-toggle'), chevron = el('span', 'chevron'), titleSpan = el('span', 'title');
-    toggle.kids = [chevron, titleSpan]; h.kids = [toggle]; s.kids = [h, b];
+    toggle.kids = [chevron, titleSpan]; h.kids = [toggle]; s.kids = [h, b, rail];
     s.cloneNode = groupTemplate;
     return s;
 };
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
 const make = (panels, props = {}) => {
-    const root = new Node('root'), empty = new Node('empty');
-    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return n === 'root' ? root : empty; } get shadowRoot() { return { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }) }; } requestUpdate() {} }))();
+    const root = new Node('root'), empty = new Node('empty'), flyout = new Node('flyout');
+    const parts = { root, empty, flyout };
+    const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } warnOnce() {} part(n) { return parts[n] ?? parts.root; } get shadowRoot() { return { querySelector: () => ({ content: { firstElementChild: groupTemplate() } }) }; } requestUpdate() {} }))();
     Object.assign(el, { events: [], layout: null, label: '', resizeLabel: 'Resize panels', children: panels.map(p => child(p.id, { 'data-heading': p.title, 'data-group': p.group })), ownerDocument: { createElement: t => new Node(t) } });
     Object.assign(el, props);
     globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
@@ -139,6 +141,49 @@ test('clicking the collapse-toggle folds the panel, commits reason collapse, and
     root.listeners.click({ stopPropagation() {}, target: toggleAfter });
     assert.deepEqual(el.$doc.collapsed, []);
     assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse', 'collapse']);
+});
+
+test('collapsing an edge group (props, on the right) folds it to a rail button instead of a header; the centre group (canvas) still gets a header', () => {
+    const { el, root } = make(P);
+    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: propsToggle });
+    assert.deepEqual(el.$doc.collapsed, ['props']);
+    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    assert.ok(rail, 'a rail button replaces the header for the collapsed edge group');
+    assert.equal(rail.getAttribute('aria-expanded'), 'false');
+    assert.equal(rail.getAttribute('aria-haspopup'), 'true');
+    assert.equal(rail.text, 'Properties');
+    assert.equal(find(root, 'button').some(b => b.getAttribute('data-panel') === 'props'), false, 'no header chevron left for it');
+    // canvas is not at a screen edge (boxed in by left and right columns), so it keeps the accordion-style header-only fold.
+    const canvasToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
+    canvasToggle.closest = sel => (sel === 'button' ? canvasToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: canvasToggle });
+    assert.deepEqual(el.$doc.collapsed, ['props', 'canvas']);
+    assert.equal(find(root, 'button').some(b => b.getAttribute('data-rail-panel') === 'canvas'), false, 'canvas stays a header, not a rail');
+});
+
+test('a rail button opens the panel as a flyout on click, closes on a second click, and the toggle raises no layout change', () => {
+    const { el, root } = make(P);
+    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    root.listeners.click({ stopPropagation() {}, target: propsToggle });
+    const before = el.events.length;
+    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    rail.closest = sel => (sel === 'button' ? rail : null);
+    rail.getBoundingClientRect = () => ({ left: 0, top: 0, right: 40, bottom: 40, width: 40, height: 40 });
+    const flyoutEl = el.part('flyout');
+    flyoutEl.style = {}; flyoutEl.getBoundingClientRect = () => ({ width: 200, height: 200 });
+    globalThis.document ??= { documentElement: { clientWidth: 1024, clientHeight: 768 }, addEventListener() {}, removeEventListener() {} };
+    globalThis.getComputedStyle ??= () => ({ direction: 'ltr' });
+    root.listeners.click({ stopPropagation() {}, target: rail });
+    assert.equal(el.$flyout, 'props', 'the panel opened as a flyout');
+    assert.equal(el.events.length, before, 'opening a flyout is a transient view, not a layout change');
+    assert.equal(flyoutEl.hidden, false);
+    assert.deepEqual(flyoutEl.kids.map(k => k.getAttribute('name')), ['props']);
+    root.listeners.click({ stopPropagation() {}, target: rail });
+    assert.equal(el.$flyout, null, 'a second click on the same rail button closes it again');
+    assert.equal(flyoutEl.hidden, true);
 });
 
 test('a click that is not on a collapse-toggle button does nothing', () => {

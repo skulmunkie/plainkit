@@ -97,6 +97,33 @@ export const dockCases = [
         t.ok(!root().querySelector(`#${bodyId}`).hidden, 'expanding restores the body');
     }],
 
+    ['dock: collapsing an edge group (right column) folds it to a narrow rail button; activating it opens the panel as a flyout that closes on Escape and returns focus', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = () => dock.shadowRoot.querySelector('[part=root]');
+        const chevron = () => [...root().querySelectorAll('[part=collapse-toggle]')].find(b => b.getAttribute('data-panel') === 'props');
+        const before = rect([...root().querySelectorAll('[part=group]')].at(-1)).width;
+        chevron().click(); await t.settle();
+        const rail = () => root().querySelector('[part=rail-button]');
+        t.ok(rail(), 'the collapsed right column is a rail button, not a header');
+        t.ok(rect(rail().closest('[part=group]')).width < before, 'the column narrows to the rail width');
+        t.eq(rail().getAttribute('aria-expanded'), 'false');
+        rail().click(); await t.settle(); await wait(60);
+        const flyout = dock.shadowRoot.querySelector('[part=flyout]');
+        t.ok(!flyout.hidden, 'activating the rail button opens the flyout');
+        t.eq(rail().getAttribute('aria-expanded'), 'true');
+        t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'the panel content is shown inside the flyout');
+        const fr = rect(flyout), rr = rect(rail());
+        t.ok(fr.left >= rr.right - 1, 'the flyout is positioned over the content, beside the rail button, not on top of it');
+        win.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await t.settle(); await wait(60);
+        t.ok(flyout.hidden, 'Escape closes the flyout');
+        t.eq(doc.activeElement, rail(), 'focus returns to the rail button');
+        rail().click(); await t.settle(); await wait(60);
+        doc.body.focus?.(); doc.querySelector('#probe').focus();
+        await t.settle(); await wait(60);
+        t.ok(dock.shadowRoot.querySelector('[part=flyout]').hidden, 'moving focus elsewhere also closes the flyout');
+    }],
+
     ['dock: on a phone the tree is one tab strip of every panel with one panel showing, no horizontal overflow, and the layout is untouched', async t => {
         const { doc } = await frame(t, DOCK, 375);
         const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
