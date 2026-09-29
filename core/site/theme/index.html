@@ -14,7 +14,9 @@
     <pk-alert kind="warning" class="gx-notice-file" id="boot-notice" role="status">
         Loading the theme editor. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
     </pk-alert>
-    <div id="te-host"></div>
+    <pk-loading-overlay busy label="Loading theme editor…" id="te-loading">
+        <div id="te-host"></div>
+    </pk-loading-overlay>
 </div>
 <script type="module" src="theme.js"></script>
 </body>
