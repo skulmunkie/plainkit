@@ -56,13 +56,48 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void The_title_is_the_last_crumb_unless_a_Title_overrides_it()
+    public void An_explicit_Title_draws_its_own_heading_and_the_last_crumb_stays_a_plain_current_page_marker()
     {
-        Assert.Equal("PO 1042", Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).Find("pk-page-header").GetAttribute("heading"));
-
         var named = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Title, "Acme Supply order"));
+
         Assert.Equal("Acme Supply order", named.Find("pk-page-header").GetAttribute("heading"));
-        Assert.Equal("PO 1042", named.Find("pk-breadcrumb").Children[2].TextContent);
+        var last = named.Find("pk-breadcrumb").Children[2];
+        Assert.Equal("PO 1042", last.TextContent);
+        Assert.Equal("page", last.GetAttribute("aria-current"));
+        Assert.Null(last.GetAttribute("role"));
+        Assert.Null(last.GetAttribute("aria-level"));
+    }
+
+    [Fact]
+    public void Without_a_Title_the_heading_attribute_stays_unset_and_the_last_crumb_carries_the_heading_role_itself()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
+
+        Assert.Null(cut.Find("pk-page-header").GetAttribute("heading"));
+        var last = cut.Find("pk-breadcrumb").Children[2];
+        Assert.Equal("PO 1042", last.TextContent);
+        Assert.Equal("page", last.GetAttribute("aria-current"));
+        Assert.Equal("heading", last.GetAttribute("role"));
+        Assert.Equal("1", last.GetAttribute("aria-level"));
+    }
+
+    [Fact]
+    public void The_last_crumb_heading_role_matches_a_custom_Level()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Level, 2));
+
+        Assert.Equal("2", cut.Find("pk-breadcrumb").Children[2].GetAttribute("aria-level"));
+    }
+
+    [Fact]
+    public void With_a_ShellSection_and_no_Title_the_last_crumb_does_not_get_a_heading_role_either()
+    {
+        var cut = RenderInShell(false, Trail);
+
+        Assert.Null(cut.Find("pk-page-header").GetAttribute("heading"));
+        var last = cut.Find("pk-breadcrumb").Children[2];
+        Assert.Equal("page", last.GetAttribute("aria-current"));
+        Assert.Null(last.GetAttribute("role"));
     }
 
     [Fact]
