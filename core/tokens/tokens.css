@@ -287,6 +287,19 @@
     --gal-shell-min-h: 10rem;
 }
 
+/* Theme editor chrome (core/modules/theme-editor/theme-editor.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --te-border-w: 1px;
+    --te-toolbar-col-min: 11rem;
+    --te-row-name-min: 9rem;
+    --te-row-name-max: 16rem;
+    --te-palette-col-min: 12rem;
+    --te-pair-col1-w: 3.5rem;
+    --te-saved-name-min: 10rem;
+    --te-changed-bar-w: 3px;
+    --te-preview-h: 34rem;
+}
+
 /* Scorecard chrome (core/modules/scorecard/scorecard.css): schematic-only sizes with no equivalent on the shared scale. */
 :root {
     --sc-scores-tile-min-w: 10rem;
