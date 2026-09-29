@@ -1,6 +1,7 @@
 // pk-tabs: the active tab has its underline and its panel, arrow keys move the selection and the focus ring stays visible and unclipped, a strip that does not
-// fit either wraps (default) or scrolls sideways (scroll, also right to left) with a fade on the side that has more tabs, without the page scrolling sideways, and the
-// selected tab is brought fully into view, clear of the fade, with its focus ring inside the strip (issues 338, 339).
+// fit scrolls sideways (overflow="scroll", the default, also right to left) with a fade on the side that has more tabs, without the page scrolling sideways, and
+// the selected tab is brought fully into view, clear of the fade, with its focus ring inside the strip (issues 338, 339). The overflow="menu" mode has its own
+// scenario, tabs-overflow-menu.js.
 const NAMES = ['Overview', 'Line items', 'Shipping', 'Payments', 'Returns', 'Documents', 'Notes', 'History'];
 const TABS = NAMES.map((n, i) => `<pk-tab id="s${i}" value="s${i}"${i === 2 ? ' count="3"' : ''}>${n}</pk-tab>`).join('');
 const PANELS = NAMES.map((n, i) => `<pk-tab-panel value="s${i}">${n} panel content.</pk-tab-panel>`).join('');
@@ -15,8 +16,8 @@ export default {
 <pk-tab id="a" value="details">Details</pk-tab><pk-tab id="b" value="history">History</pk-tab><pk-tab id="c" value="files" disabled>Files</pk-tab>
 <pk-tab-panel value="details">Item details.</pk-tab-panel><pk-tab-panel value="history">Item history.</pk-tab-panel><pk-tab-panel value="files">Files.</pk-tab-panel>
 </pk-tabs>
-<pk-tabs id="t2" scroll value="s0">${TABS}<span slot="trailing">Updated a minute ago</span>${PANELS}</pk-tabs>
-<div dir="rtl"><pk-tabs id="t3" scroll value="r0">${RTL_TABS}</pk-tabs></div>
+<pk-tabs id="t2" overflow="scroll" value="s0">${TABS}<span slot="trailing">Updated a minute ago</span>${PANELS}</pk-tabs>
+<div dir="rtl"><pk-tabs id="t3" overflow="scroll" value="r0">${RTL_TABS}</pk-tabs></div>
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },

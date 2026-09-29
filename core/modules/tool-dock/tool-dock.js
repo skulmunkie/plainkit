@@ -50,7 +50,9 @@ export async function mountToolDock(container, options = {}) {
     let opened = !dock || Boolean(options.open);
     const mounted = new Map();
 
-    const tabs = h(doc, 'pk-tabs', { value: active, label });
+    // menu: the dock has a fixed height (no room for the tabs to wrap onto more rows) and its own trailing controls
+    // (dock size, close), so a scroll fade sitting right next to them is easy to miss; a "..." menu is the clearer overflow.
+    const tabs = h(doc, 'pk-tabs', { value: active, label, overflow: 'menu' });
     const bodies = new Map();
     for (const p of panels) {
         tabs.append(h(doc, 'pk-tab', { value: p.id }, p.title));
