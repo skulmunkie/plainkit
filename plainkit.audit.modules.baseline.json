@@ -402,26 +402,6 @@
       "fingerprint": "3a6394154b696b44"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "77a61614d0894f95"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "77a61614d0894f95"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "82e8b6bb395be5c2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "82e8b6bb395be5c2"
-    },
-    {
       "rule": "S7",
       "file": "core/modules/console/console.js",
       "fingerprint": "de461f0d9d402a89"
@@ -795,26 +775,6 @@
       "rule": "S10",
       "file": "core/modules/logs/logs.css",
       "fingerprint": "dd5f24c09c429726"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "08dae95000ce7eca"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "08dae95000ce7eca"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "5eb19da9238525cd"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "5eb19da9238525cd"
     },
     {
       "rule": "S7",
