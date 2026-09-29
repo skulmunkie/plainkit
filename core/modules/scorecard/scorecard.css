@@ -3,7 +3,7 @@
 /* A mounted scorecard with its own theme paints itself, so the host page's colours do not leak in. */
 .sc-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }
 
-.sc-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
+.sc-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--sc-scores-tile-min-w), 1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
 
 /* The framework sections are pk-cards; a table or tab strip inside one sits flush with the body and the sparkline tiles keep a tidy grid. */
 .sc-module pk-tabs { display: block; }
@@ -22,13 +22,13 @@
 
 .sc-table td, .sc-table th { overflow-wrap: anywhere; }
 
-.sc-table td:first-child { min-width: 8rem; }
+.sc-table td:first-child { min-width: var(--sc-table-col1-w); }
 
-.sc-table td:last-child { min-width: 14rem; }
+.sc-table td:last-child { min-width: var(--sc-table-col-last-w); }
 
 .sc-table th.num { overflow-wrap: normal; white-space: nowrap; }
 
-.sc-frames { position: fixed; left: -10000px; top: 0; width: 1280px; height: 700px; overflow: hidden; visibility: hidden; }
+.sc-frames { position: fixed; left: var(--sc-frames-offscreen); top: 0; width: var(--sc-frames-w); height: var(--sc-frames-h); overflow: hidden; visibility: hidden; }
 
 .sc-frames iframe { border: 0; }
 

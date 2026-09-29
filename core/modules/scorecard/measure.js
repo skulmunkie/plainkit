@@ -3,12 +3,14 @@
 // files (raw and gzip). Every read is of a file the host names on its own origin; nothing else is requested.
 
 import { stripComments, sameOrigin } from '../../js/framework-checks.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 // Render and lay out a pk-table of n product rows off-screen, in ms. The status cell is plain text: the test times the table, not n badge elements.
 export function timeRows(doc, n) {
     const host = doc.createElement('div');
-    host.style.cssText = 'position:absolute;left:-10000px;top:0;width:900px';
+    host.dataset.dyn = 'position:absolute; left:var(--sc-frames-offscreen); top:0; width:var(--sc-measure-host-w)';
     doc.body.append(host);
+    applyDynamic(doc);
     const rows = Array.from({ length: n }, (_, i) => `<tr><td><code>SKU-${i}</code></td><td>Title of product ${i}</td><td>Active</td><td class="num">$${(i % 90) + 9}.99</td></tr>`).join('');
     const t0 = performance.now();
     host.innerHTML = `<pk-table density="compact"><table><thead><tr><th>SKU</th><th>Title</th><th>Status</th><th class="num">Price</th></tr></thead><tbody>${rows}</tbody></table></pk-table>`;
