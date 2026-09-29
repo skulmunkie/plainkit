@@ -1,5 +1,6 @@
 {
   "tag": "pk-progress",
+  "replaces": ["progress"],
   "title": "Progress",
   "group": "Feedback",
   "summary": "A determinate or indeterminate progress bar on the native progress element, with sizes, colours, stripes, a label, a value readout and automatic warning colours.",

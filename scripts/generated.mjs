@@ -33,6 +33,7 @@ export const GENERATED_PATTERNS = [
     ['/core/icons.svg', /^core\/icons\.svg$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
     ['/core/icons/icons.json', /^core\/icons\/icons\.json$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
     ['/core/icons/icons.d.ts', /^core\/icons\/icons\.d\.ts$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
+    ['/core/tools/audit/generated.data.mjs', /^core\/tools\/audit\/generated\.data\.mjs$/, 'core/tools/audit/data.mjs (from core/elements/*/*.meta.json, core/js/app/pages/*.js, core/tokens/tokens.css)'],
     ['/blazor/src/PlainKit.Blazor/Generated/', /^blazor\/src\/PlainKit\.Blazor\/Generated\//, 'scripts/generate-blazor.mjs'],
     ['/blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js', /^blazor\/src\/PlainKit\.Blazor\/wwwroot\/PlainKit\.Blazor\.lib\.module\.js$/, 'scripts/generate-blazor.mjs'],
     ['/blazor/src/PlainKit.Blazor/wwwroot/plainkit/', /^blazor\/src\/PlainKit\.Blazor\/wwwroot\/plainkit\//, 'scripts/publish-dist.mjs (a copy of core/dist)'],
@@ -49,6 +50,7 @@ export const SENTINELS = [
     'core/dist/AGENTS.md',
     'core/dist/llms.txt',
     'core/dist/llms-full.txt',
+    'core/tools/audit/generated.data.mjs',
     'blazor/src/PlainKit.Blazor/Generated/generated.manifest.json',
     'blazor/src/PlainKit.Blazor/wwwroot/PlainKit.Blazor.lib.module.js',
     'blazor/src/PlainKit.Blazor/wwwroot/plainkit/manifest.json',
@@ -66,7 +68,7 @@ export function requireGenerated(rootDir = root) {
 const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'core/icons/src',
     'blazor/mappings', 'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
 const SOURCE_FILES = ['core/VERSION', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
-const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs', 'core/icons/build.mjs'];
+const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs', 'core/icons/build.mjs', 'core/tools/audit/data.mjs'];
 
 function newestMtime(rootDir) {
     let newest = 0;

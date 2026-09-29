@@ -2,6 +2,14 @@
 // 'doc' (#353): <pk-doc-page>; config: { items, search, home, level, idParam, anchorParam } as data, and the callbacks loadItem(id, ctx) -> { title, summary, html }
 // and href(id, anchor, ctx) -> module-relative path. The item shown is the route param idParam (default 'id'), the heading to scroll to the route query
 // anchorParam (default 'anchor'); with no id the home list shows. A same-page link (pk-navigate) goes through ctx.navigate(href(id, anchor)); the element never touches history.
+// PAGE_TYPE: read at build time by core/tools/audit/data.mjs (design section 3.2); not used at runtime.
+export const PAGE_TYPE = {
+    id: 'doc',
+    summary: 'A documentation reader: an item list plus a content pane, search and anchors.',
+    configKeys: ['items', 'search', 'home', 'level', 'idParam', 'anchorParam', 'loadItem', 'href'],
+    states: [],
+    useWhen: 'Long-form content browsed from a list of topics, with anchors and search, like a docs site.',
+};
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-doc-page');
     const { loadItem, href, idParam = 'id', anchorParam = 'anchor', ...data } = config;

@@ -1,5 +1,6 @@
 {
   "tag": "pk-tooltip",
+  "replaces": ["[role=tooltip]"],
   "title": "Tooltip",
   "summary": "A short label for the control it wraps, shown on hover, on keyboard focus and on a touch long press. Placed beside the target and flipped when it would leave the screen.",
   "group": "Overlays",
