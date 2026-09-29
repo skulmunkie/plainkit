@@ -2,7 +2,7 @@
 details { interpolate-size: allow-keywords; }
 details::details-content { block-size: 0; overflow: hidden; transition: block-size var(--pk-accordion-duration, 0.2s) ease, content-visibility var(--pk-accordion-duration, 0.2s) allow-discrete; }
 details[open]::details-content { block-size: auto; }
-summary { display: flex; align-items: center; gap: var(--space-3); min-block-size: var(--touch-target); padding: var(--space-3) var(--space-4); font-weight: 600; cursor: pointer; list-style: none; }
+summary { position: relative; display: flex; align-items: center; gap: var(--space-3); min-block-size: var(--touch-target); padding: var(--space-3) var(--space-4); font-weight: 600; cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
 summary:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 [part="heading"] { flex: 1; }
@@ -11,3 +11,12 @@ details[open] [part="chevron"] { transform: rotate(-135deg); }
 [part="panel"] { padding: 0 var(--space-4) var(--space-4); }
 @media (prefers-reduced-motion: reduce) { details::details-content, [part="chevron"] { transition: none; } }
 [part="actions"] { position: absolute; inset-block-start: 0; inset-inline-end: calc(var(--space-4) + var(--space-3) + 0.5em); z-index: 1; /* just inside the chevron (far end); the heading reserves the same width */ display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); }
+/* A phone: an action control grows to the 44px touch target (button.css), which would otherwise fill a one-line
+   header row edge to edge, flush against the card's top and bottom borders (and, with a wrapped heading, sit at
+   the top of the row instead of next to the chevron). Give the row extra block-size, and centre the actions in
+   it (they are now positioned against the summary, not the whole host, so this tracks the row's real height) so
+   the 44px box always has breathing room and lines up with the chevron. */
+@media (--phone) {
+    summary { min-block-size: calc(var(--touch-target) + 2 * var(--space-2)); }
+    [part="actions"] { inset-block-start: 50%; transform: translateY(-50%); }
+}
