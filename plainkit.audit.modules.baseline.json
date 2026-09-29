@@ -2182,21 +2182,6 @@
       "fingerprint": "12c2ced2a3aa4364"
     },
     {
-      "rule": "S2",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c91b040479d66"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c91b040479d66"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "3ae76ce60ec07f7e"
-    },
-    {
       "rule": "S3",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "217f93327ca89a02"

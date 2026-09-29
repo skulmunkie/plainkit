@@ -176,7 +176,8 @@ function slot(sample, control, fixed) {
     div.dataset.sample = JSON.stringify(sample);
     div.dataset.control = control;
     if (fixed) div.dataset.fixed = fixed;
-    div.style.minHeight = `${sample.height ?? 60}px`;
+    div.dataset.dyn = `min-height:${sample.height ?? 60}px`;
+    applyDynamic(div);
     lazy.observe(div);
     return div;
 }
@@ -494,7 +495,7 @@ function initResize() {
     const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('.gx-body');
     const bounds = () => ({ min: 320, max: Math.round(innerWidth * 0.7) });
     const width = () => parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0;
-    const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.style.setProperty('--inspector-w', w + 'px'); return w; };
+    const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.dataset.dyn = `--inspector-w:${w}px`; applyDynamic(shell); return w; };
     const saved = Number(readSetting('pk-gallery-inspector-w')); if (saved) apply(saved);
     handle.addEventListener('pointerdown', e => {
         e.preventDefault(); handle.setPointerCapture(e.pointerId);
