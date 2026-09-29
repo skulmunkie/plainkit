@@ -45,6 +45,10 @@
       "count": 9,
       "source": "S5's own rule text: the words innerHTML/outerHTML/insertAdjacentHTML appear only as detector regex sources, a doc comment and a fix message string that names the sinks it flags in a consumer's code; this file never assigns to any of them."
     },
+    "tools/audit/examples.mjs": {
+      "count": 3,
+      "source": "S5's and D2's/D6's example table: `el.innerHTML = '<b>hi</b>';` is the deliberately wrong snippet an in-memory test file feeds to the S5 rule (expecting it to be flagged) and scripts/build-skills.mjs renders read-only into the skills' conformance-rules.md; this file never assigns to a live DOM node."
+    },
     "elements/frame/frame.js": {
       "count": 0,
       "source": "pk-frame is the one place that writes an iframe's srcdoc (issue #523); the scanner's html-sink rule matches innerHTML/outerHTML/insertAdjacentHTML only, so srcdoc scores 0 hits here, but it is the same kind of sink and is documented for the same reason: the string is host-authored data rendered by the sandboxed frame's own document, never parsed into this page."

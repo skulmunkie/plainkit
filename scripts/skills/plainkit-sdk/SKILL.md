@@ -207,6 +207,10 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 Several always-visible per-row or per-card icon buttons competing for space is the signal: wrap the region in one `pk-context-menu` (opens on right-click, Shift+F10 or a touch long-press) instead of a button row. Its `pk-open` detail names what was targeted (`context`, the nearest ancestor's `data-pk-context`; `pk-table` sets one per row already), so the handler rebuilds the `menu` slot before it paints: `references/elements-overlays.md`.
 
+### Check your work
+
+{{conformanceChecklist}}
+
 ## What is not built
 
 `references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, ).
