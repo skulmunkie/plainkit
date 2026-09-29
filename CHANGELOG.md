@@ -5,6 +5,40 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-29
+
+### Breaking
+
+- `pk-app-shell` no longer has a `title` slot or `title` part: app-shell is app space, not page space, and never carried a title concept of its own. A `<h2 slot="title">` (or similar) previously placed in the shell's header must move into the page's own `pk-page-header` in the body — that is the only place a page title belongs now. (#648)
+- `PkPageHeader`'s `ShellSection` parameter is removed, along with the `SectionContent`/`SectionOutlet` wiring it used to write the title into the app shell's top bar. `pk-app-shell` has no title slot to write into any more (app space has no title concept, only page space does): the page header always draws its own title in the page body. `BackLink` now always draws its back anchor just above the header (its former "inside the shell section outlet" placement mode is gone). (#648)
+
+### Added
+
+- `PkToolDock` and `PkToolDockPanel` wrap the SDK's `mountToolDock` for Blazor: put `PkToolDockPanel` children (`Id`, `Title`, content) inside a `PkToolDock` to add an app's own tool-type panels, floating over the page or filling a container, each panel plain Blazor content. (#644)
+- A new module, `mountToolDock` (`modules/tool-dock/tool-dock.js`), is the generic floating/docked tabbed panel that `mountDevTools` already used internally: dock to the bottom edge, resize between named sizes, toggle with a hotkey, or fill a container inline, with your own `panels` (`{ id, title, mount(el, context) }`). Point it at your own app's tool-type panels (properties, history, an outline, a console, a chat) instead of reinventing the pattern. `mountDevTools` is now a thin consumer of it with no change to its options, DOM shape or behavior. (#644)
+- `pk-button` gets a `disclosure` prop: a click flips `pressed`, a built-in caret rotates with it, and the control reports `aria-expanded` instead of `aria-pressed`, for a button that expands or collapses a sub-row or detail block. (#656)
+- `pk-tabs` gets a third overflow mode, `overflow="menu"`: tabs that do not fit collapse behind a trailing "..." button (a menu button) whose menu lists them; the active tab is always pinned visible, and choosing a hidden tab from the menu selects it. (#659)
+
+### Changed
+
+- `pk-tabs`' `scroll` boolean prop is replaced by a single `overflow` enum (`scroll` | `menu` | `wrap`), and the old default (wrapping onto more rows when the tabs do not fit) is now the explicit opt-in `overflow="wrap"`; the new default, `overflow="scroll"`, is one row that slides. A page that set `scroll` needs `overflow="scroll"` instead; a page that relied on the old wrapping default needs `overflow="wrap"`. (#659)
+
+### Fixed
+
+- The gallery's Elements overview no longer jumps its card grid into columns after the page has already painted: `pk-grid` reserves its column layout before it upgrades, removing the dominant remaining layout shift on that route. (#135)
+- Confirmed `pk-app-shell` with nothing in its `nav` slot fills the full width: the main column is always the grid's last track (`grid-column: -2 / -1`), so the header, body and footer span the window instead of shrinking to their content. Covered by the `app-shell-layout` review scenario and a browser case (`cases-navbar.js`) at 1280 and 1500px. (#308)
+- `pk-nav-item`'s branch chevron is decoration again: it no longer intercepts clicks or picks up hover underline inside the link (the same fix as the breadcrumb chevron, #312). (#315)
+- `pk-app-bar-search`'s results panel gives the group headings and the group note row the panel's inline padding and muted, uppercase styling again; they no longer render flush to the panel's edge. (#317)
+- `pk-app-bar-search` centres in the free space of a `pk-app-shell` header again when the header also has a page title; the title no longer competes with the field for the header's free space and pushes it against the trailing actions. (#318)
+- `pk-app-bar-search`'s results panel meets WCAG AA contrast in both themes: the group headings and note row use `--color-muted-strong` instead of `--color-muted`, matching the result sub text and badge on the same `--color-flyout` surface. (#319)
+- On a phone, `pk-accordion-item`'s header actions no longer fill the row edge to edge: the 44px touch target has breathing room from the card's top and bottom borders, and stays aligned with the chevron even when the heading wraps. (#323)
+- pk-dock's flyout (opened from a collapsed rail button) now carries its own Expand button that restores the panel to a normal docked header - the missing click path back from a collapsed edge group. (#636)
+- The theme editor shows a `pk-loading-overlay` with a spinner and label while its 198 tokens load, instead of a blank viewport. (#637)
+- The dashboard sample's warning and critical metric tiles now pair their colour with a `pk-icon` and explicit subtext ("Needs attention", "Below target") instead of colour alone. (#638)
+- PkPageHeader no longer forces a duplicate title next to the last breadcrumb crumb when Title is left unset (a record page with no ShellSection renders single-row again, matching the vanilla SDK); the last crumb now carries role="heading" itself in that case. (#643)
+- `pk-badge-popover`'s panel sits inset inside the gutters on a phone instead of flush against the left edge. (#647)
+- The dev tools / tool dock tab strip (Console, Logs, Logging, Performance, Quality, Inspector, Theme, Layout builder) scrolls in a single row with edge fades instead of wrapping to multiple rows. (#654)
+
 ## [0.8.0-alpha.2] - 2026-09-29
 
 ### Fixed
