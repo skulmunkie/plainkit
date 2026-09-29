@@ -50,7 +50,7 @@ export async function mountToolDock(container, options = {}) {
     let opened = !dock || Boolean(options.open);
     const mounted = new Map();
 
-    const tabs = h(doc, 'pk-tabs', { value: active, label });
+    const tabs = h(doc, 'pk-tabs', { value: active, label, scroll: true });
     const bodies = new Map();
     for (const p of panels) {
         tabs.append(h(doc, 'pk-tab', { value: p.id }, p.title));
