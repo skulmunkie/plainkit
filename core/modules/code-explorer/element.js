@@ -19,6 +19,7 @@ import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
 import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
 import { ensureStyles, styleUrls } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('code-explorer');
 
@@ -91,7 +92,7 @@ export class CodeExplorerElement extends Base {
         const theme = this.getAttribute('theme');
         if (theme) this.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
         const h = this.getAttribute('height');
-        if (h) this.style.setProperty('--pk-code-explorer-height', h === 'fill' ? '100%' : h);
+        if (h) { this.dataset.dyn = `--pk-code-explorer-height:${h === 'fill' ? '100%' : h}`; applyDynamic(this); }
     }
 
     // Load the modules of any pk-* element that was just written and is not defined yet (a no-op once they all are).

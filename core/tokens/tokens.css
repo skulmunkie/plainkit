@@ -311,6 +311,17 @@
     --sc-measure-host-w: 900px;
 }
 
+/* Code explorer chrome (core/modules/code-explorer/code-explorer.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --ce-border-w: 1px;
+    --ce-focus-offset: -2px;
+    --ce-kind-w: 4.5em;
+    --ce-kind-tracking: 0.03em;
+    --ce-name-basis: 12rem;
+    --ce-no-w: 3em;
+    --ce-active-bar-w: 3px;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
