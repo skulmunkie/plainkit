@@ -52,6 +52,7 @@ import { ensureStyles, styleUrls, loadJson, runtimeUrl, h } from '../../js/mount
 import { loadElements } from '../../js/loader.js';
 import { setTheme } from '../../js/theme.js';
 import { createLogger } from '../../js/log.js';
+import { MOVE_KEYS } from '../../js/tree-reorder.js';
 const log = createLogger('layout-builder');
 
 const STYLES = ['../../plainkit.css'];
@@ -59,7 +60,6 @@ const OWN_STYLES = ['./layout-builder.css'];
 const DEFAULT_API = '../../dist/elements/api.json';
 const isText = c => typeof c === 'string';
 const EDIT_EVENTS = ['input', 'change', 'pk-value-change', 'pk-change'];
-const MOVES = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'out', ArrowRight: 'in' };
 
 export async function mountLayoutBuilder(container, options = {}) {
     if (!container) { log.error('mountLayoutBuilder needs a container element'); throw new TypeError('mountLayoutBuilder: container is required'); }
@@ -545,7 +545,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         if (mod && key === 's') { e.preventDefault(); if (options.onsave) save(); return; }
         const inCanvas = canvas.contains(e.target), inTree = tree.contains(e.target);
         if (!inCanvas && !inTree) return;
-        if (e.altKey && MOVES[e.key]) { e.preventDefault(); move(MOVES[e.key]); return; }
+        if (e.altKey && MOVE_KEYS[e.key]) { e.preventDefault(); move(MOVE_KEYS[e.key]); return; }
         if (mod && key === 'd') { e.preventDefault(); duplicate(); return; }
         if (e.key === 'Delete' || e.key === 'Backspace') { if (state.selected) { e.preventDefault(); remove(); } return; }
         if (inCanvas && !e.altKey && !mod && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
