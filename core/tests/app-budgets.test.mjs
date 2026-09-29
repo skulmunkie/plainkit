@@ -29,11 +29,17 @@ test('the budget keys exist and each limit is above its target', () => {
     for (const k of ['appEntryGzKb', 'appPageTypeGzKb']) assert.ok(BUDGETS[k]?.limit > BUDGETS[k]?.target, `FIX: add ${k} { target, limit } to BUDGETS in core/site/scorecard/scoring.data.js`);
 });
 
+// appEntryGzKb is a HARD CAP, not the usual ratchet-down budget (#514). Splitting the entry graph alone could not reach the tracker #346
+// target of 6 KB, so the owner made a one-time, documented exception and revised the limit up to match the actual measured size on main
+// at the time (21.84 KB, rounded up to 22). That was a deliberate, one-off decision — it does NOT license raising this number again.
+// If this test fails, do not "just make your new code smaller": the entry graph as a whole must not have grown at all. Any PR that adds
+// to js/app.js's static import graph must, in the same PR, cut an equal-or-greater amount elsewhere in that graph (e.g. move something to
+// load lazily on first use, the way tasks/notify/dialogs already do) so the total stays at or under the limit. Never raise the number.
 test('the entry (js/app.js and everything it imports statically) stays inside appEntryGzKb', () => {
     const files = entryGraph();
     const kb = gz(files);
     console.log(`app entry: ${files.length} files, ${kb.toFixed(2)} KB gzip (comments removed)`);
-    assert.ok(kb <= BUDGETS.appEntryGzKb.limit, `the app entry graph is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appEntryGzKb.limit}. FIX: make the source smaller or load the code lazily; never raise the budget. Files: ${files.join(', ')}`);
+    assert.ok(kb <= BUDGETS.appEntryGzKb.limit, `the app entry graph is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appEntryGzKb.limit} (hard cap, #514: never raise this — offset any growth with an equal-or-greater cut elsewhere in the entry graph, or load the new code lazily). Files: ${files.join(', ')}`);
 });
 
 test('every js/app/pages/ chunk stays inside appPageTypeGzKb, and every js/app/ file inside the per-module budget', () => {
