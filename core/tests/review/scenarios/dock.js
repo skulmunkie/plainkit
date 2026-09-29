@@ -1,6 +1,6 @@
-// pk-dock (issue 432, step 1): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, the
-// same workspace mirrored right to left, and (in the phone viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels
-// themselves: they are the page's own children, slotted.
+// pk-dock (issue 432, step 1; issue 609 adds header-collapse): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab
+// chosen in the left group, a single-panel header's chevron collapsed then expanded by keyboard, the same workspace mirrored right to left, and (in the phone viewport, where
+// the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels themselves: they are the page's own children, slotted.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
   <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
@@ -31,6 +31,10 @@ export default {
         { shot: 'pointer', on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
         { shot: 'tab' },
+        { focus: '#dock >>> [data-panel=canvas]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'collapsed', on: ['desktop'] },
+        { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'expanded', on: ['desktop'] },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
     ],
@@ -48,6 +52,15 @@ export default {
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
         }
         if (t.shot === 'keyboard' || t.shot === 'pointer') t.hidden('#dock >>> [part=empty]');
+        if (t.shot === 'collapsed') {
+            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'false', 'the toggle reports collapsed');
+            t.hidden('#dock >>> #b-canvas', 'the collapsed body is hidden');
+            t.visible('#dock >>> #h-canvas', 'the header stays, showing only the title and chevron');
+        }
+        if (t.shot === 'expanded') {
+            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'true', 'the toggle reports expanded again');
+            t.visible('#dock >>> #b-canvas', 'the body is back');
+        }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
     },

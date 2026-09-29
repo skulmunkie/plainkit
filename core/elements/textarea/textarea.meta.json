@@ -1,5 +1,6 @@
 {
   "tag": "pk-textarea",
+  "replaces": ["textarea"],
   "title": "Textarea",
   "group": "Form controls",
   "summary": "A multi-line control that can grow with its content up to a cap.",

@@ -1,7 +1,7 @@
 // The dock-tree model (js/dock-model.js): the layout, its operations, the invariants after every one, and fromJson on hostile input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS } from '../js/dock-model.js';
+import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS } from '../js/dock-model.js';
 
 const P = [{ id: 'tools', group: 'left' }, { id: 'assets', group: 'left' }, { id: 'canvas' }, { id: 'props', group: 'right' }, { id: 'log', group: 'bottom' }];
 const ids = P.map(p => p.id);
@@ -90,6 +90,35 @@ test('dockPanel refuses a panel beside its own single-panel group, an unknown zo
     // A panel of a multi-panel group can be split off beside its own group.
     const g = findGroup(d, 'tools'), r = dockPanel(d, { panel: 'tools', target: g.id, zone: 'right' });
     assert.deepEqual(r.problems, []); assert.deepEqual(validate(r.doc, ids), []);
+});
+
+test('collapsePanel folds a panel and expandPanel restores it, both idempotent and total', () => {
+    const d = fresh();
+    const c = collapsePanel(d, { panel: 'canvas' });
+    assert.deepEqual(c.doc.collapsed, ['canvas']); assert.deepEqual(c.problems, []); assert.deepEqual(validate(c.doc, ids), []);
+    assert.equal(collapsePanel(c.doc, { panel: 'canvas' }).doc, c.doc, 'collapsing an already-collapsed panel is a no-op');
+    const e = expandPanel(c.doc, { panel: 'canvas' });
+    assert.deepEqual(e.doc.collapsed, []); assert.deepEqual(e.problems, []);
+    assert.equal(expandPanel(d, { panel: 'canvas' }).doc, d, 'expanding an already-open panel is a no-op');
+    assert.equal(expandPanel(d, { panel: 'zzz' }).doc, d, 'expanding an unknown panel is a no-op, not a problem');
+    const bad = collapsePanel(d, { panel: 'zzz' });
+    assert.equal(bad.doc, d); assert.equal(bad.problems[0].code, 'unknown-panel');
+    assert.deepEqual(collapsePanel(d, { panel: 'tools' }).doc.collapsed, ['tools'], 'a panel in a multi-panel group can also be marked collapsed in the model');
+});
+
+test('collapsed is dropped for a panel that moves out or is no longer declared, and round-trips through toJson/fromJson', () => {
+    let d = collapsePanel(fresh(), { panel: 'props' }).doc;
+    assert.deepEqual(fromJson(toJson(d), { panels: P }).doc, d, 'round trip keeps collapsed');
+    const removed = fromJson(toJson(d), { panels: P.filter(p => p.id !== 'props') });
+    assert.deepEqual(removed.doc.collapsed, [], 'a panel that leaves the declared set also leaves collapsed');
+    assert.deepEqual(validate(removed.doc, ids.filter(i => i !== 'props')), []);
+});
+
+test('validate flags a stale or malformed collapsed list', () => {
+    const d = fresh();
+    assert.deepEqual(validate({ ...d, collapsed: undefined }, ids).map(p => p.code), ['shape']);
+    assert.deepEqual(validate({ ...d, collapsed: ['canvas', 'canvas'] }, ids).map(p => p.code), ['collapsed-twice']);
+    assert.deepEqual(validate({ ...d, collapsed: ['ghost'] }, ids).map(p => p.code), ['collapsed-unknown']);
 });
 
 test('the last group is removed cleanly: the root becomes null', () => {
