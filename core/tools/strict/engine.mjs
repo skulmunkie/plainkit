@@ -36,8 +36,25 @@ function resolveRules(options) {
 }
 
 // Allow-list ratchet (design section 5.3): an entry suppresses up to `count` real hits of `rule` in `path`.
-// Fewer or more real hits than `count` is a caller-level concern (the CLI reports "stale"/"lower the count"
-// in a later PR); this engine only applies the budget, in finding order, so behaviour is deterministic.
+// `describeAllow` reports the caller-level "stale"/"dead" concern the CLI surfaces (#629 A-6): an entry whose
+// real hit count no longer matches its declared `count` (fewer hits: lower the count; zero hits: dead entry,
+// remove it). It never changes which findings are suppressed - only `applyAllow` does that, unconditionally
+// honouring the declared budget - so a stale entry is reported, not silently corrected.
+export function describeAllow(rawFindings, allow) {
+    if (!allow || !allow.length) return [];
+    const counts = new Map();
+    for (const f of rawFindings) {
+        const key = `${f.rule}\u0000${f.file}`;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return allow.map(entry => {
+        const actual = counts.get(`${entry.rule}\u0000${entry.path}`) ?? 0;
+        const want = entry.count ?? 0;
+        const status = actual === want ? 'ok' : actual === 0 ? 'dead' : 'stale';
+        return { ...entry, actual, status };
+    });
+}
+
 function applyAllow(findings, allow) {
     if (!allow || !allow.length) return findings;
     const budgets = new Map();
@@ -80,5 +97,11 @@ export function checkFiles(files, options = {}) {
         }
     }
     findings.sort((a, b) => (a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1));
-    return applyAllow(findings, options.allow);
+    const kept = applyAllow(findings, options.allow);
+    // Attached as a non-enumerable property rather than returned as a second value, so existing callers that
+    // treat the result as a plain findings array (every test before A-6, including `assert.deepEqual` against
+    // a plain array) keep working unchanged; the CLI's allow-status report (A-6) reads this property when it
+    // wants to report a stale or dead allow entry.
+    Object.defineProperty(kept, 'allowReport', { value: describeAllow(findings, options.allow), enumerable: false });
+    return kept;
 }

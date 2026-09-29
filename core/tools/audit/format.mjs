@@ -49,6 +49,45 @@ export function formatJson(findings, summary, { version, mode, parser, skipped }
     }, null, 2);
 }
 
+// SARIF 2.1.0 (design section 5.1), for `github/codeql-action/upload-sarif`. Only the fields GitHub code
+// scanning and the schema require: `tool.driver.rules` (so the UI shows the fix text) and one `result` per
+// finding with a `ruleId`, `level` and a `physicalLocation`. `version` is the package version, not the SARIF
+// schema version (that is the fixed `1.0.0` in `driver.version` below matches nothing external; kept simple).
+const SARIF_LEVEL = { error: 'error', warn: 'warning' };
+
+export function formatSarif(findings, { version, rules }) {
+    const ruleIds = [...new Set(findings.map(f => f.rule))];
+    const driverRules = ruleIds.map(id => {
+        const meta = rules.find(r => r.id === id);
+        return {
+            id,
+            name: id,
+            shortDescription: { text: meta?.detects ?? id },
+            helpUri: meta?.docs,
+            properties: { category: meta?.category },
+        };
+    });
+    const results = findings.map(f => ({
+        ruleId: f.rule,
+        level: SARIF_LEVEL[f.severity] ?? 'note',
+        message: { text: f.fix || f.message },
+        locations: [{
+            physicalLocation: {
+                artifactLocation: { uri: f.file },
+                region: { startLine: f.line, startColumn: f.column },
+            },
+        }],
+    }));
+    return JSON.stringify({
+        version: '2.1.0',
+        $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+        runs: [{
+            tool: { driver: { name: 'plainkit-audit', version, informationUri: 'https://github.com/skulmunkie/plainkit', rules: driverRules } },
+            results,
+        }],
+    }, null, 2);
+}
+
 export function formatRuleList(rules) {
     const header = ['id', 'category', 'normal', 'strict', 'detects'];
     const rows = rules.map(r => [r.id, r.category, r.severity.normal, r.severity.strict, r.detects]);

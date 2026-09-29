@@ -3,12 +3,25 @@
 // stdout/stderr, not spawned, so this stays fast and portable.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { run, parseArgs } from './cli.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const FIXTURES = path.join(root, 'core', 'tests', 'audit-fixtures');
+
+// A scratch copy of a fixture directory, with its own cwd (config.mjs's `findConfig` walks up from `cwd`, and
+// a finding's `file` is relative to it), so a baseline/allow-list test can add its own config or baseline file
+// and see plain fixture-relative paths (`index.html`) without ever writing into the real fixtures directory.
+function scratchFixture(name) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plainkit-audit-'));
+    for (const file of fs.readdirSync(path.join(FIXTURES, name))) {
+        fs.copyFileSync(path.join(FIXTURES, name, file), path.join(dir, file));
+    }
+    return dir;
+}
 
 function capture() {
     const out = [];
@@ -31,14 +44,21 @@ test('parseArgs: unknown flag is a usage error', () => {
     assert.equal(errors.length, 1);
 });
 
-test('parseArgs: --baseline is refused, not silently ignored', () => {
-    const { errors } = parseArgs(['--baseline', 'x.json']);
-    assert.match(errors[0], /not yet supported/);
+test('parseArgs: --baseline takes a file (A-6)', () => {
+    const { opts, errors } = parseArgs(['--baseline', 'x.json']);
+    assert.equal(errors.length, 0);
+    assert.equal(opts.baseline, 'x.json');
 });
 
-test('parseArgs: --format sarif is refused, not silently ignored', () => {
-    const { errors } = parseArgs(['--format', 'sarif']);
-    assert.match(errors[0], /not yet supported/);
+test('parseArgs: --format sarif is accepted (A-6)', () => {
+    const { opts, errors } = parseArgs(['--format', 'sarif']);
+    assert.equal(errors.length, 0);
+    assert.equal(opts.format, 'sarif');
+});
+
+test('parseArgs: --update-baseline and --strict-baseline are mutually exclusive', () => {
+    const { errors } = parseArgs(['--update-baseline', '--strict-baseline']);
+    assert.equal(errors.length, 1);
 });
 
 test('--list-rules exits 0 and prints a table', async () => {
@@ -108,4 +128,67 @@ test('unsupported config file path is a usage error (exit 2)', async () => {
     const c = capture();
     const code = await run(['--config', path.join(FIXTURES, 'does-not-exist.json')], c);
     assert.equal(code, 2);
+});
+
+test('--format sarif prints a SARIF 2.1.0 document with the finding as a result', async () => {
+    const c = capture();
+    const code = await run(['--strict', '--format', 'sarif', '--no-color', path.join(FIXTURES, 'plain-html')], c);
+    assert.equal(code, 1);
+    const sarif = JSON.parse(c.out.join(''));
+    assert.equal(sarif.version, '2.1.0');
+    assert.ok(sarif.runs[0].results.some(r => r.ruleId === 'D1'));
+    assert.ok(sarif.runs[0].tool.driver.rules.some(r => r.id === 'D1'));
+});
+
+test('--update-baseline writes a baseline file that then suppresses the same findings', async () => {
+    const cwd = scratchFixture('plain-html');
+    const baselineFile = path.join(cwd, 'plainkit.audit.baseline.json');
+    const updated = await run(['--update-baseline', '--quiet'], { cwd, ...capture() });
+    assert.equal(updated, 0);
+    const baseline = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
+    assert.ok(baseline.entries.length > 0);
+    assert.ok(baseline.entries.some(e => e.rule === 'D1'));
+
+    const c = capture();
+    const code = await run(['--baseline', baselineFile, '--format', 'json', '--no-color'], { cwd, ...c });
+    assert.equal(code, 0, c.out.join('\n'));
+    const json = JSON.parse(c.out.join(''));
+    assert.equal(json.findings.length, 0);
+});
+
+test('a baseline entry that no longer occurs is reported as fixed, and fails only with --strict-baseline', async () => {
+    const cwd = scratchFixture('strict-clean');
+    const baselineFile = path.join(cwd, 'plainkit.audit.baseline.json');
+    fs.writeFileSync(baselineFile, JSON.stringify({ version: 1, entries: [{ rule: 'D1', file: 'index.html', fingerprint: 'deadbeefdeadbeef' }] }));
+
+    const c1 = capture();
+    const code1 = await run(['--baseline', baselineFile, '--format', 'json', '--no-color'], { cwd, ...c1 });
+    assert.equal(code1, 0);
+    assert.match(c1.out.join('\n'), /baseline entry fixed/);
+
+    const c2 = capture();
+    const code2 = await run(['--strict-baseline', '--baseline', baselineFile], { cwd, ...c2 });
+    assert.equal(code2, 1);
+});
+
+test('a stale allow-list entry (wrong count) fails the run and names the fix', async () => {
+    const cwd = scratchFixture('plain-html');
+    fs.writeFileSync(path.join(cwd, 'plainkit.audit.json'), JSON.stringify({
+        allow: [{ rule: 'D1', path: 'index.html', count: 5, reason: 'placeholder while the app is migrated', issue: 'https://example.test/1' }],
+    }));
+    const c = capture();
+    const code = await run([], { cwd, ...c });
+    assert.equal(code, 1);
+    assert.match(c.err.join('\n'), /declares count 5, but 1 real hit/);
+});
+
+test('a dead allow-list entry (no matching finding) fails the run', async () => {
+    const cwd = scratchFixture('plain-html');
+    fs.writeFileSync(path.join(cwd, 'plainkit.audit.json'), JSON.stringify({
+        allow: [{ rule: 'T1', path: 'index.html', count: 1, reason: 'placeholder while the app is migrated', issue: 'https://example.test/1' }],
+    }));
+    const c = capture();
+    const code = await run([], { cwd, ...c });
+    assert.equal(code, 1);
+    assert.match(c.err.join('\n'), /no matching finding/);
 });

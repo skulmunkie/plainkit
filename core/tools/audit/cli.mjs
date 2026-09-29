@@ -5,8 +5,9 @@
 // `bin`); this file and everything it imports must stay free of any core/js, core/elements or core/site import
 // (design section 11) so it runs unmodified from a consumer's own node_modules.
 //
-// Not yet supported here (A-6): --baseline, --update-baseline, --strict-baseline, --format sarif. A user who
-// passes one gets a clear message, never silent ignoring (AGENTS.md: "no silent failure").
+// A-6 (#629) adds the allow-list ratchet report (a stale or dead `allow` entry fails the run, per design 5.3),
+// the baseline/ratchet flags (--baseline, --update-baseline, --strict-baseline) and --format sarif. Not yet
+// supported: inline `plainkit-audit-ignore` comments (design 5.3, Q7) - left to a follow-up slice.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,11 +15,11 @@ import { checkFiles, getRuleset } from '../strict/engine.mjs';
 import { RULES, getRuleMeta } from './rules.mjs';
 import { findConfig, loadConfig, ConfigError } from './config.mjs';
 import { collectFiles } from './glob.mjs';
-import { formatText, formatJson, formatRuleList, formatExplain } from './format.mjs';
+import { formatText, formatJson, formatSarif, formatRuleList, formatExplain } from './format.mjs';
+import { DEFAULT_BASELINE_NAME, loadBaseline, writeBaseline, applyBaseline, BaselineError } from './baseline.mjs';
 
 const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.css', '.razor', '.cshtml'];
 const MAX_FILE_BYTES = 1024 * 1024;
-const NOT_YET_SUPPORTED = ['--baseline', '--update-baseline', '--strict-baseline'];
 
 function packageVersion() {
     try {
@@ -33,18 +34,17 @@ export function parseArgs(argv) {
     const opts = {
         paths: [], strict: false, format: 'text', rule: null, skip: null, config: null,
         maxWarnings: -1, explain: null, listRules: false, quiet: false, color: true, version: false,
+        baseline: null, updateBaseline: false, strictBaseline: false,
     };
     const errors = [];
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const next = () => argv[++i];
-        if (NOT_YET_SUPPORTED.includes(a)) { errors.push(`${a} is not yet supported (coming in a later PR: baseline/ratchet, A-6)`); continue; }
-        if (a === '--format' && argv[i + 1] === 'sarif') { errors.push('--format sarif is not yet supported (coming in a later PR, A-6)'); i++; continue; }
         switch (a) {
             case '--strict': opts.strict = true; break;
             case '--format': {
                 const v = next();
-                if (v !== 'text' && v !== 'json') errors.push(`--format must be "text" or "json", got "${v}"`);
+                if (v !== 'text' && v !== 'json' && v !== 'sarif') errors.push(`--format must be "text", "json" or "sarif", got "${v}"`);
                 else opts.format = v;
                 break;
             }
@@ -57,6 +57,9 @@ export function parseArgs(argv) {
                 else opts.maxWarnings = v;
                 break;
             }
+            case '--baseline': opts.baseline = next() || null; break;
+            case '--update-baseline': opts.updateBaseline = true; break;
+            case '--strict-baseline': opts.strictBaseline = true; break;
             case '--explain': opts.explain = next(); break;
             case '--list-rules': opts.listRules = true; break;
             case '--quiet': opts.quiet = true; break;
@@ -67,6 +70,7 @@ export function parseArgs(argv) {
                 else opts.paths.push(a);
         }
     }
+    if (opts.updateBaseline && opts.strictBaseline) errors.push('--update-baseline and --strict-baseline are mutually exclusive');
     return { opts, errors };
 }
 
@@ -166,11 +170,61 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     }
     const seconds = Math.round(Number(process.hrtime.bigint() - start) / 1e8) / 10;
 
-    const findings = raw.map(f => {
+    let findings = raw.map(f => {
         const meta = getRuleMeta(f.rule);
         const severity = meta?.severity?.[mode] ?? 'warn';
         return { ...f, category: meta?.category, docs: meta?.docs, severity };
     }).filter(f => f.severity !== 'off');
+
+    // Allow-list ratchet report (design 5.3, A-6): an entry that suppresses fewer or more real hits than its
+    // declared `count` is reported, not silently honoured or corrected - "an entry can only shrink".
+    const allowIssues = (raw.allowReport || []).filter(e => e.status !== 'ok');
+    for (const issue of allowIssues) {
+        const where = `${issue.path} [${issue.rule}]`;
+        if (issue.status === 'dead') {
+            stderr(`plainkit audit: allow entry ${where} has no matching finding.`);
+            stderr(`FIX: remove the dead allow entry for ${issue.rule} in ${issue.path}.`);
+        } else {
+            stderr(`plainkit audit: allow entry ${where} declares count ${issue.count}, but ${issue.actual} real hit${issue.actual === 1 ? '' : 's'} found.`);
+            stderr(`FIX: set "count": ${issue.actual} for the ${issue.rule} allow entry in ${issue.path} (an allow entry can only shrink).`);
+        }
+    }
+
+    // Baseline / ratchet (design 5.3, A-6): --update-baseline records today's findings and stops; otherwise a
+    // baseline file (named explicitly, or the default when --strict-baseline opts in) suppresses only the
+    // findings it already knows about, so a run fails only for something new.
+    const baselineFile = opts.baseline
+        ? path.resolve(cwd, opts.baseline)
+        : (opts.updateBaseline || opts.strictBaseline) ? path.join(root, DEFAULT_BASELINE_NAME) : null;
+
+    if (opts.updateBaseline) {
+        writeBaseline(baselineFile, findings);
+        if (!opts.quiet) stdout(`plainkit audit: baseline written to ${path.relative(cwd, baselineFile)} (${findings.length} finding${findings.length === 1 ? '' : 's'})`);
+        return 0;
+    }
+
+    let staleBaseline = [];
+    if (baselineFile) {
+        let entries;
+        try {
+            entries = loadBaseline(baselineFile);
+        } catch (err) {
+            if (err instanceof BaselineError) {
+                stderr(`plainkit audit: ${err.message}`);
+                stderr(`FIX: fix ${path.relative(cwd, baselineFile)}, or regenerate it with --update-baseline.`);
+                return 2;
+            }
+            throw err;
+        }
+        const applied = applyBaseline(findings, entries);
+        findings = applied.visible;
+        staleBaseline = applied.stale;
+        if (!opts.quiet) {
+            for (const entry of staleBaseline) {
+                stdout(`plainkit audit: baseline entry fixed: ${entry.file} [${entry.rule}] no longer occurs - remove it from the baseline.`);
+            }
+        }
+    }
 
     const errorsCount = findings.filter(f => f.severity === 'error').length;
     const warningsCount = findings.filter(f => f.severity === 'warn').length;
@@ -188,13 +242,16 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     if (!opts.quiet) {
         if (opts.format === 'json') {
             stdout(formatJson(findings, summary, { version: packageVersion(), mode, parser: 'none', skipped }));
+        } else if (opts.format === 'sarif') {
+            stdout(formatSarif(findings, { version: packageVersion(), rules: RULES }));
         } else {
             stdout(formatText(findings, summary, { color: opts.color }));
         }
     }
 
     const overWarnings = opts.maxWarnings >= 0 && warningsCount > opts.maxWarnings;
-    if (errorsCount > 0 || overWarnings) return 1;
+    const staleBaselineFails = opts.strictBaseline && staleBaseline.length > 0;
+    if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails) return 1;
     return 0;
 }
 
