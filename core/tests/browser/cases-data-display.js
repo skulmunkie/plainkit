@@ -188,6 +188,35 @@ export const dataDisplayCases = [
         t.ok(el.open); t.eq(opened.context, '2', 'the context field names the row id from data-pk-context, not internal cell markup');
     }],
 
+    ['table: wireContextMenu (js/context-actions.js, issue #586) paints Select/Deselect per row from its own selection state, and dispatches through the same run(action) a toolbar uses', async t => {
+        const { wireContextMenu } = await import('../../js/context-actions.js');
+        const el = await t.mount(`<pk-context-menu><pk-table label="P" selectable columns='${cols}' rows='${rows}'></pk-table></pk-context-menu>`);
+        const table = el.querySelector('pk-table'); await t.settle();
+        const calls = [];
+        const select = id => { table.selected = table.selected.includes(id) ? table.selected.filter(x => x !== id) : [...table.selected, id]; };
+        const run = (action, id) => { calls.push([action, id]); if (action === 'select' || action === 'deselect') select(id); };
+        wireContextMenu(el, { items: id => id ? [{ action: 'select', label: 'Select row', disabled: table.selected.includes(id) }, { action: 'deselect', label: 'Deselect row', disabled: !table.selected.includes(id) }] : [], run });
+
+        const rowAt = id => table.shadowRoot.querySelector(`tbody tr[data-pk-context="${id}"]`);
+        rowAt('2').querySelector('td').dispatchEvent(new MouseEvent('contextmenu', { clientX: 5, clientY: 5, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        const items = [...el.querySelectorAll('pk-menu-item[slot="menu"]')];
+        t.eq(items.length, 2); t.ok(!items[0].disabled, 'row 2 is not selected: Select is enabled'); t.ok(items[1].disabled, 'Deselect is disabled while unselected');
+        items[0].dispatchEvent(new CustomEvent('pk-select', { bubbles: true, composed: true }));
+        await t.settle();
+        t.eq(calls.length, 1); t.eq(calls[0][0], 'select'); t.eq(calls[0][1], '2');
+        t.ok(table.selected.includes('2'), 'run() drove the same selection the row checkbox would');
+
+        // A disabled row never dispatches: opening again after selecting flips which item is disabled, and clicking the now-disabled Select does nothing.
+        rowAt('2').querySelector('td').dispatchEvent(new MouseEvent('contextmenu', { clientX: 5, clientY: 5, bubbles: true, composed: true, cancelable: true }));
+        await t.settle();
+        const items2 = [...el.querySelectorAll('pk-menu-item[slot="menu"]')];
+        t.ok(items2[0].disabled, 'Select is now disabled (row 2 is selected)'); t.ok(!items2[1].disabled);
+        items2[0].dispatchEvent(new CustomEvent('pk-select', { bubbles: true, composed: true }));
+        await t.settle();
+        t.eq(calls.length, 1, 'a disabled item never runs an action');
+    }],
+
     ['table: current-row marks the open record with aria-current and a tint, follows the host, and the element never changes it', async t => {
         const el = await t.mount(`<pk-table label="P" clickable current-row="2" columns='${cols}' rows='${rows}'></pk-table>`);
         const row = id => el.shadowRoot.querySelector(`tbody tr[data-pk-context="${id}"]`);

@@ -1,5 +1,6 @@
 {
   "tag": "pk-switch",
+  "a11yRequires": ["name"],
   "title": "Switch",
   "group": "Form controls",
   "summary": "An on/off toggle that takes part in a form: it submits its value when on and resets with the form.",

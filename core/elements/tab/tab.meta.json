@@ -1,5 +1,6 @@
 {
   "tag": "pk-tab",
+  "a11yRequires": ["name"],
   "title": "Tab",
   "group": "Navigation",
   "summary": "One tab of an pk-tabs. Place it inside pk-tabs; it selects its panel by value. It can show a count, a close button, and appear only on a phone or only on a desktop.",

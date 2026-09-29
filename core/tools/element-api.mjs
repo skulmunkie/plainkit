@@ -20,6 +20,9 @@
 //   deprecated      optional { since, remove, message } on the element itself and on a props[], events[] or slots[] entry: the release that deprecated it, the release that removes it
 //                   (at least one minor later; core/tools/versioning.mjs refuses a removal before that) and what to use instead. The generated module then warns once per page
 //                   through the logger when it is used (js/deprecation.js); an element that deprecates nothing pays nothing
+//   a11yRequires[]  optional subset of "name"|"label"|"title"|"alt": what a consumer must supply for this element to have an accessible name, consumed by
+//                   core/tools/audit/data.mjs (conformance audit, #625, A-4) for rules A1-A3. Authored once per element beside the a11y prose, from the
+//                   contract that prose already states - a gap with no unambiguous contract stays undeclared rather than guessed
 //   a11y            keyboard and ARIA notes
 //   examples[]      { title, html }   usage snippets shown in the gallery: <pk-*> markup, never a style attribute
 
@@ -41,6 +44,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     for (const k of ['props', 'slots', 'events', 'parts', 'cssProperties', 'methods', 'examples']) need(Array.isArray(meta[k]), `${k} must be an array (empty when there is none)`);
     if ('aliases' in meta) need(Array.isArray(meta.aliases) && meta.aliases.every(isText), 'aliases must be an array of non-empty strings');
     if ('replaces' in meta) need(Array.isArray(meta.replaces) && meta.replaces.every(isText) && meta.replaces.every(r => /^(api:[\w.]+|[a-z][a-z0-9]*(\[[^\]]+\])?|\[[^\]]+\])$/.test(r)), 'replaces must be an array of tag names, tag[attr=value] selectors or "api:name" entries');
+    if ('a11yRequires' in meta) need(Array.isArray(meta.a11yRequires) && meta.a11yRequires.length > 0 && meta.a11yRequires.every(r => ['name', 'label', 'title', 'alt'].includes(r)), 'a11yRequires must be a non-empty array of "name", "label", "title" or "alt"');
     if (p.length) return p;
 
     const names = new Set();

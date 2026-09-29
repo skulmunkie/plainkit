@@ -2,6 +2,7 @@
 // and which fields the inspector shows for an element. No DOM, so node tests cover it. The document model is js/layout-model.js.
 
 import { flatten, locate, findNode, kebab } from './layout-model.js';
+import { moveTarget as treeMoveTarget } from './tree-reorder.js';
 
 const isText = c => typeof c === 'string';
 
@@ -60,24 +61,24 @@ export function insertionCandidates(doc, selectedId, registry) {
     return out;
 }
 
+// A node's position for tree-reorder.js: its siblings (the slot array it sits in, or the page's own root list) and its parent's id.
+function position(doc, id) {
+    const at = locate(doc, id);
+    if (!at) return null;
+    return { parentId: at.parent?.id ?? null, siblings: at.parent ? at.parent.slots[at.slot] : doc.nodes, index: at.index };
+}
+
 /** The arguments for moveNode when the selected node moves 'up' or 'down' among its siblings, 'out' to its parent's level or 'in' to the element before it; null when it cannot. */
 export function moveTarget(doc, id, direction) {
     const at = locate(doc, id);
     if (!at) return null;
-    const list = at.parent ? at.parent.slots[at.slot] : doc.nodes;
-    const i = at.index;
-    if (direction === 'up') return i > 0 ? { id, parent: at.parent?.id ?? null, slot: at.slot ?? '', index: i - 1 } : null;
-    if (direction === 'down') return i < list.length - 1 ? { id, parent: at.parent?.id ?? null, slot: at.slot ?? '', index: i + 1 } : null;
-    if (direction === 'out') {
-        if (!at.parent) return null;
-        const up = locate(doc, at.parent.id);
-        return { id, parent: up.parent?.id ?? null, slot: up.slot ?? '', index: up.index + 1 };
-    }
-    if (direction === 'in') {
-        for (let k = i - 1; k >= 0; k--) if (!isText(list[k])) return { id, parent: list[k].id, slot: '', index: undefined };
-        return null;
-    }
-    return null;
+    const target = treeMoveTarget(id, direction, nid => position(doc, nid), entry => (isText(entry) ? null : entry.id));
+    if (!target) return null;
+    let slot;
+    if (direction === 'out') slot = locate(doc, at.parent.id).slot ?? '';
+    else if (direction === 'in') slot = '';
+    else slot = at.slot ?? '';
+    return { id, parent: target.parentId, slot, index: target.index };
 }
 
 /** The id the arrow keys select next: Down and Up walk the page in document order, Left goes to the parent, Right to the first child, Home and End to the ends. */

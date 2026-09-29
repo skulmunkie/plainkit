@@ -1,5 +1,6 @@
 {
   "tag": "pk-select",
+  "a11yRequires": ["label"],
   "replaces": ["select"],
   "title": "Select",
   "group": "Form controls",

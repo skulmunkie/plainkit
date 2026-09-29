@@ -3,9 +3,6 @@
   "interaction": {
     "site/gallery/gallery.js": {
       "reason": "Inspector-drawer resize handle: pointer drag + arrow-key resize duplicates pk-splitter's own behavior. Temporary, pending #391 (swap to pk-splitter). Remove this entry when #391 lands."
-    },
-    "modules/layout-builder/layout-builder.js": {
-      "reason": "Arrow/Home/End move the selected canvas node up/down/in/out in the document tree (structural keyboard reorder). Temporary, pending #395 (generalize into pk-tree/pk-sortable or a shared utility). Remove this entry when #395 lands."
     }
   }
 }
