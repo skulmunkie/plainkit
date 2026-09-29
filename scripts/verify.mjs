@@ -80,6 +80,12 @@ export const CHECKS = [
     { id: 'audit', group: 'node', needs: ['bootstrap'], fast: true, cmd: () => [NODE, '--test', ...AUDIT_TEST_ARGS],
         cause: 'a conformance-audit rule or CLI test failed (core/tools/audit/, core/tools/strict/), including the plain-html/strict-clean fixture snapshots under core/tests/audit-fixtures/',
         fix: 'run the failing file alone with `node --test <file>` (its path is in the output); fix the rule or the CLI, not the fixture, unless the fixture itself is wrong' },
+    // Dogfoods the internal `module` ruleset (S1-S12) against PlainKit's own core/site/**/core/modules/** (#518
+    // A-10c). Findings that predate the ruleset are ratcheted into plainkit.audit.modules.baseline.json (below
+    // the check fails only for something new); paying down the baselined debt is tracked follow-up work.
+    { id: 'audit-modules', group: 'node', needs: ['bootstrap'], fast: true, cmd: () => [NODE, 'scripts/audit-modules.mjs', '--quiet'],
+        cause: 'a new finding from the `module` ruleset against core/site/**/core/modules/** (not already in plainkit.audit.modules.baseline.json)',
+        fix: 'run `node scripts/audit-modules.mjs` to see the finding and its FIX line; fix the source (never edit the baseline to hide a new finding - only `--update-baseline` after fixing accepted legacy debt may touch it)' },
     { id: 'dotnet', group: 'dotnet', needs: ['bootstrap'], fast: false, cmd: () => ['dotnet', 'test', 'PlainKit.slnx', '--configuration', 'Release', '--nologo'],
         cause: 'a build error, a failing test, or a generated file missing or stale',
         fix: 'run `node scripts/bootstrap.mjs`, then `dotnet test PlainKit.slnx --configuration Release` and fix the first error' },

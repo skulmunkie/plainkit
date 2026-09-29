@@ -41,13 +41,13 @@ test('which checks run: default, --fast, --no-dotnet, --browser, --pack, --only'
     const all = sel();
     for (const id of ['bootstrap', 'changelog', 'generated-tree', 'node-tests', 'dotnet']) assert.ok(all.includes(id), id);
     assert.ok(!all.includes('browser') && !all.includes('pack') && !all.includes('scorecard'), 'browser, pack and scorecard are opt-in');
-    assert.deepEqual(sel('--fast').sort(), ['audit', 'bootstrap', 'changelog', 'changelog-pr', 'node-tests', 'release-fragments']);
+    assert.deepEqual(sel('--fast').sort(), ['audit', 'audit-modules', 'bootstrap', 'changelog', 'changelog-pr', 'node-tests', 'release-fragments']);
     assert.ok(!sel('--no-dotnet').includes('dotnet'));
     assert.ok(sel('--browser').includes('browser') && sel('--pack').includes('pack') && sel('--scorecard').includes('scorecard'));
     assert.deepEqual(sel('--only', 'lint'), ['changelog', 'changelog-pr', 'release-fragments'], 'the lint job needs no bootstrap');
     assert.deepEqual(sel('--only', 'dotnet'), ['bootstrap', 'dotnet'], 'a group pulls in what it needs');
     assert.deepEqual(sel('--only', 'node-tests'), ['bootstrap', 'node-tests']);
-    assert.deepEqual(sel('--only', 'node'), ['bootstrap', 'version', 'release-pr', 'generated-tree', 'node-tests', 'audit']);
+    assert.deepEqual(sel('--only', 'node'), ['bootstrap', 'version', 'release-pr', 'generated-tree', 'node-tests', 'audit', 'audit-modules']);
 });
 
 test('the checks are ordered cheap first', () => {

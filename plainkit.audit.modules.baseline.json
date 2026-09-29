@@ -1,0 +1,3985 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "rule": "S1",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "172634725cd2a121"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "72df4cff072aac59"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "5c7f3b288b69fbe7"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "0f7c1e77eabcec9f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "b4c6d8ac714c8c5b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "5c7f3b288b69fbe7"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "5c7f3b288b69fbe7"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "b84a8b5c6fd46b1b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "211cfef29b2e67b1"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "66ba0b13c689bf8f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "e62f876f6fe26b27"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/code-explorer/code-explorer.css",
+      "fingerprint": "8fb16e11a1179032"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "5e798f46f78df12e"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "80c7fb192492d3da"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "e522384e0e0b147a"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "0763431e36ebde1a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/element.js",
+      "fingerprint": "7e55ab5e28ff1f12"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/providers.js",
+      "fingerprint": "13f8f7a1649e11e1"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/providers.js",
+      "fingerprint": "13f8f7a1649e11e1"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/providers.js",
+      "fingerprint": "3a9c3e20828c0f7d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/code-explorer/providers.js",
+      "fingerprint": "13f8f7a1649e11e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/console/console.css",
+      "fingerprint": "fcc84d6be50ce76f"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/console/console.css",
+      "fingerprint": "3a6394154b696b44"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "77a61614d0894f95"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "77a61614d0894f95"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "82e8b6bb395be5c2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "82e8b6bb395be5c2"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "de461f0d9d402a89"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "000173e65e3818d6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "53f653a0a101d967"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "471cf3eab6f53906"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/console/console.js",
+      "fingerprint": "cb7e1a8e143ab68b"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "eaf32321047c2765"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "eaf32321047c2765"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "57b9fcc3cbd147e2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "eaf32321047c2765"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "eaf32321047c2765"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "75d7f82f63300227"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "06ef265948f183d3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/devtools/panels.js",
+      "fingerprint": "06ef265948f183d3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/field-group/field-group.js",
+      "fingerprint": "3da18e8000f70b41"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/field-group/field-group.js",
+      "fingerprint": "d564586648e7cd55"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "388fa27d00222c50"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "7795249e2be51db3"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "181200b39b8b94a0"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "649306d3e6b98b97"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "9a037786dfc9e4ec"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "0cafb93d5793f079"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "29d70098c1c55d7b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "26641b8b510af8a4"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "9a037786dfc9e4ec"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "9a037786dfc9e4ec"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "0cafb93d5793f079"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "0cafb93d5793f079"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "9a037786dfc9e4ec"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "766a0014bfe9eac4"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "0cafb93d5793f079"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "0cafb93d5793f079"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/layout-builder/layout-builder.css",
+      "fingerprint": "9896ae3244784580"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "6118466c4952d232"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "6118466c4952d232"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "6118466c4952d232"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "48feed30d3a63598"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "ee1a503dd3c512e1"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "ee1a503dd3c512e1"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "ee1a503dd3c512e1"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "38347b77a9576165"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "38347b77a9576165"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "38347b77a9576165"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/layout-builder/layout-builder.js",
+      "fingerprint": "38347b77a9576165"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/log-settings/log-settings.css",
+      "fingerprint": "4241844d84ed89b6"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/log-settings/log-settings.css",
+      "fingerprint": "8817e551ac352185"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "e3ece708b6d47c0d"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "e3ece708b6d47c0d"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "03e4fc1ea6ace787"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "03e4fc1ea6ace787"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "00c872ce4027bd3c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/log-settings/log-settings.js",
+      "fingerprint": "6fc0b75f798eee11"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/logs/logs.css",
+      "fingerprint": "d52af45425aa4745"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/logs/logs.css",
+      "fingerprint": "dd5f24c09c429726"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "08dae95000ce7eca"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "08dae95000ce7eca"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "5eb19da9238525cd"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "5eb19da9238525cd"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "6a042bb3774f91d7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "6a042bb3774f91d7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "ebd9453ea2474084"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/logs/logs.js",
+      "fingerprint": "3484ed6c04144085"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/performance/performance.css",
+      "fingerprint": "5f18c351a6124fb0"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/performance/performance.css",
+      "fingerprint": "20104a4133168aa9"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "eed0f6f2bd1a93ac"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "eed0f6f2bd1a93ac"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "0b694791152b721e"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "0b694791152b721e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "2de96503cfe4cd66"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/performance/performance.js",
+      "fingerprint": "e306dbde4c22fddb"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/quality/quality.js",
+      "fingerprint": "20353d7ded1c1d97"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/quality/quality.js",
+      "fingerprint": "20353d7ded1c1d97"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/quality/quality.js",
+      "fingerprint": "096c1f51883c107c"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/quality/quality.js",
+      "fingerprint": "096c1f51883c107c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/quality/quality.js",
+      "fingerprint": "3907e34ca69ffd83"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/measure.js",
+      "fingerprint": "785d3fde8bb79fc3"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/measure.js",
+      "fingerprint": "2db67ccbae4cf86b"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/measure.js",
+      "fingerprint": "9faae848bad66f0b"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/measure.js",
+      "fingerprint": "9faae848bad66f0b"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/measure.js",
+      "fingerprint": "b3b97b499975fc6a"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "2fdfb954de400f44"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "5d576f2d8df4b589"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "807d31c5c0d4aa06"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "af36ff5cf485ad30"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "dc9dbfd289967aef"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "e35d117abce35c27"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "81a245232ec96e28"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/scorecard/scorecard.css",
+      "fingerprint": "0225cf1f6ffe0d4b"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "68b7826634c2f9ea"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "3191010440308041"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "00370d8d00522b9d"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "3191010440308041"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "3191010440308041"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "a1283ff4af8becfe"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "5240b69f304a7270"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "bb3404a159d5eb19"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "e341df6d657a4165"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "01d796e92f605643"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "54dfc1b2c29e5fba"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "9921a52caa13b85f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "54dfc1b2c29e5fba"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "01d796e92f605643"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "01d796e92f605643"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/scorecard.js",
+      "fingerprint": "9921a52caa13b85f"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/scorecard/sections.js",
+      "fingerprint": "fc94288deb9c287f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/sections.js",
+      "fingerprint": "12edd3b00ea24d4f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/scorecard/sections.js",
+      "fingerprint": "12edd3b00ea24d4f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/sdk-tab.js",
+      "fingerprint": "f838a5aeaa37df39"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/sdk-tab.js",
+      "fingerprint": "8683d0af8d23252e"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "0a2d4612dcb15e3c"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "58689a87031c398c"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "786b90b3bbf66697"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "569a4510bb6e4fd3"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "aebd3c7547612488"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "c5eb68f8a6c6e8cc"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "db59bc03ec8b0cfc"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "ec65c5f7c4dd7648"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "0680d1c304c15d4b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "fd8d83ac1d5ba302"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "a9cc8024c73f154d"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/theme-editor/theme-editor.css",
+      "fingerprint": "cc5bf2df9dd50d0a"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "03a6c13d7c1e17a9"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "f84c785c9c1267e1"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "cd78d5a6bebd980f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "cd78d5a6bebd980f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "cd78d5a6bebd980f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "cd78d5a6bebd980f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "cd78d5a6bebd980f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "b2c7a736e25e6eb2"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "87224faf64bd4dda"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "87224faf64bd4dda"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "87224faf64bd4dda"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "87224faf64bd4dda"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "845e1d9666c5608e"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "87224faf64bd4dda"
+    },
+    {
+      "rule": "S3",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "845e1d9666c5608e"
+    },
+    {
+      "rule": "S5",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "8fe38aac3f1d531c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "92690d4738d4c764"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "24028f1913e5b474"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "058d5ed965df6e8d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "24028f1913e5b474"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "dfec1bca5f6fb64d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "dfec1bca5f6fb64d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/theme-editor/theme-editor.js",
+      "fingerprint": "dfec1bca5f6fb64d"
+    },
+    {
+      "rule": "S1",
+      "file": "core/modules/tool-dock/tool-dock.css",
+      "fingerprint": "56d08e628e0511bc"
+    },
+    {
+      "rule": "S10",
+      "file": "core/modules/tool-dock/tool-dock.css",
+      "fingerprint": "34350429c4ab6cc0"
+    },
+    {
+      "rule": "S9",
+      "file": "core/modules/tool-dock/tool-dock.css",
+      "fingerprint": "04ffab641b6fd283"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "c065f286afa50947"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "9a166632857ef8ee"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "c065f286afa50947"
+    },
+    {
+      "rule": "S2",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "9a166632857ef8ee"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "34d2c015e300cc87"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "34d2c015e300cc87"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "34d2c015e300cc87"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "34d2c015e300cc87"
+    },
+    {
+      "rule": "S7",
+      "file": "core/modules/tool-dock/tool-dock.js",
+      "fingerprint": "34d2c015e300cc87"
+    },
+    {
+      "rule": "S6",
+      "file": "core/modules/tool-dock/tool-dock.test.mjs",
+      "fingerprint": "ab7a4dfa8867363c"
+    },
+    {
+      "rule": "S6",
+      "file": "core/modules/tool-dock/tool-dock.test.mjs",
+      "fingerprint": "369fa3451ad837ba"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/devtools/index.html",
+      "fingerprint": "a26ff5b3d3bd2a97"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/devtools/index.html",
+      "fingerprint": "a26ff5b3d3bd2a97"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/devtools/index.html",
+      "fingerprint": "6263ad578044a147"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/devtools/index.html",
+      "fingerprint": "dd20796cc3585b68"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/devtools/index.html",
+      "fingerprint": "dd20796cc3585b68"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/devtools/page.js",
+      "fingerprint": "3cb75da86a5084fd"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/files/index.html",
+      "fingerprint": "15a015bc43329c1d"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/files/index.html",
+      "fingerprint": "15a015bc43329c1d"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/files/index.html",
+      "fingerprint": "17092d7a55931de3"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/files/index.html",
+      "fingerprint": "b0ca37f40af77f5e"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/files/page.js",
+      "fingerprint": "8f92b7d2187e034f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "1abdc410f76e75f5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "a7b1618782f9d82f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "a7b1618782f9d82f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "a7b1618782f9d82f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "a7b1618782f9d82f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "a7b1618782f9d82f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/files/page.js",
+      "fingerprint": "ffadada73fde038a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/boots/code-explorer.js",
+      "fingerprint": "77456563fe943378"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "eaeb2287cacc04e6"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "eaeb2287cacc04e6"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "325504fdfceb8008"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "df5f069f33e776c8"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "fc108104051fff14"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "d9275837f3fa73c9"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "fc108104051fff14"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "fc108104051fff14"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "09c98ba351493d34"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "09c98ba351493d34"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "09c98ba351493d34"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "3edc9f36dce38fc7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "3edc9f36dce38fc7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "3edc9f36dce38fc7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "bfc41c63e1fc1a5f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements-view.js",
+      "fingerprint": "3edc9f36dce38fc7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/command-palette.data.js",
+      "fingerprint": "065a50986d8b5f9e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/command-palette.data.js",
+      "fingerprint": "11a5b9b5ec1e8cca"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/dock.data.js",
+      "fingerprint": "311ea86e1c99b5e5"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements/frame.data.js",
+      "fingerprint": "2a8aceccfea78a06"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/elements/frame.data.js",
+      "fingerprint": "2a8aceccfea78a06"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/frame.data.js",
+      "fingerprint": "405f9c282693c7da"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/gallery.data.js",
+      "fingerprint": "7587fea03ab7628d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/elements/side-nav.data.js",
+      "fingerprint": "c2a6e3668960d26f"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "358446ea60259663"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "358446ea60259663"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "358446ea60259663"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "899ca22906eb510f"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "3e5a29fc71028ab9"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/embed.html",
+      "fingerprint": "3e5a29fc71028ab9"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "d229edc52ef1d9eb"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "003d8302e9f86e04"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "e61a2f41c852bd14"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "e61a2f41c852bd14"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "e61a2f41c852bd14"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "e61a2f41c852bd14"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "003d8302e9f86e04"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "a2a424c30a0f21a6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/embed.js",
+      "fingerprint": "e61a2f41c852bd14"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame-boot.js",
+      "fingerprint": "a51959ebf6c5cbf5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/frame-boot.js",
+      "fingerprint": "7a675de840c1180c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/frame-boot.js",
+      "fingerprint": "7a675de840c1180c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/frame-boot.js",
+      "fingerprint": "7a675de840c1180c"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "bf757f6a917526c4"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "293de965eeadcf41"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "0ccd573423ebded1"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "757c1686cad80dfa"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "f1614d40f354bc8b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "cf24b146f4ce8be7"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "4a6017f49ebc3d52"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "f1614d40f354bc8b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "f1614d40f354bc8b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "f1614d40f354bc8b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/frame.css",
+      "fingerprint": "f1614d40f354bc8b"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "bb7ed1603d230a81"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "bb7ed1603d230a81"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c0c02e7fda2fb4c4"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "06c0a3c94ddc06bd"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "3560a3e9ecad7f75"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c1929282320be6c0"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "c1929282320be6c0"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "35a2d9a69cbdd1a8"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/frame.js",
+      "fingerprint": "827b13a5545525d5"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "60f75f8d7670285e"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "6b618684d299ef1c"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "8531913eaa418a3e"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "8531913eaa418a3e"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "cdbc87f4ecb09c27"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f538b7bdb636a256"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "93a0da2f6987447b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "cc514e238eb3b1bc"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "dfc907020d0b75d6"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "a9c3549e6780db24"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "196092fc425a264b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "96f64de38c41bcf3"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "96f64de38c41bcf3"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "5fbd0a705ac86240"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "196092fc425a264b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "0d68c68c69778579"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "0d625a870581f866"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "ab53329fcc74942c"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "55561fc142a95f1a"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "196092fc425a264b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "cdbc87f4ecb09c27"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f28f340447788169"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "0d625a870581f866"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "0d625a870581f866"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "210adf82c6ad9737"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "f251db131d492552"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "1b0d49826fbbab2b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/gallery/gallery.css",
+      "fingerprint": "fc609247f77fee1e"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "12c2ced2a3aa4364"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c91b040479d66"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c91b040479d66"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "3ae76ce60ec07f7e"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "217f93327ca89a02"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "217f93327ca89a02"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "217f93327ca89a02"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c4ab3869a414a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "217f93327ca89a02"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c4ab3869a414a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c4ab3869a414a"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "1409daba11df2b67"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c4ab3869a414a"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "379a4ef36f53d9a5"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "379a4ef36f53d9a5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "fa22853201ae28e7"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "4adc8644ad9a9d5e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "94903c043211bca4"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "94903c043211bca4"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "2669816cc5d105d9"
+    },
+    {
+      "rule": "S8",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b68125f054530002"
+    },
+    {
+      "rule": "S8",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b68125f054530002"
+    },
+    {
+      "rule": "S8",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b68125f054530002"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "abdc4a92626d642b"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "abdc4a92626d642b"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "abdc4a92626d642b"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "a98d6ceb6fdfdd0c"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "f2ae6596f2d78288"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "f2ae6596f2d78288"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "f2ae6596f2d78288"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "f2ae6596f2d78288"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/index.html",
+      "fingerprint": "f2ae6596f2d78288"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/pattern-mount.js",
+      "fingerprint": "a8daf2033a225141"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/pattern-mount.js",
+      "fingerprint": "a8daf2033a225141"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/preview.html",
+      "fingerprint": "47161e0c9c4b8730"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/gallery/preview.html",
+      "fingerprint": "47161e0c9c4b8730"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/gallery/preview.html",
+      "fingerprint": "1215229800249cf4"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "f1385c2436c23c07"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "b9c628dfc77031ec"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "6f2931bf82fbc961"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "b9c628dfc77031ec"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "6f2931bf82fbc961"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "60bbff63d0c16309"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "1994bf40d7b77d6e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "6ce8f04fd8239e8e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "1994bf40d7b77d6e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "1994bf40d7b77d6e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "40466c9aed1de3cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "e9e45c96253e6ee0"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/preview.js",
+      "fingerprint": "e9e45c96253e6ee0"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/settings.js",
+      "fingerprint": "28574ff267280b10"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "ae5c3cee5a121840"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "c637d1cd4335064a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "5b6be95d1fee83ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "c637d1cd4335064a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "c637d1cd4335064a"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "46455537194809e6"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "c0202b1d8dfe0d62"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "4e6d1661efa57a80"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "945ebf8f6caadc5b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "945ebf8f6caadc5b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "f56a60ade3aa3904"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "ff1de6c33637d1cc"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "9cb4a7246d561198"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "5d517eafd3bbc54b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "5d517eafd3bbc54b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "945ebf8f6caadc5b"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "e943a4ea1705758e"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "f56a60ade3aa3904"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "7d85afca7b812504"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/guides/guides.css",
+      "fingerprint": "e791b3afdaa1c47e"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "e965efa75f47fc79"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "e965efa75f47fc79"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "e965efa75f47fc79"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "58f516cbdc9659fa"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/guides/index.html",
+      "fingerprint": "27368eb4855930d8"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dabed4517f643c74"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dabed4517f643c74"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dabed4517f643c74"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dabed4517f643c74"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dabed4517f643c74"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "63558c176d70bc1e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "6e4bda7b7d89861f"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "fa3e3a7dafa4dcc5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "f8b7164cc3700b19"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "f8b7164cc3700b19"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "f8b7164cc3700b19"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "c7138068dd9125d1"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "4f30525faf4db60b"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/layout-builder/index.html",
+      "fingerprint": "4f30525faf4db60b"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/layout-builder/layout-builder.css",
+      "fingerprint": "3b6f988bf0e9f97a"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/layout-builder/layout-builder.css",
+      "fingerprint": "bc15d03df9c5ade5"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/layout-builder/layout-builder.css",
+      "fingerprint": "720712dd71f14f8c"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "8ead8e0fb3a6b712"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "7d868ea981bfc006"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "555acd59066b9972"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "7d868ea981bfc006"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "555acd59066b9972"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "555acd59066b9972"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/layout-builder/layout-builder.js",
+      "fingerprint": "555acd59066b9972"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "a22efeff1024cbb1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "a22efeff1024cbb1"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "a22efeff1024cbb1"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "d5723be2f7bd111e"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "0f0c34b4c77b72d6"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "0f0c34b4c77b72d6"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "0f0c34b4c77b72d6"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/index.html",
+      "fingerprint": "0f0c34b4c77b72d6"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "e4d0449fb20aa2d2"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "e4d0449fb20aa2d2"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "ccccf6cee72b3aa8"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "ccccf6cee72b3aa8"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "923d66571f54d38c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "24f399cb407dc2c5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
+    },
+    {
+      "rule": "S6",
+      "file": "core/site/scorecard/static-audit.mjs",
+      "fingerprint": "7025255083b5bc02"
+    },
+    {
+      "rule": "S6",
+      "file": "core/site/scorecard/static-audit.mjs",
+      "fingerprint": "8ebedd0100106a8a"
+    },
+    {
+      "rule": "S6",
+      "file": "core/site/scorecard/static-audit.mjs",
+      "fingerprint": "f3cebb408aefc80f"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "8e698c950280dd6b"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "c36e6d39d1bbb716"
+    },
+    {
+      "rule": "S2",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "8e698c950280dd6b"
+    },
+    {
+      "rule": "S5",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "221af7a6320ac21d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "61172e8aeef06c0d"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "9cef54afde7b89cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "9cef54afde7b89cf"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/sweep.js",
+      "fingerprint": "29690f4e49e928d8"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/settings/index.html",
+      "fingerprint": "fa91c610fc95d2d9"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/settings/index.html",
+      "fingerprint": "fa91c610fc95d2d9"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/settings/index.html",
+      "fingerprint": "6db933d6bc089fc5"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/settings/index.html",
+      "fingerprint": "013399e2177c65ae"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/settings/index.html",
+      "fingerprint": "013399e2177c65ae"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "778f33300afd9b24"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "0df686ad7913b7ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "0df686ad7913b7ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "0df686ad7913b7ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "e8c164dcc7bbe1a6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "0df686ad7913b7ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "0df686ad7913b7ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "e8c164dcc7bbe1a6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "e8c164dcc7bbe1a6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/settings/page.js",
+      "fingerprint": "e8c164dcc7bbe1a6"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/shell.js",
+      "fingerprint": "cd44668dacbeede4"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "0d774f9beb218cda"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "f7caac5abeb41452"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "0d774f9beb218cda"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/shell.js",
+      "fingerprint": "9b4c4b70a68cd56c"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/site.css",
+      "fingerprint": "2e9cc3841cb92e91"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/site.css",
+      "fingerprint": "8c5f2a83d749b3a1"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "c8195fbc0ccc09d4"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "e3ba43e194bb7134"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "be8fd6b50df11fc3"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "6c5cf9476df4f033"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "6c5cf9476df4f033"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "6c5cf9476df4f033"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "370f0712ba139269"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "e3ba43e194bb7134"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/site.css",
+      "fingerprint": "4ae754901d31a881"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/spacing/index.html",
+      "fingerprint": "a131b36e8a95527c"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "c127dd54a2a0c2ed"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "c127dd54a2a0c2ed"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "c127dd54a2a0c2ed"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "dc77d3ccbb33af2f"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "d253804066a98ea0"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "d253804066a98ea0"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "d253804066a98ea0"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/theme/index.html",
+      "fingerprint": "d253804066a98ea0"
+    },
+    {
+      "rule": "S1",
+      "file": "core/site/theme/theme.css",
+      "fingerprint": "345410b1903ffdb3"
+    },
+    {
+      "rule": "S10",
+      "file": "core/site/theme/theme.css",
+      "fingerprint": "d1189356f25f659f"
+    },
+    {
+      "rule": "S9",
+      "file": "core/site/theme/theme.css",
+      "fingerprint": "ef4794e9a4d32e8c"
+    },
+    {
+      "rule": "S3",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "55d3f697dbb20b07"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/theme/theme.js",
+      "fingerprint": "bab4d733e0e7633b"
+    }
+  ]
+}
