@@ -1,7 +1,7 @@
 {
   "tag": "pk-nav-item",
   "title": "Nav item",
-  "summary": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state.",
+  "summary": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state. Also works as a horizontal bar item inside pk-navbar (it detects the ancestry itself).",
   "group": "Navigation",
   "props": [
     {
@@ -39,6 +39,13 @@
       "default": false,
       "reflect": true,
       "description": "Set by the nav in icon-rail mode, on the top-level rows only: a child inside an open flyout keeps its label."
+    },
+    {
+      "name": "horizontal",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Set automatically when the row sits inside pk-navbar: lays out as a horizontal bar item (bottom-bar current-page indicator) instead of a vertical tree row. Not meant to be set by hand."
     },
     {
       "name": "flyout",

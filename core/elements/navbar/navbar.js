@@ -10,7 +10,10 @@ export default Base => class extends Base {
         links.id = 'links'; toggle.setAttribute('aria-controls', 'links');
         toggle.addEventListener('click', () => this.set(!this.open));
         this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) { this.set(false); toggle.focus(); } });
-        this.addEventListener('click', e => { if (this.open && e.target.closest('a[href]')) this.set(false); });
+        // A plain slotted <a> keeps e.target as itself, so closest() would work alone; but a click on a pk-nav-item's inner
+        // link is retargeted at the shadow boundary (e.target becomes the <pk-nav-item> host, not the <a> inside its shadow
+        // root), so closest('a[href]') on e.target misses it. composedPath() walks the real path, shadow DOM included.
+        this.addEventListener('click', e => { if (this.open && e.composedPath().some(n => n.nodeType === 1 && n.matches?.('a[href]'))) this.set(false); });
     }
     changed(name) { if (name === 'open') this.part('toggle').setAttribute('aria-expanded', String(this.open)); }
     set(v) { if (v === this.open) return; this.open = v; this.emit('pk-toggle', { open: v }); }
