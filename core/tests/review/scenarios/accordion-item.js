@@ -4,7 +4,6 @@ const HEAD = '#a1 >>> [part=heading]';
 const ACT = '#a1 >>> [part=actions]';
 const CHEV = '#a1 >>> [part=chevron]';
 const SUMMARY = '#a1 >>> [part=summary]';
-const PHONE_ISSUE = 323; // filed defect (t.known: a warning); change to t.ok when fixed
 
 export default {
     name: 'accordion-item',
@@ -42,8 +41,8 @@ export default {
         t.sameRow(ACT, HEAD, 60);
         if (t.viewport.name === 'phone') {
             const edit = t.rect('#edit'), card = t.rect('#a1'), c = t.rect(CHEV);
-            if (edit && card) t.known(PHONE_ISSUE, edit.y - card.y >= 3, `on a phone the touch-sized Edit button starts ${Math.round(edit.y - card.y)}px from the card's top border and fills the header row edge to edge`);
-            if (edit && c) t.known(PHONE_ISSUE, Math.abs(edit.cy - c.cy) <= 6, `with a wrapped heading the actions (centre y=${Math.round(edit.cy)}) and the chevron (centre y=${Math.round(c.cy)}) are on different lines of the header`);
+            if (edit && card) t.ok(edit.y - card.y >= 3, `on a phone the touch-sized Edit button starts ${Math.round(edit.y - card.y)}px from the card's top border and fills the header row edge to edge`);
+            if (edit && c) t.ok(Math.abs(edit.cy - c.cy) <= 6, `with a wrapped heading the actions (centre y=${Math.round(edit.cy)}) and the chevron (centre y=${Math.round(c.cy)}) are on different lines of the header`);
         }
     },
 };
