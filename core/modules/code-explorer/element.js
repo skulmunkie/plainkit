@@ -111,7 +111,7 @@ export class CodeExplorerElement extends Base {
     <div data-ce-tree></div>
   </div>
   <div class="ce-main">
-    <pk-tabs scroll none-active data-ce-tabs></pk-tabs>
+    <pk-tabs overflow="scroll" none-active data-ce-tabs></pk-tabs>
     <div class="ce-pane" data-ce-pane></div>
   </div>
   <div slot="aside" class="ce-aside" data-ce-inspector>

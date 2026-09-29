@@ -35,7 +35,10 @@
 
 :host(:not([href])) [part="chevron"] { display: inline; }
 
-[part="chevron"]::before { content: "\203A"; display: inline-block; color: var(--color-muted); transition: transform 0.15s ease; }
+/* The chevron sits inside the same link/button as the row it belongs to (it is the branch's expand affordance, not a separate
+   target), but it is still decoration: pointer-events: none keeps the click on the row itself rather than the glyph, and the
+   empty alternative text keeps assistive tech from reading it (the span already carries aria-hidden). */
+[part="chevron"]::before { content: "\203A" / ""; display: inline-block; pointer-events: none; color: var(--color-muted); transition: transform 0.15s ease; }
 
 :host([expanded]) [part="chevron"]::before { transform: rotate(90deg); }
 
