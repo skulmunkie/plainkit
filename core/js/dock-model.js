@@ -1,8 +1,9 @@
 // The dock-tree model behind pk-dock: pure data and pure operations, no DOM and no logging (docs/superpowers/specs/2026-09-28-dockable-layout-design.md, issue 432).
-// A layout is { version, seq, root }. root is a binary tree: a `split` (orientation, size percent, min, max, a, b: the props of pk-splitter) or a `tabs` group
-// (an ordered list of panel ids and the active one). A panel is not a node: it is a declared id, held by exactly one group. Every operation returns
-// { doc, problems } and never mutates or throws on data: a request that cannot be applied returns the input unchanged plus a problem.
-// Step 1 of the spec: floating panels, collapse, close/open and undo add their fields and operations in later steps (fromJson drops keys it does not know).
+// A layout is { version, seq, root, collapsed }. root is a binary tree: a `split` (orientation, size percent, min, max, a, b: the props of pk-splitter) or a
+// `tabs` group (an ordered list of panel ids and the active one). A panel is not a node: it is a declared id, held by exactly one group. collapsed is the
+// list of open panel ids folded to their header (step 4 of the spec: a panel, not a group; see dock.js for why a tab group does not offer this yet).
+// Every operation returns { doc, problems } and never mutates or throws on data: a request that cannot be applied returns the input unchanged plus a problem.
+// Floating panels, close/open and undo add their fields and operations in later steps (fromJson drops keys it does not know).
 import { clampSize } from './size.js';
 
 export const VERSION = 1;
@@ -34,7 +35,7 @@ function edit(n, id, fn) {
 const next = (doc, root, seq = doc.seq) => ({ ...doc, seq, root });
 const tabs = (id, list, active = list[0]) => ({ id, type: 'tabs', active, panels: list });
 
-export const emptyLayout = () => ({ version: VERSION, seq: 0, root: null });
+export const emptyLayout = () => ({ version: VERSION, seq: 0, root: null, collapsed: [] });
 
 // The layout a consumer gets with no saved one. panels: [{ id, group? }]; group is left, center, right or bottom (anything else is center). Left | center | right
 // become split(left, split(center, right)) and a bottom group is stacked under all of them; an empty side is left out.
@@ -46,7 +47,7 @@ export function defaultLayout(panels) {
     const [l, c, r, b] = ['left', 'center', 'right', 'bottom'].map(g => group(by(g)));
     const row = join(l, join(c, r, 'horizontal', 75), 'horizontal', 20);
     const root = join(row, b, 'vertical', 75);
-    return { version: VERSION, seq, root };
+    return { version: VERSION, seq, root, collapsed: [] };
 }
 
 // Every invariant of the spec that step 1 has, as a list of problems (empty = valid). declared = the panel ids that exist, when known.
@@ -66,6 +67,9 @@ export function validate(doc, declared = null) {
             for (const p of n.panels) { if (seen.has(p)) out.push(problem('panel-twice', `panel ${p} twice`, n.id)); seen.add(p); if (declared && !declared.includes(p)) out.push(problem('panel-unknown', `panel ${p} is not declared`, n.id)); }
         }
     });
+    const collapsed = Array.isArray(doc.collapsed) ? doc.collapsed : null;
+    if (!collapsed) out.push(problem('shape', 'collapsed is not an array'));
+    else { const cs = new Set(); for (const p of collapsed) { if (cs.has(p)) out.push(problem('collapsed-twice', `panel ${p} twice in collapsed`, p)); cs.add(p); if (!seen.has(p)) out.push(problem('collapsed-unknown', `collapsed panel ${p} is not open`, p)); } }
     if (declared) for (const p of declared) if (!seen.has(p)) out.push(problem('panel-missing', `panel ${p} is in no group`, p));
     if (depth(doc.root) - 1 > LIMITS.depth || ids.size > LIMITS.groups * 2 || seen.size > LIMITS.panels) out.push(problem('limit', 'a limit is exceeded'));
     return out;
@@ -105,6 +109,20 @@ export function moveTab(doc, { panel, group, index = Infinity }) {
     if (from === to && list.join() === to.panels.join() && to.active === panel) return { doc, problems: [] };
     const root = from === to ? doc.root : lift(doc, panel);
     return { doc: next(doc, edit(root, group, x => ({ ...x, panels: list, active: panel }))), problems: [] };
+}
+
+// Fold a panel to its header (a single-panel group only; see dock.js for why a tab group does not offer this yet). A no-op when already collapsed.
+export function collapsePanel(doc, { panel }) {
+    const g = findGroup(doc, panel);
+    if (!g) return same(doc, problem('unknown-panel', `no panel ${panel}`, panel));
+    const collapsed = doc.collapsed ?? [];
+    return collapsed.includes(panel) ? { doc, problems: [] } : { doc: { ...doc, collapsed: [...collapsed, panel] }, problems: [] };
+}
+
+// Restore a collapsed panel's body. A no-op for a panel that is not collapsed (including one the model has never heard of).
+export function expandPanel(doc, { panel }) {
+    const collapsed = doc.collapsed ?? [];
+    return collapsed.includes(panel) ? { doc: { ...doc, collapsed: collapsed.filter(p => p !== panel) }, problems: [] } : { doc, problems: [] };
 }
 
 // Dock a panel next to a group (zone left, right, top, bottom: the group becomes a split of a new group and the target) or into it (zone center).
@@ -165,6 +183,7 @@ export function fromJson(input, { panels = [] } = {}) {
         const first = groups({ root })[0], list = [...first.panels, ...missing.map(p => p.id)];
         root = edit(root, first.id, x => ({ ...x, panels: list }));
     }
-    const doc = { version: VERSION, seq, root };
+    const collapsed = [...new Set((Array.isArray(data.collapsed) ? data.collapsed : []).filter(p => typeof p === 'string' && used.has(p)))];
+    const doc = { version: VERSION, seq, root, collapsed };
     return { doc, problems };
 }
