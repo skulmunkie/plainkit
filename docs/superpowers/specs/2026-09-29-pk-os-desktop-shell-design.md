@@ -9,6 +9,10 @@ uses it in a real app later, so it should be built at real quality, not thrown a
 changes the shape of several recommendations below from "here are the options" to "here is what I'd build," and it makes one thing — the skin system
 — close to the actual point of the project rather than a nice-to-have layered on top.
 
+**Shape, decided**: a micro-project, living inside this repository. Not a separate git repo with its own CI/versioning/release cadence, and not
+folded into `core/` as just another element or app-framework feature — its own self-contained top-level directory with its own scope discipline. See
+"Shape" below for the concrete mechanics (directory, package.json, build, and whether `scripts/verify.mjs` touches it).
+
 ## Why, and what "not yet scoped" means here
 
 Issue #598 was filed only to track intent: an OS-desktop-style shell — multiple free-floating windows, a taskbar, a launcher, window focus/z-order —
@@ -83,57 +87,92 @@ layer ever grows a constraint that blocks this (for example if steps 2/3 of #618
 a window from covering the whole viewport, which it should not need to since the dock instance itself *is* the whole viewport here), that surfaces
 as a comment on #618, not a fork.
 
-## Shape: recommendation first, alternatives as real tradeoffs
+## Shape: a micro-project, living inside this repo
 
-**Recommendation: build `pk-os` as its own micro-project — a separate repo/package that depends on plainkit's published elements and `js/app.js`,
-versioned and released on its own cadence, not merged into this monorepo.** Given the motivation is genuinely "let's build something fun and
-impressive," not a roadmap item, this is the lead answer, not one bullet among equals:
+**Decided (owner): `pk-os` is a micro-project — self-contained, its own scope discipline, not folded into `core/` as just another element or
+app-framework feature — but it lives inside this monorepo rather than a separate git repository with its own CI/versioning/release cadence.** This
+supersedes the "separate repo vs. in-repo" framing this document originally posed as fully open; the reasoning below is about the *mechanics* of
+doing that inside one repo, not re-litigating whether to.
 
-- **It protects plainkit core's budgets without a fight.** Every size/complexity budget in `core/STANDARDS.md` (the 10 KB page-layer gzip cap, an
-  element's own budget, the "small enough to review" PR-size norm in `AGENTS.md`) exists to keep the toolkit itself boring and dependable. A desktop
-  shell with a launcher and multiple skins is not boring by nature, and it shouldn't have to become boring to get merged. Every increment of a fun
-  project, built inside `core/`, would be judged against "does a component toolkit need this," which is the wrong question for something whose
-  entire value is "look what you can build on top of the toolkit."
-- **It matches the stakes.** Nothing here is blocking, scheduled, or promised to a consumer. A separate package can move fast, be genuinely
-  ambitious (three skins, a launcher, sound effects, whatever), and ship on its own schedule without ever touching plainkit's release train,
-  CI gates, or `verify.mjs` checks. If it turns out great, promoting pieces of it back into core (or keeping it as a permanent "look what plainkit
-  can do" showcase package, like a devtools-only package such as #162) is a later, easy decision — nothing is lost by starting outside.
-- **It is still real quality, not throwaway**, because of the secondary "might use it in a real app" possibility: a separate package is still a
-  package — versioned, tested, with its own README and CI — it is just not *this* package. "Own micro-project" does not mean "prototype and forget,"
-  it means "first-class citizen with a different center of gravity."
+Why "in-repo but distinct" still gets you most of what the separate-repo recommendation was after: the goal was never really "a different git
+remote," it was "a different center of gravity" — not judged PR-by-PR against `core/STANDARDS.md`'s toolkit budgets, not gated by the same CI a
+component-library change needs, free to be genuinely ambitious (multiple skins, a launcher, whatever) without every increment being a referendum on
+"does a component toolkit need this." All of that is achievable with a directory boundary and a lighter check regime, not just a repository boundary
+— and staying in-repo avoids the real costs a separate repo would add: a second `package.json`/lockfile/CI pipeline to maintain, a version-pinned
+dependency on plainkit that drifts out of sync with `pk-dock`'s own evolution (exactly the coupling this project needs to stay tight, since it is
+built directly on #618's still-moving floating-layer work), and a second place entirely for anyone to find it.
 
-**Alternative 1: an app-framework page type inside this monorepo** (the technically cleanest option, and what this document would recommend under a
-committed-product framing). `pk-os` as a page type (tentatively `os`) registered in `js/app/pages/os.js`, exactly parallel to `workspace` and
-`dashboard`. Real advantages: zero packaging/versioning overhead, `ctx` (tasks/notify/dialogs/store/theme) for free from `mountApp`, and the tightest
-possible coupling to `pk-dock`'s evolution (no dependency-version drift to manage). The cost, given the actual motivation here, is exactly what the
-recommendation above is trying to avoid: every "for fun" addition (a Windows-98 skin with a specific sound on window-close, a launcher with search
-and app icons in a grid) becomes a monorepo PR judged by contributors and CI against a toolkit's standards, for a feature whose entire point is not
-being a toolkit feature. This remains the right call if the owner's intent shifts from "demo" to "we're going to depend on this," and nothing in the
-window-model or app-contract design below needs to change to move it in-repo later — only the packaging boundary changes.
+### Concrete mechanics
 
-**Alternative 2: a single element, `<pk-os>`**, rejected either way. An "app" hosted in `pk-os` needs a mount lifecycle (start, stop, its own
-state) — exactly what `defineModule`/`ctx` already model — and an element has no clean way to receive "a list of modules with mount/unmount
-functions" without either reinventing a chunk of the app framework inside one element (a layering violation even from outside `core/`, since it
-would mean re-deriving `defineModule`'s contract) or becoming an opaque, awkward callback-prop wrapper. This is rejected under both the in-repo and
-micro-project framing.
+- **Directory**: a new top-level folder, `apps/pk-os/` (not under `core/` — it is a consumer of plainkit, not part of the SDK; `core/tests/
+  samples.test.mjs`'s "the top level holds only the documented layers" check is scoped to `core/`'s own top level and does not gate a new repo-root
+  folder, so no test needs updating to add one, though `AGENTS.md`/the root `README.md` should get a one-line pointer to it once real work starts).
+  `apps/` (rather than a bare `pk-os/` at repo root) is deliberately generic: it reads as "things built on plainkit," leaves room for a second
+  showcase project later without a naming collision, and signals immediately that nothing under it is part of the `plainkit`/`PlainKit.Blazor`
+  packages.
+- **Naming inside the directory, and the project's own name**: the directory can be named after whatever the project ends up called (see the open
+  question below) — `apps/pk-os/` is a placeholder in this spec, not a commitment to that name. Whatever it's called, it does **not** take the `pk-`
+  prefix on anything it defines as its own (window chrome, taskbar, launcher): that prefix is reserved for elements in `core/elements/`
+  (`core/STANDARDS.md`, "Names" — "the tag prefix is `pk-`"), and this project defines no new elements, only a consumer built from existing ones. A
+  literal custom-element tag is not required at all (a `mountX(container, options)` entry point, the SDK's own module convention, fits a
+  whole-page shell better than a single element would — see "Shape" alternatives below); if one is ever added for convenience it is named for what
+  it is (`<desktop-shell>`, `<os-shell>`, something outside the `pk-` namespace), never implying it's a plainkit element.
+- **Its own `package.json`, separate build step from `core/`'s.** `apps/pk-os/package.json` declares a workspace-local dependency on the `plainkit`
+  package the same way an external consumer would (pointing at `core/` during development, e.g. a `file:../../core` reference or an npm/yarn/pnpm
+  workspace entry — whichever the repo's existing tooling supports most simply; today nothing in the repo sets up JS workspaces, so this may be the
+  first, and is worth a small spike rather than assuming one shape). It runs its **own** build (bundling/copying its apps and skins), not
+  `core/tools/build.mjs`, and does not touch `node scripts/bootstrap.mjs`'s generated-file set (`core/dist/**` etc.) at all — it *consumes*
+  `core/dist` (or the equivalent dev-time source) the way any real consumer would, which is also the most honest way to validate that plainkit's own
+  public surface (not internal source paths) is enough to build this on.
+- **Deliberately outside `scripts/verify.mjs` for now, not pulled into CI's required checks.** This matches the project's own stakes (an
+  exploratory demo, not a release gate) and avoids two real costs: slowing down every plainkit PR's CI run for a project with no users depending on
+  it yet, and forcing every "for fun" increment (a new skin, a launcher tweak) through the same review bar as a toolkit change. Concretely: no entry
+  in `CHECKS` in `scripts/verify.mjs`, not part of the `node`/`lint`/`dotnet` job groups, not gated by `changelog.mjs` (a change confined to
+  `apps/pk-os/` is docs-and-tests-adjacent territory the same way a pure-refactor PR is — label `no-changelog` with a one-line reason, or simply note
+  in the PR description that it's the pk-os project, once that convention is worth writing down). If the project matures into something the owner
+  actually ships or relies on, promoting it into `verify.mjs` (its own `node --test` line, maybe its own CI job) is a small, later, and easy decision
+  — nothing about building it unchecked today forecloses that.
+- **It still gets real tests**, just not wired into the required gate: plain `node --test` files alongside its own source (the same style
+  `core/tests/*.test.mjs` uses), run manually or via its own `npm test` inside `apps/pk-os/`, so "unchecked by CI" does not mean "untested" — it
+  means "not yet a release gate," consistent with the "real quality, not throwaway" half of the owner's framing.
+- **Line endings and other repo-wide rules**: `core/STANDARDS.md`'s CRLF requirement is scoped to `core/`, `blazor/mappings/` and
+  `blazor/src/PlainKit.Blazor/wwwroot/` (`.gitattributes`) — `apps/pk-os/` is free to use the repo's more common LF convention (this very spec file,
+  under `docs/`, already does) unless `.gitattributes` is extended to cover it, which there is no reason to do.
 
-**Practical shape of the micro-project**: a small repo (`plainkit-os`, name TBD, see open questions) with a `package.json` dependency on
-`plainkit` (npm) for `pk-dock`, `pk-tabs`, `pk-card`, `pk-dropdown`/`pk-menu-item`, `js/app.js` and `js/store.js`; its own `app.config.js` using
-`mountApp`; its own `os` page type (or, since it owns its own app, simply its own mount function — it does not need the full generality of a
-registrable page type if it is the only consumer) built exactly as described in "App contract" and "Window model" below; its own skins as a small,
-swappable CSS/token layer (see "The skin system"). Nothing in the design below changes based on which repo it lives in — the boundary is purely
-packaging and review process, not architecture.
+### Alternatives considered (superseded by the owner's decision, kept for the record)
+
+**A separate git repository** was this document's original lead recommendation, for the same "different center of gravity" reasoning above, achieved
+through a repository boundary rather than a directory one. Rejected by the owner in favor of staying in-repo; the mechanics above are written so that
+almost nothing about the architecture (window model, app contract, skin system) would need to change if this were ever spun out later — only the
+packaging boundary (its own `package.json`/lockfile become a real standalone one instead of a workspace-local one, and CI moves from "not wired in"
+to "its own pipeline").
+
+**An app-framework page type inside `core/`** (`pk-os` as a page type, `js/app/pages/os.js`, exactly parallel to `workspace`/`dashboard`) is the
+technically cleanest option and remains the right call if the project's stakes ever shift from "demo, maybe-real-app-later" to "committed
+app-framework feature." It was rejected for the same reason the owner's decision keeps this a micro-project rather than an ordinary feature: every
+"for fun" addition would become a monorepo PR judged against `core/STANDARDS.md`'s toolkit budgets and `verify.mjs`'s full gate, for a feature whose
+point is not being a toolkit feature.
+
+**A single element, `<pk-os>`**, rejected regardless of directory/repo boundary. An "app" hosted in `pk-os` needs a mount lifecycle (start, stop, its
+own state) — exactly what `defineModule`/`ctx` already model — and an element has no clean way to receive "a list of modules with mount/unmount
+functions" without either reinventing a chunk of the app framework inside one element or becoming an opaque, awkward callback-prop wrapper.
+
+**Practical shape of the project** (unchanged by the in-repo decision): `apps/pk-os/` depends on `pk-dock`, `pk-tabs`, `pk-card`,
+`pk-dropdown`/`pk-menu-item`, `js/app.js` and `js/store.js` from plainkit; its own `app.config.js` using `mountApp`; its own desktop mount code built
+exactly as described in "App contract" and "Window model" below (a plain module, not a registrable page type, since it is the only consumer — no
+need for the generality `registerPageType` offers a multi-consumer app framework); its own skins as a small, swappable CSS/token layer (see "The
+skin system"). Nothing in the design below changes based on the directory decision — only the mechanics above do.
 
 ## App contract: reuse `defineModule`, not a new registration shape
 
-An "app" hosted in `pk-os` **is a module**, exactly the `defineModule` shape every other part of the app framework already uses, whether `pk-os`
-itself lives in this monorepo or its own. `pk-os` does not gain a second registration API — that would be inventing exactly the kind of parallel
-concept the composition rule warns against, just one repository removed. The only new things a module needs to behave like a desktop app rather than
-a routed page are a couple of optional, additive fields the desktop's mount code reads and everything else ignores:
+An "app" hosted in `pk-os` **is a module**, exactly the `defineModule` shape every other part of the app framework already uses. `pk-os` does not
+gain a second registration API — that would be inventing exactly the kind of parallel concept the composition rule warns against, just one directory
+removed. The only new things a module needs to behave like a desktop app rather than a routed page are a couple of optional, additive fields the
+desktop's mount code reads and everything else ignores:
 
 ```js
-// apps/text-editor/text-editor.module.js — an "app" is a normal defineModule module.
-import { defineModule } from 'plainkit/js/app.js';
+// apps/pk-os/apps/text-editor/text-editor.module.js — an "app" is a normal defineModule module.
+import { defineModule } from 'plainkit/js/app.js';   // apps/pk-os's own workspace dependency on core/, see "Shape"
 import { mountEditor } from './text-editor.js';
 
 export default defineModule({
@@ -149,7 +188,7 @@ export default defineModule({
 ```
 
 ```js
-// apps/file-browser/file-browser.module.js
+// apps/pk-os/apps/file-browser/file-browser.module.js
 export default defineModule({
     id: 'file-browser', title: 'Files', icon: 'folder',
     os: { defaultRect: { w: 360, h: 480 } },
@@ -158,7 +197,7 @@ export default defineModule({
 ```
 
 ```js
-// apps/settings-panel/settings-panel.module.js
+// apps/pk-os/apps/settings-panel/settings-panel.module.js
 export default defineModule({
     id: 'settings', title: 'Settings', icon: 'settings',
     os: { singleton: true },   // opening it again while it's open just raises/focuses the existing window
@@ -167,24 +206,24 @@ export default defineModule({
 ```
 
 ```js
-// desktop.config.js — the whole project is basically this file plus a skin choice.
+// apps/pk-os/desktop.config.js — the whole project is basically this file plus a skin choice.
 export default {
     modules: [textEditorModule, fileBrowserModule, settingsModule],
-    skin: 'aero',   // or 'gnome', 'terminal', ... see "The skin system"
+    skin: 'aero',   // or 'macos', 'gnome', ... see "The skin system"
 };
 ```
 
-The desktop's own mount code (its `os.js`, whether that's a registered page type in-repo or a plain module in the micro-project) does the work:
-builds one `pk-dock` filling the viewport, reads the configured app list, and for each **open** window calls that module's own `mount(ctx)` (the
-same lifecycle `defineModule` already defines) into a floater it creates with `floatPanel`, using `os.defaultRect` as the floater's initial rect and
-`os.icon`/`title` for the window chrome and taskbar/launcher entry. Opening a second window of a `singleton` app calls `raiseFloater` on the existing
-one instead of mounting a second instance. A module needs no awareness that it is being hosted in a window rather than routed normally — `ctx` is
-identical either way, which is the same design already used for `workspace`'s `panes`.
+The desktop's own mount code (`apps/pk-os/os.js`, a plain module, not a registered app-framework page type — it is the only consumer, so it needs
+none of `registerPageType`'s multi-consumer generality) does the work: builds one `pk-dock` filling the viewport, reads the configured app list, and
+for each **open** window calls that module's own `mount(ctx)` (the same lifecycle `defineModule` already defines) into a floater it creates with
+`floatPanel`, using `os.defaultRect` as the floater's initial rect and `os.icon`/`title` for the window chrome and taskbar/launcher entry. Opening a
+second window of a `singleton` app calls `raiseFloater` on the existing one instead of mounting a second instance. A module needs no awareness that
+it is being hosted in a window rather than routed normally — `ctx` is identical either way, which is the same design already used for `workspace`'s
+`panes`.
 
 This is deliberately not a "port an existing pk-* element in as an app" contract distinct from modules: an existing `pk-*` element becomes an app by
 wrapping it with `moduleFromMount` (`js/app/module.js`, already built for exactly this — "wraps an existing mountX(container, options) tool module
-... as a module with one 'custom' page, unchanged"), the same path any tool module takes into the app framework today. No new wrapping mechanism,
-whichever repo does the wrapping.
+... as a module with one 'custom' page, unchanged"), the same path any tool module takes into the app framework today. No new wrapping mechanism.
 
 ## The skin system: first-class, not an afterthought
 
@@ -250,8 +289,9 @@ rect before filling the viewport." Two small, additive pieces, matching the exis
   back to what it remembers" — worth resolving as one op during actual implementation, not two).
 - Neither op needs `pk-dock` to render anything special — a minimized floater simply is not drawn, a maximized one is drawn at the dock's full
   bounds. The desktop's taskbar/window-controls chrome is what turns this state into a visible, clickable affordance.
-- **These are requested as an addition to #618**, not built inside `pk-os`'s own code, for the same reason #598 itself says to read #618 first: this
-  is floating-layer state, and #618 is where the floating layer lives — true regardless of which repository ends up consuming it.
+- **These are requested as an addition to #618**, not built inside `apps/pk-os/`'s own code, for the same reason #598 itself says to read #618
+  first: this is floating-layer state, and #618 is where the floating layer lives — it belongs in `core/js/dock-model.js` even though the consumer
+  asking for it lives outside `core/`.
 
 ## Persistence
 
@@ -279,10 +319,10 @@ problems, each with a concrete, v1 answer:
 2. **Keyboard-only window switching, in v1.** The taskbar is a real tab-list-shaped control (built from `pk-tabs` or a similarly-composed strip,
    never a div of clickable spans — `core/STANDARDS.md` "reuse the existing elements, hand-roll nothing"), so arrow-key/Home/End navigation between
    taskbar entries and Enter/Space to raise-or-restore come from that element's existing keyboard model, not new code. A global "cycle windows"
-   shortcut (an Alt+Tab equivalent) **ships in v1 too, held to a fixed, documented chord** (not a shortcuts-registry addition, since this project is
-   not part of the shared `js/shortcuts.js` surface if it lives outside the monorepo — see open question 6) rather than deferred, because it is the
-   single most expected keyboard behavior of anything calling itself a window manager, and it is cheap: cycle the same order the taskbar lists, reuse
-   `raiseFloater`.
+   shortcut (an Alt+Tab equivalent) **ships in v1 too**, and since `apps/pk-os/` is a workspace dependent of `core/` anyway (see "Shape"), it should
+   register its verb through the existing `js/shortcuts.js` command-verb registry rather than checking `e.key` inline — the registry is cheap to
+   import (it is a predicate function, not framework-specific) and this keeps `pk-os` from being the one consumer that invents its own ad hoc
+   shortcut handling right next to the module that already centralizes this. Cycle the same order the taskbar lists, reuse `raiseFloater`.
 3. **Screen-reader users navigating a windowed UI.** The floating/z-order visual model means nothing to a non-visual user; the taskbar (and the
    launcher) are therefore the canonical, always-available way to manage windows — a screen-reader user opens, raises, minimizes and closes entirely
    through them, never relying on spatial z-order. Each open/close/minimize/maximize/restore raises a polite live-region announcement ("Text Editor
@@ -318,32 +358,34 @@ looks convincing with a mouse.
 
 ## Open questions for the owner
 
-Kept short and genuinely undecidable without owner input — everything decidable from the stated motivation has been decided above, not punted.
+Kept short and genuinely undecidable without owner input — everything decidable from the stated motivation, including the shape/directory question,
+has been decided above, not punted.
 
-1. **Confirm the micro-project recommendation, or say "in-repo" if the intent is closer to a committed feature than a demo.** This document leads
-   with "own repo" for the reasons in "Shape"; if the owner's actual appetite is more "this should live in plainkit's app-framework story," say so
-   and Alternative 1 becomes the plan with no other design change needed.
-2. **Naming**, for the project and the desktop concept inside it (`pk-os` reads a little grand for what's mostly "a themed `pk-dock` with a
-   taskbar and launcher"). No strong opinion offered here beyond: if it stays a separate repo, it doesn't need a `pk-` prefix at all (that prefix is
-   reserved for elements in this toolkit, per `core/STANDARDS.md` "Names"), and a project name unrelated to "OS" might read better once it's clear
-   what it actually is.
-3. **Which two skins ship first** — this document recommends Windows-style + macOS-style as the pair that best proves the engine/skin split (see
+1. **Naming**, for the project and the desktop concept inside it (`pk-os` reads a little grand for what's mostly "a themed `pk-dock` with a
+   taskbar and launcher," and this spec has been using `apps/pk-os/` only as a placeholder path). No strong opinion offered here beyond: it does not
+   need, and should not take, a `pk-` prefix on anything it defines as its own (that prefix is reserved for elements in `core/elements/`, per
+   `core/STANDARDS.md` "Names," and this project defines no elements) — a project name unrelated to "OS," or at least not shaped like a component
+   name, likely reads better once the directory exists and other contributors see it day to day.
+2. **Which two skins ship first** — this document recommends Windows-style + macOS-style as the pair that best proves the engine/skin split (see
    "The skin system"), but if the owner has a specific pairing in mind (e.g. wants the GNOME-style one in v1 instead of macOS), that's worth stating
    before work starts, since it's the skin config's `variant`/`windowControls`/`taskbarPosition` flags that need to cover whatever's chosen.
-4. **Minimize/maximize as a `dock-model.js` addition (recommended above, filed against #618)** — does the #618 assignee want that folded into
+3. **Minimize/maximize as a `dock-model.js` addition (recommended above, filed against #618)** — does the #618 assignee want that folded into
    #618's remaining steps, or filed as its own follow-up once #618 lands? A scheduling call, not a design one, but it gates when `pk-os` work can
    start for real.
-5. **If this lives outside the monorepo, does the global "cycle windows" shortcut need to go through `js/shortcuts.js`'s registry anyway** (by
-   depending on that module from plainkit, since it's just a predicate function, not framework-specific), **or is a fixed, undocumented-elsewhere
-   chord fine for a separate project?** Leaning toward reusing `js/shortcuts.js` if it's cheap to import (consistent behavior, one less thing to
-   reinvent) — worth a quick confirmation rather than assuming either way.
+4. **The workspace-dependency mechanics** ("Shape": `apps/pk-os/package.json` depending on `core/` the way an external consumer would, e.g. an npm
+   workspace or a `file:` reference) — nothing in the repo sets up JS workspaces today, so this is a small spike, not a solved problem. Flagging it
+   as an open question of *mechanism*, not design: whoever picks up implementation should confirm the simplest thing that lets `apps/pk-os/` build
+   against `core/dist` (or an equivalent dev-time source) without inventing repo tooling nobody else needs yet.
 
 ## Summary of the decision this document asks the owner to make
 
-Recommendation: build `pk-os` as its own small, real-quality package outside this monorepo, consuming plainkit's published elements (`pk-dock`
-above all) rather than duplicating any of their logic — a full-viewport `pk-dock` in all-floating mode, `defineModule` modules as windows via their
-existing `mount(ctx)` lifecycle (no new app-registration shape), a first-class engine/skin split with two structurally distinct skins in v1
-(Windows-style and macOS-style), a launcher and maximize pulled into v1 because they're where the demo value concentrates, and full keyboard/screen-
-reader support in v1 rather than deferred, because this is the one corner not worth cutting given the "might become a real app" possibility. The
-only piece requested of plainkit core itself is a small `minimized`/maximize-rect addition to `dock-model.js`, filed against #618 rather than built
-standalone, keeping the entire floating/draggable-window primitive singular in the toolkit, exactly as #598's own filing asked.
+Decided: build `pk-os` as its own small, real-quality micro-project living inside this repository — a new top-level `apps/pk-os/` directory (final
+name open), its own `package.json` and build step separate from `core/`'s, deliberately outside `scripts/verify.mjs`'s required checks for now
+(tested on its own terms, not gated on every plainkit PR) — consuming plainkit's published elements (`pk-dock` above all) as a workspace dependency
+rather than duplicating any of their logic. The design itself is unchanged by that packaging decision: a full-viewport `pk-dock` in all-floating
+mode, `defineModule` modules as windows via their existing `mount(ctx)` lifecycle (no new app-registration shape), a first-class engine/skin split
+with two structurally distinct skins in v1 (Windows-style and macOS-style), a launcher and maximize pulled into v1 because they're where the demo
+value concentrates, and full keyboard/screen-reader support in v1 rather than deferred, because this is the one corner not worth cutting given the
+"might become a real app" possibility. The only piece requested of plainkit core itself is a small `minimized`/maximize-rect addition to
+`dock-model.js`, filed against #618 rather than built standalone, keeping the entire floating/draggable-window primitive singular in the toolkit,
+exactly as #598's own filing asked.
