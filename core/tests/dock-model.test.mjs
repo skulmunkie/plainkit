@@ -1,7 +1,7 @@
 // The dock-tree model (js/dock-model.js): the layout, its operations, the invariants after every one, and fromJson on hostile input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS, floatPanel, dockFloating, moveFloater, resizeFloater, raiseFloater, floaters, findFloater } from '../js/dock-model.js';
+import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS, floatPanel, dockFloating, moveFloater, resizeFloater, raiseFloater, floaters, findFloater, isEdgeGroup } from '../js/dock-model.js';
 
 const P = [{ id: 'tools', group: 'left' }, { id: 'assets', group: 'left' }, { id: 'canvas' }, { id: 'props', group: 'right' }, { id: 'log', group: 'bottom' }];
 const ids = P.map(p => p.id);
@@ -90,6 +90,17 @@ test('dockPanel refuses a panel beside its own single-panel group, an unknown zo
     // A panel of a multi-panel group can be split off beside its own group.
     const g = findGroup(d, 'tools'), r = dockPanel(d, { panel: 'tools', target: g.id, zone: 'right' });
     assert.deepEqual(r.problems, []); assert.deepEqual(validate(r.doc, ids), []);
+});
+
+test('isEdgeGroup: a left or right column is an edge group, the centre and a full-width bottom bar are not', () => {
+    const d = fresh(); // left [tools, assets] | centre canvas | right props, bottom log
+    assert.equal(isEdgeGroup(d, findGroup(d, 'tools').id), true, 'left column');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'props').id), true, 'right column');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'canvas').id), false, 'centre column, boxed in on both sides');
+    assert.equal(isEdgeGroup(d, findGroup(d, 'log').id), false, 'a full-width bottom bar is never beside another column');
+    assert.equal(isEdgeGroup(d, 'no-such-id'), false, 'an unknown id is never an edge group');
+    const one = defaultLayout([{ id: 'a' }]);
+    assert.equal(isEdgeGroup(one, one.root.id), false, 'the sole group has no horizontal sibling to be an edge beside');
 });
 
 test('collapsePanel folds a panel and expandPanel restores it, both idempotent and total', () => {

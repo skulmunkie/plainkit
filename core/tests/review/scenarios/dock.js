@@ -1,6 +1,7 @@
-// pk-dock (issue 432, step 1; issue 609 adds header-collapse): the resting workspace (tab group | canvas | properties), a separator moved by keyboard and by pointer, a tab
-// chosen in the left group, a single-panel header's chevron collapsed then expanded by keyboard, the same workspace mirrored right to left, and (in the phone viewport, where
-// the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels themselves: they are the page's own children, slotted.
+// pk-dock (issue 432, step 1; issue 609 adds header-collapse; issue 608 step 1 adds collapse-to-rail and its flyout): the resting workspace (tab group | canvas |
+// properties), a separator moved by keyboard and by pointer, a tab chosen in the left group, a single-panel header's chevron collapsed then expanded by keyboard, the
+// right column (an edge group) collapsed to a rail button and its flyout opened then closed with Escape, the same workspace mirrored right to left, and (in the phone
+// viewport, where the tree becomes one tab strip) the strip with a panel chosen. The dock applies nothing to the panels themselves: they are the page's own children, slotted.
 // The left group carries four panels (issue #602): at its default ~20% split width its tab list must scroll sideways instead of wrapping onto a second row, and the
 // same reading-order tab list (all six panels, on a phone) must stay on one row too.
 const PANELS = `
@@ -39,6 +40,13 @@ export default {
         { shot: 'collapsed', on: ['desktop'] },
         { key: 'Enter', on: ['desktop'] }, { wait: 150 },
         { shot: 'expanded', on: ['desktop'] },
+        // Issue #608, step 1: the right column (an edge group) folds to a rail button instead of a header when collapsed; activating it opens the
+        // panel as a flyout over the content area.
+        { focus: '#dock >>> [data-panel=props]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { shot: 'rail', on: ['desktop'] },
+        { click: '#dock >>> [part=rail-button]', on: ['desktop'] }, { wait: 150 },
+        { shot: 'flyout-open', on: ['desktop'] },
+        { key: 'Escape', on: ['desktop'] }, { wait: 150 },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
     ],
@@ -68,6 +76,20 @@ export default {
         if (t.shot === 'expanded') {
             t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'true', 'the toggle reports expanded again');
             t.visible('#dock >>> #b-canvas', 'the body is back');
+        }
+        if (t.shot === 'rail') {
+            t.exists('#dock >>> [part=rail-button]');
+            t.visible('#dock >>> [part=rail-button]', 'the collapsed right column shows a rail button');
+            t.absent('#dock >>> [data-panel=props]', 'no header chevron is left for it');
+            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'false', 'the flyout is not open yet');
+        }
+        if (t.shot === 'flyout-open') {
+            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'true', 'the rail button reports the flyout open');
+            t.visible('#dock >>> [part=flyout]', 'the flyout is shown');
+            t.visible('[slot=props]', 'the panel content is shown inside the flyout');
+            // positioning.js flips sides to stay in the viewport, so the flyout can land to either side of the rail button; it must not cover it either way.
+            t.noOverlap('#dock >>> [part=rail-button]', '#dock >>> [part=flyout]');
+            t.ringUnclipped('#dock >>> [part=flyout]');
         }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
