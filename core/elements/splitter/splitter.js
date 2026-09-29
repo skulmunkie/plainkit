@@ -1,22 +1,8 @@
 // pk-splitter behaviour: two panes and a separator that resizes them by pointer or arrow keys. Sizes are percentages of the room the two panes share.
-// The pure rules are exported for the Node tests.
-import { clampSize } from '../../js/size.js';
+// The pure rules live in js/size.js (shared with the gallery's own inspector-width handle, #391) and are re-exported for the Node tests.
+import { clampSize, keySize, pointerSize } from '../../js/size.js';
 
-export { clampSize };
-
-// The size a key asks for, or null when the key does nothing here. Side by side (horizontal): Left and Right, mirrored in a right-to-left page; stacked: Up and Down.
-export function keySize(key, size, { min, max, step, horizontal, rtl = false }) {
-    if (key === 'Home') return Math.min(min, max);
-    if (key === 'End') return Math.max(min, max);
-    const sign = horizontal ? { ArrowLeft: rtl ? 1 : -1, ArrowRight: rtl ? -1 : 1 }[key] : { ArrowUp: -1, ArrowDown: 1 }[key];
-    return sign === undefined ? null : size + sign * (step > 0 ? step : 1);
-}
-
-// The size a pointer position means: pos on the axis, the pointer's offset from the handle's centre when it grabbed it, and the box (start, length) and the handle's thickness.
-export function pointerSize(pos, grab, start, length, handle, rtl = false) {
-    const at = rtl ? start + length - (pos - grab) : pos - grab - start;
-    return ((at - handle / 2) / Math.max(1, length - handle)) * 100;
-}
+export { clampSize, keySize, pointerSize };
 
 export default Base => class extends Base {
     connected() {
