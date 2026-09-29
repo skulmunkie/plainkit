@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.8.0-alpha.2] - 2026-09-29
+
+### Fixed
+
+- `pk-table` no longer crashes when a row's key contains a character such as `"` that would otherwise break the internal slot-name selector (the slot lookup is now `CSS.escape`d), so a table backed by free text (a devtools warnings log, for example) can never take down the page. (#640)
+
 ## [0.8.0-alpha.1] - 2026-09-29
 
 ### Breaking
