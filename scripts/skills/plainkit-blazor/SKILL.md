@@ -102,7 +102,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
 ```
 
 ### Give a page a header with breadcrumbs
-`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `ShellSection`, `BackLink` and `Sticky`: `references/components-navigation.md`.
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `BackLink` and `Sticky`: `references/components-navigation.md`.
 
 ### Open a dialog from C#
 `Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
