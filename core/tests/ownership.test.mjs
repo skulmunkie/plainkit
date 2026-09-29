@@ -408,7 +408,7 @@ const ALLOWED_WRITES = {
     'elements/combobox/combobox.js': { 'this.ctl()': OWN_SHADOW + ': ctl() returns the shadow trigger or control', o: 'an option of the popup the element renders in its shadow tree', c: OWN_SHADOW + ' (the control or the trigger)' },
     'elements/command-palette/command-palette.js': { e: 'a node the el() helper creates', r: 'a row of the list the element renders in its shadow tree' },
     'elements/dialog/dialog.js': { input: 'the field of the prompt dialog the helper creates itself', error: 'the error line of the prompt dialog the helper creates itself' },
-    'elements/dock/dock.js': { groupEl: 'a group section the dock renders in its own shadow tree, found by pointer position during a drag', el: "a group section the dock renders in its own shadow tree, whose drop-zone attribute is cleared after a drag (found via querySelectorAll on the dock's own root, which the checker cannot trace)" },
+    'elements/dock/dock.js': { groupEl: 'a group section the dock renders in its own shadow tree, found by pointer position during a drag' },
     'elements/dropzone/dropzone.js': { b: 'the remove button of a row the element renders in its shadow tree' },
     'elements/image-gallery/image-gallery.js': { make: 'a button inside a tile the element renders in its shadow tree', remove: 'a button inside a tile the element renders in its shadow tree' },
     'elements/nav-item/nav-item.js': { row: 'the row (the anchor) in the element\'s own shadow tree' },
