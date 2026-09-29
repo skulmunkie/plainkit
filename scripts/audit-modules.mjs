@@ -41,6 +41,17 @@ const SCAN_ROOTS = ['core/site', 'core/modules'];
 const CONFIG_PATH = path.join(root, 'plainkit.audit.json');
 const BASELINE_PATH = path.join(root, 'plainkit.audit.modules.baseline.json');
 
+// Build-time Node CLI scripts under the scan roots: never loaded by a browser, so the "module" ruleset's browser-module
+// assumptions (no direct document/localStorage access, no Node core imports, etc.) do not apply to them. Each entry needs its own
+// reasoning here, not a pattern - this is not a place to carve out a whole directory (issue #682).
+const EXCLUDE_FILES = new Set([
+    // Headless subset of the scorecard: invoked directly as `node core/site/scorecard/static-audit.mjs` (see its own header
+    // comment) by core/tests/carveout.test.mjs and core/tests/budgets.test.mjs, and by that shebang-less CLI usage in its own
+    // __main__ guard. It imports node:fs/node:path/node:url and is never referenced by any browser-loaded HTML or JS (checked:
+    // no <script> or import of it outside Node test files) - a build-time tool, not an app module.
+    'core/site/scorecard/static-audit.mjs',
+]);
+
 function loadAllow() {
     if (!fs.existsSync(CONFIG_PATH)) return [];
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
@@ -65,7 +76,7 @@ function collect() {
         for (const entry of collectFiles(start, { extensions: SUPPORTED_EXTENSIONS })) {
             if (entry.skipped) continue;
             const relPath = path.relative(root, entry.abs).split(path.sep).join('/');
-            if (seen.has(relPath)) continue;
+            if (seen.has(relPath) || EXCLUDE_FILES.has(relPath)) continue;
             seen.add(relPath);
             const read = readFile(entry);
             if (read.skip) continue;
