@@ -682,26 +682,6 @@
       "fingerprint": "20104a4133168aa9"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "eed0f6f2bd1a93ac"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "eed0f6f2bd1a93ac"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "0b694791152b721e"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "0b694791152b721e"
-    },
-    {
       "rule": "S7",
       "file": "core/modules/performance/performance.js",
       "fingerprint": "2de96503cfe4cd66"
@@ -710,26 +690,6 @@
       "rule": "S7",
       "file": "core/modules/performance/performance.js",
       "fingerprint": "e306dbde4c22fddb"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/quality/quality.js",
-      "fingerprint": "20353d7ded1c1d97"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/quality/quality.js",
-      "fingerprint": "20353d7ded1c1d97"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/quality/quality.js",
-      "fingerprint": "096c1f51883c107c"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/quality/quality.js",
-      "fingerprint": "096c1f51883c107c"
     },
     {
       "rule": "S7",
@@ -1055,31 +1015,6 @@
       "rule": "S10",
       "file": "core/modules/tool-dock/tool-dock.css",
       "fingerprint": "34350429c4ab6cc0"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/tool-dock/tool-dock.css",
-      "fingerprint": "04ffab641b6fd283"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "c065f286afa50947"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "9a166632857ef8ee"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "c065f286afa50947"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "9a166632857ef8ee"
     },
     {
       "rule": "S7",
