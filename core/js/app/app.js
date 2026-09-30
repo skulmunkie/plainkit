@@ -43,7 +43,7 @@ import { createModuleHost } from './host.js';
 import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
 import { buildShell, footerNodes } from './shell.js';
-import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, markCurrent, searchNav } from './nav.js';
+import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
 const PREFETCH_DELAY = 100;
@@ -108,7 +108,8 @@ export function mountApp(container, config) {
         ui.skip.after(ui.skipNav);
         loadElements(container);
     }
-    const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, pageContext(a.def, routes, a.route.path).ids); };
+    const here = a => pageContext(a.def, routes, a.route.path, routeContext(a.def, a.route));
+    const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, here(a).ids); };
     const relayout = () => { drawNav(); mark(); };
     if (!side) narrow.addEventListener('change', relayout);
     // A wide side layout has the side nav's own collapse chevron (icon rail): a second hamburger hiding the same nav would duplicate it (#448), so there the menu control only opens the drawer.
@@ -118,14 +119,14 @@ export function mountApp(container, config) {
     drawNav(); // the menu is in the page from the first paint: nothing moves when the first module arrives
 
     function trail(a) {
-        const inner = status === 'ok' && a.route.path !== '/' ? pageContext(a.def, routes, a.route.path).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
+        const inner = status === 'ok' && a.route.path !== '/' ? here(a).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
         return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: entries.get(a.id).title, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
     }
 
     // A module's own `footer` ({ text, links }, or false for none) replaces the app's while it is active; a bad one is logged and the app footer stays.
     function drawFooter(a) {
         let footer = cfg.footer;
-        if (a?.def.footer !== undefined) try { footer = a.def.footer === false ? null : readFooter(a.def.footer, `${a.id}.footer`); } catch (e) { log.error(`the footer of "${a.id}" is invalid; the app footer stays`, e); }
+        if (a?.def.footer !== undefined) try { footer = a.def.footer === false ? null : readFooter(a.def.footer, `${a.id}.footer`); } catch (e) { log.error(`bad footer of "${a.id}"`, e); }
         for (const el of ui.shell.querySelectorAll(':scope > [slot="footer"]')) el.remove();
         ui.shell.append(...footerNodes(doc, footer));
     }
@@ -155,17 +156,17 @@ export function mountApp(container, config) {
         const result = await host.open(cur.url, cur.query);
         if (n === seq && !dead && result !== 'superseded') settle(result);
     }
-    const stopRoute = router.subscribe(() => render().catch(e => log.error('a route change failed unexpectedly', e)));
-    render().catch(e => log.error('the first route failed unexpectedly', e));
+    const stopRoute = router.subscribe(() => render().catch(e => log.error('route change failed', e)));
+    render().catch(e => log.error('first route failed', e));
 
     // ---- header search ----
     ui.search?.addEventListener('pk-query', async e => {
         query = e.detail.query;
         const a = host.current(), n = ++sseq;
-        for (const fn of [...subs]) try { fn(query); } catch (err) { log.error('a ctx.search subscriber threw', err); }
+        for (const fn of [...subs]) try { fn(query); } catch (err) { log.error('search subscriber threw', err); }
         let list = [];
         if (a && query.trim().length >= cfg.search.minLength) {
-            try { list = await (a.def.search ? a.def.search(query, a.ctx) : searchNav(nav, query)); } catch (err) { log.error(`the search of "${a.id}" threw`, err); }
+            try { list = await (a.def.search ? a.def.search(query, a.ctx) : searchNav(nav, query)); } catch (err) { log.error(`search of "${a.id}" threw`, err); }
         }
         if (n !== sseq || dead) return;
         list = Array.isArray(list) ? list : [];
@@ -190,7 +191,7 @@ export function mountApp(container, config) {
         clearTimeout(timer);
         const entry = id && MODULE_ID.test(id) && entries.get(id);
         if (!entry || warm.has(id) || globalThis.navigator?.connection?.saveData) return;
-        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`could not prefetch "${id}"`, e)); }, PREFETCH_DELAY);
+        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, PREFETCH_DELAY);
     }
 
     return {

@@ -57,7 +57,7 @@ export default defineModule({
         { id: 'overview', title: 'Overview', route: '/overview', icon: 'dashboard' },
 ```
 
-Routes are relative to the module (the app adds `#/tour`), so the list above lives at `#/tour` and the overview at `#/tour/overview`. Each route names a page type and its config: `{ path, label, page, config }`. A `config` can also be a function of `{ params, query }` when the data depends on the address. The last route, `{ path: '*', page: 'not-found' }`, answers every address that matches nothing.
+Routes are relative to the module (the app adds `#/tour`), so the list above lives at `#/tour` and the overview at `#/tour/overview`. Each route names a page type and its config: `{ path, label, page, config }`. A `config` can also be a function of `{ params, query }` when the data depends on the address. A route may also carry `context`, the page's place when its address cannot say (a data-driven menu, a record under a section it is not nested in): `context: { ids: ['reports', 'monthly'], title: 'March report' }`, or a function of `{ path, params, query }` returning that object. `ids` are nav ids from the top section down to the current row (the side nav marks the row and opens the branches), `crumbs` is `[{ label, href? }]` with module-relative hrefs, and `title` names the page in the header and the document title (a title alone also renames the last crumb). Each part you leave out stays what the address says, so most routes need none. The last route, `{ path: '*', page: 'not-found' }`, answers every address that matches nothing.
 
 ## Page types
 

@@ -29,12 +29,12 @@ export function navOf(def, ctx) {
     try {
         nav = typeof def.nav === 'function' ? def.nav(ctx) : def.nav;
     } catch (e) {
-        log.error(`the nav of "${def.id}" threw, no menu is shown`, e);
+        log.error(`nav "${def.id}" threw: no menu`, e);
     }
     if (!Array.isArray(nav)) return [];
     if ((nav.length > MAX_TOP || total(nav) > MAX_ALL) && !told.has(def.id)) {
         told.add(def.id);
-        log.warn(`the nav of "${def.id}" has ${nav.length} top-level and ${total(nav)} entries: nav entries are structure (a few stable destinations), a collection of records belongs in a list page`);
+        log.warn(`nav "${def.id}": ${nav.length} top-level, ${total(nav)} entries; a nav is structure, records belong in a list page`);
     }
     return nav;
 }
@@ -107,6 +107,12 @@ export function pageContext(def, tree, path, override = {}) {
     if (typeof override.title === 'string' && !Array.isArray(override.crumbs) && crumbs.length) crumbs = [...crumbs.slice(0, -1), { ...crumbs[crumbs.length - 1], label: override.title }];
     const title = typeof override.title === 'string' ? override.title : crumbs.length ? crumbs[crumbs.length - 1].label : '';
     return { ids, section: ids[0] ?? null, current: ids[ids.length - 1] ?? null, crumbs, title };
+}
+
+// A route's own `context` (module.js): an object, or ({ path, params, query }) => object, the override for pageContext when the page it belongs to is showing. A function that throws is logged and
+// the URL default stands.
+export function routeContext(def, route) {
+    try { const c = matchRoute(def.routes ?? [], route.path)?.node.context, v = typeof c === 'function' ? c(route) : c; return v ?? {}; } catch (e) { log.error(`context() of ${route.path} threw`, e); return {}; }
 }
 
 // The row of the current page is `current`, every ancestor branch is opened; other rows keep whatever the reader opened. The module rows are not the module's own entries.
