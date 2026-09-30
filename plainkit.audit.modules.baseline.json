@@ -2707,21 +2707,6 @@
       "fingerprint": "3ec333c7f03f52cb"
     },
     {
-      "rule": "S2",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "8e698c950280dd6b"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "c36e6d39d1bbb716"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "8e698c950280dd6b"
-    },
-    {
       "rule": "S5",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "221af7a6320ac21d"
