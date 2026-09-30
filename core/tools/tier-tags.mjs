@@ -8,9 +8,11 @@ import { S_RULES } from './audit/families/s-rules.mjs';
 
 const RULES = [D_RULES.find(r => r.id === 'D1'), S_RULES.find(r => r.id === 'S3')];
 const SHELL_LANDMARKS = new Set(['header', 'footer', 'nav', 'main']);
+// T1: a raw structural div or span (no pk-* equivalent yet, baselined per component and removed one by one, spec section 1 item 4). Shell exempts both (spec section 4).
+const STRUCTURAL = [[/<(div|span)\b/gi, 'html'], [/createElement\(\s*['"`](div|span)['"`]/g, 'js']];
 const SCANNED = new Set(['component', 'page', 'shell']);
 
-// Map of "<rule> <element> <found>" to the number of hits, over the html template (D1, S3) and the behaviour script (S3).
+// Map of "<rule> <element> <found>" to the number of hits, over the html template (D1, S3, T1) and the behaviour script (S3, T1).
 export function checkTierTags(elements) {
     const counts = new Map();
     for (const el of elements) {
@@ -22,6 +24,15 @@ export function checkTierTags(elements) {
                 for (const hit of rule.scan(f)) {
                     if (rule.id === 'D1' && el.meta.tier === 'shell' && SHELL_LANDMARKS.has(hit.found)) continue;
                     const k = `${rule.id} ${el.name} ${hit.found}`;
+                    counts.set(k, (counts.get(k) ?? 0) + 1);
+                }
+            }
+        }
+        if (el.meta.tier !== 'shell') {
+            for (const [re, kind] of STRUCTURAL) {
+                const text = kind === 'html' ? el.template : el.behaviour;
+                for (const m of (text ?? '').matchAll(re)) {
+                    const k = `T1 ${el.name} ${m[1].toLowerCase()}`;
                     counts.set(k, (counts.get(k) ?? 0) + 1);
                 }
             }
