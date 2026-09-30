@@ -22,6 +22,11 @@
       "type": "bool"
     },
     {
+      "name": "Spacious",
+      "prop": "spacious",
+      "type": "bool"
+    },
+    {
       "name": "SuffixContent",
       "slot": "",
       "type": "RenderFragment?"

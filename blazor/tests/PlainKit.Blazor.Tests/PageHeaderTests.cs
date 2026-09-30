@@ -172,6 +172,16 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Spacious_is_off_by_default_and_reflects_when_set()
+    {
+        var plain = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
+        Assert.False(plain.Find("pk-page-header").HasAttribute("spacious"));
+
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail).Add(x => x.Spacious, true));
+        Assert.True(cut.Find("pk-page-header").HasAttribute("spacious"));
+    }
+
+    [Fact]
     public void TabsContent_renders_in_the_tabs_slot_through_a_transparent_wrapper()
     {
         var cut = Render<PkPageHeader>(p => p.Add(x => x.Title, "Record").Add(x => x.TabsContent, "<pk-tabs></pk-tabs>"));

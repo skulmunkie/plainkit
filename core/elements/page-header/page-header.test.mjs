@@ -14,12 +14,16 @@ test('the template is a header element with a heading-role title and the four sl
     assert.ok(!/\sstyle=/.test(html));
 });
 
-test('the API: heading, level, variant page|section|record', () => {
+test('the API: heading, level, variant page|section|record, spacious', () => {
     const p = Object.fromEntries(meta.props.map(x => [x.name, x]));
     assert.equal(p.level.default, 2);
     assert.deepEqual(p.variant.values, ['page', 'section', 'record']);
     assert.equal(p.variant.default, 'page');
+    assert.equal(p.spacious.type, 'boolean');
+    assert.equal(p.spacious.default, false);
+    assert.equal(p.spacious.reflect, true);
     assert.ok(meta.examples.some(e => /variant="record"/.test(e.html)) && meta.examples.some(e => /variant="section"/.test(e.html)));
+    assert.ok(meta.examples.some(e => /\sspacious(\s|>)/.test(e.html)), 'an example shows the spacious multi-row opt-in');
 });
 
 test('it stacks by its own width and keeps actions touch-sized, with tokens only', () => {
@@ -42,4 +46,10 @@ test('slotted badges do not stretch, the sticky header sits one above the in-bod
     assert.match(narrow, /:host\(\[variant="record"\]\) \[part="actions"\] \{[^}]*inline-size: auto/);
     assert.match(narrow, /\[part="chips"\]:not\(\[hidden\]\) \{[^}]*flex: 1 0 100%/);
     assert.doesNotMatch(css, /!important/);
+});
+
+test('without an explicit heading the single-row collapse is the default for every variant, and spacious opts back into the multi-row breakdown', () => {
+    assert.match(css, /:host\(:not\(\[heading\]\):not\(\[spacious\]\)\) \[part="header"\] \{[^}]*display: grid/);
+    // Never gated by variant any more: the old record-only selector must be gone.
+    assert.doesNotMatch(css, /:host\(\[variant="record"\]:not\(\[heading\]\)\)/);
 });

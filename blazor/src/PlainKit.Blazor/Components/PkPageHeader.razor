@@ -10,6 +10,7 @@
 <pk-page-header heading="@InPageTitle"
                 level="@PkAttr.Num(Level)"
                 variant="@Variant"
+                spacious="@Spacious"
                 class="@Css()"
                 @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
 
@@ -37,6 +38,13 @@
 
     /// <summary>page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right). Left off, the element's own default applies.</summary>
     [Parameter] public string? Variant { get; set; }
+
+    /// <summary>
+    /// Without an explicit <see cref="Title"/> (the last crumb doubles as the title), pk-page-header collapses the crumbs, the default-slot content and the actions onto a single row by
+    /// default, for every variant. Set Spacious to opt back into the older multi-row breakdown (a breadcrumb row, then a title bar with actions, then the note line) for a title too long
+    /// to share a row with the actions, or more badges than fit one row. Has no effect when Title is set: a real title always keeps its own row above the crumbs.
+    /// </summary>
+    [Parameter] public bool Spacious { get; set; }
 
     /// <summary>Beside the title: a status chip, a count or a badge.</summary>
     [Parameter] public RenderFragment? SuffixContent { get; set; }
