@@ -4,6 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkFiles } from '../strict/engine.mjs';
+import { scanHtml } from '../strict/scanners/html.mjs';
 import './rules.mjs'; // registers the "consumer"/"consumer-strict" rulesets as a side effect
 import { RULES, getRuleMeta } from './rules.mjs';
 import { DEPRECATED_ELEMENTS } from './hints.mjs';
@@ -109,4 +110,45 @@ test('every rule carries a doc anchor and a fix template with the rule id in bra
 test('getRuleMeta finds a rule row by id, and undefined for an unknown one', () => {
     assert.equal(getRuleMeta('D1').category, 'D');
     assert.equal(getRuleMeta('NOPE'), undefined);
+});
+
+test('html scanner: a Razor bind-suffix attribute (with a lambda value) does not leak into the next tag\'s attributes or name (#686)', () => {
+    const { nodes } = scanHtml(
+        '<PkSelect @bind-Value:get="Selected" @bind-Value:set="v => Selected = v" @bind-Value:after="OnChanged"></PkSelect>\n<PkFieldListRow></PkFieldListRow>',
+    );
+    const select = nodes.find(n => n.name === 'PkSelect' && !n.closing);
+    assert.ok(select, 'FIX: PkSelect node was not scanned at all');
+    assert.deepEqual(Object.keys(select.attrs), [], `FIX: bind-suffix directives leaked into PkSelect's attrs, got ${JSON.stringify(select.attrs)}`);
+    const row = nodes.find(n => n.name === 'PkFieldListRow' && !n.closing);
+    assert.ok(row, 'FIX: <PkFieldListRow> was not scanned as its own tag - it was likely swallowed as attribute text of the previous tag');
+});
+
+test('html scanner: an em dash inside a quoted attribute value does not desync the tokenizer (#686)', () => {
+    const { nodes } = scanHtml('<PkButton AriaLabel="Save — done" Disabled></PkButton>');
+    const btn = nodes.find(n => n.name === 'PkButton' && !n.closing);
+    assert.equal(btn.attrs.AriaLabel, 'Save — done', `FIX: em dash in a quoted value broke attribute parsing, got ${JSON.stringify(btn.attrs)}`);
+    assert.ok('Disabled' in btn.attrs, `FIX: the em dash desynced parsing so a later real attribute was missed, got ${JSON.stringify(btn.attrs)}`);
+});
+
+test('B3: does not flag Blazor bind-suffix syntax, a generic type parameter, or an em dash inside a value as an unknown parameter (#686)', () => {
+    const clean = checkFiles(
+        [{
+            path: 'App.razor',
+            text: '<PkSelect @bind-Value:get="Selected" @bind-Value:set="v => Selected = v" @bind-Value:after="OnChanged" TItem="OrderRow" Label="Save — done"></PkSelect>',
+        }],
+        { ruleset: 'consumer' },
+    );
+    const b3 = clean.filter(f => f.rule === 'B3');
+    assert.equal(b3.length, 0, `FIX: B3 flagged parser garbage instead of real syntax, got ${JSON.stringify(b3)}`);
+});
+
+test('B3: still flags a real unknown parameter (#686)', () => {
+    const findings = checkFiles([{ path: 'App.razor', text: '<PkButton Sizee="ButtonSize.Small"></PkButton>' }], { ruleset: 'consumer' });
+    assert.ok(findings.some(f => f.rule === 'B3'), 'FIX: B3 did not flag a genuinely unknown parameter');
+});
+
+test('B1 was removed as a duplicate of D1 (#686): a raw <table> in .razor is flagged once, by D1, not twice', () => {
+    const findings = checkFiles([{ path: 'App.razor', text: '<table></table>' }], { ruleset: 'consumer' });
+    assert.ok(!findings.some(f => f.rule === 'B1'), 'FIX: B1 still exists - it should have been removed as a duplicate of D1');
+    assert.ok(findings.some(f => f.rule === 'D1'), 'FIX: D1 did not flag the raw <table> in a .razor file');
 });
