@@ -6,6 +6,7 @@
 // The host computes results (locally or on the server) in response to the debounced pk-query event; this element never filters or fetches
 // itself. Choosing a result raises pk-select with the item; the host decides what happens (navigate, open a record) — never this element.
 import { drawIcon } from '../../js/icon-sprite.js';
+import { loadElements } from '../../js/loader.js';
 import { nextIndex } from '../../js/menu-logic.js';
 
 const el = (tag, part, text) => { const e = document.createElement(tag); if (part) { e.setAttribute('part', part); e.className = part; } if (text) e.textContent = text; return e; };
@@ -16,6 +17,7 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
+        loadElements(this.shadowRoot); // the expand and close buttons are pk-button elements in this shadow tree
         const box = this.part('box'), input = this.part('control'), pop = this.part('popup');
         this.part('expand').addEventListener('click', () => this.expand());
         this.part('collapse').addEventListener('click', () => this.collapse());
@@ -37,9 +39,7 @@ export default Base => class extends Base {
         this.$shell?.addEventListener('pk-nav-toggle', this.$onNav);
         this.$onRoute = () => { this.setOpen(false); this.collapse(); };
         addEventListener('popstate', this.$onRoute);
-        drawIcon(this.part('expand-icon').firstChild, 'search', (k, m, d) => this.warnOnce(k, m, d));
         drawIcon(this.part('box-icon').firstChild, 'search', (k, m, d) => this.warnOnce(k, m, d));
-        drawIcon(this.part('collapse-icon').firstChild, 'x', (k, m, d) => this.warnOnce(k, m, d));
         this.paint();
     }
     disconnected() {
