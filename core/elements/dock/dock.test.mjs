@@ -161,20 +161,20 @@ test('choosing a tab activates the panel in the model and commits; a phone strip
     assert.equal(el.events.length, 1);
 });
 
-test('every group (whatever its size) gets a panel menu; with company it also lists every other group, Add as tab plus the four dock zones, before a Close', () => {
+test('every group (whatever its size) gets a panel menu; with company it also lists every other group, Add as tab plus the four dock zones, then Float, before a Close', () => {
     const { el, root } = make(P);
     const [left, , right] = groups(el.$doc);
     assert.equal(left.panels[0], 'tools'); assert.equal(right.panels[0], 'props');
     const dropdowns = find(root, 'pk-dropdown');
     assert.equal(dropdowns.length, 3, 'one per group: left, center (canvas), right');
-    const items = find(dropdowns[1], 'pk-menu-item'); // the canvas group's dropdown: two other groups (left, right), then Close
+    const items = find(dropdowns[1], 'pk-menu-item'); // the canvas group's dropdown: two other groups (left, right), then Float, then Close
     assert.deepEqual(items.filter(i => i.getAttribute('type') === 'header').map(i => i.text), ['Toolbox', 'Properties']);
     const values = items.filter(i => i.getAttribute('type') !== 'header').map(i => i.getAttribute('value'));
-    assert.deepEqual(values, [...[left, right].flatMap(g => [`tab:canvas:${g.id}`, `dock:canvas:${g.id}:left`, `dock:canvas:${g.id}:right`, `dock:canvas:${g.id}:top`, `dock:canvas:${g.id}:bottom`]), null, 'close:canvas']);
-    assert.equal(items.find(i => i.getAttribute('type') === 'divider') !== undefined, true, 'a divider separates Move from Close');
+    assert.deepEqual(values, [...[left, right].flatMap(g => [`tab:canvas:${g.id}`, `dock:canvas:${g.id}:left`, `dock:canvas:${g.id}:right`, `dock:canvas:${g.id}:top`, `dock:canvas:${g.id}:bottom`]), null, 'float:canvas', null, 'close:canvas']);
+    assert.equal(items.filter(i => i.getAttribute('type') === 'divider').length, 2, 'a divider separates Move from Float, and Float from Close');
     const single = make([{ id: 'only' }]);
     const soloItems = find(single.root, 'pk-menu-item');
-    assert.deepEqual(soloItems.map(i => i.getAttribute('value')), ['close:only'], 'a single group offers only Close, no Move items and no divider');
+    assert.deepEqual(soloItems.map(i => i.getAttribute('value')), ['float:only', null, 'close:only'], 'a single group offers Float (no other group to move to) and Close');
 });
 
 test('choosing "Add as tab" moves the panel with moveTab, commits reason move and announces the result', () => {
@@ -608,4 +608,113 @@ test('a pointerdown on any floater raises it to the front (raiseFloater), even w
     root.listeners['pointerdown']({ button: 0, pointerId: 12, clientX: 0, clientY: 0, target, stopPropagation() {} });
     assert.equal(findFloater(el.$doc, first.id).z > findFloater(el.$doc, second.id).z, true, 'raised straight away, before any move or release');
     root.listeners['pointerup']({ pointerId: 12, type: 'pointerup' });
+});
+
+// ---- keyboard/menu path for floating panels, step 3 of #618: arrow keys on the floater's own frame (drawFloating gives it tabIndex 0), the
+// Panel menu's Float and "dock back in" items, and focus raising a floater on focus the same way a pointer grab already does.
+test('drawFloating gives every floater frame a keyboard handle: tabIndex 0, aria-roledescription and the shared aria-describedby hint', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { root } = make(P, { layout: doc });
+    const id = floaters(doc)[0].id;
+    const floater = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    assert.equal(floater.tabIndex, 0);
+    assert.equal(floater.getAttribute('aria-roledescription'), 'floating panel');
+    assert.equal(floater.getAttribute('aria-describedby'), 'floater-help');
+});
+
+test('arrow keys on a floater\'s own frame move it with moveFloater, clamped to root\'s own bounds, commit reason move and announce the new position', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root, status } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    floaterEl.closest = sel => (sel === '[data-floater]' ? floaterEl : null);
+    root.getBoundingClientRect = () => ({ width: 400, height: 300 });
+    root.listeners['keydown']({ key: 'ArrowRight', target: floaterEl, preventDefault() {} });
+    assert.equal(findFloater(el.$doc, id).x, 18, 'moved by the small step');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['move']);
+    assert.match(status.text, /Canvas moved to 18, 20/);
+    root.listeners['keydown']({ key: 'ArrowDown', shiftKey: true, target: floaterEl, preventDefault() {} });
+    assert.equal(findFloater(el.$doc, id).y, 52, 'shift steps bigger');
+});
+
+test('Alt+Arrow on a floater\'s frame resizes it with resizeFloater instead of moving it, and announces the new size', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root, status } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    floaterEl.closest = sel => (sel === '[data-floater]' ? floaterEl : null);
+    root.getBoundingClientRect = () => ({ width: 400, height: 300 });
+    root.listeners['keydown']({ key: 'ArrowRight', altKey: true, target: floaterEl, preventDefault() {} });
+    assert.equal(findFloater(el.$doc, id).w, 168);
+    assert.equal(findFloater(el.$doc, id).x, 10, 'a resize never moves the floater');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['resize']);
+    assert.match(status.text, /Canvas resized to 168 by 120/);
+});
+
+test('a key on something inside the floater (not the frame itself) is left alone: the frame is the only keyboard handle', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    const inner = floaterEl.querySelector('.header');
+    inner.closest = sel => (sel === '[data-floater]' ? floaterEl : null);
+    root.listeners['keydown']({ key: 'ArrowRight', target: inner, preventDefault() { assert.fail('should not run'); } });
+    assert.equal(findFloater(el.$doc, id).x, 10);
+});
+
+test('focusing anything inside a floater raises it (raiseFloater), the keyboard/focus mirror of a pointer grab', () => {
+    let doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    doc = floatPanel(doc, { panel: 'assets', rect: { x: 50, y: 50, w: 150, h: 100 }, bounds: { w: 400, h: 300 } }).doc;
+    const { el, root } = make(P, { layout: doc });
+    const [first, second] = floaters(el.$doc);
+    const firstEl = find(root, 'section').find(s => s.getAttribute('data-floater') === first.id);
+    const inner = firstEl.querySelector('.header');
+    inner.closest = sel => (sel === '[data-floater]' ? firstEl : null);
+    root.listeners['focusin']({ target: inner });
+    assert.equal(findFloater(el.$doc, first.id).z > findFloater(el.$doc, second.id).z, true);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['raise']);
+});
+
+test('a focusin with nothing inside a floater is a no-op', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root } = make(P, { layout: doc });
+    root.listeners['focusin']({ target: { closest: () => null } });
+    assert.equal(el.events.length, 0);
+});
+
+test('choosing "Float" detaches the panel with floatPanel, commits reason float, announces it and focuses the new floater\'s frame', () => {
+    const { el, root, status } = make(P);
+    root.getBoundingClientRect = () => ({ width: 400, height: 300 });
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: 'float:canvas' } });
+    assert.equal(findGroup(el.$doc, 'canvas'), null, 'canvas left the docked tree');
+    const f = floaters(el.$doc)[0];
+    assert.equal(f.group.panels.includes('canvas'), true);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['float']);
+    assert.match(status.text, /Canvas floating/);
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === f.id);
+    assert.equal(floaterEl.focused, true, 'focus follows to the new floater\'s own frame');
+});
+
+test('a floater\'s own panel menu offers "dock back in" (dockFloating, every tree group and zone) instead of the tree-only Move items, then Close', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { root } = make(P, { layout: doc });
+    const id = floaters(doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    const items = find(floaterEl, 'pk-menu-item');
+    const values = items.filter(i => i.getAttribute('type') !== 'header').map(i => i.getAttribute('value'));
+    const [left, right] = groups(doc);
+    assert.deepEqual(values, [...[left, right].flatMap(g => [`dockfloat:${id}:${g.id}:center`, `dockfloat:${id}:${g.id}:left`, `dockfloat:${id}:${g.id}:right`, `dockfloat:${id}:${g.id}:top`, `dockfloat:${id}:${g.id}:bottom`]), null, 'close:canvas']);
+    assert.equal(values.some(v => v?.startsWith('tab:') || v?.startsWith('dock:') || v?.startsWith('float:')), false, 'never the tree-only Move/Float items');
+});
+
+test('choosing a "dock back in" item docks the floater with dockFloating, commits reason dockfloat, announces it and focuses the docked panel', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root, status } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const target = groups(el.$doc)[0].id; // left
+    root.listeners['pk-select']({ stopPropagation() {}, detail: { value: `dockfloat:${id}:${target}:center` } });
+    assert.equal(floaters(el.$doc).length, 0, 'the floater is gone');
+    assert.equal(findGroup(el.$doc, 'canvas').id, target);
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['dockfloat']);
+    assert.match(status.text, /Canvas added as a tab in Toolbox/);
 });
