@@ -5,7 +5,7 @@
 //   review-output/<tag>__<n>__<desktop|phone>__<light|dark>.png   one screenshot per example (n = the example's number in the gallery)
 //   review-output/manifest.json                                    what was rendered, the findings of every audit, what could not be seen
 //
-//   node scripts/ui-review.mjs                       the elements changed versus origin/main (core/elements/<name>/, blazor/mappings/<name>.json);
+//   node scripts/ui-review.mjs                       the elements changed versus origin/main (core/elements/<name>/, blazor/mappings/<name>.json), plus the elements composing them;
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
 //   [--base <ref>] [--out <dir>] [--strict] [--port N] [--timeout <s>]
@@ -43,16 +43,53 @@ const BASE_DIRS = [/^core\/(base|tokens|layouts)\//];
  * The element names a list of changed files touches, and whether a base file (tokens, base CSS) changed. Pure.
  * core/elements/<name>/ and blazor/mappings/<name>.json name one element; `known` (the registry's names) drops folders that are not elements.
  */
-export function changedFromFiles(files, known = null) {
+export function changedFromFiles(files, known = null, ignore = () => false) {
     const names = new Set();
     let base = false;
     for (const raw of files) {
         const f = raw.replace(/\\/g, '/');
+        if (ignore(f)) continue;
         const m = /^core\/elements\/([^/]+)\//.exec(f) ?? /^blazor\/mappings\/([^/]+)\.json$/.exec(f);
         if (m && (!known || known.has(m[1]))) names.add(m[1]);
         if (BASE_DIRS.some(r => r.test(f))) base = true;
     }
     return { names: [...names].sort(), base };
+}
+
+/** Meta fields the review page never reads: editing only these cannot change a rendered pixel (issue #739). */
+const NON_RENDERING_META = ['tier', 'group', 'summary'];
+
+/** Whether a meta.json edit can change what the gallery examples render: the parsed base and head differ in a field other than NON_RENDERING_META. A file that does not parse counts as changed. */
+export function metaRenders(baseText, headText) {
+    let a, b;
+    try { a = baseText == null ? null : JSON.parse(baseText); b = headText == null ? null : JSON.parse(headText); } catch { return true; }
+    if (!a || !b) return true;
+    const strip = m => Object.fromEntries(Object.entries(m).filter(([k]) => !NON_RENDERING_META.includes(k)));
+    return JSON.stringify(strip(a)) !== JSON.stringify(strip(b));
+}
+
+/** { element: [elements whose own files or gallery examples use it] } from the usage index (core/tools/usage-index.mjs). */
+export function dependentsFromIndex(index) {
+    const out = {};
+    for (const [name, e] of Object.entries(index)) {
+        const owners = new Set();
+        for (const f of [...e.files.elements, ...e.files.gallery]) { const m = /^core\/elements\/([^/]+)\//.exec(f); if (m && m[1] !== name) owners.add(m[1]); }
+        out[name] = [...owners].sort();
+    }
+    return out;
+}
+
+/** The changed elements plus everything that composes them, transitively, each with the rule that selected it. `base` selects every element. */
+export function selectElements(changed, dependents, known, base = false) {
+    const reasons = {};
+    if (base) { for (const n of known) reasons[n] = 'base'; return reasons; }
+    const queue = [];
+    for (const n of changed) { reasons[n] = 'changed'; queue.push(n); }
+    while (queue.length) {
+        const from = queue.shift();
+        for (const d of dependents[from] ?? []) if (!(d in reasons) && known.has(d)) { reasons[d] = `dependent of pk-${from}`; queue.push(d); }
+    }
+    return reasons;
 }
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
@@ -222,16 +259,21 @@ async function main() {
     let all;
     try { all = await loadScenarios(SCENARIO_DIR, known); } catch (e) { console.error(e.message); return 2; }
     const named = Array.isArray(o.scenarios) ? o.scenarios : null;
-    let names, why;
+    let names, why, reasons = null;
     if (o.all) { names = [...known].sort(); why = '--all'; }
     else if (o.elements.length) { names = o.elements; why = '--elements'; const bad = names.filter(n => !known.has(n)); if (bad.length) { console.error(`not elements: ${bad.join(', ')}`); return 2; } }
     else if (named && o.scenariosOnly) { names = []; why = '--scenarios-only'; }
     else {
         let files;
         try { files = changedFiles(o.base); } catch (e) { console.error(e.message); return 2; }
-        const c = changedFromFiles(files, known);
-        names = c.base ? [...known].sort() : c.names;
-        why = c.base ? `a base file (tokens, base CSS, layouts) changed versus ${o.base}: every element` : `changed versus ${o.base}`;
+        const mb = git(['merge-base', 'HEAD', o.base]).stdout.trim();
+        const show = (ref, f) => { const r = git(['show', `${ref}:${f}`]); return r.status === 0 ? r.stdout : null; };
+        const ignore = f => /^core\/elements\/[^/]+\/[^/]+\.meta\.json$/.test(f) && !metaRenders(show(mb, f), fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null);
+        const c = changedFromFiles(files, known, ignore);
+        const { usageIndex } = await import(pathToFileURL(path.join(root, 'core', 'tools', 'usage-index.mjs')).href);
+        reasons = selectElements(c.names, dependentsFromIndex(usageIndex(root).index), known, c.base);
+        names = Object.keys(reasons).sort();
+        why = c.base ? `a base file (tokens, base CSS, layouts) changed versus ${o.base}: every element` : `changed versus ${o.base}, plus the elements that compose them`;
     }
     let scenarios;
     try { scenarios = selectScenarios(all, { names: named, elements: names, every: o.scenarios === 'all' || (o.all && o.scenarios === 'auto') }); } catch (e) { console.error(e.message); return 2; }
@@ -239,7 +281,7 @@ async function main() {
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
-    const manifest = { generated: new Date().toISOString(), why, elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, summary: null };
+    const manifest = { generated: new Date().toISOString(), why, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, summary: null };
     if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); return 0; }
 
     let chrome;

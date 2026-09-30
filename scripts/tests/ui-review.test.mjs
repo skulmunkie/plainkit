@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, parseArgs, shotName, groupFindings } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shotName, groupFindings } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -14,6 +14,27 @@ test('changed elements come from element folders and Blazor mappings, and a base
     assert.deepEqual(changedFromFiles(['core/elements/not-an-element/x.css'], known).names, []);
     assert.equal(changedFromFiles(['core/tokens/tokens.css'], known).base, true);
     assert.deepEqual(changedFromFiles(['core\\elements\\breadcrumb\\breadcrumb.css'], known).names, ['breadcrumb']);
+});
+
+test('a meta.json edit to a non-rendering field (tier, group) selects no element; a rendering field does', () => {
+    const meta = over => JSON.stringify({ tag: 'pk-x', tier: 'element', group: 'Actions', examples: [{ html: '<pk-x></pk-x>' }], ...over });
+    assert.equal(metaRenders(meta(), meta({ tier: 'page', group: 'Layout' })), false);
+    assert.equal(metaRenders(meta(), meta({ examples: [{ html: '<pk-x big></pk-x>' }] })), true);
+    assert.equal(metaRenders(null, meta()), true, 'a new file renders');
+    assert.equal(metaRenders(meta(), '{ not json'), true, 'unparseable is treated as changed');
+    const ignore = f => f.endsWith('.meta.json');
+    assert.deepEqual(changedFromFiles(['core/elements/breadcrumb/breadcrumb.meta.json'], known, ignore).names, []);
+    assert.deepEqual(changedFromFiles(['core/elements/breadcrumb/breadcrumb.meta.json', 'blazor/mappings/breadcrumb.json'], known, ignore).names, ['breadcrumb']);
+});
+
+test('a changed element selects its dependents, transitively, and only them', () => {
+    // split-button composes button; toolbar's gallery example composes split-button.
+    const dependents = dependentsFromIndex({ button: { files: { elements: ['core/elements/split-button/split-button.html'], gallery: [] } }, 'split-button': { files: { elements: [], gallery: ['core/elements/toolbar/toolbar.meta.json'] } }, toolbar: { files: { elements: [], gallery: [] } }, card: { files: { elements: [], gallery: [] } } });
+    const knownAll = new Set(['button', 'split-button', 'toolbar', 'card']);
+    assert.deepEqual(selectElements(['button'], dependents, knownAll), { button: 'changed', 'split-button': 'dependent of pk-button', toolbar: 'dependent of pk-split-button' });
+    assert.deepEqual(selectElements(['card'], dependents, knownAll), { card: 'changed' });
+    assert.deepEqual(selectElements([], dependents, knownAll, true), { button: 'base', 'split-button': 'base', toolbar: 'base', card: 'base' });
+    assert.deepEqual(dependentsFromIndex({ self: { files: { elements: ['core/elements/self/self.js'], gallery: [] } } }).self, [], 'an element is not its own dependent');
 });
 
 test('arguments: names or tags, --all excludes --elements, unknown flags are refused', () => {
