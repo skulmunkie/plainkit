@@ -8,6 +8,13 @@
 //   - `meta` is the rule's documentation (category, severity per ruleset, doc anchor, examples): a later PR
 //     renders it into `--explain` output and the generated skill references. This engine only carries it
 //     through onto each finding so no second lookup table is ever needed.
+//   - `appliesToRun(files) -> boolean`, optional: an app-wide precondition, evaluated once per `checkFiles`
+//     call against the full file list for the run (not per file, unlike `applies`). When present and it
+//     returns false, the rule is skipped for every file in this run - `applies`/`scan` are never called. For
+//     a rule whose real-world signal is "does this app opt into some convention at all" rather than anything
+//     about one file (B4, issue #718), duplicating a full-tree scan inside `scan()` for every file it visits
+//     would be wasteful and, worse, is exactly the kind of per-file guess the rule's own finding warns
+//     against; this hook runs the check exactly once instead.
 // This file adds no rule content (S1-S12, D/P/T/A/B families land in later PRs); it is the plumbing only:
 // a named-ruleset registry, `checkFiles`, and the allow-list ratchet.
 
@@ -83,12 +90,20 @@ function applyAllow(findings, allow) {
 export function checkFiles(files, options = {}) {
     if (!Array.isArray(files)) throw new Error('checkFiles: files must be an array of { path, text }');
     const rules = resolveRules(options);
-    const findings = [];
     for (const file of files) {
         if (!file || typeof file.path !== 'string' || typeof file.text !== 'string') {
             throw new Error('checkFiles: each file needs a string path and a string text');
         }
+    }
+    // Evaluated once per run, not per file (see the rule-shape note above on `appliesToRun`).
+    const runGate = new Map();
+    for (const rule of rules) {
+        if (typeof rule.appliesToRun === 'function') runGate.set(rule.id, !!rule.appliesToRun(files));
+    }
+    const findings = [];
+    for (const file of files) {
         for (const rule of rules) {
+            if (runGate.has(rule.id) && !runGate.get(rule.id)) continue;
             if (typeof rule.applies === 'function' && !rule.applies(file)) continue;
             const hits = rule.scan(file) || [];
             for (const hit of hits) {

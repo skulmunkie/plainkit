@@ -153,6 +153,34 @@ test('B1 was removed as a duplicate of D1 (#686): a raw <table> in .razor is fla
     assert.ok(findings.some(f => f.rule === 'D1'), 'FIX: D1 did not flag the raw <table> in a .razor file');
 });
 
+// #718: B4 used to fire on every @page component in any Razor app, whether or not that app had ever adopted
+// PageBase (92/92 false positives against a real app with its own, different, working page-lifecycle pattern -
+// see #686). It is now gated app-wide: it only fires on a run where at least one file already declares
+// `@inherits ...PageBase` somewhere - real, deliberate evidence the app opted in - never guessed per file.
+test('B4: fires on a @page component with no @inherits PageBase, when some other file in the app already uses PageBase (#718)', () => {
+    const files = [
+        { path: 'Home.razor', text: '@page "/"\n@inherits HomePageBase\n<PkTable></PkTable>' },
+        { path: 'Orders.razor', text: '@page "/orders"\n<PkTable></PkTable>' },
+    ];
+    const findings = checkFiles(files, { ruleset: 'consumer' });
+    const b4 = findings.filter(f => f.rule === 'B4');
+    assert.equal(b4.length, 1, 'FIX: B4 should fire exactly once, for Orders.razor only');
+    assert.equal(b4[0].file, 'Orders.razor');
+});
+
+test('B4: does not fire anywhere in an app that shows no sign of PageBase adoption at all (#718)', () => {
+    // Same shape of violation as above (a @page component with no @inherits PageBase), but nothing anywhere in
+    // this run ever inherits PageBase - a real external app with its own, different page-lifecycle pattern
+    // (#686: a PageRegistry, an ActionRunner, PkRecordEditor), not an app-framework app that missed a spot.
+    const files = [
+        { path: 'PageRegistry.razor', text: '<PkTable></PkTable>' },
+        { path: 'Orders.razor', text: '@page "/orders"\n<PkTable></PkTable>' },
+        { path: 'Setup.razor', text: '@page "/setup"\n<PkTable></PkTable>' },
+    ];
+    const findings = checkFiles(files, { ruleset: 'consumer' });
+    assert.equal(findings.filter(f => f.rule === 'B4').length, 0, 'FIX: B4 fired on an app with no PageBase adoption signal anywhere');
+});
+
 // #719: against a real external app, B6's `<script>` check fired on lines with no `<script>` tag at all - a
 // self-closing PkSpinner, an inline <svg>, a javascript: URI bookmarklet href. Each case below matches one of
 // those reported shapes (a real <script> tag is included as the positive control).
