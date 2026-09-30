@@ -1212,21 +1212,6 @@
       "fingerprint": "77456563fe943378"
     },
     {
-      "rule": "S2",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "eaeb2287cacc04e6"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "eaeb2287cacc04e6"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "325504fdfceb8008"
-    },
-    {
       "rule": "S3",
       "file": "core/site/gallery/elements-view.js",
       "fingerprint": "df5f069f33e776c8"
