@@ -2,7 +2,7 @@
   "tag": "pk-code-block",
   "title": "Code block",
   "group": "Code",
-  "tier": "component",
+  "tier": "element",
   "summary": "A block of code with an optional label bar, line numbers, a wrap toggle and a copy button. The code is the element's text content.",
   "props": [
     {

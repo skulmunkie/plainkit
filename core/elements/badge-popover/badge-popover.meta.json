@@ -2,7 +2,7 @@
   "tag": "pk-badge-popover",
   "title": "Badge popover",
   "group": "Overlays",
-  "tier": "component",
+  "tier": "element",
   "summary": "A status pill that is a button: it opens a panel of details (heading, body, optional actions) anchored under it, and on a phone the panel spans the viewport inside the gutters. Escape, an outside press or focus leaving closes it.",
   "props": [
     {
