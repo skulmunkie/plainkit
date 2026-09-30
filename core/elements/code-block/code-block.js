@@ -43,7 +43,7 @@ export default Base => class extends Base {
     disconnected() { this.$m?.disconnect(); }
     updated() {
         const doc = this.ownerDocument, lines = splitLines(dedent(this.textContent));
-        this.part('code').replaceChildren(...lines.map(l => { const s = doc.createElement('span'); s.className = 'line'; s.textContent = l === '' ? '​' : l; return s; }));
+        this.part('code').replaceChildren(...lines.map(l => { const s = doc.createElement('span'); s.setAttribute('part', 'line'); s.textContent = l === '' ? '​' : l; return s; }));
         this.part('body').setAttribute('aria-label', this.label || 'Code');
         this.part('wrap').setAttribute('aria-pressed', String(this.wrap));
         this.part('copy').hidden = this.noCopy;
