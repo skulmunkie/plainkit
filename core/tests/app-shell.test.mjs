@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfig, readFooter } from '../js/app/config.js';
-import { locate, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
+import { locate, pageContext, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
 import { navRoutes } from '../js/route-tree.js';
 import { defineModule } from '../js/app/module.js';
 import { addLogSink, setLogLevel } from '../js/log.js';
@@ -68,6 +68,17 @@ const ORDERS = defineModule({
     ],
 });
 const NAV = [{ id: 'all', title: 'All orders', route: '/' }, { id: 'open', title: 'Open', route: '/open' }, { id: 'more', title: 'More', children: [{ id: 'shipped', title: 'Shipped', route: '/shipped' }] }];
+
+test('pageContext: one answer for the nav, the breadcrumb and the title, with an explicit override (#670)', () => {
+    const tree = navRoutes(NAV);
+    assert.deepEqual(pageContext(ORDERS, tree, '/8'), { ids: ['all'], section: 'all', current: 'all', crumbs: [{ label: 'All orders', href: '/' }, { label: 'Order 8' }], title: 'Order 8' });
+    assert.deepEqual(pageContext(ORDERS, tree, '/nothing/here'), { ids: [], section: null, current: null, crumbs: [], title: '' });
+    const t = pageContext(ORDERS, tree, '/8', { title: 'Order 8 (paid)' });
+    assert.equal(t.title, 'Order 8 (paid)');
+    assert.equal(t.crumbs.at(-1).label, 'Order 8 (paid)');
+    const o = pageContext(ORDERS, tree, '/8', { ids: ['a', 'b'], crumbs: [{ label: 'X' }] });
+    assert.deepEqual([o.section, o.current, o.title], ['a', 'b', 'X']);
+});
 
 test('a record route belongs to its list: the list entry is current, the trail is the route labels', () => {
     const tree = navRoutes(NAV);
