@@ -84,9 +84,7 @@ export const BUDGETS = {
     // elementGzKb limit even after real minification. Each entry is a one-time, documented, owner-approved exception at today's measured size,
     // not room to grow: adding to that element again without shrinking something else in it first fails this test. Do not add an entry here
     // without the same owner sign-off #514 needed for appEntryGzKb; do not "fix" a failure by bumping the number in an entry that already exists.
-    elementGzKbOverrides: {
-        'dock.js': { limit: 8.3, note: 'PLACEHOLDER pending re-measurement: real minification (#600) was measured before #618 step 3 (keyboard/menu path for floating panels) landed on main, so #600 only measured dock.js post-minification WITHOUT step 3 (6.30 KB). This will be replaced with dock.js real minified size including step 3, once rebuilt and measured.' },
-    },
+    elementGzKbOverrides: {},
     baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
     jsModuleGzKb: { target: 3, limit: 6 },
     // HARD CAP, not a ratchet (#514): every other limit in this table only ever comes down, but splitting the entry graph alone could not

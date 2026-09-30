@@ -8,8 +8,13 @@
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
 import { createStore } from '../../js/store.js';
-import { place, onOutside, unplace } from '../../js/positioning.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup, floaters, findFloater, dragFloater, floatDrag, tabDrag, raiseFloater, describeMove, floatPanel, dockFloating, moveFloater, resizeFloater } from '../../js/dock-model.js';
+import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel, floaters } from '../../js/dock-model.js';
+// Rendering (draw() and everything it calls), the pointer drag-to-dock/floater-keyboard cluster and the collapse-to-rail flyout are split into
+// their own modules (issue #639): dock.js's own gzip size stayed over the blanket per-element budget even after real minification (#600), because
+// nobody had yet cut its own source size. Every export takes this element instance as its first argument; see each file for why it was pulled out.
+import * as render from '../../js/dock-render.js';
+import * as drag from '../../js/dock-drag.js';
+import * as flyout from '../../js/dock-flyout.js';
 
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
@@ -50,9 +55,6 @@ export function readPanels(children) {
 // Pure: every open panel in tree reading order (start before end), the order of the phone strip.
 export const readingOrder = doc => groups(doc).flatMap(g => g.panels);
 
-const make = (doc, tag, attrs = {}) => { const e = doc.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
-const gid = (doc, id) => groups(doc).find(g => g.id === id);
-const rectStyle = (el, f) => Object.assign(el.style, { left: `${f.x}px`, top: `${f.y}px`, width: `${f.w}px`, height: `${f.h}px`, zIndex: f.z });
 
 export default Base => class extends Base {
     connected() {
@@ -154,158 +156,28 @@ export default Base => class extends Base {
         this.$mod?.set('layout', this.$doc);
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
     }
+    // draw() and everything it calls (the splitter/tabs tree, the panel menu, the toolbar's Panels menu) live in js/dock-render.js (issue #639);
+    // each thin method here just forwards to it with `this`.
     draw(phone) {
         const doc = this.$doc, root = this.part('root'), d = this.ownerDocument, floating = floaters(doc);
         // the phone strip flattens every group into one reading-order tab list, so "move to another group" has no target there
         this.$phoneStrip = Boolean(phone);
-        this.drawToolbar(d);
+        render.drawToolbar(this, d);
         this.part('empty').hidden = Boolean(doc.root) || floating.length > 0;
         if (!doc.root && !floating.length) { root.replaceChildren(); return this.reflyout(); }
         if (phone) {
             const list = readingOrder(doc);
-            root.replaceChildren(this.group(d, { id: 'phone', type: 'tabs', panels: list, active: list.includes(this.$phone) ? this.$phone : list[0] }));
+            root.replaceChildren(render.group(this, d, { id: 'phone', type: 'tabs', panels: list, active: list.includes(this.$phone) ? this.$phone : list[0] }));
             loadElements(root);
             return this.reflyout();
         }
-        root.replaceChildren(...(doc.root ? [this.node(d, doc.root)] : []));
-        this.drawFloating(d, floating);
+        root.replaceChildren(...(doc.root ? [render.node(this, d, doc.root)] : []));
+        render.drawFloating(this, d, floating);
         loadElements(root);
         this.reflyout();
     }
-    // Each `floating` entry (js/dock-model.js) is an absolutely-positioned overlay inside .root's own bounds (never the shell/viewport, per the
-    // design's "floating layer: inside the dock bounds only"), never drawn for the phone strip (a floater has no meaning once everything flattens
-    // to one reading-order tab list). Its group is a plain `tabs` node rendered by this.group() itself (data-floater doubles as the CSS hook and
-    // the id onDragStart reads back), rather than a second tab-rendering path or an extra wrapper element.
-    drawFloating(d, floating) {
-        const root = this.part('root');
-        for (const f of floating) {
-            const g = this.group(d, f.group, f.id);
-            g.setAttribute('data-floater', f.id);
-            rectStyle(g, f);
-            // The frame itself is the keyboard handle (onFloatKeys). aria-describedby points at dock.html's one static hint, not a copy each.
-            g.tabIndex = 0;
-            g.setAttribute('aria-roledescription', 'floating panel');
-            g.setAttribute('aria-describedby', 'floater-help');
-            g.append(make(d, 'div', { class: 'floater-resize' }));
-            root.append(g);
-        }
-    }
-    // Re-finds the rail button for an open flyout after a redraw (draw() rebuilds the tree from scratch, so the old button is gone) and repositions
-    // over it; closes the flyout quietly when its panel is no longer a collapsed edge group (it moved, expanded, or the layout changed under it).
-    reflyout() {
-        if (!this.$flyout) return;
-        const btn = this.part('root').querySelector?.(`[data-rail-panel="${this.$flyout}"]`);
-        const el = this.part('flyout');
-        if (!btn) { this.$flyout = null; this.$o?.(); this.$o = undefined; unplace(el); el.hidden = true; return; }
-        btn.setAttribute('aria-expanded', 'true');
-        place(btn, el, { placement: 'right-start', offset: 4 });
-    }
-    node(d, n) {
-        if (n.type === 'tabs') return this.group(d, n);
-        const s = make(d, 'pk-splitter', { orientation: n.orientation, size: n.size, min: n.min, max: n.max, label: this.resizeLabel, 'data-node': n.id });
-        for (const [slot, child] of [['start', n.a], ['end', n.b]]) { const cell = make(d, 'div', { class: 'cell', slot }); cell.append(this.node(d, child)); s.append(cell); }
-        return s;
-    }
-    // floaterId (only from drawFloating) steers panelTrigger toward dockFloating's targets instead of moveTab/dockPanel's tree-only ones.
-    group(d, n, floaterId) {
-        const g = this.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true), title = id => this.$titles.get(id) ?? id;
-        g.setAttribute('data-node', n.id);
-        const h = g.querySelector('.header'), body = g.querySelector('.body'), movable = !this.$phoneStrip && groups(this.$doc).length > 1;
-        const railBtn = g.querySelector('.rail-button');
-        // A grab cursor where a pointer drag can actually pick this group up.
-        g.toggleAttribute('data-movable', movable);
-        if (n.panels.length === 1) {
-            const panel = n.panels[0], collapsed = (this.$doc.collapsed ?? []).includes(panel), bodyId = `b-${panel}`;
-            // A collapsed group at a screen edge folds to a narrow rail button (icon strip in miniature: title only for now) that opens the panel as a
-            // flyout on click, the familiar IDE behaviour; a collapsed group that is not at an edge (the centre column) keeps the header-only fold.
-            if (collapsed && isEdgeGroup(this.$doc, n.id)) {
-                h.remove(); body.remove();
-                g.setAttribute('class', `${g.getAttribute('class') || 'group'} rail`);
-                g.setAttribute('aria-label', title(panel));
-                railBtn.hidden = false;
-                railBtn.setAttribute('data-rail-panel', panel);
-                railBtn.setAttribute('aria-haspopup', 'true');
-                railBtn.setAttribute('aria-expanded', String(this.$flyout === panel));
-                railBtn.setAttribute('aria-controls', 'flyout');
-                railBtn.textContent = title(panel);
-                return g;
-            }
-            railBtn.remove();
-            h.id = `h-${panel}`;
-            const toggle = h.querySelector('.collapse-toggle');
-            toggle.setAttribute('aria-expanded', String(!collapsed));
-            toggle.setAttribute('aria-controls', bodyId);
-            toggle.setAttribute('data-panel', panel);
-            toggle.querySelector('.title').textContent = title(panel);
-            if (!this.$phoneStrip) h.append(this.panelTrigger(d, panel, n.id, movable, floaterId));
-            body.id = bodyId;
-            body.hidden = collapsed;
-            body.append(make(d, 'slot', { name: panel }));
-            g.setAttribute('aria-labelledby', h.id);
-            return g;
-        }
-        h.remove(); body.remove(); railBtn.remove();
-        g.setAttribute('aria-label', this.label || 'Panels');
-        // scroll: a group's tab list never wraps onto a second row (a narrow group, or the phone strip's own row) — it scrolls sideways instead, like pk-tabs elsewhere.
-        const tabs = make(d, 'pk-tabs', { value: n.active, scroll: '' });
-        for (const id of n.panels) {
-            const tab = make(d, 'pk-tab', { value: id }); tab.textContent = title(id);
-            const panel = make(d, 'pk-tab-panel', { value: id }), pbody = make(d, 'div', { part: 'body', class: 'body' }); pbody.append(make(d, 'slot', { name: id })); panel.append(pbody);
-            tabs.append(tab, panel);
-        }
-        if (!this.$phoneStrip) {
-            const trailing = make(d, 'div', { slot: 'trailing', class: 'trailing' });
-            trailing.append(this.panelTrigger(d, n.active, n.id, movable, floaterId));
-            tabs.append(trailing);
-        }
-        g.append(tabs);
-        return g;
-    }
-    // A panel menu: "Move to..." (every other group) when movable, then Float, then Close. floaterId (already floating, from drawFloating) swaps
-    // the Move section for dockFloating's own "dock back in" targets instead: moveTab/dockPanel only know tree panels.
-    panelTrigger(d, panel, group, movable, floaterId) {
-        const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
-        const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'more', label: `${this.$titles.get(panel) ?? panel} panel menu` });
-        dd.append(btn);
-        const targets = floaterId ? groups(this.$doc) : movable ? groups(this.$doc).filter(t => t.id !== group) : [];
-        const subj = floaterId ?? panel, verb = floaterId ? 'dockfloat' : 'dock', tabVerb = floaterId ? 'dockfloat' : 'tab';
-        for (const target of targets) {
-            const targetTitle = this.$titles.get(target.active) ?? target.active;
-            const header = make(d, 'pk-menu-item', { type: 'header' }); header.textContent = targetTitle;
-            const tab = make(d, 'pk-menu-item', { value: `${tabVerb}:${subj}:${target.id}${floaterId ? ':center' : ''}` }); tab.textContent = 'Add as tab';
-            dd.append(header, tab);
-            for (const [zone, text] of ZONE_LABELS) {
-                const item = make(d, 'pk-menu-item', { value: `${verb}:${subj}:${target.id}:${zone}` }); item.textContent = `${text} ${targetTitle}`;
-                dd.append(item);
-            }
-        }
-        if (targets.length) dd.append(make(d, 'pk-menu-item', { type: 'divider' }));
-        if (!floaterId && !this.$phoneStrip) {
-            const float = make(d, 'pk-menu-item', { value: `float:${panel}` }); float.textContent = 'Float';
-            dd.append(float, make(d, 'pk-menu-item', { type: 'divider' }));
-        }
-        const close = make(d, 'pk-menu-item', { value: `close:${panel}` }); close.textContent = 'Close';
-        dd.append(close);
-        return dd;
-    }
-    // The toolbar: a stable, always-there row (host apps fill slot toolbar-start with their own File/Edit/View-style menus; the dock never invents
-    // their content, only gives it a place next to its own controls) plus, at its end, the Panels menu once something is closed. The toolbar itself
-    // shows whenever the host gave it something (the slot) or the dock has (a closed panel); with neither, it collapses to nothing rather than
-    // reserving an empty bar.
-    drawToolbar(d) {
-        const bar = this.part('toolbar'), closed = [...this.$titles ?? []].map(([id]) => id).filter(id => this.$closed.has(id));
-        bar.querySelector('.panels')?.remove();
-        bar.hidden = closed.length === 0 && this.slotted('toolbar-start').length === 0;
-        if (!closed.length) return;
-        const panels = make(d, 'div', { class: 'panels' });
-        const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
-        const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'dashboard', label: `Panels (${closed.length} closed)` });
-        dd.append(btn);
-        for (const id of closed) { const item = make(d, 'pk-menu-item', { value: `open:${id}` }); item.textContent = `Open ${this.$titles.get(id) ?? id}`; dd.append(item); }
-        panels.append(dd);
-        bar.append(panels);
-        loadElements(bar);
-    }
+    // Re-finds the rail button for an open flyout after a redraw and repositions over it; js/dock-flyout.js (issue #639).
+    reflyout() { flyout.reflyout(this); }
     onResize(e) {
         e.stopPropagation();
         const id = e.target.closest?.('pk-splitter')?.getAttribute('data-node');
@@ -332,257 +204,31 @@ export default Base => class extends Base {
         if (kind === 'dockfloat' && panel && group && zone) return this.applyDockFloat(panel, group, zone);
         this.applyMove(kind, panel, group, zone);
     }
-    // Applies a proposed doc that needs a full redraw (unlike a resize or a tab choice, already reflected by the splitter/tabs just touched):
-    // commits, redraws (this.layout now equals this.$given, so updated()'s own redraw would no-op), announces and moves focus. Shared by
-    // applyMove, floatCmd and applyDockFloat. focusNext runs after the redraw, so it can look up a freshly-drawn element.
-    settle(doc, reason, said, focusNext) {
-        this.$doc = doc;
-        this.commit(reason);
-        this.draw(Boolean(this.$mq?.matches));
-        this.part('status').textContent = said;
-        focusNext();
-    }
-    // The one place moveTab/dockPanel are called: from the Move menu (onMove) and a pointer drop (onDragEnd).
-    applyMove(kind, panel, group, zone) {
-        const title = id => this.$titles.get(id) ?? id, targetGroup = gid(this.$doc, group);
-        let r;
-        if (kind === 'tab' && panel && group) r = moveTab(this.$doc, { panel, group });
-        else if (kind === 'dock' && panel && group && zone) r = dockPanel(this.$doc, { panel, target: group, zone });
-        else return;
-        for (const p of r.problems) this.warnOnce(`move:${p.code}:${p.path}`, p.message, { code: p.code });
-        if (r.doc === this.$doc) return;
-        this.settle(r.doc, 'move', describeMove(kind, title(panel), title(targetGroup?.active), zone), () => this.focusPanel(panel));
-    }
-    // Panel menu's Float: floatPanel plus a small cascade so several in a row do not stack exactly, then focus follows to the new frame.
-    floatCmd(panel) {
-        const title = this.$titles.get(panel) ?? panel, box = this.part('root').getBoundingClientRect(), n = floaters(this.$doc).length;
-        const r = floatPanel(this.$doc, { panel, rect: { x: 24 + (n % 6) * 16, y: 24 + (n % 6) * 16, w: 320, h: 240 }, bounds: { w: box.width, h: box.height } });
-        for (const p of r.problems) this.warnOnce(`float:${p.code}:${p.path}`, p.message, { code: p.code });
-        if (r.doc === this.$doc) return;
-        this.settle(r.doc, 'float', `${title} floating`, () => this.focusFloater(panel));
-    }
-    // Focuses panel's own floater frame (the keyboard move/resize handle below): the accessible next step after Float detaches it.
-    focusFloater(panel) {
-        const f = floaters(this.$doc).find(fl => fl.group.panels.includes(panel));
-        this.part('root').querySelector?.(`[data-floater="${f?.id}"]`)?.focus?.();
-    }
-    // Panel menu's "dock back in" (dockFloating); reads the active panel first, since dockFloating removes the floater.
-    applyDockFloat(floaterId, target, zone) {
-        const f = findFloater(this.$doc, floaterId);
-        if (!f) return;
-        const title = id => this.$titles.get(id) ?? id, panel = f.group.active, targetGroup = gid(this.$doc, target);
-        const r = dockFloating(this.$doc, { floater: floaterId, target, zone });
-        for (const p of r.problems) this.warnOnce(`dockfloat:${p.code}:${p.path}`, p.message, { code: p.code });
-        if (r.doc === this.$doc) return;
-        this.settle(r.doc, 'dockfloat', describeMove(zone === 'center' ? 'tab' : 'dock', title(panel), title(targetGroup?.active), zone), () => this.focusPanel(panel));
-    }
-    // Arrow keys on a floater's own frame move it by a step (Shift for a bigger one, like pk-splitter's own keys); Alt resizes instead. Only when
-    // the frame itself has focus, not a descendant. paintFloat, not a redraw, keeps focus on the frame the key press just moved.
-    onFloatKeys(e) {
-        const el = e.target.closest?.('[data-floater]');
-        if (!el || e.target !== el) return;
-        const id = el.getAttribute('data-floater'), f = findFloater(this.$doc, id);
-        if (!f) return;
-        const step = e.shiftKey ? 32 : 8, resizing = e.altKey;
-        let dx = 0, dy = 0;
-        if (e.key === 'ArrowLeft') dx = -step;
-        else if (e.key === 'ArrowRight') dx = step;
-        else if (e.key === 'ArrowUp') dy = -step;
-        else if (e.key === 'ArrowDown') dy = step;
-        else return;
-        e.preventDefault();
-        const box = this.part('root').getBoundingClientRect(), bounds = { w: box.width, h: box.height };
-        const r = resizing ? resizeFloater(this.$doc, { floater: id, w: f.w + dx, h: f.h + dy, bounds }) : moveFloater(this.$doc, { floater: id, x: f.x + dx, y: f.y + dy, bounds });
-        if (r.doc === this.$doc) return;
-        const moved = r.doc.floating.find(x => x.id === id), title = this.$titles.get(f.group.active) ?? f.group.active;
-        const said = resizing ? `${title} resized to ${Math.round(moved.w)} by ${Math.round(moved.h)}` : `${title} moved to ${Math.round(moved.x)}, ${Math.round(moved.y)}`;
-        this.paint(r.doc, id, resizing ? 'resize' : 'move', said);
-    }
-    // Focusing anything inside a floater raises it, the focus mirror of onDragStart's raise-on-grab.
-    onFloatFocus(e) {
-        const id = e.target.closest?.('[data-floater]')?.getAttribute('data-floater');
-        if (!id) return;
-        const r = raiseFloater(this.$doc, { floater: id });
-        if (r.doc !== this.$doc) this.paint(r.doc, id, 'raise');
-    }
-    // Applies a floater doc change straight to its element's own inline style (no draw(), which would tear down a mid-drag/-key element): the
-    // in-place counterpart of settle, used for a floater's own live position/size/z. said, if given, updates the status live region too.
-    paint(doc, id, reason, said) {
-        this.$doc = doc;
-        this.paintFloat(id);
-        this.commit(reason);
-        if (said) this.part('status').textContent = said;
-    }
-    // ---- pointer drag-to-dock: the moveTab/dockPanel calls above, reached by dragging a header or a pk-tab onto another group. Pointer capture is
-    // set right away (like pk-sortable-item), but nothing else happens (no overlay, no preventDefault) until the pointer actually moves, so a plain
-    // click still selects a tab. Grabbing needs another group to drop on (panelTrigger's own "movable"), and never the panel-menu trigger itself.
-    // A floater has no separate title bar element: its own group() header (or tab strip) already shows the title, so that same element doubles as
-    // the drag-to-move handle, plus a corner .floater-resize grip. Either shares one $drag object, one set of listeners and one grab/release helper
-    // with the tree's own tab-drag-to-dock below (d.float tells onDragMove/onDragEnd which branch to run); moveFloater/resizeFloater already clamp
-    // to bounds (.root's own rect, never the shell/viewport), so dock.js never re-derives that clamp math, only turns pointer deltas into calls.
-    onDragStart(e) {
-        if (e.button > 0 || e.target.closest?.('pk-dropdown, pk-button')) return;
-        const floaterEl = e.target.closest?.('[data-floater]');
-        if (floaterEl) {
-            const grip = e.target.closest?.('.floater-resize'), handle = grip || e.target.closest?.('pk-tab, [part="header"]');
-            const id = handle && floaterEl.getAttribute('data-floater'), f = id && findFloater(this.$doc, id);
-            if (!f) return;
-            e.stopPropagation();
-            this.$doc = raiseFloater(this.$doc, { floater: id }).doc;
-            this.paintFloat(id);
-            this.grab(handle, e.pointerId);
-            this.$drag = floatDrag(f, grip, e.pointerId, e.clientX, e.clientY);
-            this.$drag.handle = handle;
-            return;
-        }
-        if (this.$phoneStrip || groups(this.$doc).length < 2) return;
-        const tab = e.target.closest?.('pk-tab');
-        const handle = tab || e.target.closest?.('[part="header"]');
-        const groupEl = handle?.closest?.('[data-node]');
-        const groupId = groupEl?.getAttribute('data-node');
-        const group = groupId && gid(this.$doc, groupId);
-        if (!group) return;
-        const panel = tab ? tab.getAttribute('value') : group.active;
-        if (!panel) return;
-        this.grab(handle, e.pointerId);
-        this.$drag = tabDrag(panel, groupId, e.pointerId, e.clientX, e.clientY);
-        this.$drag.handle = handle;
-    }
-    grab(handle, id) { try { handle.setPointerCapture(id); } catch (err) { this.debug?.('pointer capture refused (no synthetic pointer active)', err); } }
-    // Past a small movement threshold (a click is never mistaken for a drag), hit-test the group under the pointer with shadowRoot.elementFromPoint
-    // (e.target stays pinned to the captured handle) and mark its zone, or clear the mark over no group, a splitter, or the panel's own group.
-    onDragMove(e) {
-        const d = this.$drag;
-        if (!d || e.pointerId !== d.pointerId) return;
-        if (d.float) {
-            e.preventDefault();
-            const box = this.part('root').getBoundingClientRect();
-            const r = dragFloater(this.$doc, { floater: d.id, start: d, dx: e.clientX - d.sx, dy: e.clientY - d.sy, resize: d.resize, bounds: { w: box.width, h: box.height } });
-            if (r.doc !== this.$doc) { this.$doc = r.doc; this.paintFloat(d.id); }
-            return;
-        }
-        if (!d.moved) {
-            if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
-            d.moved = true;
-            this.toggleAttribute('dragging', true);
-        }
-        e.preventDefault();
-        const hit = this.shadowRoot.elementFromPoint?.(e.clientX, e.clientY);
-        const groupEl = hit?.closest?.('[data-node]');
-        const groupId = groupEl?.getAttribute('data-node');
-        const group = groupId && groupId !== d.from && gid(this.$doc, groupId);
-        if (!group) { this.clearDropZone(); d.target = null; d.zone = null; return; }
-        const zone = dropZone(groupEl.getBoundingClientRect(), e.clientX, e.clientY);
-        if (groupId === d.target && zone === d.zone) return;
-        this.clearDropZone();
-        d.target = groupId; d.zone = zone;
-        groupEl.setAttribute('drop-zone', zone);
-    }
-    clearDropZone() { this.part('root').querySelectorAll?.('[drop-zone]')?.forEach(el => el.removeAttribute('drop-zone')); }
-    // Zone center is moveTab, any edge is dockPanel, exactly like the matching Move menu item. Never moved, cancelled, or nowhere valid: no-op. A
-    // floater drag/resize has no drop zone to resolve: onDragMove already applied it live, so ending the gesture is just a settling commit.
-    onDragEnd(e) {
-        const d = this.$drag;
-        if (!d || e.pointerId !== d.pointerId) return;
-        if (d.handle?.hasPointerCapture?.(d.pointerId)) d.handle.releasePointerCapture(d.pointerId);
-        this.$drag = null;
-        if (d.float) return this.commit('floater');
-        this.toggleAttribute('dragging', false);
-        this.clearDropZone();
-        if (!d.moved || e.type === 'pointercancel' || !d.target) return;
-        this.applyMove(d.zone === 'center' ? 'tab' : 'dock', d.panel, d.target, d.zone);
-    }
-    // Applies a floater's current rect/z straight to its own element's inline style, never draw() (a mid-drag redraw would tear down the element the
-    // pointer just captured). The one place this.$doc moves ahead of the DOM until onDragEnd's commit settles it, mirroring onResize/pk-splitter.
-    paintFloat(id) {
-        const f = findFloater(this.$doc, id), el = this.part('root').querySelector?.(`[data-floater="${id}"]`);
-        if (f && el) rectStyle(el, f);
-    }
-    // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
-    // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
-    closePanel(panel) {
-        if (this.$closed.has(panel) || !this.$titles.has(panel)) return;
-        const said = `${this.$titles.get(panel) ?? panel} closed`;
-        this.$closed.add(panel);
-        // synchronous, like a move: the redraw (a panel leaving its group, or the group itself) needs to happen before focus moves
-        this.updated();
-        this.part('status').textContent = said;
-        this.part('toolbar').querySelector('pk-button[slot="trigger"]')?.focus?.();
-    }
-    // Reopen a closed panel: declaring it again makes updated() add it back (to a group, per the same "a declared panel the layout lacks" repair a
-    // panel newly appearing in the DOM already takes; no memory of its last group in this smallest version, see #432).
-    openPanel(panel) {
-        if (!this.$closed.has(panel)) return;
-        const said = `${this.$titles.get(panel) ?? panel} opened`;
-        this.$closed.delete(panel);
-        this.updated();
-        this.part('status').textContent = said;
-        this.focusPanel(panel);
-    }
-    // Focus the tab of panel after a move (or its group's Move trigger, when it landed alone with no tab strip): the accessible outcome of an
-    // operation is where focus goes next.
-    focusPanel(panel) {
-        const root = this.part('root'), tab = root.querySelector(`pk-tab[value="${panel}"]`);
-        if (tab) return tab.focus?.();
-        const group = findGroup(this.$doc, panel), section = group && root.querySelector(`[data-node="${group.id}"]`);
-        section?.querySelector('pk-button[slot="trigger"]')?.focus?.();
-    }
-    // The chevron button in a single-panel header, a rail button, or the flyout's own Expand button (issue #636 - it carries the same data-panel
-    // as the header's collapse-toggle, since restoring from the flyout is the same expandPanel call; reflyout(), called from the draw() below,
-    // then notices the rail button is gone and closes the now-stale flyout on its own). Enter/Space activate any of them, no extra key handling
-    // needed. Multi-panel tab groups do not offer collapse yet (see the model's collapsePanel doc comment); a click on a button with neither
-    // data-panel nor data-rail-panel is ignored.
-    onToggle(e) {
-        const btn = e.target.closest?.('button');
-        const railPanel = btn?.getAttribute('data-rail-panel');
-        if (railPanel) { e.stopPropagation(); this.toggleFlyout(railPanel, btn); return; }
-        const panel = btn?.getAttribute('data-panel');
-        if (!panel) return;
-        e.stopPropagation();
-        const collapsed = (this.$doc.collapsed ?? []).includes(panel);
-        const r = (collapsed ? expandPanel : collapsePanel)(this.$doc, { panel });
-        if (r.doc === this.$doc) return;
-        this.$doc = r.doc; this.commit('collapse');
-        this.draw(Boolean(this.$mq?.matches));
-        // draw() rebuilds the whole group subtree (a new button), so the one the pointer or keyboard just used is gone: without this the next
-        // Tab (or the next Enter, for a screen reader user who does not re-locate the button) would land somewhere else.
-        this.part('root').querySelector?.(`[data-panel="${panel}"]`)?.focus?.();
-    }
-    // Opens (or, on a second activation of the same rail button, closes) a panel as a flyout positioned over the content area, next to the rail
-    // button it belongs to. The panel stays collapsed in the model throughout: the flyout is a transient view, not a layout change, so it raises
-    // no pk-layout-change. Only one flyout is open at a time (a second rail button replaces it, IDE-fashion).
-    toggleFlyout(panel, btn) {
-        if (this.$flyout === panel) { this.closeFlyout(); return; }
-        this.$flyout = panel;
-        const el = this.part('flyout'), x = el.firstElementChild;
-        el.hidden = false;
-        x.setAttribute('data-panel', panel);
-        el.replaceChildren(x, make(this.ownerDocument, 'slot', { name: panel }));
-        loadElements(el);
-        place(btn, el, { placement: 'right-start', offset: 4 });
-        btn.setAttribute('aria-expanded', 'true');
-        this.$o?.();
-        this.$o = onOutside([btn, el], ev => this.closeFlyout(ev));
-    }
-    // Closes the open flyout (a no-op when none is open). Escape returns focus to the rail button that opened it; an outside click or a blur out of
-    // the flyout does not steal focus back, since it has already moved somewhere the user chose.
-    closeFlyout(e) {
-        const panel = this.$flyout;
-        if (!panel) return;
-        this.$flyout = null;
-        this.$o?.(); this.$o = undefined;
-        const el = this.part('flyout');
-        unplace(el); el.hidden = true;
-        const btn = this.part('root').querySelector?.(`[data-rail-panel="${panel}"]`);
-        btn?.setAttribute('aria-expanded', 'false');
-        if (e?.type === 'keydown') btn?.focus?.();
-    }
-    // Closes when focus leaves both the flyout and its rail button (Tab out, not just a pointerdown elsewhere, which onOutside already covers).
-    onFlyoutBlur(e) {
-        if (!this.$flyout) return;
-        const el = this.part('flyout'), btn = this.part('root').querySelector?.(`[data-rail-panel="${this.$flyout}"]`);
-        const to = e.relatedTarget;
-        if (to && (el.contains?.(to) || to === btn)) return;
-        this.closeFlyout();
-    }
+    // settle/applyMove/floatCmd/focusFloater/applyDockFloat (the move/float/dock-back-in commands a panel menu choice or a pointer drop resolves
+    // to), the floater keyboard/focus and the pointer drag-to-dock/paint helpers below all live in js/dock-drag.js (issue #639: reached far less
+    // often than the everyday open/close/resize/tab path, so they were the first cut out of dock.js's own bundle); each thin method here just
+    // forwards to it with `this`.
+    settle(doc, reason, said, focusNext) { drag.settle(this, doc, reason, said, focusNext); }
+    applyMove(kind, panel, group, zone) { drag.applyMove(this, kind, panel, group, zone); }
+    floatCmd(panel) { drag.floatCmd(this, panel); }
+    focusFloater(panel) { drag.focusFloater(this, panel); }
+    applyDockFloat(floaterId, target, zone) { drag.applyDockFloat(this, floaterId, target, zone); }
+    onFloatKeys(e) { drag.onFloatKeys(this, e); }
+    onFloatFocus(e) { drag.onFloatFocus(this, e); }
+    paint(doc, id, reason, said) { drag.paint(this, doc, id, reason, said); }
+    onDragStart(e) { drag.onDragStart(this, e); }
+    grab(handle, id) { drag.grab(this, handle, id); }
+    onDragMove(e) { drag.onDragMove(this, e, dropZone); }
+    clearDropZone() { drag.clearDropZone(this); }
+    onDragEnd(e) { drag.onDragEnd(this, e); }
+    paintFloat(id) { drag.paintFloat(this, id); }
+    // closePanel/openPanel/focusPanel, the collapse-to-rail toggle and the flyout open/close below all live in js/dock-flyout.js (issue #639: a
+    // less-common path than the everyday open/close/resize/tab dock.js keeps for itself); each thin method here just forwards to it with `this`.
+    closePanel(panel) { flyout.closePanel(this, panel); }
+    openPanel(panel) { flyout.openPanel(this, panel); }
+    focusPanel(panel) { flyout.focusPanel(this, panel); }
+    onToggle(e) { flyout.onToggle(this, e, collapsePanel, expandPanel); }
+    toggleFlyout(panel, btn) { flyout.toggleFlyout(this, panel, btn); }
+    closeFlyout(e) { flyout.closeFlyout(this, e); }
+    onFlyoutBlur(e) { flyout.onFlyoutBlur(this, e); }
 };
