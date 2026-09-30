@@ -6,9 +6,17 @@
 import { hitsForEach, hitAt, fileIs, MARKUP_EXTENSIONS, SCRIPT_EXTENSIONS, CSS_EXTENSIONS } from '../util.mjs';
 import { TAG_HINTS } from '../hints.mjs';
 import { stripCommentsAndKeepStrings } from '../../strict/scanners/css.mjs';
+import { stripJsCommentsAndKeepStrings } from '../../strict/scanners/js.mjs';
 
 const isCss = file => fileIs(file, CSS_EXTENSIONS);
+const isScript = file => fileIs(file, SCRIPT_EXTENSIONS);
 const isMarkupOrScript = file => fileIs(file, [...MARKUP_EXTENSIONS, ...SCRIPT_EXTENSIONS]);
+
+// Comment-free, offset-stable text for a regex-based JS scan (S2/S3/S5/S6/S7/S8, #697), the same idea as
+// S9's `stripCommentsAndKeepStrings` for CSS: prose inside a `//` or `/* */` comment (e.g. "Save keeps them
+// in localStorage") must never match as if it were real code. Non-script files (markup) have no JS comment
+// syntax to strip, so they scan the raw text unchanged.
+const scriptSafeText = file => (isScript(file) ? stripJsCommentsAndKeepStrings(file.text) : file.text);
 
 export const S_RULES = [
     {
@@ -42,6 +50,7 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} sets {found}. Style through an element attribute or a --pk-<element>-<part> token, not inline style. [S2]',
         applies: isMarkupOrScript,
         scan(file) {
+            const text = scriptSafeText(file);
             const hits = [];
             for (const [re, label] of [
                 [/\bstyle\s*=\s*["'{]/g, 'style='],
@@ -49,7 +58,7 @@ export const S_RULES = [
                 [/\bcssText\b/g, 'cssText'],
                 [/\.setProperty\s*\(/g, '.setProperty()'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
             }
             return hits;
         },
@@ -63,13 +72,14 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} uses {found}. Compose pk-* elements instead of adding classes to style them. [S3]',
         applies: isMarkupOrScript,
         scan(file) {
+            const text = scriptSafeText(file);
             const hits = [];
             for (const [re, label] of [
                 [/\bclass\s*=\s*["']/g, 'class='],
                 [/\bclassName\s*=/g, 'className'],
                 [/\bclassList\b/g, 'classList'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
             }
             return hits;
         },
@@ -97,6 +107,7 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} uses {found}. Prefer DOM APIs or textContent over an HTML sink. [S5]',
         applies: file => fileIs(file, SCRIPT_EXTENSIONS),
         scan(file) {
+            const text = scriptSafeText(file);
             const hits = [];
             for (const [re, label] of [
                 [/\.innerHTML\b/g, 'innerHTML'],
@@ -107,7 +118,7 @@ export const S_RULES = [
                 [/\.createContextualFragment\s*\(/g, 'createContextualFragment'],
                 [/\bsrcdoc\b/g, 'srcdoc'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
             }
             return hits;
         },
@@ -124,9 +135,10 @@ export const S_RULES = [
             // Approximate without a consumer config (that arrives with the CLI, A-5/A-6): flags a bare-specifier
             // import/require that is not the plainkit package itself and not a relative/absolute path.
             const re = /\bimport\s+(?:[\w${},*\s]+from\s+)?['"]([^'"]+)['"]|\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+            const text = scriptSafeText(file);
             const hits = [];
             let m;
-            while ((m = re.exec(file.text))) {
+            while ((m = re.exec(text))) {
                 const spec = m[1] || m[2];
                 if (spec && spec !== 'plainkit' && !spec.startsWith('plainkit/') && !/^[./]/.test(spec)) {
                     hits.push(hitAt(file.text, m.index, spec, { found: spec }));
@@ -144,6 +156,9 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} touches the platform directly ({found}). Fine in a bootstrap file; inside a module this belongs behind the SDK\'s own APIs. [S7]',
         applies: file => fileIs(file, SCRIPT_EXTENSIONS),
         scan(file) {
+            // Scan comment-free, offset-stable text (#697), same approach as S9's CSS comment stripping: a
+            // doc comment like "Save keeps them in localStorage" must never match as if it were a real access.
+            const text = scriptSafeText(file);
             const hits = [];
             for (const [re, label] of [
                 [/\bdocument\./g, 'document.'],
@@ -156,7 +171,7 @@ export const S_RULES = [
                 [/\bsetInterval\s*\(/g, 'setInterval'],
                 [/\bfetch\s*\(/g, 'fetch'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
             }
             return hits;
         },
@@ -170,6 +185,7 @@ export const S_RULES = [
         fixTemplate: 'FIX: {file}:{line} uses {found}. Prefer a built-in page type over a custom mount function. [S8]',
         applies: file => fileIs(file, SCRIPT_EXTENSIONS),
         scan(file) {
+            const text = scriptSafeText(file);
             const hits = [];
             for (const [re, label] of [
                 [/page\s*:\s*['"]custom['"]/g, "page: 'custom'"],
@@ -177,7 +193,7 @@ export const S_RULES = [
                 [/\bpageTypes\s*:/g, 'pageTypes:'],
                 [/\blayouts\s*:/g, 'layouts:'],
             ]) {
-                hits.push(...hitsForEach(file.text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
             }
             return hits;
         },

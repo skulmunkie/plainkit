@@ -132,6 +132,69 @@ function skipRegex(text, start) {
     return -1;
 }
 
+// Blanks out `//` and `/* */` comment bodies (preserving length and newlines, so offsets stay valid) and
+// passes strings, template literals and regex literals through untouched, so a regex-based audit rule (S-family,
+// #697) never matches prose sitting inside a comment (e.g. "Save keeps them in localStorage"). This is the JS
+// analogue of css.mjs's `stripCommentsAndKeepStrings`, but JS needs the same string/regex/template
+// disambiguation `scanJs` already does - `//` or `/* */` inside a string ("http://x"), a regex literal
+// (/a\/\/b/) or a template literal is not a comment, so this walks the text with the same rules as `scanJs`
+// rather than a standalone regex pass.
+export function stripJsCommentsAndKeepStrings(text) {
+    let out = '';
+    const n = text.length;
+    let i = 0;
+    let last = '';
+    while (i < n) {
+        const c = text[i];
+        if (c === '/' && text[i + 1] === '/') {
+            const end = text.indexOf('\n', i);
+            const stop = end === -1 ? n : end;
+            for (let j = i; j < stop; j++) out += ' ';
+            i = stop;
+            continue;
+        }
+        if (c === '/' && text[i + 1] === '*') {
+            const end = text.indexOf('*/', i + 2);
+            const stop = end === -1 ? n : end + 2;
+            for (let j = i; j < stop; j++) out += text[j] === '\n' ? '\n' : ' ';
+            i = stop;
+            continue;
+        }
+        if (c === '"' || c === "'") {
+            const start = i;
+            i = skipQuoted(text, i, c);
+            out += text.slice(start, i);
+            last = 'string';
+            continue;
+        }
+        if (c === '`') {
+            const start = i;
+            i = skipTemplate(text, i);
+            out += text.slice(start, i);
+            last = 'template';
+            continue;
+        }
+        if (c === '/' && (PUNCT_BEFORE_REGEX.has(last) || KEYWORDS_BEFORE_REGEX.has(last))) {
+            const end = skipRegex(text, i);
+            if (end !== -1) { out += text.slice(i, end); i = end; last = 'regex'; continue; }
+        }
+        if (/\s/.test(c)) { out += c; i++; continue; }
+        const numMatch = /\d/.test(c) ? NUMBER_RE.exec(text.slice(i)) : null;
+        if (numMatch) { out += numMatch[0]; i += numMatch[0].length; last = 'number'; continue; }
+        const idMatch = IDENT_RE.exec(text.slice(i));
+        if (idMatch) {
+            out += idMatch[0];
+            last = KEYWORDS_BEFORE_REGEX.has(idMatch[0]) ? 'keyword' : 'identifier';
+            i += idMatch[0].length;
+            continue;
+        }
+        out += c;
+        last = /[(),=:[\]!&|?{};+\-*/%<>^~]/.test(c) ? c : '';
+        i++;
+    }
+    return out;
+}
+
 function findTagEnd(text, start) {
     let i = start + 1;
     const n = text.length;

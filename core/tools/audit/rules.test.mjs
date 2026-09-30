@@ -61,6 +61,22 @@ test('S9: does not flag a literal-looking value inside a CSS comment, but still 
     assert.equal(hit.line, 2, `FIX: S9 reported the wrong line for a hit after a comment, got line ${hit.line}`);
 });
 
+test('S7: does not flag prose inside a JS comment, but still flags a real platform access (#697)', () => {
+    const commentOnly = checkFiles(
+        [{ path: 'app.js', text: '// Save keeps them in localStorage\nexport function save() {}' }],
+        { ruleset: 'consumer-strict' },
+    );
+    assert.ok(!commentOnly.some(f => f.rule === 'S7'), `FIX: S7 flagged a value inside a comment, got ${JSON.stringify(commentOnly.filter(f => f.rule === 'S7'))}`);
+
+    const mixed = checkFiles(
+        [{ path: 'app.js', text: '// Save keeps them in localStorage\nlocalStorage.setItem("a", "b");' }],
+        { ruleset: 'consumer-strict' },
+    );
+    const hit = mixed.find(f => f.rule === 'S7');
+    assert.ok(hit, 'FIX: S7 did not flag a real localStorage access outside a comment');
+    assert.equal(hit.line, 2, `FIX: S7 reported the wrong line for a hit after a comment, got line ${hit.line}`);
+});
+
 test('every rule carries a doc anchor and a fix template with the rule id in brackets', () => {
     for (const rule of RULES) {
         assert.ok(rule.docs && rule.docs.length > 0, `FIX: rule ${rule.id} has no doc anchor`);

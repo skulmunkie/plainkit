@@ -1,7 +1,7 @@
 // Unit tests for the JS/TS/JSX tokenizer (core/tools/strict/scanners/js.mjs, #605).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scanJs } from '../tools/strict/scanners/js.mjs';
+import { scanJs, stripJsCommentsAndKeepStrings } from '../tools/strict/scanners/js.mjs';
 
 const kinds = (text) => scanJs(text).tokens.filter(t => t.kind !== 'comment' && t.kind !== 'punct').map(t => t.kind);
 
@@ -75,4 +75,49 @@ test('line numbers advance correctly for tokens after a multi-line template', ()
     const { tokens } = scanJs('const s = `line1\nline2`;\nconst y = 9;');
     const y = tokens.find(t => t.kind === 'number' && t.value === '9');
     assert.equal(y.line, 3);
+});
+
+// stripJsCommentsAndKeepStrings (#697): blanks `//` and `/* */` comments while keeping strings, regex
+// literals and template literals intact, so a regex-based audit rule never false-positives on comment prose
+// but still finds a real match sitting inside a string/regex/template.
+test('stripJsCommentsAndKeepStrings blanks a line comment but keeps its length and newlines', () => {
+    const out = stripJsCommentsAndKeepStrings('// uses localStorage\nconst x = 1;');
+    assert.equal(out.length, '// uses localStorage\nconst x = 1;'.length);
+    assert.ok(!out.includes('localStorage'));
+    assert.ok(out.includes('const x = 1;'));
+});
+
+test('stripJsCommentsAndKeepStrings blanks a block comment, preserving its newlines', () => {
+    const text = '/* line1\nline2 localStorage */\nconst y = 2;';
+    const out = stripJsCommentsAndKeepStrings(text);
+    assert.ok(!out.includes('localStorage'));
+    assert.equal(out.split('\n').length, text.split('\n').length);
+});
+
+test('stripJsCommentsAndKeepStrings does not treat "//" inside a string as a comment', () => {
+    const text = 'const url = "http://example.com"; // real comment localStorage';
+    const out = stripJsCommentsAndKeepStrings(text);
+    assert.ok(out.includes('http://example.com'), 'FIX: a string containing // was treated as a comment');
+    assert.ok(!out.includes('localStorage'));
+});
+
+test('stripJsCommentsAndKeepStrings does not treat "/* */" inside a string as a comment', () => {
+    const text = "const note = '/* not a comment */'; document.title = note;";
+    const out = stripJsCommentsAndKeepStrings(text);
+    assert.ok(out.includes('/* not a comment */'), 'FIX: a string containing /* */ was treated as a comment');
+    assert.ok(out.includes('document.title'));
+});
+
+test('stripJsCommentsAndKeepStrings does not treat "//" inside a regex literal as a comment', () => {
+    const text = 'const re = /a\\/\\/b/; document.title = "x";';
+    const out = stripJsCommentsAndKeepStrings(text);
+    assert.ok(out.includes('/a\\/\\/b/'), 'FIX: a regex literal containing // was treated as a comment');
+    assert.ok(out.includes('document.title'));
+});
+
+test('stripJsCommentsAndKeepStrings keeps a template literal\'s "//"-like content intact', () => {
+    const text = 'const s = `see https://example.com/${path}`; // localStorage note';
+    const out = stripJsCommentsAndKeepStrings(text);
+    assert.ok(out.includes('https://example.com/'), 'FIX: a template literal containing // was treated as a comment');
+    assert.ok(!out.includes('localStorage'));
 });
