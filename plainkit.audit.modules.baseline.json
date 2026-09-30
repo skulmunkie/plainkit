@@ -462,66 +462,6 @@
       "fingerprint": "cb7e1a8e143ab68b"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
       "rule": "S7",
       "file": "core/modules/devtools/panels.js",
       "fingerprint": "75d7f82f63300227"
@@ -605,26 +545,6 @@
       "rule": "S10",
       "file": "core/modules/log-settings/log-settings.css",
       "fingerprint": "8817e551ac352185"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "e3ece708b6d47c0d"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "e3ece708b6d47c0d"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "03e4fc1ea6ace787"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "03e4fc1ea6ace787"
     },
     {
       "rule": "S7",
