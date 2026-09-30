@@ -42,7 +42,7 @@ test('the ranked table lists the worst first, escapes names, links and finding t
 
 // A frame the module cannot read (another origin): it must score as an unreadable page, not crash the run.
 const unreadableHost = () => {
-    const iframe = () => ({ style: {}, contentDocument: null, addEventListener: (t, fn) => queueMicrotask(fn), remove() {} });
+    const iframe = () => ({ style: { setProperty() {}, removeProperty() {} }, dataset: {}, querySelectorAll: () => [], contentDocument: null, addEventListener: (t, fn) => queueMicrotask(fn), remove() {} });
     return { ownerDocument: { createElement: iframe }, append() {} };
 };
 
