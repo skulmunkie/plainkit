@@ -346,6 +346,26 @@
     --lb-node-controls-z: 2;
 }
 
+/* Gallery page chrome (core/site/gallery/gallery.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --gx-border-w: 1px;
+    --gx-swatch-size: 1.5rem;
+    --gx-space-code-min-w: 6rem;
+    --gx-space-bar-h: 0.75rem;
+    --gx-icon-min-w: 7rem;
+    --gx-stage-reserve: 24rem;
+    --gx-stage-min-h: 30rem;
+    --gx-page-max-w: 72rem;
+    --gx-el-group-min-w: 14rem;
+    --gx-el-log-max-h: 10rem;
+    --gx-nav-w: 17.5rem;
+    --gx-nav-title-tracking: 0.05em;
+    --gx-focus-offset: -2px;
+    --gx-title-min-w: 6rem;
+    --gx-hidden-size: 1px;
+    --gx-table-col1-min-w: 5rem;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
