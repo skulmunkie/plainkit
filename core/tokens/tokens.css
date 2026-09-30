@@ -370,6 +370,11 @@
     --gx-table-col1-min-w: 5rem;
 }
 
+/* Tool dock chrome (core/modules/tool-dock/tool-dock.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --td-border-w: 1px;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;

@@ -18,6 +18,7 @@ import { pageScore, scoreTone, findingRows } from '../../js/inspect-logic.js';
 import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
+import { applyDynamic } from '../../js/dynamic.js';
 const log = createLogger('quality');
 
 const STYLES = ['../../plainkit.css'];
@@ -50,7 +51,7 @@ export async function mountQuality(container, options = {}) {
     const root = h(doc, 'section', { class: 'ql-module', 'aria-label': 'Quality checks' },
         h(doc, 'pk-cluster', {}, run, status), h(doc, 'div', { class: 'u-mt-3' }, score), h(doc, 'div', { class: 'u-mt-3' }, table));
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.setProperty('height', height); root.style.setProperty('overflow', 'auto'); }
+    if (height) { root.dataset.dyn = `height:${height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
