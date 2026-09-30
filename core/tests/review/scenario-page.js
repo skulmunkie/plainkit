@@ -21,10 +21,12 @@ export function findIn(frame, sel, all = false) {
 // the page has stopped changing (an element reflects its properties to attributes and lays out a beat after it is asked to).
 function signature(frame) {
     const out = [];
+    // A spinner turns forever and its bounding box turns with it, so it would never read as "stopped changing" and every shot would wait out the frame cap (issue #750).
+    const endless = c => c.getAnimations().some(a => a.effect?.getComputedTiming().iterations === Infinity);
     const walk = node => {
         for (const c of node.children) {
-            const r = c.getBoundingClientRect();
-            out.push(`${c.localName}${[...c.attributes].map(a => `${a.name}=${a.value}`).join(',')}@${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`);
+            const r = endless(c) ? null : c.getBoundingClientRect();
+            out.push(`${c.localName}${[...c.attributes].map(a => `${a.name}=${a.value}`).join(',')}@${r ? `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}` : 'endless'}`);
             if (c.shadowRoot) walk(c.shadowRoot);
             walk(c);
         }
