@@ -3,7 +3,7 @@
   "title": "Side nav",
   "summary": "The app’s side navigation: brand, filter box, nested groups with arrow-key tree navigation, collapse to an icon rail (tooltips on rows, branches open as flyouts), persisted state, and an off-canvas drawer with backdrop at 1024px and below.",
   "group": "Navigation",
-  "tier": "component",
+  "tier": "element",
   "props": [
     {
       "name": "label",
