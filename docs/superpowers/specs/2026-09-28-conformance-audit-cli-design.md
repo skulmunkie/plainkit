@@ -134,7 +134,7 @@ A rules are cheap because each element's meta already states its accessibility c
 
 | id | detects | normal | strict | how |
 |---|---|---|---|---|
-| B1 | A raw HTML tag in a `.razor` or `.cshtml` where a `Pk*` component exists (D1's Razor counterpart; same hint table through `blazor/mappings`) | warn | error | Razor scanner (section 7) |
+| ~~B1~~ | Removed (issue #686): D1 ("a raw tag that has a pk-* equivalent") already runs against `.razor`/`.cshtml` through the same scanner, so B1 was a byte-for-byte duplicate of D1 on every finding - nothing here to keep. | - | - | - |
 | B2 | `class=` / `style=` on markup and on `Pk*` components (`Class`/`Style` parameters if any) (S1 to S3 counterpart) | warn | error | Razor scanner |
 | B3 | Unknown `Pk*` component or parameter (typo, removed parameter) | error | error | `blazor/mappings/*.json` (component and `params[].name`) |
 | B4 | Page not deriving from the SDK's page base (`PageBase`) where the app uses page types | warn | warn | `@inherits`/`@page` scan |

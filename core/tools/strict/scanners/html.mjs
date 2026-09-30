@@ -82,7 +82,7 @@ function readTag(text, start, at) {
     while (i < text.length && text[i] !== '>' && !text.startsWith('/>', i)) {
         while (i < text.length && /\s/.test(text[i])) i++;
         if (text[i] === '>' || text.startsWith('/>', i)) break;
-        if (text[i] === '@') { const end = readRazorExpression(text, i); i = end > i + 1 ? end : i + 1; continue; }
+        if (text[i] === '@') { i = readRazorAttr(text, i); continue; }
         const attrNameMatch = ATTR_NAME_RE.exec(text.slice(i));
         if (!attrNameMatch) { i++; continue; }
         const attrName = attrNameMatch[0];
@@ -123,6 +123,42 @@ function readTag(text, start, at) {
         selfClosing: selfClosing || VOID_TAGS.has(name.toLowerCase()),
     };
     return { end: i, node, token: { kind: 'tag', name, line: pos.line, column: pos.column } };
+}
+
+// A Razor attribute directive inside a tag's attribute list (`start` points at the `@`): `@onclick="..."`,
+// `@ref="x"`, `@bind-Value="Foo"`, or one of Blazor's two-way bind suffixes, `@bind-Value:get="..."` /
+// `@bind-Value:set="..."` / `@bind-Value:after="..."` (the directive name itself may contain `-` and `:`,
+// which a plain HTML attribute name never does). Consumes the whole `@name="value"` (or `@name='value'` /
+// `@name=bare`) as one opaque unit and returns the index just past it - critically, past the value too, so a
+// `=>` lambda, a generic `TItem="..."` fragment, or a non-ASCII character inside the quoted value is never
+// left dangling for the generic attribute-name matcher to misread as a separate attribute (issue #686: that
+// dangling remainder is what produced garbage findings like `ValueChanged=`, `-Value=`, `)=`, `:=`, `—=`).
+// Not a directive+value shape (e.g. a bare `@identifier`, or `@(expr)`/`@{ block }` used as a value)? Falls
+// back to the general Razor-expression skip used elsewhere in this scanner.
+function readRazorAttr(text, start) {
+    let i = start + 1;
+    const idMatch = /^[A-Za-z_][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)*(?::[A-Za-z0-9_.]+)*/.exec(text.slice(i));
+    if (!idMatch) {
+        const end = readRazorExpression(text, start);
+        return end > start + 1 ? end : start + 1;
+    }
+    i += idMatch[0].length;
+    let probe = i;
+    while (probe < text.length && /\s/.test(text[probe])) probe++;
+    if (text[probe] === '=') {
+        probe++;
+        while (probe < text.length && /\s/.test(text[probe])) probe++;
+        const quote = text[probe];
+        if (quote === '"' || quote === "'") {
+            const end = text.indexOf(quote, probe + 1);
+            return end === -1 ? text.length : end + 1;
+        }
+        const bare = /^[^\s>]+/.exec(text.slice(probe));
+        return bare ? probe + bare[0].length : probe;
+    }
+    if (text[probe] === '(') return skipBalanced(text, probe, '(', ')');
+    if (text[probe] === '{') return skipBalanced(text, probe, '{', '}');
+    return i;
 }
 
 // `@{ ... }`, `@( ... )`, `@code { ... }`, or a bare `@identifier` (no following block): returns the end index,
