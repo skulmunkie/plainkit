@@ -154,14 +154,18 @@ jobs:
         run: node scripts/verify.mjs --budget dotnet
 
   # The UI review (node scripts/ui-review.mjs): screenshots of the changed elements (desktop and phone, light and dark) and the audit findings, kept as
-  # the artifact `ui-review` for the reviewer. Not required, not part of verify.mjs (it is not a pass or fail gate: the screenshots are looked at), and it
+  # the artifacts `ui-review-1` to `ui-review-4` (four shards of the selection, #741) for the reviewer. Not required, not part of verify.mjs (it is not a pass or fail gate: the screenshots are looked at), and it
   # calls no model: an automatic AI review needs a secret and a repository setting, which is the owner's decision (issue on the review).
   ui-review:
-    name: UI review (screenshots)
+    name: UI review (screenshots ${{ matrix.shard }}/4)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       PK_CHROME: /usr/bin/google-chrome
     steps:
@@ -185,13 +189,15 @@ jobs:
 
       - name: Render and audit the changed elements (HEAD^1 is the merge target)
         if: steps.gate.outputs.run == 'true'
-        run: node scripts/ui-review.mjs --base HEAD^1
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: node scripts/ui-review.mjs --base HEAD^1 --shard "$SHARD/4"
 
       - name: Keep the screenshots
         if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: ui-review
+          name: ui-review-${{ matrix.shard }}
           path: review-output/
           if-no-files-found: ignore
 

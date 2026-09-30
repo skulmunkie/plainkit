@@ -8,7 +8,7 @@
 //   node scripts/ui-review.mjs                       the elements changed versus origin/main (core/elements/<name>/, blazor/mappings/<name>.json), plus the elements composing them;
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
-//   [--base <ref>] [--out <dir>] [--strict] [--port N] [--timeout <s>]
+//   [--base <ref>] [--out <dir>] [--shard i/n] [--strict] [--port N] [--timeout <s>]
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
 // page scrolled, a collapsed rail with a flyout), each rendered to screenshots after its named `shot` steps in the same four combinations (or the subset
@@ -92,9 +92,14 @@ export function selectElements(changed, dependents, known, base = false) {
     return reasons;
 }
 
+/** Shard k of n (both 1-based) of a list: every n-th item starting at k. Shards are disjoint and their union is the list (issue #741). */
+export function shardOf(list, k, n) {
+    return list.filter((_, i) => i % n === k - 1);
+}
+
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
@@ -108,6 +113,11 @@ export function parseArgs(argv) {
             o.scenarios = names ?? (a === '--scenarios' ? 'all' : o.scenarios ?? 'auto');
         }
         else if (a === '--elements') o.elements = value().split(',').map(s => s.trim().replace(/^pk-/, '')).filter(Boolean);
+        else if (a === '--shard') {
+            const m = /^(\d+)\/(\d+)$/.exec(value());
+            if (!m || Number(m[1]) < 1 || Number(m[1]) > Number(m[2])) throw new Error('--shard needs i/n with 1 <= i <= n, for example 2/4');
+            o.shard = { k: Number(m[1]), n: Number(m[2]) };
+        }
         else if (a === '--base') o.base = value();
         else if (a === '--out') o.out = value();
         else if (a === '--port' || a === '--timeout') { const n = Number(value()); if (!Number.isInteger(n) || n < 0) throw new Error(`${a} needs a whole number`); o[a.slice(2)] = n; }
@@ -277,11 +287,12 @@ async function main() {
     }
     let scenarios;
     try { scenarios = selectScenarios(all, { names: named, elements: names, every: o.scenarios === 'all' || (o.all && o.scenarios === 'auto') }); } catch (e) { console.error(e.message); return 2; }
+    if (o.shard) { names = shardOf(names, o.shard.k, o.shard.n); scenarios = shardOf(scenarios, o.shard.k, o.shard.n); }
     const examples = o.scenariosOnly ? [] : names;
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
-    const manifest = { generated: new Date().toISOString(), why, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, summary: null };
+    const manifest = { generated: new Date().toISOString(), why, shard: o.shard ? `${o.shard.k}/${o.shard.n}` : null, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, summary: null };
     if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); return 0; }
 
     let chrome;

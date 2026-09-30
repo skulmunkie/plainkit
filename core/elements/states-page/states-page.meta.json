@@ -3,6 +3,7 @@
   "title": "States page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "states",
   "summary": "The loading, empty, error and forbidden content a page shows in place of its own, one at a time: the page-type building block for \"nothing to show yet\".",
   "props": [
     {
