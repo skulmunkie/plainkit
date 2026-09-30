@@ -479,11 +479,6 @@
     {
       "rule": "S7",
       "file": "core/modules/field-group/field-group.js",
-      "fingerprint": "3da18e8000f70b41"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/field-group/field-group.js",
       "fingerprint": "d564586648e7cd55"
     },
     {
@@ -545,11 +540,6 @@
       "rule": "S10",
       "file": "core/modules/log-settings/log-settings.css",
       "fingerprint": "8817e551ac352185"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "00c872ce4027bd3c"
     },
     {
       "rule": "S7",
@@ -849,22 +839,7 @@
     {
       "rule": "S3",
       "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "5240b69f304a7270"
-    },
-    {
-      "rule": "S5",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "e341df6d657a4165"
-    },
-    {
-      "rule": "S5",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "e341df6d657a4165"
     },
     {
       "rule": "S5",
@@ -905,11 +880,6 @@
       "rule": "S5",
       "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "e341df6d657a4165"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "01d796e92f605643"
     },
     {
       "rule": "S7",
@@ -1055,16 +1025,6 @@
       "rule": "S5",
       "file": "core/modules/theme-editor/theme-editor.js",
       "fingerprint": "8fe38aac3f1d531c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
     },
     {
       "rule": "S7",
@@ -1565,11 +1525,6 @@
       "rule": "S3",
       "file": "core/site/gallery/frame.js",
       "fingerprint": "3560a3e9ecad7f75"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c1929282320be6c0"
     },
     {
       "rule": "S5",
@@ -2244,11 +2199,6 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "8383d2a151e611f6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
     },
     {
@@ -2635,11 +2585,6 @@
       "rule": "S7",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "e9e45c96253e6ee0"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/settings.js",
-      "fingerprint": "28574ff267280b10"
     },
     {
       "rule": "S3",
@@ -3094,11 +3039,6 @@
     {
       "rule": "S7",
       "file": "core/site/settings/page.js",
-      "fingerprint": "778f33300afd9b24"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
       "fingerprint": "0df686ad7913b7ab"
     },
     {
@@ -3160,11 +3100,6 @@
       "rule": "S7",
       "file": "core/site/shell.js",
       "fingerprint": "0d774f9beb218cda"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/shell.js",
-      "fingerprint": "9b4c4b70a68cd56c"
     },
     {
       "rule": "S7",
