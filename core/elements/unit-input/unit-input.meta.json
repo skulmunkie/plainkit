@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "Unit input",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A number and a unit select in one field for lengths such as 1.5rem or 24px; the value is the two joined, and a value with a unit outside the list keeps its unit.",
   "delegatesFocus": true,
   "formAssociated": true,

@@ -3,6 +3,7 @@
   "replaces": ["[role=tablist]"],
   "title": "Tabs",
   "group": "Navigation",
+  "tier": "component",
   "summary": "A tab strip with optional panels. Children: pk-tab and pk-tab-panel paired by value. Arrow keys, Home and End move between tabs (roving tabindex). It can show no tab as selected, and hold trailing content after the last tab. When the tabs outgrow the width it slides with edge fades (overflow=\"scroll\", the default), collapses the tabs that do not fit behind a \"...\" menu button (overflow=\"menu\"), or wraps onto more rows (overflow=\"wrap\").",
   "props": [
     { "name": "value", "type": "string", "default": "", "reflect": true, "commit": "pk-tab-change", "description": "The value of the selected tab. Empty selects the first enabled tab." },

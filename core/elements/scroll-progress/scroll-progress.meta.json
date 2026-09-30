@@ -3,6 +3,7 @@
   "title": "Scroll progress",
   "summary": "A thin bar at the top of the screen that fills as the page (or a named scroller) is read.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "for",

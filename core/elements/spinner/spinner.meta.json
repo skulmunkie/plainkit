@@ -2,6 +2,7 @@
   "tag": "pk-spinner",
   "title": "Spinner",
   "group": "Feedback",
+  "tier": "element",
   "summary": "A busy indicator: a ring, three dots or an indeterminate bar, in three sizes, with an overlay mode for a loading panel.",
   "props": [
     {

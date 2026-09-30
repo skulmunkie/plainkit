@@ -2,6 +2,7 @@
   "tag": "pk-doc-page",
   "title": "Doc page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A page of long-form documents: a filterable side nav of items, an article with a title, summary and body, a table of contents and a previous/next pager. Mounted by the app framework as the `doc` page type (route param `id`, query `anchor`; pk-navigate goes through the router). Set loadItem(id) and href(id, anchor?) as properties (business logic, never config data); a same-page link inside the article scrolls it and fires pk-navigate instead of touching history itself.",
   "props": [
     {

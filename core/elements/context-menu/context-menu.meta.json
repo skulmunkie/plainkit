@@ -3,6 +3,7 @@
   "title": "Context menu",
   "summary": "A menu opened at the pointer by right click, by Shift+F10 or the Menu key, or by a touch long press, over the region it wraps.",
   "group": "Overlays",
+  "tier": "element",
   "props": [
     {
       "name": "open",

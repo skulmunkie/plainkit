@@ -2,6 +2,7 @@
   "tag": "pk-swatch",
   "title": "Swatch",
   "group": "Data display",
+  "tier": "element",
   "summary": "A colour or design-token sample with its resolved value and a WCAG AA contrast label against a comparison colour.",
   "props": [
     {

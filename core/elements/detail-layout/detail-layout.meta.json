@@ -3,6 +3,7 @@
   "title": "Detail layout",
   "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, sized minmax(0, 1fr) plus a fixed sidebar width. Below a container width (not the viewport, so it works next to a side nav or inside a narrower pane) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row. Elements carrying data-pk-section are grouped into phone tabs once collapsed.",
   "group": "Layout & structure",
+  "tier": "component",
   "props": [
     {
       "name": "sidebarFirst",

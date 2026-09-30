@@ -4,6 +4,7 @@
   "title": "Dropdown menu",
   "summary": "A menu opened from a trigger: buttons or links, headers, dividers, checkable items and submenus, with full keyboard support (arrows, Home, End, typeahead, Right/Left for submenus, Escape).",
   "group": "Overlays",
+  "tier": "element",
   "props": [
     {
       "name": "open",

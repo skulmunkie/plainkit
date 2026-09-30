@@ -2,6 +2,7 @@
   "tag": "pk-link",
   "title": "Link",
   "group": "Navigation",
+  "tier": "element",
   "summary": "A router-aware text link: a real anchor in prose or a nav row, with href for an ordinary address or to for an app route the app router handles without a full page load.",
   "props": [
     {

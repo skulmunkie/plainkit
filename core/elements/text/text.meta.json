@@ -2,6 +2,7 @@
   "tag": "pk-text",
   "title": "Text",
   "group": "Layout",
+  "tier": "element",
   "summary": "A themed paragraph, or a run of text inside a line, on the type scale and colour tokens: the text counterpart of pk-stack and pk-cluster. A variant gives it a heading, lead or eyebrow look; real headings stay native h1 to h6.",
   "props": [
     {

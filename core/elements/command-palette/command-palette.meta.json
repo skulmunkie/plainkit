@@ -3,6 +3,7 @@
   "title": "Command palette",
   "summary": "A keyboard-first launcher: Ctrl/Cmd+K opens a dialog with a search field over grouped commands, fuzzy-matched with highlights, recents when the field is empty, arrows and Enter to run.",
   "group": "Overlays",
+  "tier": "component",
   "props": [
     {
       "name": "open",

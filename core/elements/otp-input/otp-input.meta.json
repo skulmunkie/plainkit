@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "OTP input",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A one-time code or PIN as a row of cells: typing advances, Backspace steps back, a pasted or autofilled code spreads across the cells, and completion is an event.",
   "delegatesFocus": true,
   "formAssociated": true,

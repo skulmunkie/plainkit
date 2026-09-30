@@ -2,6 +2,7 @@
   "tag": "pk-avatar",
   "title": "Avatar",
   "group": "Data display",
+  "tier": "element",
   "summary": "A person or entity as an image or initials, with sizes, shapes, a stable colour per name and an online, away or busy status dot.",
   "props": [
     {

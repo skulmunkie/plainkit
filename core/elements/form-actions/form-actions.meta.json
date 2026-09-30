@@ -2,6 +2,7 @@
   "tag": "pk-form-actions",
   "title": "Form actions",
   "group": "Form layout",
+  "tier": "component",
   "summary": "The bar of buttons under a form, aligned start, end or between, and sticky to the bottom of a long form.",
   "props": [
     {

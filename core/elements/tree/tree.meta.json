@@ -2,6 +2,7 @@
   "tag": "pk-tree",
   "title": "Tree",
   "group": "Navigation",
+  "tier": "element",
   "summary": "An expandable hierarchy of tree items with roving focus, single selection and type-ahead, following the WAI-ARIA tree pattern.",
   "props": [
     {

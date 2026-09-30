@@ -3,6 +3,7 @@
   "title": "Toast",
   "summary": "One transient message: kind, optional title, message, an action slot and a dismiss button; pauses its timer on hover and focus.",
   "group": "Feedback & status",
+  "tier": "element",
   "props": [
     {
       "name": "kind",

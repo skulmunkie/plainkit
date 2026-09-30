@@ -2,6 +2,7 @@
   "tag": "pk-rating",
   "title": "Rating",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A whole-star rating input (radios underneath), and a compact read-only display form.",
   "delegatesFocus": true,
   "formAssociated": true,

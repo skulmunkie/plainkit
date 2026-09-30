@@ -3,6 +3,7 @@
   "a11yRequires": ["title"],
   "title": "Frame",
   "group": "Media",
+  "tier": "element",
   "summary": "A sandboxed iframe (an inline srcdoc document or a same-site src) with named width presets and a light/dark theme hand-off.",
   "props": [
     {

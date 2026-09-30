@@ -2,6 +2,7 @@
   "tag": "pk-cluster",
   "title": "Cluster",
   "group": "Layout",
+  "tier": "element",
   "summary": "A wrapping row (or column) of controls with a fixed gap: the layout primitive for button rows, chip lists and toolbars.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-timeline-item",
   "title": "Timeline item",
   "group": "Data display",
+  "tier": "element",
   "summary": "One event on a timeline: a marker, a heading, a time and a body.",
   "props": [
     {

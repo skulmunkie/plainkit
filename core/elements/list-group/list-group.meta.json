@@ -2,6 +2,7 @@
   "tag": "pk-list-group",
   "title": "List group",
   "group": "Data display",
+  "tier": "element",
   "summary": "A bordered list of rows: plain, actionable (links and buttons), with badges at the end, or a checklist.",
   "props": [
     {

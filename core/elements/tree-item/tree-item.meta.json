@@ -2,6 +2,7 @@
   "tag": "pk-tree-item",
   "title": "Tree item",
   "group": "Navigation",
+  "tier": "element",
   "summary": "One node of a tree: a toggle, a label and nested child items.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-container",
   "title": "Container",
   "group": "Containers",
+  "tier": "element",
   "summary": "A max-width, padded content region, optionally scrolling on its own. Wraps a gallery stage, a code view or a doc-like page instead of a hand-styled div with max-width, padding and overflow.",
   "props": [
     {

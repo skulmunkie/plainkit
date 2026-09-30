@@ -3,6 +3,7 @@
   "title": "On this page",
   "summary": "An anchor list of the headings inside a target element with scroll-spy: the heading in view is marked as you read; works with the window or an inner scroller such as the shell body.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "for",

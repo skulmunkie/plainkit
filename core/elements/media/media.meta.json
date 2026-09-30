@@ -2,6 +2,7 @@
   "tag": "pk-media",
   "title": "Media",
   "group": "Media",
+  "tier": "element",
   "summary": "An image or video in a fixed aspect-ratio box with an optional figure caption and lightbox-ready behaviour.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-card",
   "title": "Card",
   "group": "Containers",
+  "tier": "element",
   "summary": "A titled panel with optional media, header actions and footer. Vertical or horizontal (stacking by its own width), flush for tables, and optionally one link.",
   "props": [
     {

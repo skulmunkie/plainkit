@@ -3,6 +3,7 @@
   "title": "Menu item",
   "summary": "One row of a dropdown or context menu: a plain item, a checkbox, a radio, a section header or a divider; optional prefix and suffix (shortcut) and a nested submenu.",
   "group": "Overlays",
+  "tier": "element",
   "props": [
     {
       "name": "type",

@@ -4,6 +4,7 @@
   "replaces": ["textarea"],
   "title": "Textarea",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A multi-line control that can grow with its content up to a cap.",
   "delegatesFocus": true,
   "formAssociated": true,

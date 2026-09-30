@@ -2,6 +2,7 @@
   "tag": "pk-property-grid",
   "title": "Property grid",
   "group": "Form controls",
+  "tier": "component",
   "summary": "A property inspector: fields in collapsible groups (text, number, unit, range, colour, select, switch), each a labelled real control, with per-property validation and a pk-property-change event. Uses the same field vocabulary as pk-settings-page.",
   "props": [
     {

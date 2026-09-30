@@ -2,6 +2,7 @@
   "tag": "pk-app-bar-search",
   "title": "App bar search",
   "group": "Navigation",
+  "tier": "component",
   "summary": "A search field for a shell's header row: a pill that fills the space it is given, results in a panel below it; an icon button that expands over the header row below the phone breakpoint or with compact. The host supplies items and reads pk-query and pk-select.",
   "props": [
     {

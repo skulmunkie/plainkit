@@ -2,6 +2,7 @@
   "tag": "pk-form",
   "title": "Form validation",
   "group": "Form layout",
+  "tier": "element",
   "summary": "Wraps a form and shows the browser's constraint validation well: messages in each field, a summary with links, focus on the first problem, and live re-checking.",
   "delegatesFocus": true,
   "props": [

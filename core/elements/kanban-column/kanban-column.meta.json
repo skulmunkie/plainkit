@@ -2,6 +2,7 @@
   "tag": "pk-kanban-column",
   "title": "Kanban column",
   "group": "Layout",
+  "tier": "component",
   "summary": "One column of a pk-kanban: a title with a card count, the cards, and a message when it has none. Place it directly inside a pk-kanban.",
   "props": [
     { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The identifier pk-kanban reports for this column in a pk-move event's from and to." },

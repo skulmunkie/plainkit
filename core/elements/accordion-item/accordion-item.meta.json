@@ -2,6 +2,7 @@
   "tag": "pk-accordion-item",
   "title": "Accordion item",
   "group": "Containers",
+  "tier": "element",
   "summary": "A collapsible section on a native details element.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-badge",
   "title": "Badge",
   "group": "Data display",
+  "tier": "element",
   "summary": "A count or short label in a pill, or a status dot with a label; counts cap at a maximum (99+).",
   "props": [
     {

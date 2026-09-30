@@ -2,6 +2,7 @@
   "tag": "pk-tab-panel",
   "title": "Tab panel",
   "group": "Navigation",
+  "tier": "element",
   "summary": "The content of one tab; shown while its tab is selected.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-stack",
   "title": "Stack",
   "group": "Layout",
+  "tier": "element",
   "summary": "A vertical stack of children with an even gap: the layout primitive for form sections, card bodies and page columns.",
   "props": [
     {

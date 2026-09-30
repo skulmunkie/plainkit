@@ -2,6 +2,7 @@
   "tag": "pk-calendar",
   "title": "Calendar",
   "group": "Forms",
+  "tier": "element",
   "summary": "A small month grid to pick or show a date, with marks, minimum and maximum, and full keyboard control.",
   "props": [
     {

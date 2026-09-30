@@ -4,6 +4,7 @@
   "replaces": ["input"],
   "title": "Input",
   "group": "Form controls",
+  "tier": "element",
   "summary": "The single-line control: text, email, url, tel, search, password, number and the date and time types, with an optional clear button, password reveal, number stepper, money format, prefix and suffix, and a floating label.",
   "delegatesFocus": true,
   "formAssociated": true,

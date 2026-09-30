@@ -2,6 +2,7 @@
   "tag": "pk-code-view",
   "title": "Code view",
   "group": "Code",
+  "tier": "element",
   "summary": "A read-only, line-numbered listing for code or any text: numbers in a sticky gutter that a selection or a copy leaves out, optional highlighted lines, per-line coloured segments, and horizontal scrolling. Give it the lines as a property or as its text content.",
   "props": [
     {

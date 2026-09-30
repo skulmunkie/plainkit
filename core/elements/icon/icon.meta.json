@@ -2,6 +2,7 @@
   "tag": "pk-icon",
   "title": "Icon",
   "group": "Media",
+  "tier": "element",
   "summary": "A symbol from the SDK sprite, drawn in the surrounding text colour and size. The sprite is found next to the element module, so it works wherever dist is copied.",
   "props": [
     {

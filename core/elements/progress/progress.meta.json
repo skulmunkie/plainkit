@@ -3,6 +3,7 @@
   "replaces": ["progress"],
   "title": "Progress",
   "group": "Feedback",
+  "tier": "element",
   "summary": "A determinate or indeterminate progress bar on the native progress element, with sizes, colours, stripes, a label, a value readout and automatic warning colours.",
   "props": [
     {

@@ -3,6 +3,7 @@
   "title": "Select menu",
   "summary": "A single-choice listbox popup that reads native option children, so it degrades to nothing worse than a list; form-associated, keyboard driven with typeahead.",
   "group": "Forms & inputs",
+  "tier": "element",
   "props": [
     {
       "name": "value",

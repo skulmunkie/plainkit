@@ -3,6 +3,7 @@
   "title": "Loading overlay",
   "summary": "Covers a region (or the whole viewport with fullscreen) with a spinner and a label while busy, and makes what it covers inert so it cannot be clicked or tabbed into.",
   "group": "Feedback & status",
+  "tier": "element",
   "props": [
     {
       "name": "busy",

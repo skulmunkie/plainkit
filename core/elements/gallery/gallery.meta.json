@@ -2,6 +2,7 @@
   "tag": "pk-gallery",
   "title": "Gallery",
   "group": "Data display",
+  "tier": "element",
   "summary": "The SDK gallery inside your page: every control, element, layout and template with live samples, narrowed by attributes to just what you want to show. Loads on demand in its own frame.",
   "props": [
     { "name": "kind", "type": "string", "default": "", "reflect": false, "description": "What to show: foundations, controls, elements, layouts or templates. Empty shows the controls when a group or control is named, otherwise everything." },

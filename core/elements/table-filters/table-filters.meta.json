@@ -3,6 +3,7 @@
   "title": "Table filters",
   "summary": "A debounced global search box plus a Filters trigger (with an active-count badge) that opens a panel around your own filter fields, so a data table or list gets consistent search/filter UI without every page rebuilding the trigger-button-plus-badge-plus-panel shell by hand. Slot your own filter fields (selects, date ranges, whatever the fields are) into the default slot; put the element itself in pk-table's toolbar slot. It never searches, filters or clears anything itself: it only reports pk-search, pk-toggle and pk-clear-filters for the host to act on, the same as pk-table's own pk-sort and pk-filter.",
   "group": "Data display",
+  "tier": "component",
   "props": [
     {
       "name": "label",

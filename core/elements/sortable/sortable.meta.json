@@ -2,6 +2,7 @@
   "tag": "pk-sortable",
   "title": "Sortable",
   "group": "Layout",
+  "tier": "element",
   "summary": "A pointer, touch and keyboard reorder list. Children are pk-sortable-item: drag a row's handle, or focus a row and press Alt+Up or Alt+Down. Never reorders its own children (the host applies the order from pk-reorder); it can also accept a row dragged in from outside it, for a palette-to-canvas drop.",
   "props": [
     { "name": "label", "type": "string", "default": "", "reflect": false, "description": "Accessible name for the list (aria-label)." },

@@ -2,6 +2,7 @@
   "tag": "pk-note-page",
   "title": "Note page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A static informational page: a heading and a block of prose in a card. No data, no callbacks - the page-type building block for a one-off About/Overview/Summary page.",
   "props": [
     {

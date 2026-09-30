@@ -2,6 +2,7 @@
   "tag": "pk-hint",
   "title": "Hint",
   "group": "Feedback",
+  "tier": "element",
   "summary": "An inline explanation that opens in the flow of the page: no tooltip, no hover-only content.",
   "props": [
     {

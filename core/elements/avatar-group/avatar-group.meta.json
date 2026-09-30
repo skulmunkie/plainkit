@@ -2,6 +2,7 @@
   "tag": "pk-avatar-group",
   "title": "AvatarGroup",
   "group": "Data display",
+  "tier": "element",
   "summary": "Overlapping avatars with a +N tile for the overflow.",
   "props": [
     {

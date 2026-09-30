@@ -2,6 +2,7 @@
   "tag": "pk-dashboard-page",
   "title": "Dashboard page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A dashboard of widgets, each a pk-card holding a pk-stat or pk-chart, optionally grouped into tabs and headed sections, with an optional filter bar. Set the load(key) callback as a property (business logic, never config data): it is called with this bound to the page element, once per widget and independently, and resolves to the data merged onto that widget's element (a pk-stat's value/delta/tone/values, or a pk-chart's data/caption). A widget in a tab loads the first time that tab is shown, never before and never again on a revisit. Each widget is its own async boundary through its card's state: loading, the content once it resolves, or an error with Retry on rejection - one slow or rejecting widget never blocks or breaks another. The current filter selections are on this.context (read them inside load); changing a filter reloads every widget that has already loaded.",
   "props": [
     {
