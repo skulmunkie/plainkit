@@ -15,6 +15,7 @@ import { configureLogging, getLoggingConfig, resetLogging, getLogBuffer, getLogO
 import { INHERIT, draftFrom, configFrom, scopeRows, addScope, removeScope, setScopeLevel, setGlobalLevel, setRoute, routeRows, sameDraft, levelOverride, describeOverride, outputsFor, testMessages, TEST_SCOPE } from '../../js/log-settings-logic.js';
 import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const modLog = createLogger('log-settings');
 
@@ -59,7 +60,7 @@ export async function mountLogSettings(container, opts = {}) {
             h(doc, 'pk-stack', { gap: 'sm' }, h(doc, 'h3', { class: 'ls-heading' }, 'Where each level goes'), routeTable),
             h(doc, 'pk-cluster', {}, testBtn, saveBtn, resetBtn, status)));
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
+    if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root).catch(err => modLog.debug('elements did not load (loadElements reports it)', err));
 

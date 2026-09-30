@@ -402,26 +402,6 @@
       "fingerprint": "3a6394154b696b44"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "77a61614d0894f95"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "77a61614d0894f95"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "82e8b6bb395be5c2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "82e8b6bb395be5c2"
-    },
-    {
       "rule": "S7",
       "file": "core/modules/console/console.js",
       "fingerprint": "de461f0d9d402a89"
@@ -482,66 +462,6 @@
       "fingerprint": "cb7e1a8e143ab68b"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "57b9fcc3cbd147e2"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "eaf32321047c2765"
-    },
-    {
       "rule": "S7",
       "file": "core/modules/devtools/panels.js",
       "fingerprint": "75d7f82f63300227"
@@ -579,92 +499,7 @@
     {
       "rule": "S9",
       "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "181200b39b8b94a0"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "649306d3e6b98b97"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "29d70098c1c55d7b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "26641b8b510af8a4"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "766a0014bfe9eac4"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
       "fingerprint": "9896ae3244784580"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
     },
     {
       "rule": "S3",
@@ -702,11 +537,6 @@
       "fingerprint": "38347b77a9576165"
     },
     {
-      "rule": "S7",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "38347b77a9576165"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/log-settings/log-settings.css",
       "fingerprint": "4241844d84ed89b6"
@@ -715,26 +545,6 @@
       "rule": "S10",
       "file": "core/modules/log-settings/log-settings.css",
       "fingerprint": "8817e551ac352185"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "e3ece708b6d47c0d"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "e3ece708b6d47c0d"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "03e4fc1ea6ace787"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "03e4fc1ea6ace787"
     },
     {
       "rule": "S7",
@@ -795,26 +605,6 @@
       "rule": "S10",
       "file": "core/modules/logs/logs.css",
       "fingerprint": "dd5f24c09c429726"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "08dae95000ce7eca"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "08dae95000ce7eca"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "5eb19da9238525cd"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "5eb19da9238525cd"
     },
     {
       "rule": "S7",
@@ -2889,57 +2679,7 @@
     {
       "rule": "S9",
       "file": "core/site/guides/guides.css",
-      "fingerprint": "4e6d1661efa57a80"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "945ebf8f6caadc5b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "945ebf8f6caadc5b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "f56a60ade3aa3904"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "ff1de6c33637d1cc"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "9cb4a7246d561198"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "5d517eafd3bbc54b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "5d517eafd3bbc54b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "945ebf8f6caadc5b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
       "fingerprint": "e943a4ea1705758e"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "f56a60ade3aa3904"
     },
     {
       "rule": "S9",

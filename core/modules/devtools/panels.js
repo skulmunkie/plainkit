@@ -11,6 +11,7 @@ import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
 import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
 import { h } from '../../js/mount-support.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const log = createLogger('devtools');
 
@@ -44,16 +45,25 @@ export const inspectorPanel = {
             table.setAttribute('rows', JSON.stringify(found.map((e, id) => ({ id, ...describeForInspector(e) }))));
             status.textContent = `${found.length} elements. Choose a row to highlight it on the page.`;
         }
+        // The outline is a dynamic value (temporary, never in a copy-paste snippet), so it goes through
+        // data-dyn/applyDynamic() (core/js/dynamic.js) rather than target.style directly - same convention
+        // theme-editor.js and code-explorer.js use. `before` is target's own data-dyn text (if any), owned by
+        // whatever mounted it; restoring puts that text back once the outline entries are removed, instead of
+        // reading/writing target.style to snapshot a prior manual outline (not a pattern any pk-* element uses).
         function highlight(e) {
             outlined?.restore();
             const target = found[Number(e.detail?.id)];
             if (!target) return;
-            const before = target.style.getPropertyValue('outline');
-            const beforeOffset = target.style.getPropertyValue('outline-offset');
             target.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-            target.style.setProperty('outline', '3px solid var(--color-accent)');
-            target.style.setProperty('outline-offset', '2px');
-            const restore = () => { target.style.setProperty('outline', before); target.style.setProperty('outline-offset', beforeOffset); if (!before) target.style.removeProperty('outline'); if (!beforeOffset) target.style.removeProperty('outline-offset'); };
+            const before = target.dataset.dyn;
+            const withOutline = (before ? `${before.replace(/;\s*$/, '')}; ` : '') + 'outline:3px solid var(--color-accent); outline-offset:2px';
+            target.dataset.dyn = withOutline;
+            applyDynamic(target);
+            const restore = () => {
+                target.dataset.dyn = (before ? `${before.replace(/;\s*$/, '')}; ` : '') + 'outline:; outline-offset:';
+                applyDynamic(target);
+                if (before) target.dataset.dyn = before; else delete target.dataset.dyn;
+            };
             const timer = win.setTimeout(() => { restore(); outlined = null; }, 2000);
             outlined = { restore: () => { win.clearTimeout(timer); restore(); } };
         }
