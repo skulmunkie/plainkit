@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, parseArgs, shotName, groupFindings } from '../ui-review.mjs';
+import { changedFromFiles, parseArgs, shardOf, shotName, groupFindings } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -22,6 +22,18 @@ test('arguments: names or tags, --all excludes --elements, unknown flags are ref
     assert.throws(() => parseArgs(['--all', '--elements', 'x']), /either/);
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
     assert.throws(() => parseArgs(['--out']), /needs a value/);
+});
+
+test('shards are disjoint, cover the selection, and 1/1 is the whole run', () => {
+    const list = Array.from({ length: 10 }, (_, i) => `e${i}`);
+    for (const n of [1, 3, 4, 12]) {
+        const parts = Array.from({ length: n }, (_, i) => shardOf(list, i + 1, n));
+        assert.deepEqual(parts.flat().sort(), [...list].sort());
+        assert.equal(new Set(parts.flat()).size, list.length);
+    }
+    assert.deepEqual(shardOf(list, 1, 1), list);
+    assert.deepEqual(parseArgs(['--shard', '2/4']).shard, { k: 2, n: 4 });
+    for (const bad of ['0/4', '5/4', 'a/b', '2']) assert.throws(() => parseArgs(['--shard', bad]), /--shard needs/);
 });
 
 test('shot names sort by example and say the combination', () => {
