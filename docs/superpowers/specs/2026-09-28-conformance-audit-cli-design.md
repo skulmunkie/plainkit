@@ -137,7 +137,7 @@ A rules are cheap because each element's meta already states its accessibility c
 | ~~B1~~ | Removed (issue #686): D1 ("a raw tag that has a pk-* equivalent") already runs against `.razor`/`.cshtml` through the same scanner, so B1 was a byte-for-byte duplicate of D1 on every finding - nothing here to keep. | - | - | - |
 | B2 | `class=` / `style=` on markup and on `Pk*` components (`Class`/`Style` parameters if any) (S1 to S3 counterpart) | warn | error | Razor scanner |
 | B3 | Unknown `Pk*` component or parameter (typo, removed parameter) | error | error | `blazor/mappings/*.json` (component and `params[].name`) |
-| B4 | Page not deriving from the SDK's page base (`PageBase`) where the app uses page types | warn | warn | `@inherits`/`@page` scan |
+| B4 | Page not deriving from the SDK's page base (`PageBase`) where the app uses page types | warn | warn | `@inherits`/`@page` scan, gated app-wide (issue #718): only runs on an app where some file already declares `@inherits ...PageBase` - real evidence the app opted into `PageBase`, not guessed per file |
 | B5 | JS interop for a behaviour a component owns (`IJSRuntime` calls to `showModal`, `clipboard`, scroll-lock) | warn | warn | string scan, hint rule (D7 counterpart) |
 | B6 | `<script>` or inline `onclick=` and inline `@onclick` on non-components (A4 counterpart), `MarkupString` with a non-literal value (S5 counterpart) | warn | error | Razor scanner |
 

@@ -8,7 +8,12 @@
 // T7 (a deprecated element or attribute) has no real entry yet (design section 2.4: "empty on day one" - see
 // core/tools/audit/hints.mjs's DEPRECATED_ELEMENTS) so it has no case here; core/tools/audit/rules.test.mjs
 // tests its mechanism directly instead, and both it and scripts/build-skills.mjs skip T7's example rendering.
-export const MANUALLY_TESTED = new Set(['T7']);
+//
+// B4 (issue #718) is gated by an app-wide precondition (`appliesToRun`, checked once against every file in the
+// run, not the one file this table's wrong/right pattern passes to the engine at a time), so a single-file
+// wrong/right pair can never exercise it honestly: core/tools/audit/rules.test.mjs tests it directly with a
+// multi-file run instead, and both it and scripts/build-skills.mjs skip B4's example rendering.
+export const MANUALLY_TESTED = new Set(['T7', 'B4']);
 
 export const EXAMPLES = [
     { id: 'S1', path: 'app.css', wrong: '.a { color: red; }', right: 'const x = 1;', rightPath: 'app.js' },
@@ -110,7 +115,6 @@ export const EXAMPLES = [
     },
     { id: 'B2', path: 'App.razor', wrong: '<PkButton Class="primary"></PkButton>', right: '<PkButton Variant="ButtonVariant.Primary"></PkButton>' },
     { id: 'B3', path: 'App.razor', wrong: '<PkButton Sizee="ButtonSize.Small"></PkButton>', right: '<PkButton Size="ButtonSize.Small"></PkButton>' },
-    { id: 'B4', path: 'App.razor', wrong: '@page "/orders"\n<PkTable></PkTable>', right: '@page "/orders"\n@inherits OrdersPageBase\n<PkTable></PkTable>' },
     { id: 'B5', path: 'App.razor', wrong: 'await JS.InvokeVoidAsync("dialog.showModal", elementRef);', right: 'await dialogRef.ShowAsync();' },
     { id: 'B6', path: 'App.razor', wrong: '<div onclick="go()"></div>', right: '<PkButton OnClick="Go">Go</PkButton>' },
 ];
