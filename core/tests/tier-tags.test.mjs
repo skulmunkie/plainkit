@@ -32,3 +32,12 @@ test('the rules detect what they claim, and exempt element sources and shell lan
     ]);
     assert.deepEqual([...got].sort(), [['D1 a button', 1], ['D1 c button', 1], ['S3 a class=', 1], ['S3 a classList', 1], ['T1 a div', 3], ['T1 a span', 1]].sort());
 });
+
+test('T1 flags unnamed wrappers only: a part, slot host or role passes', () => {
+    const el = (template, behaviour = null) => ({ name: 'a', meta: { tier: 'component' }, template, behaviour });
+    const t1 = got => [...got].filter(([k]) => k.startsWith('T1'));
+    assert.deepEqual(t1(checkTierTags([el('<div part="body"></div><span part="x"></span>')])), []);
+    assert.deepEqual(t1(checkTierTags([el('<div><slot></slot></div><div slot="a"></div><div role="group"></div>')])), []);
+    assert.deepEqual(t1(checkTierTags([el('<div></div>')])), [['T1 a div', 1]]);
+    assert.deepEqual(t1(checkTierTags([el('', "const a = doc.createElement('div'); a.part = 'p'; const b = doc.createElement('span'); b.append(a);")])), [['T1 a span', 1]]);
+});

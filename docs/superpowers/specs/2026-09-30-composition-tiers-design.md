@@ -147,7 +147,7 @@ freeze on other tiers is needed; the freeze applies only to the tier being moved
 The audit has families S, D, module and the #392 gate. Per-tier rules are a **ruleset selector by tier**, not new detection code:
 
 - **element:** today's behaviour (`core/elements/**` is exempt from S1-S9 and the composition gate) plus the dependency-direction check (no `pk-*` of a higher tier).
-- **component:** **D1** (raw tag with a pk equivalent, `TAG_HINTS`) and **S3** (classes) as errors against the component's sources, S1/S2 too, with a baseline of today's debt (`core/tools/audit/baseline.mjs`) so the gate is "no new debt". The #392 gate applies too. Structural `div`/`span` are baselined and then removed per component.
+- **component:** **D1** (raw tag with a pk equivalent, `TAG_HINTS`) and **S3** (classes) as errors against the component's sources, S1/S2 too, with a baseline of today's debt (`core/tools/audit/baseline.mjs`) so the gate is "no new debt". The #392 gate applies too. Rule T1 flags an unnamed structural `div`/`span` (no `part`, `slot` or `role`, not a `<slot>` wrapper), baselined and removed per component; a named part or slot host is exempt because other code addresses it (owner decision, #736).
 - **page:** as component; additionally no own controls (the #392 gate).
 - **shell:** D1/S3 run with the landmark and layout exemption (`header`, `footer`, `nav`, `main`, `div`, `span`, `slot`); viewport ownership (100dvh, scroll container, skip link) is allowed only here, and a check flags `100vh`/scroll-lock code in any other tier.
 - **module:** exists (`module-ruleset.mjs`, S1-S12). Only a label.
@@ -186,7 +186,7 @@ Elements stay in `core/elements/` (82 of 120), so no element-tier batch exists. 
 ## 7. Open questions: resolved (owner decisions)
 
 1. Tier follows construction, not size: `combobox`, `form`, `field`, `field-row` stay elements. **Resolved.**
-2. Structural `div`/`span` in components: baselined, then removed per component. **Resolved.**
+2. Structural `div`/`span` in components: baselined, then removed per component. **Resolved.** Amended: T1 no longer flags a `div`/`span` that is a named part, a slot host or carries a role (#736); only unnamed wrappers remain debt.
 3. A fifth tier, **shell**, added: `app-shell` first; `pk-os` may become one. Rules and how it differs from a page in section 1. **Resolved.**
 4. Pages are one tier across the element form (`pk-*-page`) and the `core/js/app/pages` factories, tied by `tier: "page"` and a `pageType` field (checked by `C3`). **Resolved.**
 5. `tier: module` is forbidden in `core/elements` meta; modules live with the app framework and `core/modules`. **Resolved.**
