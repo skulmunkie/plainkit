@@ -3,7 +3,7 @@
   "title": "Back to top",
   "summary": "A floating button that appears once the reader is well down the page and scrolls the page (or a named scroller) back to the top, smoothly unless reduced motion is on.",
   "group": "Navigation",
-  "tier": "component",
+  "tier": "element",
   "props": [
     {
       "name": "for",

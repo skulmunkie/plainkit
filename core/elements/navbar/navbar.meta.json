@@ -4,7 +4,7 @@
   "title": "Navbar",
   "summary": "The top navigation: brand, links, dropdown and mega menus, right-aligned actions, sticky option, and a hamburger that folds the links below 1024px.",
   "group": "Navigation",
-  "tier": "component",
+  "tier": "element",
   "props": [
     {
       "name": "label",

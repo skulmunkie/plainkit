@@ -51,7 +51,7 @@ An **element** may use any raw tag; it should still use a lower `pk-*` element w
 Rules of thumb applied: (a) family parents that own interaction (tabs' keyboard, tree roving focus, sortable drag) are elements; (b) a thing that
 owns its ARIA pattern on raw tags is an element however complex (`combobox`); (c) "Page types" group in `.meta.json` maps to pages; (d) a thing whose
 source mostly writes `pk-*` but currently also writes raw `button`/`input` is a **component with baselined debt**, not an element: the tier states
-the intent, the audit tracks the debt. Counts: 82 elements, 25 components, 12 pages, 1 shell, 0 modules in `core/elements/` (modules already have their own
+the intent, the audit tracks the debt. Counts: 91 elements, 16 components, 12 pages, 1 shell, 0 modules in `core/elements/` (modules already have their own
 folder and ruleset; see section 3).
 
 **Shell (1):** app-shell.
@@ -59,12 +59,12 @@ folder and ruleset; see section 3).
 **Pages (12):** dashboard-page, doc-page, list-page, master-detail-page, not-found-page, note-page, record-page, settings-page, states-page,
 tool-page, wizard-page, workspace-page.
 
-**Components (25):** badge-popover\*, app-bar-search\*, back-to-top\*, code-block\*, command-palette\*, date-range-picker, detail-layout, dock\*,
-field-list, form-actions, form-section, image-gallery, kanban, kanban-column, navbar, page-header\*, pagination, property-grid, side-nav\*,
-split-button\*, stepper, table-filters\*, tabs\*, toast-stack, toolbar.
+**Components (16):** app-bar-search\*, date-range-picker, detail-layout, dock\*,
+field-list, form-actions, form-section, image-gallery, kanban, kanban-column, page-header\*, property-grid,
+stepper, tabs\*, toast-stack, toolbar.
 (\* = ambiguous or carries raw-tag debt today; see below.)
 
-**Elements (82):** accordion, accordion-item, alert, app-shell\*, avatar, avatar-group, badge, breadcrumb, button, button-group, calendar, card,
+**Elements (91):** (82 at the first classification, plus back-to-top, badge-popover, code-block, command-palette, navbar, pagination, side-nav, split-button and table-filters, re-tiered in #736 because each is built only from raw HTML and renders no other `pk-*` element; the owner constraint is that an element is composed of base building blocks only) accordion, accordion-item, alert, app-shell\*, avatar, avatar-group, badge, breadcrumb, button, button-group, calendar, card,
 chart, checkbox, cluster, code-view, colour-input, combobox\*, container, context-menu, dialog, divider, drawer, dropdown, dropzone, empty-state,
 field, field-row, form, frame, gallery, grid, heading, hint, icon, input, lightbox, link, list, list-group, loading-overlay, local-time, log, media,
 menu-item, nav-item, otp-input, pager, popover, progress, radio-group, range, rating, scroll-progress, select, select-menu, skeleton, skip-link,
@@ -84,10 +84,10 @@ pass, not a measured composition graph; phase 1 produces the measured one).
 | **workspace / workspace-page** | Two tiers for one idea? | `workspace` element (panes, raw); `workspace-page` page (the page type hosting it). Keep the pair. |
 | **tabs** (+ tab, tab-panel) | Parent composes `pk-tab`, `pk-dropdown`, `pk-menu-item` | Family: children are elements; parent **component** because it assembles tabs and an overflow dropdown. Debt: raw `button`/`div` in the strip. |
 | **dock** | Panels, splitters, raw `button`/`section` | **Component** (composes `pk-splitter`, tabs), debt on the raw tags. Re-tier to element if it is judged to own the docking behaviour outright. |
-| **navbar / side-nav** | Compose `pk-nav-item`, but draw `nav`, `input`, `button` | **Components with debt.** The intent is composition; the raw `nav` landmark is the one allowed exception (a landmark), the raw `input`/`button` are debt. |
-| **command-palette** | Raw `dialog` + `input` + list | **Component with debt:** should compose `pk-dialog`, `pk-input`, `pk-list-group`. Today it re-draws them; the audit records this, which is the point. |
+| **navbar / side-nav** | Draw `nav`, `input`, `button`; `pk-nav-item` is only looked up (side-nav) or supplied by the host | **Elements (re-tiered in #736).** Previously components with debt. The intent is composition; the raw `nav` landmark is the one allowed exception (a landmark), the raw `input`/`button` are debt. |
+| **command-palette** | Raw `dialog` + `input` + list | **Element (re-tiered in #736).** Was a component with debt: should compose `pk-dialog`, `pk-input`, `pk-list-group`. Today it re-draws them; the audit records this, which is the point. |
 | **page-header, toolbar, form-section, form-actions, field-list** | Layout-ish, raw `header`/`h2`/`div` | Components: they should compose `pk-heading`, `pk-breadcrumb`, `pk-cluster`, `pk-stack`. Each raw tag found is debt, not a reason to call them elements. |
-| **badge-popover, split-button, back-to-top, app-bar-search, code-block, table-filters** | Compose an existing element but draw raw `button`/`input` | **Components with debt** (should use `pk-button`, `pk-input`, `pk-popover`, `pk-dropdown`). Some may prove to be genuine elements after review (app-bar-search draws a bespoke pill); each decision is an audit result, not a guess. |
+| **badge-popover, split-button, back-to-top, app-bar-search, code-block, table-filters** | Compose an existing element but draw raw `button`/`input` | **badge-popover, split-button, back-to-top, code-block, table-filters were re-tiered to elements in #736** (they render no `pk-*`); app-bar-search stays a component (its template renders `pk-button`). Originally: components with debt (should use `pk-button`, `pk-input`, `pk-popover`, `pk-dropdown`). Some may prove to be genuine elements after review (app-bar-search draws a bespoke pill); each decision is an audit result, not a guess. |
 | **form, field, field-row** | Wrap `pk-input`/`pk-field` by selector | **Elements.** They query `pk-*` children by name to wire validation; they do not build them. Use of a tag name in a query is not composition. |
 | **table, chart, calendar, dropdown, context-menu, popover, dialog, drawer, lightbox** | Complex, but own their tree | **Elements.** Complexity is not composition. |
 | **kanban, kanban-column, image-gallery, property-grid, date-range-picker** | Composed of `pk-sortable`, `pk-lightbox`, `pk-popover`, `pk-calendar`, `pk-input`... | **Components.** |
@@ -133,9 +133,9 @@ parent folder, so the two cannot drift.
 
 ### 3.4 Batching and the freeze
 
-One batch per tier, scripted (`git mv` plus the rewrite script, reviewed as a rename diff), in this order: shells (1 element), pages (12), components (25),
-elements (82, the remainder, only if the parent folder keeps the name `elements`; 82 elements stay where they are, so this batch is empty: the
-element tier does not move at all). The big win of this layout: **82 of 120 elements never move.**
+One batch per tier, scripted (`git mv` plus the rewrite script, reviewed as a rename diff), in this order: shells (1 element), pages (12), components (16),
+elements (91, the remainder, only if the parent folder keeps the name `elements`; 91 elements stay where they are, so this batch is empty: the
+element tier does not move at all). The big win of this layout: **91 of 120 elements never move.**
 
 Coordination: a batch is announced on #736 a day ahead; during the batch window (target under 2 hours, merged same day) open agents working on
 an element of that tier rebase after merge; `git mv` keeps history and rename detection resolves most conflicts. Paths that other agents' branches
@@ -177,11 +177,11 @@ A sample states its tier and shows nothing below it.
 | 3 | Component ruleset report-only with baseline (D1, S3, S1/S2, gate); shell rules; scorecard by-tier view. | ~350 | large baseline file, conflicts if components change concurrently |
 | 4 | Go-live: errors for new debt; baseline reduction begins, per component PRs (UI review applies because `button` -> `pk-button` changes looks). Runs in parallel with 5-7. | per component <= 400 | UI regressions |
 | 5 | Move batch A: `core/shells/` (app-shell), plus `core/pages/` (12); build.mjs, tests glob, attestation, baselines rewritten by script; dist file list unchanged (test). | ~200 + scripted renames | conflicts on page elements; announce, same-day merge |
-| 6 | Move batch B: `core/components/` (25), same script. | ~100 + scripted renames | conflicts on the 25; per-batch window |
+| 6 | Move batch B: `core/components/` (16), same script. | ~100 + scripted renames | conflicts on the 25; per-batch window |
 | 7 | Blazor mirrored: mappings in `<tier>/` folders, `Generated/<Tier>/`, namespaces, `global using` compat aliases, package check. Can ship right after each core batch if the generator reads tier from the mapping. | ~350 | public .NET API surface: namespace aliases; needs its own minor version note |
 | 8 | Docs, skills, gallery show tier; STANDARDS/CONTRIBUTING paragraph; #699 samples consolidation keyed by tier. | ~300 | none |
 
-Elements stay in `core/elements/` (82 of 120), so no element-tier batch exists. Conflict risk with concurrent agents concentrates in phase 1 (all metas), and in batches A and B for only 38 elements.
+Elements stay in `core/elements/` (91 of 120), so no element-tier batch exists. Conflict risk with concurrent agents concentrates in phase 1 (all metas), and in batches A and B for only 29 elements.
 
 ## 7. Open questions: resolved (owner decisions)
 
