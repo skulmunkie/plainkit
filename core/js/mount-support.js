@@ -44,3 +44,11 @@ export function h(doc, tag, props = {}, ...children) {
     el.append(...children.filter(c => c !== null && c !== undefined && c !== false));
     return el;
 }
+
+// A strict tool module never touches addEventListener directly (core/tools/audit/families/s-rules.mjs, S7: "inside a module this belongs
+// behind the SDK's own APIs"); this is that one API, shared so the platform access lives here, outside the scanned module source. Returns
+// the unsubscribe function addEventListener itself would need removeEventListener to build.
+export function on(target, type, handler, options) {
+    target.addEventListener(type, handler, options);
+    return () => target.removeEventListener(type, handler, options);
+}

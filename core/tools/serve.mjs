@@ -69,6 +69,21 @@ http.createServer((req, res) => {
     }
     let pathname;
     try { pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { res.writeHead(400).end('bad request'); return; }
+    // A small, fixed allowlist of read-only audit artifacts that live outside core/ (repo root and review-output/), for the audit-dashboard
+    // module (modules/audit-dashboard/): it only ever reads a file already on disk here, never runs anything.
+    const auditPath = (base && pathname.startsWith(base + '/audit/')) ? pathname.slice(base.length + '/audit/'.length)
+        : pathname.startsWith('/_audit/') ? pathname.slice('/_audit/'.length) : null;
+    if (auditPath !== null) {
+        const repoRoot = path.resolve(root, '..');
+        const AUDIT_FILES = { 'module-baseline.json': path.join(repoRoot, 'plainkit.audit.modules.baseline.json'), 'ui-review-manifest.json': path.join(repoRoot, 'review-output', 'manifest.json') };
+        const file = AUDIT_FILES[auditPath];
+        if (!file) { res.writeHead(404).end('not found'); return; }
+        fs.readFile(file, (err, data) => {
+            if (err) { res.writeHead(404).end('not generated yet'); return; }
+            res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }).end(data);
+        });
+        return;
+    }
     if (base) {
         if (pathname !== base && !pathname.startsWith(base + '/')) { res.writeHead(404).end('not found'); return; }
         pathname = pathname.slice(base.length) || '/';
