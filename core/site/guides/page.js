@@ -1,10 +1,12 @@
 // The Guides page: the site shell around a side nav of guides, the article (built at build time from Markdown, see tools/guides.mjs), a table of contents,
-// a breadcrumb and previous/next links. Hash routing (guides-logic.js): #/ is the list, #/<guide> a guide, #/<guide>/<heading> a place in it.
+// a breadcrumb and previous/next links. Routing is js/router.js in hash mode (mounted below): #/ is the list, #/<guide> a guide, #/<guide>/<heading> a
+// place in it. A bare in-page anchor ('#<heading>', the toc or a heading's permalink) is not a route and stays page-local (guides-logic.js, isAnchorHash).
 import { mountShell } from '../shell.js';
 import { createLogger } from '../../js/log.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
+import { mountRouter } from '../../js/router.js';
 import { GUIDES } from './guides.data.js';
-import { parseHash, neighbours, routeHash } from './guides-logic.js';
+import { neighbours, routeHash, isAnchorHash } from './guides-logic.js';
 import { searchGuides } from './guides-search.js';
 
 const log = createLogger('guides');
@@ -112,22 +114,40 @@ function scrollToHeading(id) {
     return true;
 }
 
+// The route tree: '/' the list, '/:id' a guide, '/:id/:frag' a heading inside it. Whether ':id' names a real guide is checked against
+// GUIDES below (the tree itself only knows shapes, not which ids exist); page.js builds its own breadcrumbs and title, so the labels
+// here are unused and left minimal.
+const routes = [{ path: '/', label: 'Guides' }, { path: '/:id', label: '' }, { path: '/:id/:frag', label: '' }];
+
 let current, first = true;
+
+// A bare in-page anchor ('#install', the toc or a heading permalink) is not a route: the browser has already scrolled to it, so this
+// only rewrites the address to one that reloads to the same place, and never reaches the router. It must run before the router's own
+// hashchange listener (registered next), and stops that listener from also treating the address as a route change.
+window.addEventListener('hashchange', e => {
+    if (!isAnchorHash(location.hash)) return;
+    const decode = s => { try { return decodeURIComponent(s); } catch { return s; } }; // a malformed %-escape is kept as typed, and then matches nothing
+    const id = decode(location.hash.slice(1));
+    if (current && scrollToHeading(id)) history.replaceState(null, '', routeHash(current, id));
+    e.stopImmediatePropagation();
+});
+
+const router = mountRouter(null, { routes, mode: 'hash' });
+
 function route() {
-    const r = parseHash(location.hash, ids);
-    if (r.kind === 'anchor') {
-        // An in-page link (the toc, a heading permalink): the browser has scrolled to it; make the address one that reloads to the same place.
-        if (current && scrollToHeading(r.id)) history.replaceState(null, '', routeHash(current, r.id));
-        return;
-    }
-    const id = r.kind === 'guide' ? r.id : null;
-    const changed = first || r.kind !== 'guide' || id !== current || !body.firstElementChild;
+    const rt = router.current(); // hash mode always matches (a default not-found route), so rt is never null here
+    const guideId = (rt.path === '/:id' || rt.path === '/:id/:frag') ? rt.params.id : null;
+    const frag = rt.path === '/:id/:frag' ? rt.params.frag : null;
+    const kind = rt.path === '/' ? 'home' : guideId != null && ids.includes(guideId) ? 'guide' : 'missing';
+    const id = kind === 'guide' ? guideId : null;
+
+    const changed = first || kind !== 'guide' || id !== current || !body.firstElementChild;
     if (changed) {
-        if (r.kind === 'guide') paintGuide(GUIDES.find(g => g.id === id)); else if (r.kind === 'missing') paintMissing(r.id); else paintHome();
+        if (kind === 'guide') paintGuide(GUIDES.find(g => g.id === id)); else if (kind === 'missing') paintMissing(guideId ?? ''); else paintHome();
         current = id;
         scroller.scrollTop = 0;
     }
-    if (r.kind === 'guide' && r.frag) { scrollToHeading(r.frag); if (first) setTimeout(() => scrollToHeading(r.frag), 400); } // on a first load the elements above it are still upgrading and change its position
+    if (kind === 'guide' && frag) { scrollToHeading(frag); if (first) setTimeout(() => scrollToHeading(frag), 400); } // on a first load the elements above it are still upgrading and change its position
     else if (!changed) scroller.scrollTop = 0; // the link to the guide you are already reading goes to its top
     closeNav();
     if (!first && changed) requestAnimationFrame(() => $('gd-title').focus({ preventScroll: true })); // a new page: keyboard and screen reader users start at its title
@@ -152,5 +172,5 @@ $('gd-scroll').addEventListener('click', e => {
     e.preventDefault();
     history.pushState(null, '', routeHash(current, id));
 });
-window.addEventListener('hashchange', route);
-route();
+router.subscribe(route);
+if (!isAnchorHash(location.hash)) route(); // a bare anchor on first load has no current guide to scroll within yet; the anchor listener above already no-ops on it
