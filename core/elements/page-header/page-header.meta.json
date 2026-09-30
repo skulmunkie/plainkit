@@ -2,7 +2,7 @@
   "tag": "pk-page-header",
   "title": "Page header",
   "group": "Layout & structure",
-  "summary": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Stacks by its own width, with the actions full width and touch-sized on a phone.",
+  "summary": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Without an explicit heading, the crumbs, chips and actions collapse onto a single row by default; spacious opts back into the multi-row breakdown. Stacks by its own width, with the actions full width and touch-sized on a phone.",
   "props": [
     {
       "name": "heading",
@@ -28,7 +28,14 @@
         "record"
       ],
       "reflect": true,
-      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right); on a narrow container the actions stay on the first row and the chips move to a row below."
+      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right); on a narrow container the actions stay on the first row and the chips move to a row below. The row count this default (page) or record collapse to is the same: see spacious for the opt-in multi-row breakdown."
+    },
+    {
+      "name": "spacious",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Without an explicit heading, pk-page-header collapses the crumbs, chips and actions onto a single row by default. Set spacious to opt back into the older multi-row breakdown (a breadcrumb row, then a title bar with actions, then the note line) for a title too long to share a row with the actions, or more badges than fit one row. Has no effect when heading is set: a real title always keeps its own row above the crumbs."
     },
     {
       "name": "sticky",
@@ -117,7 +124,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics. A record with no heading attribute renders single-row, with the last breadcrumb crumb (already aria-current=\"page\") standing in for the title; pk-page-header does not own pk-breadcrumb's slotted content, so it cannot add a heading role to that crumb for you — add role=\"heading\" and the matching aria-level (matching level) on that last crumb yourself, as in the record example below.",
+  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics. Any variant with no heading attribute renders single-row by default (unless spacious is set), with the last breadcrumb crumb (already aria-current=\"page\") standing in for the title; pk-page-header does not own pk-breadcrumb's slotted content, so it cannot add a heading role to that crumb for you — add role=\"heading\" and the matching aria-level (matching level) on that last crumb yourself, as in the record example below.",
   "examples": [
     {
       "title": "Page: crumbs, title and actions",
@@ -134,6 +141,10 @@
     {
       "title": "Record: status chips and actions",
       "html": "<pk-page-header variant=\"record\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Receive</pk-button>\n</pk-page-header>"
+    },
+    {
+      "title": "Spacious: opt back into the multi-row breakdown",
+      "html": "<pk-page-header spacious>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">A very long product name that would crowd the actions off a single row</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-badge variant=\"warn\">Backordered</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <span slot=\"meta\">Updated moments ago</span>\n</pk-page-header>"
     }
   ]
 }
