@@ -22,9 +22,9 @@ export default {
         frame.querySelector('#clear').addEventListener('click', route(''));
     },
     steps: [
-        { wait: 500 }, { shot: 'none' },
-        { click: '#open' }, { wait: 400 }, { shot: 'selected' },
-        { click: '#fail' }, { wait: 400 }, { shot: 'error' },
+        { shot: 'none' },
+        { click: '#open' }, { shot: 'selected' },
+        { click: '#fail' }, { shot: 'error' },
     ],
     expect(t) {
         t.inViewport(MD);
