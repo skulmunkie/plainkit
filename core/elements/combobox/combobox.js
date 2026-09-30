@@ -1,4 +1,5 @@
 // pk-combobox behaviour (see meta.json for the API).
+import { place, autoUpdate } from '../../js/positioning.js';
 export function filterOptions(labels, query) {
     const q = String(query ?? '').trim().toLowerCase();
     return labels.map(l => q === '' || l.toLowerCase().includes(q));
@@ -52,11 +53,20 @@ export default Base => class extends Base {
     hide() { this.setOpen(false); this.highlight(null); }
     filter() {
         const ops = this.ops();
-        if (this.filtering === 'off') return;
+        if (this.filtering === 'off') { this.part('empty').hidden = ops.length > 0; this.highlight(this.live()[0] ?? null); this.float(); return; }
         const match = this.mode === 'select' ? ops.map(() => true) : filterOptions(ops.map(o => o.textContent), this.$query);
         ops.forEach((o, i) => { o.hidden = !match[i]; });
         this.part('empty').hidden = match.some(Boolean);
-        this.highlight(this.live()[0] ?? null);
+        this.highlight(this.live()[0] ?? null); this.float();
+    }
+    // The list is position:fixed and placed from the box, so no overflow-hidden card, form or table cell can clip it.
+    float() {
+        const pop = this.part('popup'), box = this.part('box');
+        if (!this.open) { this.$u?.(); this.$u = null; return; }
+        const o = { placement: 'bottom-start', offset: 0 };
+        pop.style.minWidth = `${box.getBoundingClientRect().width}px`;
+        place(box, pop, o);
+        this.$u ??= autoUpdate(box, pop, o);
     }
     pick(op) {
         this.$typing = false; this.value = op.dataset.value;
@@ -88,6 +98,7 @@ export default Base => class extends Base {
         const pop = this.part('popup'), inp = this.part('control'), tr = this.part('trigger');
         if (this.$opts ?? true) {
             this.$opts = false;
+            const prev = this.ops().find(o => o.classList.contains('hl'))?.dataset.value;
             for (const o of this.ops()) o.remove();
             const tpl = this.shadowRoot.querySelector('template');
             [...this.children].filter(c => c.localName === 'option').forEach((c, i) => {
@@ -98,6 +109,10 @@ export default Base => class extends Base {
             });
             pop.append(this.part('empty'));
             if (this.open && this.$query && this.mode !== 'select') this.filter();
+            else if (this.open) { // options replaced while open (an async search): keep the highlight on a live option
+                const live = this.live(); this.part('empty').hidden = this.ops().length > 0 || this.mode === 'select';
+                this.highlight(live.find(o => o.dataset.value === prev) ?? live[0] ?? null);
+            }
         }
         const chosen = this.chosen();
         for (const o of this.ops()) o.setAttribute('aria-selected', String(o === chosen));
@@ -105,11 +120,12 @@ export default Base => class extends Base {
         else if (!this.$typing) inp.value = chosen ? chosen.textContent : this.free ? this.value : '';
         pop.hidden = !this.open;
         for (const c of [inp, tr]) c.setAttribute('aria-expanded', String(this.open));
-        if (this.open) { const b = this.ctl().getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; }
+        this.float();
         this.setValidity(this.required && this.value === '' ? { valueMissing: true } : {}, 'Choose an option.', this.ctl());
         this.setFormValue(this.value);
     }
     onReset() { this.value = this.$initial ?? ''; this.$typing = false; }
     onRestore(state) { this.value = state ?? ''; }
+    disconnected() { this.$u?.(); this.$u = null; }
     focus(o) { this.ctl().focus(o); }
 };
