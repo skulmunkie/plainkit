@@ -533,4 +533,33 @@ export const formCases = [
         t.ok(opener.left >= fields.left - 1 && opener.right <= fields.right + 1, 'the opener sits inside the fields row');
         t.ok(opener.right <= picker.part('end').getBoundingClientRect().left + 1, 'in right to left the opener is after the end field, at its left');
     }],
+    ['combobox: a host replaces the options from an async search after pk-combo-query; a stale answer is dropped, the highlight and aria-activedescendant stay on a live option, no-match shows the empty message', async t => {
+        const c = await t.mount('<pk-combobox label="V" filtering="off"><option value="0">Seed</option></pk-combobox>'); await t.settle();
+        const inp = c.part('control'), ops = () => [...c.part('popup').querySelectorAll('.op')];
+        const live = () => { const id = inp.getAttribute('aria-activedescendant'); return id ? c.part('popup').querySelector('#' + id) : null; };
+        let latest = 0; const pending = new Map();
+        c.addEventListener('pk-combo-query', e => { const n = ++latest; pending.set(n, e.detail.query); });
+        const answer = async (n, labels) => { if (n !== latest) return; c.replaceChildren(...labels.map((l, i) => Object.assign(document.createElement('option'), { value: String(i), textContent: l }))); await t.settle(); };
+        await type(t, inp, 'a'); await type(t, inp, 'ab');
+        await answer(1, ['stale one', 'stale two']); t.eq(ops().map(o => o.textContent).join(), 'Seed', 'the answer to the first query is dropped once a newer one is asked');
+        await answer(2, ['Alpha', 'Abacus', 'Able']);
+        t.eq(ops().map(o => o.textContent).join(), 'Alpha,Abacus,Able', 'the fresh options appear (filtering off keeps the server order)'); t.ok(ops().every(o => !o.hidden), 'filtering off hides none');
+        t.ok(live() && ops().includes(live()) && live().classList.contains('hl'), 'activedescendant names a live, highlighted option after the options were replaced');
+        press(inp, 'ArrowDown'); await t.settle(); press(inp, 'ArrowDown'); await t.settle(); t.eq(live()?.textContent, 'Able');
+        await type(t, inp, 'abl'); await answer(3, ['Able']);
+        t.eq(ops().length, 1); t.ok(live() === ops()[0], 'the highlight moved to the only option, not the removed one'); press(inp, 'Enter'); await t.settle(); t.eq(c.value, '0'); t.eq(inp.value, 'Able');
+        await type(t, inp, 'zzz'); await answer(4, []); t.eq(ops().length, 0); t.ok(!c.part('empty').hidden, 'an empty answer shows the empty message'); t.ok(!inp.hasAttribute('aria-activedescendant'), 'no activedescendant with no option');
+    }],
+
+    ['combobox: the open list is not clipped by an overflow-hidden card, a form, or a table cell', async t => {
+        const host = t.stage('<div id="card" style="overflow:hidden;height:70px;width:260px;border:1px solid"><form id="f" style="overflow:hidden;height:60px"><pk-combobox id="a" label="A"><option>One</option><option>Two</option><option>Three</option></pk-combobox></form></div><div style="overflow:auto;height:60px;width:300px"><table><tbody><tr><td style="overflow:hidden"><pk-combobox id="b" mode="select" label="B"><option value="1">One</option><option value="2">Two</option><option value="3">Three</option></pk-combobox></td></tr></tbody></table></div>');
+        await t.load(host); await t.settle();
+        for (const id of ['a', 'b']) {
+            const c = host.querySelector('#' + id); c.part(id === 'a' ? 'control' : 'trigger').click(); await t.settle(); t.ok(c.open);
+            const pop = c.part('popup'), r = pop.getBoundingClientRect(), o = pop.querySelectorAll('.op')[2].getBoundingClientRect();
+            t.ok(r.height > 100, id + ': the list is ' + Math.round(r.height) + 'px tall');
+            const hit = document.elementFromPoint(o.left + o.width / 2, o.top + o.height / 2); t.ok(hit === c || c.contains(hit) || hit?.getRootNode?.().host === c, id + ': the last option is hit-testable: an overflow-hidden ancestor would cut it off');
+            c.open = false; await t.settle();
+        }
+    }],
 ];
