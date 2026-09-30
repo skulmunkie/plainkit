@@ -13,6 +13,27 @@ const isScript = file => fileIs(file, SCRIPT_EXTENSIONS);
 const isCss = file => fileIs(file, CSS_EXTENSIONS);
 const isPkTag = name => /^pk-/i.test(name);
 
+// Splits a CSS selector list ("a, b::part(c)") on its top-level commas, ignoring commas inside parens (an
+// :is(), :where() or ::part() argument list can itself contain commas). D8 needs this to judge each selector
+// in a rule on its own: one comma-separated selector using ::part() must not hide a sibling selector in the
+// same rule that reaches into a pk-* element without it (D2 has no equivalent need - it matches single classes).
+function splitSelectorList(selectorText) {
+    const parts = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < selectorText.length; i++) {
+        const ch = selectorText[i];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth = Math.max(0, depth - 1);
+        else if (ch === ',' && depth === 0) {
+            parts.push(selectorText.slice(start, i));
+            start = i + 1;
+        }
+    }
+    parts.push(selectorText.slice(start));
+    return parts;
+}
+
 function classListsIn(file) {
     const { nodes } = scanHtml(file.text);
     const out = [];
@@ -68,7 +89,12 @@ export const D_RULES = [
                 const { nodes } = scanCss(file.text);
                 for (const node of nodes.filter(n => n.kind === 'rule')) {
                     for (const cls of Object.keys(CLASS_HINTS)) {
-                        if (new RegExp(`\\.${cls}\\b`).test(node.name)) {
+                        // A word-boundary-only check (`\b`) treats the hyphen in `.text-danger` as a boundary too,
+                        // so it matches on the "text" hint even though that's a different, unrelated class name
+                        // (#684, D2). Require the class name to end at the selector (`.text`) or at a non-name
+                        // character that cannot continue a class name (not a hyphen either), so a hint only fires
+                        // on the exact class, never a class that merely starts with it.
+                        if (new RegExp(`\\.${cls}(?![\\w-])`).test(node.name)) {
                             hits.push({ line: node.line, column: node.column, message: `.${cls}`, found: `.${cls}`, element: CLASS_HINTS[cls] });
                         }
                     }
@@ -146,9 +172,17 @@ export const D_RULES = [
             const { nodes } = scanCss(file.text);
             const hits = [];
             for (const node of nodes.filter(n => n.kind === 'rule')) {
-                if (node.name.includes('::part(')) continue; // documented extension point (design section 2.1, D8)
-                const m = /\bpk-[a-z][a-z0-9-]*/i.exec(node.name);
-                if (m) hits.push({ line: node.line, column: node.column, message: node.name.trim(), found: m[0] });
+                // Judge each selector in a comma-separated list on its own (#684): a rule can mix a sanctioned
+                // `::part()` selector with a plain one that reaches into a pk-* element's internals, e.g.
+                // "pk-tabs, pk-app-shell::part(header) { ... }" - skipping the whole rule because *some* selector
+                // uses ::part() would hide the real `pk-tabs` override sitting right next to it.
+                const offending = splitSelectorList(node.name).find(selector => {
+                    if (selector.includes('::part(')) return false; // documented extension point (design section 2.1, D8)
+                    return /\bpk-[a-z][a-z0-9-]*/i.test(selector);
+                });
+                if (offending == null) continue;
+                const m = /\bpk-[a-z][a-z0-9-]*/i.exec(offending);
+                hits.push({ line: node.line, column: node.column, message: node.name.trim(), found: m[0] });
             }
             return hits;
         },
