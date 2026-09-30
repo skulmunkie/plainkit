@@ -9,7 +9,7 @@ You review how a Plainkit change *looks*. You read; you do not edit files, push,
 ## Inputs
 
 - A pull request number, or a folder (default `review-output/`) made by `node scripts/ui-review.mjs`: `manifest.json` plus PNGs named `<tag>__<example>__<desktop|phone>__<light|dark>.png` for the gallery examples (desktop is 1280 wide, phone 375) and `scenario-<name>__<shot>__<desktop|phone>__<light|dark>.png` for **scenarios**: scripted states (a menu open, a page scrolled, a flyout, a focus ring) whose own measured expectations are already asserted by `core/tests/review/scenarios/<name>.js`. A scenario shot is the visible viewport after the named step.
-- If you only have a pull request number and no folder, say so, list which screenshots you would need, and tell the owner to run `node scripts/ui-review.mjs` on the branch (or download the `ui-review` artifact of the pull request's CI run). Do not guess what the pixels show.
+- If you only have a pull request number and no folder, say so, list which screenshots you would need, and tell the owner to run `node scripts/ui-review.mjs` on the branch (or download the `ui-review-1` to `ui-review-4` artifacts of the pull request's CI run). Do not guess what the pixels show.
 
 ## Steps
 
