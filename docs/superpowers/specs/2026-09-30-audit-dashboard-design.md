@@ -24,13 +24,21 @@ The scorecard already has its own dashboard (`core/site/scorecard/`); this is de
 
 `core/modules/audit-dashboard/`, a `defineModule` devtools module following the existing pattern (`code-explorer`, `logs`, `theme-editor`). Registered the same way those are, reachable from the internal site's devtools nav.
 
+The dashboard's layout is `pk-dock` itself (the dockable/floating workspace element from #432/#618/#639) — each report is a dockable panel the user can arrange, resize, float, or collapse to a rail, rather than a fixed tab strip. This reuses real, already-shipped, already-budget-conscious infrastructure instead of building bespoke layout chrome, and gives "digestible chunks" naturally: a panel a user isn't looking at can be collapsed or floated aside instead of competing for space.
+
+Within each report panel, group findings using `pk-dock`'s own panel-grouping (tree groups, per #618) where it fits — e.g. the module-baseline panel can itself be split into a "by file" group and a "by rule id" group as separate dockable sub-panels a user can view side by side or swap between, rather than a single flat table with a dropdown filter. Use a nested/child dock group for this if `pk-dock`'s model supports it (check `core/js/dock-model.js`'s group semantics); if grouping within one panel that way isn't a natural fit for the current dock model, fall back to the original per-panel client-side filter/group controls described below rather than forcing it.
+
+Each report panel also gets a small "Properties" side panel (also a dock panel) showing the selected finding's full detail (file, rule id, message, fix text) when one is selected in the main findings list, instead of cramming full detail into every row of a dense list. This is the "properties" breakdown the owner asked for: selecting a finding populates a properties panel rather than expanding inline.
+
 ### Panels, each independently lazy-loaded
 
-Three panels, each its own lazy chunk (same static-import-per-feature split just used in #639's dock.js work) — opening one never pulls in the JS or data for the others:
+Three report panels (each docked within the shared `pk-dock` workspace), each its own lazy chunk (same static-import-per-feature split just used in #639's dock.js work) — opening one never pulls in the JS or data for the others:
 
-- **Module baseline** — reads `plainkit.audit.modules.baseline.json` (served from repo root via the internal dev server). Groups by file, then rule id; shows total count and per-file counts up front (matching the breakdown format already used manually in #682's paydown work).
-- **UI review** — reads `review-output/manifest.json` (git-ignored local/CI artifact). Shows findings grouped by severity (error/warning), with the screenshot filename linked so it can be opened directly.
-- **Conformance audit** — reads a JSON file the CLI can be pointed at (`plainkit audit --format json > <path>`, from #629), loaded via a file picker or a documented fixed path. Groups by rule id and severity, same shape as the CLI's own JSON output.
+- **Module baseline** — reads `plainkit.audit.modules.baseline.json` (served from repo root via the internal dev server). Groups by file, then rule id; shows total count and per-file counts up front (matching the breakdown format already used manually in #682's paydown work). Selecting a row populates the shared Properties panel.
+- **UI review** — reads `review-output/manifest.json` (git-ignored local/CI artifact). Shows findings grouped by severity (error/warning), with the screenshot filename linked so it can be opened directly. Selecting a row populates the shared Properties panel.
+- **Conformance audit** — reads a JSON file the CLI can be pointed at (`plainkit audit --format json > <path>`, from #629), loaded via a file picker or a documented fixed path. Groups by rule id and severity, same shape as the CLI's own JSON output. Selecting a row populates the shared Properties panel.
+
+Each panel's own internal filter/sort controls (by rule id, file substring, severity) stay client-side against the already-loaded array, same as originally designed — the dock layout changes how panels are arranged and how detail is surfaced, not how data is fetched or filtered.
 
 ### No live execution — explicit staleness
 
