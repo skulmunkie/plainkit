@@ -97,6 +97,13 @@ export function shardOf(list, k, n) {
     return list.filter((_, i) => i % n === k - 1);
 }
 
+/** The per-scenario phase times added up across scenarios, one number per phase (seconds). Pure. */
+export function sumPhases(phases) {
+    const total = {};
+    for (const p of Object.values(phases)) for (const [k, v] of Object.entries(p)) total[k] = Math.round((total[k] ?? 0) * 10 + v * 10) / 10;
+    return total;
+}
+
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
     const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null };
@@ -213,10 +220,11 @@ const WIDTH_FIX = 'the emulated viewport was not applied; re-run, and report it 
  * One scenario in one viewport and theme: open the page, play the steps (real pointer and key events), and after every `shot` step check the
  * scenario's expectations, audit the page and take a screenshot of the visible viewport. Findings go into manifest.shots like an example's.
  */
-async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout }) {
+async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, phases }) {
     const tag = `scenario-${sc.name}`;
-    await openReview(cdp, vp, `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}`);
-    const state = await waitReady(cdp, timeout);
+    // Where the time goes (issue #750): open and ready, fixed waits, other steps (their settle included), measured audit, screenshot.
+    const timed = async (key, fn) => { const t = Date.now(); try { return await fn(); } finally { phases[key] = (phases[key] ?? 0) + Date.now() - t; } };
+    const state = await timed('open', async () => { await openReview(cdp, vp, `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}`); return waitReady(cdp, timeout); });
     if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${timeout} s` }); return; }
     if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
     const record = (shot, findings, file, boxes = 0) => manifest.shots.push({ tag, example: shot, title: `${sc.name}: ${shot}`, scenario: sc.name, viewport: vp.name, theme, width: vp.width, file, boxes, findings });
@@ -225,15 +233,16 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout }
     const mouse = async events => { for (const e of events) await cdp.send('Input.dispatchMouseEvent', e); };
     for (const [i, step] of stepsFor(sc, vp.name).entries()) {
         if ('shot' in step) {
-            const c = await evaluate(cdp, `window.__rv.check(${JSON.stringify(step.shot)}, ${JSON.stringify({ viewport: vp, theme })})`);
+            const c = await timed('audit', () => evaluate(cdp, `window.__rv.check(${JSON.stringify(step.shot)}, ${JSON.stringify({ viewport: vp, theme })})`));
             const findings = [...auditFacts(c.facts), ...c.failures.map(f => expectationFinding(sc.name, step.shot, f))];
             const file = scenarioShotName(sc.name, step.shot, vp.name, theme);
-            const shot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
-            fs.writeFileSync(path.join(out, file), Buffer.from(shot.data, 'base64'));
+            await timed('screenshot', async () => { const shot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }); fs.writeFileSync(path.join(out, file), Buffer.from(shot.data, 'base64')); });
             record(step.shot, findings, file, c.facts.boxes.length);
             continue;
         }
         let r = {};
+        const t0 = Date.now();
+        const fixedWait = 'wait' in step && step.wait !== 'settle';
         if ('click' in step || 'hover' in step) {
             r = await evaluate(cdp, `window.__rv.target(${JSON.stringify(step)})`);
             if (!r.error) { await mouse(mouseEvents('click' in step ? 'click' : 'hover', r.x, r.y)); await evaluate(cdp, 'window.__rv.settle()'); }
@@ -253,6 +262,7 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout }
             if ('focus' in step) await keys(keyEvents('Shift')); // a key press first, so the focus that follows counts as keyboard focus (:focus-visible)
             r = await evaluate(cdp, `window.__rv.apply(${JSON.stringify(step)})`);
         }
+        phases[fixedWait ? 'wait' : 'step'] = (phases[fixedWait ? 'wait' : 'step'] ?? 0) + Date.now() - t0;
         if (r.error) {
             record(`step-${i + 1}`, [pageError('scenario-step', `step ${i + 1} ${JSON.stringify(step)}: ${r.error}`, `the step no longer matches the page: update the selector in core/tests/review/scenarios/${sc.name}.js, or fix the element if it lost that part`)], null);
             return;
@@ -292,7 +302,7 @@ async function main() {
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
-    const manifest = { generated: new Date().toISOString(), why, shard: o.shard ? `${o.shard.k}/${o.shard.n}` : null, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, summary: null };
+    const manifest = { generated: new Date().toISOString(), why, shard: o.shard ? `${o.shard.k}/${o.shard.n}` : null, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, phases: {}, summary: null };
     if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); return 0; }
 
     let chrome;
@@ -344,8 +354,10 @@ async function main() {
         if (examples.length) manifest.timings.examples = Math.round((Date.now() - t0) / 100) / 10;
         for (const sc of scenarios) {
             t0 = Date.now();
-            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout });
+            const phases = {};
+            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases });
             manifest.timings[sc.name] = Math.round((Date.now() - t0) / 100) / 10;
+            manifest.phases[sc.name] = Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, Math.round(v / 100) / 10]));
         }
         const grouped = groupFindings(manifest.shots);
         manifest.findings = grouped;
@@ -354,6 +366,7 @@ async function main() {
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
         for (const n of manifest.notSeen) console.log(`NOT SEEN ${n.tag} ${n.viewport}/${n.theme}: ${n.reason}`);
         console.log(`time (s): ${Object.entries(manifest.timings).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+        if (scenarios.length) console.log(`scenario time by phase (s): ${Object.entries(sumPhases(manifest.phases)).map(([k, v]) => `${k} ${v}`).join(', ')}`);
         console.log(`${manifest.shots.filter(s => s.file).length} screenshots in ${path.relative(root, out) || out}; ${manifest.summary.errors} error(s), ${manifest.summary.warnings} warning(s); manifest.json lists every finding.`);
         code = manifest.summary.ok && !manifest.notSeen.some(n => n.reason !== 'the element has no gallery examples') ? 0 : 1;
     } catch (e) {

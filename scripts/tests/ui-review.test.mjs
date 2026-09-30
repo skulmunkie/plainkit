@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -55,6 +55,11 @@ test('shards are disjoint, cover the selection, and 1/1 is the whole run', () =>
     assert.deepEqual(shardOf(list, 1, 1), list);
     assert.deepEqual(parseArgs(['--shard', '2/4']).shard, { k: 2, n: 4 });
     for (const bad of ['0/4', '5/4', 'a/b', '2']) assert.throws(() => parseArgs(['--shard', bad]), /--shard needs/);
+});
+
+test('phase times add up across scenarios', () => {
+    assert.deepEqual(sumPhases({ a: { open: 1.5, wait: 3 }, b: { open: 0.3, audit: 2 } }), { open: 1.8, wait: 3, audit: 2 });
+    assert.deepEqual(sumPhases({}), {});
 });
 
 test('shot names sort by example and say the combination', () => {
