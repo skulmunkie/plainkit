@@ -226,6 +226,25 @@ export function resizeFloater(doc, { floater, w, h, bounds } = {}) {
     const rect = clampRect({ ...f, w, h }, bounds);
     return { doc: { ...doc, floating: editFloater(doc, floater, n => ({ ...n, ...rect })) }, problems: [] };
 }
+// A pointer-drag delta applied to a floater's rect at the moment the drag started (start: { x, y, w, h }): resize widens/heightens it by (dx, dy),
+// otherwise it moves by (dx, dy). Both go through moveFloater/resizeFloater, so the clamp is the one clampRect already has (a dock.js title-bar
+// or resize-handle drag never re-derives that math itself, round 2 item 5, #618).
+export function dragFloater(doc, { floater, start, dx = 0, dy = 0, resize, bounds } = {}) {
+    return resize ? resizeFloater(doc, { floater, w: start.w + dx, h: start.h + dy, bounds }) : moveFloater(doc, { floater, x: start.x + dx, y: start.y + dy, bounds });
+}
+// The $drag state a pointer down on a floater's move handle or resize grip starts (dock.js adds its own DOM `handle` reference on top): f's own
+// rect at grab time is the `start` dragFloater above wants back on every subsequent move.
+export function floatDrag(f, resize, pointerId, sx, sy) {
+    return { float: true, resize, id: f.id, pointerId, sx, sy, x: f.x, y: f.y, w: f.w, h: f.h };
+}
+// The $drag state a pointer down on a tab-drag-to-dock handle starts (dock.js adds its own DOM `handle` reference on top).
+export function tabDrag(panel, from, pointerId, sx, sy) {
+    return { panel, from, target: null, zone: null, pointerId, moved: false, sx, sy };
+}
+// The live-region phrase for a completed moveTab/dockPanel (dock.js's applyMove); panelTitle/targetTitle are already resolved display names.
+export function describeMove(kind, panelTitle, targetTitle, zone) {
+    return kind === 'dock' ? `${panelTitle} docked ${zone === 'top' ? 'above' : zone === 'bottom' ? 'below' : zone + ' of'} ${targetTitle}` : `${panelTitle} added as a tab in ${targetTitle}`;
+}
 export function raiseFloater(doc, { floater } = {}) {
     const f = findFloater(doc, floater);
     if (!f) return same(doc, problem('unknown-floater', `no floater ${floater}`, floater));

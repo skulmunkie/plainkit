@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import behaviour, { readPanels, readingOrder, dropZone } from './dock.js';
-import { defaultLayout, findGroup, groups } from '../../js/dock-model.js';
+import { defaultLayout, findGroup, groups, floatPanel, floaters, findFloater } from '../../js/dock-model.js';
 import { setLogLevel } from '../../js/log.js';
 
 setLogLevel('silent');
@@ -29,7 +29,7 @@ test('readingOrder lists the panels start before end', () => {
 
 // A stand-in for the DOM the element builds: nodes with attributes, children and text, enough to read the tree back.
 class Node {
-    constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.text = ''; this.listeners = {}; }
+    constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.text = ''; this.listeners = {}; this.style = {}; }
     setAttribute(k, v) { this.attrs[k] = String(v); }
     getAttribute(k) { return this.attrs[k] ?? null; }
     hasAttribute(k) { return k in this.attrs; }
@@ -540,4 +540,72 @@ test('a single group (nothing to drop on) never starts a drag: onDragStart bails
     handle.setPointerCapture = () => assert.fail('a lone group has nowhere to dock: no drag should ever start');
     const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle.closest(s)) };
     single.root.listeners['pointerdown']({ button: 0, pointerId: 7, clientX: 0, clientY: 0, target });
+});
+
+// ---- floating panels, round 2 item 5 (#618): draws each `floating` entry (js/dock-model.js) as an absolutely-positioned overlay inside root,
+// its own group() header doubling as the drag-to-move handle and a corner .floater-resize grip; both share onDragStart/onDragMove/onDragEnd with
+// the tab-drag-to-dock tests above (mocking target.closest the same way), settling into one moveFloater/resizeFloater/raiseFloater commit on release.
+const floatingLayout = (panel, rect) => floatPanel(defaultLayout(P), { panel, rect, bounds: { w: 400, h: 300 } }).doc;
+
+test('a floating entry draws as an absolutely-positioned section inside root, with its own resize grip, and never appears in the docked tree', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { root } = make(P, { layout: doc });
+    const id = floaters(doc)[0].id;
+    const floater = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    assert.ok(floater, 'the floater group is drawn inside root');
+    assert.deepEqual(floater.style, { left: '10px', top: '20px', width: '160px', height: '120px', zIndex: 1 });
+    assert.equal(findGroup(doc, 'canvas'), null, 'canvas left the docked tree for its floater');
+    assert.equal(find(floater, 'div').some(d => d.attrs.class === 'floater-resize'), true, 'a resize grip is present');
+});
+
+test('dragging a floater\'s header moves it (moveFloater), clamped to root\'s own bounds, and commits reason floater once on release', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    const header = floaterEl.querySelector('.header');
+    header.closest = sel => (sel === '[data-floater]' ? floaterEl : sel === 'pk-tab, [part="header"]' ? header : null);
+    header.setPointerCapture = () => {}; header.hasPointerCapture = () => true; header.releasePointerCapture = () => {};
+    root.getBoundingClientRect = () => ({ width: 400, height: 300 });
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '.floater-resize' ? null : header.closest(s)) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 10, clientX: 0, clientY: 0, target, stopPropagation() {} });
+    root.listeners['pointermove']({ pointerId: 10, clientX: 30, clientY: -5, preventDefault() {} });
+    assert.equal(findFloater(el.$doc, id).x, 40); assert.equal(findFloater(el.$doc, id).y, 15, 'live during the drag, no commit yet');
+    assert.equal(el.events.length, 0);
+    root.listeners['pointerup']({ pointerId: 10, type: 'pointerup' });
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['floater']);
+    assert.equal(findFloater(el.$doc, id).x, 40);
+});
+
+test('dragging a floater\'s resize grip resizes it (resizeFloater) without moving it', () => {
+    const doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    const { el, root } = make(P, { layout: doc });
+    const id = floaters(el.$doc)[0].id;
+    const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
+    const grip = { closest: sel => (sel === '.floater-resize' ? grip : sel === '[data-floater]' ? floaterEl : null) };
+    grip.setPointerCapture = () => {}; grip.hasPointerCapture = () => true; grip.releasePointerCapture = () => {};
+    root.getBoundingClientRect = () => ({ width: 400, height: 300 });
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : grip.closest(s)) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 11, clientX: 0, clientY: 0, target, stopPropagation() {} });
+    root.listeners['pointermove']({ pointerId: 11, clientX: 25, clientY: 10, preventDefault() {} });
+    root.listeners['pointerup']({ pointerId: 11, type: 'pointerup' });
+    assert.equal(findFloater(el.$doc, id).w, 185); assert.equal(findFloater(el.$doc, id).h, 130);
+    assert.equal(findFloater(el.$doc, id).x, 10, 'a resize never moves the floater');
+    assert.deepEqual(el.events.map(e => e.detail.reason), ['floater']);
+});
+
+test('a pointerdown on any floater raises it to the front (raiseFloater), even without a drag', () => {
+    let doc = floatingLayout('canvas', { x: 10, y: 20, w: 160, h: 120 });
+    doc = floatPanel(doc, { panel: 'assets', rect: { x: 50, y: 50, w: 150, h: 100 }, bounds: { w: 400, h: 300 } }).doc;
+    const { el, root } = make(P, { layout: doc });
+    const [first, second] = floaters(el.$doc);
+    assert.equal(second.z > first.z, true, 'the later floater starts on top');
+    const firstEl = find(root, 'section').find(s => s.getAttribute('data-floater') === first.id);
+    const header = firstEl.querySelector('.header');
+    header.closest = sel => (sel === '[data-floater]' ? firstEl : sel === 'pk-tab, [part="header"]' ? header : null);
+    header.setPointerCapture = () => {}; header.hasPointerCapture = () => true; header.releasePointerCapture = () => {};
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '.floater-resize' ? null : header.closest(s)) };
+    root.listeners['pointerdown']({ button: 0, pointerId: 12, clientX: 0, clientY: 0, target, stopPropagation() {} });
+    assert.equal(findFloater(el.$doc, first.id).z > findFloater(el.$doc, second.id).z, true, 'raised straight away, before any move or release');
+    root.listeners['pointerup']({ pointerId: 12, type: 'pointerup' });
 });

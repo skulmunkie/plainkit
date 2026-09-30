@@ -6,7 +6,7 @@
 .toolbar[hidden] { display: none; }
 .toolbar slot[name="toolbar-start"] { display: flex; align-items: center; gap: var(--space-1); }
 .panels { display: flex; align-items: center; margin-inline-start: auto; }
-.root { flex: 1; min-block-size: 0; }
+.root { flex: 1; min-block-size: 0; position: relative; }
 .root pk-splitter { --pk-splitter-height: 100%; }
 .cell { block-size: 100%; }
 .group { display: flex; flex-direction: column; block-size: 100%; background: var(--color-surface); position: relative; }
@@ -45,3 +45,8 @@
 .flyout { position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: var(--z-pop); box-sizing: border-box; inline-size: var(--pk-dock-flyout-width, 18rem); max-inline-size: calc(100vw - 2 * var(--space-4)); max-block-size: min(24rem, calc(100dvh - 2 * var(--space-4))); overflow: auto; padding: var(--pk-dock-pad, var(--space-3)); background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); }
 .flyout[hidden] { display: none; }
 /* The Expand button (issue 636) reuses .collapse-toggle's own class and part: a named, full-width, keyboard-reachable row, no new rule needed. */
+/* A floating panel (round 2 item 5, issue 618) is a .group rendered as an absolutely-positioned overlay inside .root's own bounds (never the
+   shell/viewport), its rect and z-index set inline from the model (dock.js); box-shadow gives it the raised, window-like look the design asks
+   for, and min sizes match dock-model's own RECT floor. Its header/tab strip (already drawn by .group) doubles as the drag-to-move handle. */
+.group[data-floater] { position: absolute; min-inline-size: 7.5rem; min-block-size: 5rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-pop); overflow: hidden; }
+.floater-resize { position: absolute; inset-inline-end: 0; inset-block-end: 0; inline-size: var(--space-4); block-size: var(--space-4); cursor: nwse-resize; }

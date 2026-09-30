@@ -9,7 +9,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
 import { createStore } from '../../js/store.js';
 import { place, onOutside, unplace } from '../../js/positioning.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup } from '../../js/dock-model.js';
+import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup, floaters, findFloater, dragFloater, floatDrag, tabDrag, raiseFloater, describeMove } from '../../js/dock-model.js';
 
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
@@ -52,6 +52,7 @@ export const readingOrder = doc => groups(doc).flatMap(g => g.panels);
 
 const make = (doc, tag, attrs = {}) => { const e = doc.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
 const gid = (doc, id) => groups(doc).find(g => g.id === id);
+const rectStyle = (el, f) => Object.assign(el.style, { left: `${f.x}px`, top: `${f.y}px`, width: `${f.w}px`, height: `${f.h}px`, zIndex: f.z });
 
 export default Base => class extends Base {
     connected() {
@@ -99,13 +100,15 @@ export default Base => class extends Base {
     }
     updated() {
         this.syncPersist();
-        this.$closed ??= new Set(); // update() runs once from connectedCallback before connected() gets to set anything up
+        // update() runs once from connectedCallback before connected() gets to set anything up
+        this.$closed ??= new Set();
         const all = readPanels(this.children), phone = Boolean(this.$mq?.matches);
         // A closed panel stays a host child (so its state, and the memory that it exists, are not lost) but is left out of what the model is told is
         // declared: fromJson then drops it from its group like any panel that is no longer declared, and reopening (removing it from $closed) is just
         // the mirror of a panel newly appearing, which fromJson already re-adds to a group. No dock-model.js change needed for either direction.
         const panels = all.filter(p => !this.$closed.has(p.id));
-        const key = JSON.stringify(panels) + phone + this.slotted('toolbar-start').length; // a toolbar-start child added or removed redraws the toolbar too
+        // a toolbar-start child added or removed redraws the toolbar too
+        const key = JSON.stringify(panels) + phone + this.slotted('toolbar-start').length;
         if (this.layout === this.$given && key === this.$key) return;
         const first = !this.$doc, own = this.layout === this.$given;
         const source = own ? this.$doc && toJson(this.$doc) : this.layout;
@@ -149,20 +152,36 @@ export default Base => class extends Base {
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
     }
     draw(phone) {
-        const doc = this.$doc, root = this.part('root'), d = this.ownerDocument;
-        this.$phoneStrip = Boolean(phone); // the phone strip flattens every group into one reading-order tab list, so "move to another group" has no target there
+        const doc = this.$doc, root = this.part('root'), d = this.ownerDocument, floating = floaters(doc);
+        // the phone strip flattens every group into one reading-order tab list, so "move to another group" has no target there
+        this.$phoneStrip = Boolean(phone);
         this.drawToolbar(d);
-        this.part('empty').hidden = Boolean(doc.root);
-        if (!doc.root) { root.replaceChildren(); return this.reflyout(); }
+        this.part('empty').hidden = Boolean(doc.root) || floating.length > 0;
+        if (!doc.root && !floating.length) { root.replaceChildren(); return this.reflyout(); }
         if (phone) {
             const list = readingOrder(doc);
             root.replaceChildren(this.group(d, { id: 'phone', type: 'tabs', panels: list, active: list.includes(this.$phone) ? this.$phone : list[0] }));
             loadElements(root);
             return this.reflyout();
         }
-        root.replaceChildren(this.node(d, doc.root));
+        root.replaceChildren(...(doc.root ? [this.node(d, doc.root)] : []));
+        this.drawFloating(d, floating);
         loadElements(root);
         this.reflyout();
+    }
+    // Each `floating` entry (js/dock-model.js) is an absolutely-positioned overlay inside .root's own bounds (never the shell/viewport, per the
+    // design's "floating layer: inside the dock bounds only"), never drawn for the phone strip (a floater has no meaning once everything flattens
+    // to one reading-order tab list). Its group is a plain `tabs` node rendered by this.group() itself (data-floater doubles as the CSS hook and
+    // the id onDragStart reads back), rather than a second tab-rendering path or an extra wrapper element.
+    drawFloating(d, floating) {
+        const root = this.part('root');
+        for (const f of floating) {
+            const g = this.group(d, f.group);
+            g.setAttribute('data-floater', f.id);
+            rectStyle(g, f);
+            g.append(make(d, 'div', { class: 'floater-resize' }));
+            root.append(g);
+        }
     }
     // Re-finds the rail button for an open flyout after a redraw (draw() rebuilds the tree from scratch, so the old button is gone) and repositions
     // over it; closes the flyout quietly when its panel is no longer a collapsed edge group (it moved, expanded, or the layout changed under it).
@@ -301,10 +320,11 @@ export default Base => class extends Base {
     // The one place moveTab/dockPanel are called: from the Move menu (onMove) and a pointer drop (onDragEnd), so both commit, announce and focus alike.
     applyMove(kind, panel, group, zone) {
         const title = id => this.$titles.get(id) ?? id, targetGroup = gid(this.$doc, group);
-        let r, said;
-        if (kind === 'tab' && panel && group) { r = moveTab(this.$doc, { panel, group }); said = `${title(panel)} added as a tab in ${title(targetGroup?.active)}`; }
-        else if (kind === 'dock' && panel && group && zone) { r = dockPanel(this.$doc, { panel, target: group, zone }); said = `${title(panel)} docked ${zone === 'top' ? 'above' : zone === 'bottom' ? 'below' : zone + ' of'} ${title(targetGroup?.active)}`; }
+        let r;
+        if (kind === 'tab' && panel && group) r = moveTab(this.$doc, { panel, group });
+        else if (kind === 'dock' && panel && group && zone) r = dockPanel(this.$doc, { panel, target: group, zone });
         else return;
+        const said = describeMove(kind, title(panel), title(targetGroup?.active), zone);
         for (const p of r.problems) this.warnOnce(`move:${p.code}:${p.path}`, p.message, { code: p.code });
         if (r.doc === this.$doc) return;
         this.$doc = r.doc;
@@ -318,9 +338,26 @@ export default Base => class extends Base {
     // ---- pointer drag-to-dock: the moveTab/dockPanel calls above, reached by dragging a header or a pk-tab onto another group. Pointer capture is
     // set right away (like pk-sortable-item), but nothing else happens (no overlay, no preventDefault) until the pointer actually moves, so a plain
     // click still selects a tab. Grabbing needs another group to drop on (panelTrigger's own "movable"), and never the panel-menu trigger itself.
+    // A floater has no separate title bar element: its own group() header (or tab strip) already shows the title, so that same element doubles as
+    // the drag-to-move handle, plus a corner .floater-resize grip. Either shares one $drag object, one set of listeners and one grab/release helper
+    // with the tree's own tab-drag-to-dock below (d.float tells onDragMove/onDragEnd which branch to run); moveFloater/resizeFloater already clamp
+    // to bounds (.root's own rect, never the shell/viewport), so dock.js never re-derives that clamp math, only turns pointer deltas into calls.
     onDragStart(e) {
-        if (e.button > 0 || this.$phoneStrip || groups(this.$doc).length < 2) return;
-        if (e.target.closest?.('pk-dropdown, pk-button')) return;
+        if (e.button > 0 || e.target.closest?.('pk-dropdown, pk-button')) return;
+        const floaterEl = e.target.closest?.('[data-floater]');
+        if (floaterEl) {
+            const grip = e.target.closest?.('.floater-resize'), handle = grip || e.target.closest?.('pk-tab, [part="header"]');
+            const id = handle && floaterEl.getAttribute('data-floater'), f = id && findFloater(this.$doc, id);
+            if (!f) return;
+            e.stopPropagation();
+            this.$doc = raiseFloater(this.$doc, { floater: id }).doc;
+            this.paintFloat(id);
+            this.grab(handle, e.pointerId);
+            this.$drag = floatDrag(f, grip, e.pointerId, e.clientX, e.clientY);
+            this.$drag.handle = handle;
+            return;
+        }
+        if (this.$phoneStrip || groups(this.$doc).length < 2) return;
         const tab = e.target.closest?.('pk-tab');
         const handle = tab || e.target.closest?.('[part="header"]');
         const groupEl = handle?.closest?.('[data-node]');
@@ -329,16 +366,25 @@ export default Base => class extends Base {
         if (!group) return;
         const panel = tab ? tab.getAttribute('value') : group.active;
         if (!panel) return;
-        try { handle.setPointerCapture(e.pointerId); } catch (err) { this.debug?.('pointer capture refused (no synthetic pointer active)', err); }
-        this.$drag = { panel, from: groupId, target: null, zone: null, pointerId: e.pointerId, moved: false, startX: e.clientX, startY: e.clientY, handle };
+        this.grab(handle, e.pointerId);
+        this.$drag = tabDrag(panel, groupId, e.pointerId, e.clientX, e.clientY);
+        this.$drag.handle = handle;
     }
+    grab(handle, id) { try { handle.setPointerCapture(id); } catch (err) { this.debug?.('pointer capture refused (no synthetic pointer active)', err); } }
     // Past a small movement threshold (a click is never mistaken for a drag), hit-test the group under the pointer with shadowRoot.elementFromPoint
     // (e.target stays pinned to the captured handle) and mark its zone, or clear the mark over no group, a splitter, or the panel's own group.
     onDragMove(e) {
         const d = this.$drag;
         if (!d || e.pointerId !== d.pointerId) return;
+        if (d.float) {
+            e.preventDefault();
+            const box = this.part('root').getBoundingClientRect();
+            const r = dragFloater(this.$doc, { floater: d.id, start: d, dx: e.clientX - d.sx, dy: e.clientY - d.sy, resize: d.resize, bounds: { w: box.width, h: box.height } });
+            if (r.doc !== this.$doc) { this.$doc = r.doc; this.paintFloat(d.id); }
+            return;
+        }
         if (!d.moved) {
-            if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < 4) return;
+            if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
             d.moved = true;
             this.toggleAttribute('dragging', true);
         }
@@ -355,16 +401,24 @@ export default Base => class extends Base {
         groupEl.setAttribute('drop-zone', zone);
     }
     clearDropZone() { this.part('root').querySelectorAll?.('[drop-zone]')?.forEach(el => el.removeAttribute('drop-zone')); }
-    // Zone center is moveTab, any edge is dockPanel, exactly like the matching Move menu item. Never moved, cancelled, or nowhere valid: no-op.
+    // Zone center is moveTab, any edge is dockPanel, exactly like the matching Move menu item. Never moved, cancelled, or nowhere valid: no-op. A
+    // floater drag/resize has no drop zone to resolve: onDragMove already applied it live, so ending the gesture is just a settling commit.
     onDragEnd(e) {
         const d = this.$drag;
         if (!d || e.pointerId !== d.pointerId) return;
         if (d.handle?.hasPointerCapture?.(d.pointerId)) d.handle.releasePointerCapture(d.pointerId);
+        this.$drag = null;
+        if (d.float) return this.commit('floater');
         this.toggleAttribute('dragging', false);
         this.clearDropZone();
-        this.$drag = null;
         if (!d.moved || e.type === 'pointercancel' || !d.target) return;
         this.applyMove(d.zone === 'center' ? 'tab' : 'dock', d.panel, d.target, d.zone);
+    }
+    // Applies a floater's current rect/z straight to its own element's inline style, never draw() (a mid-drag redraw would tear down the element the
+    // pointer just captured). The one place this.$doc moves ahead of the DOM until onDragEnd's commit settles it, mirroring onResize/pk-splitter.
+    paintFloat(id) {
+        const f = findFloater(this.$doc, id), el = this.part('root').querySelector?.(`[data-floater="${id}"]`);
+        if (f && el) rectStyle(el, f);
     }
     // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
     // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
@@ -372,7 +426,8 @@ export default Base => class extends Base {
         if (this.$closed.has(panel) || !this.$titles.has(panel)) return;
         const said = `${this.$titles.get(panel) ?? panel} closed`;
         this.$closed.add(panel);
-        this.updated(); // synchronous, like a move: the redraw (a panel leaving its group, or the group itself) needs to happen before focus moves
+        // synchronous, like a move: the redraw (a panel leaving its group, or the group itself) needs to happen before focus moves
+        this.updated();
         this.part('status').textContent = said;
         this.part('toolbar').querySelector('pk-button[slot="trigger"]')?.focus?.();
     }

@@ -1,7 +1,7 @@
 // The dock-tree model (js/dock-model.js): the layout, its operations, the invariants after every one, and fromJson on hostile input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS, floatPanel, dockFloating, moveFloater, resizeFloater, raiseFloater, floaters, findFloater, isEdgeGroup } from '../js/dock-model.js';
+import { defaultLayout, emptyLayout, validate, resize, activate, moveTab, dockPanel, collapsePanel, expandPanel, toJson, fromJson, groups, findGroup, panelIds, LIMITS, floatPanel, dockFloating, moveFloater, resizeFloater, raiseFloater, dragFloater, floaters, findFloater, isEdgeGroup } from '../js/dock-model.js';
 
 const P = [{ id: 'tools', group: 'left' }, { id: 'assets', group: 'left' }, { id: 'canvas' }, { id: 'props', group: 'right' }, { id: 'log', group: 'bottom' }];
 const ids = P.map(p => p.id);
@@ -246,6 +246,22 @@ test('moveFloater, resizeFloater and raiseFloater clamp and report unknown float
     assert.equal(moveFloater(d, { floater: 'zzz', x: 0, y: 0 }).problems[0].code, 'unknown-floater');
     assert.equal(resizeFloater(d, { floater: 'zzz', w: 10, h: 10 }).problems[0].code, 'unknown-floater');
     assert.equal(raiseFloater(d, { floater: 'zzz' }).problems[0].code, 'unknown-floater');
+});
+
+// dragFloater is the pointer-drag delta form dock.js's own title-bar/resize-handle drag calls (round 2 item 5, #618): a start rect plus (dx, dy),
+// resize picking resizeFloater and a plain drag picking moveFloater, both still clamped through the same bounds.
+test('dragFloater applies a pointer delta to a floater\'s start rect, moving or resizing depending on resize, and reports unknown floaters', () => {
+    let d = floatPanel(fresh(), { panel: 'assets', rect: { x: 10, y: 10, w: 150, h: 100 }, bounds: { w: 400, h: 300 } }).doc;
+    const id = floaters(d)[0].id, start = findFloater(d, id);
+    const moved = dragFloater(d, { floater: id, start, dx: 20, dy: -5, bounds: { w: 400, h: 300 } }).doc;
+    assert.equal(findFloater(moved, id).x, 30); assert.equal(findFloater(moved, id).y, 5);
+    assert.equal(findFloater(moved, id).w, 150, 'a move leaves the size alone');
+    const resized = dragFloater(d, { floater: id, start, dx: 20, dy: -5, resize: true, bounds: { w: 400, h: 300 } }).doc;
+    assert.equal(findFloater(resized, id).w, 170); assert.equal(findFloater(resized, id).h, 95);
+    assert.equal(findFloater(resized, id).x, 10, 'a resize leaves the position alone');
+    const clamped = dragFloater(d, { floater: id, start, dx: 5000, dy: 5000, resize: true, bounds: { w: 400, h: 300 } }).doc;
+    assert.equal(findFloater(clamped, id).w, 400, 'still clamped inside the given bounds');
+    assert.equal(dragFloater(d, { floater: 'zzz', start, dx: 0, dy: 0 }).problems[0].code, 'unknown-floater');
 });
 
 test('activate reaches a panel in a floater (a no-op path is a no-op), and toJson/fromJson round-trips two floaters', () => {
