@@ -45,7 +45,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     need(/^pk-[a-z][a-z0-9-]*$/.test(meta.tag ?? ''), 'tag must look like pk-name');
     for (const k of ['title', 'summary', 'group', 'a11y']) need(isText(meta[k]), `${k} is required`);
     for (const k of ['props', 'slots', 'events', 'parts', 'cssProperties', 'methods', 'examples']) need(Array.isArray(meta[k]), `${k} must be an array (empty when there is none)`);
-    need(TIERS.includes(meta.tier), `tier is required and must be one of ${TIERS.join(', ')} (modules live in core/modules, not in an element meta)`);
+    need(TIERS.includes(meta.tier), `tier is required: tier must be one of ${TIERS.join(', ')} (modules live in core/modules, not in an element meta)`);
     if (meta.tier === 'page') need(typeof meta.pageType === 'string' && /^[a-z][a-z-]*$/.test(meta.pageType), 'a page-tier element needs pageType, the name of its core/js/app/pages factory (for example "list")');
     else need(!('pageType' in meta), 'pageType is only for the page tier');
     if ('aliases' in meta) need(Array.isArray(meta.aliases) && meta.aliases.every(isText), 'aliases must be an array of non-empty strings');
