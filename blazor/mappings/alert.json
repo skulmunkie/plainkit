@@ -54,6 +54,12 @@
       "note": "False is the plain form (coloured text, no box); the parameter is the opposite of the plain prop."
     },
     {
+      "name": "Subtle",
+      "type": "bool",
+      "prop": "subtle",
+      "note": "Coloured left border and faint tint background, no icon or dismiss control: a block-level 'finding' treatment between plain and Boxed."
+    },
+    {
       "name": "Inline",
       "type": "bool",
       "prop": "inline"

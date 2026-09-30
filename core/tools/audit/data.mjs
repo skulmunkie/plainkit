@@ -114,7 +114,7 @@ export function loadTokens(rootDir = root) {
 
 // --- Page types (design 3.2): a small descriptor per built-in page type, exported as PAGE_TYPE by each page file. -
 
-const PAGE_TYPE_FILES = ['custom', 'dashboard', 'doc', 'list', 'master-detail', 'not-found', 'record', 'settings', 'states', 'tool', 'wizard', 'workspace'];
+const PAGE_TYPE_FILES = ['custom', 'dashboard', 'doc', 'list', 'master-detail', 'not-found', 'note', 'record', 'settings', 'states', 'tool', 'wizard', 'workspace'];
 
 export async function loadPageTypes(rootDir = root) {
     const dir = path.join(rootDir, 'core', 'js', 'app', 'pages');

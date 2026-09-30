@@ -1,0 +1,30 @@
+{
+  "tag": "pk-note-page",
+  "title": "Note page",
+  "group": "Page types",
+  "summary": "A static informational page: a heading and a block of prose in a card. No data, no callbacks - the page-type building block for a one-off About/Overview/Summary page.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ heading, body, cardHeading }. heading is the page's h1 text, body is the card's prose, cardHeading is an optional card title (the card has no header without it)."
+    }
+  ],
+  "slots": [],
+  "events": [],
+  "parts": [
+    { "name": "body", "description": "Wraps the built pk-stack > pk-heading + pk-card content." }
+  ],
+  "cssProperties": [],
+  "writes": [],
+  "a11y": "The heading is a real pk-heading (h1); the card's body is a plain paragraph.",
+  "examples": [
+    {
+      "title": "About page (set config from script: an inline script cannot run under this site's CSP, so wire it the way pk-tool-page's run is wired)",
+      "html": "<pk-note-page id=\"about\"></pk-note-page>"
+    }
+  ],
+  "methods": []
+}
