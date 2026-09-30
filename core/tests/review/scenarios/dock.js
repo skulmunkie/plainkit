@@ -12,6 +12,9 @@
 // themselves: they are the page's own children, slotted.
 // The left group carries four panels (issue #602): at its default ~20% split width its tab list must scroll sideways instead of wrapping onto a second row, and the
 // same reading-order tab list (all six panels, on a phone) must stay on one row too.
+// Step 3 of #618 (keyboard/menu path and accessibility for floating panels): the floater's own frame focused (the same focus ring every other
+// keyboard-operable part of the dock uses) and then moved by arrow keys, a second floater raised above the first by focus landing anywhere
+// inside it (not a pointer grab), and a floater's own panel menu offering "dock back in" targets instead of the tree-only Move items.
 const PANELS = `
   <div slot="tools" data-heading="Toolbox" data-group="left" class="stack"><strong>Toolbox</strong><span>Select</span><span>Rectangle</span><span>Text</span></div>
   <div slot="assets" data-heading="Assets" data-group="left" class="stack"><strong>Assets</strong><span>logo.svg</span><span>hero.png</span></div>
@@ -35,12 +38,20 @@ export default {
 </div>`,
     async setup(frame) {
         const dock = frame.querySelector('#dock');
-        // Round 2 item 5 (#618): floating a panel has no menu path yet (step 3), so this calls the model directly, the same way a future Float
-        // menu item would, then redraws - just enough to demonstrate the floater's rest, mid-drag and resized states below.
+        // Round 2 item 5 (#618): calls the model directly, the same thing the Panel menu's own Float item (step 3) does, then redraws - just
+        // enough to demonstrate the floater's rest, mid-drag and resized states below without the extra steps of opening that menu first.
         const { floatPanel } = await import('../../../js/dock-model.js');
         Object.defineProperty(dock, 'demoFloat', { set() {
             const root = dock.part('root').getBoundingClientRect();
             const r = floatPanel(dock.$doc, { panel: 'layers', rect: { x: 40, y: 24, w: 220, h: 160 }, bounds: { w: root.width, h: root.height } });
+            dock.$doc = r.doc;
+            dock.draw(Boolean(dock.$mq?.matches));
+        } });
+        // A second floater (Assets), offset from the first and started at a lower z (floatPanel's own stacking order), for the focus-raises-it
+        // states below (step 3 of #618) - two floaters overlapping is the only way to show a raise actually changing what is on top.
+        Object.defineProperty(dock, 'demoFloatSecond', { set() {
+            const root = dock.part('root').getBoundingClientRect();
+            const r = floatPanel(dock.$doc, { panel: 'assets', rect: { x: 90, y: 70, w: 220, h: 160 }, bounds: { w: root.width, h: root.height } });
             dock.$doc = r.doc;
             dock.draw(Boolean(dock.$mq?.matches));
         } });
@@ -144,6 +155,23 @@ export default {
         { set: '#dock', prop: 'demoFloatResize', value: 'move', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
         { shot: 'float-resized', on: ['desktop'] },
         { set: '#dock', prop: 'demoFloatResize', value: 'release', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        // Step 3 of #618: the floater's own frame is a keyboard handle (tabIndex 0). Focused, it shows the same focus ring every other
+        // keyboard-operable part of the dock uses - a state no resting example can show. Arrow keys then move it, live for a screenshot mid-move.
+        { focus: '#dock >>> [data-floater]', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'float-focused', on: ['desktop'] },
+        { key: 'ArrowRight', times: 4, on: ['desktop'] }, { key: 'ArrowDown', times: 4, on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'float-keyboard-moved', on: ['desktop'] },
+        // A second floater (Assets), started behind the first (lower z, per floatPanel's own stacking order): focusing anything inside it - its
+        // panel menu trigger here, not the frame itself - raises it to the front, the keyboard/focus mirror of a pointer grab. Both floaters stay
+        // on screen at once so the shot can show the raised one now overlapping on top of the first.
+        { set: '#dock', prop: 'demoFloatSecond', value: 'on', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { focus: '#dock >>> pk-button[label="Assets panel menu"]', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'float-raised', on: ['desktop'] },
+        // The already-floating Layers panel's own menu offers "dock back in" (every tree group and zone) instead of the tree-only Move items a
+        // docked panel's menu shows.
+        { focus: '#dock >>> pk-button[label="Layers panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150, on: ['desktop'] },
+        { shot: 'float-panel-menu', on: ['desktop'] },
+        { key: 'Escape', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
     ],
     expect(t) {
         // The wrapper (.rv-bounded), not the page, carries any overflow from stacking two full examples: the document itself never grows past the
@@ -229,6 +257,18 @@ export default {
         }
         if (t.shot === 'float-resized') {
             t.exists('#dock >>> [data-floater] .floater-resize', 'the resize grip is present');
+        }
+        if (t.shot === 'float-focused') {
+            t.ringUnclipped('#dock >>> [data-floater]', 'the frame\'s own focus ring is not clipped by the floater\'s overflow: hidden');
+        }
+        if (t.shot === 'float-keyboard-moved') {
+            t.within('#dock >>> [data-floater]', '#dock', 1);
+        }
+        if (t.shot === 'float-panel-menu') {
+            t.visible('#dock >>> [data-floater] pk-dropdown', 'the floater\'s own panel menu opened');
+            t.exists('#dock >>> [data-floater] pk-menu-item[value^="dockfloat:"]', 'it offers dock-back-in targets');
+            t.absent('#dock >>> [data-floater] pk-menu-item[value^="tab:"]', 'never the tree-only Move items, which would no-op on a floating panel');
+            t.absent('#dock >>> [data-floater] pk-menu-item[value^="float:"]', 'nor Float again: it is already floating');
         }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
