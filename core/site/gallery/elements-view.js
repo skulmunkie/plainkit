@@ -5,6 +5,7 @@
 // Accessibility) is drawn once, by the Details flyout (js/element-inspector.js) - this page does not repeat it.
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -64,9 +65,17 @@ export function renderElement(meta, options = {}) {
         setTimeout(() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
     });
     const theming = h('pk-stack', { gap: 'sm' });
+    // Custom-property overrides go through data-dyn + applyDynamic() (core/js/dynamic.js), never .style directly;
+    // dyn tracks every property this playground has touched so one input's change never clears another's.
+    const dyn = {};
     for (const c of meta.cssProperties) {
         const input = h('pk-input', { placeholder: c.default ?? '' });
-        input.addEventListener('input', () => { if (input.value) live.style.setProperty(c.name, input.value); else live.style.removeProperty(c.name); refresh(); });
+        input.addEventListener('input', () => {
+            dyn[c.name] = input.value;
+            live.setAttribute('data-dyn', Object.entries(dyn).map(([k, v]) => `${k}:${v}`).join('; '));
+            applyDynamic(live);
+            refresh();
+        });
         theming.append(h('pk-field', { label: c.name }, input));
     }
     const playground = h('pk-card', { class: 'gx-entry' },

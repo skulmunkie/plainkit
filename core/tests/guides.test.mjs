@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGuides, guidesModule } from '../tools/guides.mjs';
-import { parseHash, neighbours, routeHash } from '../site/guides/guides-logic.js';
+import { isAnchorHash, neighbours, routeHash } from '../site/guides/guides-logic.js';
 import { htmlToText, indexWords, guideWords, searchGuides } from '../site/guides/guides-search.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -73,17 +73,11 @@ test('an empty or missing folder is no guides and no problem', () => {
     assert.deepEqual(loadGuides(path.join(os.tmpdir(), 'pk-guides-does-not-exist')), { guides: [], problems: [] });
 });
 
-test('routes: the list, a guide, a heading in it, an unknown guide, and a bare in-page fragment', () => {
-    const ids = ['getting-started', 'theming'];
-    assert.deepEqual(['', '#', '#/'].map(h => parseHash(h, ids).kind), ['home', 'home', 'home']);
-    assert.deepEqual(parseHash('#/theming', ids), { kind: 'guide', id: 'theming', frag: null });
-    assert.deepEqual(parseHash('#/theming/change-a-token', ids), { kind: 'guide', id: 'theming', frag: 'change-a-token' });
-    assert.deepEqual(parseHash('#/nope', ids), { kind: 'missing', id: 'nope' });
-    assert.deepEqual(parseHash('#install', ids), { kind: 'anchor', id: 'install' });
-    assert.deepEqual(parseHash('#/theming/a%20b', ids), { kind: 'guide', id: 'theming', frag: 'a b' });
-    assert.deepEqual(parseHash('#%E0%A4%A', ids), { kind: 'anchor', id: '%E0%A4%A' }, 'a malformed escape is kept as typed');
+test('routeHash builds a guide or heading address; isAnchorHash tells a route address apart from a bare in-page anchor', () => {
     assert.equal(routeHash('theming'), '#/theming');
     assert.equal(routeHash('theming', 'x'), '#/theming/x');
+    for (const h of ['', '#', '#/', '#/theming', '#/theming/change-a-token']) assert.equal(isAnchorHash(h), false, h);
+    for (const h of ['#install', '#%E0%A4%A', '#path=a.js&line=3']) assert.equal(isAnchorHash(h), true, h);
 });
 
 test('previous and next follow the reading order and stop at the ends', () => {
