@@ -3,6 +3,7 @@
   "title": "Wizard page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "wizard",
   "summary": "A multi-step flow on a page: a pk-stepper for progress, one step's fields at a time as a validated pk-form (or your own content through mountStep), and Back, Next and Submit. Next is blocked until the step's fields are valid and validate(stepId, values) passes; what was typed is kept when you go back; focus moves to the step heading on every step change. An optional Review step lists every answer before Submit. Set validate, submit, load and mountStep as properties (business logic, never config data). Reject or return { errors: { field: message } } to mark fields inline (a submit may name a field of an earlier step: the wizard goes back to it), or any other error for a notice. While answers are unsent, dirty is true, pk-wizard-dirty fires, and closing or reloading the tab asks first.",
   "props": [
     {

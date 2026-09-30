@@ -3,6 +3,7 @@
   "title": "Record page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "record",
   "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form in edit mode, beside sidebar cards of summary fields (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
   "props": [
     {
