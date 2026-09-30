@@ -767,26 +767,6 @@
       "fingerprint": "68b7826634c2f9ea"
     },
     {
-      "rule": "S2",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "3191010440308041"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "00370d8d00522b9d"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "3191010440308041"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "3191010440308041"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "a1283ff4af8becfe"
@@ -895,16 +875,6 @@
       "rule": "S7",
       "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "54dfc1b2c29e5fba"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "01d796e92f605643"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "01d796e92f605643"
     },
     {
       "rule": "S7",

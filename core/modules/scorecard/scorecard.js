@@ -31,7 +31,9 @@ import { collect, evaluate, focusProblems, unusedSelectors } from '../../js/qual
 import { scoreFindings, rankWorstFirst, groupFindings, scoreAll, readHistory, pushRun, deltas, exportHistory, importHistory } from '../../js/scoring.js';
 import { staticMetrics } from '../../js/audit.js';
 import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
+import { readSetting, writeSetting } from '../../js/settings.js';
 import { createLogger } from '../../js/log.js';
 const log = createLogger('scorecard');
 import { sameOrigin } from '../../js/framework-checks.js';
@@ -103,7 +105,8 @@ export function whenDefined(frame, ms = DEFAULTS.defineMs) {
 export function openFrame(host, frame, { theme = 'dark', width = 1280, settleMs = DEFAULTS.settleMs, base = import.meta.url } = {}) {
     return new Promise(resolve => {
         const f = host.ownerDocument.createElement('iframe');
-        f.style.cssText = `position:absolute;left:0;top:0;width:${width}px;height:700px;border:0`;
+        f.dataset.dyn = `position:absolute; left:0; top:0; width:${width}px; height:700px; border:0`;
+        applyDynamic(f);
         f.addEventListener('load', () => {
             if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch (error) { log.debug('could not set the theme in a frame from another origin', error); }
             whenDefined(f).then(() => setTimeout(() => resolve(f), settleMs));
@@ -157,7 +160,9 @@ export function rankedTable(items, { changes = [], link, label = 'Target' } = {}
     return `<pk-table label="${esc(label)} ranking" density="compact"><table class="sc-table"><thead><tr><th>${esc(label)}</th><th class="num">Score</th><th class="num">Change</th><th>Failing items</th></tr></thead><tbody>${rows.join('')}</tbody></table></pk-table>`;
 }
 
-const storage = { getItem: k => { try { return localStorage.getItem(k); } catch (error) { log.debug('storage blocked: no run history is read', error); return null; } }, setItem: (k, v) => { try { localStorage.setItem(k, v); } catch (error) { log.debug('storage blocked: the run is shown but not saved', error); } } };
+// readHistory/pushRun (js/scoring.js) want a { getItem, setItem } storage; js/settings.js's readSetting/writeSetting already
+// log and swallow a blocked or full localStorage the same way this module's own wrapper used to.
+const storage = { getItem: readSetting, setItem: writeSetting };
 
 // Markup the module writes itself (fixed strings and the ranked table, every dynamic value escaped) becomes nodes here, the one sink.
 const fromHtml = (doc, markup) => { const t = doc.createElement('template'); t.innerHTML = markup; return t.content; };
@@ -178,7 +183,7 @@ export async function mountScorecard(container, options = {}) {
     const root = doc.createElement('div');
     root.className = 'sc-module';
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.height = height; root.style.overflow = 'auto'; }
+    if (height) { root.dataset.dyn = `height:${height}; overflow:auto`; applyDynamic(root); }
     root.replaceChildren(...(runs ? [
         h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard')),
         h(doc, 'div', { class: 'sc-progress muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
