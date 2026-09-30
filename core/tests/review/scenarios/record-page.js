@@ -23,9 +23,9 @@ export default {
         };
     },
     steps: [
-        { wait: 500 }, { shot: 'view' },
-        { click: `${RP} >>> [part=edit]` }, { wait: 500 }, { shot: 'edit' },
-        { click: `${RP} >>> [part=save]` }, { wait: 500 }, { shot: 'server-error' },
+        { shot: 'view' },
+        { click: `${RP} >>> [part=edit]` }, { shot: 'edit' },
+        { click: `${RP} >>> [part=save]` }, { shot: 'server-error' },
     ],
     expect(t) {
         t.inViewport(RP);

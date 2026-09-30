@@ -17,11 +17,11 @@ export default {
 <p>Some page text under the toolbar.</p></div>`,
     steps: [
         { shot: 'closed' },
-        { click: '#b1' }, { wait: 300 }, { shot: 'open-wrapped' },
-        { key: 'Escape' }, { wait: 200 },
-        { click: '#b2' }, { wait: 300 }, { shot: 'open-edge' },
-        { key: 'Escape' }, { wait: 200 },
-        { focus: '#b1' }, { key: 'ArrowDown' }, { wait: 300 }, { shot: 'keyboard' },
+        { click: '#b1' }, { shot: 'open-wrapped' },
+        { key: 'Escape' }, 
+        { click: '#b2' }, { shot: 'open-edge' },
+        { key: 'Escape' }, 
+        { focus: '#b1' }, { key: 'ArrowDown' }, { shot: 'keyboard' },
     ],
     expect(t) {
         const open = { 'open-wrapped': ['d1', 'b1'], 'open-edge': ['d2', 'b2'], keyboard: ['d1', 'b1'] }[t.shot];
