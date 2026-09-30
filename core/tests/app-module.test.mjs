@@ -25,6 +25,19 @@ addLogSink(e => { logs.push(e); if (process.env.DBG && e.level === 'error') cons
 class El {
     constructor(tag, doc) { this.localName = tag; this.ownerDocument = doc; this.children = []; this.parent = null; this.attrs = new Map(); this.on = new Map(); this.hidden = false; this.style = { setProperty() {} }; this.text = ''; }
     get firstChild() { return this.children[0] ?? null; }
+    // data-* attrs as camelCase properties, same as a real element's .dataset (mountLogSettings/panels.js
+    // set a height or a temporary outline through data-dyn/applyDynamic() - js/dynamic.js - which reads and
+    // writes through .dataset, not getAttribute/setAttribute directly).
+    get dataset() {
+        const el = this;
+        const toAttr = k => 'data-' + k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
+        return new Proxy({}, {
+            get: (_, k) => el.attrs.get(toAttr(k)),
+            set: (_, k, v) => { el.attrs.set(toAttr(k), String(v)); return true; },
+            has: (_, k) => el.attrs.has(toAttr(k)),
+            deleteProperty: (_, k) => el.attrs.delete(toAttr(k)),
+        });
+    }
     get textContent() { return this.text + this.children.map(c => c.textContent).join(''); }
     set textContent(v) { this.children.forEach(c => { c.parent = null; }); this.children = []; this.text = String(v); }
     append(...kids) { for (const k of kids) { if (typeof k === 'string') { this.text += k; continue; } k.remove(); k.parent = this; this.children.push(k); } }
