@@ -1,16 +1,12 @@
 :host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); margin-inline: var(--pk-app-bar-search-align, auto); }
 .i { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; }
-.exp { display: none; flex: none; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
-.exp:hover { background: var(--color-surface-alt); }
-.exp:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+[part="expand"] { display: none; flex: none; }
 .box { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-pill); transition: border-color 0.15s; }
 .box:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
 .in { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); }
 .in::placeholder { color: var(--color-muted); opacity: 1; }
 .in::-webkit-search-cancel-button { display: none; }
-.col { display: none; flex: none; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); margin-inline-end: calc(var(--space-2) * -1); border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
-.col:hover { background: var(--color-surface-alt); }
-.col:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+[part="collapse"] { display: none; flex: none; margin-inline-end: calc(var(--space-2) * -1); }
 .pop { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 .pop[data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
 
@@ -35,20 +31,20 @@
    also reads 4.3:1 on dark, just under WCAG AA. */
 .bd { flex: none; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--chip-bg); color: var(--chip-fg); font-size: var(--text-meta); }
 :host([compact]) { flex: none; max-width: none; margin-inline: 0; }
-:host([compact]) .exp { display: inline-flex; }
+:host([compact]) [part="expand"] { display: inline-flex; }
 :host([compact]) .box { display: none; }
 :host([compact][expanded]) { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }
-:host([compact][expanded]) .exp { display: none; }
+:host([compact][expanded]) [part="expand"] { display: none; }
 :host([compact][expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
-:host([compact][expanded]) .col { display: inline-flex; }
+:host([compact][expanded]) [part="collapse"] { display: inline-flex; }
 @media (--phone) {
     :host { flex: none; margin-inline: 0; }
-    .exp { display: inline-flex; }
+    [part="expand"] { display: inline-flex; }
     .box { display: none; }
     :host([expanded]) { position: fixed; max-width: none; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }
-    :host([expanded]) .exp { display: none; }
+    :host([expanded]) [part="expand"] { display: none; }
     :host([expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
-    :host([expanded]) .col { display: inline-flex; }
+    :host([expanded]) [part="collapse"] { display: inline-flex; }
     .pop { min-width: 0; }
     /* .box sizes to --ctl-h, but .in only stretches with the flex box's align-items; without align-self:stretch the
        input's own hit box is just its line height (~23px), short of the 44px target. */

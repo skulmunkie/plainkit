@@ -565,6 +565,17 @@ export const overlaysCases = [
         t.eq(pop.querySelectorAll('[role="option"]').length, 1); t.ok(pop.querySelector('[part="note"]')?.textContent === '+12 more', 'the id-less item is a note, not an option');
         t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown'); t.eq(el.$a, 0, 'the note is skipped by the arrow keys');
     }],
+    ['app-bar-search: the expand and close icons are still parts a page can style (::part(expand-icon), ::part(collapse-icon))', async t => {
+        const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>');
+        await customElements.whenDefined('pk-button'); await t.settle();
+        const sheet = new CSSStyleSheet(); sheet.replaceSync('pk-app-bar-search::part(expand-icon) { opacity: 0.37; } pk-app-bar-search::part(collapse-icon) { opacity: 0.41; }');
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        try {
+            const icon = n => el.part(n).shadowRoot.querySelector('[part="icon"]');
+            t.eq(getComputedStyle(icon('expand')).opacity, '0.37', 'the expand icon takes ::part(expand-icon)');
+            t.eq(getComputedStyle(icon('collapse')).opacity, '0.41', 'the close icon takes ::part(collapse-icon)');
+        } finally { document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet); }
+    }],
     ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';

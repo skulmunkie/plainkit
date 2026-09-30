@@ -124,16 +124,16 @@
       "description": "A result's badge text (dynamic; shown when the item has one)."
     },
     {
-      "name": "expand-icon",
-      "description": "The expand button's icon."
-    },
-    {
       "name": "box-icon",
       "description": "The field's icon."
     },
     {
+      "name": "expand-icon",
+      "description": "The expand button's icon (the icon part of its pk-button, exported)."
+    },
+    {
       "name": "collapse-icon",
-      "description": "The close button's icon."
+      "description": "The close button's icon (the icon part of its pk-button, exported)."
     },
     {
       "name": "row",

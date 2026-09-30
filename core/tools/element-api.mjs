@@ -95,6 +95,8 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     for (const s of tplSlots) need(meta.slots.some(x => x.name === s), `template has a slot "${s}" that meta.slots does not describe`);
     for (const s of meta.slots.filter(x => !x.dynamic)) need(tplSlots.has(s.name), `meta.slots describes "${s.name}" but the template has no such slot`);
     const tplParts = new Set([...template.matchAll(/\spart="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/)));
+    // a part a nested element exports (exportparts="icon:expand-icon") is a part of this element too
+    for (const m of template.matchAll(/\sexportparts="([^"]+)"/g)) for (const p of m[1].split(',')) tplParts.add(p.split(':').pop().trim());
     for (const s of tplParts) need(meta.parts.some(x => x.name === s), `template part "${s}" is not in meta.parts`);
     for (const s of meta.parts) need(tplParts.has(s.name), `meta.parts describes "${s.name}" but the template has no such part`);
     const cssUsed = new Set([...css.matchAll(/var\(\s*(--pk-[a-z0-9-]+)/g)].map(m => m[1]));

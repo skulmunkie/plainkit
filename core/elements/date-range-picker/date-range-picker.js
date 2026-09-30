@@ -57,17 +57,20 @@ export default Base => class extends Base {
     connected() {
         if (this.$init) return;
         this.$init = true; this.$initial = `${this.start}/${this.end}`;
+        loadElements(this.shadowRoot); // the layout, the two date fields and the quick ranges are pk-* elements in this shadow tree
         for (const key of ['start', 'end']) {
             const field = this.part(key);
             field.addEventListener('input', () => { this[key] = cleanIso(field.value); this.$typing = true; this.commit(false); });
-            field.addEventListener('change', () => { this[key] = cleanIso(field.value); this.commit(true); });
+            // the pk-input's own composed change would double the one commit() raises
+            field.addEventListener('change', ev => { ev.stopPropagation(); this[key] = cleanIso(field.value); this.commit(true); });
         }
         this.part('presets').addEventListener('click', ev => {
-            const b = ev.target.closest?.('button[data-preset]');
+            const b = ev.target.closest?.('pk-button[data-preset]');
             if (!b || b.disabled) return;
             const r = clampRange(presetRange(b.dataset.preset, todayIso()), cleanIso(this.min), cleanIso(this.max));
             if (!r) return;
             this.start = r.start; this.end = r.end; this.commit(true);
+            this.requestUpdate(); // the toggle flipped itself on the click: put its pressed state back to what the range says
         });
     }
     // The calendar popover (the calendar attribute): the field's opener opens a range pk-calendar that shares this picker's range. It commits like the fields do and closes on the second click.
@@ -109,34 +112,31 @@ export default Base => class extends Base {
         if (!this.$typing) { if (s.value !== start) s.value = start; if (e.value !== end) e.value = end; }
         this.$typing = false;
         this.syncCalendar(start, end, min, max);
-        s.disabled = e.disabled = this.disabled; s.readOnly = e.readOnly = this.readonly; s.required = e.required = this.required;
-        s.setAttribute('aria-label', this.startLabel || 'Start date'); e.setAttribute('aria-label', this.endLabel || 'End date');
+        s.disabled = e.disabled = this.disabled; s.readonly = e.readonly = this.readonly; s.required = e.required = this.required;
+        s.label = this.startLabel || 'Start date'; e.label = this.endLabel || 'End date';
         const problem = rangeProblems(start, end, { min, max, required: this.required });
         const shown = problem.invalid && !problem.flags.valueMissing ? problem.message : '';
         const err = this.part('error');
-        const wired = shown ? 'e' : null;
         err.textContent = shown; err.hidden = !shown;
-        for (const key of ['start', 'end']) {
-            const f = this.part(key);
-            f.setAttribute('aria-invalid', String(Boolean(this.invalid) || Boolean(shown)));
-            if (wired) f.setAttribute('aria-describedby', wired); else f.removeAttribute('aria-describedby');
-        }
+        for (const key of ['start', 'end']) { const f = this.part(key); f.invalid = Boolean(this.invalid) || Boolean(shown); f.description = shown; }
         const bar = this.part('presets'), keys = presetList(this.presets), today = todayIso();
         if (this.$keys !== keys.join('|')) {
             this.$keys = keys.join('|');
-            bar.replaceChildren(...keys.map(k => { const b = doc.createElement('button'); b.type = 'button'; b.className = 'preset'; b.dataset.preset = k; b.textContent = PRESETS[k]; return b; }));
+            bar.replaceChildren(...keys.map(k => { const b = doc.createElement('pk-button'); b.variant = 'ghost'; b.toggle = true; b.dataset.preset = k; b.textContent = PRESETS[k]; return b; }));
+            loadElements(bar);
         }
         bar.hidden = keys.length === 0;
         for (const b of bar.children) {
             const r = clampRange(presetRange(b.dataset.preset, today), min, max);
             b.disabled = this.disabled || this.readonly || !r;
-            b.setAttribute('aria-pressed', String(Boolean(r && r.start === start && r.end === end)));
+            b.pressed = Boolean(r && r.start === start && r.end === end);
         }
         this.setValidity(problem.flags, problem.message, problem.flags.customError || (problem.flags.valueMissing && !start) ? s : e);
         this.setFormValue(start || end ? `${start}/${end}` : '');
     }
     onReset() { const [a = '', b = ''] = String(this.$initial ?? '/').split('/'); this.start = a; this.end = b; }
     onRestore(state) { const [a = '', b = ''] = String(state ?? '').split('/'); this.start = cleanIso(a); this.end = cleanIso(b); }
-    focus(o) { this.part('start').focus(o); }
+    // a pk-input does not delegate focus: the field is the control part inside it
+    focus(o) { const f = this.part('start'); (f.shadowRoot?.querySelector('[part="control"]') ?? f).focus(o); }
     clear() { this.start = ''; this.end = ''; this.commit(true); }
 };
