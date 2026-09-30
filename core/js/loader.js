@@ -26,7 +26,7 @@ export async function loadElements(root = document, { registry = new URL('../ele
     let reg;
     try { reg = await registryOf(registry); } catch (error) { log.error(`could not load the element registry from ${registry}`, error); return []; }
     // A pk-* tag the registry does not know is usually a typo: say so once instead of leaving an inert element on the page.
-    for (const tag of new Set(tags)) if (tag.startsWith('pk-') && !reg[tag] && !reported.has(tag)) { reported.add(tag); log.warn(`<${tag}> is not a Plainkit element (no such tag in the registry): check the spelling`, { tag }); }
+    for (const tag of new Set(tags)) if (tag.startsWith('pk-') && !reg[tag] && !reported.has(tag)) { reported.add(tag); log.warn(`<${tag}> is not a Plainkit element: check the spelling`, { tag }); }
     const plan = planLoad(tags, reg, new Set(loaded.keys()));
     await Promise.all(plan.map(({ tag, path }) => {
         const started = globalThis.performance?.now?.() ?? Date.now();

@@ -10,6 +10,7 @@
 //           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
 //           { path: '*', page: 'not-found' },
 //       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
+//       // a route may add `context: { ids?, crumbs?, title? }` (or ({ path, params, query }) => that): where the page is when its address cannot say (ids: nav ids top to current; crumbs: [{ label, href? }]; title), #670
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
 //       footer: { text: 'Run by Finance', links: [] },                // optional: replaces the app footer (config.footer) while this module is active; false draws none (#373)
 //       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; else, or a throw, denies (fail closed)
@@ -17,7 +18,7 @@
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }
 //   });
 //
-// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a nav that is not an array or function...).
+// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a bad nav...).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
 // Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
@@ -58,7 +59,7 @@ const isFn = v => typeof v === 'function';
 const segmentsOf = path => path.split(/[?#]/)[0].split('/').filter(Boolean);
 
 function checkNav(id, items, at = 'nav') {
-    if (!Array.isArray(items)) fail(id, `${at} must be an array or a function returning one`);
+    if (!Array.isArray(items)) fail(id, `${at} must be an array or a function`);
     for (const n of items) {
         if (!n || typeof n.id !== 'string' || typeof n.title !== 'string') fail(id, `${at} items need a string id and title`);
         if (n.children !== undefined) checkNav(id, n.children, `${at}.${n.id}.children`);
@@ -67,7 +68,7 @@ function checkNav(id, items, at = 'nav') {
 
 export function defineModule(def) {
     const id = def?.id;
-    if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match ^[a-z][a-z0-9-]{0,39}$');
+    if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match MODULE_ID');
     for (const k of ['can', 'mount', 'unmount']) if (def[k] !== undefined && !isFn(def[k])) fail(id, `${k} must be a function`);
     if (def.nav !== undefined && !isFn(def.nav)) checkNav(id, def.nav);
     if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array');
@@ -81,17 +82,18 @@ export function defineModule(def) {
         const type = typeof r.page === 'string' ? r.page : r.page?.type;
         if (typeof type !== 'string' || !MODULE_ID.test(type)) fail(id, `route ${path} needs page: 'type' or { type }`);
         if (r.can !== undefined && !isFn(r.can)) fail(id, `route ${path}: can must be a function`);
+        if (r.context !== undefined && !isFn(r.context) && typeof r.context !== 'object') fail(id, `route ${path}: bad context`);
     }
     const s = def.state;
     if (s !== undefined) {
         if (typeof s !== 'object' || s === null || (s.defaults !== undefined && typeof s.defaults !== 'object')) fail(id, 'state must be an object with defaults');
         const keys = Object.keys(s.defaults ?? {});
-        for (const list of ['persist', 'publish']) if (s[list] !== undefined && !(Array.isArray(s[list]) && s[list].every(k => keys.includes(k)))) fail(id, `state.${list} must list keys of state.defaults`);
+        for (const list of ['persist', 'publish']) if (s[list] !== undefined && !(Array.isArray(s[list]) && s[list].every(k => keys.includes(k)))) fail(id, `state.${list} must name keys of defaults`);
     }
     for (const [table, what] of [[def.pageTypes, 'pageTypes'], [def.layouts, 'layouts']]) {
         for (const [name, fn] of Object.entries(table ?? {})) {
-            if (!MODULE_ID.test(name) || !isFn(fn)) fail(id, `${what}.${name} must be a function under an id like 'kanban'`);
-            if (what === 'pageTypes' && BUILT_IN_PAGE_TYPES.includes(name)) fail(id, `${what}.${name} is a built-in page type and cannot be replaced`);
+            if (!MODULE_ID.test(name) || !isFn(fn)) fail(id, `${what}.${name} must be a function named like 'kanban'`);
+            if (what === 'pageTypes' && BUILT_IN_PAGE_TYPES.includes(name)) fail(id, `${what}.${name} is a built-in page type`);
         }
     }
     return def;

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfig, readFooter } from '../js/app/config.js';
-import { locate, pageContext, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
+import { locate, pageContext, routeContext, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
 import { navRoutes } from '../js/route-tree.js';
 import { defineModule } from '../js/app/module.js';
 import { addLogSink, setLogLevel } from '../js/log.js';
@@ -78,6 +78,23 @@ test('pageContext: one answer for the nav, the breadcrumb and the title, with an
     assert.equal(t.crumbs.at(-1).label, 'Order 8 (paid)');
     const o = pageContext(ORDERS, tree, '/8', { ids: ['a', 'b'], crumbs: [{ label: 'X' }] });
     assert.deepEqual([o.section, o.current, o.title], ['a', 'b', 'X']);
+});
+
+test('a route context overrides the address default field by field, a throwing one is logged and ignored (#670)', () => {
+    const tree = navRoutes(NAV);
+    const mod = defineModule({ id: 'r', routes: [
+        { path: '/', label: 'All orders', page: 'custom' },
+        { path: '/a', label: 'A', page: 'custom', context: { ids: ['more', 'shipped'], title: 'Shipped A' } },
+        { path: '/b/:id', label: 'B', page: 'custom', context: ({ params }) => ({ crumbs: [{ label: 'Open', href: '/open' }, { label: `B ${params.id}` }] }) },
+        { path: '/c', label: 'C', page: 'custom', context: () => { throw new Error('boom'); } },
+    ] });
+    const at = path => pageContext(mod, tree, path, routeContext(mod, { path, params: { id: '7' }, query: {} }));
+    const a = at('/a');
+    assert.deepEqual([a.ids, a.current, a.title], [['more', 'shipped'], 'shipped', 'Shipped A']);
+    assert.equal(at('/b/7').title, 'B 7');
+    assert.deepEqual(at('/').ids, ['all']);
+    assert.equal(at('/c').title, 'C');
+    assert.throws(() => defineModule({ id: 'bad', routes: [{ path: '/', page: 'custom', context: 'x' }] }), /bad context/);
 });
 
 test('a record route belongs to its list: the list entry is current, the trail is the route labels', () => {
