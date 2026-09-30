@@ -4,6 +4,7 @@
 // 375px device (a template is its own page; chrome.js sends ?width=phone here). Framework-free; ES module, no inline script.
 import { initPlainkit } from '../../js/plainkit.js';
 import { setTheme } from '../../js/theme.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
 import { mountPattern } from './pattern-mount.js';
 
@@ -49,7 +50,8 @@ function device(src) {
     const frame = document.createElement('iframe');
     frame.className = 'pv-device';
     frame.title = `${entry.title} at phone width`;
-    frame.style.width = `${PHONE_WIDTH}px`;
+    frame.dataset.dyn = `width:${PHONE_WIDTH}px`;
+    applyDynamic(frame);
     frame.src = src;
     host.replaceChildren(frame);
 }
