@@ -18,6 +18,7 @@
 import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const log = createLogger('tool-dock');
 const STYLES = ['../../plainkit.css'];
@@ -67,13 +68,14 @@ export async function mountToolDock(container, options = {}) {
     if (theme) surface.setAttribute('data-theme', theme);
     if (dock) {
         surface.hidden = !opened;
-        surface.style.setProperty('--td-height', SIZES[options.size] ?? SIZES.medium);
+        surface.dataset.dyn = `--td-height:${SIZES[options.size] ?? SIZES.medium}`;
+        applyDynamic(surface);
         sizes = h(doc, 'pk-button-group', { label: 'Dock height', mode: 'single', slot: 'trailing' },
             ...Object.keys(SIZES).map(k => h(doc, 'pk-button', { toggle: true, variant: 'ghost', size: 'mini', value: k, pressed: k === (options.size ?? 'medium') }, k[0].toUpperCase() + k.slice(1))));
         const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', label: `Close ${label.toLowerCase()}`, slot: 'trailing' }, 'Close');
         tabs.append(sizes, close);
         close.addEventListener('click', () => api.close());
-        sizes.addEventListener('pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) surface.style.setProperty('--td-height', SIZES[v]); });
+        sizes.addEventListener('pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
         toggleButton = h(doc, 'pk-button', { class: 'td-launcher', size: 'mini', variant: 'secondary' }, launcherLabel);
         toggleButton.addEventListener('click', () => api.toggle());
         doc.body.append(surface, toggleButton);
