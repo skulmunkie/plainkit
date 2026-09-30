@@ -8,7 +8,7 @@
 
 .gx-entry h4 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-base); }
 
-.gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 
 .gx-slot { min-width: 0; }
 
@@ -18,21 +18,21 @@
 
 .gx-swatch-cell { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); }
 
-.gx-swatch { flex: none; width: 1.5rem; height: 1.5rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.gx-swatch { flex: none; width: var(--gx-swatch-size); height: var(--gx-swatch-size); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
 
 .gx-space-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-1); }
 
-.gx-space-row code { min-width: 6rem; }
+.gx-space-row code { min-width: var(--gx-space-code-min-w); }
 
-.gx-space-bar { display: block; height: 0.75rem; background: var(--color-accent); border-radius: var(--radius-xs); }
+.gx-space-bar { display: block; height: var(--gx-space-bar-h); background: var(--color-accent); border-radius: var(--radius-xs); }
 
-.gx-box { display: inline-flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); background: var(--color-panel); border: 1px solid var(--color-border); }
+.gx-box { display: inline-flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); background: var(--color-panel); border: var(--gx-border-w) solid var(--color-border); }
 
 .gx-z { display: inline-block; padding: var(--space-1) var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
 
 .gx-effect { padding: var(--space-1); }
 
-.gx-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: var(--space-2); }
+.gx-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--gx-icon-min-w), 1fr)); gap: var(--space-2); }
 
 .gx-icon { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-md); font-size: var(--text-xs); }
 
@@ -40,13 +40,13 @@
 
 .gx-notice-file { margin: var(--space-4); }
 
-.gx-stage { height: calc(100dvh - 24rem); min-height: 30rem; margin-inline: auto; }
+.gx-stage { height: calc(100dvh - var(--gx-stage-reserve)); min-height: var(--gx-stage-min-h); margin-inline: auto; }
 
 .gx-find { margin-bottom: var(--space-4); }
 
 .gx-head { --pk-page-header-title-size: calc(var(--text-lg) * 1.4); margin-bottom: var(--gap-section); }
 
-.gx-page { inline-size: 100%; max-inline-size: 72rem; margin-inline: auto; }
+.gx-page { inline-size: 100%; max-inline-size: var(--gx-page-max-w); margin-inline: auto; }
 
 .gx-el-group { margin-top: var(--space-5); }
 .gx-el-group > h2 { margin-bottom: var(--space-2); font-size: var(--text-base); }
@@ -56,7 +56,7 @@
    jump short the moment pk-grid (and pk-card) define -- the biggest layout shift on that route (#135). Reserved here with the same
    formula the element uses (grid.css), close enough to the gallery's own min="14rem" grids that there is no visible jump once it
    upgrades for real. */
-.gx-el-group pk-grid:not(:defined) { display: grid; inline-size: 100%; box-sizing: border-box; grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)); gap: var(--space-4); }
+.gx-el-group pk-grid:not(:defined) { display: grid; inline-size: 100%; box-sizing: border-box; grid-template-columns: repeat(auto-fit, minmax(min(var(--gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
 
 /* Element pages: the playground puts the live element beside its controls; the reference folds. */
 .gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -71,8 +71,8 @@
 .gx-el-controls :is(pk-input, pk-select) { display: block; contain: inline-size; }
 .gx-el-check { align-self: end; min-height: var(--touch-target); }
 .gx-el-events { margin-top: var(--space-3); }
-.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: 10rem; overflow-y: auto; }
-.gx-disclose { margin-top: var(--space-2); border-top: 1px solid var(--color-border); }
+.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: var(--gx-el-log-max-h); overflow-y: auto; }
+.gx-disclose { margin-top: var(--space-2); border-top: var(--gx-border-w) solid var(--color-border); }
 
 /* ---- the shell: nav, main column (bar, view, inspector) ---- */
 /* The chrome fills whatever box the host gives it (a fixed-height container scrolls the contents and the view inside; an auto-height one grows with the page). */
@@ -84,7 +84,7 @@
    nav still needs its flow width zeroed to match (a defined nav there is position: fixed and takes no flow width on its own); a DEFINED nav
    must keep its own width (the element sets it, including its off-canvas open width) - overriding it here would collapse the open drawer to
    zero width, showing the backdrop with no visible menu. */
-.gx-nav { --shell-nav-w: 17.5rem; display: flex; flex: none; width: var(--shell-nav-w); }
+.gx-nav { --shell-nav-w: var(--gx-nav-w); display: flex; flex: none; width: var(--shell-nav-w); }
 
 .gx-shell { display: flex; min-height: 0; min-width: 0; }
 
@@ -95,12 +95,12 @@
 }
 
 /* The nav's section titles are links to the section overview; the element styles the rows, this styles the titles between them. */
-.gx-nav-title { display: block; padding: var(--space-3) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; }
+.gx-nav-title { display: block; padding: var(--space-3) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: var(--gx-nav-title-tracking); text-transform: uppercase; text-decoration: none; }
 .gx-nav-title:hover { color: var(--color-text); }
-.gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+.gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: var(--gx-focus-offset); }
 
 /* min-height reserves the row's height before its buttons are defined (a row of plain light-DOM text is shorter than a row of real controls: #135). */
-.gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+.gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--gx-border-w) solid var(--color-border); }
 
 .gx-group { display: flex; align-items: center; gap: var(--space-2); }
 
@@ -127,8 +127,8 @@
 .gx-full > .gx-main .gx-body > .gx-view { padding: 0; overflow: hidden; }
 .gx-stagebox { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--color-surface-alt); }
 .gx-page-frame { flex: none; display: block; width: 100%; max-width: 100%; height: 100%; border: 0; background: var(--color-bg); }
-.gx-page-frame--phone { border-inline: 1px solid var(--color-border); }
-.gx-pagebar .gx-title { flex: 1; min-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gx-page-frame--phone { border-inline: var(--gx-border-w) solid var(--color-border); }
+.gx-pagebar .gx-title { flex: 1; min-width: var(--gx-title-min-w); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gx-pagebar { --ctl-h: var(--touch-target); }
 
 /* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
@@ -158,9 +158,9 @@
 
     /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
     .gx-table, .gx-table tbody, .gx-table tr, .gx-table td { display: block; }
-    .gx-table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
-    .gx-table tr { margin-bottom: var(--gap-card); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-    .gx-table td { display: grid; grid-template-columns: minmax(5rem, 30%) minmax(0, 1fr); gap: var(--space-3); padding: var(--space-1) 0; border: 0; }
+    .gx-table thead { position: absolute; inline-size: var(--gx-hidden-size); block-size: var(--gx-hidden-size); overflow: hidden; clip-path: inset(50%); }
+    .gx-table tr { margin-bottom: var(--gap-card); padding: var(--space-2) var(--space-3); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-md); }
+    .gx-table td { display: grid; grid-template-columns: minmax(var(--gx-table-col1-min-w), 30%) minmax(0, 1fr); gap: var(--space-3); padding: var(--space-1) 0; border: 0; }
     .gx-table td::before { content: attr(data-label); color: var(--color-muted); font-size: var(--text-meta); }
 
     .gx-desktop-only { display: none; }
