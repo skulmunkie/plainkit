@@ -83,7 +83,7 @@
     { "rule": "T1", "element": "table-filters", "found": "div", "count": 4 },
     { "rule": "T1", "element": "table-filters", "found": "span", "count": 1 },
     { "rule": "T1", "element": "tabs", "found": "div", "count": 2 },
-    { "rule": "T1", "element": "tool-page", "found": "div", "count": 2 },
+    { "rule": "T1", "element": "tool-page", "found": "div", "count": 1 },
     { "rule": "T1", "element": "toolbar", "found": "div", "count": 3 },
     { "rule": "T1", "element": "toolbar", "found": "span", "count": 1 },
     { "rule": "T1", "element": "wizard-page", "found": "div", "count": 6 },
