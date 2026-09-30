@@ -176,7 +176,8 @@ export function checkJs(code) {
         if (!fs.existsSync(file)) { problems.push(`${m[3]} does not exist in dist`); continue; }
         const have = exportsOf(file);
         for (const n of (m[2] ?? '').split(',').map(s => s.trim().split(/\s+as\s+/)[0]).filter(Boolean)) if (!have.includes(n)) problems.push(`${m[3]} does not export ${n}`);
-        if (m[1] && !/^export default\b/m.test(read(file))) problems.push(`${m[3]} has no default export`);
+        // dist/**/*.js is real-minified (esbuild, issue #600), so `export default` no longer necessarily starts its own physical line.
+        if (m[1] && !/(?:^|[;{}])\s*export default\b/m.test(read(file))) problems.push(`${m[3]} has no default export`);
     }
     for (const m of code.matchAll(/import\('([^']+)'\)/g)) if (!fs.existsSync(path.join(dist, m[1].replace(DIST_PREFIX, '')))) problems.push(`${m[1]} does not exist in dist`);
     for (const m of code.matchAll(/\b(mount\w+)\(\s*[^,()]+,\s*\{([^}]*)\}\s*\)/g)) {

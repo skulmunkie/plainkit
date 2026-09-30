@@ -89,7 +89,10 @@ test('propsObject is what the runtime reads: type, default, values and reflect o
 test('a tag is pk-<folder>, and the generated module inlines template, css and behaviour with no imports but the base', () => {
     for (const el of elements) {
         assert.equal(el.meta.tag, `pk-${el.name}`);
-        const src = elementModule(el, { coreImport: '../js/element.js', minifyCss: true });
+        // Unminified: this checks the shape of the generated source (imports, inlining, no style attribute/tag), which is independent of
+        // esbuild minification (issue #600, which also renames identifiers and reformats import statements). dist output's real minified
+        // size is covered by core/tests/budgets.test.mjs, and that minified code actually runs by core/tests/dist-minified-element.test.mjs.
+        const src = elementModule(el, { coreImport: '../js/element.js' });
         // The base class, and at most shared modules from js/ (positioning, menu keys, scroll helpers): never another element or a package.
         const imports = [...src.matchAll(/^import [^\n]* from '([^']+)'/gm)].map(m => m[1]);
         assert.equal(imports[0], '../js/element.js', 'the base class first');

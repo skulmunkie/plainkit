@@ -75,7 +75,9 @@ test('changing one breakpoint changes exactly the conditions that name it', asyn
     assert.match(text(out, 'plainkit.min.css'), /--pk-bp-phone:720px/);
     // a rewritten element differs from the shipped one only in the digits of its conditions
     const el = carriers.find(p => p.startsWith('elements/'));
-    assert.equal(text(out, el), text(files, el).replaceAll('max-width: 640px', 'max-width: 720px').replaceAll('min-width: 641px', 'min-width: 721px'));
+    // The shipped element is real-minified (esbuild, issue #600), which may drop the space after the `:` in a media condition
+    // ((max-width: 640px) -> (max-width:640px)); rewriteMedia() preserves whatever spacing it finds, so this does too, matching either.
+    assert.equal(text(out, el), text(files, el).replace(/max-width(:\s*)640px/g, 'max-width$1720px').replace(/min-width(:\s*)641px/g, 'min-width$1721px'));
     const report = JSON.parse(text(out, 'breakpoints.report.json'));
     assert.equal(report.byBreakpoint.phone.width, 720); assert.equal(report.breakpoints[0].width, 720);
 });

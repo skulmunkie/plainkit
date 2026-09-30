@@ -25,6 +25,13 @@ test('copy the Plainkit folder outside the repository', { skip }, () => {
     assert.ok(!path.resolve(copy).startsWith(path.resolve(source, '..')), 'the copy must be outside the repo');
     fs.cpSync(source, copy, { recursive: true });
     assert.ok(fs.existsSync(path.join(copy, 'tools', 'build.mjs')));
+    // tools/build.mjs (issue #600) imports esbuild, a devDependency of the repository ROOT package.json, not something core/ ships or installs
+    // on its own (core/package.json, the published npm manifest, still has zero runtime dependencies). The copy is a real, separate folder
+    // ("this folder copied anywhere"), so it needs its own way to resolve that import; a junction/symlink to the repository's already-installed
+    // node_modules (not a copy of it: esbuild ships a native binary per platform, and this only needs to run on the machine that installed it)
+    // stands in for what a real fork of this repository would get from its own `npm ci`.
+    const rootNodeModules = path.resolve(source, '..', 'node_modules');
+    if (fs.existsSync(rootNodeModules)) fs.symlinkSync(rootNodeModules, path.join(copy, 'node_modules'), 'junction');
 });
 
 test('the copy rebuilds dist/, plainkit.css and the gallery data byte-for-byte', { skip }, () => {
