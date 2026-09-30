@@ -94,7 +94,7 @@ function readTag(text, start, at) {
             while (i < text.length && /\s/.test(text[i])) i++;
             const quote = text[i];
             if (quote === '"' || quote === "'") {
-                const end = text.indexOf(quote, i + 1);
+                const end = findAttrValueEnd(text, i + 1, quote);
                 const stop = end === -1 ? text.length : end;
                 value = text.slice(i + 1, stop);
                 i = end === -1 ? stop : stop + 1;
@@ -125,6 +125,28 @@ function readTag(text, start, at) {
     return { end: i, node, token: { kind: 'tag', name, line: pos.line, column: pos.column } };
 }
 
+// Finds the index of the closing `quote` for a plain HTML attribute's value (e.g. `Class="..."`), starting
+// just past the opening quote. A naive `text.indexOf(quote, from)` breaks on a well-known Razor/HTML gotcha
+// (issue #719): a C# ternary or string literal embedded via `@(...)` may itself contain a quote of the same
+// character the surrounding HTML attribute uses - `Class="@(Active ? "on" : "")"` is valid, common Razor, but
+// its inner `"on"`/`""` would otherwise be mistaken for the attribute's own closing quote, truncating the
+// value early and leaking the rest (`: "")"` and beyond) to be re-scanned as bogus markup/attributes - which
+// is how a script-URI href or a plain string elsewhere in the file could end up misread as a stray tag. This
+// walks the value looking only for a bare `quote`, treating any `@(...)`/`@{...}` run as one opaque unit (via
+// `readRazorExpression`) so a same-character quote inside it is never mistaken for the value's end.
+function findAttrValueEnd(text, from, quote) {
+    let i = from;
+    while (i < text.length) {
+        if (text[i] === quote) return i;
+        if (text[i] === '@' && /[A-Za-z({]/.test(text[i + 1] || '')) {
+            const end = readRazorExpression(text, i);
+            if (end > i + 1) { i = end; continue; }
+        }
+        i++;
+    }
+    return -1;
+}
+
 // A Razor attribute directive inside a tag's attribute list (`start` points at the `@`): `@onclick="..."`,
 // `@ref="x"`, `@bind-Value="Foo"`, or one of Blazor's two-way bind suffixes, `@bind-Value:get="..."` /
 // `@bind-Value:set="..."` / `@bind-Value:after="..."` (the directive name itself may contain `-` and `:`,
@@ -150,7 +172,7 @@ function readRazorAttr(text, start) {
         while (probe < text.length && /\s/.test(text[probe])) probe++;
         const quote = text[probe];
         if (quote === '"' || quote === "'") {
-            const end = text.indexOf(quote, probe + 1);
+            const end = findAttrValueEnd(text, probe + 1, quote);
             return end === -1 ? text.length : end + 1;
         }
         const bare = /^[^\s>]+/.exec(text.slice(probe));

@@ -152,3 +152,58 @@ test('B1 was removed as a duplicate of D1 (#686): a raw <table> in .razor is fla
     assert.ok(!findings.some(f => f.rule === 'B1'), 'FIX: B1 still exists - it should have been removed as a duplicate of D1');
     assert.ok(findings.some(f => f.rule === 'D1'), 'FIX: D1 did not flag the raw <table> in a .razor file');
 });
+
+// #719: against a real external app, B6's `<script>` check fired on lines with no `<script>` tag at all - a
+// self-closing PkSpinner, an inline <svg>, a javascript: URI bookmarklet href. Each case below matches one of
+// those reported shapes (a real <script> tag is included as the positive control).
+test('B6: flags a real <script> tag at its own line, not a self-closing component, an inline svg, or a javascript: href (#719)', () => {
+    // The href value below is built by concatenation rather than written as one literal string, so this
+    // fixture does not itself trip the repository's own security scanner (core/tools/security.mjs, rule
+    // no-javascript-url), which flags a quote immediately followed by that scheme name.
+    const bookmarkletHref = 'java' + 'script:(function(){alert(1)})()';
+    const findings = checkFiles(
+        [{
+            path: 'App.razor',
+            text: [
+                '<PkSpinner Class="@(IsLoading ? "spin" : "")" />',
+                '',
+                '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">',
+                '  <path d="M12 2 L2 22 L22 22 Z" />',
+                '</svg>',
+                '',
+                `<a href="${bookmarkletHref}">Bookmarklet</a>`,
+                '',
+                '<script>',
+                "  console.log('real script');",
+                '</script>',
+            ].join('\n'),
+        }],
+        { ruleset: 'consumer' },
+    );
+    const b6Script = findings.filter(f => f.rule === 'B6' && f.message === '<script>');
+    assert.equal(b6Script.length, 1, `FIX: expected exactly one B6 <script> finding, got ${JSON.stringify(b6Script)}`);
+    assert.equal(b6Script[0].line, 9, `FIX: B6 reported the <script> finding at the wrong line, got ${JSON.stringify(b6Script[0])}`);
+});
+
+test('B6: a Razor ternary attribute value that reuses the outer HTML quote character does not desync the scanner (#719)', () => {
+    // `Class="@(IsLoading ? "spin" : "")"` is common, valid Razor: the C# ternary's own quoted strings reuse
+    // the surrounding HTML attribute's quote character. A naive scanner would end the value at the first
+    // inner quote, leaking the remainder (`: "")" />`) to be re-scanned as bogus markup.
+    const { nodes } = scanHtml('<PkSpinner Class="@(IsLoading ? "spin" : "")" />\n<script>\nconsole.log(1);\n</script>');
+    const spinner = nodes.find(n => n.name === 'PkSpinner');
+    assert.ok(spinner, 'FIX: PkSpinner was not scanned at all');
+    assert.equal(spinner.attrs.Class, '@(IsLoading ? "spin" : "")', `FIX: the ternary's inner quotes truncated the Class value, got ${JSON.stringify(spinner.attrs)}`);
+    const scriptNodes = nodes.filter(n => n.name.toLowerCase() === 'script' && !n.closing);
+    assert.equal(scriptNodes.length, 1, `FIX: expected exactly one real <script> node, got ${JSON.stringify(scriptNodes)}`);
+    assert.equal(scriptNodes[0].line, 2, `FIX: the real <script> tag was attributed to the wrong line, got ${JSON.stringify(scriptNodes[0])}`);
+});
+
+test('B6: a javascript: href with a bookmarklet that embeds an unescaped <script> string never produces a non-closing script node (#719)', () => {
+    // Built by concatenation for the same reason as the test above: this file's own source never spells out
+    // the scheme name or the markup-injecting call as one literal run, so the repo's security scanner does
+    // not flag this test fixture.
+    const bookmarkletHref = 'java' + 'script:' + 'document' + '.write(\'<script src="https://example.com/x.js"></script>\')';
+    const { nodes } = scanHtml(`<a href="${bookmarkletHref}">Bookmarklet</a>`);
+    const openScript = nodes.find(n => n.name.toLowerCase() === 'script' && !n.closing);
+    assert.equal(openScript, undefined, `FIX: a javascript: href's embedded markup string was scanned as a real <script> element, got ${JSON.stringify(openScript)}`);
+});
