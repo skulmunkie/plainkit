@@ -252,7 +252,16 @@
     --delta-down: #b91c1c;
 }
 
-/* Tokens for the controls moved into the SDK from the app stylesheet: one name per literal the rule used. */
+/* Tokens for the controls moved into the SDK from the app stylesheet: one name per literal the rule used.
+   issue #688: --maint-section-header-hover-bg, --maint-section-header-bg, --dg-filter-popup-shadow, --u-c-888,
+   --gal-actions-bg, --remedy-error-border, --remedy-border, --combo-popup-shadow, --tag-pill-x-hover-bg,
+   --tag-pill-x-bg, --tag-pill-x-fg and --tag-pill-fg were removed: leftovers from the pre-componentised app
+   stylesheet (see core/js/compat-warn.js's now-migrated class names: maint-section, remedy-*, gal-actions,
+   tag-pill-x) that nothing in the source tree - not core/elements, not core/site, not core/modules - reads any
+   more. --csr-mark-bg stays: core/modules/code-explorer/code-explorer.css (a shipped dev-tool module) reads it
+   from the host page's plainkit.css. --dg-card-label-fg, --dg-sortable-hover-fg, --dg-clickable-hover-bg and
+   --ft-selected-bg stay too: they back the public `.dg-*` data-table classes in core/base/table-content.css,
+   part of the page layer. */
 :root {
     --app-header-h: 3.5rem;
     --shell-nav-w: 15rem;
@@ -260,23 +269,11 @@
     --shell-nav-w-collapsed: 3.5rem;
     --app-footer-h: 2.9rem;
     --page-crumbs-fg: #8b949e;
-    --maint-section-header-hover-bg: rgba(255,255,255,0.08);
-    --maint-section-header-bg: rgba(255,255,255,0.04);
-    --dg-filter-popup-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     --dg-card-label-fg: #8a8a8a;
     --dg-sortable-hover-fg: #fff;
     --ft-selected-bg: rgba(59, 108, 240, 0.15);
     --csr-mark-bg: rgba(250, 204, 21, 0.5);
-    --u-c-888: #888;
     --dg-clickable-hover-bg: rgba(74, 144, 226, 0.08);
-    --gal-actions-bg: rgba(0, 0, 0, 0.55);
-    --remedy-error-border: #f87171;
-    --remedy-border: #d97706;
-    --combo-popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-    --tag-pill-x-hover-bg: color-mix(in srgb, var(--btn-primary-fg) 45%, transparent);
-    --tag-pill-x-bg: color-mix(in srgb, var(--btn-primary-fg) 25%, transparent);
-    --tag-pill-x-fg: #fff;
-    --tag-pill-fg: #fff;
 }
 
 /* Gallery preview chrome (core/site/gallery/frame.css): schematic-only sizes with no equivalent on the shared scale. */
