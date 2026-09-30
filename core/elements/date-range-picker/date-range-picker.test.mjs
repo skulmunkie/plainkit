@@ -123,4 +123,8 @@ test('the meta names the commit event on both two-way props and the css uses tok
     for (const n of ['start', 'end']) assert.equal(meta.props.find(p => p.name === n).commit, 'pk-range-change');
     assert.ok(meta.events.some(e => e.name === 'pk-range-change'));
     assert.doesNotMatch(read('css'), /#[0-9a-f]{3,8}\b|rgba?\(/i);
+    for (const h of ['--pk-control-bg', '--pk-control-border', '--pk-control-radius']) {
+        assert.ok(meta.cssProperties.some(p => p.name === h), `${h} is documented`);
+        assert.match(read('css'), new RegExp(`\\[part="start"\\], \\[part="end"\\] \\{[^}]*${h}: var\\(--_`), `${h} is passed on to the pk-input fields`);
+    }
 });

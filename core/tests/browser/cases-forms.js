@@ -523,6 +523,14 @@ export const formCases = [
         const off = await t.mount('<pk-date-range-picker calendar disabled></pk-date-range-picker>'); await ready(t);
         t.ok(off.part('opener').disabled, 'a disabled picker disables the opener');
     }],
+    ['date-range-picker: --pk-control-bg, --pk-control-border and --pk-control-radius set on the picker drive the rendered date fields', async t => {
+        const el = await t.mount('<pk-date-range-picker style="--pk-control-bg: rgb(1, 2, 3); --pk-control-border: rgb(4, 5, 6); --pk-control-radius: 13px" start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
+        await ready(t);
+        const box = el.part('start').shadowRoot.querySelector('[part="box"]'), st = getComputedStyle(box);
+        t.eq(st.backgroundColor, 'rgb(1, 2, 3)', 'the background hook reaches the field');
+        t.eq(st.borderTopColor, 'rgb(4, 5, 6)', 'the border hook reaches the field');
+        t.eq(st.borderTopLeftRadius, '13px', 'the radius hook reaches the field');
+    }],
 
     ['date-range-picker calendar: right to left mirrors the panel under the field, and a phone keeps it inside the viewport', async t => {
         const el = await t.mount('<div dir="rtl"><pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div>');
