@@ -38,6 +38,15 @@ Every rule belongs to one of six families; the id's letter says which. Full ids,
 
 Most rules are a warning in normal mode and an error in strict mode - useful during day-to-day work, a hard gate before a release. A few rules that *guess* rather than prove something (an inferred page type, a heuristic reduced-motion override) stay warnings even in strict mode, so a build never fails on a guess. Two flags narrow a run to specific ids (one to select, one to exclude); a `plainkit.audit.json` config file can set per-rule severity, an allow-list (an entry that can only shrink over time, never grow silently) and a baseline so an existing app can adopt the audit gradually instead of fixing everything on day one.
 
+## Running it before it is published
+
+Until the CLI ships as part of the npm/NuGet packages, it only exists in a plainkit source checkout: `node
+<checkout>/core/tools/audit/cli.mjs <target>`. A consumer app that wants to gate its own CI on this before
+then can check out plainkit as a sibling repo and run the CLI from there - `examples/audit-cli/` in this
+repository has a minimal bash and PowerShell runner for exactly that, including the baseline flags
+(see `core/tools/audit/baseline.mjs`) for gating on new findings only, not the whole existing backlog. Once
+`npx plainkit audit` works from the published package, drop the sibling checkout and those example scripts.
+
 ## An agent that cannot run the CLI
 
 The agent skills carry the same rule table as a "Check your work" step (their `SKILL.md`, near the end of the workflows): run `npx plainkit audit --strict` before finishing, fix each finding by its id, and treat a finding that is a genuine SDK gap as a tracker issue rather than a local workaround. For an agent with no way to run Node, the same step lists every rule id grouped by family as an inline checklist.

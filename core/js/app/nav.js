@@ -97,6 +97,18 @@ export function locate(def, tree, path) {
     return { ids: [], crumbs: strip(trail(chain)) };
 }
 
+// THE PAGE CONTEXT (#670): one answer to "where is the reader", read by the side nav (ids: the current row and the branches to open), the breadcrumb (crumbs) and the page
+// header / document title (title, the last crumb). Zero-config default: locate() above, from the URL and the route tree. An explicit `override` ({ ids?, crumbs?, title? }, each
+// optional) wins field by field when the URL alone cannot say (data-driven menus); a title alone also replaces the last crumb's label, so the header and the trail never disagree.
+export function pageContext(def, tree, path, override = {}) {
+    const base = locate(def, tree, path);
+    const ids = Array.isArray(override.ids) ? override.ids : base.ids;
+    let crumbs = Array.isArray(override.crumbs) ? override.crumbs : base.crumbs;
+    if (typeof override.title === 'string' && !Array.isArray(override.crumbs) && crumbs.length) crumbs = [...crumbs.slice(0, -1), { ...crumbs[crumbs.length - 1], label: override.title }];
+    const title = typeof override.title === 'string' ? override.title : crumbs.length ? crumbs[crumbs.length - 1].label : '';
+    return { ids, section: ids[0] ?? null, current: ids[ids.length - 1] ?? null, crumbs, title };
+}
+
 // The row of the current page is `current`, every ancestor branch is opened; other rows keep whatever the reader opened. The module rows are not the module's own entries.
 export function markCurrent(rows, ids) {
     const leaf = ids[ids.length - 1];

@@ -43,7 +43,7 @@ import { createModuleHost } from './host.js';
 import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
 import { buildShell, footerNodes } from './shell.js';
-import { navOf, absolute, menuTree, paintNav, paintLinks, locate, markCurrent, searchNav } from './nav.js';
+import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
 const PREFETCH_DELAY = 100;
@@ -108,7 +108,7 @@ export function mountApp(container, config) {
         ui.skip.after(ui.skipNav);
         loadElements(container);
     }
-    const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, locate(a.def, routes, a.route.path).ids); };
+    const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, pageContext(a.def, routes, a.route.path).ids); };
     const relayout = () => { drawNav(); mark(); };
     if (!side) narrow.addEventListener('change', relayout);
     // A wide side layout has the side nav's own collapse chevron (icon rail): a second hamburger hiding the same nav would duplicate it (#448), so there the menu control only opens the drawer.
@@ -118,7 +118,7 @@ export function mountApp(container, config) {
     drawNav(); // the menu is in the page from the first paint: nothing moves when the first module arrives
 
     function trail(a) {
-        const inner = status === 'ok' && a.route.path !== '/' ? locate(a.def, routes, a.route.path).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
+        const inner = status === 'ok' && a.route.path !== '/' ? pageContext(a.def, routes, a.route.path).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
         return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: entries.get(a.id).title, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
     }
 
