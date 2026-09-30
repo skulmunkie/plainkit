@@ -15,6 +15,7 @@ import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, su
 import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
+import { applyDynamic } from '../../js/dynamic.js';
 const log = createLogger('performance');
 
 const STYLES = ['../../plainkit.css'];
@@ -100,7 +101,7 @@ export async function mountPerformance(container, options = {}) {
         h(doc, 'pk-cluster', { align: 'stretch' }, ...Object.values(stats)),
         h(doc, 'pk-card', { heading: 'What loaded', level: 3 }, kinds, resources));
     if (theme) root.setAttribute('data-theme', theme);
-    if (height) { root.style.setProperty('height', height === 'fill' ? '100%' : height); root.style.setProperty('overflow', 'auto'); }
+    if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 

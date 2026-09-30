@@ -11,6 +11,7 @@ const ELEMENTS = await loadAllElements(); // the sweep opens every element's exa
 import { sampleDoc } from '../gallery/frame.js';
 import { TEXT_TIERS, TARGET_EXCEPTIONS } from './scoring.data.js';
 import { createLogger } from '../../js/log.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 const log = createLogger('sweep');
 
@@ -142,7 +143,8 @@ export async function settled(f, { timeout = SETTLE_TIMEOUT_MS } = {}) {
 
 function makeFrame(item, width, theme) {
     const f = document.createElement('iframe');
-    f.style.cssText = `position:fixed;left:-20000px;top:0;width:${width}px;height:900px;border:0`;
+    f.dataset.dyn = `position:fixed;left:-20000px;top:0;width:${width}px;height:900px;border:0`;
+    applyDynamic(f);
     const src = item.src?.(theme); if (src) f.src = src; else f.srcdoc = item.doc(theme);
     document.body.append(f);
     return f;
@@ -177,7 +179,7 @@ async function sweepItem(item, { widths, themes, fresh }, out) {
         for (const theme of themes) for (const width of widths) {
             try {
                 if (fresh || !f) { f?.remove(); f = makeFrame(item, width, theme); }
-                else { f.style.width = width + 'px'; f.contentDocument.documentElement.setAttribute('data-theme', theme); }
+                else { f.dataset.dyn = `width:${width}px`; applyDynamic(f); f.contentDocument.documentElement.setAttribute('data-theme', theme); }
                 await settled(f);
                 cell(theme, width, measure(f.contentDocument, width, { checkH1: item.checkH1 }));
             } catch (e) {

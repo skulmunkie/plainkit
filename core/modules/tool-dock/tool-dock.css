@@ -2,7 +2,7 @@
 
 .td-surface { color: var(--color-text); background: var(--color-bg); }
 
-.td-surface--dock { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-flyout); block-size: var(--td-height, 40vh); overflow: auto; border-top: 1px solid var(--color-border); box-shadow: var(--shadow-flyout); }
+.td-surface--dock { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--z-flyout); block-size: var(--td-height, 40vh); overflow: auto; border-top: var(--td-border-w) solid var(--color-border); box-shadow: var(--shadow-flyout); }
 
 .td-surface--dock[hidden] { display: none; }
 
