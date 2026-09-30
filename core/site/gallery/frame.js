@@ -5,6 +5,7 @@
 
 import { PAGE_CSS } from './paths.js';
 import { SCRIPT_NAME, DESTROY_EVENT } from './pattern-mount.js';
+import { applyDynamic } from '../../js/dynamic.js';
 
 export const GALLERY_BASE = new URL('./', import.meta.url).href;
 export const PHONE_WIDTH = 375;
@@ -23,9 +24,15 @@ export function applyToFrame(frame, { theme, scale, width }) {
     const doc = frame.contentDocument;
     if (doc?.documentElement) {
         if (theme) doc.documentElement.setAttribute('data-theme', theme);
-        if (scale) doc.documentElement.style.fontSize = `${(14 * scale).toFixed(2)}px`;
+        if (scale) {
+            doc.documentElement.dataset.dyn = `font-size:${(14 * scale).toFixed(2)}px`;
+            applyDynamic(doc.documentElement);
+        }
     }
-    if (width !== undefined) frame.style.width = width === 'phone' ? `${PHONE_WIDTH}px` : '100%';
+    if (width !== undefined) {
+        frame.dataset.dyn = `width:${width === 'phone' ? `${PHONE_WIDTH}px` : '100%'}`;
+        applyDynamic(frame);
+    }
     fit(frame);
 }
 
@@ -35,10 +42,14 @@ export function applyToPage(frame, { theme, scale, width }) {
     const doc = frame.contentDocument;
     if (doc?.documentElement) {
         if (theme) doc.documentElement.setAttribute('data-theme', theme);
-        if (scale !== undefined) doc.documentElement.style.fontSize = scale === 1 ? '' : `${(14 * scale).toFixed(2)}px`;
+        if (scale !== undefined) {
+            doc.documentElement.dataset.dyn = `font-size:${scale === 1 ? '' : `${(14 * scale).toFixed(2)}px`}`;
+            applyDynamic(doc.documentElement);
+        }
     }
     if (width !== undefined) {
-        frame.style.width = width === 'phone' ? `${PHONE_WIDTH}px` : '100%';
+        frame.dataset.dyn = `width:${width === 'phone' ? `${PHONE_WIDTH}px` : '100%'}`;
+        applyDynamic(frame);
         frame.classList.toggle('gx-page-frame--phone', width === 'phone');
     }
 }
@@ -46,13 +57,19 @@ export function applyToPage(frame, { theme, scale, width }) {
 // Make the frame as tall as its content (or its fixed height when the sample asks for one).
 export function fit(frame) {
     const fixed = Number(frame.dataset.height);
-    if (fixed) { frame.style.height = `${fixed}px`; return; }
+    if (fixed) {
+        frame.dataset.dyn = `height:${fixed}px`;
+        applyDynamic(frame);
+        return;
+    }
     const doc = frame.contentDocument;
     if (!doc?.documentElement) return;
-    frame.style.height = '0px';
+    frame.dataset.dyn = 'height:0px';
+    applyDynamic(frame);
     // The frame has a border: with border-box sizing the content height alone leaves the frame two pixels short, and a scrollbar appears.
     const edge = getComputedStyle(frame).boxSizing === 'border-box' ? frame.offsetHeight - frame.clientHeight : 0;
-    frame.style.height = `${Math.max(doc.documentElement.scrollHeight, 40) + edge}px`;
+    frame.dataset.dyn = `height:${Math.max(doc.documentElement.scrollHeight, 40) + edge}px`;
+    applyDynamic(frame);
 }
 
 // Ends the sample's script (if it runs) before the gallery drops the frame, so nothing it added outlives the view.
@@ -73,6 +90,7 @@ export function makeFrame(sample, state, control = '') {
         const doc = frame.contentDocument;
         if (doc?.body && 'ResizeObserver' in window) new ResizeObserver(() => fit(frame)).observe(doc.body);
     });
-    frame.style.width = state.width === 'phone' ? `${PHONE_WIDTH}px` : '100%';
+    frame.dataset.dyn = `width:${state.width === 'phone' ? `${PHONE_WIDTH}px` : '100%'}`;
+    applyDynamic(frame);
     return frame;
 }

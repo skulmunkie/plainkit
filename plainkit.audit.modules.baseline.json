@@ -1432,46 +1432,6 @@
       "fingerprint": "bb7ed1603d230a81"
     },
     {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "c0c02e7fda2fb4c4"
-    },
-    {
       "rule": "S3",
       "file": "core/site/gallery/frame.js",
       "fingerprint": "06c0a3c94ddc06bd"
@@ -2589,6 +2549,21 @@
     {
       "rule": "S7",
       "file": "core/site/guides/page.js",
+      "fingerprint": "fa3e3a7dafa4dcc5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "dcacce5ee93322b3"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
+      "fingerprint": "63558c176d70bc1e"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/guides/page.js",
       "fingerprint": "63558c176d70bc1e"
     },
     {
@@ -2619,12 +2594,7 @@
     {
       "rule": "S7",
       "file": "core/site/guides/page.js",
-      "fingerprint": "fa3e3a7dafa4dcc5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dcacce5ee93322b3"
+      "fingerprint": "63558c176d70bc1e"
     },
     {
       "rule": "S1",
