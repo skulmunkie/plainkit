@@ -77,6 +77,28 @@ test('S7: does not flag prose inside a JS comment, but still flags a real platfo
     assert.equal(hit.line, 2, `FIX: S7 reported the wrong line for a hit after a comment, got line ${hit.line}`);
 });
 
+test('D8: does not flag ::part() selectors, but still flags a raw override sharing a rule with one (#684)', () => {
+    const clean = checkFiles(
+        [{ path: 'app.css', text: 'pk-app-shell::part(footer) { padding: var(--space-2); }\n.tabbed-page-tabs pk-tabs::part(list) { gap: var(--space-1); }' }],
+        { ruleset: 'consumer' },
+    );
+    assert.ok(!clean.some(f => f.rule === 'D8'), `FIX: D8 flagged documented ::part() selectors, got ${JSON.stringify(clean.filter(f => f.rule === 'D8'))}`);
+
+    const mixed = checkFiles([{ path: 'app.css', text: 'pk-tabs, pk-app-shell::part(header) { padding: var(--space-2); }' }], { ruleset: 'consumer' });
+    const hit = mixed.find(f => f.rule === 'D8');
+    assert.ok(hit, 'FIX: D8 did not flag a raw pk-tabs override sharing a rule with a ::part() selector');
+    assert.ok(hit.fix.includes('styles pk-tabs from outside'), `FIX: D8 reported the wrong offending selector, got ${JSON.stringify(hit)}`);
+});
+
+test('D2: does not flag a utility class that merely contains a hint word, but still flags the exact class (#684)', () => {
+    const clean = checkFiles([{ path: 'app.css', text: '.text-danger { color: var(--color-danger); }\n.stat-grid { display: grid; }' }], { ruleset: 'consumer' });
+    assert.ok(!clean.some(f => f.rule === 'D2'), `FIX: D2 flagged .text-danger/.stat-grid as hand-rolled duplicates, got ${JSON.stringify(clean.filter(f => f.rule === 'D2'))}`);
+
+    const real = checkFiles([{ path: 'app.css', text: '.text { color: var(--color-danger); }\n.stat { color: var(--color-success); }' }], { ruleset: 'consumer' });
+    assert.ok(real.some(f => f.rule === 'D2' && f.message === '.text'), 'FIX: D2 did not flag the exact .text class');
+    assert.ok(real.some(f => f.rule === 'D2' && f.message === '.stat'), 'FIX: D2 did not flag the exact .stat class');
+});
+
 test('every rule carries a doc anchor and a fix template with the rule id in brackets', () => {
     for (const rule of RULES) {
         assert.ok(rule.docs && rule.docs.length > 0, `FIX: rule ${rule.id} has no doc anchor`);
