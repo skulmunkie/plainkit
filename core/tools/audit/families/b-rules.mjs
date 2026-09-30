@@ -12,7 +12,7 @@
 // built once below from the same table - no new source, per the design's "nothing is invented" rule (section 3).
 import { scanHtml } from '../../strict/scanners/html.mjs';
 import { hitsForEach, hitAt, fileIs, RAZOR_EXTENSIONS } from '../util.mjs';
-import { TAG_HINTS, BLAZOR_COMPONENTS } from '../hints.mjs';
+import { BLAZOR_COMPONENTS } from '../hints.mjs';
 
 const isRazor = file => fileIs(file, RAZOR_EXTENSIONS);
 const isPkComponent = name => /^Pk[A-Z]/.test(name);
@@ -25,6 +25,12 @@ const PARAMS_BY_COMPONENT = Object.fromEntries(Object.values(BLAZOR_COMPONENTS).
 // unknown parameter - B2 already covers Class/Style on its own.
 const PASSTHROUGH_ATTRS = new Set(['Class', 'Style', 'id', 'key']);
 
+// A generic component's own type parameter (`TItem="OrderRow"`, `TValue="int"`, `TKey="Guid"` ...): Blazor's
+// naming convention for these is a leading `T` then an uppercase letter (`@typeparam TItem`), and they are not
+// declared in the component's own `params` list (that list is its [Parameter] properties, not its generics) -
+// so without this, every generic component usage was flagged as an "unknown parameter" (issue #686, B3).
+const isTypeParam = name => /^T[A-Z]\w*$/.test(name);
+
 // B5's JS-interop hint table (D7's counterpart, design section 2.6): an IJSRuntime call by string name that
 // duplicates behaviour a component already owns. Hand-written like D7's own API_PATTERNS (core/tools/audit/
 // hints.mjs) - these are Blazor interop call names, not an element catalogue field.
@@ -34,29 +40,11 @@ const INTEROP_HINTS = [
     { re: /\b(disableBodyScroll|enableBodyScroll|scrollLock|lockScroll)\b/, api: 'a manual scroll lock', element: 'pk-dialog/pk-drawer (they already lock body scroll while open)' },
 ];
 
+// B1 was removed (issue #686): it reimplemented D1 ("a raw tag that has a pk-* equivalent", d-rules.mjs) under
+// a new id. D1's `applies: isMarkup` already covers .razor/.cshtml (MARKUP_EXTENSIONS includes both, util.mjs),
+// so every B1 finding was a byte-for-byte duplicate of a D1 finding on the same file:line - nothing B1 added.
+
 export const B_RULES = [
-    {
-        id: 'B1',
-        category: 'B',
-        detects: 'a raw HTML tag in a .razor/.cshtml file where a Pk* component exists (D1\'s Razor counterpart)',
-        severity: { normal: 'warn', strict: 'error' },
-        docs: 'docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#26-family-b-blazor-and-razor-only',
-        fixTemplate: 'FIX: {file}:{line} writes <{found}>. PlainKit already ships {component}: use it instead of the raw tag. [B1]',
-        applies: isRazor,
-        scan(file) {
-            const { nodes } = scanHtml(file.text);
-            const hits = [];
-            for (const node of nodes) {
-                if (node.closing || isPkComponent(node.name)) continue;
-                const pkTag = TAG_HINTS[node.name.toLowerCase()];
-                if (!pkTag) continue;
-                const blazor = BLAZOR_COMPONENTS[pkTag];
-                const component = blazor ? `<${blazor.component}>` : `<${pkTag}> (no Blazor component generated for it yet)`;
-                hits.push({ line: node.line, column: node.column, message: `<${node.name}>`, found: node.name, component });
-            }
-            return hits;
-        },
-    },
     {
         id: 'B2',
         category: 'B',
@@ -97,7 +85,7 @@ export const B_RULES = [
                     continue;
                 }
                 for (const attrName of Object.keys(node.attrs)) {
-                    if (PASSTHROUGH_ATTRS.has(attrName) || attrName.startsWith('data-') || attrName.startsWith('aria-')) continue;
+                    if (PASSTHROUGH_ATTRS.has(attrName) || attrName.startsWith('data-') || attrName.startsWith('aria-') || isTypeParam(attrName)) continue;
                     if (!params.includes(attrName)) {
                         hits.push({ line: node.line, column: node.column, message: `${attrName}=`, found: `<${node.name} ${attrName}=...> - ${attrName} is not a parameter of ${node.name} (check the spelling, or it was removed)` });
                     }

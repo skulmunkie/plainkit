@@ -261,6 +261,6 @@ test('plain-html fixture: exact text-format output snapshot', async () => {
         'app.js:5:7  warn  [D6]  manual interactive ARIA role set from script (role="dialog")',
         '  FIX: app.js:5 sets manual interactive ARIA role set from script (role="dialog") from script. An existing pk-* element likely already owns this role; compose one, or allow-list this file with a reason. [D6]',
         '',
-        'plainkit audit: 0 errors, 1 warning, 2 files, 0s (normal; skipped rules: S1, S2, S3, S4, S5, S6, S7, S8, S9, D1, D2, D3, D4, D5, D7, D8, D9, P1, P2, P3, P4, P5, P6, P7, P8, P9, T1, T2, T3, T4, T5, T6, T7, T8, A1, A2, A3, A4, A5, A6, A7, A8, B1, B2, B3, B4, B5, B6)',
+        'plainkit audit: 0 errors, 1 warning, 2 files, 0s (normal; skipped rules: S1, S2, S3, S4, S5, S6, S7, S8, S9, D1, D2, D3, D4, D5, D7, D8, D9, P1, P2, P3, P4, P5, P6, P7, P8, P9, T1, T2, T3, T4, T5, T6, T7, T8, A1, A2, A3, A4, A5, A6, A7, A8, B2, B3, B4, B5, B6)',
     ].join('\n'));
 });
