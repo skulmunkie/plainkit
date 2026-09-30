@@ -33,8 +33,35 @@ export default {
 <pk-dock id="dock" label="Editor workspace" fill>${TOOLBAR_START}${PANELS}</pk-dock>
 <pk-dock id="bottom" label="Project workspace" fill><div slot="files" data-heading="Files" data-group="left">app.js</div><div slot="editor" data-heading="Editor">Editor</div><div slot="log" data-heading="Log" data-group="bottom">Ready.</div></pk-dock>
 </div>`,
-    setup(frame) {
+    async setup(frame) {
         const dock = frame.querySelector('#dock');
+        // Round 2 item 5 (#618): floating a panel has no menu path yet (step 3), so this calls the model directly, the same way a future Float
+        // menu item would, then redraws - just enough to demonstrate the floater's rest, mid-drag and resized states below.
+        const { floatPanel } = await import('../../../js/dock-model.js');
+        Object.defineProperty(dock, 'demoFloat', { set() {
+            const root = dock.part('root').getBoundingClientRect();
+            const r = floatPanel(dock.$doc, { panel: 'layers', rect: { x: 40, y: 24, w: 220, h: 160 }, bounds: { w: root.width, h: root.height } });
+            dock.$doc = r.doc;
+            dock.draw(Boolean(dock.$mq?.matches));
+        } });
+        // A pointer drag of the floater's own header (its move handle) or its corner .floater-resize grip, one call per state.
+        const floaterPointer = (selector, pointerId) => (type, x, y) => dock.shadowRoot.querySelector(selector)?.dispatchEvent(new PointerEvent(type, { pointerId, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        Object.defineProperty(dock, 'demoFloatDrag', { set(state) {
+            const header = dock.shadowRoot.querySelector('[data-floater] [part=header]'), r = header?.getBoundingClientRect();
+            if (!r) return;
+            const ptr = floaterPointer('[data-floater] [part=header]', 11);
+            if (state === 'start') ptr('pointerdown', r.left + r.width / 2, r.top + r.height / 2);
+            else if (state === 'move') ptr('pointermove', r.left + r.width / 2 + 60, r.top + r.height / 2 + 36);
+            else if (state === 'release') ptr('pointerup', 0, 0);
+        } });
+        Object.defineProperty(dock, 'demoFloatResize', { set(state) {
+            const grip = dock.shadowRoot.querySelector('[data-floater] .floater-resize'), r = grip?.getBoundingClientRect();
+            if (!r) return;
+            const ptr = floaterPointer('[data-floater] .floater-resize', 12);
+            if (state === 'start') ptr('pointerdown', r.left + r.width / 2, r.top + r.height / 2);
+            else if (state === 'move') ptr('pointermove', r.left + r.width / 2 + 70, r.top + r.height / 2 + 50);
+            else if (state === 'release') ptr('pointerup', 0, 0);
+        } });
         // A still screenshot of a drag needs the pointer events the separator listens to: grab it, move it to 45 percent of the room, release.
         Object.defineProperty(dock, 'demoDrag', { set(on) {
             const s = dock.shadowRoot.querySelector('pk-splitter'), h = s.part('handle'), root = s.part('root').getBoundingClientRect(), r = h.getBoundingClientRect();
@@ -104,6 +131,19 @@ export default {
         { shot: 'expanded-from-rail', on: ['desktop'] },
         { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
         { shot: 'rtl' },
+        { set: '#dock', attr: 'dir', value: 'ltr' }, { wait: 150 },
+        // Round 2 item 5 (#618): a floated panel (Layers, taken out of the left group) as an absolutely-positioned overlay inside the dock's own
+        // bounds, its header dragged partway across (mid-drag), then its corner grip dragged to grow it (resized).
+        { set: '#dock', prop: 'demoFloat', value: 'on', on: ['desktop'] }, { wait: 150, on: ['desktop'] },
+        { shot: 'float-rest', on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatDrag', value: 'start', on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatDrag', value: 'move', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'float-drag', on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatDrag', value: 'release', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatResize', value: 'start', on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatResize', value: 'move', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { shot: 'float-resized', on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatResize', value: 'release', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
     ],
     expect(t) {
         // The wrapper (.rv-bounded), not the page, carries any overflow from stacking two full examples: the document itself never grows past the
@@ -180,6 +220,15 @@ export default {
             t.visible('#dock >>> [part=toolbar]', 'the toolbar stays up (the host\'s own content is still there)');
             t.absent('#dock >>> [part=toolbar] pk-button[icon-name="dashboard"]', 'but the dock\'s own Panels control is gone: nothing closed any more');
             t.hidden('#dock >>> [part=empty]');
+        }
+        if (t.shot === 'float-rest' || t.shot === 'float-drag' || t.shot === 'float-resized') {
+            t.exists('#dock >>> [data-floater]', 'the floated panel draws as an overlay inside the dock');
+            t.visible('#dock >>> [data-floater]');
+            t.absent('#dock >>> pk-tab[value=layers]', 'layers left the left group\'s tab strip for the floater');
+            t.within('#dock >>> [data-floater]', '#dock', 1);
+        }
+        if (t.shot === 'float-resized') {
+            t.exists('#dock >>> [data-floater] .floater-resize', 'the resize grip is present');
         }
         const bottom = t.rect('#bottom');
         if (bottom) t.ok(bottom.width <= t.viewport.width + 1, 'the stacked dock fits the viewport');
