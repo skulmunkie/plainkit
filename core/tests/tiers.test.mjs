@@ -18,6 +18,9 @@ const factories = fs.readdirSync(pagesDir).filter(f => f.endsWith('.js')).map(f 
     return { id, file: f, source };
 }).filter(f => f.id);
 const elements = loadElementSources();
+const jsDir = path.join(root, 'js');
+const helpers = Object.fromEntries(fs.readdirSync(jsDir).filter(f => f.endsWith('.js')).map(f => [f, fs.readFileSync(path.join(jsDir, f), 'utf8')]));
+const findings = () => checkTiers(elements, factories, helpers);
 const baseline = JSON.parse(fs.readFileSync(path.join(root, 'tools/tiers.baseline.json'), 'utf8')).entries;
 
 test('every page factory with a PAGE_TYPE is found', () => {
@@ -26,13 +29,13 @@ test('every page factory with a PAGE_TYPE is found', () => {
 
 test('no new composition-tier debt (C1 dependency direction, C3 one element per page factory)', () => {
     const known = new Set(baseline.map(key));
-    const fresh = checkTiers(elements, factories).filter(f => !known.has(key(f)));
+    const fresh = findings().filter(f => !known.has(key(f)));
     assert.deepEqual(fresh.map(f => `${f.rule} ${f.message}`), [],
         'FIX: make the element stop using the higher-tier element (compose downward only), or fix the pageType / factory pairing; never add to core/tools/tiers.baseline.json');
 });
 
 test('the baseline has no stale entry (a fixed finding is removed from it)', () => {
-    const now = new Set(checkTiers(elements, factories).map(key));
+    const now = new Set(findings().map(key));
     assert.deepEqual(baseline.map(key).filter(k => !now.has(k)), [], 'FIX: delete the listed entries from core/tools/tiers.baseline.json');
 });
 
@@ -42,5 +45,12 @@ test('the rules detect what they claim', () => {
     assert.deepEqual(up.map(f => f.rule + ':' + f.ref), ['C1:pk-b', 'C3:pk-c']);
     assert.equal(checkTiers([el('b', 'component'), el('a', 'page', { pageType: 'x' })], [{ id: 'x', source: "createElement('pk-a')" }]).length, 0);
     assert.equal(checkTiers([el('a', 'page', { pageType: 'nope' })], []).length, 1);
+    // C4: an element renders no pk-*; lookups and events are not rendering; a component may render one; imported js/ helpers count, one level deep.
+    const c4 = (tier, behaviour, helpers) => checkTiers([el('a', tier, { behaviour }), el('x', 'element')], [], helpers).map(f => f.rule + ':' + f.ref);
+    assert.deepEqual(c4('element', "document.createElement('pk-x')"), ['C4:pk-x']);
+    assert.deepEqual(c4('element', 'h.innerHTML = `<pk-x></pk-x>`'), ['C4:pk-x']);
+    assert.deepEqual(c4('element', "import { r } from '../../js/help.js';", { 'help.js': "h(doc, 'pk-x', {})" }), ['C4:pk-x']);
+    assert.deepEqual(c4('element', "this.closest('pk-x'); customElements.whenDefined('pk-x'); customElements.get('pk-x'); el.localName === 'pk-x'; this.emit('pk-toggle'); // <pk-x>"), []);
+    assert.deepEqual(c4('component', "document.createElement('pk-x')"), []);
     assert.equal(checkTiers([el('a', 'page', { pageType: 'x' }), el('b', 'page', { pageType: 'x' })], [{ id: 'x', source: 'pk-a pk-b' }]).length, 1);
 });

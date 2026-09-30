@@ -151,7 +151,7 @@ The audit has families S, D, module and the #392 gate. Per-tier rules are a **ru
 - **page:** as component; additionally no own controls (the #392 gate).
 - **shell:** D1/S3 run with the landmark and layout exemption (`header`, `footer`, `nav`, `main`, `div`, `span`, `slot`); viewport ownership (100dvh, scroll container, skip link) is allowed only here, and a check flags `100vh`/scroll-lock code in any other tier.
 - **module:** exists (`module-ruleset.mjs`, S1-S12). Only a label.
-- Reuse: D1 and S3 keep their ids and texts (as `module-rules.mjs` does). New rules: `C1` dependency direction, `C2` tier present and equal to its folder, `C3` one element per page factory.
+- Reuse: D1 and S3 keep their ids and texts (as `module-rules.mjs` does). New rules: `C1` dependency direction, `C2` tier present and equal to its folder, `C3` one element per page factory, `C4` an element renders no `pk-*` (owner rule: a `tier: element` element is built from base HTML only; its own template and the DOM its js, and the `js/` modules it imports directly, build contain no `pk-*` tag; name lookups such as `closest`, `querySelector`, `whenDefined` and events from slotted children are not composition; static helpers count for now, decision deferred on #736; limits in `core/tools/tiers.mjs`).
 
 Go-live gate (owner decision): **no new debt, plus a measurable reduction of the baseline** (for example each of the first N PRs removes at least one entry, and the scorecard shows the count dropping). A clean baseline is not required.
 
