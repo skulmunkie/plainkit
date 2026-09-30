@@ -332,6 +332,20 @@
     --gd-focus-offset: 2px;
 }
 
+/* Layout builder chrome (core/modules/layout-builder/layout-builder.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --lb-canvas-h: 40rem;
+    --lb-canvas-min-h: 12rem;
+    --lb-border-w: 1px;
+    --lb-focus-offset: -2px;
+    --lb-phone-w: 375px;
+    --lb-tablet-w: 768px;
+    --lb-empty-offset: -1px;
+    --lb-mark-w: 2px;
+    --lb-mark-offset: 2px;
+    --lb-node-controls-z: 2;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
