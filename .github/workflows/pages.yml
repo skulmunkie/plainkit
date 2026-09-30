@@ -31,6 +31,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
       # Generated files (dist, the element modules, the gallery data) are not in git: produce them, then copy what the site needs.
       - name: Bootstrap (generate everything)
         run: node scripts/bootstrap.mjs --quiet

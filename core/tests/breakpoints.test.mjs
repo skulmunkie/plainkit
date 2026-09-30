@@ -89,7 +89,10 @@ test('the build writes --pk-bp-* custom properties into plainkit.css and dist/pl
 // taken from the build at the commit before): naming them must not change a single one, so the default output stays compatible.
 test('the built element modules and page layer carry exactly the media conditions they carried before', () => {
     const baseline = JSON.parse(read('tests/fixtures/media-conditions.baseline.json'));
-    const conditions = text => [...text.matchAll(/@media\s*([^{]*)\{/g)].map(m => m[1].trim().replace(/\s+/g, ' '));
+    // dist/elements/*.js is now real-minified (esbuild, issue #600), which drops the space after a `:` inside a media condition
+    // ((max-width: 640px) -> (max-width:640px)) -- a formatting change, not a different query -- so it is normalized back in before
+    // comparing to the baseline, the same way runs of whitespace already were.
+    const conditions = text => [...text.matchAll(/@media\s*([^{]*)\{/g)].map(m => m[1].trim().replace(/\s+/g, ' ').replace(/\s*:\s*/g, ': '));
     const built = {};
     for (const f of fs.readdirSync(core + 'dist/elements').filter(x => x.endsWith('.js') && x !== 'registry.js').sort()) {
         const c = conditions(read(`dist/elements/${f}`));

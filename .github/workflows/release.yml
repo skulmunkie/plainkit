@@ -44,6 +44,9 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
       # Generated files (core/dist and the rest) are not in git. Everything below packs, zips and produces what the publish job later pushes: npm's
       # `files` in core/package.json (the runtime only), the NuGet static web assets (both units) and the zips.
       - name: Bootstrap (generate everything)
@@ -116,6 +119,9 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
 
       - name: Bootstrap (generate core/dist for npm publish)
         run: node scripts/bootstrap.mjs --quiet

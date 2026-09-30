@@ -138,10 +138,38 @@ export function exportsOf(file, seen = new Set()) {
     seen.add(file);
     const text = read(file);
     const names = new Set();
-    for (const m of text.matchAll(/^export\s+(?:async\s+)?(?:function\*?|const|let|class)\s+(\w+)/gm)) names.add(m[1]);
-    for (const m of text.matchAll(/^export\s*\{([^}]*)\}/gm)) for (const n of m[1].split(',')) { const x = n.trim().split(/\s+as\s+/).pop(); if (x) names.add(x); }
-    for (const m of text.matchAll(/^export\s+\*\s+from\s+'([^']+)'/gm)) for (const n of exportsOf(path.resolve(path.dirname(file), m[1]), seen)) names.add(n);
+    // dist/**/*.js is real-minified (esbuild, issue #600) into one line, so `export ...` no longer starts its own physical line: matched
+    // after a real line start OR a statement boundary (`;`, `{`, `}`), not with the `m` flag's per-line anchor alone. The minifier also
+    // merges separate `export const`/`export let` statements that share the same declaration keyword into one comma-separated statement
+    // (`export const a=1,b=2`), so every top-level-comma-separated declarator name is collected, not just the one right after the keyword.
+    for (const m of text.matchAll(/(?:^|[;{}])\s*export\s+(?:async\s+)?function\*?\s+(\w+)/gm)) names.add(m[1]);
+    for (const m of text.matchAll(/(?:^|[;{}])\s*export\s+class\s+(\w+)/gm)) names.add(m[1]);
+    for (const m of text.matchAll(/(?:^|[;{}])\s*export\s+(?:const|let)\s+/gm)) for (const n of declaratorNames(text, m.index + m[0].length)) names.add(n);
+    for (const m of text.matchAll(/(?:^|[;{}])\s*export\s*\{([^}]*)\}/gm)) for (const n of m[1].split(',')) { const x = n.trim().split(/\s+as\s+/).pop(); if (x) names.add(x); }
+    for (const m of text.matchAll(/(?:^|[;{}])\s*export\s+\*\s+from\s+['"]([^'"]+)['"]/gm)) for (const n of exportsOf(path.resolve(path.dirname(file), m[1]), seen)) names.add(n);
     return [...names].sort();
+}
+
+// The top-level-comma-separated declarator names of a `const`/`let` statement starting at `i` (right after the keyword and its space),
+// tracking bracket/quote depth so a comma inside an initializer (an array, an object, a call, a string) does not split the list.
+function declaratorNames(text, i) {
+    const names = []; let depth = 0, quote = null, atStart = true;
+    for (; i < text.length; i++) {
+        const c = text[i];
+        if (quote) { if (c === '\\') i++; else if (c === quote) quote = null; continue; }
+        if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+        if ('([{'.includes(c)) { depth++; continue; }
+        if (')]}'.includes(c)) { depth--; continue; }
+        if (depth === 0 && c === ';') break;
+        if (depth === 0 && c === ',') { atStart = true; continue; }
+        if (atStart) {
+            if (/\s/.test(c)) continue;
+            const m = /^[A-Za-z_$][\w$]*/.exec(text.slice(i));
+            if (m) names.push(m[0]);
+            atStart = false;
+        }
+    }
+    return names;
 }
 
 /** A `## heading` section of a markdown file: its body without the heading. */
@@ -188,9 +216,13 @@ export function collect() {
     const modules = Object.keys(MODULES).map(name => {
         const file = dist(`modules/${name}/${name}.js`);
         const text = read(file);
-        return { name, header: headerComment(text), mount: /^export\s+async\s+function\s+(mount\w+)/m.exec(text)?.[1] ?? null };
+        // dist/modules/**/*.js is real-minified (esbuild, issue #600) into one line, so `export ...` no longer necessarily starts its own
+        // physical line: matched after a real line start OR a statement boundary (`;`, `{`, `}`), not with the `m` flag's per-line anchor alone.
+        // The header comment (the option docs the skill needs) does not survive minification at all, so it is read from the source file
+        // (core/modules/<name>/<name>.js), which the build inlines into dist/modules/<name>/<name>.js verbatim before minifying.
+        return { name, header: headerComment(read(path.join(core, 'modules', name, `${name}.js`))), mount: /(?:^|[;{}])\s*export\s+async\s+function\s+(mount\w+)/m.exec(text)?.[1] ?? null };
     });
-    const gallery = { name: 'gallery', header: headerComment(read(dist('gallery/gallery.js'))), mount: /^export\s+(?:async\s+)?function\s+(mount\w+)/m.exec(read(dist('gallery/gallery.js')))?.[1] ?? null };
+    const gallery = { name: 'gallery', header: headerComment(read(path.join(core, 'site', 'gallery', 'gallery.js'))), mount: /(?:^|[;{}])\s*export\s+(?:async\s+)?function\s+(mount\w+)/m.exec(read(dist('gallery/gallery.js')))?.[1] ?? null };
     const samples = loadSamples();
     const templates = samples.templates.map(t => {
         const dir = path.join(core, 'samples', 'templates', t.id);
@@ -204,6 +236,9 @@ export function collect() {
         return { ...t, main, script };
     });
     const tokenCss = read(path.join(core, 'tokens', 'tokens.css'));
+    // dist/**/*.js is real-minified (esbuild, issue #600), which strips every comment, so a header comment (the human documentation the
+    // skill quotes) is read from the source file it was generated from, never from its dist copy.
+    const srcHeader = f => headerComment(read(path.join(core, f)));
     return {
         version, api, mappings, manifest, razor, enums,
         events: csEventArgs(read(path.join(pkg, 'Generated', 'PkGeneratedEvents.cs'))),
@@ -213,24 +248,24 @@ export function collect() {
         samples: { templates, patterns: samples.patterns.map(p => (p.script ? { ...p, scriptSource: read(path.join(core, 'samples', 'patterns', p.script)).replace(/from '(?:\.\.\/){3}js\//g, "from './plainkit/js/").trim() } : p)), layouts: samples.layouts },
         breakpoints: loadBreakpoints(), breakpointReport: readJson(dist('breakpoints.report.json')),
         tokens: parseTokenBlocks(tokenCss), tokenCount: [...tokenCss.matchAll(/(--[a-z0-9-]+)\s*:/g)].length,
-        logHeader: headerComment(read(dist('js/log.js'))),
-        invokersHeader: headerComment(read(dist('js/invokers.js'))),
-        inspectorHeader: headerComment(read(dist('js/element-inspector.js'))),
-        pageHeader: headerComment(read(dist('js/page.js'))),
-        routerHeader: headerComment(read(dist('js/router.js'))),
-        zipStoreHeader: headerComment(read(dist('js/zip-store.js'))),
-        measureHeader: headerComment(read(dist('js/measure.js'))),
-        entryHeader: headerComment(read(path.join(core, 'js', 'plainkit.js'))),
+        logHeader: srcHeader('js/log.js'),
+        invokersHeader: srcHeader('js/invokers.js'),
+        inspectorHeader: srcHeader('js/element-inspector.js'),
+        pageHeader: srcHeader('js/page.js'),
+        routerHeader: srcHeader('js/router.js'),
+        zipStoreHeader: srcHeader('js/zip-store.js'),
+        measureHeader: srcHeader('js/measure.js'),
+        entryHeader: srcHeader('js/plainkit.js'),
         entryExports: exportsOf(dist('js/plainkit.js')),
         logExports: exportsOf(dist('js/log.js')),
-        storeHeader: headerComment(read(dist('js/store.js'))),
-        storeExtrasHeader: headerComment(read(dist('js/store-extras.js'))),
+        storeHeader: srcHeader('js/store.js'),
+        storeExtrasHeader: srcHeader('js/store-extras.js'),
         storeExports: ['js/store.js', 'js/store-extras.js', 'js/settings.js'].map(f => [f, exportsOf(dist(f))]),
-        appModuleHeader: headerComment(read(dist('js/app/module.js'))),
-        appHostHeader: headerComment(read(dist('js/app/host.js'))),
-        tasksHeader: headerComment(read(dist('js/tasks.js'))),
-        notifyHeader: headerComment(read(dist('js/notify.js'))),
-        dialogsHeader: headerComment(read(dist('js/dialogs.js'))),
+        appModuleHeader: srcHeader('js/app/module.js'),
+        appHostHeader: srcHeader('js/app/host.js'),
+        tasksHeader: srcHeader('js/tasks.js'),
+        notifyHeader: srcHeader('js/notify.js'),
+        dialogsHeader: srcHeader('js/dialogs.js'),
         appExports: ['js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/tasks.js', 'js/notify.js', 'js/dialogs.js'].map(f => [f, exportsOf(dist(f))]),
         loaderExports: exportsOf(dist('js/loader.js')),
         themeExports: exportsOf(dist('js/theme.js')),

@@ -7,6 +7,9 @@
 // Hosted apart from the runtime: js/mount-support.js (runtimeUrl) reads <meta name="plainkit-runtime"> for the assets, an import map remaps the script imports.
 // Pure: the build passes in a reader.
 import path from 'node:path';
+import { transformSync } from 'esbuild';
+
+const minifyJs = code => transformSync(code, { loader: 'js', minify: true }).code;
 
 // files: what the folder holds.
 export const MODULES = {
@@ -37,7 +40,7 @@ export function modulesDist(read, root) {
             const dist = text.replaceAll("'../../dist/", "'../../").replace("'../../tokens/tokens.css'", "'./tokens.css'");
             if (/'\.\.\/\.\.\/dist\//.test(dist)) throw new Error(`${name}/${f}: a ../../dist/ path is left in the modules unit`);
             if (/const STYLES = /.test(text) && !dist.includes("const STYLES = ['../../plainkit.css']")) throw new Error(`${name}/${f}: STYLES must be the runtime's plainkit.css, two folders up`);
-            out.set(`${MODULES_DIR}/${name}/${f}`, dist);
+            out.set(`${MODULES_DIR}/${name}/${f}`, minifyJs(dist));
         }
     }
     return out;

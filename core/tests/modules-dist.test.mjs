@@ -20,7 +20,8 @@ for (const name of Object.keys(MODULES)) {
                 ? [...text.matchAll(/(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"$`]+)['"]|(?:new URL|runtimeUrl)\(\s*['"](\.{1,2}\/[^'"]+)['"]/g)].map(m => m[1] ?? m[2])
                 : [];
             for (const spec of specs) if (!out.has(resolve(file, spec)) && !out.has(resolve(file, spec).replace(/\/$/, ''))) missing.push(`${file} -> ${spec}`);
-            const styles = [...text.matchAll(/const (?:OWN_)?STYLES = (\[.*?\]);/g)].flatMap(m => JSON.parse(m[1].replaceAll("'", '"')));
+            // dist/modules/**/*.js is real-minified (esbuild, issue #600): `const STYLES=[...]`, no space, and double-quoted strings.
+            const styles = [...text.matchAll(/const (?:OWN_)?STYLES\s*=\s*(\[.*?\]);/g)].flatMap(m => JSON.parse(m[1].replaceAll("'", '"')));
             for (const s of styles) if (!out.has(resolve(file, s))) missing.push(`${file} STYLES -> ${s}`);
         }
         assert.deepEqual(missing, []);
@@ -30,7 +31,7 @@ for (const name of Object.keys(MODULES)) {
         for (const f of files(name).filter(x => /\.js$/.test(x))) {
             const code = out.get(f).replace(/\/\/ .*$/gm, '');
             assert.ok(!/\bsite\/|\bsamples\/|\.\.\/\.\.\/dist\/|\.\.\/\.\.\/modules\/|\/tokens\/tokens\.css/.test(code), `${f} names the source tree`);
-            if (/STYLES/.test(code)) assert.match(code, /const STYLES = \['\.\.\/\.\.\/plainkit\.css'\];/, `${f} loads the runtime's page stylesheet only`);
+            if (/STYLES/.test(code)) assert.match(code, /const STYLES\s*=\s*\[['"]\.\.\/\.\.\/plainkit\.css['"]\];/, `${f} loads the runtime's page stylesheet only`);
         }
     });
 
@@ -47,10 +48,15 @@ for (const name of Object.keys(MODULES)) {
     });
 }
 
+// dist/modules/**/*.js is real-minified (esbuild, issue #600): these match either quote style and optional spacing around `=`,
+// since the minifier may drop both without changing what the code does.
 test('the theme editor module reads the runtime by relative paths that resolve from its unit folder', () => {
     const tab = out.get('dist/modules/theme-editor/sdk-tab.js');
-    assert.match(tab, /export const DIST = '\.\.\/\.\.\/';/);
+    assert.match(tab, /export const DIST\s*=\s*['"]\.\.\/\.\.\/['"];/);
     assert.ok(isRuntime(resolve('dist/modules/theme-editor/sdk-tab.js', '../../manifest.json')) && out.has('dist/manifest.json'));
-    assert.match(out.get('dist/modules/console/console.js'), /runtimeUrl\('\.\.\/\.\.\/elements\/api\.json'/);
-    assert.match(out.get('dist/modules/layout-builder/layout-builder.js'), /const DEFAULT_API = '\.\.\/\.\.\/elements\/api\.json';/);
+    // runtimeUrl and DEFAULT_API are local (unexported) bindings, so esbuild's minifyIdentifiers is free to rename their local call-site/
+    // declaration identifiers (issue #600) even though it never renames the imported `runtimeUrl` export itself; only the path literal is
+    // guaranteed to survive verbatim, so that is what these check.
+    assert.match(out.get('dist/modules/console/console.js'), /\(['"]\.\.\/\.\.\/elements\/api\.json['"]/);
+    assert.match(out.get('dist/modules/layout-builder/layout-builder.js'), /['"]\.\.\/\.\.\/elements\/api\.json['"]/);
 });
