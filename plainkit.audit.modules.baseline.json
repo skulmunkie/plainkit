@@ -559,92 +559,7 @@
     {
       "rule": "S9",
       "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "181200b39b8b94a0"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "649306d3e6b98b97"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "29d70098c1c55d7b"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "26641b8b510af8a4"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9a037786dfc9e4ec"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "766a0014bfe9eac4"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "0cafb93d5793f079"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
       "fingerprint": "9896ae3244784580"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
-    },
-    {
-      "rule": "S2",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "6118466c4952d232"
     },
     {
       "rule": "S3",
@@ -665,11 +580,6 @@
       "rule": "S3",
       "file": "core/modules/layout-builder/layout-builder.js",
       "fingerprint": "ee1a503dd3c512e1"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "38347b77a9576165"
     },
     {
       "rule": "S7",

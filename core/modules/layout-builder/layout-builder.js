@@ -45,6 +45,7 @@ import { createElementInspector } from '../../js/element-inspector.js';
 import { ensureStyles, styleUrls, loadJson, runtimeUrl, h } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { setTheme } from '../../js/theme.js';
+import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 import { MOVE_KEYS } from '../../js/tree-reorder.js';
 const log = createLogger('layout-builder');
@@ -126,7 +127,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         panel('palette', 'Palette', 'left', search, paletteMenu), panel('structure', 'Structure', 'left', tree), panel('html', 'HTML', 'left', code),
         panel('canvas', 'Canvas', 'center', widths, canvasMenu), props);
     const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, status, hint, dock);
-    if (options.height) root.style.height = options.height;
+    if (options.height) { root.dataset.dyn = `height:${options.height}`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
@@ -212,8 +213,8 @@ export async function mountLayoutBuilder(container, options = {}) {
         if (!el) { nodeControls.hidden = true; delete nodeControls.dataset.nodeId; return; }
         const cRect = canvas.getBoundingClientRect();
         const r = el.getBoundingClientRect();
-        nodeControls.style.top = `${r.top - cRect.top + canvas.scrollTop}px`;
-        nodeControls.style.left = `${r.right - cRect.left + canvas.scrollLeft}px`;
+        nodeControls.dataset.dyn = `top:${r.top - cRect.top + canvas.scrollTop}px; left:${r.right - cRect.left + canvas.scrollLeft}px`;
+        applyDynamic(nodeControls);
         nodeControls.hidden = false;
         nodeControls.dataset.nodeId = id;
     }
@@ -364,6 +365,9 @@ export async function mountLayoutBuilder(container, options = {}) {
         catch (error) { log.error('onsave failed: the page was not saved', error); say('The page was not saved. See the log for the reason.', 'warn'); }
     }
 
+    // ---- events
+    const on = (el, type, fn, opts) => { el.addEventListener(type, fn, opts); cleanups.push(() => el.removeEventListener(type, fn, opts)); };
+
     // ---- the properties form
     function onControl(e) {
         const ctl = e.target.closest?.('[data-attr], [data-role]');
@@ -393,10 +397,7 @@ export async function mountLayoutBuilder(container, options = {}) {
             }
         } finally { state.internal = false; }
     }
-    for (const type of EDIT_EVENTS) { form.addEventListener(type, onControl); cleanups.push(() => form.removeEventListener(type, onControl)); }
-
-    // ---- events
-    const on = (el, type, fn, opts) => { el.addEventListener(type, fn, opts); cleanups.push(() => el.removeEventListener(type, fn, opts)); };
+    for (const type of EDIT_EVENTS) on(form, type, onControl);
 
     // The page is inert, so a click lands on the canvas: the node is the smallest element under the pointer.
     function hit(x, y) {
