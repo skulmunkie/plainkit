@@ -21,12 +21,12 @@ export default {
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
-        { focus: '#a' }, { key: 'ArrowRight' }, { wait: 200 }, { shot: 'arrow-right' },
-        { focus: '#s0' }, { key: 'End' }, { wait: 700 }, { shot: 'strip-end' },
-        { key: 'Home' }, { wait: 700 }, { shot: 'strip-start' },
-        { key: 'ArrowRight' }, { wait: 500 }, { key: 'ArrowRight' }, { wait: 500 }, { key: 'ArrowRight' }, { wait: 500 }, { key: 'ArrowRight' }, { wait: 700 }, { shot: 'strip-middle' }, { shot: 'strip-middle-ring' },
-        { focus: '#r0' }, { key: 'End' }, { wait: 700 }, { shot: 'rtl-end' },
-        { key: 'Home' }, { wait: 700 }, { shot: 'rtl-start' },
+        { focus: '#a' }, { key: 'ArrowRight' }, { shot: 'arrow-right' },
+        { focus: '#s0' }, { key: 'End' }, { shot: 'strip-end' },
+        { key: 'Home' }, { shot: 'strip-start' },
+        { key: 'ArrowRight' }, { key: 'ArrowRight' }, { key: 'ArrowRight' }, { key: 'ArrowRight' }, { shot: 'strip-middle' }, { shot: 'strip-middle-ring' },
+        { focus: '#r0' }, { key: 'End' }, { shot: 'rtl-end' },
+        { key: 'Home' }, { shot: 'rtl-start' },
     ],
     expect(t) {
         const PANEL = '#t1 > pk-tab-panel[selected]';

@@ -24,9 +24,9 @@ export default {
         });
     },
     steps: [
-        { wait: 'settle' }, { wait: 500 }, { shot: 'idle' },
-        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { shot: 'drawer', on: ['phone'] },
-        { click: 'pk-nav-item[data-module=about]', on: ['phone'] }, { click: 'pk-navbar a[data-module=about]', on: ['desktop'] }, { wait: 800 }, { shot: 'switched' },
+        { wait: 'settle' }, { shot: 'idle' },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { shot: 'drawer', on: ['phone'] },
+        { click: 'pk-nav-item[data-module=about]', on: ['phone'] }, { click: 'pk-navbar a[data-module=about]', on: ['desktop'] }, { shot: 'switched' },
     ],
     expect(t) {
         const desktop = t.viewport.name === 'desktop';

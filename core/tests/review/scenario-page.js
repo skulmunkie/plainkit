@@ -34,6 +34,20 @@ function signature(frame) {
     walk(frame);
     return out.join('|');
 }
+
+// Transitions and finite animations still playing anywhere in the frame (through shadow roots): the page is not done while one runs, even if no box moves (a fade).
+function running(frame) {
+    let n = 0;
+    const walk = node => {
+        for (const c of node.children) {
+            n += c.getAnimations().filter(a => a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Infinity).length;
+            if (c.shadowRoot) walk(c.shadowRoot);
+            walk(c);
+        }
+    };
+    walk(frame);
+    return n;
+}
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 60)));
 
 export async function startScenario({ name, root, state, measure, settle, loadElements, applyDynamic, registry, log }) {
@@ -52,7 +66,7 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
     const quiet = async () => {
         await settle();
         let prev = signature(frame);
-        for (let i = 0; i < 40; i++) { await tick(); const now = signature(frame); if (now === prev) return; prev = now; }
+        for (let i = 0; i < 40; i++) { await tick(); const now = signature(frame); if (now === prev && !running(frame)) return; prev = now; }
         log.warn(`scenario ${name}: the page was still changing after 40 frames`);
     };
     await quiet();
