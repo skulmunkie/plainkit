@@ -101,6 +101,17 @@ export const B_RULES = [
         severity: { normal: 'warn', strict: 'warn' },
         docs: 'docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#26-family-b-blazor-and-razor-only',
         fixTemplate: 'FIX: {file}:{line} {found}. [B4]',
+        // App-wide gate (issue #718): B4 checks whether a @page component derives from PageBase, but that is
+        // only a real gap when the app has actually opted into PageBase in the first place. Per the SDK's own
+        // guide (core/site/guides/content/build-an-app.md, "Blazor has no app framework surface yet: a Blazor
+        // app keeps PkAppShell, PageBase and the router") PageBase - not mountApp/defineModule, which are the
+        // JS-only app framework - is the real, unambiguous Blazor signal: an app that has adopted it has, by
+        // definition, at least one component somewhere that already declares `@inherits ...PageBase`. An app
+        // that has never done that once has made no visible commitment to the convention at all (issue #686:
+        // 92/92 findings against an app with its own, different, working page-lifecycle pattern), so firing on
+        // every one of its pages is not "you missed this," it is restating that the app does something else.
+        // This is evaluated once for the whole run (`appliesToRun`), not guessed per file.
+        appliesToRun: files => files.some(f => isRazor(f) && /@inherits\s+\S*PageBase\b/.test(f.text)),
         applies: isRazor,
         scan(file) {
             if (!/@page\b/.test(file.text)) return [];

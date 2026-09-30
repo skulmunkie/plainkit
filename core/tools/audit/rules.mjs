@@ -31,6 +31,7 @@ function toEngineRule(row) {
     return {
         id: row.id,
         applies: row.applies,
+        ...(row.appliesToRun ? { appliesToRun: row.appliesToRun } : {}),
         meta: { category: row.category, detects: row.detects, severity: row.severity, docs: row.docs },
         scan(file) {
             return row.scan(file).map(hit => ({
