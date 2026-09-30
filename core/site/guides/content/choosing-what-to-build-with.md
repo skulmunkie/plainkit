@@ -25,6 +25,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 |---|---|---|---|
 | Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
 | A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
+| Static informational page: a heading and a block of prose, no data | Template `page`; elements `pk-heading`, `pk-card` | Page type `note` | `PkNotePage` |
 | List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | Page type `list` | `PkTable`, or `PkDataList` when the server pages, searches and sorts |
 | List and detail on one page | Template `crud`; template `master-detail`; template `routed-list-detail` (the route drives it) | Page type `master-detail`, or `list` with a record route under it | `PkTable` beside a `PkCard`; routes and `NavigationManager` for the record |
 | Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |

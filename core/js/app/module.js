@@ -21,7 +21,7 @@
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
 // Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
-// 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc' and 'wizard' are built in (each a chunk in js/app/pages/, below), the rest arrive later. Extend the set three ways, all through the same factory shape
+// 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc', 'wizard' and 'note' are built in (each a chunk in js/app/pages/, below), the rest arrive later. Extend the set three ways, all through the same factory shape
 // (host, config, ctx) => cleanup function | { destroy() } | nothing (a promise of it is awaited):
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
@@ -50,7 +50,7 @@ import { flattenRoutes } from '../route-tree.js';
 import { createLogger } from '../log.js';
 import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
-export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'custom', 'not-found', 'states']);
+export const BUILT_IN_PAGE_TYPES = Object.freeze(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'note', 'custom', 'not-found', 'states']);
 
 const own = (obj, key) => obj != null && Object.hasOwn(obj, key);
 const fail = (id, why) => { throw new TypeError(`defineModule(${JSON.stringify(id)}): ${why}`); };
@@ -110,7 +110,7 @@ export const registerLayout = (id, factory) => register(layouts, 'layout', id, f
 // The built-in page types live in js/app/pages/<id>.js (a default-exported factory each), fetched by the first route that names one (#346). pageTypeFor stays
 // synchronous: a built-in answers a wrapper whose promise (awaited by the host and mountPage) is the factory's own result; a failed import rejects it, so the boundary shows it like any page error.
 const chunk = id => import(`./pages/${id}.js`);
-const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc', 'wizard'].map(id => [id, (host, config, ctx) => chunk(id).then(m => m.default(host, config, ctx))]));
+const BUILT_IN = new Map(['custom', 'states', 'tool', 'settings', 'not-found', 'list', 'dashboard', 'workspace', 'master-detail', 'record', 'doc', 'wizard', 'note'].map(id => [id, (host, config, ctx) => chunk(id).then(m => m.default(host, config, ctx))]));
 // The framework's own lazy services (js/app/lazy.js) are chunks in the same folder, named svc-<name>.js: a fixed allow-list, so nothing else reaches the import above.
 const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs']);
 export const loadChunk = id => (SERVICE_CHUNKS.has(id) ? chunk(id) : Promise.reject(new TypeError(`loadChunk: "${id}" is not a framework chunk`)));

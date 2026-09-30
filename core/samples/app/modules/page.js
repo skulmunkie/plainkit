@@ -8,12 +8,6 @@ const make = (doc, tag, attrs = {}, text) => {
 };
 const stack = (doc, ...kids) => { const s = make(doc, 'pk-stack', { gap: 'md' }); s.append(...kids); return s; };
 
-// A heading and a card of text.
-export const note = (heading, text) => host => {
-    const doc = host.ownerDocument;
-    host.append(stack(doc, make(doc, 'h1', {}, heading), make(doc, 'pk-card', { heading: 'About this page' }, text)));
-};
-
 // A list page: the records are the rows, and choosing a row opens its record route (module-relative '/<id>').
 export const table = (heading, columns, rows) => (host, ctx) => {
     const doc = host.ownerDocument, grid = make(doc, 'pk-table', { label: heading, clickable: '', hover: '', columns: JSON.stringify(columns), rows: JSON.stringify(rows) });
