@@ -1,4 +1,4 @@
-// Per-tier raw-HTML rules (#736 phase 3): D1 and S3 on component, page and shell sources, ratcheted in core/tools/tier-tags.baseline.json.
+// Per-tier raw-HTML rules (#736 phase 3): D1, S3 and T1 (structural div/span) on component, page and shell sources, ratcheted in core/tools/tier-tags.baseline.json.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,9 +26,9 @@ test('the baseline is not stale (paid-down debt is lowered in it)', () => {
 test('the rules detect what they claim, and exempt element sources and shell landmarks', () => {
     const el = (name, tier, template, behaviour = null) => ({ name, meta: { tier }, template, behaviour });
     const got = checkTierTags([
-        el('a', 'component', '<button class="x"></button><div></div>', "el.classList.add('y')"),
+        el('a', 'component', '<button class="x"></button><div></div><div></div><span></span>', "el.classList.add('y'); document.createElement('div')"),
         el('b', 'element', '<button class="x"></button>'),
-        el('c', 'shell', '<header></header><nav></nav><button></button>'),
+        el('c', 'shell', '<header></header><nav></nav><div></div><span></span><button></button>'),
     ]);
-    assert.deepEqual([...got].sort(), [['D1 a button', 1], ['D1 c button', 1], ['S3 a class=', 1], ['S3 a classList', 1]].sort());
+    assert.deepEqual([...got].sort(), [['D1 a button', 1], ['D1 c button', 1], ['S3 a class=', 1], ['S3 a classList', 1], ['T1 a div', 3], ['T1 a span', 1]].sort());
 });
