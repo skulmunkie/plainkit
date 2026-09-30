@@ -3,6 +3,8 @@
 // scrolls sideways; on a phone every control is a full-height tap target. Right to left (r5): the start field sits on the right, the quick ranges start at the right edge and
 // nothing leaves the element.
 const part = (id, name) => `#${id} >>> [part=${name}]`;
+const ctl = (id, name) => `#${id} >>> [part=${name}] >>> [part=control]`;
+const box = (id, name) => `#${id} >>> [part=${name}] >>> [part=box]`;
 const ids = ['r1', 'r2', 'r3', 'r4', 'r5'];
 
 export default {
@@ -18,7 +20,7 @@ export default {
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
-        { focus: '#r1 >>> [part=start]' }, { shot: 'focus' },
+        { focus: '#r1 >>> [part=start] >>> [part=control]' }, { shot: 'focus' },
         { click: '#r1 >>> [data-preset="30d"]' }, { wait: 200 }, { shot: 'preset-chosen' },
         { set: '#r2', prop: 'end', value: '2026-09-01' }, { wait: 300 }, { shot: 'end-before-start' },
     ],
@@ -40,19 +42,19 @@ export default {
         t.visible(part('r1', 'presets'), 'the quick ranges');
         t.hidden(part('r1', 'error'), 'the error of a valid range');
         t.ok(t.attr(part('r4', 'start'), 'disabled') !== null, 'the disabled picker keeps its field enabled');
-        t.ok((t.attr(part('r1', 'start'), 'aria-label') ?? '') === 'Start date', 'the start field has no accessible name');
+        t.ok((t.attr(ctl('r1', 'start'), 'aria-label') ?? '') === 'Start date', 'the start field has no accessible name');
         // The window of 2020 leaves no room for a range ending today: both quick ranges are disabled.
         t.ok(t.attr(`#r3 >>> [data-preset="today"]`, 'disabled') !== null, 'a quick range wholly outside min and max is not disabled');
-        if (t.shot === 'focus') { t.ringVisible(part('r1', 'start')); t.ringUnclipped(part('r1', 'start')); }
+        if (t.shot === 'focus') { t.ringVisible(box('r1', 'start')); t.ringUnclipped(box('r1', 'start')); }
         if (t.shot === 'preset-chosen') {
-            t.ok(t.attr('#r1 >>> [data-preset="30d"]', 'aria-pressed') === 'true', 'the chosen quick range is not marked pressed');
+            t.ok(t.attr('#r1 >>> [data-preset="30d"]', 'pressed') !== null, 'the chosen quick range is not marked pressed');
         }
         if (t.shot === 'end-before-start') {
             t.visible(part('r2', 'error'), 'the error for an end before the start'); t.within(part('r2', 'error'), '#r2', 1);
             t.hasText(part('r2', 'error'), 'before the start');
             below(part('r2', 'error'), part('r2', 'fields'));
-            t.ok(t.attr(part('r2', 'end'), 'aria-invalid') === 'true', 'the end field is not aria-invalid');
-            t.ok(t.attr(part('r2', 'start'), 'aria-describedby') === 'e', 'the start field is not tied to the error text');
+            t.ok(t.attr(ctl('r2', 'end'), 'aria-invalid') === 'true', 'the end field is not aria-invalid');
+            t.ok((t.attr(ctl('r2', 'start'), 'aria-description') ?? '').includes('before the start'), 'the start field does not carry the error text');
         }
     },
 };

@@ -28,7 +28,7 @@ test('debounce defaults to 250ms, the same debounce pk-table\'s filter row alrea
 
 test('the template has the expand button, the field with its own popup nested inside it (so position: relative on the field contains the absolutely positioned popup), and a result-row template', () => {
     const html = read('html');
-    assert.match(html, /<button part="expand"/);
+    assert.match(html, /<pk-button part="expand"/);
     assert.match(html, /<div part="box"[^>]*>[\s\S]*<div part="popup"[\s\S]*<\/div><\/div>/);
     assert.match(html, /<template><div part="option"/);
     for (const part of ['row-label', 'row-sub', 'thumb', 'badge']) assert.ok(meta.parts.some(p => p.name === part), `${part} is documented`);
@@ -46,7 +46,7 @@ test('the phone breakpoint is named, not a literal, and collapses the pill to th
     const css = read('css');
     assert.match(css, /@media \(--phone\)/);
     assert.doesNotMatch(css, /@media \(max-width: \d+px\)/, 'a literal breakpoint would fail core/tests/breakpoints.test.mjs too');
-    assert.match(css, /@media \(--phone\) \{[\s\S]*\.exp \{ display: inline-flex/);
+    assert.match(css, /@media \(--phone\) \{[\s\S]*\[part="expand"\] \{ display: inline-flex/);
 });
 
 test('the field is a pill (the pill token, not the 50% round token) that grows to the host, capped by the documented --pk-app-bar-search-width hook', () => {
@@ -61,7 +61,7 @@ test('compact is a reflected boolean that keeps the icon button and the expanded
     assert.equal(prop('compact').type, 'boolean');
     assert.equal(prop('compact').reflect, true);
     const css = read('css');
-    assert.match(css, /:host\(\[compact\]\) \.exp \{ display: inline-flex/);
+    assert.match(css, /:host\(\[compact\]\) \[part="expand"\] \{ display: inline-flex/);
     assert.match(css, /:host\(\[compact\]\) \.box \{ display: none/);
     assert.match(css, /:host\(\[compact\]\[expanded\]\) \.box \{ display: flex/);
 });

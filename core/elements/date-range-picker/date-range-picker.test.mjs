@@ -54,12 +54,12 @@ test('rangeProblems flags an end before the start, dates outside min and max, an
 });
 
 // A stand-in for PkElement: props are plain fields, emit() and setValidity() record.
-const field = () => { const l = {}; return { value: '', disabled: false, readOnly: false, required: false, attrs: {}, l, addEventListener(t, f) { l[t] = f; }, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; } }; };
+const field = () => { const l = {}; return { value: '', disabled: false, readonly: false, required: false, invalid: false, description: '', label: '', l, addEventListener(t, f) { l[t] = f; } }; };
 const make = (props = {}) => {
     const parts = { start: field(), end: field(), error: { textContent: '', hidden: true }, presets: { hidden: false, children: [], l: {}, addEventListener(t, f) { this.l[t] = f; }, replaceChildren(...c) { this.children = c; } } };
-    const doc = { createElement: () => ({ dataset: {}, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } }) };
-    const el = new (behaviour(class { emit(name, detail) { this.events.push({ name, detail }); return true; } setValidity(f, m, a) { this.validity = { f, m, a }; } setFormValue(v) { this.form = v; } }))();
-    Object.assign(el, { events: [], start: '', end: '', min: '', max: '', presets: DEFAULT_PRESETS, disabled: false, readonly: false, required: false, invalid: false, startLabel: '', endLabel: '', ownerDocument: doc, dispatchEvent(e) { this.events.push({ name: e.type }); return true; } }, props);
+    const doc = { createElement: () => ({ dataset: {} }) };
+    const el = new (behaviour(class { requestUpdate() {} emit(name, detail) { this.events.push({ name, detail }); return true; } setValidity(f, m, a) { this.validity = { f, m, a }; } setFormValue(v) { this.form = v; } }))();
+    Object.assign(el, { shadowRoot: null, events: [], start: '', end: '', min: '', max: '', presets: DEFAULT_PRESETS, disabled: false, readonly: false, required: false, invalid: false, startLabel: '', endLabel: '', ownerDocument: doc, dispatchEvent(e) { this.events.push({ name: e.type }); return true; } }, props);
     el.part = name => parts[name];
     el.connected(); el.updated();
     return { el, parts };
@@ -76,14 +76,14 @@ test('the fields show the range, the form gets the ISO interval, and the presets
 
 test('committing a date raises change and pk-range-change with the range and its validity', () => {
     const { el, parts } = make({ start: '2026-09-01', end: '2026-09-14' });
-    parts.end.value = '2026-08-01'; parts.end.l.change();
+    parts.end.value = '2026-08-01'; parts.end.l.change({ stopPropagation() {} });
     assert.equal(el.end, '2026-08-01');
     const ev = el.events.at(-1);
     assert.equal(ev.name, 'pk-range-change'); assert.deepEqual(ev.detail, { start: '2026-09-01', end: '2026-08-01', valid: false });
     assert.equal(el.events.at(-2).name, 'change');
     el.updated();
     assert.equal(parts.error.hidden, false); assert.match(parts.error.textContent, /before the start/);
-    assert.equal(parts.end.attrs['aria-invalid'], 'true'); assert.equal(parts.end.attrs['aria-describedby'], 'e');
+    assert.equal(parts.end.invalid, true); assert.match(parts.end.description, /before the start/);
     assert.equal(el.validity.f.customError, true);
 });
 
@@ -106,7 +106,7 @@ test('a quick range sets both dates, is cut to min and max, and is disabled when
 
 test('required, disabled and readonly reach the fields and the presets', () => {
     const { parts, el } = make({ required: true, disabled: true, readonly: true });
-    assert.equal(parts.start.required, true); assert.equal(parts.end.disabled, true); assert.equal(parts.start.readOnly, true);
+    assert.equal(parts.start.required, true); assert.equal(parts.end.disabled, true); assert.equal(parts.start.readonly, true);
     assert.ok(parts.presets.children.every(b => b.disabled));
     assert.equal(el.validity.f.valueMissing, true); assert.equal(parts.error.hidden, true, 'a missing date is not shown as an error until the form asks');
 });
@@ -123,4 +123,8 @@ test('the meta names the commit event on both two-way props and the css uses tok
     for (const n of ['start', 'end']) assert.equal(meta.props.find(p => p.name === n).commit, 'pk-range-change');
     assert.ok(meta.events.some(e => e.name === 'pk-range-change'));
     assert.doesNotMatch(read('css'), /#[0-9a-f]{3,8}\b|rgba?\(/i);
+    for (const h of ['--pk-control-bg', '--pk-control-border', '--pk-control-radius']) {
+        assert.ok(meta.cssProperties.some(p => p.name === h), `${h} is documented`);
+        assert.match(read('css'), new RegExp(`\\[part="start"\\], \\[part="end"\\] \\{[^}]*${h}: var\\(--_`), `${h} is passed on to the pk-input fields`);
+    }
 });
