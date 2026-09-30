@@ -62,27 +62,6 @@
             "count": 1,
             "reason": "Same as index.html: the framework's own required plainkit.css link, not app CSS. See #518.",
             "issue": "https://github.com/skulmunkie/plainkit/issues/518"
-        },
-        {
-            "rule": "S8",
-            "path": "core/samples/app/modules/about.js",
-            "count": 1,
-            "reason": "A single static informational page (heading + text card, no data, no callbacks); no built-in page type fits (list/record/dashboard/tool/settings/doc/workspace/master-detail/wizard all bind to data or, for doc, a browsable multi-item collection). Genuine SDK gap, filed and tracked.",
-            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
-        },
-        {
-            "rule": "S8",
-            "path": "core/samples/app/modules/overview.js",
-            "count": 1,
-            "reason": "Same static-informational-page gap as about.js: no built-in page type fits a heading-plus-text-card page with no data.",
-            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
-        },
-        {
-            "rule": "S8",
-            "path": "core/samples/app/modules/reports.js",
-            "count": 2,
-            "reason": "Same static-informational-page gap as about.js (two routes: Summary and Exports), no built-in page type fits.",
-            "issue": "https://github.com/skulmunkie/plainkit/issues/678"
         }
     ]
 }

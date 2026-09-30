@@ -1,0 +1,14 @@
+{
+  "component": "PkNotePage",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { heading, body, cardHeading? }. No callbacks: a static informational page (#678)."
+    }
+  ],
+  "notes": "New component: App framework built-in page type 'note' (issue #678), a static informational page - a heading and a block of prose in a card. No data, no callbacks, so every field is a plain Config parameter; nothing needs JS interop."
+}
