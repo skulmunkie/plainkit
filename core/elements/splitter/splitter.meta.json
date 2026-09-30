@@ -2,6 +2,7 @@
   "tag": "pk-splitter",
   "title": "Splitter",
   "group": "Layout",
+  "tier": "element",
   "summary": "Two panes with a draggable separator between them: resize by pointer or arrow keys, side by side or stacked, with a minimum and maximum size. Sizes are percentages of the room the panes share.",
   "delegatesFocus": true,
   "props": [

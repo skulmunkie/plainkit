@@ -2,6 +2,7 @@
   "tag": "pk-stat",
   "title": "Stat tile",
   "group": "Data display",
+  "tier": "element",
   "summary": "A headline number with a label, an optional change indicator (arrow, sign and a spoken form), a sparkline and a tone. With an href the whole tile is one link. The tile prop gives the compact dashboard look; interactive makes a tile with no href a button.",
   "props": [
     {

@@ -3,6 +3,7 @@
 //
 // elements/<name>/<name>.meta.json:
 //   tag, title, summary, group          identity (tag is pk-<name>)
+//   tier            optional for now: element, component, page or shell (composition tiers, #736; "module" is rejected, modules live in core/modules)
 //   aliases[]       optional other words people search for it by (e.g. dialog's "modal"), searched alongside title/tag in the gallery and the skills' elements index
 //   replaces[]      optional native tags, attribute-role selectors and APIs this element replaces, consumed by core/tools/audit/data.mjs (conformance audit, #616):
 //                   a bare tag ("button"), a tag+role selector ("a[role=button]" or "[role=tablist]"), or an API name ("api:showModal"). Only add an entry where
@@ -32,7 +33,8 @@ export const PROP_TYPES = ['string', 'boolean', 'number', 'enum', 'json'];
 const NAME = /^[a-z][a-zA-Z0-9]*$/;
 const CSS_PROP = /^--pk-[a-z0-9-]+$/;
 
-const isText = v => typeof v === 'string' && v.trim().length > 0;
+export const TIERS = ['element', 'component', 'page', 'shell'];
+const isText =v => typeof v === 'string' && v.trim().length > 0;
 
 export function validateApi(meta, { template = '', css = '', name = meta?.tag ?? '?' } = {}) {
     const p = [];
@@ -42,6 +44,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
     need(/^pk-[a-z][a-z0-9-]*$/.test(meta.tag ?? ''), 'tag must look like pk-name');
     for (const k of ['title', 'summary', 'group', 'a11y']) need(isText(meta[k]), `${k} is required`);
     for (const k of ['props', 'slots', 'events', 'parts', 'cssProperties', 'methods', 'examples']) need(Array.isArray(meta[k]), `${k} must be an array (empty when there is none)`);
+    if ('tier' in meta) need(TIERS.includes(meta.tier), `tier must be one of ${TIERS.join(', ')} (modules live in core/modules, not in an element meta)`);
     if ('aliases' in meta) need(Array.isArray(meta.aliases) && meta.aliases.every(isText), 'aliases must be an array of non-empty strings');
     if ('replaces' in meta) need(Array.isArray(meta.replaces) && meta.replaces.every(isText) && meta.replaces.every(r => /^(api:[\w.]+|[a-z][a-z0-9]*(\[[^\]]+\])?|\[[^\]]+\])$/.test(r)), 'replaces must be an array of tag names, tag[attr=value] selectors or "api:name" entries');
     if ('a11yRequires' in meta) need(Array.isArray(meta.a11yRequires) && meta.a11yRequires.length > 0 && meta.a11yRequires.every(r => ['name', 'label', 'title', 'alt'].includes(r)), 'a11yRequires must be a non-empty array of "name", "label", "title" or "alt"');

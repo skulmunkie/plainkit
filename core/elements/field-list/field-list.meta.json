@@ -2,6 +2,7 @@
   "tag": "pk-field-list",
   "title": "Field list",
   "group": "Data display",
+  "tier": "component",
   "summary": "A titled description list: term and value pairs as slotted dt and dd, or a data-driven items property, beside each other, stacked or run in; with dividers and a dense mode.",
   "props": [
     {

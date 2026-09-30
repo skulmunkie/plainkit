@@ -9,7 +9,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { kebab, camel, coerce, parseBindings, bindValue } from '../js/element-core.js';
 import { planLoad } from '../js/loader.js';
-import { validateApi, propsObject } from '../tools/element-api.mjs';
+import { validateApi, propsObject, TIERS } from '../tools/element-api.mjs';
 import { build, loadElementSources, elementModule } from '../tools/build.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -56,6 +56,13 @@ test('every element folder has a complete, valid API that matches its template a
     for (const el of elements) assert.deepEqual(validateApi(el.meta, { template: el.template, css: el.css, name: el.name }), [], el.name);
 });
 
+test('composition tiers (#736): every element meta names a tier; shell and page elements are the expected ones', () => {
+    for (const el of elements) assert.ok(TIERS.includes(el.meta.tier), `${el.name}: tier ${el.meta.tier}`);
+    const of = t => elements.filter(e => e.meta.tier === t).map(e => e.name);
+    assert.deepEqual(of('shell'), ['app-shell']);
+    assert.deepEqual(of('page'), elements.filter(e => e.meta.group === 'Page types' && e.name.endsWith('-page')).map(e => e.name));
+});
+
 test('the API validator rejects each kind of drift', () => {
     const el = elements.find(e => e.name === 'card');
     const bad = (mutate, expect, tpl = el.template, css = el.css) => {
@@ -63,6 +70,8 @@ test('the API validator rejects each kind of drift', () => {
         const problems = validateApi(m, { template: tpl, css, name: 'card' });
         assert.ok(problems.some(p => p.includes(expect)), `expected "${expect}" in ${JSON.stringify(problems)}`);
     };
+    bad(m => { m.tier = 'module'; }, 'tier must be one of');
+    bad(m => { m.tier = 'Element'; }, 'tier must be one of');
     bad(m => { delete m.a11y; }, 'a11y is required');
     bad(m => { m.props[0].description = ''; }, 'needs a description');
     bad(m => { m.props[0].type = 'date'; }, 'has type date');

@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "Colour input",
   "group": "Form controls",
+  "tier": "element",
   "summary": "The native colour picker beside an editable hex field that stay in step; the field accepts #abc, abc and #aabbcc and is normalised to #rrggbb.",
   "delegatesFocus": true,
   "formAssociated": true,

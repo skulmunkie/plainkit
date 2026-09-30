@@ -3,6 +3,7 @@
   "title": "Alert",
   "summary": "A persistent message in a kind (info, success, warning, danger): optional heading, actions, a dismiss button, a full-bleed banner variant for the top of a page, and a plain form (coloured text only, optionally inline and compact).",
   "group": "Feedback & status",
+  "tier": "element",
   "props": [
     {
       "name": "kind",

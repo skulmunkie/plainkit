@@ -2,6 +2,7 @@
   "tag": "pk-tool-page",
   "title": "Tool page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A page that takes input, runs one action and shows the outcome: input fields, a Run button, and a stat, table, code block or line of text once it finishes. Set the run(values) callback as a property (business logic, never config data) - it may reject, which shows the built-in error state with Retry.",
   "props": [
     {

@@ -2,6 +2,7 @@
   "tag": "pk-tag",
   "title": "Tag",
   "group": "Data display",
+  "tier": "element",
   "summary": "A neutral label that can carry a remove button.",
   "props": [
     {

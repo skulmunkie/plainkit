@@ -2,6 +2,7 @@
   "tag": "pk-empty-state",
   "title": "Empty state",
   "group": "Feedback",
+  "tier": "element",
   "summary": "What a list shows when it has no rows: an optional icon, a title, a description and the actions that fill it. Densities for a whole page, a panel or a table row.",
   "props": [
     {

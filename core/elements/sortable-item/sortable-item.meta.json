@@ -2,6 +2,7 @@
   "tag": "pk-sortable-item",
   "title": "Sortable item",
   "group": "Layout",
+  "tier": "element",
   "summary": "One row of a pk-sortable: drag its handle (pointer or touch) to reorder, or focus the row and press Alt+Up/Alt+Down. Place it directly inside a pk-sortable.",
   "props": [
     { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The identifier pk-sortable reports for this row in a pk-reorder event's order and item." },

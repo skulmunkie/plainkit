@@ -2,6 +2,7 @@
   "tag": "pk-tag-input",
   "title": "Tag input",
   "group": "Form controls",
+  "tier": "element",
   "summary": "Free-text tags typed into one control: Enter or a separator adds, paste splits, Backspace in an empty field removes the last, duplicates and a maximum are handled.",
   "delegatesFocus": true,
   "formAssociated": true,

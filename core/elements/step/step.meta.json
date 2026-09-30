@@ -3,6 +3,7 @@
   "title": "Step",
   "summary": "One step of a stepper: a marker (number, tick or !), a title, an optional description and the connector to the next step.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "heading",

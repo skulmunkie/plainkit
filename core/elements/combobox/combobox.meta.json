@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "Combobox",
   "group": "Form controls",
+  "tier": "element",
   "summary": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children.",
   "delegatesFocus": true,
   "formAssociated": true,

@@ -2,6 +2,7 @@
   "tag": "pk-chart",
   "title": "Chart",
   "group": "Data display",
+  "tier": "element",
   "summary": "Bar, line, donut, stacked-bar and sparkline charts in pure SVG, drawn from a slotted data table (which stays as the accessible fallback) or from a data property.",
   "props": [
     {

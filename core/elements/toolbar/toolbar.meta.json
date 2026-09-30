@@ -2,6 +2,7 @@
   "tag": "pk-toolbar",
   "title": "Toolbar",
   "group": "Layout & structure",
+  "tier": "component",
   "summary": "A row with a lead (title and note) on the left and actions on the right. It wraps by its own width and stacks on a phone, with touch-sized actions.",
   "props": [
     {

@@ -3,6 +3,7 @@
   "replaces": ["label"],
   "title": "Field",
   "group": "Form layout",
+  "tier": "element",
   "summary": "The label, help, error, warning and counter around a form control, with the wiring between them. It hands its label and messages to the control, because ids do not cross shadow roots.",
   "delegatesFocus": true,
   "props": [

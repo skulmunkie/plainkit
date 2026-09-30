@@ -2,6 +2,7 @@
   "tag": "pk-local-time",
   "title": "Local time",
   "group": "Data display",
+  "tier": "element",
   "summary": "A UTC instant written in the reader's own locale and time zone, as a date, a time, both, or relative to now (3 hours ago). Keeps a real time element inside, so the machine value stays readable.",
   "props": [
     {

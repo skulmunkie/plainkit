@@ -2,6 +2,7 @@
   "tag": "pk-kanban",
   "title": "Kanban board",
   "group": "Layout",
+  "tier": "component",
   "summary": "A board of pk-kanban-column children, each holding pk-sortable-item cards (usually a pk-card inside). Drag a card's handle to another column or position (pointer or touch), or focus a card and press Alt+Arrow. It never moves its own children: pk-move carries the move and the host applies it.",
   "props": [
     { "name": "label", "type": "string", "default": "", "reflect": false, "description": "Accessible name for the board (aria-label)." },

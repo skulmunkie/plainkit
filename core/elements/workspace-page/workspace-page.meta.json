@@ -2,6 +2,7 @@
   "tag": "pk-workspace-page",
   "title": "Workspace page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A page of side-by-side panes (a nav, a main pane and an optional aside) that each scroll on their own, built on pk-workspace: on a phone one pane shows at a time behind a tab strip. Set the mount(panes) callback as a property (business logic, never config data): it receives { nav, main, aside } (the panes that exist) and returns a cleanup function or a { destroy() } handle, which the element calls when it leaves the page. While mount() is pending the built-in loading state shows, and a rejection shows the error state with Retry.",
   "props": [
     {

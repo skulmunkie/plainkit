@@ -2,6 +2,7 @@
   "tag": "pk-master-detail-page",
   "title": "Master-detail page",
   "group": "Page types",
+  "tier": "page",
   "summary": "A list of records and the record the route selected. Wide, they sit side by side (a pk-list-page and the record pane); narrow, one shows at a time and the record has a Back button. The host owns the selection: set recordId from the route (a deep link works), and the element reports what the reader did through callback properties. load(query) feeds the list exactly as pk-list-page's does; open(row) is called when a row is chosen and close() when Back is pressed, so the host changes the route. mountDetail(pane, id) draws the record into the pane and returns a cleanup function or a { destroy() } handle, called when the record changes or the element leaves the page. While mountDetail is pending the built-in loading state shows over the record, a rejection shows the error state with Retry. Focus moves to the record once it is drawn, and back to the row that was open when the selection clears.",
   "props": [
     {

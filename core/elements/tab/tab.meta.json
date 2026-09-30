@@ -3,6 +3,7 @@
   "a11yRequires": ["name"],
   "title": "Tab",
   "group": "Navigation",
+  "tier": "element",
   "summary": "One tab of an pk-tabs. Place it inside pk-tabs; it selects its panel by value. It can show a count, a close button, and appear only on a phone or only on a desktop.",
   "props": [
     { "name": "value", "type": "string", "default": "", "reflect": true, "description": "The key that pairs this tab with the pk-tab-panel of the same value." },

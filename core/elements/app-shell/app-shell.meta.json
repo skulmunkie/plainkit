@@ -3,6 +3,7 @@
   "title": "App shell",
   "summary": "The page frame: nav column, header, one scrolling body and footer. Header and footer stay put; safe-area insets are added on notched phones; a slotted control marked data-nav-toggle opens the side nav drawer, or hides and shows the nav on a wide screen.",
   "group": "Layout & structure",
+  "tier": "shell",
   "props": [
     {
       "name": "navOpen",

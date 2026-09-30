@@ -3,6 +3,7 @@
   "title": "Workspace",
   "summary": "A tool page in panes: a nav pane, a main pane and an optional docked aside, each scrolling on its own. On a phone one pane shows at a time and a tab strip (Contents, Content, Details) switches it.",
   "group": "Layout & structure",
+  "tier": "element",
   "props": [
     { "name": "fill", "type": "boolean", "default": false, "reflect": true, "description": "Fill the height the parent gives it (a parent with a definite height, or a flex or grid parent) and drop the frame, for a tool that owns the whole page. Without it the workspace is as tall as the viewport minus a reserve." },
     { "name": "activePane", "type": "enum", "default": "main", "values": ["nav", "main", "aside"], "reflect": true, "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane. A tab tap raises a cancelable pk-pane-change first and the element changes the pane itself only when it is not cancelled; a host that owns the pane from a route calls preventDefault() and changes the route instead (see the routed-list-detail template)." },

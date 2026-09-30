@@ -2,6 +2,7 @@
   "tag": "pk-dropzone",
   "title": "Dropzone",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A drop target over a real file input: drag files in or click, with type, size and count checks, a list of accepted files with Remove, and a reason for each rejection. Files are submitted with the form.",
   "delegatesFocus": true,
   "formAssociated": true,

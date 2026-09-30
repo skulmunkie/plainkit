@@ -2,6 +2,7 @@
   "tag": "pk-accordion",
   "title": "Accordion",
   "group": "Containers",
+  "tier": "element",
   "summary": "A stack of collapsible sections; exclusive mode keeps one open.",
   "props": [
     {

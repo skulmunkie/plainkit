@@ -3,6 +3,7 @@
   "title": "Nav item",
   "summary": "A row of a side nav: a link, or a branch that folds its children; icon, badge, active bar and disabled state. Also works as a horizontal bar item inside pk-navbar (it detects the ancestry itself).",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "href",

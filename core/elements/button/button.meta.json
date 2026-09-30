@@ -4,6 +4,7 @@
   "a11yRequires": ["name"],
   "title": "Button",
   "group": "Actions",
+  "tier": "element",
   "summary": "A button in five variants and three sizes, with busy, icon-only, toggle and disclosure forms. type=\"submit\" and \"reset\" act on the surrounding form, as a native button does. With href it renders a real link that looks like a button.",
   "delegatesFocus": true,
   "formAssociated": true,

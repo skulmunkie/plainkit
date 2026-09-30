@@ -3,6 +3,7 @@
   "title": "Breadcrumb",
   "summary": "The path to the current page as a trail of links with chevrons; the middle collapses behind a \"...\" button when the trail is long, sooner on a phone.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "label",

@@ -2,6 +2,7 @@
   "tag": "pk-list",
   "title": "List",
   "group": "Layout",
+  "tier": "element",
   "summary": "A plain ordered or unordered prose list: bullets, numbers or checkmarks on items the host writes as plain elements, never a raw ul, ol or li.",
   "props": [
     {

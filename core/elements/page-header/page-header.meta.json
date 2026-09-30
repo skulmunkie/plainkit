@@ -2,6 +2,7 @@
   "tag": "pk-page-header",
   "title": "Page header",
   "group": "Layout & structure",
+  "tier": "component",
   "summary": "The top of a page, a section or a record: a breadcrumb row, a title bar with actions, and a note line. Without an explicit heading, the crumbs, chips and actions collapse onto a single row by default; spacious opts back into the multi-row breakdown. Stacks by its own width, with the actions full width and touch-sized on a phone.",
   "props": [
     {

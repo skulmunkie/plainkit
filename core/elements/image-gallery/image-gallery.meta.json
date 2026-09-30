@@ -3,6 +3,7 @@
   "title": "Image gallery",
   "summary": "A grid of square thumbnails with one marked primary (a badge and an accent frame). Clicking a thumbnail opens the lightbox. Editable, it adds a make-primary and a remove button under each image, a drag handle (or Alt+Up/Alt+Down) to reorder them, and an add tile that picks files.",
   "group": "Data display",
+  "tier": "component",
   "props": [
     { "name": "images", "type": "json", "default": [], "reflect": false, "description": "The images: [{ src, alt, primary?, status? }]. status is a short warning badge such as Staged. Property or a JSON attribute. Only same-site paths, http(s) and raster data URLs are shown." },
     { "name": "primary", "type": "number", "default": -1, "reflect": true, "description": "The index of the primary image; -1 uses the first image flagged primary in images, or none." },

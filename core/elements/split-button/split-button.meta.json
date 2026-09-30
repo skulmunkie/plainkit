@@ -2,6 +2,7 @@
   "tag": "pk-split-button",
   "title": "Split button",
   "group": "Actions",
+  "tier": "component",
   "summary": "A main action beside a caret that opens a menu of related actions, so the common case is one click and the variants stay reachable.",
   "delegatesFocus": true,
   "formAssociated": true,

@@ -2,6 +2,7 @@
   "tag": "pk-field-row",
   "title": "Field row",
   "group": "Form layout",
+  "tier": "element",
   "summary": "A wrapping row of fields that share the width: each field grows from a 120px minimum, a wide field takes a row of its own.",
   "props": [
     {

@@ -3,6 +3,7 @@
   "title": "Stepper",
   "summary": "A wizard header: numbered steps with done, current, upcoming and error states, horizontal or vertical, optionally clickable (linear: you can go back, not skip ahead).",
   "group": "Navigation",
+  "tier": "component",
   "props": [
     {
       "name": "current",

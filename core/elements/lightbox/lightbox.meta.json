@@ -3,6 +3,7 @@
   "title": "Lightbox",
   "summary": "A full-screen image viewer on a native dialog: caption, counter, previous and next with arrow keys and swipe, neighbours preloaded, only safe image sources.",
   "group": "Overlays",
+  "tier": "element",
   "props": [
     {
       "name": "index",

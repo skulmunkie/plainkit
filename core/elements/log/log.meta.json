@@ -2,6 +2,7 @@
   "tag": "pk-log",
   "title": "Log",
   "group": "Data display",
+  "tier": "element",
   "summary": "A streaming log viewer: monospace rows in a scroller that sticks to the newest row until the user scrolls up, with a button to jump back, and a cap that drops the oldest rows. Rows are appended from script without redrawing the ones already there.",
   "props": [
     {

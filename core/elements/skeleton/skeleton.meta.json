@@ -2,6 +2,7 @@
   "tag": "pk-skeleton",
   "title": "Skeleton",
   "group": "Feedback",
+  "tier": "element",
   "summary": "A placeholder shape (line, paragraph, circle, block) that holds the layout while content loads.",
   "props": [
     {

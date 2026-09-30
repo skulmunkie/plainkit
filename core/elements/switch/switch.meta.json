@@ -3,6 +3,7 @@
   "a11yRequires": ["name"],
   "title": "Switch",
   "group": "Form controls",
+  "tier": "element",
   "summary": "An on/off toggle that takes part in a form: it submits its value when on and resets with the form.",
   "delegatesFocus": true,
   "formAssociated": true,

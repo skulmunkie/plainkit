@@ -3,6 +3,7 @@
   "replaces": ["hr"],
   "title": "Divider",
   "group": "Layout",
+  "tier": "element",
   "summary": "A rule between content, horizontal or vertical, with an optional label.",
   "props": [
     {

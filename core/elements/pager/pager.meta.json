@@ -3,6 +3,7 @@
   "title": "Pager",
   "summary": "Page-level previous and next links between sibling pages, with an optional centre note (\"Step 2 of 5\"); table pagination is a separate control.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "label",

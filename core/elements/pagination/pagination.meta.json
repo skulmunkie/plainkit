@@ -2,6 +2,7 @@
   "tag": "pk-pagination",
   "title": "Pagination",
   "group": "Navigation",
+  "tier": "component",
   "summary": "Page navigation: numbered with ellipses, a range summary, a page-size select, a simple previous and next form, or load more. On a phone the numbers collapse to previous, Page N of M and next.",
   "props": [
     {

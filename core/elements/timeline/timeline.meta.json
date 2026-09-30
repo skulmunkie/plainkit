@@ -2,6 +2,7 @@
   "tag": "pk-timeline",
   "title": "Timeline",
   "group": "Data display",
+  "tier": "element",
   "summary": "A vertical activity feed of timeline items joined by a line.",
   "props": [
     {

@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "Date range picker",
   "group": "Form controls",
+  "tier": "component",
   "summary": "A start and an end date with quick ranges (last 7 days, this month), a minimum and maximum, and an inline error when the end is before the start. Built on native date fields, so keyboard, touch and the platform picker come with it.",
   "delegatesFocus": true,
   "formAssociated": true,

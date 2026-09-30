@@ -3,6 +3,7 @@
   "title": "Skip link",
   "summary": "The first focusable element on a page: invisible until it takes focus, then a button that jumps past the navigation to the main content.",
   "group": "Navigation",
+  "tier": "element",
   "props": [
     {
       "name": "href",

@@ -2,6 +2,7 @@
   "tag": "pk-heading",
   "title": "Heading",
   "group": "Layout",
+  "tier": "element",
   "summary": "A real h1 to h6 heading in the shadow tree, with a visual size decoupled from the level: the semantic counterpart of pk-text's look-only h1 to h6 variants, for a strict module that cannot write a raw heading tag.",
   "props": [
     {

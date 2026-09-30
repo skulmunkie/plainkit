@@ -2,6 +2,7 @@
   "tag": "pk-grid",
   "title": "Grid",
   "group": "Layout",
+  "tier": "element",
   "summary": "Equal-width responsive columns: as many columns of at least min as fit, one column on a phone.",
   "props": [
     {

@@ -3,6 +3,7 @@
   "a11yRequires": ["label"],
   "title": "Range",
   "group": "Form controls",
+  "tier": "element",
   "summary": "A slider, or with dual a minimum and maximum slider, drawn from tokens with a live value output.",
   "delegatesFocus": true,
   "formAssociated": true,
