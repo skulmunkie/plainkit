@@ -45,7 +45,7 @@ Green CI does not say a layout looks right (the record header in #311 and a chev
 
 - **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
   into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).
-  Attach the shots to the pull request (CI also keeps them as the `ui-review` artifact), fix every error, and say why a warning is fine.
+  Attach the shots to the pull request (CI also keeps them as the `ui-review-1` to `ui-review-4` artifacts), fix every error, and say why a warning is fine.
 - **Scenarios for states a still example cannot show.** A gallery example is a resting element; the states issues describe (a menu open, a page scrolled 800px, a collapsed rail with a flyout,
   a hover or focus ring, right-to-left) are **scenarios**: `core/tests/review/scenarios/<name>.js`, plain ES modules (format and helpers: `core/tests/review/scenario.js`) with the markup, declarative
   `steps` (`click`, `hover`, `focus`, `key`, `type`, `scroll`, `set`, `resize`, `wait`, and `shot: 'name'` to take a screenshot) and an `expect(t)` that measures the state
