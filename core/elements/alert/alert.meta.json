@@ -46,6 +46,13 @@
       "description": "Coloured text with no box, icon or panel: the quiet form for a message beside a field or under a button."
     },
     {
+      "name": "subtle",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A coloured left border and a faint tint background, no icon or dismiss control: a block-level 'finding' treatment between plain text and a full boxed panel, for a reconciliation notice, a nav strip, or a flagged table row."
+    },
+    {
       "name": "inline",
       "type": "boolean",
       "default": false,
@@ -130,6 +137,10 @@
     {
       "title": "Page-level banner",
       "html": "<pk-alert kind=\"warning\" banner dismissible>Scheduled maintenance tonight at 22:00.<a slot=\"action\" href=\"#\">Details</a></pk-alert>"
+    },
+    {
+      "title": "Subtle",
+      "html": "<div class=\"stack\"><pk-alert kind=\"warning\" subtle>Debits and credits do not balance for this period.</pk-alert><pk-alert kind=\"danger\" subtle>This line is not linked to a shipment.</pk-alert></div>"
     }
   ]
 }

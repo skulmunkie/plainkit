@@ -60,3 +60,5 @@
 :host([compact]) { margin: 0; font-size: var(--text-sm); line-height: 1.3; }
 :host([plain]) [part="content"], :host([plain]) [part="message"] { display: inline; }
 :host([plain]) [part="title"] { display: inline; margin: 0 0.35rem 0 0; }
+:host([subtle]) { border: 0; border-inline-start: 4px solid var(--pk-alert-c); border-radius: 0; background: color-mix(in srgb, var(--pk-alert-c) 6%, var(--color-panel)); }
+:host([subtle]) [part="icon"], :host([subtle]) [part="close"] { display: none; }
