@@ -3,6 +3,7 @@
   "title": "Not found page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "not-found",
   "summary": "The \"this page doesn't exist\" or \"you don't have access\" screen for a whole page, built on the same shared state markup as pk-states-page's empty state. Works with zero config; add label for a real action button that raises pk-action.",
   "props": [
     {

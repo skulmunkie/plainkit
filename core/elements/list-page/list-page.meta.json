@@ -3,6 +3,7 @@
   "title": "List page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "list",
   "summary": "A filterable, sortable, paginated list of records: a pk-table (manual - the host owns sorting, filtering and paging), a pk-table-filters search/filter panel, optional toolbar actions and a pk-pagination footer. Set the load(query) callback as a property (business logic, never config data) - it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page; a rejection shows the built-in error state with Retry, and zero rows show the configured empty state. rowHref(row), also a callback property, makes rows clickable and is called instead of the element navigating itself, so the host wires it through its own router.",
   "props": [
     {

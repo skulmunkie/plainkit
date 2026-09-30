@@ -3,6 +3,7 @@
   "title": "Settings page",
   "group": "Page types",
   "tier": "page",
+  "pageType": "settings",
   "summary": "A sectioned settings form with a sticky Save/Discard bar that appears once a field differs from its last saved value. Set the save(values) callback as a property (business logic, never config data) - it may reject, which shows the error inline instead of saving.",
   "props": [
     {
