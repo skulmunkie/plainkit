@@ -23,12 +23,12 @@ export default {
         };
     },
     steps: [
-        { wait: 400 }, { click: `${P}[part=next]` }, { wait: 300 }, { shot: 'blocked' },
+        { click: `${P}[part=next]` }, { shot: 'blocked' },
         { click: `${P}pk-input[name=email]` }, { type: 'sam@example.com' },
         { click: `${P}pk-input[name=name]` }, { type: 'Sam' },
-        { click: `${P}[part=next]` }, { wait: 400 }, { shot: 'step-two' },
-        { click: `${P}[part=next]` }, { wait: 400 }, { shot: 'review' },
-        { click: `${P}[part=next]` }, { wait: 500 }, { shot: 'server-error' },
+        { click: `${P}[part=next]` }, { shot: 'step-two' },
+        { click: `${P}[part=next]` }, { shot: 'review' },
+        { click: `${P}[part=next]` }, { shot: 'server-error' },
     ],
     expect(t) {
         t.inViewport(WP);

@@ -7,7 +7,7 @@ const mod = (id, title, extra = {}) => defineModule({ id, title, routes: [{ path
 const orders = mod('orders', 'Orders');
 const billing = mod('billing', 'Billing', { footer: { text: 'Billing is run by Finance', links: [{ label: 'Invoice policy', href: '#/billing/policy' }] } });
 const kiosk = mod('kiosk', 'Kiosk', { footer: false });
-const go = id => [{ click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: `pk-nav-item[data-module=${id}]` }, { wait: 800 }];
+const go = id => [{ click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: `pk-nav-item[data-module=${id}]` }, { wait: 800 }];
 
 export default {
     name: 'app-footer',
@@ -26,7 +26,7 @@ export default {
         });
     },
     steps: [
-        { wait: 'settle' }, { wait: 500 }, { shot: 'app' },
+        { wait: 'settle' }, { shot: 'app' },
         ...go('billing'), { shot: 'module' },
         ...go('kiosk'), { shot: 'none' },
         ...go('orders'), { shot: 'restored' },
