@@ -65,7 +65,7 @@ export default Base => class extends Base {
         const doc = this.ownerDocument, total = this.pageTotal, page = clampPage(this.page, total);
         const numbers = this.part('numbers'), size = this.part('size-select'), more = this.part('more');
         numbers.replaceChildren(...pageWindow(page, total, { siblings: this.siblings, boundary: this.boundary }).map(n => {
-            if (n === 'gap') { const g = doc.createElement('span'); g.className = 'gap'; g.setAttribute('aria-hidden', 'true'); g.textContent = '…'; return g; }
+            if (n === 'gap') { const g = doc.createElement('span'); g.setAttribute('part', 'gap'); g.setAttribute('aria-hidden', 'true'); g.textContent = '…'; return g; }
             const b = button(doc, String(n), { 'data-page': String(n), 'aria-label': `Page ${n}` });
             if (n === page) b.setAttribute('aria-current', 'page');
             return b;
