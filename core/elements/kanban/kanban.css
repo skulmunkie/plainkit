@@ -1,8 +1,8 @@
 :host { display: block; position: relative; min-inline-size: 0; }
 :host([hidden]) { display: none; }
-.board { display: flex; gap: var(--pk-kanban-gap, var(--space-3)); align-items: stretch; overflow-x: auto; padding-block-end: var(--space-2); scroll-snap-type: x proximity; }
+[part=board] { display: flex; gap: var(--pk-kanban-gap, var(--space-3)); align-items: stretch; overflow-x: auto; padding-block-end: var(--space-2); scroll-snap-type: x proximity; }
 ::slotted(pk-kanban-column) { flex: 0 0 var(--pk-kanban-column-width, 18rem); scroll-snap-align: start; }
 @media (--phone) { ::slotted(pk-kanban-column) { flex-basis: 85%; } }
 /* Snapping would pull the small auto-scroll steps of a drag back to the nearest column start. */
-:host([dragging]) .board { scroll-snap-type: none; }
+:host([dragging]) [part=board] { scroll-snap-type: none; }
 [part="announcer"] { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); }
