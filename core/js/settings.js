@@ -10,6 +10,6 @@ import { createLogger } from './log.js';
 
 const log = createLogger('settings');
 let told = false;
-export const tell = e => told || (told = !!log.warn('storage is blocked or full; the setting is not kept', e));
+export const tell = e => told || (told = !!log.warn('storage blocked or full; not kept', e));
 export const readSetting = key => { try { return localStorage.getItem(key); } catch (e) { tell(e); return null; } };
 export const writeSetting = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { tell(e); } };

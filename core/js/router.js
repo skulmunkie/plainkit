@@ -78,7 +78,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
         if (alias != null) {
             const to = safeRoute(alias);
             if (to && hops < HOPS) { write(to, true); return evaluate(hops + 1); }
-            log.warn(`alias for "${path}" ignored: ${to ? 'too many redirects' : 'not an app-relative path'}`);
+            log.warn(`alias for "${path}" ignored: ${to ? 'redirect loop' : 'not app-relative'}`);
         }
         const m = matchRoute(routes, path) ?? (nf && { node: nf, chain: [nf], params: {}, notFound: true });
         const route = { path, params: m?.params ?? {}, query, node: m?.node ?? null, notFound: !!m?.notFound };
@@ -87,7 +87,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
             if (v !== true) {
                 const to = safeRoute(v.redirect);
                 if (to && hops < HOPS) { write(to, true); return evaluate(hops + 1); }
-                if (v.redirect != null) log.warn(`guard redirect for "${path}" ignored: ${to ? 'too many redirects' : 'not an app-relative path'}`);
+                if (v.redirect != null) log.warn(`guard redirect for "${path}" ignored: ${to ? 'redirect loop' : 'not app-relative'}`);
                 return { route, match: null, status: 403 };
             }
         }

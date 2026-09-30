@@ -49,7 +49,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     const doc = container.ownerDocument;
     const root = doc.documentElement;
     // No element is defined when it is created: whatever the host or a page adds is loaded after it is in the page (a pk-* tag renders hidden until defined).
-    const load = () => Promise.resolve(elements(box.root)).catch(e => log.error('could not load the elements of the app', e));
+    const load = () => Promise.resolve(elements(box.root)).catch(e => log.error('elements failed to load', e));
     const box = createBoundary(doc, load);
     container.replaceChildren(box.root);
     load();
@@ -61,7 +61,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     const alive = t => !dead && t === token;
     const getStore = () => (st ??= createStore());
     // Steps that change what is mounted run one at a time, in request order.
-    const exclusive = fn => { const p = turn.then(fn); turn = p.catch(e => log.error('a module step failed unexpectedly', e)); return p; };
+    const exclusive = fn => { const p = turn.then(fn); turn = p.catch(e => log.error('module step failed', e)); return p; };
     const wait = ms => new Promise(resolve => { const id = setTimeout(() => { timers.delete(id); resolve(); }, ms); timers.set(id, resolve); });
     const within = (promise, ms) => {
         let id;
@@ -77,7 +77,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
                 const r = check({ auth, id, route });
                 if (!(r === true || r?.allow === true)) return { allow: false, redirect: r?.allow === false ? r.redirect ?? null : null };
             } catch (e) {
-                log.error(`a can() check threw for "${id}", access is denied`, e);
+                log.error(`can() threw for "${id}": denied`, e);
                 return { allow: false, redirect: null };
             }
         }
