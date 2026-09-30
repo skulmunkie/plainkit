@@ -2332,11 +2332,6 @@
       "fingerprint": "1215229800249cf4"
     },
     {
-      "rule": "S2",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "f1385c2436c23c07"
-    },
-    {
       "rule": "S3",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "b9c628dfc77031ec"
