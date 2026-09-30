@@ -161,20 +161,20 @@ test('choosing a tab activates the panel in the model and commits; a phone strip
     assert.equal(el.events.length, 1);
 });
 
-test('every group (whatever its size) gets a panel menu; with company it also lists every other group, Add as tab plus the four dock zones, before a Close', () => {
+test('every group (whatever its size) gets a panel menu; with company it also lists every other group, Add as tab plus the four dock zones, then Float, before a Close', () => {
     const { el, root } = make(P);
     const [left, , right] = groups(el.$doc);
     assert.equal(left.panels[0], 'tools'); assert.equal(right.panels[0], 'props');
     const dropdowns = find(root, 'pk-dropdown');
     assert.equal(dropdowns.length, 3, 'one per group: left, center (canvas), right');
-    const items = find(dropdowns[1], 'pk-menu-item'); // the canvas group's dropdown: two other groups (left, right), then Close
+    const items = find(dropdowns[1], 'pk-menu-item'); // the canvas group's dropdown: two other groups (left, right), then Float, then Close
     assert.deepEqual(items.filter(i => i.getAttribute('type') === 'header').map(i => i.text), ['Toolbox', 'Properties']);
     const values = items.filter(i => i.getAttribute('type') !== 'header').map(i => i.getAttribute('value'));
-    assert.deepEqual(values, [...[left, right].flatMap(g => [`tab:canvas:${g.id}`, `dock:canvas:${g.id}:left`, `dock:canvas:${g.id}:right`, `dock:canvas:${g.id}:top`, `dock:canvas:${g.id}:bottom`]), null, 'close:canvas']);
-    assert.equal(items.find(i => i.getAttribute('type') === 'divider') !== undefined, true, 'a divider separates Move from Close');
+    assert.deepEqual(values, [...[left, right].flatMap(g => [`tab:canvas:${g.id}`, `dock:canvas:${g.id}:left`, `dock:canvas:${g.id}:right`, `dock:canvas:${g.id}:top`, `dock:canvas:${g.id}:bottom`]), null, 'float:canvas', null, 'close:canvas']);
+    assert.equal(items.filter(i => i.getAttribute('type') === 'divider').length, 2, 'a divider separates Move from Float, and Float from Close');
     const single = make([{ id: 'only' }]);
     const soloItems = find(single.root, 'pk-menu-item');
-    assert.deepEqual(soloItems.map(i => i.getAttribute('value')), ['close:only'], 'a single group offers only Close, no Move items and no divider');
+    assert.deepEqual(soloItems.map(i => i.getAttribute('value')), ['float:only', null, 'close:only'], 'a single group offers Float (no other group to move to) and Close');
 });
 
 test('choosing "Add as tab" moves the panel with moveTab, commits reason move and announces the result', () => {

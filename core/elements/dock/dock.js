@@ -9,7 +9,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
 import { createStore } from '../../js/store.js';
 import { place, onOutside, unplace } from '../../js/positioning.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup, floaters, findFloater, dragFloater, floatDrag, tabDrag, raiseFloater, describeMove } from '../../js/dock-model.js';
+import { defaultLayout, fromJson, resize, activate, groups, toJson, moveTab, dockPanel, findGroup, collapsePanel, expandPanel, isEdgeGroup, floaters, findFloater, dragFloater, floatDrag, tabDrag, raiseFloater, describeMove, floatPanel, dockFloating, moveFloater, resizeFloater } from '../../js/dock-model.js';
 
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
@@ -75,6 +75,10 @@ export default Base => class extends Base {
             root.addEventListener('pointerup', e => this.onDragEnd(e));
             root.addEventListener('pointercancel', e => this.onDragEnd(e));
             root.addEventListener('lostpointercapture', e => this.onDragEnd(e));
+            // Keyboard/focus equivalents of the pointer drag above (issue #618 step 3): arrow keys on a floater's own frame move/resize it, and
+            // focusing anything inside a floater (Tab, or a menu action landing there) raises it, the keyboard mirror of onDragStart's pointerdown raise.
+            root.addEventListener('keydown', e => this.onFloatKeys(e));
+            root.addEventListener('focusin', e => this.onFloatFocus(e));
             this.$mo = new MutationObserver(() => this.requestUpdate());
             if (typeof matchMedia === 'function') { this.$mq = mediaBelow('phone'); this.$mqf = () => this.requestUpdate(); }
         }
@@ -176,9 +180,14 @@ export default Base => class extends Base {
     drawFloating(d, floating) {
         const root = this.part('root');
         for (const f of floating) {
-            const g = this.group(d, f.group);
+            const g = this.group(d, f.group, f.id);
             g.setAttribute('data-floater', f.id);
             rectStyle(g, f);
+            // The frame itself is the keyboard handle (onFloatKeys): arrow keys move it, Alt+Arrow resizes, Shift steps bigger, mirroring the pointer
+            // drag/resize above one level up. aria-describedby points at the one static hint dock.html carries for every floater, not a copy each.
+            g.tabIndex = 0;
+            g.setAttribute('aria-roledescription', 'floating panel');
+            g.setAttribute('aria-describedby', 'floater-help');
             g.append(make(d, 'div', { class: 'floater-resize' }));
             root.append(g);
         }
@@ -199,7 +208,9 @@ export default Base => class extends Base {
         for (const [slot, child] of [['start', n.a], ['end', n.b]]) { const cell = make(d, 'div', { class: 'cell', slot }); cell.append(this.node(d, child)); s.append(cell); }
         return s;
     }
-    group(d, n) {
+    // floaterId is set only when n is a floater's own group (drawFloating), never a tree node: it steers panelTrigger to offer dockFloating's
+    // "dock back in" targets instead of moveTab/dockPanel's tree-only ones, which would silently no-op on a panel that only a floater holds.
+    group(d, n, floaterId) {
         const g = this.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true), title = id => this.$titles.get(id) ?? id;
         g.setAttribute('data-node', n.id);
         const h = g.querySelector('.header'), body = g.querySelector('.body'), movable = !this.$phoneStrip && groups(this.$doc).length > 1;
@@ -229,7 +240,7 @@ export default Base => class extends Base {
             toggle.setAttribute('aria-controls', bodyId);
             toggle.setAttribute('data-panel', panel);
             toggle.querySelector('.title').textContent = title(panel);
-            if (!this.$phoneStrip) h.append(this.panelTrigger(d, panel, n.id, movable));
+            if (!this.$phoneStrip) h.append(this.panelTrigger(d, panel, n.id, movable, floaterId));
             body.id = bodyId;
             body.hidden = collapsed;
             body.append(make(d, 'slot', { name: panel }));
@@ -247,31 +258,39 @@ export default Base => class extends Base {
         }
         if (!this.$phoneStrip) {
             const trailing = make(d, 'div', { slot: 'trailing', class: 'trailing' });
-            trailing.append(this.panelTrigger(d, n.active, n.id, movable));
+            trailing.append(this.panelTrigger(d, n.active, n.id, movable, floaterId));
             tabs.append(trailing);
         }
         g.append(tabs);
         return g;
     }
     // A panel menu for panel (the group's active tab, or its only panel): "Move to..." (every other group, "Add as tab" plus the four dockPanel
-    // zones) when movable, and always a Close (this.$closed, taken back out by the toolbar's Panels menu). group is panel's current group id, so
-    // the menu never offers moving a panel next to its own group.
-    panelTrigger(d, panel, group, movable) {
+    // zones) when movable, a Float item to detach it as an overlay, and always a Close (this.$closed, taken back out by the toolbar's Panels
+    // menu). group is panel's current group id, so the menu never offers moving a panel next to its own group. floaterId (set only when panel is
+    // already floating, drawFloating's own group() call) swaps that section for dockFloating's own "dock back in" targets (every tree group, same
+    // zones) instead: moveTab/dockPanel only know tree panels, so offering them here would silently no-op (#618 step 3).
+    panelTrigger(d, panel, group, movable, floaterId) {
         const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
         const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'more', label: `${this.$titles.get(panel) ?? panel} panel menu` });
         dd.append(btn);
-        if (movable) for (const target of groups(this.$doc)) {
-            if (target.id === group) continue;
+        const targets = floaterId ? groups(this.$doc) : movable ? groups(this.$doc).filter(t => t.id !== group) : [];
+        for (const target of targets) {
             const targetTitle = this.$titles.get(target.active) ?? target.active;
+            const kind = floaterId ? `dockfloat:${floaterId}:${target.id}` : `tab:${panel}:${target.id}`;
             const header = make(d, 'pk-menu-item', { type: 'header' }); header.textContent = targetTitle;
-            const tab = make(d, 'pk-menu-item', { value: `tab:${panel}:${target.id}` }); tab.textContent = 'Add as tab';
+            const tab = make(d, 'pk-menu-item', { value: floaterId ? `${kind}:center` : kind }); tab.textContent = 'Add as tab';
             dd.append(header, tab);
             for (const [zone, text] of ZONE_LABELS) {
-                const item = make(d, 'pk-menu-item', { value: `dock:${panel}:${target.id}:${zone}` }); item.textContent = `${text} ${targetTitle}`;
+                const value = floaterId ? `dockfloat:${floaterId}:${target.id}:${zone}` : `dock:${panel}:${target.id}:${zone}`;
+                const item = make(d, 'pk-menu-item', { value }); item.textContent = `${text} ${targetTitle}`;
                 dd.append(item);
             }
         }
-        if (movable) dd.append(make(d, 'pk-menu-item', { type: 'divider' }));
+        if (targets.length) dd.append(make(d, 'pk-menu-item', { type: 'divider' }));
+        if (!floaterId && !this.$phoneStrip) {
+            const float = make(d, 'pk-menu-item', { value: `float:${panel}` }); float.textContent = 'Float';
+            dd.append(float, make(d, 'pk-menu-item', { type: 'divider' }));
+        }
         const close = make(d, 'pk-menu-item', { value: `close:${panel}` }); close.textContent = 'Close';
         dd.append(close);
         return dd;
@@ -306,8 +325,9 @@ export default Base => class extends Base {
         const r = activate(this.$doc, { panel: e.detail.value });
         if (r.doc !== this.$doc) { this.$doc = r.doc; this.commit('activate'); }
     }
-    // A choice from a panelTrigger menu ("tab:<panel>:<group>" moveTab, "dock:<panel>:<group>:<zone>" dockPanel, "close:<panel>") or the toolbar's
-    // Panels menu ("open:<panel>") — both fire pk-select and share this one dispatcher.
+    // A choice from a panelTrigger menu ("tab:<panel>:<group>" moveTab, "dock:<panel>:<group>:<zone>" dockPanel, "float:<panel>" floatPanel,
+    // "dockfloat:<floater>:<group>:<zone>" dockFloating, "close:<panel>") or the toolbar's Panels menu ("open:<panel>") — all fire pk-select and
+    // share this one dispatcher.
     onMove(e) {
         const value = e.detail?.value;
         if (typeof value !== 'string') return;
@@ -315,6 +335,8 @@ export default Base => class extends Base {
         const [kind, panel, group, zone] = value.split(':');
         if (kind === 'close' && panel) return this.closePanel(panel);
         if (kind === 'open' && panel) return this.openPanel(panel);
+        if (kind === 'float' && panel) return this.floatCmd(panel);
+        if (kind === 'dockfloat' && panel && group && zone) return this.applyDockFloat(panel, group, zone);
         this.applyMove(kind, panel, group, zone);
     }
     // The one place moveTab/dockPanel are called: from the Move menu (onMove) and a pointer drop (onDragEnd), so both commit, announce and focus alike.
@@ -334,6 +356,80 @@ export default Base => class extends Base {
         this.draw(Boolean(this.$mq?.matches));
         this.part('status').textContent = said;
         this.focusPanel(panel);
+    }
+    // Float this panel out of its group (the Panel menu's own "Float", the menu equivalent of floatPanel; the pointer path only ever moves/resizes
+    // an existing floater, it never creates one). New floaters cascade slightly so opening several in a row does not stack them exactly on top of
+    // each other. Focus follows to the new floater's own frame (focusFloater), the keyboard entry point for the arrow-key move/resize below.
+    floatCmd(panel) {
+        const title = this.$titles.get(panel) ?? panel, box = this.part('root').getBoundingClientRect(), n = floaters(this.$doc).length;
+        const r = floatPanel(this.$doc, { panel, rect: { x: 24 + (n % 6) * 16, y: 24 + (n % 6) * 16, w: 320, h: 240 }, bounds: { w: box.width, h: box.height } });
+        for (const p of r.problems) this.warnOnce(`float:${p.code}:${p.path}`, p.message, { code: p.code });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc;
+        this.commit('float');
+        this.draw(Boolean(this.$mq?.matches));
+        this.part('status').textContent = `${title} floating`;
+        this.focusFloater(panel);
+    }
+    // Dock a floater back into the tree (the Panel menu's own "dock back in" section, dockFloating): the menu equivalent of dragging its header onto
+    // a group. Reads the floater's active panel before dockFloating removes the floater, so focus and the announcement can still name it afterwards.
+    applyDockFloat(floaterId, target, zone) {
+        const f = findFloater(this.$doc, floaterId);
+        if (!f) return;
+        const title = id => this.$titles.get(id) ?? id, panel = f.group.active, targetGroup = gid(this.$doc, target);
+        const r = dockFloating(this.$doc, { floater: floaterId, target, zone });
+        for (const p of r.problems) this.warnOnce(`dockfloat:${p.code}:${p.path}`, p.message, { code: p.code });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc;
+        this.commit('dockfloat');
+        this.draw(Boolean(this.$mq?.matches));
+        this.part('status').textContent = describeMove(zone === 'center' ? 'tab' : 'dock', title(panel), title(targetGroup?.active), zone);
+        this.focusPanel(panel);
+    }
+    // Focuses panel's own floater frame (after floatCmd, or when nothing else already sets focus): the frame itself is the keyboard move/resize
+    // handle (onFloatKeys), so this is the accessible next step after detaching a panel, the floating mirror of focusPanel.
+    focusFloater(panel) {
+        const f = floaters(this.$doc).find(fl => fl.group.panels.includes(panel));
+        const el = f && this.part('root').querySelector?.(`[data-floater="${f.id}"]`);
+        el?.focus?.();
+    }
+    // Arrow keys on a floater's own frame (drawFloating gives it tabIndex 0) move it by STEP, or resize it with Alt held (bottom/right grow);
+    // Shift steps bigger, matching pk-splitter's own step/bigger-step keyboard convention. Only fires when the frame itself has focus, not a
+    // descendant button or tab (those have their own Enter/Space behaviour already). paintFloat applies the rect straight to the element like a
+    // pointer drag does, so the redraw guard in updated() never tears down (and unfocuses) the frame the key press just moved.
+    onFloatKeys(e) {
+        const el = e.target.closest?.('[data-floater]');
+        if (!el || e.target !== el) return;
+        const id = el.getAttribute('data-floater'), f = findFloater(this.$doc, id);
+        if (!f) return;
+        const step = e.shiftKey ? 32 : 8, resizing = e.altKey;
+        let dx = 0, dy = 0;
+        if (e.key === 'ArrowLeft') dx = -step;
+        else if (e.key === 'ArrowRight') dx = step;
+        else if (e.key === 'ArrowUp') dy = -step;
+        else if (e.key === 'ArrowDown') dy = step;
+        else return;
+        e.preventDefault();
+        const box = this.part('root').getBoundingClientRect(), bounds = { w: box.width, h: box.height };
+        const r = resizing ? resizeFloater(this.$doc, { floater: id, w: f.w + dx, h: f.h + dy, bounds }) : moveFloater(this.$doc, { floater: id, x: f.x + dx, y: f.y + dy, bounds });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc;
+        this.paintFloat(id);
+        this.commit(resizing ? 'resize' : 'move');
+        const moved = findFloater(this.$doc, id), title = this.$titles.get(f.group.active) ?? f.group.active;
+        this.part('status').textContent = resizing ? `${title} resized to ${Math.round(moved.w)} by ${Math.round(moved.h)}` : `${title} moved to ${Math.round(moved.x)}, ${Math.round(moved.y)}`;
+    }
+    // Focusing anything inside a floater (Tab, or landing there after floatCmd/applyDockFloat) raises it, the keyboard/focus mirror of
+    // onDragStart's own raiseFloater-on-grab; paintFloat only touches the moved element's style, so it never steals the focus that just arrived.
+    onFloatFocus(e) {
+        const el = e.target.closest?.('[data-floater]');
+        const id = el?.getAttribute('data-floater');
+        if (!id) return;
+        const r = raiseFloater(this.$doc, { floater: id });
+        if (r.doc === this.$doc) return;
+        this.$doc = r.doc;
+        this.paintFloat(id);
+        this.commit('raise');
     }
     // ---- pointer drag-to-dock: the moveTab/dockPanel calls above, reached by dragging a header or a pk-tab onto another group. Pointer capture is
     // set right away (like pk-sortable-item), but nothing else happens (no overlay, no preventDefault) until the pointer actually moves, so a plain
