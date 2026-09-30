@@ -1,18 +1,14 @@
-// The Guides page's routing, as pure functions (no DOM), so a node test can import them.
-// Addresses: #/ is the list, #/<guide> a guide, #/<guide>/<heading> a heading inside it. A bare #<heading> is an in-page link (the table of contents, a
-// heading's permalink): the page scrolls to it and rewrites the address to #/<guide>/<heading>, so the address you copy is one that reloads to the same place.
+// The Guides page's routing helpers, as pure functions (no DOM) so a node test can import them. Matching a hash address, following
+// hashchange and old-address redirects are the generic router's job now (js/router.js, js/route-tree.js: page.js mounts it in hash mode).
+// What is left here is specific to guides: the address a guide or heading builds, reading order, and telling a route address
+// ('#/<guide>' or '#/<guide>/<heading>') apart from a bare in-page anchor ('#<heading>', the table of contents or a heading's permalink),
+// which stays page-local and never goes through the router (see page.js's comment on why).
 
 export const routeHash = (id, frag) => `#/${id}${frag ? `/${frag}` : ''}`;
 
-/** { kind: 'home' } | { kind: 'guide', id, frag } | { kind: 'missing', id } | { kind: 'anchor', id } for a location hash and the known guide ids. */
-export function parseHash(hash, ids) {
-    const h = hash.startsWith('#') ? hash.slice(1) : hash;
-    if (h === '' || h === '/') return { kind: 'home' };
-    const decode = s => { try { return decodeURIComponent(s); } catch { return s; } }; // a malformed %-escape is kept as typed, and then matches nothing
-    if (!h.startsWith('/')) return { kind: 'anchor', id: decode(h) };
-    const [id, frag] = h.slice(1).split('/').map(decode);
-    return ids.includes(id) ? { kind: 'guide', id, frag: frag || null } : { kind: 'missing', id };
-}
+// True for a hash that names an in-page anchor rather than a route address: anything after '#' that does not start with '/'
+// ('#install', not '#/theming' or '#/theming/install'). '', '#' and '#/' (the guide list) are not anchors.
+export const isAnchorHash = hash => hash.length > 1 && hash[1] !== '/';
 
 /** The guides before and after `id` in reading order (null at either end). */
 export function neighbours(guides, id) {
