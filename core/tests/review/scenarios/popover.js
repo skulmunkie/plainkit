@@ -13,10 +13,10 @@ export default {
 <p>Some page text under the toolbar.</p></div>`,
     steps: [
         { shot: 'closed' },
-        { click: '#t1' }, { wait: 300 }, { shot: 'open-wrapped' },
-        { key: 'Escape' }, { wait: 200 },
-        { click: '#t2' }, { wait: 300 }, { shot: 'open-confirm' },
-        { key: 'Escape' }, { wait: 200 },
+        { click: '#t1' }, { shot: 'open-wrapped' },
+        { key: 'Escape' }, 
+        { click: '#t2' }, { shot: 'open-confirm' },
+        { key: 'Escape' }, 
         { focus: '#t1 >>> [part=control]' }, { shot: 'trigger-focus' },
     ],
     expect(t) {

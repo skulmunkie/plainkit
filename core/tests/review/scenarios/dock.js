@@ -98,80 +98,80 @@ export default {
     },
     steps: [
         { shot: 'rest' },
-        { focus: '#dock >>> pk-splitter >>> [part=handle]', on: ['desktop'] }, { key: 'ArrowRight', times: 3, on: ['desktop'] }, { wait: 100 },
+        { focus: '#dock >>> pk-splitter >>> [part=handle]', on: ['desktop'] }, { key: 'ArrowRight', times: 3, on: ['desktop'] }, 
         { shot: 'keyboard', on: ['desktop'] },
-        { set: '#dock', prop: 'demoDrag', value: 'release', on: ['desktop'] }, { wait: 100 },
+        { set: '#dock', prop: 'demoDrag', value: 'release', on: ['desktop'] }, 
         { shot: 'pointer', on: ['desktop'] },
         { set: '#dock', prop: 'demoPanelDrag', value: 'start', on: ['desktop'] },
-        { set: '#dock', prop: 'demoPanelDrag', value: 'center', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'center', on: ['desktop'] }, 
         { shot: 'drag-center', on: ['desktop'] },
-        { set: '#dock', prop: 'demoPanelDrag', value: 'left', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'left', on: ['desktop'] }, 
         { shot: 'drag-edge', on: ['desktop'] },
-        { set: '#dock', prop: 'demoPanelDrag', value: 'cancel', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoPanelDrag', value: 'cancel', on: ['desktop'] }, 
         // Step 2's keyboard/menu move and close/reopen, restored next to the collapse/rail steps below (issue #636; dropped in #634 because no
         // ordering could combine them safely - see the file comment). Left of a tab pick (so the left group's own trailing trigger is still bound
         // to its default active tab, Toolbox: dock.js only redraws that binding on a structural change, not a plain tab activation), the left
         // group's Move menu adds Toolbox as a tab in Canvas, then closes it straight back out of Canvas's now-merged group and reopens it from the
         // toolbar - demonstrating the whole move/close/reopen path without leaving Canvas a multi-panel group for the single-panel collapse/rail
         // steps further down.
-        { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> [part=group] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'move-menu', on: ['desktop'] },
-        { click: '#dock >>> [part=group] pk-dropdown pk-menu-item:nth-of-type(2)', on: ['desktop'] }, { wait: 150 },
+        { click: '#dock >>> [part=group] pk-dropdown pk-menu-item:nth-of-type(2)', on: ['desktop'] }, 
         { shot: 'move-done', on: ['desktop'] },
-        { focus: '#dock >>> pk-button[slot="trigger"][label="Toolbox panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { key: 'End', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> pk-button[slot="trigger"][label="Toolbox panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
+        { key: 'End', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'closed', on: ['desktop'] },
-        { focus: '#dock >>> [part=toolbar] .panels pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
-        { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> [part=toolbar] .panels pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
+        { key: 'Enter', on: ['desktop'] }, 
         { shot: 'reopened', on: ['desktop'] },
-        { click: '#dock >>> pk-tab:last-of-type' }, { wait: 150 },
+        { click: '#dock >>> pk-tab:last-of-type' }, 
         { shot: 'tab' },
-        { focus: '#dock >>> [data-panel=canvas]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> [data-panel=canvas]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'collapsed', on: ['desktop'] },
-        { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { key: 'Enter', on: ['desktop'] }, 
         { shot: 'expanded', on: ['desktop'] },
         // Issue #608, step 1: the right column (an edge group) folds to a rail button instead of a header when collapsed; activating it opens the
         // panel as a flyout over the content area.
-        { focus: '#dock >>> [data-panel=props]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150 },
+        { focus: '#dock >>> [data-panel=props]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'rail', on: ['desktop'] },
-        { click: '#dock >>> [part=rail-button]', on: ['desktop'] }, { wait: 150 },
+        { click: '#dock >>> [part=rail-button]', on: ['desktop'] }, 
         { shot: 'flyout-open', on: ['desktop'] },
         // Issue #636: the flyout's own Expand button is the click path back to a normal docked header - a different action from the rail button
         // that opened this flyout (which only opens/closes it). Activating it restores Properties, closes the flyout, and clears the rail.
-        { click: '#dock >>> [part=flyout] > [part=collapse-toggle]', on: ['desktop'] }, { wait: 150 },
+        { click: '#dock >>> [part=flyout] > [part=collapse-toggle]', on: ['desktop'] }, 
         { shot: 'expanded-from-rail', on: ['desktop'] },
-        { set: '#dock', attr: 'dir', value: 'rtl' }, { wait: 150 },
+        { set: '#dock', attr: 'dir', value: 'rtl' }, 
         { shot: 'rtl' },
-        { set: '#dock', attr: 'dir', value: 'ltr' }, { wait: 150 },
+        { set: '#dock', attr: 'dir', value: 'ltr' }, 
         // Round 2 item 5 (#618): a floated panel (Layers, taken out of the left group) as an absolutely-positioned overlay inside the dock's own
         // bounds, its header dragged partway across (mid-drag), then its corner grip dragged to grow it (resized).
-        { set: '#dock', prop: 'demoFloat', value: 'on', on: ['desktop'] }, { wait: 150, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloat', value: 'on', on: ['desktop'] }, 
         { shot: 'float-rest', on: ['desktop'] },
         { set: '#dock', prop: 'demoFloatDrag', value: 'start', on: ['desktop'] },
-        { set: '#dock', prop: 'demoFloatDrag', value: 'move', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatDrag', value: 'move', on: ['desktop'] }, 
         { shot: 'float-drag', on: ['desktop'] },
-        { set: '#dock', prop: 'demoFloatDrag', value: 'release', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatDrag', value: 'release', on: ['desktop'] }, 
         { set: '#dock', prop: 'demoFloatResize', value: 'start', on: ['desktop'] },
-        { set: '#dock', prop: 'demoFloatResize', value: 'move', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatResize', value: 'move', on: ['desktop'] }, 
         { shot: 'float-resized', on: ['desktop'] },
-        { set: '#dock', prop: 'demoFloatResize', value: 'release', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatResize', value: 'release', on: ['desktop'] }, 
         // Step 3 of #618: the floater's own frame is a keyboard handle (tabIndex 0). Focused, it shows the same focus ring every other
         // keyboard-operable part of the dock uses - a state no resting example can show. Arrow keys then move it, live for a screenshot mid-move.
-        { focus: '#dock >>> [data-floater]', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { focus: '#dock >>> [data-floater]', on: ['desktop'] }, 
         { shot: 'float-focused', on: ['desktop'] },
-        { key: 'ArrowRight', times: 4, on: ['desktop'] }, { key: 'ArrowDown', times: 4, on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { key: 'ArrowRight', times: 4, on: ['desktop'] }, { key: 'ArrowDown', times: 4, on: ['desktop'] }, 
         { shot: 'float-keyboard-moved', on: ['desktop'] },
         // A second floater (Assets), started behind the first (lower z, per floatPanel's own stacking order): focusing anything inside it - its
         // panel menu trigger here, not the frame itself - raises it to the front, the keyboard/focus mirror of a pointer grab. Both floaters stay
         // on screen at once so the shot can show the raised one now overlapping on top of the first.
-        { set: '#dock', prop: 'demoFloatSecond', value: 'on', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
-        { focus: '#dock >>> pk-button[label="Assets panel menu"]', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { set: '#dock', prop: 'demoFloatSecond', value: 'on', on: ['desktop'] }, 
+        { focus: '#dock >>> pk-button[label="Assets panel menu"]', on: ['desktop'] }, 
         { shot: 'float-raised', on: ['desktop'] },
         // The already-floating Layers panel's own menu offers "dock back in" (every tree group and zone) instead of the tree-only Move items a
         // docked panel's menu shows.
-        { focus: '#dock >>> pk-button[label="Layers panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, { wait: 150, on: ['desktop'] },
+        { focus: '#dock >>> pk-button[label="Layers panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'float-panel-menu', on: ['desktop'] },
-        { key: 'Escape', on: ['desktop'] }, { wait: 100, on: ['desktop'] },
+        { key: 'Escape', on: ['desktop'] }, 
     ],
     expect(t) {
         // The wrapper (.rv-bounded), not the page, carries any overflow from stacking two full examples: the document itself never grows past the

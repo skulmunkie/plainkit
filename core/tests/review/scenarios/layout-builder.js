@@ -21,14 +21,14 @@ export default {
         } });
     },
     steps: [
-        { wait: 'settle' }, { wait: 300 },
+        { wait: 'settle' }, 
         { shot: 'rest' },
-        { click: '#host pk-dropdown[data-menu="edit"] pk-button[slot="trigger"]' }, { wait: 200 },
+        { click: '#host pk-dropdown[data-menu="edit"] pk-button[slot="trigger"]' }, 
         { shot: 'edit-menu' },
-        { key: 'Escape' }, { wait: 150 },
-        { click: `${DOCK} >>> pk-tab[value="canvas"]`, on: ['phone'] }, { wait: 300, on: ['phone'] },
+        { key: 'Escape' }, 
+        { click: `${DOCK} >>> pk-tab[value="canvas"]`, on: ['phone'] }, 
         { shot: 'phone-canvas', on: ['phone'] },
-        { set: '#host', prop: 'demoContext', value: true }, { wait: 200 },
+        { set: '#host', prop: 'demoContext', value: true }, 
         { shot: 'context-menu' },
     ],
     expect(t) {
