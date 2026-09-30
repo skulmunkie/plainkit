@@ -8,8 +8,14 @@ import { S_RULES } from './audit/families/s-rules.mjs';
 
 const RULES = [D_RULES.find(r => r.id === 'D1'), S_RULES.find(r => r.id === 'S3')];
 const SHELL_LANDMARKS = new Set(['header', 'footer', 'nav', 'main']);
-// T1: a raw structural div or span (no pk-* equivalent yet, baselined per component and removed one by one, spec section 1 item 4). Shell exempts both (spec section 4).
-const STRUCTURAL = [[/<(div|span)\b/gi, 'html'], [/createElement\(\s*['"`](div|span)['"`]/g, 'js']];
+// T1: an UNNAMED structural div or span (owner decision on #736: no pk-* layout equivalent can replace a wrapper that other code addresses, so a named part or a slot host is not debt).
+// Exempt: a tag with a part, slot or role attribute, and a wrapper whose first child is a <slot>. Shell exempts all of it (spec section 4).
+// Limits of the heuristic (regex, not a parser): in templates the attributes are read from the opening tag only; in scripts a createElement counts as named when `.part =`, `.slot =`,
+// `.role =`, setAttribute('part'|'slot'|'role') or a part:/slot:/role: key appears within the next 400 characters or before the next createElement, whichever is first, so a part set
+// further away (another function) is seen as unnamed and stays baselined, and a later unrelated `.slot =` on a neighbouring node can hide one.
+const NAMED_TPL = /\b(part|slot|role)\s*=/i;
+const NAMED_JS = /\.(part|slot|role)\s*=(?!=)|setAttribute\(\s*['"`](part|slot|role)['"`]|\b(part|slot|role)\s*:/;
+const STRUCTURAL = [[/<(div|span)\b([^>]*)>(\s*<slot\b)?/gi, 'html'], [/createElement\(\s*['"`](div|span)['"`]/g, 'js']];
 const SCANNED = new Set(['component', 'page', 'shell']);
 
 // Map of "<rule> <element> <found>" to the number of hits, over the html template (D1, S3, T1) and the behaviour script (S3, T1).
@@ -31,7 +37,14 @@ export function checkTierTags(elements) {
         if (el.meta.tier !== 'shell') {
             for (const [re, kind] of STRUCTURAL) {
                 const text = kind === 'html' ? el.template : el.behaviour;
-                for (const m of (text ?? '').matchAll(re)) {
+                const src = text ?? '';
+                for (const m of src.matchAll(re)) {
+                    if (kind === 'html' && (NAMED_TPL.test(m[2]) || m[3])) continue;
+                    if (kind === 'js') {
+                        const rest = src.slice(m.index + m[0].length, m.index + m[0].length + 400);
+                        const next = rest.search(/createElement\(/);
+                        if (NAMED_JS.test(next < 0 ? rest : rest.slice(0, next))) continue;
+                    }
                     const k = `T1 ${el.name} ${m[1].toLowerCase()}`;
                     counts.set(k, (counts.get(k) ?? 0) + 1);
                 }
