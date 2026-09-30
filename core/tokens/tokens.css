@@ -343,6 +343,13 @@
     --lb-node-controls-z: 2;
 }
 
+/* Site chrome (core/site/site.css): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --site-border-w: 1px;
+    --site-scroll-max-w: 72rem;
+    --site-search-w: 14rem;
+}
+
 /* Gallery page chrome (core/site/gallery/gallery.css): schematic-only sizes with no equivalent on the shared scale. */
 :root {
     --gx-border-w: 1px;

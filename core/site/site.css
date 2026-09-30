@@ -6,13 +6,13 @@
 /* Reserves the top bar's box before the shell script defines pk-navbar and mounts it (shell.js swaps this element for the real bar in
    place, so the page never grows or shrinks when the swap happens: see #135). Same box as navbar.css's [part="nav"] min-height plus its
    host border, so the swap is pixel-for-pixel. */
-.site-boot-bar { flex: none; min-height: var(--app-header-h); background: var(--color-panel); border-bottom: 1px solid var(--color-border); }
+.site-boot-bar { flex: none; min-height: var(--app-header-h); background: var(--color-panel); border-bottom: var(--site-border-w) solid var(--color-border); }
 
 .site-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .site-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-4); }
 
-.site-scroll > * { max-width: 72rem; margin-inline: auto; }
+.site-scroll > * { max-width: var(--site-scroll-max-w); margin-inline: auto; }
 
 .site-actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
 
@@ -30,7 +30,7 @@
 .site pk-navbar > a[aria-current="page"] { color: var(--color-link); }
 
 /* The search field is pk-app-bar-search: a 14rem pill on a desktop bar, an icon button on a phone. The site filters its own page, so no results panel. */
-.site-actions pk-app-bar-search { --pk-app-bar-search-width: 14rem; flex: 0 1 14rem; }
+.site-actions pk-app-bar-search { --pk-app-bar-search-width: var(--site-search-w); flex: 0 1 var(--site-search-w); }
 
 .site-actions pk-app-bar-search::part(popup) { display: none; }
 
@@ -41,7 +41,7 @@
 
     .site pk-navbar::part(toggle) { order: 3; margin-inline-start: 0; }
 
-    .site pk-navbar::part(links) { order: 4; position: absolute; top: 100%; left: 0; right: 0; z-index: var(--z-sticky); padding: var(--space-2) var(--space-3); background: var(--color-panel); border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-card); max-height: calc(100dvh - var(--app-header-h)); overflow-y: auto; }
+    .site pk-navbar::part(links) { order: 4; position: absolute; top: 100%; left: 0; right: 0; z-index: var(--z-sticky); padding: var(--space-2) var(--space-3); background: var(--color-panel); border-bottom: var(--site-border-w) solid var(--color-border); box-shadow: var(--shadow-card); max-height: calc(100dvh - var(--app-header-h)); overflow-y: auto; }
 
     .site pk-navbar[open]::part(links) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); }
 }
