@@ -10,17 +10,18 @@
 // several frames scored as one), checks (keep only findings whose check or category is listed, e.g. ['accessibility', 'touch-target'];
 // default all), themes (default dark and light), widths (default 375 and 1024), historyKey (a localStorage key: keeps the runs and shows
 // the change since the last), historyMax (runs kept, default 40), autorun, theme, height, link (item => href for a ranked name).
-// sections: which parts to show, from ranked, performance, size, api, sweep, security, history; default ['ranked'], which is the
+// sections: which parts to show, from ranked, performance, size, api, tiers, sweep, security, history; default ['ranked'], which is the
 // scorecard as it always was.
 //   ranked       the score and every target worst first (needs a run)
 //   performance  scored categories (performance, scale, look, accessibility) with their metrics and stylesheets (a run; needs data.scoring)
 //   size         gzip size of built files against their budgets (data.sizes, data.budgets)
 //   api          the API surface against the previous release: what was removed or added (data.apiBaseline, data.api)
+//   tiers        composition by tier: elements per tier and the baseline debt per rule (data.tiers, written by the build)
 //   sweep        the last full size sweep (data.sweep)
 //   security     security and defect findings (data.security; fileLink(file, line) makes the place a link)
 //   history      the kept runs, with export, import and clear (needs historyKey)
 // data: each entry is a URL of the host's own origin (a relative URL is read against the page) or the parsed object. A section whose data
-// is missing says so with an empty state. security, apiBaseline, api, sweep, budgets, scoring (the scoring definitions), sizes (a list of
+// is missing says so with an empty state. security, apiBaseline, api, tiers, sweep, budgets, scoring (the scoring definitions), sizes (a list of
 // { name, url | urls, budget, strip }), files ({ css: { name: url }, js: { name: url }, tokens: name, pairs, frame, unusedIn }).
 // extraItems({ host }) may return more ranked items (a check the host runs itself).
 // Returns { run(), results(), report(), ready, destroy() }. runTargets, openFrame and rankedTable are exported for a host page that wants
@@ -39,13 +40,13 @@ const log = createLogger('scorecard');
 import { sameOrigin } from '../../js/framework-checks.js';
 import { watchVitals, recalcMs } from '../../js/measure.js';
 import { timeRows, readTexts, measureSizes } from './measure.js';
-import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
+import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintTiers, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
 const STYLES = ['../../plainkit.css'];
 const OWN_STYLES = ['./scorecard.css'];
 
 export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120, defineMs: 3000 });
-export const SECTIONS = Object.freeze(['ranked', 'performance', 'size', 'api', 'sweep', 'security', 'history']);
+export const SECTIONS = Object.freeze(['ranked', 'performance', 'size', 'api', 'tiers', 'sweep', 'security', 'history']);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const slug = s => String(s).replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
@@ -208,8 +209,8 @@ export async function mountScorecard(container, options = {}) {
     // whole group appears once, already full, after one reflow. First paint of this cluster is a little later; there is nothing to shift
     // afterwards.
     const hosts = {};
-    const heading = { size: 'Size and budgets', api: 'API surface', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
-    for (const name of ['size', 'api', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'div', {});
+    const heading = { size: 'Size and budgets', api: 'API surface', tiers: 'Composition by tier', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
+    for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'div', {});
     const settled = get => Promise.resolve().then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
     const loadHistoryData = () => {
         if (!historyKey) return { history: [], scoring: undefined, noKey: true };
@@ -232,6 +233,7 @@ export async function mountScorecard(container, options = {}) {
     const cards = [
         hosts.size && ['size', async () => ({ sizes: await measureSizes(data.sizes, doc), budgets: await load(data.budgets) }), v => paintSize(doc, hosts.size, v), 'sizes'],
         hosts.api && ['api', async () => ({ baseline: await load(data.apiBaseline), current: await load(data.api) }), v => paintApi(doc, hosts.api, v), 'API surface'],
+        hosts.tiers && ['tiers', () => load(data.tiers), v => paintTiers(doc, hosts.tiers, v), 'tier report'],
         hosts.sweep && ['sweep', () => load(data.sweep), v => paintSweep(doc, hosts.sweep, v), 'sweep report'],
         hosts.security && ['security', () => load(data.security), v => paintSecurity(doc, hosts.security, v, { fileLink }), 'security report'],
         hosts.history && ['history', loadHistoryData, v => (v.noKey ? missing(doc, hosts.history, 'history key', 'Pass historyKey: the runs are kept in this browser under it.') : paintHistory(doc, hosts.history, { ...v, actions: historyActions })), 'history'],

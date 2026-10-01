@@ -49,7 +49,7 @@ async function main() {
     const host = document.createElement('div');
     root.replaceChildren(intro, host);
     return mountScorecard(host, {
-        sections: ['ranked', 'performance', 'size', 'api', 'sweep', 'security', 'history'],
+        sections: ['ranked', 'performance', 'size', 'api', 'tiers', 'sweep', 'security', 'history'],
         targets: elementTargets(),
         historyKey: SCORING.historyKey,
         historyMax: SCORING.historyMax,
@@ -69,6 +69,7 @@ async function main() {
             security: here('security-report.json'),
             apiBaseline: here('api.baseline.json'),
             api: here('api.current.json'),
+            tiers: here('tiers.current.json'),
             sweep: here('sweep-report.json'),
         },
     });
