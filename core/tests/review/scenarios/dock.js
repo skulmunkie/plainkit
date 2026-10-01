@@ -66,9 +66,9 @@ export default {
             else if (state === 'release') ptr('pointerup', 0, 0);
         } });
         Object.defineProperty(dock, 'demoFloatResize', { set(state) {
-            const grip = dock.shadowRoot.querySelector('[data-floater] .floater-resize'), r = grip?.getBoundingClientRect();
+            const grip = dock.shadowRoot.querySelector('[data-floater] [data-grip]'), r = grip?.getBoundingClientRect();
             if (!r) return;
-            const ptr = floaterPointer('[data-floater] .floater-resize', 12);
+            const ptr = floaterPointer('[data-floater] [data-grip]', 12);
             if (state === 'start') ptr('pointerdown', r.left + r.width / 2, r.top + r.height / 2);
             else if (state === 'move') ptr('pointermove', r.left + r.width / 2 + 70, r.top + r.height / 2 + 50);
             else if (state === 'release') ptr('pointerup', 0, 0);
@@ -121,7 +121,7 @@ export default {
         { focus: '#dock >>> pk-button[slot="trigger"][label="Toolbox panel menu"]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { key: 'End', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { shot: 'closed', on: ['desktop'] },
-        { focus: '#dock >>> [part=toolbar] .panels pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
+        { focus: '#dock >>> [part=toolbar] [data-panels] pk-button[slot=trigger]', on: ['desktop'] }, { key: 'Enter', on: ['desktop'] }, 
         { key: 'Enter', on: ['desktop'] }, 
         { shot: 'reopened', on: ['desktop'] },
         { click: '#dock >>> pk-tab:last-of-type' }, 
@@ -256,7 +256,7 @@ export default {
             t.within('#dock >>> [data-floater]', '#dock', 1);
         }
         if (t.shot === 'float-resized') {
-            t.exists('#dock >>> [data-floater] .floater-resize', 'the resize grip is present');
+            t.exists('#dock >>> [data-floater] [data-grip]', 'the resize grip is present');
         }
         if (t.shot === 'float-focused') {
             t.ringUnclipped('#dock >>> [data-floater]', 'the frame\'s own focus ring is not clipped by the floater\'s overflow: hidden');
