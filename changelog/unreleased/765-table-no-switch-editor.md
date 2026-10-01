@@ -1,5 +1,0 @@
----
-type: breaking
-issue: 765
----
-`pk-table` no longer has a built-in `switch` editor (`editor: 'switch'` in a column, `PkTableEditor.Switch` in Blazor), because a table renders no other `pk-*` element. Put a `pk-switch` in the cell instead. Before: a column `{ "key": "listed", "label": "Listed", "editor": "switch" }`. After: a column `{ "key": "listed", "label": "Listed" }` and one `<pk-switch slot="cell-1-listed" tabindex="-1" checked><span class="u-sr-only">Listed, row 1</span></pk-switch>` per row, with the value taken from the switch's `change` event (a slotted cell is read-only to the table; `tabindex="-1"` keeps the cell the one tab stop per row, Space or Enter on the cell moves focus to the switch and Escape in it returns to the cell). Blazor before: `new PkTableColumn<Item> { Key = "Listed", Editor = PkTableEditor.Switch }`. After: `new PkTableColumn<Item> { Key = "Listed", Label = "Listed", Cell = item => @<PkSwitch tabindex="-1" Checked="@item.Listed" CheckedChanged="@(v => item.Listed = v)"><span class="u-sr-only">Listed, @item.Name</span></PkSwitch> }`, with the new value taken from `CheckedChanged` rather than `OnCellEdit`.
