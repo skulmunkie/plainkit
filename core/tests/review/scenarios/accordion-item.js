@@ -7,7 +7,7 @@ const SUMMARY = '#a1 >>> [part=summary]';
 
 export default {
     name: 'accordion-item',
-    issue: [296],
+    issue: [296, 774],
     elements: ['accordion-item', 'accordion'],
     html: `<div id="stage" class="u-p-1r-1p25r">
 <pk-accordion>
@@ -22,9 +22,12 @@ export default {
     steps: [
         { shot: 'ltr' },
         { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 200 }, { shot: 'rtl' },
+        // Closed, then clicking an action leaves it closed (the actions sit outside the summary: #774); clicking the summary opens it.
+        { click: '#a1 >>> [part=summary]' }, { wait: 300 }, { shot: 'rtl-closed' },
+        { set: '#stage', attr: 'dir', value: 'ltr' }, { wait: 200 }, { shot: 'ltr-closed' },
     ],
     expect(t) {
-        const rtl = t.shot === 'rtl';
+        const rtl = t.shot.startsWith('rtl');
         t.visible(ACT, 'the actions'); t.visible(HEAD, 'the heading'); t.visible(CHEV, 'the chevron');
         t.noOverlap(ACT, CHEV);
         t.within(ACT, SUMMARY, 1);
@@ -41,6 +44,7 @@ export default {
         t.sameRow(ACT, HEAD, 60);
         if (t.viewport.name === 'phone') {
             const edit = t.rect('#edit'), card = t.rect('#a1'), c = t.rect(CHEV);
+            if (edit) t.ok(edit.height >= 44 && edit.width >= 44, `on a phone the Edit button is ${Math.round(edit.width)}x${Math.round(edit.height)}, under the 44px touch target`);
             if (edit && card) t.ok(edit.y - card.y >= 3, `on a phone the touch-sized Edit button starts ${Math.round(edit.y - card.y)}px from the card's top border and fills the header row edge to edge`);
             if (edit && c) t.ok(Math.abs(edit.cy - c.cy) <= 6, `with a wrapped heading the actions (centre y=${Math.round(edit.cy)}) and the chevron (centre y=${Math.round(c.cy)}) are on different lines of the header`);
         }
