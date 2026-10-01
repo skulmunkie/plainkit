@@ -62,6 +62,11 @@ test('phase times add up across scenarios', () => {
     assert.deepEqual(sumPhases({}), {});
 });
 
+test('--skip-base is an option and off by default', () => {
+    assert.equal(parseArgs([]).skipBase, false);
+    assert.equal(parseArgs(['--skip-base']).skipBase, true);
+});
+
 test('shot names sort by example and say the combination', () => {
     assert.equal(shotName('pk-page-header', 2, 'phone', 'dark'), 'pk-page-header__03__phone__dark.png');
 });

@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const AREAS = ['node', 'dotnet', 'browser', 'pack'];
+export const AREAS = ['node', 'dotnet', 'browser', 'pack', 'ui-review'];
 
 // Root markdown files that a generator or a test reads: not "just docs".
 const ROOT_DOCS_THAT_ARE_INPUTS = new Set(['AGENTS.md', 'README.md', 'PUBLISHING.md', 'CHANGELOG.md']);
@@ -33,20 +33,29 @@ export const isDocsOnly = (file, { forNode = false } = {}) => {
 const BROWSER_PATHS = [/^core\/elements\//, /^core\/modules\//, /^core\/js\//, /^core\/tests\/browser\//, /^scripts\/attest-browser\.mjs$/, /^core\/tools\/serve\.mjs$/];
 const PACK_PATHS = [/^blazor\/src\/PlainKit\.Blazor\//, /^blazor\/mappings\//, /^Directory\.(Build|Packages)\.props$/, /^global\.json$/, /^core\/VERSION$/,
     /^scripts\/(publish-dist|generate-blazor|check-package|verify)\.mjs$/, /^core\/(elements|js|modules|base|tokens)\//];
+// The UI review reviews the elements it can name: a folder under core/elements/ or a Blazor mapping. A token, base or layout file selects every element, so it
+// is a full sweep and runs on a pull request only when the label ui-review-full is set (UI_REVIEW_FULL=true); the nightly sweep covers the rest (issue #777).
+const UI_REVIEW_PATHS = [/^core\/elements\//, /^blazor\/mappings\//];
+const UI_REVIEW_BASE_PATHS = [/^core\/(base|tokens|layouts)\//];
 // Tests that only node runs.
 const NODE_ONLY_TESTS = [/^core\/tests\//, /^scripts\/tests\//];
 
 /** { run, reason } for one area. `event` is GITHUB_EVENT_NAME; `files` the changed paths (null: unknown). */
-export function decide(area, { event, files }) {
+export function decide(area, { event, files, full = false }) {
     if (!AREAS.includes(area)) throw new Error(`unknown area ${area} (${AREAS.join(', ')})`);
     if (event === 'workflow_dispatch') return { run: true, reason: 'manual run' };
-    if (event !== 'pull_request') return area === 'browser' ? { run: false, reason: 'the browser suite runs on pull requests' } : { run: true, reason: `${event || 'local'} run` };
+    if (event !== 'pull_request') return area === 'browser' || area === 'ui-review' ? { run: false, reason: 'the browser suite and the UI review run on pull requests' } : { run: true, reason: `${event || 'local'} run` };
     if (!files) return { run: true, reason: 'could not list the changed files, running to be safe' };
     if (files.length === 0) return { run: true, reason: 'no changed files found, running to be safe' };
     const any = pred => files.some(pred);
     if (area === 'node') return files.every(f => isDocsOnly(f, { forNode: true })) ? { run: false, reason: 'only docs, changelog or workflow files changed' } : { run: true, reason: 'code or tested files changed' };
     if (area === 'dotnet') {
         return files.every(f => isDocsOnly(f) || NODE_ONLY_TESTS.some(re => re.test(f))) ? { run: false, reason: 'only docs, workflow files or node-only tests changed' } : { run: true, reason: 'code changed' };
+    }
+    if (area === 'ui-review') {
+        if (any(f => UI_REVIEW_PATHS.some(re => re.test(f)))) return { run: true, reason: 'element sources or Blazor mappings changed' };
+        if (any(f => UI_REVIEW_BASE_PATHS.some(re => re.test(f)))) return full ? { run: true, reason: 'base files changed and the label ui-review-full is set' } : { run: false, reason: 'only base files changed: a full review needs the label ui-review-full (the nightly sweep covers main)' };
+        return { run: false, reason: 'no element sources, Blazor mappings or base files changed' };
     }
     if (area === 'browser') return any(f => BROWSER_PATHS.some(re => re.test(f))) ? { run: true, reason: 'element or module sources, browser cases or the runner changed' } : { run: false, reason: 'no element or module sources, browser cases or runner changed' };
     return any(f => PACK_PATHS.some(re => re.test(f))) ? { run: true, reason: 'packaging inputs changed' } : { run: false, reason: 'no packaging inputs changed' };
@@ -63,7 +72,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (!AREAS.includes(area)) { console.error(`usage: node scripts/ci-changes.mjs <${AREAS.join('|')}>`); process.exit(2); }
     const event = process.env.GITHUB_EVENT_NAME;
     const files = event === 'pull_request' ? changedFiles(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')) : null;
-    const d = decide(area, { event, files });
+    const d = decide(area, { event, files, full: process.env.UI_REVIEW_FULL === 'true' });
     console.log(`${area}: ${d.run ? 'running' : 'skipped'} (${d.reason})${files ? `; ${files.length} changed file(s)` : ''}`);
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${d.run}\nreason=${d.reason}\n`);
     if (!d.run && process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Skipped: ${d.reason}.\n`);
