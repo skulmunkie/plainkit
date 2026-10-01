@@ -114,6 +114,32 @@ export function paintApi(doc, host, { baseline, current }) {
     host.replaceChildren(...parts);
 }
 
+// ---- composition by tier --------------------------------------------------------------------------------------------------
+
+const RULE_NAMES = { C1: 'names a higher tier', C4: 'an element renders a pk-* element', D1: 'raw tag with a pk-* equivalent', S3: 'class, className, classList', T1: 'unnamed structural div or span' };
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+// report: the build's tier report (tiers.current.json): elements per tier and baseline debt per rule and tier.
+export function paintTiers(doc, host, report) {
+    if (!report?.tiers) return missing(doc, host, 'tier report', 'Pass data.tiers: the report the build writes (tiers.current.json).');
+    const { tiers, rules, counts, debt } = report;
+    const debtOf = t => rules.reduce((n, r) => n + debt[r][t], 0);
+    host.replaceChildren(
+        row(doc, badge(doc, 'muted', `${report.total} elements`), badge(doc, report.debtTotal ? 'warn' : 'ok', `${report.debtTotal} baseline debt`)),
+        note(doc, 'Elements per composition tier (each meta.json tier) and the debt still in the two composition baselines (tiers.baseline.json and tier-tags.baseline.json). The baselines only shrink: a new finding fails the tests, so this number going down is the progress.'),
+        table(doc, {
+            label: 'Elements per tier',
+            columns: [text('tier', 'Tier'), num('elements', 'Elements'), num('debt', 'Baseline debt')],
+            rows: tiers.map((t, i) => ({ id: i + 1, tier: cap(t), elements: counts[t], debt: debtOf(t) })),
+        }),
+        table(doc, {
+            label: 'Baseline debt per rule and tier',
+            columns: [text('rule', 'Rule'), text('what', 'What'), ...tiers.map(t => num(t, cap(t))), num('total', 'Total')],
+            rows: rules.map((r, i) => ({ id: i + 1, rule: r, what: RULE_NAMES[r] ?? '', ...Object.fromEntries(tiers.map(t => [t, debt[r][t]])), total: tiers.reduce((n, t) => n + debt[r][t], 0) })),
+        }),
+    );
+}
+
 // ---- size sweep -----------------------------------------------------------------------------------------------------------
 
 export function paintSweep(doc, host, report) {

@@ -50,7 +50,7 @@ function running(frame) {
 }
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 60)));
 
-export async function startScenario({ name, root, state, measure, settle, loadElements, applyDynamic, registry, log }) {
+export async function startScenario({ name, root, state, measure, settle, pendingTimers, loadElements, applyDynamic, registry, log }) {
     if (!/^[a-z][a-z0-9-]*$/.test(name)) throw new Error(`"${name}" is not a scenario name`);
     try { localStorage.clear(); } catch (e) { log.debug('storage blocked; scenarios start without saved state', e); }
     const scenario = (await import(`./scenarios/${name}.js`)).default;
@@ -64,9 +64,9 @@ export async function startScenario({ name, root, state, measure, settle, loadEl
     await loadElements(frame, { registry });
     await Promise.all([...new Set([...frame.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
     const quiet = async () => {
-        await settle();
+        await settle(0); // the loop below is the wait for quiet
         let prev = signature(frame);
-        for (let i = 0; i < 40; i++) { await tick(); const now = signature(frame); if (now === prev && !running(frame)) return; prev = now; }
+        for (let i = 0; i < 40; i++) { await tick(); const now = signature(frame); if (now === prev && !running(frame) && !pendingTimers.size) return; prev = now; }
         log.warn(`scenario ${name}: the page was still changing after 40 frames`);
     };
     await quiet();

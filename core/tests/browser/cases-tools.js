@@ -85,6 +85,24 @@ export const toolCases = [
         t.eq(results.find(i => i.name === 'Nameless').findings.map(f => f.check).join(), 'unnamed-input', 'no name is a failure');
         t.eq(results.find(i => i.name === 'Named').findings.length, 0, 'named icon buttons pass, and their 44px target is met');
     }],
+    ['scorecard module: the tiers section draws one row per tier and one per rule, with the numbers of the built report', async t => {
+        const { mountScorecard } = await dist('scorecard');
+        const report = await (await fetch(new URL('../../site/scorecard/tiers.current.json', import.meta.url))).json();
+        const host = t.stage('');
+        const card = await mountScorecard(host, { sections: ['tiers'], data: { tiers: new URL('../../site/scorecard/tiers.current.json', import.meta.url).href } });
+        await card.ready; await t.load(host); await t.settle();
+        const tables = [...host.querySelectorAll('pk-table')];
+        t.eq(tables.length, 2, 'the tier table and the rule table');
+        const rows = table => JSON.parse(table.getAttribute('rows'));
+        const [byTier, byRule] = tables.map(rows);
+        t.eq(byTier.map(r => r.tier.toLowerCase()).join(), report.tiers.join(), 'one row per tier');
+        t.eq(byTier.map(r => r.elements).join(), report.tiers.map(x => report.counts[x]).join(), 'element counts match the report');
+        t.eq(byTier.reduce((n, r) => n + r.elements, 0), report.total, 'the counts sum to the element count');
+        t.eq(byRule.map(r => r.rule).join(), report.rules.join(), 'one row per rule');
+        t.eq(byRule.reduce((n, r) => n + r.total, 0), report.debtTotal, 'the debt per rule sums to the baseline total');
+        t.ok(tables.every(x => x.getBoundingClientRect().width > 0 && x.getBoundingClientRect().height > 0), 'both tables are drawn');
+        card.destroy();
+    }],
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
