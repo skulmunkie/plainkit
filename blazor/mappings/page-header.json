@@ -89,5 +89,5 @@
     }
   ],
   "existing": true,
-  "notes": "Hand-written: Title maps to heading and falls back to the last crumb's label; Level starts at 1; SuffixContent is the default slot (beside the title)."
+  "notes": "Hand-written: Title maps to heading (and is also drawn as a slotted pk-heading in the title slot, level from Level, tabindex -1, like the JS page shell, #773) and falls back to the last crumb's label; Level starts at 1; SuffixContent is the default slot (beside the title)."
 }

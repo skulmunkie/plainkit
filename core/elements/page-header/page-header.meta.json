@@ -48,6 +48,10 @@
   ],
   "slots": [
     {
+      "name": "title",
+      "description": "A real heading element for the title (a pk-heading) in place of the built-in title text; set heading too so the title bar is drawn. The page shell (showTitleBar, so every built-in page type) slots a pk-heading level 1 here."
+    },
+    {
       "name": "",
       "description": "Beside the title: status chips, badges or your own heading element. In the record variant on a narrow container they drop to their own row under the title and actions."
     },
@@ -88,7 +92,7 @@
     },
     {
       "name": "title",
-      "description": "The title."
+      "description": "The built-in title text (hidden when the title slot is filled)."
     },
     {
       "name": "actions",
@@ -115,7 +119,7 @@
     },
     {
       "name": "--pk-page-header-title-size",
-      "description": "Title font size.",
+      "description": "Title font size (the built-in title text; a slotted pk-heading takes its own variant).",
       "default": "var(--text-lg)"
     },
     {
@@ -125,7 +129,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. The title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics. Any variant with no heading attribute renders single-row by default (unless spacious is set), with the last breadcrumb crumb (already aria-current=\"page\") standing in for the title; pk-page-header does not own pk-breadcrumb's slotted content, so it cannot add a heading role to that crumb for you — add role=\"heading\" and the matching aria-level (matching level) on that last crumb yourself, as in the record example below.",
+  "a11y": "The header is a header element, not a banner landmark, so it is safe inside main. With a slotted title (the page shell uses a pk-heading level 1, focusable with tabindex -1 so a route change can move focus to it) the title is that element's own real heading and the built-in text is hidden. Otherwise the title is exposed as a heading whose level you choose with level, so it fits the page outline (use 1 for a page, 2 or 3 for a section). Give the breadcrumb slot a pk-breadcrumb, which is its own labelled navigation landmark; a home crumb is an icon-only link first in that trail and needs an aria-label. Tabs in the tabs slot keep their own tablist semantics. Any variant with no heading attribute renders single-row by default (unless spacious is set), with the last breadcrumb crumb (already aria-current=\"page\") standing in for the title; pk-page-header does not own pk-breadcrumb's slotted content, so it cannot add a heading role to that crumb for you — add role=\"heading\" and the matching aria-level (matching level) on that last crumb yourself, as in the record example below.",
   "examples": [
     {
       "title": "Page: crumbs, title and actions",

@@ -50,6 +50,13 @@ export function showTitleBar(host, box, cfg = host.config) {
             header.append(tip);
         } else header.append(btn);
     }
+    if (heading) {
+        // The title is a real heading element (#773): a light-DOM pk-heading level 1, so the outline has its h1 and a route change has something to focus (tabindex -1 is the shell's, not the element's API).
+        const title = doc.createElement('pk-heading');
+        for (const [k, v] of Object.entries({ slot: 'title', level: 1, weight: 'semibold', variant: 'h3', tabindex: -1 })) title.setAttribute(k, v);
+        title.textContent = heading;
+        header.append(title);
+    }
     box.append(header);
     loadElements(box);
 }

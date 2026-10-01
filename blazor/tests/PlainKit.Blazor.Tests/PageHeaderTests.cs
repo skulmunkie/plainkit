@@ -68,6 +68,19 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void An_explicit_Title_is_also_a_slotted_pk_heading_at_the_Level_and_focusable()
+    {
+        var cut = Render<PkPageHeader>(p => p.Add(x => x.Title, "Orders"));
+        var h = cut.Find("pk-page-header > pk-heading");
+
+        Assert.Equal("title", h.GetAttribute("slot"));
+        Assert.Equal("1", h.GetAttribute("level"));
+        Assert.Equal("-1", h.GetAttribute("tabindex"));
+        Assert.Equal("Orders", h.TextContent);
+        Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-heading"));
+    }
+
+    [Fact]
     public void Without_a_Title_the_heading_attribute_stays_unset_and_the_last_crumb_carries_the_heading_role_itself()
     {
         var cut = Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail));
