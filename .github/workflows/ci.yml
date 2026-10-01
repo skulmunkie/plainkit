@@ -16,7 +16,9 @@ name: CI
 #
 # There is no in-browser element-suite gate any more (issue #451): it required a committed attestation report (core/tests/browser/report.json)
 # that went stale on almost every branch touching an element, causing constant conflicts and re-runs for little benefit on a shared runner.
-# The suite itself (core/tests/browser/) still exists for local debugging; nothing in CI runs or gates on it.
+# The suite itself (core/tests/browser/) still runs locally; ordinary pull requests are still not gated on it. Two places run it so it stops rotting
+# (issue #752): the nightly workflow browser-nightly.yml (files or updates an issue on failure) and the job `browser-release` below, which runs only on a
+# release pull request (head branch release/*) and has no report file to go stale. The owner makes "Browser suite (release)" a required check.
 on:
   push:
     branches: [main]
@@ -287,6 +289,33 @@ jobs:
       - name: Time budget
         if: always() && steps.gate.outputs.run == 'true'
         run: node scripts/verify.mjs --budget scorecard
+
+  # The in-browser element suite (core/tests/browser/, about 3 minutes, node scripts/verify.mjs --only browser) on a RELEASE pull request only: head branch
+  # release/X.Y.Z (CONTRIBUTING.md, "Versioning and releases"). On any other pull request this job is skipped, and a skipped required check counts as passed.
+  # The required-check status is the owner's repository setting (.github/REPO-SETTINGS.md): add "Browser suite (release)". Not in the CI summary's needs.
+  browser-release:
+    name: Browser suite (release)
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+      PK_CHROME_FLAGS: --no-sandbox
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      - name: In-browser element suite (node scripts/verify.mjs --only browser)
+        run: node scripts/verify.mjs --only browser
 
   # One sticky comment on the pull request (marker <!-- ci-summary -->, created or updated, never a new one per push): what failed, the FIX line of each
   # failed check, the log links, and the whole run's time against its 60 s budget. Text and rules: scripts/ci-report.mjs. Only this job may write
