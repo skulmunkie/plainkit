@@ -42,7 +42,7 @@ test('the baseline has no stale entry (a fixed finding is removed from it)', () 
 test('the rules detect what they claim', () => {
     const el = (name, tier, extra = {}) => ({ name, meta: { tag: `pk-${name}`, tier, ...extra }, template: '', css: '', behaviour: extra.behaviour ?? '' });
     const up = checkTiers([el('a', 'element', { behaviour: "h.innerHTML = '<pk-b></pk-b>'; // pk-c in a comment" }), el('b', 'component'), el('c', 'page', { pageType: 'x' })], [{ id: 'x', source: '' }]);
-    assert.deepEqual(up.map(f => f.rule + ':' + f.ref), ['C1:pk-b', 'C3:pk-c']);
+    assert.deepEqual(up.map(f => f.rule + ':' + f.ref), ['C1:pk-b', 'C4:pk-b', 'C3:pk-c']);
     assert.equal(checkTiers([el('b', 'component'), el('a', 'page', { pageType: 'x' })], [{ id: 'x', source: "createElement('pk-a')" }]).length, 0);
     assert.equal(checkTiers([el('a', 'page', { pageType: 'nope' })], []).length, 1);
     // C4: an element renders no pk-*; lookups and events are not rendering; a component may render one; imported js/ helpers count, one level deep.
