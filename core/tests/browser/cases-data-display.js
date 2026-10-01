@@ -631,16 +631,30 @@ export const dataDisplayCases = [
         const q = await until(() => cell(2, 'qty').querySelector('input'), 'the editor opened by typing');
         t.eq(q.value, '7', 'typing a character did not replace the cell content with it');
     }],
-    ['table (editable): a switch column draws a pk-switch (no bare checkbox), and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
-        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed","editor":"switch"}]' rows='[{"id":1,"name":"Widget number one","qty":4,"on":true},{"id":2,"name":"Gadget number two","qty":9,"on":false}]'></pk-table></div>`);
+    // Issue 765: the built-in `switch` editor was removed (a table renders no other pk-* element); a switch is a pk-switch the host slots into a cell, which the table treats as read-only and host-owned.
+    ['table (editable): a host-slotted pk-switch column is read-only to the table, adds no tab stop, toggles from the keyboard and reports its change to the host, and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
+        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed"}]' rows='[{"id":1,"name":"Widget number one","qty":4},{"id":2,"name":"Gadget number two","qty":9}]'><pk-switch slot="cell-1-on" tabindex="-1" checked><span class="u-sr-only">Listed, row 1</span></pk-switch><span slot="cell-2-on" class="u-contents"><pk-switch tabindex="-1"><span class="u-sr-only">Listed, row 2</span></pk-switch></span></pk-table></div>`);
         host.firstElementChild.style.inlineSize = '320px';
         await t.load(host);
         const el = host.querySelector('pk-table'); await t.settle();
         const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
         const widths = () => [...el.shadowRoot.querySelectorAll('thead th')].map(h => Math.round(h.getBoundingClientRect().width));
-        await until(() => cell(1, 'on')?.querySelector('pk-switch'), 'the pk-switch');
-        t.ok(!cell(1, 'on').querySelector('input'), 'no bare checkbox in the switch column');
-        t.ok(cell(1, 'on').querySelector('pk-switch').checked === true, 'the switch shows the value');
+        await until(() => cell(1, 'on')?.querySelector('slot'), 'the slotted cell');
+        const sw = el.querySelector('pk-switch'), changes = [], press = (n, k) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        el.addEventListener('pk-change', e => changes.push(e.detail.checked));
+        t.eq(cell(1, 'on').getAttribute('aria-readonly'), 'true', 'a slotted cell is not read-only to the table');
+        t.ok(!el.shadowRoot.querySelector('pk-switch'), 'the table drew a pk-switch itself');
+        t.ok(sw.checked === true, 'the slotted switch lost its own state');
+        // Space on the cell moves focus to the control (also through a wrapper element, as the Blazor cell template renders one); Space again toggles it and the event reaches the host.
+        cell(1, 'on').focus(); press(cell(1, 'on'), ' ');
+        await until(() => document.activeElement === sw, 'focus on the slotted switch');
+        sw.shadowRoot.querySelector('button').click();
+        t.eq(changes.join(), 'false', 'the slotted switch change did not reach the host');
+        cell(2, 'on').focus(); press(cell(2, 'on'), ' ');
+        await until(() => document.activeElement === el.querySelector('span pk-switch'), 'focus on the switch inside the wrapper');
+        // Escape in the control hands focus back to the cell.
+        sw.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true, cancelable: true }));
+        t.ok(el.shadowRoot.activeElement === cell(1, 'on') || cell(1, 'on').matches(':focus'), 'Escape in the slotted control did not return focus to the cell');
         const before = widths();
         cell(2, 'qty').focus(); cell(2, 'qty').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
         const q = await until(() => cell(2, 'qty').querySelector('input'), 'the editor');

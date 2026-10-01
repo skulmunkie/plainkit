@@ -7,7 +7,6 @@
     { "rule": "C4", "element": "card", "ref": "pk-button", "note": "js/page-states.js renderState; to be extracted" },
     { "rule": "C4", "element": "card", "ref": "pk-empty-state", "note": "js/page-states.js renderState; to be extracted" },
     { "rule": "C4", "element": "card", "ref": "pk-skeleton", "note": "js/page-states.js renderState; to be extracted" },
-    { "rule": "C4", "element": "dialog", "ref": "pk-button", "note": "static helper: decision deferred, see #736" },
-    { "rule": "C4", "element": "table", "ref": "pk-switch", "note": "js/table-edit.js switch editor; to be extracted" }
+    { "rule": "C4", "element": "dialog", "ref": "pk-button", "note": "static helper: decision deferred, see #736" }
   ]
 }
