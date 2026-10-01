@@ -90,7 +90,7 @@ export const CHECKS = [
         cause: 'a build error, a failing test, or a generated file missing or stale',
         fix: 'run `node scripts/bootstrap.mjs`, then `dotnet test PlainKit.slnx --configuration Release` and fix the first error' },
     { id: 'browser', group: 'browser', needs: ['bootstrap'], fast: false, cmd: () => [NODE, 'scripts/attest-browser.mjs'],
-        cause: 'an element case failed in a real browser (this is a local-only manual check; nothing gates on it, issue #451)',
+        cause: 'an element case failed in a real browser (not gated on ordinary pull requests, issue #451; a nightly run files an issue and a release pull request must pass it, issue #752)',
         fix: 'run `node scripts/attest-browser.mjs` and fix the element (never weaken the case); `core/tests/browser/report.json` is local-only scratch output, do not commit it' },
     { id: 'scorecard', group: 'scorecard', needs: ['bootstrap'], fast: false, cmd: scorecardCmd,
         cause: 'the SDK Scorecard quality run found an error-severity finding (layout, spacing, touch targets, focus or contrast) on some gallery example',

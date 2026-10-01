@@ -59,9 +59,11 @@ Green CI does not say a layout looks right (the record header in #311 and a chev
 
 ### The in-browser element suite
 
-Not gated by CI or a commit requirement any more (issue #451: the committed attestation report went stale on almost every branch touching an
-element, causing constant conflicts and re-runs for little benefit on a shared runner). Run it locally when you want the real-DOM coverage a
-change needs: `node scripts/attest-browser.mjs` (or `node core/tools/serve.mjs 5341 --write-reports`, open `http://localhost:5341/tests/browser/`
+Still not gated on ordinary pull requests (issue #451: the committed attestation report went stale on almost every branch touching an
+element, causing constant conflicts and re-runs for little benefit on a shared runner), but it no longer rots unseen (issue #752): the workflow
+`browser-nightly.yml` runs it on `main` every night and files or updates one issue, "In-browser suite failing on main" (comments with the run URL and the
+failing cases, and a comment when it is green again; the owner closes it), and the job "Browser suite (release)" runs it on a release pull request (head
+branch `release/*`), where the owner's branch rule requires it. Run it locally when you want the real-DOM coverage a change needs: `node scripts/attest-browser.mjs` (or `node core/tools/serve.mjs 5341 --write-reports`, open `http://localhost:5341/tests/browser/`
 in a visible tab, wait for "report saved"). The report it writes, `core/tests/browser/report.json`, is local scratch output — gitignored, never
 committed. If a case fails, fix the cause; never weaken the case.
 
@@ -92,7 +94,7 @@ Rules:
 | `audit` (job `node`) | a conformance-audit rule or CLI test failed (core/tools/audit/, core/tools/strict/), including the plain-html/strict-clean fixture snapshots under core/tests/audit-fixtures/ | run the failing file alone with `node --test <file>` (its path is in the output); fix the rule or the CLI, not the fixture, unless the fixture itself is wrong |
 | `audit-modules` (job `node`) | a new finding from the `module` ruleset against core/site/**/core/modules/** (not already in plainkit.audit.modules.baseline.json) | run `node scripts/audit-modules.mjs` to see the finding and its FIX line; fix the source (never edit the baseline to hide a new finding - only `--update-baseline` after fixing accepted legacy debt may touch it) |
 | `dotnet` (job `dotnet`) | a build error, a failing test, or a generated file missing or stale | run `node scripts/bootstrap.mjs`, then `dotnet test PlainKit.slnx --configuration Release` and fix the first error |
-| `browser` (job `browser`) | an element case failed in a real browser (this is a local-only manual check; nothing gates on it, issue #451) | run `node scripts/attest-browser.mjs` and fix the element (never weaken the case); `core/tests/browser/report.json` is local-only scratch output, do not commit it |
+| `browser` (job `browser`) | an element case failed in a real browser (not gated on ordinary pull requests, issue #451; a nightly run files an issue and a release pull request must pass it, issue #752) | run `node scripts/attest-browser.mjs` and fix the element (never weaken the case); `core/tests/browser/report.json` is local-only scratch output, do not commit it |
 | `scorecard` (job `scorecard`) | the SDK Scorecard quality run found an error-severity finding (layout, spacing, touch targets, focus or contrast) on some gallery example | run `node scripts/scorecard-sweep.mjs --only quality`, open the scorecard page it names (`site/scorecard/index.html`) to see every finding, and fix the element (never weaken or allow-list a finding); a genuinely pre-existing, already-tracked issue can stay a warning (severity `warn` never fails this check), but a new error does |
 | `pack` (job `pack`) | the package has `content/` or `contentFiles/` entries, lacks the static web assets or skills, or has the wrong version | run `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>` then `node scripts/check-package.mjs <dir>`, and change `PlainKit.Blazor.csproj` as the message says |
 <!-- verify-fix-table:end -->
