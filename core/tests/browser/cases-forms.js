@@ -569,7 +569,7 @@ export const formCases = [
         for (const id of ['a', 'b']) {
             const c = host.querySelector('#' + id); c.part(id === 'a' ? 'control' : 'trigger').click(); await t.settle(); t.ok(c.open);
             const pop = c.part('popup'), r = pop.getBoundingClientRect(), o = pop.querySelectorAll('.op')[2].getBoundingClientRect();
-            t.ok(r.height > 100, id + ': the list is ' + Math.round(r.height) + 'px tall');
+            t.ok(r.height > 70, id + ': the list is ' + Math.round(r.height) + 'px tall, taller than the 70px card that would clip it');
             const hit = document.elementFromPoint(o.left + o.width / 2, o.top + o.height / 2); t.ok(hit === c || c.contains(hit) || hit?.getRootNode?.().host === c, id + ': the last option is hit-testable: an overflow-hidden ancestor would cut it off');
             c.open = false; await t.settle();
         }
