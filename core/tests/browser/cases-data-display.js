@@ -633,7 +633,7 @@ export const dataDisplayCases = [
     }],
     // Issue 765: the built-in `switch` editor was removed (a table renders no other pk-* element); a switch is a pk-switch the host slots into a cell, which the table treats as read-only and host-owned.
     ['table (editable): a host-slotted pk-switch column is read-only to the table, adds no tab stop, toggles from the keyboard and reports its change to the host, and an edited cell with a validation message keeps every column width on a narrow frame', async t => {
-        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed"}]' rows='[{"id":1,"name":"Widget number one","qty":4},{"id":2,"name":"Gadget number two","qty":9}]'><pk-switch slot="cell-1-on" tabindex="-1" checked>Listed, row 1</pk-switch><span slot="cell-2-on" class="u-contents"><pk-switch tabindex="-1">Listed, row 2</pk-switch></span></pk-table></div>`);
+        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"},{"key":"on","label":"Listed"}]' rows='[{"id":1,"name":"Widget number one","qty":4},{"id":2,"name":"Gadget number two","qty":9}]'><pk-switch slot="cell-1-on" tabindex="-1" checked><span class="u-sr-only">Listed, row 1</span></pk-switch><span slot="cell-2-on" class="u-contents"><pk-switch tabindex="-1"><span class="u-sr-only">Listed, row 2</span></pk-switch></span></pk-table></div>`);
         host.firstElementChild.style.inlineSize = '320px';
         await t.load(host);
         const el = host.querySelector('pk-table'); await t.settle();

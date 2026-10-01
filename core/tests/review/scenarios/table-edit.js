@@ -14,7 +14,7 @@ const rows = JSON.stringify([
     { id: 2, sku: 'AC-1002', name: 'Widget number two', qty: 0, status: 'Draft', listed: false },
     { id: 3, sku: 'AC-1003', name: 'Widget number three', qty: 48, status: 'Retired', listed: false },
 ]);
-const switches = [1, 2, 3].map(n => `<pk-switch slot="cell-${n}-listed" tabindex="-1" ${n === 1 ? 'checked' : ''}>Listed, row ${n}</pk-switch>`).join('');
+const switches = [1, 2, 3].map(n => `<pk-switch slot="cell-${n}-listed" tabindex="-1" ${n === 1 ? 'checked' : ''}><span class=\"u-sr-only\">Listed, row ${n}</span></pk-switch>`).join('');
 const th = k => `#g >>> thead th:nth-child(${['sku', 'name', 'qty', 'status', 'listed'].indexOf(k) + 1})`;
 const wide = t => ['sku', 'name', 'qty', 'status', 'listed'].map(k => Math.round(t.rect(th(k)).width)).join();
 const rest = {};

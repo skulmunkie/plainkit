@@ -79,7 +79,7 @@
       "name": "Editable",
       "prop": "editable",
       "type": "bool",
-      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit."
+      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name (its text, in a u-sr-only span) in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit."
     },
     {
       "name": "CellErrors",
