@@ -5,13 +5,13 @@
 export const PAGE_TYPE = {
     id: 'list',
     summary: 'A filterable, sortable, paginated table with row actions.',
-    configKeys: ['columns', 'filters', 'actions', 'empty', 'pageSize', 'load', 'rowHref'],
+    configKeys: ['heading', 'breadcrumb', 'columns', 'filters', 'actions', 'empty', 'pageSize', 'load', 'rowHref'],
     states: ['empty'],
     useWhen: 'A collection the user filters, sorts and opens: table plus toolbar plus row actions.',
 };
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-list-page');
-    el.config = { columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize };
+    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize };
     if (config.load) el.load = query => config.load(query, ctx);
     if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
     host.append(el);
