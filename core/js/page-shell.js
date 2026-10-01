@@ -28,18 +28,21 @@ export function titleHeading(doc, text, { focusable = true, plain = false } = {}
 
 /**
  * Mounts a built-in page element `el` in `host` with its title: the host owns the light DOM, so the factory appends the pk-heading (titleHeading), and waits until the
- * page element is defined so its title bar is drawn (and focusable) when mountPage resolves, which is when the app moves focus to the title.
+ * title bar's elements are defined, so the title bar is drawn (and focusable) when mountPage resolves, which is when the app moves focus to the title.
  */
 export function mountTitled(host, el, text, opts) {
-    if (text) el.append(titleHeading(host.ownerDocument, text, opts));
-    host.append(el);
-    const win = host.ownerDocument.defaultView;
-    const cleanup = () => el.remove();
-    if (!win) return cleanup;
-    loadElements(host);
-    const ready = Promise.all([el.localName, 'pk-heading'].map(n => win.customElements.whenDefined(n)));
-    // The cleanup is also a thenable: awaiting the factory (mountPage does) waits until the page element and pk-heading are defined, so the title bar is drawn and focusable, then yields a plain cleanup.
-    return Object.assign(cleanup, { then: (ok, no) => ready.then(() => ok(() => el.remove()), no) });
+    let dead = false;
+    const doc = host.ownerDocument, win = doc.defaultView, stop = () => { dead = true; el.remove(); }, cleanup = () => stop();
+    if (text) el.append(titleHeading(doc, text, opts));
+    if (!win) { host.append(el); return cleanup; }
+    // Appended once the elements the title bar needs are defined (found in a detached tree), so the bar is drawn with the page and the content under it never shifts down.
+    const probe = doc.createElement('div'), tags = [el.localName, 'pk-heading'];
+    probe.append(el);
+    if (text && !opts?.plain) { probe.append(doc.createElement('pk-page-header')); tags.push('pk-page-header'); }
+    loadElements(probe);
+    const ready = Promise.all(tags.map(n => win.customElements.whenDefined(n))).then(() => { if (!dead) host.append(el); });
+    // The cleanup is also a thenable: awaiting the factory (mountPage does) waits until the page is in, then yields a plain cleanup.
+    return Object.assign(cleanup, { then: (ok, no) => ready.then(() => ok(stop), no) });
 }
 
 /**
