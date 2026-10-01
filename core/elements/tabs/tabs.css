@@ -10,12 +10,9 @@
 :host([overflow="menu"]) [part="list"] { overflow-x: hidden; }
 :host([overflow="menu"]) ::slotted(pk-tab[data-overflow-hidden]) { display: none; }
 [part="more"] { flex: none; }
-[part="more-trigger"] { min-width: 2rem; min-height: 2rem; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
-[part="more-trigger"]::before { content: "\2026"; }
-[part="more-trigger"]:hover { background: var(--color-surface-alt); }
-[part="more-trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+[part="more-trigger"] { --pk-button-padding: 0 var(--space-2); }
 /* The fade sits on the side that has more tabs: end is the right edge, start the left (mirrored when data-rtl is set, where the more specific rules win). */
 [part="list"][data-fade="end"], [part="list"][data-rtl][data-fade="start"] { mask-image: linear-gradient(to right, black calc(100% - 1.75rem), transparent); }
 [part="list"][data-fade="start"], [part="list"][data-rtl][data-fade="end"] { mask-image: linear-gradient(to right, transparent, black 1.75rem); }
 [part="list"][data-fade="both"] { mask-image: linear-gradient(to right, transparent, black 1.75rem, black calc(100% - 1.75rem), transparent); }
-@media (--phone) { [part="more-trigger"] { min-height: var(--touch-target); min-width: var(--touch-target); justify-content: center; } }
+@media (--phone) { [part="more-trigger"] { --pk-button-padding: var(--space-2) var(--space-4); } [part="more-trigger"]::part(control) { min-width: var(--touch-target); } }

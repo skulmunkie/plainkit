@@ -241,7 +241,7 @@ node site/scorecard/static-audit.mjs
 
 ### The in-browser element suite
 
-`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so this suite is a local manual safety net: run it when you change an element source, `js/element*.js`, `js/loader.js` or a browser case. Nothing in CI or the node tests compares it with the sources, and `tests/browser/report.json` is local scratch output (not committed).
+`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so run it locally when you change an element source, `js/element*.js`, `js/loader.js` or a browser case. It is not gated on ordinary pull requests: a nightly workflow (`browser-nightly.yml`) runs it on `main` and files or updates the issue "In-browser suite failing on main" (the owner closes it), and the job "Browser suite (release)" runs it on release pull requests, where the owner's branch rule requires it (issue #752). Nothing compares it with the sources, and `tests/browser/report.json` is local scratch output (not committed).
 
 One command does the whole procedure (from the repository root; Node only, no browser package; it needs an installed Chrome, Chromium or Edge, found by `PK_CHROME` or the usual install paths):
 

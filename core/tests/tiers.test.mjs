@@ -20,7 +20,8 @@ const factories = fs.readdirSync(pagesDir).filter(f => f.endsWith('.js')).map(f 
 const elements = loadElementSources();
 const jsDir = path.join(root, 'js');
 const helpers = Object.fromEntries(fs.readdirSync(jsDir).filter(f => f.endsWith('.js')).map(f => [f, fs.readFileSync(path.join(jsDir, f), 'utf8')]));
-const findings = () => checkTiers(elements, factories, helpers);
+const helperList = JSON.parse(fs.readFileSync(path.join(root, 'tools/tiers.helpers.json'), 'utf8')).helpers;
+const findings = () => checkTiers(elements, factories, helpers, helperList);
 const baseline = JSON.parse(fs.readFileSync(path.join(root, 'tools/tiers.baseline.json'), 'utf8')).entries;
 
 test('every page factory with a PAGE_TYPE is found', () => {
@@ -52,5 +53,17 @@ test('the rules detect what they claim', () => {
     assert.deepEqual(c4('element', "import { r } from '../../js/help.js';", { 'help.js': "h(doc, 'pk-x', {})" }), ['C4:pk-x']);
     assert.deepEqual(c4('element', "this.closest('pk-x'); customElements.whenDefined('pk-x'); customElements.get('pk-x'); el.localName === 'pk-x'; this.emit('pk-toggle'); // <pk-x>"), []);
     assert.deepEqual(c4('component', "document.createElement('pk-x')"), []);
+    // C4 static helpers (#766): a listed helper may create pk-*; the same code elsewhere, or in the element's own rendering, still fails; the list cannot rot.
+    const helper = "const mk = (l) => { const b = document.createElement('pk-x'); return b; };";
+    const list = (behaviour, l = { a: ['mk'] }) => checkTiers([el('a', 'element', { behaviour }), el('x', 'element')], [], {}, l).map(f => f.rule + ':' + f.ref);
+    assert.deepEqual(list(helper), []);
+    assert.deepEqual(list(helper, {}), ['C4:pk-x']);
+    assert.deepEqual(list(helper.replace('mk', 'other')), ['C4-helper:mk', 'C4:pk-x']);
+    assert.deepEqual(list(helper + "\nfunction other() { document.createElement('pk-x'); }"), ['C4:pk-x']);
+    assert.deepEqual(list(helper + "\nclass A {\nconnected() { this.append(document.createElement('pk-x')); } }"), ['C4:pk-x']);
+    assert.deepEqual(list(helper + "\nclass A {\nconnected() { mk('a'); } }"), ['C4-helper:mk']);
+    assert.deepEqual(list("const mk = (l) => { return 1; };"), ['C4-helper:mk']);
+    assert.deepEqual(list(helper + "\nimport '../x/x.element.js';"), ['C4-helper:a']);
+    assert.deepEqual(list(helper, { nope: ['mk'] }), ['C4-helper:nope', 'C4:pk-x']);
     assert.equal(checkTiers([el('a', 'page', { pageType: 'x' }), el('b', 'page', { pageType: 'x' })], [{ id: 'x', source: 'pk-a pk-b' }]).length, 1);
 });
