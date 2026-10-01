@@ -120,3 +120,18 @@ export function checkTiers(elements, factories, helpers = {}, helperList = {}) {
 }
 
 export const key = f => `${f.rule} ${f.element} ${f.ref}`;
+
+// C2 "tier equals folder" (#767, spec phases 5-6). Pure and gated per tier folder: a tier is checked only once its folder exists, so the rule is inert until
+// the first batch of scripts/move-tiers.mjs lands and then turns on tier by tier. `items` are { name, tier, folder } (folder = the top folder that holds the
+// element: 'elements', 'components', 'pages' or 'shells'); `existing` is the set of tier folders present on disk. Not wired to loadElementSources yet (it
+// does not report the folder); the batch that creates a folder wires it and removes this note.
+export const TIER_FOLDER = { element: 'elements', component: 'components', page: 'pages', shell: 'shells' };
+export function checkFolders(items, existing) {
+    const out = [];
+    for (const it of items) {
+        const want = TIER_FOLDER[it.tier];
+        if (!want || (want !== 'elements' && !existing.has(want))) continue;
+        if (it.folder !== want) out.push({ rule: 'C2', element: it.name, ref: it.folder, message: `${it.name} is tier ${it.tier}, so it lives in core/${want}/, not core/${it.folder}/` });
+    }
+    return out;
+}
