@@ -22,11 +22,11 @@ async function demo(t, width, { hash = '#/orders', app = 'index.html', search = 
     f.src = new URL(`../../samples/app/${app}${search}${hash}`, import.meta.url).href;
     await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
     const win = f.contentWindow, d = win.document;
-    await until(() => d.querySelector('#pk-main h1'), 'the first page');
+    await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the first page');
     await Promise.all(['pk-app-shell', 'pk-navbar', 'pk-app-bar-search'].map(tag => win.customElements.whenDefined(tag)));
     if (d.querySelector('pk-side-nav')) await win.customElements.whenDefined('pk-side-nav');
     await wait(200);
-    const go = async to => { win.location.hash = to; await wait(50); await until(() => d.querySelector('#pk-main h1') && !d.querySelector('pk-loading-overlay[busy]'), `the page at ${to}`); await wait(120); };
+    const go = async to => { win.location.hash = to; await wait(50); await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])') && !d.querySelector('pk-loading-overlay[busy]'), `the page at ${to}`); await wait(120); };
     return { win, d, go, main: () => d.querySelector('#pk-main'), nav: () => d.querySelector('#pk-nav') };
 }
 
@@ -41,7 +41,7 @@ export const appShellCases = [
         t.ok(s.nav().open, 'the hamburger opens the drawer');
         for (const id of MODULES) t.ok(s.d.querySelector(`pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
-        await until(() => s.d.querySelector('#pk-main h1')?.textContent === 'Summary', 'the reports page');
+        await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
         await wait(300);
         t.ok(!s.nav().open, 'choosing a module closes the drawer');
         t.ok(s.win.location.hash.startsWith('#/reports'), 'the address changed');
@@ -65,19 +65,19 @@ export const appShellCases = [
         const s = await demo(t, 1280, { hash: '#/orders' });
         const d = s.d;
         t.eq(d.querySelectorAll('main').length, 1, 'one main landmark');
-        t.eq(d.querySelectorAll('#pk-main h1').length, 1, 'one h1');
+        t.eq(d.querySelectorAll('#pk-main :is(h1, pk-heading[level="1"])').length, 1, 'one h1');
         t.ok(d.querySelector('#app').firstElementChild.localName === 'pk-skip-link', 'the skip link is the first thing in the page');
         t.ok(d.querySelector('pk-skip-link[href="#pk-main"]') && d.querySelector('pk-skip-link[href="#pk-nav"]'), 'skip links to the content and to the menu');
         t.eq(d.querySelector('pk-navbar').shadowRoot.querySelector('nav').getAttribute('aria-label'), 'Main');
         await s.go('#/orders/8');
-        t.eq(d.activeElement, d.querySelector('#pk-main h1'), 'focus is on the page heading');
+        t.eq(d.activeElement, d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'focus is on the page heading');
         t.eq(d.querySelector('[role="status"]').textContent, 'Order 8, page loaded');
         t.eq(d.title, 'Order 8 - Demo app');
         t.ok(d.querySelector('pk-nav-item[current][href="#/orders"]'), "the list's entry stays current for its record");
         t.eq([...d.querySelectorAll('pk-breadcrumb a')].map(a => a.textContent).join(' > '), 'Demo app > Orders > Order 8', 'the trail is App > Module > the record');
         t.eq(d.querySelector('pk-breadcrumb a:last-child').hasAttribute('href'), false, 'the current page is not a link');
         await s.go('#/orders/8?x=1');
-        t.ok(d.querySelector('#pk-main h1'), 'a query change re-shows the page');
+        t.ok(d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'a query change re-shows the page');
     }],
 
     ['mountApp: hovering a module link for 100 ms fetches its chunk before it is chosen, and choosing it then asks the network for nothing', async t => {
@@ -87,15 +87,34 @@ export const appShellCases = [
         s.d.querySelector('pk-nav-item[data-module="reports"]').dispatchEvent(new s.win.PointerEvent('pointerover', { bubbles: true, composed: true }));
         await until(() => fetched('reports') === 1, 'the prefetch', 30);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
-        await until(() => s.d.querySelector('#pk-main h1')?.textContent === 'Summary', 'the reports page');
+        await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
         t.eq(fetched('reports'), 1, 'choosing the module did not fetch its chunk again');
+    }],
+
+    ['mountApp: a built-in page title is one light-DOM pk-heading level 1 on the page element (slotted into its pk-page-header), a real h1 in its shadow tree, focused after a route change and drawn in the title size', async t => {
+        const s = await demo(t, 1280, { hash: '#/orders' });
+        await s.go('#/orders/8');
+        const title = s.d.querySelectorAll('#pk-main pk-heading[level="1"]');
+        t.eq(title.length, 1, 'one level-1 title');
+        t.eq(s.d.querySelectorAll('#pk-main h1').length, 0, 'no raw h1 beside it');
+        const h = title[0], page = h.parentElement, header = page.shadowRoot.querySelector('pk-page-header'), inner = h.shadowRoot.querySelector('h1');
+        t.ok(inner, 'its shadow tree holds a real h1');
+        t.ok(header && h.assignedSlot, 'the page element forwards it into its pk-page-header');
+        t.eq(h.getAttribute('slot'), 'title', 'in the title slot');
+        t.eq(h.getAttribute('tabindex'), '-1', 'focusable by script only');
+        t.eq(s.d.activeElement, h, 'focus is on the title');
+        t.ok(header.shadowRoot.querySelector('[role="heading"]')?.hidden !== false, 'the header shows no second heading of its own');
+        const fs = parseFloat(s.win.getComputedStyle(inner).fontSize), root = parseFloat(s.win.getComputedStyle(s.d.documentElement).fontSize);
+        t.ok(Math.abs(fs - 1.17 * root) < 1, `the title is in the h3 title size (${fs}px)`);
+        const r = h.getBoundingClientRect(), hr = header.getBoundingClientRect();
+        t.ok(r.top >= hr.top && r.bottom <= hr.bottom && r.height > 0, 'the title sits inside the header');
     }],
 
     ['mountApp: after a route change the focused heading shows a ring that hugs its text and stays inside the page, at 375 and 1280', async t => {
         for (const w of [375, 1280]) {
             const s = await demo(t, w, { hash: '#/orders' });
             await s.go('#/orders/8');
-            const h1 = s.d.querySelector('#pk-main h1'), main = s.d.querySelector('#pk-main');
+            const h1 = s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), main = s.d.querySelector('#pk-main');
             t.eq(s.d.activeElement, h1, `focus is on the heading at ${w}px`);
             const r = h1.getBoundingClientRect(), m = main.getBoundingClientRect(), body = s.d.querySelector('pk-app-shell').shadowRoot.querySelector('[part="body"]').getBoundingClientRect(), cs = s.win.getComputedStyle(h1);
             const reach = (parseFloat(cs.outlineOffset) || 0) + (parseFloat(cs.outlineWidth) || 0);
@@ -137,13 +156,13 @@ export const appShellCases = [
         const t0 = performance.now();
         let app = mountApp(el, config);
         const sync = performance.now() - t0; // what mountApp does before it returns: the whole work before the first paint
-        await until(() => el.querySelector('#pk-main h1'), 'the first app page'); await app.destroy();
+        await until(() => el.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the first app page'); await app.destroy();
         await t.settle(); await wait(100);
         const inst = instrument();
         let a, b;
         try {
             a = inst.snapshot();
-            for (let i = 0; i < 100; i++) { app = mountApp(el, config); await until(() => el.querySelector('#pk-main h1'), `page ${i}`); await app.destroy(); }
+            for (let i = 0; i < 100; i++) { app = mountApp(el, config); await until(() => el.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), `page ${i}`); await app.destroy(); }
             await t.settle(); await wait(100);
             b = inst.snapshot();
         } finally { inst.restore(); }

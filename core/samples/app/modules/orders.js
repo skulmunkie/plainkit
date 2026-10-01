@@ -25,6 +25,7 @@ const listFor = status => ({
 // A record page: `load` rejects for an id that does not exist, and the built-in type shows its own error state (with Retry) instead of a blank form.
 const recordConfig = {
     heading: 'Order',
+    title: 'Order',
     fields: FIELDS,
     editable: false,
     load: async id => {

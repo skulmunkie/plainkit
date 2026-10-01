@@ -9,11 +9,11 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'App or account configuration organised into sections, saved as a whole.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-settings-page');
     el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, sections: config.sections };
     if (config.values !== undefined) el.values = config.values;
     if (config.save) el.save = values => config.save(values, ctx);
-    host.append(el);
-    return () => el.remove();
+    return mountTitled(host, el, config.heading);
 };

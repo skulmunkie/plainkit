@@ -9,6 +9,7 @@ export const PAGE_TYPE = {
     states: ['none'],
     useWhen: 'A record opened beside its list rather than on its own page, such as an inbox.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-master-detail-page');
     const { list, backLabel, none, label, param = 'id', rowHref, listHref, load, mountDetail, fill } = config;
@@ -20,6 +21,5 @@ export default (host, config = {}, ctx) => {
     if (rowHref) el.open = row => ctx.navigate(rowHref(row));
     if (listHref) el.close = () => ctx.navigate(listHref);
     if (mountDetail) el.mountDetail = (pane, rid) => mountDetail(pane, rid, ctx);
-    host.append(el);
-    return () => el.remove();
+    return mountTitled(host, el, config.heading);
 };

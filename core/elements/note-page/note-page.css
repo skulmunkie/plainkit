@@ -1,2 +1,5 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
 [part="body"] > pk-stack { inline-size: 100%; }
+/* A light-DOM title (slot "title", from the factory) leads the stack and stands in for the built-in heading. */
+slot[name="title"] { display: contents; }
+::slotted([slot="title"]) { order: -1; }

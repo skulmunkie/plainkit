@@ -46,7 +46,6 @@ import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
-const PREFETCH_DELAY = 100;
 const LABELS = { 'not-found': 'Not found', forbidden: 'Not allowed', error: 'Something went wrong' }; // the last crumb of a page that is not a page
 
 export function mountApp(container, config) {
@@ -143,8 +142,8 @@ export function mountApp(container, config) {
         if (first) { first = false; return; }
         if (result === 'error') return; // the boundary's alert announces itself
         ui.live.textContent = `${label}, page loaded`;
-        const target = ui.main.querySelector('h1') ?? ui.main;
-        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main;
+        target.tabIndex = -1;
         target.focus({ preventScroll: true });
         ui.main.scrollIntoView?.({ block: 'nearest' });
     }
@@ -191,7 +190,7 @@ export function mountApp(container, config) {
         clearTimeout(timer);
         const entry = id && MODULE_ID.test(id) && entries.get(id);
         if (!entry || warm.has(id) || globalThis.navigator?.connection?.saveData) return;
-        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, PREFETCH_DELAY);
+        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, 100); // ms: the prefetch delay
     }
 
     return {

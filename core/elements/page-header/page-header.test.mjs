@@ -9,6 +9,7 @@ const html = read('./page-header.html'), css = read('./page-header.css'), meta =
 test('the template is a header element with a heading-role title and the four slots, and no inline style', () => {
     assert.match(html, /<header[^>]*part="header"/);
     assert.match(html, /role="heading" aria-level="\{\{level\}\}"/);
+    assert.match(html, /<slot name="title"><\/slot>/);
     for (const s of ['breadcrumb', 'actions', 'meta']) assert.match(html, new RegExp(`<slot name="${s}">`));
     assert.match(html, /<slot><\/slot>/);
     assert.ok(!/\sstyle=/.test(html));
