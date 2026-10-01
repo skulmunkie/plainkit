@@ -675,7 +675,10 @@ export const toolCases = [
         await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item')?.part === 'function', 'pk-sortable-item to upgrade in the phone frame');
         const items = [...fdoc.querySelectorAll('.lb-canvas-sortable pk-sortable-item')];
         t.eq(items.length, 2);
-        const handle = items[0].part('handle'); const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
+        const handle = items[0].part('handle');
+        // the phone media rule enlarges the handle on the next style/layout pass; wait for it, then the assertion below still decides
+        await until(() => handle.getBoundingClientRect().width >= 43.5, 'the drag handle to take its phone size');
+        const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
         t.ok(rh.width >= 43.5 && rh.height >= 43.5, 'the drag handle is a 44px touch target at phone width');
         const ptr = (type, x, y) => handle.dispatchEvent(new win.PointerEvent(type, { pointerId: 41, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
         ptr('pointerdown', rh.left + rh.width / 2, rh.top + rh.height / 2);
