@@ -116,7 +116,7 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
     const { out } = build({ write: false });
     const registry = JSON.parse(out.get('dist/elements/registry.js').replace(/^[\s\S]*?export default /, '').replace(/;\s*$/, ''));
     assert.deepEqual(Object.keys(registry).sort(), elements.map(e => e.meta.tag).sort());
-    for (const el of elements) { assert.ok(out.has(`dist/elements/${el.name}.js`)); assert.ok(out.has(`elements/${el.name}/${el.name}.element.js`)); }
+    for (const el of elements) { assert.ok(out.has(`dist/elements/${el.name}.js`)); assert.ok(out.has(`${el.folder}/${el.name}/${el.name}.element.js`)); }
     const fouc = out.get('elements/elements.css');
     for (const el of elements) assert.ok(fouc.includes(`${el.meta.tag}:not(:defined)`), `${el.meta.tag} is hidden until defined`);
     assert.doesNotMatch(out.get('dist/plainkit.css'), /\.btn-primary:hover|\.card-header \{/, 'the primary sheet carries no class-based component rules');
@@ -128,8 +128,8 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
 test('generated element files on disk are the build output, and the build is deterministic (run node scripts/bootstrap.mjs)', () => {
     const { out } = build({ write: false });
     const again = build({ write: false }).out;
-    for (const el of elements) assert.equal(again.get(`elements/${el.name}/${el.name}.element.js`), out.get(`elements/${el.name}/${el.name}.element.js`), `${el.name}: two builds differ`);
-    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `elements/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
+    for (const el of elements) assert.equal(again.get(`${el.folder}/${el.name}/${el.name}.element.js`), out.get(`${el.folder}/${el.name}/${el.name}.element.js`), `${el.name}: two builds differ`);
+    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `${e.folder}/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
 });
 
 test('the element base stays small: element.js + element-core.js under 2.8 KB gzipped (comments and blank lines stripped)', () => {

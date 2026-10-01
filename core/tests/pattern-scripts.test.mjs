@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, loadSamples } from '../tools/build.mjs';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
@@ -14,7 +15,7 @@ const patterns = loadSamples().patterns;
 const withScript = patterns.filter(p => p.script);
 
 // Every real tag and every event the elements document.
-const metas = fs.readdirSync(path.join(root, 'elements'), { withFileTypes: true }).filter(d => d.isDirectory()).map(d => JSON.parse(read(`elements/${d.name}/${d.name}.meta.json`)));
+const metas = listElementFolders(root).map(d => JSON.parse(read(`${d.folder}/${d.name}/${d.name}.meta.json`)));
 const TAGS = new Set(metas.map(m => m.tag));
 const EVENTS = new Set(metas.flatMap(m => (m.events ?? []).map(e => e.name)));
 // Events every script may listen for: native ones the elements re-dispatch across the shadow boundary.

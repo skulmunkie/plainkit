@@ -12,6 +12,8 @@ import { frameUrl } from '../elements/gallery/gallery.js';
 import { safeSrc as gallerySrc } from '../elements/image-gallery/image-gallery.js';
 import { safeSrc as lightboxSrc } from '../elements/lightbox/lightbox.js';
 
+import { listElementFolders } from '../tools/element-folders.mjs';
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const JS = 'java' + 'script:alert(1)'; // assembled: the scanner (rightly) flags the literal address in source
@@ -64,8 +66,8 @@ test('pk-image-gallery and pk-lightbox show only same-site, http(s) and raster d
 
 test('no element sets an href from a property without going through js/safe-url.js', () => {
     const offenders = [];
-    for (const dir of fs.readdirSync(path.join(root, 'elements'))) {
-        const file = path.join(root, 'elements', dir, `${dir}.js`);
+    for (const { name: dir, dir: where } of listElementFolders(root)) {
+        const file = path.join(where, `${dir}.js`);
         if (!fs.existsSync(file)) continue;
         const text = fs.readFileSync(file, 'utf8');
         if (/setAttribute\(\s*['"]href['"]\s*,\s*(?:this\.|p\.)/.test(text)) offenders.push(`${dir}: sets href from a property`);

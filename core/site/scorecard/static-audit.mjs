@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { staticMetrics } from '../../js/audit.js';
 import { scoreAll } from '../../js/scoring.js';
+import { listElementFolders } from '../../tools/element-folders.mjs';
 import { SCORING, TEXT_PAIRS, EXCEPTIONS, PRIMARY_CSS } from './scoring.data.js';
 
 const sdkRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -26,7 +27,7 @@ export function readPlainkit(root = sdkRoot) {
     const walk = d => (fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)])) : []);
     const rel = f => path.relative(root, f).split(path.sep).join('/');
     const text = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
-    const elementFiles = walk(path.join(root, 'elements')).map(rel);
+    const elementFiles = listElementFolders(root).flatMap(e => walk(e.dir)).map(rel);
     const names = [...PRIMARY_CSS, ...elementFiles.filter(f => f.endsWith('.css') && !f.endsWith('elements.css'))];
     const cssFiles = Object.fromEntries(names.map(n => [n, text(path.join(root, n))]));
     // Script weight is what EVERY page loads: the closure of js/plainkit.js. Elements and their behaviour modules load on demand and

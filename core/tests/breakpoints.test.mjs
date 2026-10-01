@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { existingTierFolders } from '../tools/element-folders.mjs';
 import { parseBreakpoints, loadBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties } from '../tools/breakpoints.mjs';
 
 const core = fileURLToPath(new URL('..', import.meta.url));
@@ -112,7 +113,7 @@ test('no literal breakpoint remains: element CSS uses names, unbuilt CSS only th
     const files = dir => fs.readdirSync(core + dir, { recursive: true }).map(f => `${dir}/${f.replace(/\\/g, '/')}`);
     const problems = [];
     // Element CSS is built, so it names its breakpoints: any (min|max)-width or range condition with a px value in an @media is a literal.
-    for (const f of files('elements').filter(x => x.endsWith('.css'))) {
+    for (const f of [...existingTierFolders(core)].flatMap(files).filter(x => x.endsWith('.css'))) {
         for (const m of read(f).matchAll(/@media([^{;]*)\{/g)) if (/(?:min|max)-width\s*:|width\s*[<>]=?|\d+px/.test(m[1])) problems.push(`${f}: @media${m[1]}uses a literal width; write (--phone), (--above-phone), (--tablet)...`);
     }
     // CSS the site loads unbuilt cannot use a name; its literal widths must be a named one (or one above it).
@@ -124,7 +125,7 @@ test('no literal breakpoint remains: element CSS uses names, unbuilt CSS only th
         }
     }
     // Scripts read the widths through js/breakpoints.js.
-    const scripts = ['elements', 'js', 'modules', 'site', 'samples', 'layouts', 'tests/browser'].flatMap(files).filter(x => /\.(js|mjs)$/.test(x) && !/\.test\.mjs$/.test(x) && !x.endsWith('.element.js') && !x.endsWith('.data.js'));
+    const scripts = [...existingTierFolders(core), 'js', 'modules', 'site', 'samples', 'layouts', 'tests/browser'].flatMap(files).filter(x => /\.(js|mjs)$/.test(x) && !/\.test\.mjs$/.test(x) && !x.endsWith('.element.js') && !x.endsWith('.data.js'));
     for (const f of scripts) if (/matchMedia\(\s*[`'"][^)]*(?:min|max)-width/.test(read(f))) problems.push(`${f}: matchMedia with a literal width; use mediaBelow('phone') from js/breakpoints.js`);
     assert.deepEqual(problems, []);
 });

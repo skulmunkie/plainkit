@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TIER_FOLDERS } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -44,7 +45,7 @@ test('the scanner finds empty handlers, a comment included, and accepts a log ca
 
 test('no runtime source has a silent catch', () => {
     const bad = [];
-    for (const top of ['js', 'elements', 'modules', 'site', 'samples']) {
+    for (const top of ['js', ...TIER_FOLDERS, 'modules', 'site', 'samples']) {
         const dir = path.join(root, top);
         if (!fs.existsSync(dir)) continue;
         for (const rel of walk(dir)) for (const line of emptyHandlers(fs.readFileSync(path.join(dir, rel), 'utf8').replace(/\r\n/g, '\n'))) bad.push(`core/${top}/${rel}:${line}`);

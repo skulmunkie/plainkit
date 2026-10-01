@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
@@ -13,8 +14,8 @@ const norm = s => s.replace(/\s+/g, ' ');
 test('every page-level selector an element lists in contentStyles exists in dist/plainkit.css', () => {
     const css = norm(read('dist/plainkit.css'));
     const problems = [];
-    for (const d of fs.readdirSync(path.join(root, 'elements'), { withFileTypes: true }).filter(e => e.isDirectory())) {
-        const meta = JSON.parse(read(`elements/${d.name}/${d.name}.meta.json`));
+    for (const d of listElementFolders(root)) {
+        const meta = JSON.parse(read(`${d.folder}/${d.name}/${d.name}.meta.json`));
         if (meta.contentStyles !== undefined && !Array.isArray(meta.contentStyles)) problems.push(`${meta.tag}: contentStyles must be an array`);
         for (const sel of meta.contentStyles ?? []) {
             if (!meta.tag || !sel.startsWith(meta.tag)) problems.push(`${meta.tag}: ${sel} must start with the tag`);

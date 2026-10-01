@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { scanHtml } from './strict/scanners/html.mjs';
 import { scanJs } from './strict/scanners/js.mjs';
 import { elementFolders } from './usage.mjs';
+import { TIER_FOLDERS } from './element-folders.mjs';
 
 const coreRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(coreRoot, '..');
@@ -87,7 +88,7 @@ export function classify(relPath) {
 
     let m;
     if ((m = /^core\/elements\/([a-z][a-z0-9-]*)\/\1\.meta\.json$/.exec(relPath))) return { category: 'gallery', owner: m[1] };
-    if ((m = /^core\/elements\/([a-z][a-z0-9-]*)\/\1\.(html|js)$/.exec(relPath))) return { category: 'elements', owner: m[1] };
+    if ((m = /^core\/(?:elements|components|pages|shells)\/([a-z][a-z0-9-]*)\/\1\.(html|js)$/.exec(relPath))) return { category: 'elements', owner: m[1] };
     if (/^core\/elements\//.test(relPath)) return null; // generated (*.element.js) or anything else in the folder
 
     if (/^core\/modules\//.test(relPath) && /\.(html|js)$/.test(relPath)) return { category: 'site', owner: null };
@@ -125,7 +126,7 @@ function walk(dir) {
 // The blazor mapping is a 1:1 file per element (accordion-item.json declares PkAccordionItem): it never references a different
 // element, so it is recorded as that element's own "blazor" file rather than scanned for tags.
 function fileEntries(root, elementNames) {
-    const dirs = ['core/elements', 'core/modules', 'core/site', 'core/samples', 'scripts/skills', 'blazor/mappings'];
+    const dirs = [...TIER_FOLDERS.map(f => `core/${f}`), 'core/modules', 'core/site', 'core/samples', 'scripts/skills', 'blazor/mappings'];
     const files = dirs.flatMap(d => walk(path.join(root, d)));
     const entries = [];
     for (const file of files) {
