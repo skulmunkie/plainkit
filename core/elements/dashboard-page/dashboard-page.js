@@ -106,29 +106,33 @@ export default Base => class extends Base {
         for (const w of this.config?.widgets ?? []) if (this.$started.has(w.key)) this.loadWidget(w);
     }
 
-    // One widget's own async boundary, drawn by its pk-card: loading, the pk-stat/pk-chart in the card's slot on success, or an error with
-    // Retry on rejection. A token guards against a stale response drawing over a card that has since moved on. retry is set before state
-    // (a retry assigned after state="error" does not redraw).
+    // The page draws a widget's loading, empty or error state into the card's body itself (the card renders no pk-* since #764); data-state
+    // on the card says which one (ready once the pk-stat/pk-chart is in).
+    drawState(card, state, opts) {
+        const box = this.ownerDocument.createElement('div');
+        card.replaceChildren(box);
+        card.dataset.state = state;
+        showState(box, state, opts);
+    }
+
+    // One widget's own async boundary, drawn in its pk-card: loading, the pk-stat/pk-chart on success, or an error with Retry on rejection.
+    // A token guards against a stale response drawing over a card that has since moved on.
     async loadWidget(widget) {
         const card = this.$cards?.[widget.key];
         if (!card) return;
         this.$started.add(widget.key);
         const token = (this.$tokens[widget.key] = {});
-        card.retry = () => this.loadWidget(widget);
-        card.stateHeading = ''; card.stateDescription = '';
         if (typeof this.load !== 'function') {
-            card.stateHeading = widget.empty?.heading ?? ''; card.stateDescription = widget.empty?.description ?? '';
-            card.state = 'empty';
+            this.drawState(card, 'empty', { heading: widget.empty?.heading, description: widget.empty?.description });
             return;
         }
-        card.state = 'loading';
+        this.drawState(card, 'loading', { label: widget.label ? `Loading ${widget.label}` : '' });
         let result;
         try {
             result = await this.load(widget.key);
         } catch (err) {
             if (this.$tokens[widget.key] !== token) return;
-            card.stateDescription = err?.message ?? String(err);
-            card.state = 'error';
+            this.drawState(card, 'error', { error: err, retry: () => this.loadWidget(widget) });
             return;
         }
         if (this.$tokens[widget.key] !== token) return;
@@ -139,6 +143,6 @@ export default Base => class extends Base {
         Object.assign(el, result);
         card.replaceChildren(el);
         loadElements(card);
-        card.state = 'ready';
+        card.dataset.state = 'ready';
     }
 };
