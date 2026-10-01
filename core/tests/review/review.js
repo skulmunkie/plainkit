@@ -40,6 +40,9 @@ const frame = () => new Promise(r => requestAnimationFrame(() => r()));
 // `idle` is a last quiet timeout after the frames; a caller that then waits for the page to stop changing (the scenarios' quiet()) passes 0.
 const settle = async (idle = 150) => { await hop(); await hop(); await document.fonts?.ready; await frame(); await frame(); if (idle) await new Promise(r => setTimeout(r, idle)); };
 
+// The gallery examples' settle: the frames, then no short page timer pending (capped), instead of a fixed idle wait per example (issue #750).
+const idle = async () => { await settle(0); for (let i = 0; i < 30 && pendingTimers.size; i++) await new Promise(r => nativeSetTimeout(r, 20)); };
+
 const canvas = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
 canvas.canvas.width = canvas.canvas.height = 1;
 // Any CSS colour (rgb, oklch, color-mix results) to [r, g, b, a] by painting one pixel.
@@ -185,9 +188,9 @@ try {
         applyDynamic(stage);
         await loadElements(stage, { registry });
         await Promise.all([...new Set([...stage.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
-        await settle();
+        await idle();
     }
-    await settle();
+    await idle();
     const touchTarget = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--touch-target')) || undefined;
     for (const stage of root.querySelectorAll('.rv-stage')) {
         const r = stage.getBoundingClientRect();
