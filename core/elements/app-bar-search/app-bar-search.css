@@ -1,54 +1,54 @@
 :host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); margin-inline: var(--pk-app-bar-search-align, auto); }
-.i { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; }
+[part="box-icon"] { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; }
 [part="expand"] { display: none; flex: none; }
-.box { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-pill); transition: border-color 0.15s; }
-.box:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
-.in { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); }
-.in::placeholder { color: var(--color-muted); opacity: 1; }
-.in::-webkit-search-cancel-button { display: none; }
+[part="box"] { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-pill); transition: border-color 0.15s; }
+[part="box"]:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
+[part="control"] { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); }
+[part="control"]::placeholder { color: var(--color-muted); opacity: 1; }
+[part="control"]::-webkit-search-cancel-button { display: none; }
 [part="collapse"] { display: none; flex: none; margin-inline-end: calc(var(--space-2) * -1); }
-.pop { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
-.pop[data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
+[part="popup"] { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
+[part="popup"][data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
 
 /* A field near the right edge of the window opens its results towards the start, so the panel stays inside the window. */
-.pop[data-align="end"] { left: auto; }
+[part="popup"][data-align="end"] { left: auto; }
 /* --color-muted reads 4.3:1 on --color-flyout in the dark theme, just under WCAG AA: --color-muted-strong instead. */
 /* margin-inline (not padding-inline): neither row has a background, so the two read identically, but a margin moves the row's own box
    in from the panel's edge (padding only moves the text inside a box that still spans the full width) - the option rows read the same
    inline offset from their own padding since flex lays their children out from the padding edge. */
-.group { margin-inline: var(--space-3); padding-block: var(--space-2) var(--space-1); color: var(--color-muted-strong); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
-.note { margin-inline: var(--space-3); padding-block: var(--space-1) var(--space-2); color: var(--color-muted-strong); font-size: var(--text-meta); }
-.ft { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }
-.em { padding: var(--space-3); color: var(--color-muted); }
-.op { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
-.op:hover, .op.hl { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
-.th { flex: none; width: 2rem; height: 2rem; border-radius: var(--radius-sm); background-color: var(--color-surface-alt); background-size: cover; background-position: center; }
-.rw { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[part="group"] { margin-inline: var(--space-3); padding-block: var(--space-2) var(--space-1); color: var(--color-muted-strong); font-size: var(--text-meta); font-weight: 600; text-transform: uppercase; }
+[part="note"] { margin-inline: var(--space-3); padding-block: var(--space-1) var(--space-2); color: var(--color-muted-strong); font-size: var(--text-meta); }
+[part="footer"] { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }
+[part="empty"] { padding: var(--space-3); color: var(--color-muted); }
+[part="option"] { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
+[part="option"]:hover, [part="option"][data-hl] { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
+[part="thumb"] { flex: none; width: 2rem; height: 2rem; border-radius: var(--radius-sm); background-color: var(--color-surface-alt); background-size: cover; background-position: center; }
+[part="row"] { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+[part="row-label"] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* --color-muted reads 4.3:1 on --color-flyout in the dark theme, just under WCAG AA: --color-muted-strong instead. */
-.sb { color: var(--color-muted-strong); font-size: var(--text-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[part="row-sub"] { color: var(--color-muted-strong); font-size: var(--text-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* --chip-bg/--chip-fg (same pairing as pk-badge-popover's pill), not --color-surface-alt/--color-muted: that pairing
    also reads 4.3:1 on dark, just under WCAG AA. */
-.bd { flex: none; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--chip-bg); color: var(--chip-fg); font-size: var(--text-meta); }
+[part="badge"] { flex: none; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--chip-bg); color: var(--chip-fg); font-size: var(--text-meta); }
 :host([compact]) { flex: none; max-width: none; margin-inline: 0; }
 :host([compact]) [part="expand"] { display: inline-flex; }
-:host([compact]) .box { display: none; }
+:host([compact]) [part="box"] { display: none; }
 :host([compact][expanded]) { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }
 :host([compact][expanded]) [part="expand"] { display: none; }
-:host([compact][expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
+:host([compact][expanded]) [part="box"] { display: flex; width: auto; flex: 1 1 auto; }
 :host([compact][expanded]) [part="collapse"] { display: inline-flex; }
 @media (--phone) {
     :host { flex: none; margin-inline: 0; }
     [part="expand"] { display: inline-flex; }
-    .box { display: none; }
+    [part="box"] { display: none; }
     :host([expanded]) { position: fixed; max-width: none; inset-block-start: 0; inset-inline: 0; z-index: var(--z-sticky); padding-inline: var(--space-3); padding-block: var(--space-2); background: var(--color-panel); }
     :host([expanded]) [part="expand"] { display: none; }
-    :host([expanded]) .box { display: flex; width: auto; flex: 1 1 auto; }
+    :host([expanded]) [part="box"] { display: flex; width: auto; flex: 1 1 auto; }
     :host([expanded]) [part="collapse"] { display: inline-flex; }
-    .pop { min-width: 0; }
-    /* .box sizes to --ctl-h, but .in only stretches with the flex box's align-items; without align-self:stretch the
+    [part="popup"] { min-width: 0; }
+    /* [part="box"] sizes to --ctl-h, but [part="control"] only stretches with the flex box's align-items; without align-self:stretch the
        input's own hit box is just its line height (~23px), short of the 44px target. */
-    .box { min-height: var(--touch-target); }
-    .in { font-size: 16px; align-self: stretch; }
-    .op { min-height: var(--touch-target); }
+    [part="box"] { min-height: var(--touch-target); }
+    [part="control"] { font-size: 16px; align-self: stretch; }
+    [part="option"] { min-height: var(--touch-target); }
 }

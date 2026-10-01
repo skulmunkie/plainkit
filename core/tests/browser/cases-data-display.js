@@ -408,6 +408,39 @@ export const dataDisplayCases = [
         t.ok(!el.part('details').open, 'clicking an action leaves the item closed');
         t.ok(!el.part('summary').contains(el.part('actions')), 'the actions are not inside the summary');
     }],
+    ['accordion-item: on a 375px phone each action is at least the touch target and clear of the heading label', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '360px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc('<pk-accordion-item heading="Shipping and returns policy for orders placed over the phone" open><pk-button slot="actions" size="mini" variant="ghost">Edit</pk-button><pk-button slot="actions" size="mini" variant="ghost">Copy</pk-button>a</pk-accordion-item>'); await loaded;
+        const win = () => f.contentWindow, docu = () => f.contentDocument;
+        await until(() => win().customElements.get('pk-accordion-item') && win().customElements.get('pk-button') && docu().querySelector('pk-accordion-item')?.shadowRoot?.querySelector('summary'), 'the item');
+        const w = win(), doc = docu();
+        const el = doc.querySelector('pk-accordion-item'), touch = parseFloat(w.getComputedStyle(doc.documentElement).getPropertyValue('--touch-target')) || 44;
+        await wait(300); t.eq(w.innerWidth, 375);
+        const label = el.part('heading'), range = doc.createRange(); range.selectNodeContents(label.querySelector('slot') || label);
+        const lines = [...range.getClientRects()].filter(c => c.width > 0 && c.height > 0);
+        t.ok(lines.length > 0, 'the heading has text lines to measure');
+        for (const b of el.querySelectorAll('[slot=actions]')) {
+            const r = b.getBoundingClientRect();
+            t.ok(r.width >= touch - 0.5 && r.height >= touch - 0.5, `an action is ${Math.round(r.width)}x${Math.round(r.height)}, at least ${touch}px`);
+            for (const c of lines) t.ok(r.right <= c.left + 0.5 || r.left >= c.right - 0.5 || r.bottom <= c.top + 0.5 || r.top >= c.bottom - 0.5, 'an action does not overlap a line of the heading text');
+        }
+    }],
+    ['accordion-item: Tab goes summary then actions; Enter and Space on an action do not toggle the item', async t => {
+        const el = await t.mount('<pk-accordion-item heading="A"><button slot="actions" id="a1">One</button><button slot="actions" id="a2">Two</button>a</pk-accordion-item>');
+        t.ok(el.part('summary').compareDocumentPosition(el.part('actions')) & Node.DOCUMENT_POSITION_FOLLOWING, 'the actions follow the summary, so Tab reaches the summary first');
+        const a1 = el.querySelector('#a1'); a1.focus(); t.eq(el.querySelector(':focus'), a1, 'an action takes focus');
+        for (const k of ['Enter', ' ']) for (const type of ['keydown', 'keyup']) a1.dispatchEvent(new KeyboardEvent(type, { key: k, bubbles: true, composed: true }));
+        a1.click(); t.ok(!el.part('details').open, 'the action did not toggle the item');
+    }],
+    ['accordion-item: no interactive element is inside the summary', async t => {
+        const el = await t.mount('<pk-accordion-item heading="A"><button slot="actions">Go</button><a slot="actions" href="#x">Link</a>a</pk-accordion-item>');
+        const s = el.part('summary');
+        t.ok(!s.querySelector('button, a, input, select, [tabindex]'), 'nothing focusable in the summary');
+        t.ok(!s.querySelector('slot[name=actions]') && !s.contains(el.part('actions')), 'the actions slot is not in the summary');
+    }],
     ['accordion-item: the chevron and the actions do not overlap, in LTR and RTL', async t => {
         for (const dir of ['ltr', 'rtl']) {
             const el = await t.mount(`<div dir="${dir}"><pk-accordion-item heading="A long heading that needs the room"><button slot="actions">Re-check now</button>a</pk-accordion-item></div>`);

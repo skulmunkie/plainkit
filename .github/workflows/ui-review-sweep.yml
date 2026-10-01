@@ -1,0 +1,52 @@
+name: UI review sweep
+
+# The full UI review (every element and scenario, node scripts/ui-review.mjs --all) on main, nightly and on demand, in four shards. A pull request only reviews
+# the elements it changes (ci.yml, job ui-review); this is the coverage check for everything else, including token, base CSS and layout changes (issue #777).
+# An error finding fails the shard, so the scheduled run shows red on main. The screenshots are kept as the artifacts ui-review-sweep-1 to -4.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-review-sweep
+  cancel-in-progress: true
+
+jobs:
+  sweep:
+    name: Sweep (shard ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      - name: Render and audit everything
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: node scripts/ui-review.mjs --all --shard "$SHARD/4"
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-review-sweep-${{ matrix.shard }}
+          path: review-output/
+          if-no-files-found: ignore

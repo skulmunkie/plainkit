@@ -8,7 +8,7 @@
 //   node scripts/ui-review.mjs                       the elements changed versus origin/main (core/elements/<name>/, blazor/mappings/<name>.json), plus the elements composing them;
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
-//   [--base <ref>] [--out <dir>] [--shard i/n] [--strict] [--port N] [--timeout <s>]
+//   [--base <ref>] [--out <dir>] [--shard i/n] [--skip-base] [--strict] [--port N] [--timeout <s>]
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
 // page scrolled, a collapsed rail with a flyout), each rendered to screenshots after its named `shot` steps in the same four combinations (or the subset
@@ -106,12 +106,13 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
         if (a === '--all') o.all = true;
         else if (a === '--strict') o.strict = true;
+        else if (a === '--skip-base') o.skipBase = true;
         else if (a === '--scenarios' || a === '--scenarios-only') {
             // The names are optional: `--scenarios` alone means every scenario, `--scenarios-only` alone the ones for the changed elements.
             const next = argv[i + 1];
@@ -193,8 +194,7 @@ async function connect(wsUrl) {
 
 // Waits for the review page to say it is ready: its state object, or null when it never did within `timeout` seconds.
 async function waitReady(cdp, timeout) {
-    for (const start = Date.now(); Date.now() - start < timeout * 1000;) {
-        await sleep(150);
+    for (const start = Date.now(); Date.now() - start < timeout * 1000; await sleep(20)) {
         const r = await cdp.send('Runtime.evaluate', { expression: 'window.__review && window.__review.ready ? JSON.stringify(window.__review) : null', returnByValue: true }).catch(() => null);
         if (r?.result?.value) return JSON.parse(r.result.value);
     }
@@ -205,7 +205,12 @@ async function waitReady(cdp, timeout) {
 async function openReview(cdp, vp, url) {
     await cdp.send('Page.navigate', { url: 'about:blank' });
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
-    await sleep(100);
+    // Until the blank page reports the new width (a fixed sleep used to stand for this), so the real page never loads at the previous combination's width.
+    for (let i = 0; i < 100; i++) {
+        const r = await cdp.send('Runtime.evaluate', { expression: 'innerWidth', returnByValue: true }).catch(() => null);
+        if (r?.result?.value === vp.width) break;
+        await sleep(10);
+    }
     await cdp.send('Page.navigate', { url });
 }
 async function evaluate(cdp, expression) {
@@ -291,9 +296,9 @@ async function main() {
         const ignore = f => /^core\/elements\/[^/]+\/[^/]+\.meta\.json$/.test(f) && !metaRenders(show(mb, f), fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null);
         const c = changedFromFiles(files, known, ignore);
         const { usageIndex } = await import(pathToFileURL(path.join(root, 'core', 'tools', 'usage-index.mjs')).href);
-        reasons = selectElements(c.names, dependentsFromIndex(usageIndex(root).index), known, c.base);
+        reasons = selectElements(c.names, dependentsFromIndex(usageIndex(root).index), known, c.base && !o.skipBase);
         names = Object.keys(reasons).sort();
-        why = c.base ? `a base file (tokens, base CSS, layouts) changed versus ${o.base}: every element` : `changed versus ${o.base}, plus the elements that compose them`;
+        why = c.base && !o.skipBase ? `a base file (tokens, base CSS, layouts) changed versus ${o.base}: every element` : `changed versus ${o.base}, plus the elements that compose them`;
     }
     let scenarios;
     try { scenarios = selectScenarios(all, { names: named, elements: names, every: o.scenarios === 'all' || (o.all && o.scenarios === 'auto') }); } catch (e) { console.error(e.message); return 2; }

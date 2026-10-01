@@ -9,7 +9,7 @@ import { drawIcon } from '../../js/icon-sprite.js';
 import { loadElements } from '../../js/loader.js';
 import { nextIndex } from '../../js/menu-logic.js';
 
-const el = (tag, part, text) => { const e = document.createElement(tag); if (part) { e.setAttribute('part', part); e.className = part; } if (text) e.textContent = text; return e; };
+const el = (tag, part, text) => { const e = document.createElement(tag); if (part) e.setAttribute('part', part); if (text) e.textContent = text; return e; };
 
 export default Base => class extends Base {
     constructor() { super(); this.$rows = []; this.$a = -1; }
@@ -28,22 +28,17 @@ export default Base => class extends Base {
         });
         pop.addEventListener('slotchange', () => this.part('footer').hidden = !this.slotted('footer').length);
         pop.addEventListener('mousedown', e => e.preventDefault());
-        pop.addEventListener('click', e => { const o = e.target.closest('.op'); if (o) this.select(this.$rows[Number(o.dataset.i)]); });
+        pop.addEventListener('click', e => { const o = e.target.closest('[part="option"]'); if (o) this.select(this.$rows[Number(o.dataset.i)]); });
         this.addEventListener('keydown', e => this.keys(e));
         this.addEventListener('focusout', e => { if (!this.contains(e.relatedTarget)) this.setOpen(false); });
         box.addEventListener('focusout', e => { if (!this.expanded && !box.contains(e.relatedTarget)) this.collapse(); });
-        // The shell drawer opening dismisses results and collapses this field, so two overlays never show at once: rule 5, a subscription
-        // outside this element's own subtree, added here and removed in disconnected().
-        this.$shell = this.closest('pk-app-shell');
-        this.$onNav = e => { if (e.detail?.open) { this.setOpen(false); this.collapse(); } };
-        this.$shell?.addEventListener('pk-nav-toggle', this.$onNav);
+        // pk-app-shell collapses this field (collapse()) when its drawer opens, so two overlays never show at once; this element looks nowhere upward.
         this.$onRoute = () => { this.setOpen(false); this.collapse(); };
         addEventListener('popstate', this.$onRoute);
         drawIcon(this.part('box-icon').firstChild, 'search', (k, m, d) => this.warnOnce(k, m, d));
         this.paint();
     }
     disconnected() {
-        this.$shell?.removeEventListener('pk-nav-toggle', this.$onNav);
         removeEventListener('popstate', this.$onRoute);
         clearTimeout(this.$t);
     }
@@ -62,7 +57,7 @@ export default Base => class extends Base {
         const foot = this.part('footer');
         const items = Array.isArray(this.items) ? this.items : [];
         const pop = this.part('popup'), tpl = this.shadowRoot.querySelector('template');
-        for (const o of pop.querySelectorAll('.op, .group, .note')) o.remove();
+        for (const o of pop.querySelectorAll('[part="option"], [part="group"], [part="note"]')) o.remove();
         this.$rows = [];
         let group = null;
         for (const item of items) {
@@ -84,7 +79,8 @@ export default Base => class extends Base {
     highlight(i) {
         this.$a = i;
         const cur = this.part('popup').querySelector(`#pk-abs-${i}`);
-        for (const o of this.part('popup').querySelectorAll('.op')) o.classList.toggle('hl', o === cur);
+        const prev = this.part('popup').querySelector('[data-hl]');
+        if (prev !== cur) { prev?.removeAttribute('data-hl'); cur?.setAttribute('data-hl', ''); }
         if (cur) { this.part('control').setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); } else this.part('control').removeAttribute('aria-activedescendant');
     }
     select(item) {
