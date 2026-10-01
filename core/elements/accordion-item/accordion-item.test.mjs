@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import behaviour from './accordion-item.js';
 
 const make = (open = false) => {
-    const details = { open, listeners: {}, addEventListener(t, fn) { this.listeners[t] = fn; } }; const emitted = []; const props = {}; const actions = { offsetWidth: 80 }; const heading = { style: {} }; globalThis.ResizeObserver = class { constructor(fn) { actions.slot = fn; } observe() {} disconnect() { actions.gone = true; } };
-    const el = new (behaviour(class { part(n) { return n === 'details' ? details : n === 'actions' ? actions : n === 'heading' ? heading : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
+    const details = { open, listeners: {}, addEventListener(t, fn) { this.listeners[t] = fn; } }; const emitted = []; const props = {}; const actions = { offsetWidth: 80, style: {} }; const summary = { offsetHeight: 56 }; const heading = { style: {} }; globalThis.ResizeObserver = class { constructor(fn) { actions.slot = fn; } observe() {} disconnect() { actions.gone = true; } };
+    const el = new (behaviour(class { part(n) { return n === 'details' ? details : n === 'actions' ? actions : n === 'summary' ? summary : n === 'heading' ? heading : null; } emit(n, d) { emitted.push([n, d]); return true; } }))();
     el.open = open;
     return { el, details, emitted, actions, props: heading.style };
 };
@@ -54,4 +54,10 @@ test('the size observer is released on disconnect', () => {
     const { el, actions } = make();
     el.connected(); el.disconnected();
     assert.equal(actions.gone, true);
+});
+
+test('the actions box takes the summary row height so the controls centre on it', () => {
+    const { el, actions } = make();
+    el.connected(); actions.slot();
+    assert.equal(actions.style.blockSize, '56px');
 });

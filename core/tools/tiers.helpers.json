@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "about": "C4 (core/tools/tiers.mjs): the reviewed list of static helper functions whose pk-* creation does not count against an element. { element: [function names in its module] }. A listed function exists, creates a pk-*, is never called from the element lifecycle (connected, disconnected, changed, updated, render, template), and its module imports no other element statically. Every line here is a reviewed decision (#766); never add one to hide a finding.",
+  "helpers": {
+    "dialog": [
+      "btn"
+    ],
+    "toast-stack": [
+      "show"
+    ]
+  }
+}

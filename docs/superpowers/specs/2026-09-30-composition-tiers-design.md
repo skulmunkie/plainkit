@@ -51,7 +51,7 @@ An **element** may use any raw tag; it should still use a lower `pk-*` element w
 Rules of thumb applied: (a) family parents that own interaction (tabs' keyboard, tree roving focus, sortable drag) are elements; (b) a thing that
 owns its ARIA pattern on raw tags is an element however complex (`combobox`); (c) "Page types" group in `.meta.json` maps to pages; (d) a thing whose
 source mostly writes `pk-*` but currently also writes raw `button`/`input` is a **component with baselined debt**, not an element: the tier states
-the intent, the audit tracks the debt. Counts: 91 elements, 16 components, 12 pages, 1 shell, 0 modules in `core/elements/` (modules already have their own
+the intent, the audit tracks the debt. Counts: 92 elements, 15 components, 12 pages, 1 shell, 0 modules in `core/elements/` (modules already have their own
 folder and ruleset; see section 3).
 
 **Shell (1):** app-shell.
@@ -59,12 +59,12 @@ folder and ruleset; see section 3).
 **Pages (12):** dashboard-page, doc-page, list-page, master-detail-page, not-found-page, note-page, record-page, settings-page, states-page,
 tool-page, wizard-page, workspace-page.
 
-**Components (16):** app-bar-search\*, date-range-picker, detail-layout, dock\*,
+**Components (15):** app-bar-search\*, date-range-picker, detail-layout, dock\*,
 field-list, form-actions, form-section, image-gallery, kanban, kanban-column, page-header\*, property-grid,
-stepper, tabs\*, toast-stack, toolbar.
+stepper, tabs\*, toolbar.
 (\* = ambiguous or carries raw-tag debt today; see below.)
 
-**Elements (91):** (82 at the first classification, plus back-to-top, badge-popover, code-block, command-palette, navbar, pagination, side-nav, split-button and table-filters, re-tiered in #736 because each is built only from raw HTML and renders no other `pk-*` element; the owner constraint is that an element is composed of base building blocks only) accordion, accordion-item, alert, app-shell\*, avatar, avatar-group, badge, breadcrumb, button, button-group, calendar, card,
+**Elements (92):** (82 at the first classification, toast-stack (#766: its own rendering is a slot; the `show` helper that creates `pk-toast`, `pk-toast-stack` and `pk-button` is exempt), plus back-to-top, badge-popover, code-block, command-palette, navbar, pagination, side-nav, split-button and table-filters, re-tiered in #736 because each is built only from raw HTML and renders no other `pk-*` element; the owner constraint is that an element is composed of base building blocks only) accordion, accordion-item, alert, app-shell\*, avatar, avatar-group, badge, breadcrumb, button, button-group, calendar, card,
 chart, checkbox, cluster, code-view, colour-input, combobox\*, container, context-menu, dialog, divider, drawer, dropdown, dropzone, empty-state,
 field, field-row, form, frame, gallery, grid, heading, hint, icon, input, lightbox, link, list, list-group, loading-overlay, local-time, log, media,
 menu-item, nav-item, otp-input, pager, popover, progress, radio-group, range, rating, scroll-progress, select, select-menu, skeleton, skip-link,
@@ -151,7 +151,7 @@ The audit has families S, D, module and the #392 gate. Per-tier rules are a **ru
 - **page:** as component; additionally no own controls (the #392 gate).
 - **shell:** D1/S3 run with the landmark and layout exemption (`header`, `footer`, `nav`, `main`, `div`, `span`, `slot`); viewport ownership (100dvh, scroll container, skip link) is allowed only here, and a check flags `100vh`/scroll-lock code in any other tier.
 - **module:** exists (`module-ruleset.mjs`, S1-S12). Only a label.
-- Reuse: D1 and S3 keep their ids and texts (as `module-rules.mjs` does). New rules: `C1` dependency direction, `C2` tier present and equal to its folder, `C3` one element per page factory, `C4` an element renders no `pk-*` (owner rule: a `tier: element` element is built from base HTML only; its own template and the DOM its js, and the `js/` modules it imports directly, build contain no `pk-*` tag; name lookups such as `closest`, `querySelector`, `whenDefined` and events from slotted children are not composition; static helpers count for now, decision deferred on #736; limits in `core/tools/tiers.mjs`).
+- Reuse: D1 and S3 keep their ids and texts (as `module-rules.mjs` does). New rules: `C1` dependency direction, `C2` tier present and equal to its folder, `C3` one element per page factory, `C4` an element renders no `pk-*` (owner rule: a `tier: element` element is built from base HTML only; its own template and the DOM its js, and the `js/` modules it imports directly, build contain no `pk-*` tag; name lookups such as `closest`, `querySelector`, `whenDefined` and events from slotted children are not composition; static helper functions do not count when they are named in the reviewed list `core/tools/tiers.helpers.json` (#766: listed per element, exported or static, never called from the element lifecycle, the element module imports no other element statically, a stale or unnecessary entry fails); limits in `core/tools/tiers.mjs`).
 
 Go-live gate (owner decision): **no new debt, plus a measurable reduction of the baseline** (for example each of the first N PRs removes at least one entry, and the scorecard shows the count dropping). A clean baseline is not required.
 
