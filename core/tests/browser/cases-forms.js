@@ -494,16 +494,20 @@ export const formCases = [
     }],
 
     ['date-range-picker calendar: the day that takes focus on open shows the focus ring, and in right-to-left the panel aligns to the inline-start (right) edge of the opener', async t => {
-        const host = await t.mount('<div><pk-date-range-picker id="pk-drp-l" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker><div dir="rtl" style="display:flex;justify-content:flex-end"><pk-date-range-picker id="pk-drp-r" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div></div>');
+        const host = await t.mount('<div><pk-date-range-picker id="pk-drp-l" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker><div dir="rtl" style="display:flex;justify-content:flex-start"><pk-date-range-picker id="pk-drp-r" calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div></div>');
         await ready(t);
         const ltr = host.querySelector('#pk-drp-l'), rtl = host.querySelector('#pk-drp-r');
         ltr.part('opener').click(); await t.settle();
         const focused = ltr.part('calendar').shadowRoot.activeElement, st = focused && getComputedStyle(focused);
         t.ok(focused?.matches(':focus-visible'), 'the day focused on open matches :focus-visible');
         t.ok(st && parseFloat(st.outlineWidth) > 0 && st.outlineStyle !== 'none', 'the focused day draws an outline');
-        rtl.part('opener').click(); await t.settle();
-        const ro = rtl.part('opener').getBoundingClientRect(), rp = rtl.part('popover').part('panel').getBoundingClientRect();
-        t.ok(Math.abs(rp.right - ro.right) <= 1, `right to left: the panel right edge (${Math.round(rp.right)}) matches the opener right edge (${Math.round(ro.right)})`);
+        // The stage sits at left -10000px, and a panel is kept inside the viewport: bring the stage on screen so the panel is placed against its opener, not clamped.
+        const stage = document.getElementById('stage'), was = stage.style.left; stage.style.left = '0';
+        try {
+            rtl.part('opener').click(); await t.settle();
+            const ro = rtl.part('opener').getBoundingClientRect(), rp = rtl.part('popover').part('panel').getBoundingClientRect();
+            t.ok(Math.abs(rp.right - ro.right) <= 1, `right to left: the panel right edge (${Math.round(rp.right)}) matches the opener right edge (${Math.round(ro.right)})`);
+        } finally { stage.style.left = was; }
     }],
 
     ['date-range-picker calendar: Escape closes and returns focus (a pending start first), min and max reach the calendar, typing in the fields updates it, no calendar attribute means no opener', async t => {
