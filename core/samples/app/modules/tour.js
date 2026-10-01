@@ -8,6 +8,7 @@ const ORDERS = [
 
 // Data pages: the module supplies rows through a load callback. The query (page, sort, search, filters) arrives; the page type draws the table, filters and pager.
 const listConfig = {
+    heading: 'Orders',
     columns: [{ key: 'id', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'status', label: 'Status', sortable: true }, { key: 'total', label: 'Total', type: 'number', align: 'end' }],
     filters: [{ key: 'status', type: 'select', label: 'Status', options: ['Open', 'Shipped'] }],
     actions: [{ label: 'New order', href: '#/tour/orders/new', variant: 'primary' }],

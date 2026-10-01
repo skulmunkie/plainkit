@@ -186,7 +186,7 @@ test("'settings' (step 5, #351) creates a pk-settings-page, splits config into t
     const cleanup1 = factory(host1, { sections: [{ heading: 'Store' }] }, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-settings-page');
-    assert.deepEqual(el1.config, { sections: [{ heading: 'Store' }] });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, actions: undefined, sections: [{ heading: 'Store' }] });
     assert.equal(el1.values, undefined, 'no values given, none set');
     assert.equal(el1.save, undefined, 'no save given, none set');
     cleanup1();
@@ -239,7 +239,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     const cleanup1 = factory(host1, {}, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-list-page');
-    assert.deepEqual(el1.config, { columns: undefined, filters: undefined, actions: undefined, empty: undefined, pageSize: undefined });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, columns: undefined, filters: undefined, actions: undefined, empty: undefined, pageSize: undefined });
     assert.equal(el1.load, undefined, 'no load callback unless given');
     assert.equal(el1.rowHref, undefined, 'no rowHref callback unless given');
     cleanup1();
@@ -256,7 +256,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
         rowHref: row => `/orders/${row.id}`,
     }, ctx);
     const el2 = host2.children[0];
-    assert.deepEqual(el2.config, { columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10 });
+    assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10 });
     const query = { page: 1, pageSize: 10, sort: null, sortDir: 'ascending', search: '', filters: {} };
     assert.deepEqual(el2.load(query), { rows: [{ id: 1 }], total: 1 });
     assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
@@ -274,7 +274,7 @@ test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the ele
     const cleanup1 = factory(host1, {}, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-dashboard-page');
-    assert.deepEqual(el1.config, { tabs: undefined, widgets: undefined, sections: undefined, filters: undefined, empty: undefined });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, actions: undefined, tabs: undefined, widgets: undefined, sections: undefined, filters: undefined, empty: undefined });
     assert.equal(el1.load, undefined, 'no load callback unless given');
     cleanup1();
     assert.deepEqual(host1.children, [], 'cleanup removes the element');
@@ -288,7 +288,7 @@ test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the ele
     const host2 = new Host();
     factory(host2, { tabs, widgets, sections, filters, load: (key, c) => { seen.push([key, c]); return { value: '12' }; } }, ctx);
     const el2 = host2.children[0];
-    assert.deepEqual(el2.config, { tabs, widgets, sections, filters, empty: undefined });
+    assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, actions: undefined, tabs, widgets, sections, filters, empty: undefined });
     assert.deepEqual(el2.load('orders'), { value: '12' });
     assert.deepEqual(seen, [['orders', ctx]], 'load receives the widget key and the page ctx');
 });

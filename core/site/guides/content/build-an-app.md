@@ -65,7 +65,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 
 | Family | Page type | Config (data) | Your callbacks |
 |---|---|---|---|
-| Data | `list` | `columns`, `filters`, `actions`, `empty`, `pageSize` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)` |
+| Data | `list` | `heading`, `breadcrumb`, `columns`, `filters`, `actions`, `empty`, `pageSize` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)` |
 | Data | `dashboard` | `widgets`, `tabs`, `sections`, `filters`, `empty` | `load(key, ctx)` returns what the widget shows |
 | Data | `master-detail` | `list`, `backLabel`, `none`, `param` | `load(query, ctx)`, `rowHref(row)`, `listHref`, `mountDetail(pane, id, ctx)` |
 | Forms | `record` | `fields`, `sidebar`, `heading`, `editable` | `load(id, ctx)`, `save(values, ctx)` |
@@ -85,6 +85,7 @@ A list page hands you the query (`page`, `pageSize`, `sort`, `sortDir`, `search`
 
 ```text
 const listConfig = {
+    heading: 'Orders',
     columns: [{ key: 'id', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'status', label: 'Status', sortable: true }, { key: 'total', label: 'Total', type: 'number', align: 'end' }],
     filters: [{ key: 'status', type: 'select', label: 'Status', options: ['Open', 'Shipped'] }],
     actions: [{ label: 'New order', href: '#/tour/orders/new', variant: 'primary' }],
