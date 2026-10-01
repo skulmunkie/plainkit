@@ -34,6 +34,19 @@ test('one code file among docs is enough; nothing known means run', () => {
     assert.equal(decide('dotnet', { event: 'pull_request', files: [] }).run, true);
 });
 
+test('the UI review runs for element sources and mappings, and for base files only with the label (issue #777)', () => {
+    const ui = (files, full = false) => decide('ui-review', { event: 'pull_request', files, full }).run;
+    assert.equal(ui(['core/elements/button/button.css']), true);
+    assert.equal(ui(['blazor/mappings/button.json']), true);
+    assert.equal(ui(['core/js/x.js']), false, 'a script or module change selects no element');
+    assert.equal(ui(['core/modules/app/app.js', 'README.md']), false);
+    assert.equal(ui(['core/tokens/tokens.css']), false, 'a full sweep per push is not worth it');
+    assert.equal(ui(['core/tokens/tokens.css'], true), true, 'unless the label asks for it');
+    assert.equal(ui(['core/tokens/tokens.css', 'core/elements/button/button.css']), true, 'an element among base files still gets its own review');
+    assert.equal(decide('ui-review', { event: 'pull_request', files: null }).run, true, 'unknown files run to be safe');
+    assert.equal(decide('ui-review', { event: 'push', files: null }).run, false);
+});
+
 test('push and manual runs', () => {
     for (const a of ['node', 'dotnet', 'pack']) assert.equal(decide(a, { event: 'push', files: null }).run, true);
     assert.equal(decide('browser', { event: 'push', files: null }).run, false);

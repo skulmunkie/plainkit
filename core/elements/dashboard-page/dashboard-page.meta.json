@@ -45,7 +45,7 @@
     }
   ],
   "cssProperties": [],
-  "a11y": "Tab semantics (tablist, arrow keys, roving tabindex) come from pk-tabs. Each widget's loading and error states are announced by its own pk-card (pk-skeleton and pk-alert roles), scoped to that widget alone; a resolved widget is a real pk-stat or pk-chart with its own accessible name.",
+  "a11y": "Tab semantics (tablist, arrow keys, roving tabindex) come from pk-tabs. Each widget's loading and error states are announced by the pk-skeleton and pk-alert the page draws into that widget's pk-card (the card draws none itself), scoped to that widget alone; a resolved widget is a real pk-stat or pk-chart with its own accessible name.",
   "examples": [
     {
       "title": "Tabs, widgets and a filter (set config and load from script: an inline script cannot run under this site's CSP, so wire it the way pk-tool-page's run is wired)",
