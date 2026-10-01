@@ -1,5 +1,5 @@
 // Unit tests for pk-dashboard-page: widgets as pk-card, tabs that load lazily, filters that reload only what already loaded, and that each
-// widget's load(key) is its own isolated async boundary. Stub base, no DOM: a card's state/retry/stateDescription are plain properties.
+// widget's load(key) is its own isolated async boundary. Stub base, no DOM: a card's data-state says which state the page drew into it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './dashboard-page.js';
@@ -31,6 +31,8 @@ const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve();
 const walk = (node, out = []) => { out.push(node); for (const c of node.children ?? []) walk(c, out); return out; };
 const cards = body => walk(body).filter(n => n.localName === 'pk-card');
 const cardFor = (body, key) => cards(body).find(c => c.dataset.key === key);
+const stateOf = card => card.dataset.state;
+const alertOf = card => walk(card).find(n => n.localName === 'pk-alert');
 const gridKeys = grid => grid.children.map(c => c.dataset.key);
 
 test('no sections and no tabs puts every widget in one ungrouped grid of pk-cards headed by the label, in order', () => {
@@ -65,10 +67,10 @@ test('a stat widget (the default) resolves load(key) onto a pk-stat in its card,
     el.config = { widgets: [{ key: 'orders', label: 'Open orders' }] };
     el.load = async key => ({ value: String(key === 'orders' ? 12 : 0), tone: 'positive' });
     el.connected();
-    assert.equal(cardFor(body, 'orders').state, 'loading');
+    assert.equal(stateOf(cardFor(body, 'orders')), 'loading');
     await flush();
     const card = cardFor(body, 'orders');
-    assert.equal(card.state, 'ready');
+    assert.equal(stateOf(card), 'ready');
     const stat = card.children[0];
     assert.equal(stat.localName, 'pk-stat');
     assert.equal(stat.label, 'Open orders');
@@ -99,20 +101,20 @@ test('per-widget async boundary: a fast card is ready while a slow sibling loads
     };
     el.connected();
     await flush();
-    assert.equal(cardFor(body, 'fast').state, 'ready');
+    assert.equal(stateOf(cardFor(body, 'fast')), 'ready');
     assert.equal(cardFor(body, 'fast').children[0].value, '1');
-    assert.equal(cardFor(body, 'slow').state, 'loading');
-    assert.equal(cardFor(body, 'bad').state, 'error');
-    assert.equal(cardFor(body, 'bad').stateDescription, 'widget boom');
+    assert.equal(stateOf(cardFor(body, 'slow')), 'loading');
+    assert.equal(stateOf(cardFor(body, 'bad')), 'error');
+    assert.equal(alertOf(cardFor(body, 'bad')).textContent, 'widget boom');
     releaseSlow();
     await flush();
-    assert.equal(cardFor(body, 'slow').state, 'ready');
+    assert.equal(stateOf(cardFor(body, 'slow')), 'ready');
     assert.equal(cardFor(body, 'slow').children[0].value, '2');
     assert.equal(cardFor(body, 'fast').children[0].value, '1');
-    assert.equal(cardFor(body, 'bad').state, 'error');
+    assert.equal(stateOf(cardFor(body, 'bad')), 'error');
 });
 
-test('the card retry reloads only that widget; retry is set before the state changes', async () => {
+test('the error state Retry reloads only that widget', async () => {
     const { el, body } = make();
     el.config = { widgets: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] };
     const calls = { a: 0, b: 0 };
@@ -120,12 +122,11 @@ test('the card retry reloads only that widget; retry is set before the state cha
     el.connected();
     await flush();
     const card = cardFor(body, 'a');
-    assert.equal(card.state, 'error');
-    assert.equal(typeof card.retry, 'function');
-    card.retry();
+    assert.equal(stateOf(card), 'error');
+    walk(alertOf(card)).find(n => n.localName === 'pk-button').fire('click');
     await flush();
     assert.deepEqual(calls, { a: 2, b: 1 });
-    assert.equal(card.state, 'ready');
+    assert.equal(stateOf(card), 'ready');
     assert.equal(card.children[0].value, 'ok');
 });
 
@@ -134,8 +135,8 @@ test('without a load callback every card is empty with its own text', () => {
     el.config = { widgets: [{ key: 'a', label: 'A', empty: { heading: 'No data yet' } }] };
     el.connected();
     const card = cardFor(body, 'a');
-    assert.equal(card.state, 'empty');
-    assert.equal(card.stateHeading, 'No data yet');
+    assert.equal(stateOf(card), 'empty');
+    assert.equal(walk(card).find(n => n.localName === 'pk-empty-state').attrs.heading, 'No data yet');
 });
 
 test('no widgets configured shows the body-level empty state', () => {
@@ -156,7 +157,7 @@ test('changing config rebuilds the layout and reloads every widget', async () =>
     el.changed('config');
     await flush();
     assert.equal(cardFor(body, 'a'), undefined);
-    assert.equal(cardFor(body, 'b').state, 'ready');
+    assert.equal(stateOf(cardFor(body, 'b')), 'ready');
 });
 
 const TABBED = {

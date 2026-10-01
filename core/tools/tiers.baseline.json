@@ -3,10 +3,6 @@
   "entries": [
     { "rule": "C1", "element": "app-bar-search", "ref": "pk-app-shell" },
     { "rule": "C1", "element": "toast", "ref": "pk-toast-stack" },
-    { "rule": "C4", "element": "card", "ref": "pk-alert", "note": "js/page-states.js renderState; to be extracted" },
-    { "rule": "C4", "element": "card", "ref": "pk-button", "note": "js/page-states.js renderState; to be extracted" },
-    { "rule": "C4", "element": "card", "ref": "pk-empty-state", "note": "js/page-states.js renderState; to be extracted" },
-    { "rule": "C4", "element": "card", "ref": "pk-skeleton", "note": "js/page-states.js renderState; to be extracted" },
     { "rule": "C4", "element": "dialog", "ref": "pk-button", "note": "static helper: decision deferred, see #736" }
   ]
 }

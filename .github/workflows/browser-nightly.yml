@@ -1,0 +1,64 @@
+name: Browser suite (nightly)
+
+# The in-browser element suite (core/tests/browser/, about 3 minutes) on main, every night and on demand. Not required, not a pull request gate (issue
+# #451: a committed report went stale). It exists because the suite rotted unseen between local runs (issue #752). On a failure it opens or updates ONE
+# tracking issue titled "In-browser suite failing on main" (run URL and failing case names); on a later green run it comments that it is green again.
+# It never closes the issue: the owner does. Text and rules: scripts/browser-suite-issue.mjs. Release pull requests run the suite in ci.yml.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    name: Browser suite (nightly)
+    # The schedule always runs on the default branch; a manual run on another branch would report to the main tracking issue, so it is kept to main.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+      PK_CHROME_FLAGS: --no-sandbox
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      # continue-on-error: the issue is filed or updated below whatever happened here; the last step then fails the run.
+      - name: In-browser suite (node scripts/verify.mjs --only browser)
+        id: suite
+        continue-on-error: true
+        run: node scripts/verify.mjs --only browser
+
+      - name: Open or update the tracking issue
+        if: always()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          SUITE_OUTCOME: ${{ steps.suite.outcome }}
+        with:
+          script: |
+            const m = await import(`${process.env.GITHUB_WORKSPACE}/scripts/browser-suite-issue.mjs`);
+            const failed = process.env.SUITE_OUTCOME !== 'success';
+            const report = failed ? m.readReport(`${process.env.GITHUB_WORKSPACE}/core/tests/browser/report.json`, core) : null;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await m.reportToIssue({ github, context, core, failed, report, sha: context.sha, runUrl });
+
+      - name: Fail the run when the suite failed
+        if: steps.suite.outcome != 'success'
+        run: |
+          echo "the in-browser suite did not pass (see the tracking issue and the suite step's log)"
+          exit 1
