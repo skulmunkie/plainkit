@@ -12,7 +12,7 @@ const ELEMENT = { list: 'pk-list-page', record: 'pk-record-page', dashboard: 'pk
 
 function fakeHost() {
     const made = [];
-    const doc = { createElement: tag => { const el = { tag, addEventListener() {}, removeEventListener() {}, remove() {} }; made.push(el); return el; } };
+    const doc = { createElement: tag => { const el = { tag, addEventListener() {}, removeEventListener() {}, remove() {}, setAttribute() {}, append() {} }; made.push(el); return el; } };
     return { made, host: { ownerDocument: doc, append() {} } };
 }
 

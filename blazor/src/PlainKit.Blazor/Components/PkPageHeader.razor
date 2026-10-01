@@ -1,7 +1,7 @@
 @namespace PlainKit.Blazor
 @inherits PkElementBase
 
-@* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title, a pk-breadcrumb built from
+@* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title (a slotted <pk-heading>, a real heading element with tabindex -1 so a router can focus it after navigation: FocusOnNavigate Selector="pk-heading[level='1']", #773), a pk-breadcrumb built from
    a list of crumbs (the last one is the current page). BackLink adds a back anchor to the parent crumb (a ghost icon-only pk-button link: a chevron, with the text "Back to <label>" hidden visually and kept as its name). Which crumbs belong to a route is the app's business: pass the list. *@
 @if (BackCrumb is not null)
 {
@@ -12,7 +12,7 @@
                 variant="@Variant"
                 spacious="@Spacious"
                 class="@Css()"
-                @attributes="Splat">@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
+                @attributes="Splat">@if (!string.IsNullOrEmpty(Title)) {<pk-heading slot="title" level="@PkAttr.Num(Level)" weight="semibold" variant="h3" tabindex="-1">@Title</pk-heading>}@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
 
 @code {
     /// <summary>

@@ -8,10 +8,10 @@ export const PAGE_TYPE = {
     states: ['empty'],
     useWhen: 'An overview of tiles, charts and sections a user filters, not a single record or a list to open.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-dashboard-page');
     el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, tabs: config.tabs, widgets: config.widgets, sections: config.sections, filters: config.filters, empty: config.empty };
     if (config.load) el.load = key => config.load(key, ctx);
-    host.append(el);
-    return () => el.remove();
+    return mountTitled(host, el, config.heading);
 };

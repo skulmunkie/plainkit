@@ -12,7 +12,9 @@ export default Base => class extends Base {
     changed(name) { if (name === 'config') this.build(); }
 
     build() {
-        const key = JSON.stringify(this.config ?? {});
+        // A title the host supplied (slot "title", appended by the factory, possibly after the config was set) leads the stack and replaces the built-in heading.
+        const own = [...(this.children ?? [])].some(c => c.getAttribute('slot') === 'title');
+        const key = JSON.stringify(this.config ?? {}) + own;
         if (key === this.$builtFor) return;
         this.$builtFor = key;
         const doc = this.ownerDocument;
@@ -29,7 +31,9 @@ export default Base => class extends Base {
         const p = doc.createElement('p');
         p.textContent = text;
         card.append(p);
-        stack.append(h, card);
+        const title = doc.createElement('slot');
+        title.setAttribute('name', 'title');
+        if (own) stack.append(card, title); else stack.append(h, card, title);
         body.append(stack);
         loadElements(body);
     }

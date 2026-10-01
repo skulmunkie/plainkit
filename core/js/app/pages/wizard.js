@@ -10,6 +10,7 @@ export const PAGE_TYPE = {
     states: ['done'],
     useWhen: 'A sequence of steps that must be completed in order before one submit.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-wizard-page');
     const { validate, submit, load, mountStep, ...data } = config;
@@ -18,6 +19,5 @@ export default (host, config = {}, ctx) => {
     if (submit) el.submit = values => submit(values, ctx);
     if (load) el.load = () => load(ctx);
     if (mountStep) el.mountStep = (pane, step) => mountStep(pane, step, ctx);
-    host.append(el);
-    return () => el.remove();
+    return mountTitled(host, el, config.heading);
 };
