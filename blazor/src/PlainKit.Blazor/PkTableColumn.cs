@@ -34,8 +34,6 @@ public enum PkTableEditor
     [JsonStringEnumMemberName("number")] Number,
     /// <summary>A choice among <c>Options</c>.</summary>
     [JsonStringEnumMemberName("select")] Select,
-    /// <summary>An on/off switch that toggles at once.</summary>
-    [JsonStringEnumMemberName("switch")] Switch,
 }
 
 /// <summary>A column of a <c>pk-table</c>.</summary>

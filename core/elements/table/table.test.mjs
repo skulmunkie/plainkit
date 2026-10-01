@@ -258,10 +258,9 @@ test('check reports what breaks a column\'s rules and nothing else', () => {
     assert.equal(E.check({ maxLength: 3 }, 'abcd'), 'At most 3 characters');
 });
 
-test('typed gives a number column a number (or null), a switch a boolean, the rest the text', () => {
+test('typed gives a number column a number (or null), the rest the text', () => {
     assert.equal(E.typed({ editor: 'number' }, '4.5'), 4.5);
     assert.equal(E.typed({ editor: 'number' }, ' '), null);
-    assert.equal(E.typed({ editor: 'switch' }, true), true);
     assert.equal(E.typed({ editor: 'text' }, 'abc'), 'abc');
 });
 

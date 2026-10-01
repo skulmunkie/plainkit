@@ -3,7 +3,6 @@
   "entries": [
     { "rule": "C1", "element": "app-bar-search", "ref": "pk-app-shell" },
     { "rule": "C1", "element": "toast", "ref": "pk-toast-stack" },
-    { "rule": "C4", "element": "dialog", "ref": "pk-button", "note": "static helper: decision deferred, see #736" },
-    { "rule": "C4", "element": "table", "ref": "pk-switch", "note": "js/table-edit.js switch editor; to be extracted" }
+    { "rule": "C4", "element": "dialog", "ref": "pk-button", "note": "static helper: decision deferred, see #736" }
   ]
 }
