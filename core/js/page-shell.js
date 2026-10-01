@@ -17,6 +17,31 @@ export function showState(box, state, opts = {}) {
     if (state !== 'ready') loadElements(box);
 }
 
+/** The page title as the SDK's heading element: a pk-heading level 1 for the page element's light DOM (slot "title"; `plain` keeps the heading's own size; the factory that creates the page appends it, so it is findable under main and focusable with tabindex -1). */
+export function titleHeading(doc, text, { focusable = true, plain = false } = {}) {
+    const h = doc.createElement('pk-heading');
+    for (const [k, v] of Object.entries({ slot: 'title', level: 1, ...(plain ? {} : { weight: 'semibold', variant: 'h3' }) })) h.setAttribute(k, v);
+    if (focusable) h.setAttribute('tabindex', '-1');
+    h.textContent = text;
+    return h;
+}
+
+/**
+ * Mounts a built-in page element `el` in `host` with its title: the host owns the light DOM, so the factory appends the pk-heading (titleHeading), and waits until the
+ * page element is defined so its title bar is drawn (and focusable) when mountPage resolves, which is when the app moves focus to the title.
+ */
+export function mountTitled(host, el, text, opts) {
+    if (text) el.append(titleHeading(host.ownerDocument, text, opts));
+    host.append(el);
+    const win = host.ownerDocument.defaultView;
+    const cleanup = () => el.remove();
+    if (!win) return cleanup;
+    loadElements(host);
+    const ready = Promise.all([el.localName, 'pk-heading'].map(n => win.customElements.whenDefined(n)));
+    // The cleanup is also a thenable: awaiting the factory (mountPage does) waits until the page element and pk-heading are defined, so the title bar is drawn and focusable, then yields a plain cleanup.
+    return Object.assign(cleanup, { then: (ok, no) => ready.then(() => ok(() => el.remove()), no) });
+}
+
 /**
  * The title bar: a pk-page-header in `box` drawn from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] }.
  * `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
@@ -50,12 +75,11 @@ export function showTitleBar(host, box, cfg = host.config) {
             header.append(tip);
         } else header.append(btn);
     }
-    if (heading) {
-        // The title is a real heading element (#773): a light-DOM pk-heading level 1, so the outline has its h1 and a route change has something to focus (tabindex -1 is the shell's, not the element's API).
-        const title = doc.createElement('pk-heading');
-        for (const [k, v] of Object.entries({ slot: 'title', level: 1, weight: 'semibold', variant: 'h3', tabindex: -1 })) title.setAttribute(k, v);
-        title.textContent = heading;
-        header.append(title);
+    if (heading) { // the host's own pk-heading (titleHeading, appended by the page factory) fills this slot; used on its own, the fallback draws the same title
+        const fwd = doc.createElement('slot');
+        fwd.setAttribute('name', 'title'); fwd.slot = 'title';
+        fwd.append(titleHeading(doc, heading, { focusable: false }));
+        header.append(fwd);
     }
     box.append(header);
     loadElements(box);

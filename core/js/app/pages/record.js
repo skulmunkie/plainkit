@@ -10,6 +10,7 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'Viewing or editing one record identified by a route param, new or existing.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-record-page');
     const { load, save, mode, idParam = 'id', ...data } = config;
@@ -18,6 +19,5 @@ export default (host, config = {}, ctx) => {
     if (mode) el.mode = mode;
     if (load) el.load = id => load(id, ctx);
     if (save) el.save = values => save(values, ctx);
-    host.append(el);
-    return () => el.remove();
+    return mountTitled(host, el, config.title);
 };

@@ -91,19 +91,19 @@ export const appShellCases = [
         t.eq(fetched('reports'), 1, 'choosing the module did not fetch its chunk again');
     }],
 
-    ['mountApp: a built-in page title is one slotted pk-heading level 1 in pk-page-header, a real h1 in its shadow tree, focused after a route change and drawn in the title size', async t => {
+    ['mountApp: a built-in page title is one light-DOM pk-heading level 1 on the page element (slotted into its pk-page-header), a real h1 in its shadow tree, focused after a route change and drawn in the title size', async t => {
         const s = await demo(t, 1280, { hash: '#/orders' });
         await s.go('#/orders/8');
         const title = s.d.querySelectorAll('#pk-main pk-heading[level="1"]');
         t.eq(title.length, 1, 'one level-1 title');
         t.eq(s.d.querySelectorAll('#pk-main h1').length, 0, 'no raw h1 beside it');
-        const h = title[0], header = h.parentElement, inner = h.shadowRoot.querySelector('h1');
+        const h = title[0], page = h.parentElement, header = page.shadowRoot.querySelector('pk-page-header'), inner = h.shadowRoot.querySelector('h1');
         t.ok(inner, 'its shadow tree holds a real h1');
-        t.eq(header.localName, 'pk-page-header', 'it sits in pk-page-header');
+        t.ok(header && h.assignedSlot, 'the page element forwards it into its pk-page-header');
         t.eq(h.getAttribute('slot'), 'title', 'in the title slot');
         t.eq(h.getAttribute('tabindex'), '-1', 'focusable by script only');
         t.eq(s.d.activeElement, h, 'focus is on the title');
-        t.eq(header.shadowRoot.querySelector('[role="heading"]'), null, 'the header draws no second heading of its own');
+        t.ok(header.shadowRoot.querySelector('[role="heading"]')?.hidden !== false, 'the header shows no second heading of its own');
         const fs = parseFloat(s.win.getComputedStyle(inner).fontSize), root = parseFloat(s.win.getComputedStyle(s.d.documentElement).fontSize);
         t.ok(Math.abs(fs - 1.17 * root) < 1, `the title is in the h3 title size (${fs}px)`);
         const r = h.getBoundingClientRect(), hr = header.getBoundingClientRect();

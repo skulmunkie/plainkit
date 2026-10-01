@@ -28,7 +28,8 @@ export default {
         t.ok(document.querySelectorAll('#pk-main h1').length === 0, 'the page has no second, raw h1 beside the pk-heading');
         const h = titles[0];
         t.ok(h?.shadowRoot?.querySelector('h1') !== null, 'the title element renders a real h1 in its shadow tree');
-        t.ok(h?.getAttribute('slot') === 'title' && h.parentElement?.localName === 'pk-page-header', 'the title is slotted into pk-page-header');
+        t.ok(h?.getAttribute('slot') === 'title' && h.parentElement?.localName === 'pk-note-page', 'the title is a light-DOM child of the page element');
+        t.ok(document.querySelector('#pk-main pk-note-page').shadowRoot.querySelectorAll('pk-heading').length === 0, 'the page element draws no second heading of its own');
         t.visible('#pk-main pk-heading[level="1"]');
         t.inViewport('#pk-main pk-heading[level="1"]');
         if (t.shot === 'idle') t.hasText('#pk-main pk-heading[level="1"]', 'Overview');
