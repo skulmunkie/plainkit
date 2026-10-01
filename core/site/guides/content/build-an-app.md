@@ -85,6 +85,7 @@ A list page hands you the query (`page`, `pageSize`, `sort`, `sortDir`, `search`
 
 ```text
 const listConfig = {
+    heading: 'Orders',
     columns: [{ key: 'id', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'status', label: 'Status', sortable: true }, { key: 'total', label: 'Total', type: 'number', align: 'end' }],
     filters: [{ key: 'status', type: 'select', label: 'Status', options: ['Open', 'Shipped'] }],
     actions: [{ label: 'New order', href: '#/tour/orders/new', variant: 'primary' }],
