@@ -106,13 +106,11 @@ export default Base => class extends Base {
         for (const w of this.config?.widgets ?? []) if (this.$started.has(w.key)) this.loadWidget(w);
     }
 
-    // The page draws a widget's loading, empty or error state into the card's body itself (the card renders no pk-* since #764); data-state
+    // The page draws a widget's loading, empty or error state straight into the card's light DOM (its body slot) itself (the card renders no pk-* since #764); data-state
     // on the card says which one (ready once the pk-stat/pk-chart is in).
     drawState(card, state, opts) {
-        const box = this.ownerDocument.createElement('div');
-        card.replaceChildren(box);
         card.dataset.state = state;
-        showState(box, state, opts);
+        showState(card, state, opts);
     }
 
     // One widget's own async boundary, drawn in its pk-card: loading, the pk-stat/pk-chart on success, or an error with Retry on rejection.
