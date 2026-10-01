@@ -13,6 +13,8 @@ export default Base => class extends Base {
             if (mediaBelow('tablet').matches) { nav.open = !nav.open; this.navOpen = nav.open; } else this.navHidden = !this.navHidden;
             this.emit('pk-nav-toggle', { open: nav.open, hidden: this.navHidden });
         });
+        // A drawer that opens dismisses a header search's results and collapses its field, so two overlays never show at once (the search looks nowhere upward).
+        this.addEventListener('pk-nav-toggle', e => { if (e.detail?.open && e.target === this) for (const f of this.querySelectorAll('pk-app-bar-search')) f.collapse?.(); });
         this.addEventListener('pk-close', e => { if (e.target === this.nav && !e.defaultPrevented) this.navOpen = false; });
         this.addEventListener('pk-open', e => { if (e.target === this.nav) this.navOpen = true; });
         for (const slot of ['header', 'footer']) this.watchSlot(slot, () => this.requestUpdate());

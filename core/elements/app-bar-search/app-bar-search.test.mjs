@@ -51,8 +51,8 @@ test('the phone breakpoint is named, not a literal, and collapses the pill to th
 
 test('the field is a pill (the pill token, not the 50% round token) that grows to the host, capped by the documented --pk-app-bar-search-width hook', () => {
     const css = read('css');
-    assert.match(css, /\.box \{[^}]*border-radius: var\(--radius-pill\)/);
-    assert.doesNotMatch(css, /\.box \{[^}]*\swidth: \d/, 'no fixed width on the field');
+    assert.match(css, /\[part="box"\] \{[^}]*border-radius: var\(--radius-pill\)/);
+    assert.doesNotMatch(css, /\[part="box"\] \{[^}]*\swidth: \d/, 'no fixed width on the field');
     assert.match(css, /:host \{[^}]*flex: 1 1 auto[^}]*max-width: var\(--pk-app-bar-search-width, 34rem\)/);
     assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-bar-search-width'));
 });
@@ -62,14 +62,14 @@ test('compact is a reflected boolean that keeps the icon button and the expanded
     assert.equal(prop('compact').reflect, true);
     const css = read('css');
     assert.match(css, /:host\(\[compact\]\) \[part="expand"\] \{ display: inline-flex/);
-    assert.match(css, /:host\(\[compact\]\) \.box \{ display: none/);
-    assert.match(css, /:host\(\[compact\]\[expanded\]\) \.box \{ display: flex/);
+    assert.match(css, /:host\(\[compact\]\) \[part="box"\] \{ display: none/);
+    assert.match(css, /:host\(\[compact\]\[expanded\]\) \[part="box"\] \{ display: flex/);
 });
 
 test('the results panel has a footer slot and a popup-width hook, and an item without an id renders as a note', () => {
     assert.ok(meta.slots.some(x => x.name === 'footer'));
     assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-bar-search-popup-width'));
     assert.match(read('html'), /part="footer"[^>]*hidden><slot name="footer">/);
-    assert.match(read('css'), /\.pop \{[^}]*min-width: var\(--pk-app-bar-search-popup-width, 24rem\)/);
+    assert.match(read('css'), /\[part="popup"\] \{[^}]*min-width: var\(--pk-app-bar-search-popup-width, 24rem\)/);
     assert.match(read('js'), /item\.id == null \|\| item\.id === ''/);
 });
