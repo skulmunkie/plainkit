@@ -521,11 +521,24 @@ export const overlaysCases = [
         t.ok(!rows[1].querySelector('[part="badge"]').hidden, 'a badge shows when the item has one');
         t.ok(el.part('popup').querySelector('[role="presentation"]'), 'a group heading renders once for the shared group');
         let picked = null; el.addEventListener('pk-select', e => { picked = e.detail.item; });
-        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown'); t.key(input, 'Enter');
+        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown');
+        t.ok(rows[1].hasAttribute('data-hl') && !rows[0].hasAttribute('data-hl') && input.getAttribute('aria-activedescendant') === rows[1].id, 'the highlighted row carries data-hl and is the aria-activedescendant');
+        t.key(input, 'Enter');
         t.eq(picked?.id, 'b', 'two ArrowDown from nothing highlighted lands on the second row');
         t.ok(el.part('popup').hidden, 'picking a result closes the popup');
         input.dispatchEvent(new Event('input', { bubbles: true }));
         t.key(input, 'Escape'); t.ok(el.part('popup').hidden, 'Escape closes the results');
+    }],
+
+    ['app-bar-search: the shell collapses it (and its results) when the nav drawer opens, without the element looking up to the shell', async t => {
+        const sh = await t.mount('<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search" debounce="10"></pk-app-bar-search><p>Body</p></pk-app-shell>');
+        const el = sh.querySelector('pk-app-bar-search'), input = el.part('control');
+        input.value = 'w'; input.dispatchEvent(new Event('input', { bubbles: true }));
+        el.expanded = true;
+        t.ok(!el.part('popup').hidden, 'the results are open');
+        sh.emit('pk-nav-toggle', { open: false, hidden: true }); t.ok(!el.part('popup').hidden && el.expanded, 'a nav toggle that does not open the drawer leaves it alone');
+        sh.emit('pk-nav-toggle', { open: true, hidden: false });
+        t.ok(el.part('popup').hidden && !el.expanded && input.value === '', 'the drawer opening closes the results, collapses the field and clears it');
     }],
 
     ['app-bar-search: a pill that grows to the room it is given, and compact keeps the icon button at any width', async t => {
