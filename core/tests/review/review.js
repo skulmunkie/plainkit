@@ -7,6 +7,20 @@ import { loadElements, observeElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 
+// A debounce or a hover delay is a short timer the page started and a signature of boxes cannot see; a fixed idle wait after every step used to cover them
+// (issue #750). Count the short ones still pending so the scenarios' quiet() can wait for exactly those. Longer timers (a simulated load, a timeout) are
+// waited for with an explicit { wait } step.
+const nativeSetTimeout = window.setTimeout.bind(window);
+const nativeClearTimeout = window.clearTimeout.bind(window);
+const pendingTimers = new Set();
+window.setTimeout = (fn, ms = 0, ...args) => {
+    if (typeof fn !== 'function' || ms > 500) return nativeSetTimeout(fn, ms, ...args);
+    const id = nativeSetTimeout((...a) => { pendingTimers.delete(id); fn(...a); }, ms, ...args);
+    pendingTimers.add(id);
+    return id;
+};
+window.clearTimeout = id => { pendingTimers.delete(id); nativeClearTimeout(id); };
+
 const log = createLogger('review');
 const params = new URLSearchParams(location.search);
 const tag = params.get('tag') ?? '';
@@ -23,7 +37,8 @@ window.__review = state;
 
 const hop = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
-const settle = async () => { await hop(); await hop(); await document.fonts?.ready; await frame(); await frame(); await new Promise(r => setTimeout(r, 150)); };
+// `idle` is a last quiet timeout after the frames; a caller that then waits for the page to stop changing (the scenarios' quiet()) passes 0.
+const settle = async (idle = 150) => { await hop(); await hop(); await document.fonts?.ready; await frame(); await frame(); if (idle) await new Promise(r => setTimeout(r, idle)); };
 
 const canvas = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
 canvas.canvas.width = canvas.canvas.height = 1;
@@ -155,7 +170,7 @@ function measure(stage) {
 try {
     if (params.get('scenario')) {
         const { startScenario } = await import('./scenario-page.js');
-        await startScenario({ name: params.get('scenario'), root, state, measure, settle, loadElements, applyDynamic, registry, log });
+        await startScenario({ name: params.get('scenario'), root, state, measure, settle, pendingTimers, loadElements, applyDynamic, registry, log });
     } else {
     const meta = await loadElement(tag);
     for (const [i, ex] of (meta.examples ?? []).entries()) {

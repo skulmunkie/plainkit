@@ -53,7 +53,7 @@ function buildField(doc, f) {
             unit.options = f.units.map(x => ({ value: String(x), label: String(x) }));
             c.append(unit);
         }
-        if (f.type === 'color') { c.placeholder = '#rrggbb'; swatch = doc.createElement('span'); swatch.slot = 'prefix'; swatch.className = 'swatch'; c.append(swatch); }
+        if (f.type === 'color') { c.placeholder = '#rrggbb'; swatch = doc.createElement('span'); swatch.slot = 'prefix'; c.append(swatch); }
     } else if (tag === 'pk-range') {
         for (const k of ['min', 'max', 'step']) if (f[k] !== undefined) c[k] = f[k];
         c.output = true;
