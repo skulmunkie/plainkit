@@ -1,6 +1,4 @@
 import { safeHref } from '../../js/safe-url.js';
-import { renderState } from '../../js/page-states.js';
-import { loadElements } from '../../js/loader.js';
 
 export default Base => class extends Base {
     connected() { for (const s of ['actions', 'footer', 'media']) this.watchSlot(s, () => this.requestUpdate()); }
@@ -12,9 +10,5 @@ export default Base => class extends Base {
         this.part('header').hidden = !this.heading && this.slotted('actions').length === 0;
         this.part('media').hidden = this.slotted('media').length === 0;
         this.part('footer').hidden = this.slotted('footer').length === 0;
-        // A non-ready state draws into part=state (CSS swaps it for the body); loading/error announce through pk-skeleton's and pk-alert's own roles.
-        const state = this.state || 'ready', box = this.part('state');
-        renderState(box, state, { label: this.stateHeading || (this.heading ? `Loading ${this.heading}` : ''), heading: this.stateHeading, description: this.stateDescription, retry: typeof this.retry === 'function' ? () => this.retry() : undefined });
-        if (state !== 'ready') loadElements(box);
     }
 };

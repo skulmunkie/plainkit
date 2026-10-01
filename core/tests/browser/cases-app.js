@@ -211,15 +211,15 @@ export const appCases = [
         const started = performance.now();
         t.ok(card('fast').querySelector('pk-stat'), 'the fast widget rendered without waiting for the slow one');
         t.eq(card('fast').querySelector('pk-stat').value, '1');
-        t.eq(card('bad').state, 'error', 'the rejecting widget shows its own error, not a stuck skeleton');
-        t.ok(card('bad').shadowRoot.querySelector('[part="state"] pk-alert'), 'the error is drawn by the card');
+        t.eq(card('bad').dataset.state, 'error', 'the rejecting widget shows its own error, not a stuck skeleton');
+        t.ok(card('bad').querySelector('pk-alert'), 'the error is drawn into the card body by the page');
         const elapsed = performance.now() - started;
         t.ok(elapsed < SLOW_MS, `the fast and bad widgets were already settled well before the slow one's ${SLOW_MS}ms load could finish (checked after ${elapsed.toFixed(0)}ms)`);
-        t.eq(card('slow').state, 'loading', 'the slow widget is still loading');
+        t.eq(card('slow').dataset.state, 'loading', 'the slow widget is still loading');
         await until(() => card('slow').querySelector('pk-stat'), 'the slow widget to resolve');
         t.eq(card('slow').querySelector('pk-stat').value, '2');
         t.eq(card('fast').querySelector('pk-stat').value, '1', 'the fast widget was never touched by the slow one settling');
-        t.eq(card('bad').state, 'error', 'the bad widget was never touched by the slow one settling');
+        t.eq(card('bad').dataset.state, 'error', 'the bad widget was never touched by the slow one settling');
     }],
 
     ['pk-dashboard-page tabs (#489): a tab that was never opened never calls load(), opening it loads its widgets once, a revisit reloads nothing, and a filter change reloads only widgets that already loaded', async t => {

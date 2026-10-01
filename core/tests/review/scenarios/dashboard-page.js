@@ -34,7 +34,7 @@ export default {
     },
     steps: [
         { wait: 500 }, { shot: 'overview' },
-        { click: `${CARD('broken')} >>> [part=state] pk-button` }, { wait: 400 }, { shot: 'retried' },
+        { click: `${CARD('broken')} pk-button` }, { wait: 400 }, { shot: 'retried' },
         { click: `${DP} >>> pk-tab[value=sales]` }, { wait: 500 }, { shot: 'sales' },
     ],
     expect(t) {
@@ -47,9 +47,13 @@ export default {
             t.visible(`${DP} >>> [part=filters] pk-select`, 'the filter');
             t.noOverlap(`${DP} >>> [part=filters]`, `${DP} >>> pk-tabs`);
             t.hasText(`${CARD('revenue')} pk-stat >>> [part=value]`, '$48,200');
-            t.visible(`${CARD('slow')} >>> [part=state] pk-skeleton`, 'the slow widget loading');
-            t.visible(`${CARD('broken')} >>> [part=state] pk-alert`, 'the error alert');
-            t.visible(`${CARD('broken')} >>> [part=state] pk-button`, 'the Retry button');
+            t.visible(`${CARD('slow')} pk-skeleton`, 'the slow widget loading');
+            t.within(`${CARD('slow')} pk-skeleton`, CARD('slow'), 1);
+            t.noOverlap(`${CARD('slow')} >>> [part=header]`, `${CARD('slow')} pk-skeleton`);
+            t.visible(`${CARD('broken')} pk-alert`, 'the error alert');
+            t.visible(`${CARD('broken')} pk-button`, 'the Retry button');
+            t.within(`${CARD('broken')} pk-alert`, CARD('broken'), 1);
+            t.noOverlap(`${CARD('broken')} >>> [part=header]`, `${CARD('broken')} pk-alert`);
             t.within(CARD('broken'), DP, 1);
             t.noOverlap(CARD('revenue'), CARD('orders'));
         }

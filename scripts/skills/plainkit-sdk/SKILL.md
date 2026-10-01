@@ -189,7 +189,7 @@ await page.busy(() => fetchOrders(), 'Loading orders…');
 // pk-alert danger status, and rethrown so your own error handling still runs
 ```
 
-Busy is counted (overlapping calls never clear each other early), the overlay delays and debounces itself, and `page.destroy()` releases everything. Driving breadcrumbs from a route tree (`mountRouter`), a self-loading `pk-card` (`state`, `retry`) and `pk-property-grid` (a live property inspector): `references/page.md`.
+Busy is counted (overlapping calls never clear each other early), the overlay delays and debounces itself, and `page.destroy()` releases everything. Driving breadcrumbs from a route tree (`mountRouter`), a `pk-card` whose body the page fills with a loading, empty or error state (`showState`) and `pk-property-grid` (a live property inspector): `references/page.md`.
 
 ### Respond to screen size and change the theme
 
