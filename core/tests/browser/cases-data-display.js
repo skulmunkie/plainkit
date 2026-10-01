@@ -447,7 +447,7 @@ export const dataDisplayCases = [
 
     ['code-block: one line per source line with numbers, wrap toggle and a copy result', async t => {
         const c = await t.mount('<pk-code-block label="a.js" line-numbers>const a = 1;\nconst b = 2;</pk-code-block>');
-        t.eq(c.part('code').querySelectorAll('.line').length, 2); t.eq(c.part('body').getAttribute('aria-label'), 'a.js');
+        t.eq(c.part('code').querySelectorAll('[part="line"]').length, 2); t.eq(c.part('body').getAttribute('aria-label'), 'a.js');
         c.part('wrap').click(); await t.settle(); t.eq(c.wrap, true); t.eq(c.part('wrap').getAttribute('aria-pressed'), 'true');
         let ok = null; c.addEventListener('pk-copy', e => { ok = e.detail.ok; });
         const orig = navigator.clipboard; Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => {} }, configurable: true });
