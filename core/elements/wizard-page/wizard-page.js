@@ -75,7 +75,7 @@ export default Base => class extends Base {
         if (focus) this.part('heading').focus();
     }
     build(step) {
-        const doc = this.ownerDocument, pane = doc.createElement('div');
+        const doc = this.ownerDocument, pane = doc.createElement('div'); pane.setAttribute('role', 'group'); pane.setAttribute('aria-label', step.label ?? step.id);
         if (step.review) { this.summarise(pane); return pane; }
         if (typeof this.mountStep === 'function' && !step.fields) { this.mountStep(pane, step); return pane; }
         const pf = doc.createElement('pk-form'), form = doc.createElement('form');
