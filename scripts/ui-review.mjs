@@ -194,8 +194,7 @@ async function connect(wsUrl) {
 
 // Waits for the review page to say it is ready: its state object, or null when it never did within `timeout` seconds.
 async function waitReady(cdp, timeout) {
-    for (const start = Date.now(); Date.now() - start < timeout * 1000;) {
-        await sleep(150);
+    for (const start = Date.now(); Date.now() - start < timeout * 1000; await sleep(20)) {
         const r = await cdp.send('Runtime.evaluate', { expression: 'window.__review && window.__review.ready ? JSON.stringify(window.__review) : null', returnByValue: true }).catch(() => null);
         if (r?.result?.value) return JSON.parse(r.result.value);
     }
@@ -206,7 +205,12 @@ async function waitReady(cdp, timeout) {
 async function openReview(cdp, vp, url) {
     await cdp.send('Page.navigate', { url: 'about:blank' });
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
-    await sleep(100);
+    // Until the blank page reports the new width (a fixed sleep used to stand for this), so the real page never loads at the previous combination's width.
+    for (let i = 0; i < 100; i++) {
+        const r = await cdp.send('Runtime.evaluate', { expression: 'innerWidth', returnByValue: true }).catch(() => null);
+        if (r?.result?.value === vp.width) break;
+        await sleep(10);
+    }
     await cdp.send('Page.navigate', { url });
 }
 async function evaluate(cdp, expression) {
