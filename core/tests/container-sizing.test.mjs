@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -30,16 +31,15 @@ test('hostDeclarations reads the plain :host rule, not :host(...)', () => {
 });
 
 test('every :host with container-type: inline-size also sets an explicit inline size', () => {
-    const dir = path.join(root, 'elements');
     const bad = [];
-    for (const name of fs.readdirSync(dir)) {
-        const file = path.join(dir, name, `${name}.css`);
+    for (const { name, dir, folder } of listElementFolders(root)) {
+        const file = path.join(dir, `${name}.css`);
         if (!fs.existsSync(file)) continue;
         const css = fs.readFileSync(file, 'utf8');
         if (!/:host\s*\{[^}]*container-type\s*:\s*inline-size/.test(css)) continue;
         const decls = hostDeclarations(css) ?? new Set();
         if (!decls.has('container-type')) continue; // container-type is on a :host(...) variant, not the plain host: a different, size-established case
-        if (!SIZE_PROPS.some(p => decls.has(p))) bad.push(`elements/${name}/${name}.css`);
+        if (!SIZE_PROPS.some(p => decls.has(p))) bad.push(`${folder}/${name}/${name}.css`);
     }
     assert.deepEqual(bad, [], `:host declares container-type: inline-size with no explicit inline-size/width (issue #403): without one, the host silently collapses to 0 width as a flex or grid item instead of erroring.\n${bad.join('\n')}\nFix: add "inline-size: 100%;" (or a min-inline-size) to the same :host rule, the way elements/page-header/page-header.css and elements/toolbar/toolbar.css already do.`);
 });

@@ -23,6 +23,9 @@ export const GENERATED_PATTERNS = [
     ['/core/elements/elements.css', /^core\/elements\/elements\.css$/, 'core/tools/build.mjs'],
     ['/core/elements/registry.js', /^core\/elements\/registry\.js$/, 'core/tools/build.mjs'],
     ['/core/elements/*/*.element.js', /^core\/elements\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
+    ['/core/components/*/*.element.js', /^core\/components\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
+    ['/core/pages/*/*.element.js', /^core\/pages\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
+    ['/core/shells/*/*.element.js', /^core\/shells\/[^/]+\/[^/]+\.element\.js$/, 'core/tools/build.mjs'],
     ['/core/js/version.js', /^core\/js\/version\.js$/, 'core/tools/build.mjs (from core/VERSION)'],
     ['/core/site/gallery/gallery.data.js', /^core\/site\/gallery\/gallery\.data\.js$/, 'core/tools/build.mjs'],
     ['/core/site/gallery/elements/*.data.js', /^core\/site\/gallery\/elements\/[^/]+\.data\.js$/, 'core/tools/build.mjs'],
@@ -66,7 +69,7 @@ export function requireGenerated(rootDir = root) {
 }
 
 // Source folders and files the generators read. A generated file older than the newest of these is stale (used by bootstrap --if-missing).
-const SOURCE_DIRS = ['core/elements', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'core/icons/src',
+const SOURCE_DIRS = ['core/elements', 'core/components', 'core/pages', 'core/shells', 'core/js', 'core/base', 'core/tokens', 'core/modules', 'core/samples', 'core/layouts', 'core/tools', 'core/site/gallery', 'core/site/guides', 'core/icons/src',
     'blazor/mappings', 'blazor/src/PlainKit.Blazor/Components', 'scripts/skills'];
 const SOURCE_FILES = ['core/VERSION', 'core/STANDARDS.md', 'core/README.md', 'PUBLISHING.md', 'CHANGELOG.md'];
 const SOURCE_SCRIPTS = ['scripts/generate-blazor.mjs', 'scripts/build-skills.mjs', 'scripts/build-agent-refs.mjs', 'scripts/publish-dist.mjs', 'scripts/bootstrap.mjs', 'scripts/generated.mjs', 'core/icons/build.mjs', 'core/tools/audit/data.mjs'];

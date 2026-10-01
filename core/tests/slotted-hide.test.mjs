@@ -6,8 +6,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
-const elements = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'elements');
+const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export function slottedSlotHides(css) {
     const out = [];
@@ -21,10 +22,9 @@ test('the scanner flags a slot-attribute ::slotted hide and accepts hiding the s
 });
 
 test('no element hides a named-slot node through ::slotted', () => {
-    for (const dir of fs.readdirSync(elements, { withFileTypes: true })) {
-        if (!dir.isDirectory()) continue;
-        for (const f of fs.readdirSync(path.join(elements, dir.name)).filter(n => n.endsWith('.css'))) {
-            const bad = slottedSlotHides(fs.readFileSync(path.join(elements, dir.name, f), 'utf8'));
+    for (const dir of listElementFolders(core)) {
+        for (const f of fs.readdirSync(dir.dir).filter(n => n.endsWith('.css'))) {
+            const bad = slottedSlotHides(fs.readFileSync(path.join(dir.dir, f), 'utf8'));
             assert.deepEqual(bad, [], `${dir.name}/${f}: hide the <slot> element instead (a display: contents slot wrapper would win over ::slotted)`);
         }
     }
