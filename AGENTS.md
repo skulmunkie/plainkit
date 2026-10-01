@@ -25,7 +25,7 @@ order (the first produces every generated file, which are not in source control)
 ```
 node scripts/bootstrap.mjs
 node core/tools/versioning.mjs check
-node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "core/icons/*.test.mjs" "scripts/tests/*.test.mjs"
+node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/components/*/*.test.mjs" "core/pages/*/*.test.mjs" "core/shells/*/*.test.mjs" "core/modules/*/*.test.mjs" "core/icons/*.test.mjs" "scripts/tests/*.test.mjs"
 dotnet test PlainKit.slnx --configuration Release
 node scripts/changelog.mjs check
 node scripts/generated.mjs check
@@ -105,7 +105,7 @@ The table is generated from the `CHECKS` table in `scripts/verify.mjs`, the one 
 ## Generated files: not in git, never hand-edit
 
 About 40% of what the build touches is generated, and none of it is committed: `core/dist/**` (including `core/dist/skills/` and the manifests), `blazor/src/PlainKit.Blazor/wwwroot/plainkit/**`,
-`blazor/src/PlainKit.Blazor/Generated/**`, `wwwroot/PlainKit.Blazor.lib.module.js`, `core/site/files/snapshot.json`, `core/site/gallery/gallery.data.js`, `core/elements/*/*.element.js`,
+`blazor/src/PlainKit.Blazor/Generated/**`, `wwwroot/PlainKit.Blazor.lib.module.js`, `core/site/files/snapshot.json`, `core/site/gallery/gallery.data.js`, `core/{elements,components,pages,shells}/*/*.element.js`,
 `core/elements/elements.css`, `core/elements/registry.js`, `core/plainkit.css`, `core/js/version.js` and `core/site/scorecard/api.current.json` (the exact list: `node scripts/generated.mjs list`, and
 the section "Generated output" of `.gitignore`). `node scripts/bootstrap.mjs` writes them; change the source and run it again.
 

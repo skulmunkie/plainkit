@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { META_TEXT, TEXT_TIERS } from '../site/scorecard/scoring.data.js';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT_PX = 14; // base/base.css: html { font-size: 14px }
@@ -29,7 +30,7 @@ test('every entry of the secondary-text list has a reason and the selector strin
 });
 
 test('every element the list names exists and sets its own text at the meta size; every class it names is in the source', () => {
-    const dirs = fs.readdirSync(path.join(root, 'elements'), { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
+    const found = listElementFolders(root); const dirs = found.map(e => e.name);
     const tags = new Set(); const classes = new Set();
     for (const [selector] of META_TEXT) {
         for (const m of selector.matchAll(/\bpk-[a-z][a-z-]*/g)) tags.add(m[0]);
@@ -38,7 +39,8 @@ test('every element the list names exists and sets its own text at the meta size
     for (const tag of tags) {
         const name = tag.slice(3);
         assert.ok(dirs.includes(name), `${tag} is an element`);
-        const css = fs.readdirSync(path.join(root, 'elements', name)).filter(f => f.endsWith('.css')).map(f => read(`elements/${name}/${f}`)).join('\n');
+        const here = found.find(e => e.name === name).dir;
+        const css = fs.readdirSync(here).filter(f => f.endsWith('.css')).map(f => fs.readFileSync(path.join(here, f), 'utf8').replace(/\r\n/g, '\n')).join('\n');
         assert.match(css, /--text-(meta|xs|sm)\b/, `${tag} does not use the meta size in its css, so it should not be listed as secondary text`);
     }
     const files = [];

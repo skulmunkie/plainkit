@@ -58,7 +58,7 @@ jobs:
 
       - name: Tests
         run: |
-          node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
+          node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/components/*/*.test.mjs" "core/pages/*/*.test.mjs" "core/shells/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"
 
       - name: Bootstrap leaves the tree clean
         run: node scripts/generated.mjs check

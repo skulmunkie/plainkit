@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSources, lintOne, build, SPRITE_BUDGET_BYTES } from './build.mjs';
+import { TIER_FOLDERS } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -69,7 +70,7 @@ test('every icon name referenced by an element, module, sample, layout or site p
     const { names: sprite } = build();
     const spriteSet = new Set(sprite);
     const used = new Set();
-    for (const dir of ['elements', 'modules', 'samples', 'layouts', 'site']) scanIconNames(path.join(root, dir), used);
+    for (const dir of [...TIER_FOLDERS, 'modules', 'samples', 'layouts', 'site']) scanIconNames(path.join(root, dir), used);
     const missing = [...used].filter(n => !spriteSet.has(n)).sort();
     assert.deepEqual(missing, [], `icon name(s) referenced in core but not in the sprite: ${missing.join(', ')}`);
     assert.ok(used.size >= 5, 'the scan actually found icon usages (a regex regression would silently pass with zero)');

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { BUDGETS } from '../site/scorecard/scoring.data.js';
 import { runStaticAudit } from '../site/scorecard/static-audit.mjs';
 import { build } from '../tools/build.mjs';
+import { listElementFolders } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8').replace(/\r\n/g, '\n');
@@ -49,6 +50,6 @@ test('the static score never drops below the recorded baseline (it only goes up)
 });
 
 test('the stylesheets load no webfont and no font file (system font stack, SVG sprite only)', () => {
-    const css = ['tokens/tokens.css', 'base/base.css', read('plainkit.css')].map(t => (t.endsWith('.css') && !t.includes('{') ? read(t) : t)).join('') + fs.readdirSync(path.join(root, 'elements')).filter(d => fs.statSync(path.join(root, 'elements', d)).isDirectory()).map(d => read(`elements/${d}/${d}.css`)).join('');
+    const css = ['tokens/tokens.css', 'base/base.css', read('plainkit.css')].map(t => (t.endsWith('.css') && !t.includes('{') ? read(t) : t)).join('') + listElementFolders(root).map(d => read(`${d.folder}/${d.name}/${d.name}.css`)).join('');
     assert.ok(!/@font-face|fonts\.googleapis|\.woff/.test(css));
 });

@@ -6,12 +6,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { elementFile } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GROUP = ['tooltip', 'popover', 'dropdown', 'menu-item', 'context-menu', 'select-menu', 'drawer', 'toast', 'toast-stack', 'command-palette',
     'breadcrumb', 'stepper', 'step', 'toc', 'scroll-progress', 'back-to-top', 'skip-link', 'pager', 'alert', 'loading-overlay', 'dialog',
     'lightbox', 'side-nav', 'nav-item', 'navbar', 'app-shell'];
-const read = (folder, ext) => fs.readFileSync(path.join(root, 'elements', folder, `${folder}.${ext}`), 'utf8').replace(/\r\n/g, '\n');
+const read = (folder, ext) => fs.readFileSync(elementFile(folder, ext, root), 'utf8').replace(/\r\n/g, '\n');
 const css = folder => read(folder, 'css').replace(/\/\*[\s\S]*?\*\//g, '');
 const meta = folder => JSON.parse(read(folder, 'meta.json'));
 

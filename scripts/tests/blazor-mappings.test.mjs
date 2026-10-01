@@ -6,14 +6,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders } from '../../core/tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const elementsDir = path.join(root, 'core', 'elements');
 const mappingsDir = path.join(root, 'blazor', 'mappings');
 const readJson = f => JSON.parse(fs.readFileSync(f, 'utf8'));
 
-const names = fs.readdirSync(elementsDir).filter(d => fs.existsSync(path.join(elementsDir, d, `${d}.meta.json`))).sort();
-const metas = Object.fromEntries(names.map(n => [n, readJson(path.join(elementsDir, n, `${n}.meta.json`))]));
+const found = listElementFolders(path.join(root, 'core')).filter(d => fs.existsSync(path.join(d.dir, `${d.name}.meta.json`)));
+const names = found.map(d => d.name).sort();
+const metas = Object.fromEntries(found.map(d => [d.name, readJson(path.join(d.dir, `${d.name}.meta.json`))]));
 const files = fs.readdirSync(mappingsDir).filter(f => f.endsWith('.json')).sort();
 const mappings = Object.fromEntries(files.map(f => [f.replace(/\.json$/, ''), readJson(path.join(mappingsDir, f))]));
 

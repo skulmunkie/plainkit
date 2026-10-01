@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders, elementFile } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SECTION = 'core/STANDARDS.md, "Ownership and reactivity"';
@@ -92,9 +93,9 @@ const ALLOWED = {
 
 function sources() {
     const out = [];
-    for (const d of fs.readdirSync(path.join(root, 'elements'))) {
-        const p = path.join(root, 'elements', d, `${d}.js`);
-        if (fs.existsSync(p)) out.push({ file: `elements/${d}/${d}.js`, kind: 'element', source: fs.readFileSync(p, 'utf8') });
+    for (const { name: d, dir, folder } of listElementFolders(root)) {
+        const p = path.join(dir, `${d}.js`);
+        if (fs.existsSync(p)) out.push({ file: `${folder}/${d}/${d}.js`, kind: 'element', source: fs.readFileSync(p, 'utf8') });
     }
     const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) walk(p); else if (/\.(js|mjs)$/.test(e.name) && !/\.(test|element)\./.test(e.name)) out.push({ file: path.relative(root, p).replace(/\\/g, '/'), kind: 'module', source: fs.readFileSync(p, 'utf8') }); } };
     walk(path.join(root, 'modules'));
@@ -332,8 +333,8 @@ const NOT_TWO_WAY = {
 
 const readMeta = () => {
     const out = {};
-    for (const d of fs.readdirSync(path.join(root, 'elements'))) {
-        const p = path.join(root, 'elements', d, `${d}.meta.json`);
+    for (const { name: d, dir } of listElementFolders(root)) {
+        const p = path.join(dir, `${d}.meta.json`);
         if (fs.existsSync(p)) out[d] = JSON.parse(fs.readFileSync(p, 'utf8'));
     }
     return out;
@@ -359,7 +360,7 @@ test('every two-way prop names the event that announces a user change, or is on 
 });
 
 test('the elements that change a two-way prop themselves raise its commit event (the cases the ownership audit found)', () => {
-    const src = n => fs.readFileSync(path.join(root, 'elements', n, `${n}.js`), 'utf8');
+    const src = n => fs.readFileSync(elementFile(n, 'js', root), 'utf8');
     assert.match(src('tabs'), /this\.value = [^;]*;[^}]*emit\('pk-tab-change'/, 'pk-tabs: the fallback to the first tab raises pk-tab-change');
     assert.match(src('side-nav'), /this\.collapsed = s\.collapsed;[^}]*emit\('pk-nav-toggle'/, 'pk-side-nav: a restored collapsed state raises pk-nav-toggle');
     assert.match(src('combobox'), /setOpen\(open\) \{[^}]*emit\('pk-combo-toggle'/, 'pk-combobox: opening and closing raise pk-combo-toggle');

@@ -13,15 +13,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { listElementFolders } from '../element-folders.mjs';
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 // --- Elements (design 3.1): tag/class/alias/API hint tables, from core/elements/*/*.meta.json. -------------------
 
 export function loadElementMetas(rootDir = root) {
-    const dir = path.join(rootDir, 'core', 'elements');
     const metas = [];
-    for (const e of fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
-        const metaFile = path.join(dir, e.name, `${e.name}.meta.json`);
+    for (const e of listElementFolders(path.join(rootDir, 'core'))) {
+        const metaFile = path.join(e.dir, `${e.name}.meta.json`);
         if (!fs.existsSync(metaFile)) continue;
         metas.push(JSON.parse(fs.readFileSync(metaFile, 'utf8')));
     }

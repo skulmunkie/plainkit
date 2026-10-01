@@ -6,15 +6,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { deprecatedItems } from './element-api.mjs';
 import { fileURLToPath } from 'node:url';
+import { listElementFolders } from './element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (['dist', 'node_modules', 'tests'].includes(e.name) ? [] : e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 
 // The element API as flat items, so a removed prop, event or enum value (or a changed type or default) shows as a missing item.
-export function elementSurface(dir = path.join(root, 'elements')) {
+export function elementSurface(coreDir = root) {
     const items = [];
-    for (const d of fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory())) {
-        const file = path.join(dir, d.name, `${d.name}.meta.json`);
+    for (const d of listElementFolders(coreDir)) {
+        const file = path.join(d.dir, `${d.name}.meta.json`);
         if (!fs.existsSync(file)) continue;
         const m = JSON.parse(fs.readFileSync(file, 'utf8'));
         const tag = m.tag;
@@ -34,10 +35,10 @@ export function elementSurface(dir = path.join(root, 'elements')) {
 }
 
 // What the metas deprecate, [{ item, since, remove }] sorted by item (the baseline keeps the list of the last release, so versioning.mjs can tell an announced removal).
-export function deprecations(dir = path.join(root, 'elements')) {
+export function deprecations(coreDir = root) {
     const out = [];
-    for (const d of fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory())) {
-        const file = path.join(dir, d.name, `${d.name}.meta.json`);
+    for (const d of listElementFolders(coreDir)) {
+        const file = path.join(d.dir, `${d.name}.meta.json`);
         if (fs.existsSync(file)) out.push(...deprecatedItems(JSON.parse(fs.readFileSync(file, 'utf8'))).map(({ item, since, remove }) => ({ item, since, remove })));
     }
     return out.sort((a, b) => (a.item < b.item ? -1 : a.item > b.item ? 1 : 0));
