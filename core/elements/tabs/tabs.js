@@ -96,7 +96,7 @@ export default Base => class extends Base {
         const hidden = hiddenTabs(widths, list.clientWidth, moreWidth, activeIndex);
         tabs.forEach((t, i) => t.toggleAttribute('data-overflow-hidden', hidden.includes(i)));
         more.hidden = hidden.length === 0;
-        this.part('more-trigger')?.setAttribute('aria-label', hidden.length ? `${hidden.length} more tab${hidden.length === 1 ? '' : 's'}` : 'More tabs');
+        this.part('more-trigger')?.setAttribute('label', hidden.length ? `${hidden.length} more tab${hidden.length === 1 ? '' : 's'}` : 'More tabs');
         for (const c of [...more.children]) if (c.getAttribute('slot') !== 'trigger') c.remove();
         for (const i of hidden) {
             const t = tabs[i], mi = document.createElement('pk-menu-item');
