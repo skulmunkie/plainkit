@@ -113,13 +113,13 @@ export const dockCases = [
         t.eq(rail().getAttribute('aria-expanded'), 'true');
         t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'the panel content is shown inside the flyout');
         const fr = rect(flyout), rr = rect(rail());
-        t.ok(fr.left >= rr.right - 1, 'the flyout is positioned over the content, beside the rail button, not on top of it');
-        win.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        t.ok(fr.left >= rr.right - 1 || fr.right <= rr.left + 1, `the flyout is positioned over the content, beside the rail button (opening toward the content, so to its left for a right column), not on top of it: flyout ${Math.round(fr.left)}-${Math.round(fr.right)}, rail ${Math.round(rr.left)}-${Math.round(rr.right)}`);
+        (doc.activeElement ?? doc.body).dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true })); // Escape reaches the document the way a real key does (a keydown fired at the window never does)
         await t.settle(); await wait(60);
         t.ok(flyout.hidden, 'Escape closes the flyout');
-        t.eq(doc.activeElement, rail(), 'focus returns to the rail button');
+        t.eq(dock.shadowRoot.activeElement, rail(), 'focus returns to the rail button');
         rail().click(); await t.settle(); await wait(60);
-        doc.body.focus?.(); doc.querySelector('#probe').focus();
+        dock.shadowRoot.querySelector('[part=flyout] button').focus(); doc.querySelector('#probe').focus(); // focus leaves the flyout (its focusout is what closes it); button.click() alone never focuses anything
         await t.settle(); await wait(60);
         t.ok(dock.shadowRoot.querySelector('[part=flyout]').hidden, 'moving focus elsewhere also closes the flyout');
     }],

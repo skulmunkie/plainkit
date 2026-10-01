@@ -368,7 +368,7 @@ export const toolCases = [
         } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
         const text = p => new TextDecoder().decode(files.get(p));
         t.ok(/^plainkit-custom-.+\.zip$/.test(got[0].name) && files.has('README.md') && files.has('plainkit.custom.json') && files.has('dist/manifest.json') && files.has('dist/elements/button.js'), got[0].name);
-        t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width: 700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
+        t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width:\s*700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
         const manifest = JSON.parse(text('dist/manifest.json'));
         for (const p of ['plainkit.css', 'plainkit.min.css', 'elements/tabs.js', 'icons.svg']) {
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get(`dist/${p}`)));

@@ -21,6 +21,7 @@ export default Base => class extends Base {
             this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) this.request('escape'); });
             this.watchSlot('', () => this.sync());
             this.watchSlot('brand', () => this.sync());
+            this.watchSlot('footer', () => this.sync());
             this.$mq = mediaBelow('tablet'); this.$sync = () => this.sync();
             this.restore(); customElements.whenDefined('pk-nav-item').then(() => { this.sync(); this.route(); });
         }
