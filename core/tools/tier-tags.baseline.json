@@ -7,8 +7,6 @@
     { "rule": "D1", "element": "image-gallery", "found": "label", "count": 1 },
     { "rule": "S3", "element": "app-bar-search", "found": "class=", "count": 12 },
     { "rule": "S3", "element": "app-bar-search", "found": "classList", "count": 1 },
-    { "rule": "S3", "element": "app-bar-search", "found": "className", "count": 1 },
-    { "rule": "S3", "element": "dock", "found": "class=", "count": 14 },
-    { "rule": "T1", "element": "dock", "found": "div", "count": 1 }
+    { "rule": "S3", "element": "app-bar-search", "found": "className", "count": 1 }
   ]
 }

@@ -59,7 +59,7 @@ class Node {
     }
     remove() { this.removed = true; if (this.parent) this.parent.kids = this.parent.kids.filter(k => k !== this); }
 }
-const el = (tag, cls) => { const n = new Node(tag); n.attrs.class = cls; return n; };
+const el = (tag, cls) => { const n = new Node(tag); n.attrs.part = cls; return n; };
 // The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span), a body and a rail-button, cloned per group.
 const groupTemplate = () => {
     const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body'), rail = el('button', 'rail-button');
@@ -69,7 +69,7 @@ const groupTemplate = () => {
     return s;
 };
 const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const k of n.kids) find(k, tag, out); return out; };
-// dock.html's flyout carries a static Expand button (issue #636, same class/part as a header's own collapse-toggle) ahead of whatever panel slot
+// dock.html's flyout carries a static Expand button (issue #636, same part as a header's own collapse-toggle) ahead of whatever panel slot
 // toggleFlyout appends: the build validates meta.parts against exactly this markup, so the stand-in mirrors it rather than letting the element
 // create its own button node.
 const flyoutExpandButton = () => el('button', 'collapse-toggle');
@@ -464,7 +464,7 @@ test('a drag that never moves past the threshold is a no-op: no dragging attribu
     const { el, root } = make(P);
     const [left] = groups(el.$doc);
     const groupEl = find(root, 'section').find(s => s.getAttribute('data-node') === left.id);
-    const header = groupEl.querySelector('.header');
+    const header = groupEl.querySelector('[part="header"]');
     header.closest = sel => (sel === '[part="header"]' ? header : sel === '[data-node]' ? groupEl : null);
     el.shadowRoot.elementFromPoint = () => null;
     root.listeners['pointerdown']({ button: 0, pointerId: 1, clientX: 0, clientY: 0, target: { closest: s => (s === 'pk-dropdown, pk-button' ? null : header.closest(s)) } });
@@ -478,7 +478,7 @@ test('a drag dropped on another group\'s center adds the panel as a tab (moveTab
     const [left, , right] = groups(el.$doc);
     const canvasSection = find(root, 'section').find(s => s.getAttribute('data-node') === findGroup(el.$doc, 'canvas').id);
     const targetSection = find(root, 'section').find(s => s.getAttribute('data-node') === right.id);
-    const handle = canvasSection.querySelector('.header');
+    const handle = canvasSection.querySelector('[part="header"]');
     handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? canvasSection : null);
     handle.setPointerCapture = () => {}; handle.hasPointerCapture = () => true; handle.releasePointerCapture = () => {};
     targetSection.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 });
@@ -494,7 +494,7 @@ test('a drag dropped on another group\'s center adds the panel as a tab (moveTab
     const { el: el2, root: root2, status: status2 } = make(P);
     const canvas2 = find(root2, 'section').find(s => s.getAttribute('data-node') === findGroup(el2.$doc, 'canvas').id);
     const rightSection2 = find(root2, 'section').find(s => s.getAttribute('data-node') === groups(el2.$doc)[2].id);
-    const handle2 = canvas2.querySelector('.header');
+    const handle2 = canvas2.querySelector('[part="header"]');
     handle2.closest = sel => (sel === '[part="header"]' ? handle2 : sel === '[data-node]' ? canvas2 : null);
     handle2.setPointerCapture = () => {}; handle2.hasPointerCapture = () => true; handle2.releasePointerCapture = () => {};
     rightSection2.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 });
@@ -512,7 +512,7 @@ test('a drag cannot land on its own source group: no drop zone is offered there,
     const { el, root } = make(P);
     const left = groups(el.$doc)[0];
     const leftSection = find(root, 'section').find(s => s.getAttribute('data-node') === left.id);
-    const handle = leftSection.querySelector('.header');
+    const handle = leftSection.querySelector('[part="header"]');
     handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? leftSection : null);
     handle.setPointerCapture = () => {}; handle.hasPointerCapture = () => true; handle.releasePointerCapture = () => {};
     el.shadowRoot.elementFromPoint = () => ({ closest: sel => (sel === '[data-node]' ? leftSection : null) });
@@ -535,7 +535,7 @@ test('a pointerdown on the panel menu trigger never starts a drag (the menu stil
 test('a single group (nothing to drop on) never starts a drag: onDragStart bails before setPointerCapture is even reached', () => {
     const single = make([{ id: 'only' }]);
     const section = find(single.root, 'section')[0];
-    const handle = section.querySelector('.header');
+    const handle = section.querySelector('[part="header"]');
     handle.closest = sel => (sel === '[part="header"]' ? handle : sel === '[data-node]' ? section : null);
     handle.setPointerCapture = () => assert.fail('a lone group has nowhere to dock: no drag should ever start');
     const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : handle.closest(s)) };
@@ -555,7 +555,7 @@ test('a floating entry draws as an absolutely-positioned section inside root, wi
     assert.ok(floater, 'the floater group is drawn inside root');
     assert.deepEqual(floater.style, { left: '10px', top: '20px', width: '160px', height: '120px', zIndex: 1 });
     assert.equal(findGroup(doc, 'canvas'), null, 'canvas left the docked tree for its floater');
-    assert.equal(find(floater, 'div').some(d => d.attrs.class === 'floater-resize'), true, 'a resize grip is present');
+    assert.equal(find(floater, 'div').some(d => d.attrs['data-grip'] === ''), true, 'a resize grip is present');
 });
 
 test('dragging a floater\'s header moves it (moveFloater), clamped to root\'s own bounds, and commits reason floater once on release', () => {
@@ -563,11 +563,11 @@ test('dragging a floater\'s header moves it (moveFloater), clamped to root\'s ow
     const { el, root } = make(P, { layout: doc });
     const id = floaters(el.$doc)[0].id;
     const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
-    const header = floaterEl.querySelector('.header');
+    const header = floaterEl.querySelector('[part="header"]');
     header.closest = sel => (sel === '[data-floater]' ? floaterEl : sel === 'pk-tab, [part="header"]' ? header : null);
     header.setPointerCapture = () => {}; header.hasPointerCapture = () => true; header.releasePointerCapture = () => {};
     root.getBoundingClientRect = () => ({ width: 400, height: 300 });
-    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '.floater-resize' ? null : header.closest(s)) };
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '[data-grip]' ? null : header.closest(s)) };
     root.listeners['pointerdown']({ button: 0, pointerId: 10, clientX: 0, clientY: 0, target, stopPropagation() {} });
     root.listeners['pointermove']({ pointerId: 10, clientX: 30, clientY: -5, preventDefault() {} });
     assert.equal(findFloater(el.$doc, id).x, 40); assert.equal(findFloater(el.$doc, id).y, 15, 'live during the drag, no commit yet');
@@ -582,7 +582,7 @@ test('dragging a floater\'s resize grip resizes it (resizeFloater) without movin
     const { el, root } = make(P, { layout: doc });
     const id = floaters(el.$doc)[0].id;
     const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
-    const grip = { closest: sel => (sel === '.floater-resize' ? grip : sel === '[data-floater]' ? floaterEl : null) };
+    const grip = { closest: sel => (sel === '[data-grip]' ? grip : sel === '[data-floater]' ? floaterEl : null) };
     grip.setPointerCapture = () => {}; grip.hasPointerCapture = () => true; grip.releasePointerCapture = () => {};
     root.getBoundingClientRect = () => ({ width: 400, height: 300 });
     const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : grip.closest(s)) };
@@ -601,10 +601,10 @@ test('a pointerdown on any floater raises it to the front (raiseFloater), even w
     const [first, second] = floaters(el.$doc);
     assert.equal(second.z > first.z, true, 'the later floater starts on top');
     const firstEl = find(root, 'section').find(s => s.getAttribute('data-floater') === first.id);
-    const header = firstEl.querySelector('.header');
+    const header = firstEl.querySelector('[part="header"]');
     header.closest = sel => (sel === '[data-floater]' ? firstEl : sel === 'pk-tab, [part="header"]' ? header : null);
     header.setPointerCapture = () => {}; header.hasPointerCapture = () => true; header.releasePointerCapture = () => {};
-    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '.floater-resize' ? null : header.closest(s)) };
+    const target = { closest: s => (s === 'pk-dropdown, pk-button' ? null : s === '[data-grip]' ? null : header.closest(s)) };
     root.listeners['pointerdown']({ button: 0, pointerId: 12, clientX: 0, clientY: 0, target, stopPropagation() {} });
     assert.equal(findFloater(el.$doc, first.id).z > findFloater(el.$doc, second.id).z, true, 'raised straight away, before any move or release');
     root.listeners['pointerup']({ pointerId: 12, type: 'pointerup' });
@@ -656,7 +656,7 @@ test('a key on something inside the floater (not the frame itself) is left alone
     const { el, root } = make(P, { layout: doc });
     const id = floaters(el.$doc)[0].id;
     const floaterEl = find(root, 'section').find(s => s.getAttribute('data-floater') === id);
-    const inner = floaterEl.querySelector('.header');
+    const inner = floaterEl.querySelector('[part="header"]');
     inner.closest = sel => (sel === '[data-floater]' ? floaterEl : null);
     root.listeners['keydown']({ key: 'ArrowRight', target: inner, preventDefault() { assert.fail('should not run'); } });
     assert.equal(findFloater(el.$doc, id).x, 10);
@@ -668,7 +668,7 @@ test('focusing anything inside a floater raises it (raiseFloater), the keyboard/
     const { el, root } = make(P, { layout: doc });
     const [first, second] = floaters(el.$doc);
     const firstEl = find(root, 'section').find(s => s.getAttribute('data-floater') === first.id);
-    const inner = firstEl.querySelector('.header');
+    const inner = firstEl.querySelector('[part="header"]');
     inner.closest = sel => (sel === '[data-floater]' ? firstEl : null);
     root.listeners['focusin']({ target: inner });
     assert.equal(findFloater(el.$doc, first.id).z > findFloater(el.$doc, second.id).z, true);

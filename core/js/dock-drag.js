@@ -78,12 +78,12 @@ export function grab(el, handle, id) { try { handle.setPointerCapture(id); } cat
 // Pointer drag-to-dock: the same moveTab/dockPanel calls the Move menu makes. Pointer capture is set right away (like pk-sortable-item), but
 // nothing else happens (no overlay, no preventDefault) until the pointer actually moves, so a plain click still selects a tab. A floater has no
 // separate title bar element: its own group() header (or tab strip) already shows the title, so that same element doubles as the drag-to-move
-// handle, plus a corner .floater-resize grip.
+// handle, plus a corner [data-grip] grip.
 export function onDragStart(el, e) {
     if (e.button > 0 || e.target.closest?.('pk-dropdown, pk-button')) return;
     const floaterEl = e.target.closest?.('[data-floater]');
     if (floaterEl) {
-        const grip = e.target.closest?.('.floater-resize'), handle = grip || e.target.closest?.('pk-tab, [part="header"]');
+        const grip = e.target.closest?.('[data-grip]'), handle = grip || e.target.closest?.('pk-tab, [part="header"]');
         const id = handle && floaterEl.getAttribute('data-floater'), f = id && findFloater(el.$doc, id);
         if (!f) return;
         e.stopPropagation();
