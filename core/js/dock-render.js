@@ -26,7 +26,7 @@ export function drawFloating(el, d, floating) {
         g.tabIndex = 0;
         g.setAttribute('aria-roledescription', 'floating panel');
         g.setAttribute('aria-describedby', 'floater-help');
-        g.append(make(d, 'div', { class: 'floater-resize' }));
+        g.append(make(d, 'div', { 'data-grip': '' }));
         root.append(g);
     }
 }
@@ -34,7 +34,7 @@ export function drawFloating(el, d, floating) {
 export function node(el, d, n) {
     if (n.type === 'tabs') return group(el, d, n);
     const s = make(d, 'pk-splitter', { orientation: n.orientation, size: n.size, min: n.min, max: n.max, label: el.resizeLabel, 'data-node': n.id });
-    for (const [slot, child] of [['start', n.a], ['end', n.b]]) { const cell = make(d, 'div', { class: 'cell', slot }); cell.append(node(el, d, child)); s.append(cell); }
+    for (const [slot, child] of [['start', n.a], ['end', n.b]]) { const cell = make(d, 'div', { slot }); cell.append(node(el, d, child)); s.append(cell); }
     return s;
 }
 
@@ -42,8 +42,8 @@ export function node(el, d, n) {
 export function group(el, d, n, floaterId) {
     const g = el.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true), title = id => el.$titles.get(id) ?? id;
     g.setAttribute('data-node', n.id);
-    const h = g.querySelector('.header'), body = g.querySelector('.body'), movable = !el.$phoneStrip && groups(el.$doc).length > 1;
-    const railBtn = g.querySelector('.rail-button');
+    const h = g.querySelector('[part="header"]'), body = g.querySelector('[part="body"]'), movable = !el.$phoneStrip && groups(el.$doc).length > 1;
+    const railBtn = g.querySelector('[part="rail-button"]');
     // A grab cursor where a pointer drag can actually pick this group up.
     g.toggleAttribute('data-movable', movable);
     if (n.panels.length === 1) {
@@ -52,7 +52,7 @@ export function group(el, d, n, floaterId) {
         // flyout on click, the familiar IDE behaviour; a collapsed group that is not at an edge (the centre column) keeps the header-only fold.
         if (collapsed && isEdgeGroup(el.$doc, n.id)) {
             h.remove(); body.remove();
-            g.setAttribute('class', `${g.getAttribute('class') || 'group'} rail`);
+            g.setAttribute('data-rail', '');
             g.setAttribute('aria-label', title(panel));
             railBtn.hidden = false;
             railBtn.setAttribute('data-rail-panel', panel);
@@ -64,11 +64,11 @@ export function group(el, d, n, floaterId) {
         }
         railBtn.remove();
         h.id = `h-${panel}`;
-        const toggle = h.querySelector('.collapse-toggle');
+        const toggle = h.querySelector('[part="collapse-toggle"]');
         toggle.setAttribute('aria-expanded', String(!collapsed));
         toggle.setAttribute('aria-controls', bodyId);
         toggle.setAttribute('data-panel', panel);
-        toggle.querySelector('.title').textContent = title(panel);
+        toggle.querySelector('[part="title"]').textContent = title(panel);
         if (!el.$phoneStrip) h.append(panelTrigger(el, d, panel, n.id, movable, floaterId));
         body.id = bodyId;
         body.hidden = collapsed;
@@ -82,11 +82,11 @@ export function group(el, d, n, floaterId) {
     const tabs = make(d, 'pk-tabs', { value: n.active, scroll: '' });
     for (const id of n.panels) {
         const tab = make(d, 'pk-tab', { value: id }); tab.textContent = title(id);
-        const panel = make(d, 'pk-tab-panel', { value: id }), pbody = make(d, 'div', { part: 'body', class: 'body' }); pbody.append(make(d, 'slot', { name: id })); panel.append(pbody);
+        const panel = make(d, 'pk-tab-panel', { value: id }), pbody = make(d, 'div', { part: 'body' }); pbody.append(make(d, 'slot', { name: id })); panel.append(pbody);
         tabs.append(tab, panel);
     }
     if (!el.$phoneStrip) {
-        const trailing = make(d, 'div', { slot: 'trailing', class: 'trailing' });
+        const trailing = make(d, 'div', { slot: 'trailing' });
         trailing.append(panelTrigger(el, d, n.active, n.id, movable, floaterId));
         tabs.append(trailing);
     }
@@ -128,10 +128,10 @@ export function panelTrigger(el, d, panel, group, movable, floaterId) {
 // reserving an empty bar.
 export function drawToolbar(el, d) {
     const bar = el.part('toolbar'), closed = [...el.$titles ?? []].map(([id]) => id).filter(id => el.$closed.has(id));
-    bar.querySelector('.panels')?.remove();
+    bar.querySelector('[data-panels]')?.remove();
     bar.hidden = closed.length === 0 && el.slotted('toolbar-start').length === 0;
     if (!closed.length) return;
-    const panels = make(d, 'div', { class: 'panels' });
+    const panels = make(d, 'div', { 'data-panels': '' });
     const dd = make(d, 'pk-dropdown', { placement: 'bottom-end' });
     const btn = make(d, 'pk-button', { slot: 'trigger', variant: 'ghost', size: 'mini', icon: '', 'icon-name': 'dashboard', label: `Panels (${closed.length} closed)` });
     dd.append(btn);
