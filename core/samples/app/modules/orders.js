@@ -12,6 +12,7 @@ const FIELDS = [{ name: 'customer', label: 'Customer' }, { name: 'status', label
 // A list page: the built-in type draws the table, filters and pager from `load`; a status filter narrows the "All orders" list into the Open and
 // Shipped routes with no separate config of their own.
 const listFor = status => ({
+    heading: status ? `${status} orders` : 'All orders',
     columns: COLUMNS,
     empty: { heading: 'No orders', description: status ? `No ${status.toLowerCase()} orders.` : 'There are no orders yet.' },
     load: async () => {

@@ -5,14 +5,14 @@
 export const PAGE_TYPE = {
     id: 'master-detail',
     summary: 'A list pane plus a detail pane for the selected record, on one route.',
-    configKeys: ['list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
     states: ['none'],
     useWhen: 'A record opened beside its list rather than on its own page, such as an inbox.',
 };
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-master-detail-page');
     const { list, backLabel, none, label, param = 'id', rowHref, listHref, load, mountDetail, fill } = config;
-    el.config = { list, backLabel, none, label };
+    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, list, backLabel, none, label };
     const id = ctx.route?.params?.[param];
     if (id) el.recordId = String(id);
     if (fill) el.fill = true;
