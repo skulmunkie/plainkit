@@ -57,7 +57,7 @@ export default Base => class extends Base {
         }
         this.$typing = false;
         if (this.value === '' && s.options.length && !this.multiple) { const first = s.options[s.selectedIndex]; if (first) this.$auto = first.value; }
-        this.setValidity(flagsOf(s.validity), s.validationMessage, s);
+        this.setValidity(s.willValidate ? flagsOf(s.validity) : {}, s.validationMessage, s);
         if (this.multiple) { const fd = new FormData(); for (const v of selectedValues([...s.options])) fd.append(this.name, v); this.setFormValue(fd); } else this.setFormValue(s.value);
     }
     onReset() { this.value = this.$initial ?? ''; this.$pushed = false; }
