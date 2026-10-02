@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 
 namespace PlainKit.Blazor;
@@ -95,25 +94,6 @@ internal static class PkAttr
     /// <summary>The date in an ISO string, or null when it is empty or not a date.</summary>
     internal static DateOnly? ParseDate(string? value) =>
         DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
-
-    /// <summary>A list as the comma-joined string a multi-value element takes: core writes a comma inside a value as <c>\,</c> and a backslash as <c>\\</c> (the same rule as its <c>joinValues</c>).</summary>
-    internal static string JoinValues(IEnumerable<string> values) => string.Join(',', values.Select(v => Regex.IsMatch(v, @",|\\[\\,]|\\$") ? Regex.Replace(v, @"[\\,]", @"\$&") : v));
-
-    /// <summary>The list in a comma-joined string (the inverse of <see cref="JoinValues"/>); an empty string is an empty list.</summary>
-    internal static IReadOnlyList<string> SplitValues(string? text)
-    {
-        var list = new List<string>();
-        if (string.IsNullOrEmpty(text)) return list;
-        var cur = new System.Text.StringBuilder();
-        for (var i = 0; i < text.Length; i++)
-        {
-            if (text[i] == '\\' && i + 1 < text.Length && (text[i + 1] == ',' || text[i + 1] == '\\')) cur.Append(text[++i]);
-            else if (text[i] == ',') { list.Add(cur.ToString()); cur.Clear(); }
-            else cur.Append(text[i]);
-        }
-        list.Add(cur.ToString());
-        return list;
-    }
 
     /// <summary>The value as a JSON attribute (camelCase), or null when unset.</summary>
     internal static string? Json(object? value) => value is null ? null : JsonSerializer.Serialize(value, Web);

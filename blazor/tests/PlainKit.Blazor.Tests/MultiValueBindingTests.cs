@@ -5,9 +5,9 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// Typed multi-value binding (issue #804): a mapping whose model block says "multi" gets Values / ValuesChanged / ValuesExpression next to the
-// comma-joined Value. The element still speaks the escaped string (core owns the encoding: a comma in a value is written \, and a backslash \\);
-// the wrapper only converts, so a value with a comma round-trips.
+// Typed multi-value binding (issues #804, #850): a mapping whose model block says "multi" gets Values / ValuesChanged / ValuesExpression next to the
+// comma-joined Value. Values is the element's own `values` array (a JSON attribute) and the event detail carries the array, so the wrapper holds no
+// comma-escaping code (core owns the encoding for the string `value`).
 public sealed class MultiValueBindingTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -25,9 +25,10 @@ public sealed class MultiValueBindingTests : BunitContext, IAsyncLifetime
     {
         IReadOnlyList<string>? values = new[] { "S", "M" };
         var cut = Render<PkSelect>(p => p.Add(x => x.Multiple, true).Bind(x => x.Values, values, v => values = v));
-        Assert.Equal("S,M", cut.Find("pk-select").GetAttribute("value"));
+        Assert.Equal("[\"S\",\"M\"]", cut.Find("pk-select").GetAttribute("values"));
+        Assert.Null(cut.Find("pk-select").GetAttribute("value"));
 
-        await cut.Find("pk-select").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "M,L" });
+        await cut.Find("pk-select").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "M,L", Values = new[] { "M", "L" } });
         Assert.Equal(new[] { "M", "L" }, values);
     }
 
@@ -36,9 +37,9 @@ public sealed class MultiValueBindingTests : BunitContext, IAsyncLifetime
     {
         IReadOnlyList<string>? values = new[] { "a,b", "c\\d", "plain" };
         var cut = Render<PkTagInput>(p => p.Bind(x => x.Values, values, v => values = v));
-        Assert.Equal("a\\,b,c\\d,plain", cut.Find("pk-tag-input").GetAttribute("value"));
+        Assert.Equal("[\"a,b\",\"c\\\\d\",\"plain\"]", cut.Find("pk-tag-input").GetAttribute("values"));
 
-        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "x\\,y,z" });
+        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "x\\,y,z", Values = new[] { "x,y", "z" } });
         Assert.Equal(new[] { "x,y", "z" }, values);
     }
 
@@ -47,7 +48,7 @@ public sealed class MultiValueBindingTests : BunitContext, IAsyncLifetime
     {
         IReadOnlyList<string>? values = new[] { "a" };
         var cut = Render<PkTagInput>(p => p.Bind(x => x.Values, values, v => values = v));
-        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "" });
+        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "", Values = Array.Empty<string>() });
         Assert.Empty(values!);
     }
 
@@ -73,12 +74,12 @@ public sealed class MultiValueBindingTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.NotNull(cut.Find("pk-tag-input").GetAttribute("invalid")));
         Assert.Contains("Add a tag", cut.Markup);
 
-        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "a\\,b" });
+        await cut.Find("pk-tag-input").TriggerEventAsync("onpk-tags-change", new PkTagsChangeEventArgs { Value = "a\\,b", Values = new[] { "a,b" } });
         Assert.Equal(new[] { "a,b" }, host.Model.Tags);
         Assert.True(host.Context.IsModified(new FieldIdentifier(host.Model, "Tags")));
         cut.WaitForAssertion(() => Assert.Null(cut.Find("pk-tag-input").GetAttribute("invalid")));
 
-        await cut.Find("pk-select#sizes").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "S,M" });
+        await cut.Find("pk-select#sizes").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "S,M", Values = new[] { "S", "M" } });
         Assert.Equal(new[] { "S", "M" }, host.Model.Sizes);
         Assert.True(host.Context.IsModified(new FieldIdentifier(host.Model, "Sizes")));
         Assert.False(host.Context.IsModified(new FieldIdentifier(host.Model, "Size")));
