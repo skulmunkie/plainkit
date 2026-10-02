@@ -38,6 +38,10 @@
   ],
   "slots": [
     {
+      "name": "title",
+      "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends, so the app can focus it after navigation. When present, the built-in state heading is not drawn a second time."
+    },
+    {
       "name": "",
       "description": "The page's own content, shown only in the ready state."
     },

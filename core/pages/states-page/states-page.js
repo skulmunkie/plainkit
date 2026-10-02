@@ -10,6 +10,6 @@ export default Base => class extends Base {
         const state = this.state || 'ready';
         this.part('content').hidden = state !== 'ready';
         this.$s ??= (() => { const d = this.ownerDocument.createElement('div'); d.slot = 'drawn'; this.append(d); return d; })();
-        showState(this.$s, state, { heading: this.heading, description: this.description, label: this.label, retry: () => this.emit('pk-retry', null, { cancelable: false }) });
+        showState(this.$s, state, { heading: [...(this.children ?? [])].some(c => c.getAttribute?.('slot') === 'title') && state !== 'loading' ? null : this.heading, description: this.description, label: this.label, retry: () => this.emit('pk-retry', null, { cancelable: false }) });
     }
 };

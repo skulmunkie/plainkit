@@ -124,7 +124,7 @@ test('page types and layouts: module, then app, then built-in; a built-in id can
 });
 
 test("'states' (step 5, #351) creates a pk-states-page, sets only the config keys given, wires retry to pk-retry and back, and its cleanup removes the element and the listener", async () => {
-    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } append() {} setAttribute() {} remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('states-host');
     const factory = (await import('../js/app/pages/states.js')).default;
@@ -204,7 +204,7 @@ test("'settings' (step 5, #351) creates a pk-settings-page, splits config into t
 });
 
 test("'not-found' (step 5, #351) creates a pk-not-found-page, sets only the config keys given, wires action to pk-action and back, and its cleanup removes the element and the listener - and pageTypeFor('not-found') is reachable only outside the module host's own routing (see app/host.js's showPage)", async () => {
-    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } remove() { this.host.children = this.host.children.filter(c => c !== this); } }
+    class El { constructor(tag, host) { this.localName = tag; this.listeners = {}; this.host = host; } addEventListener(t, fn) { (this.listeners[t] ??= []).push(fn); } removeEventListener(t, fn) { this.listeners[t] = (this.listeners[t] ?? []).filter(f => f !== fn); } fire(t) { for (const fn of [...(this.listeners[t] ?? [])]) fn(); } append() {} setAttribute() {} remove() { this.host.children = this.host.children.filter(c => c !== this); } }
     class Host { constructor() { this.ownerDocument = { createElement: t => new El(t, this) }; this.children = []; } append(...k) { this.children.push(...k); } }
     const def = mod('not-found-host');
     const factory = (await import('../js/app/pages/not-found.js')).default;

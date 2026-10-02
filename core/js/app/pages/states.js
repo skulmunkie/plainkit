@@ -9,11 +9,14 @@ export const PAGE_TYPE = {
     states: ['loading', 'empty', 'error', 'forbidden'],
     useWhen: "A route whose content depends on an async state that is not yet the list or record shape.",
 };
+import { mountTitled } from '../../page-shell.js';
+// The page title when no heading is configured: the state's own default heading (loading and ready show their own content, so none).
+const DEFAULT_TITLE = { empty: 'Nothing here yet', error: 'Something went wrong', forbidden: 'Not allowed' };
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-states-page');
     for (const k of ['state', 'heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
     const onRetry = () => config.retry?.(ctx);
     if (config.retry) el.addEventListener('pk-retry', onRetry);
-    host.append(el);
-    return () => { if (config.retry) el.removeEventListener('pk-retry', onRetry); el.remove(); };
+    const done = mountTitled(host, el, config.heading || DEFAULT_TITLE[config.state]);
+    return Object.assign(() => { if (config.retry) el.removeEventListener('pk-retry', onRetry); done(); }, { then: done.then });
 };

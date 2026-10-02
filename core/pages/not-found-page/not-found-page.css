@@ -1,1 +1,2 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
+::slotted([slot="title"]) { display: block; text-align: center; margin-block-end: var(--space-2); }

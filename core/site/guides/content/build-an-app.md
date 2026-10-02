@@ -70,7 +70,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Data | `master-detail` | `list`, `backLabel`, `none`, `param` | `load(query, ctx)`, `rowHref(row)`, `listHref`, `mountDetail(pane, id, ctx)` |
 | Forms | `record` | `fields`, `sidebar`, `heading`, `editable` | `load(id, ctx)`, `save(values, ctx)` |
 | Forms | `settings` | `sections`, `values` | `save(values, ctx)` |
-| Forms | `tool` | `input`, `outcome`, `runLabel` | `run(values, ctx)` |
+| Forms | `tool` | `heading`, `input`, `outcome`, `runLabel` | `run(values, ctx)` |
 | Forms | `wizard` | `steps`, `review`, `submitLabel` | `validate(stepId, values, ctx)`, `submit(values, ctx)`, `load(ctx)` |
 | Content | `doc` | `items`, `search`, `home` | `loadItem(id, ctx)`, `href(id, anchor, ctx)` |
 | Content | `workspace` | `panes`, `labels`, `fill` | `mount(panes, ctx)` |
@@ -127,6 +127,7 @@ A tool page is one input and one outcome; a settings page is sections of fields 
 
 ```text
         { path: '/tool', label: 'Tool', page: 'tool', config: {
+            heading: 'Tax calculator',
             input: [{ key: 'amount', type: 'number', label: 'Amount', required: true }],
             outcome: 'stat',
             runLabel: 'Add tax',

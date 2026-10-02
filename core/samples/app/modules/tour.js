@@ -58,6 +58,7 @@ export default defineModule({
             load: async key => ({ value: key === 'open' ? String(ORDERS.filter(o => o.status === 'Open').length) : `$${ORDERS.reduce((sum, o) => sum + o.total, 0)}` }),
         } },
         { path: '/tool', label: 'Tool', page: 'tool', config: {
+            heading: 'Tax calculator',
             input: [{ key: 'amount', type: 'number', label: 'Amount', required: true }],
             outcome: 'stat',
             runLabel: 'Add tax',

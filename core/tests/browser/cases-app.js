@@ -609,4 +609,30 @@ export const appCases = [
         t.eq(afterDestroy, false, 'the event reaches the host uncancelled: the router stopped listening once destroyed');
         host.replaceChildren();
     }],
+    // #807: app.js focuses `h1,pk-heading[level="1"]` under main after a route change, so every built-in page type must hand it exactly one, through mountTitled.
+    ['built-in page types states, not-found, doc and tool (#807): each gives post-navigation focus exactly one light-DOM h1 or level 1 pk-heading, focusable, and no second level 1 heading', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const cases = [
+            ['states', { state: 'empty', heading: 'No orders', description: 'Nothing yet' }, 'No orders'],
+            ['states', { state: 'error', description: 'It broke' }, 'Something went wrong'],
+            ['not-found', {}, 'Page not found'],
+            ['not-found', { heading: 'Gone' }, 'Gone'],
+            ['tool', { heading: 'Word count', input: [{ key: 'text', label: 'Text', type: 'text' }] }, 'Word count'],
+            ['doc', { items: [{ id: 'a', title: 'Alpha', summary: 'First' }], id: 'a', loadItem: async () => ({ title: 'Alpha', summary: 'First', html: '<p>x</p>' }), href: id => `/${id}` }, null],
+        ];
+        for (const [type, config, text] of cases) {
+            const box = document.createElement('main'); t.stage('').append(box);
+            const page = await mountPage(box, { type, config });
+            await t.load(box);
+            await wait(100);
+            const found = box.querySelectorAll('h1,pk-heading[level="1"]');
+            t.eq(found.length, 1, `${type} ${JSON.stringify(config).slice(0, 30)}: exactly one h1`);
+            const h = found[0];
+            if (text) t.eq(h.textContent.trim(), text, `${type}: the heading text`);
+            h.tabIndex = -1; h.focus({ preventScroll: true });
+            t.eq(document.activeElement, h, `${type}: focus lands on the heading`);
+            t.eq(box.querySelectorAll('[role="heading"][aria-level="1"]').length, 0, `${type}: no second level 1 heading in the light DOM`);
+            page.destroy();
+        }
+    }],
 ];
