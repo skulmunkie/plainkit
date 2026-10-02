@@ -43,7 +43,8 @@
     }
   ],
   "slots": [
-    { "name": "actions", "description": "Toolbar buttons at the end of the search row." }
+    { "name": "actions", "description": "Toolbar buttons at the end of the search row." },
+    { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell, exactly as pk-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value. Column options (align, type, hidePhone) in config.columns apply as in pk-table." }
   ],
   "events": [
     {

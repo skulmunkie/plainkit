@@ -5,6 +5,8 @@ import { filterControl } from '../../js/filter-controls.js';
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 export default Base => class extends Base {
     connected() {
+        // Cell content (#817): the host's `cell-<id>-<key>` children are re-slotted into the inner pk-table, which finds them as its own children.
+        (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
@@ -32,6 +34,14 @@ export default Base => class extends Base {
         pagination.addEventListener('pk-page-size', e => go({ pageSize: e.detail.pageSize, page: 1 }));
         this.buildFilters();
         this.refresh();
+    }
+    disconnected() { this.$mo?.disconnect(); }
+    forwardSlots() {
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.localName === 'slot');
+        if (names.join() === have.map(c => c.name).join()) return;
+        for (const c of have) c.remove();
+        for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
+        table.requestUpdate();
     }
     changed(name) {
         if (!this.$w) return;
@@ -62,6 +72,7 @@ export default Base => class extends Base {
     // The table's own props follow the query and the selection state.
     sync() {
         const table = this.part('table'), q = this.query;
+        this.forwardSlots();
         table.columns = this.config?.columns ?? [];
         table.rowKey = this.rowKey;
         table.clickable = typeof this.rowHref === 'function';
