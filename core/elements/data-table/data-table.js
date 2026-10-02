@@ -90,6 +90,13 @@ export default Base => class extends Base {
         for (const k of ['cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
+    // Zero rows: while a search or filter is active config.noResults (when set), else config.empty; with nothing active a host child in the `empty` slot replaces the built-in state.
+    showEmpty(q) {
+        const c = this.config ?? {}, state = this.part('state'), searching = q.search || Object.values(q.filters).some(v => String(v ?? '').trim() !== '');
+        if (!searching && this.querySelector(':scope > [slot="empty"]')) { showState(state, 'ready'); this.part('empty').hidden = false; }
+        else showState(state, 'empty', searching && c.noResults ? c.noResults : c.empty);
+    }
+
     // Runs load(query) for the current page/sort/filter/search and draws the result: a loading state while it is in flight, an error state
     // with Retry if it rejects, the configured empty state for zero rows, or the table itself. A request started while an older one is still
     // in flight is the only one that gets to draw (a token, the same guard js/app/module.js's own request cancellation makes at the module level).
@@ -100,20 +107,21 @@ export default Base => class extends Base {
         // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.
         this.$abort?.abort();
         const { signal } = (this.$abort = new AbortController());
-        table.hidden = true;
+        table.hidden = this.part('empty').hidden = true;
         showState(state, 'loading', { label: 'Loading' });
-        if (typeof this.load !== 'function') { showState(state, 'empty', this.config?.empty); return; }
+        if (typeof this.load !== 'function') { this.showEmpty(q); return; }
         let result;
         try {
             result = await this.load(q, { signal });
         } catch (err) {
             if (this.$token !== token) return;
-            showState(state, 'error', { error: err, retry: () => this.refresh() });
+            showState(state, 'error', { heading: this.config?.loadError, error: err, retry: () => this.refresh() });
+            this.emit('pk-load-error', { error: err });
             return;
         }
         if (this.$token !== token) return;
         const rows = result?.rows ?? [], total = result?.total ?? rows.length;
-        if (rows.length === 0) { showState(state, 'empty', this.config?.empty); return; }
+        if (rows.length === 0) { this.showEmpty(q); return; }
         showState(state, 'ready');
         table.hidden = false;
         table.total = this.selectable ? total : 0;

@@ -10,7 +10,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ columns, filters?, empty?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows. pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
+      "description": "{ columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows; noResults is the same shape, shown instead while a search or filter is active (default: empty); loadError is the heading of the error state shown when load() rejects (default 'Something went wrong'; the error's message is its description). pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
     },
     {
       "name": "selectable",
@@ -94,10 +94,18 @@
   ],
   "slots": [
     { "name": "actions", "description": "Toolbar buttons at the end of the search row." },
+    { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the built-in no-results state shows." },
     { "name": "bulk", "description": "Bulk actions (buttons) shown in the bar that appears while rows are selected, beside the count; act on the pk-select detail (the ids, or the query for scope 'all'). Needs selectable." },
     { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell, exactly as pk-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value. Column options (align, type, hidePhone) in config.columns apply as in pk-table." }
   ],
   "events": [
+    {
+      "name": "pk-load-error",
+      "detail": { "error": "unknown" },
+      "description": "load() rejected: the built-in error state with Retry is showing. error is what it rejected with (not raised for a response a newer request overtook).",
+      "cancelable": true,
+      "detailProps": { "error": "unknown" }
+    },
     {
       "name": "pk-row-click",
       "detail": { "id": "string", "row": "object" },
@@ -118,6 +126,7 @@
     { "name": "filters", "description": "The pk-table-filters search/filter panel, in the table's toolbar." },
     { "name": "actions", "description": "Holds the actions slot, at the end of the toolbar." },
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
+    { "name": "empty", "description": "Holds the empty slot while it is shown." },
     { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
   ],
   "cssProperties": [],

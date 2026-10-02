@@ -1,4 +1,4 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
 [part="actions"] { display: flex; gap: var(--space-2); align-items: center; }
 [part="filters"][data-nosearch]::part(search) { display: none; }
-[part="state"] { margin-block-start: var(--space-4); }
+[part="state"], [part="empty"] { margin-block-start: var(--space-4); }
