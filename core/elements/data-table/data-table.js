@@ -13,7 +13,7 @@ export default Base => class extends Base {
         const table = this.part('table'), filters = this.part('filters'), pagination = this.part('pagination');
         // `narrows`: a search or filter changes WHICH rows the query means, so a selection of "all rows" no longer holds (the ids stay selected).
         const go = (patch, narrows) => {
-            this.$query = { ...this.query, ...patch };
+            this.$query = { ...this.query, ...patch }; this.$touched = true;
             if (narrows && this.selectScope === 'all') { this.selectScope = 'page'; this.announce(); }
             this.refresh();
         };
@@ -45,12 +45,13 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
-        if (name === 'config') { this.buildFilters(); this.refresh(); }
+        // A config that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
+        if (name === 'config') { if (!this.$touched) this.$query = null; this.buildFilters(); this.refresh(); }
         else if (name === 'selected' || name === 'selectScope' || name === 'selectable' || name === 'rowKey' || name === 'clickable' || name === 'currentRow') this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
-    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.config?.pageSize || 25, sort: null, sortDir: 'ascending', search: '', filters: {} }) }; }
+    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.config?.pageSize || 25, sort: this.config?.sort ?? null, sortDir: this.config?.sortDir ?? 'ascending', search: '', filters: {} }) }; }
 
     announce() { this.emit('pk-select', { selected: [...(this.selected ?? [])], scope: this.selectScope, query: this.query }); }
 
@@ -71,8 +72,12 @@ export default Base => class extends Base {
 
     // The table's own props follow the query and the selection state.
     sync() {
-        const table = this.part('table'), q = this.query;
+        const table = this.part('table'), q = this.query, c = this.config ?? {}, filters = this.part('filters'), pagination = this.part('pagination');
         this.forwardSlots();
+        // The labels and inputs of the parts, from config (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
+        filters.label = c.searchLabel ?? 'Search'; filters.debounce = c.searchDebounce ?? 250; filters.toggleAttribute('data-nosearch', c.searchable === false);
+        pagination.sizes = c.pageSizeOptions ?? []; pagination.label = c.pagerLabel ?? 'Pagination';
+        table.label = c.label ?? ''; table.caption = c.caption ?? '';
         table.columns = this.config?.columns ?? [];
         table.rowKey = this.rowKey;
         table.clickable = this.clickable || typeof this.rowHref === 'function';
