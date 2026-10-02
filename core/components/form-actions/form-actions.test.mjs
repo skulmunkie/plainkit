@@ -3,12 +3,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import { validateApi } from '../../tools/element-api.mjs';
+import { findElementFolder } from '../../tools/element-folders.mjs';
 
 const read = ext => fs.readFileSync(new URL(`./form-actions.${ext}`, import.meta.url), 'utf8');
 const meta = JSON.parse(read('meta.json'));
 const kebab = s => s.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
-const metaOf = tag => { const n = tag.slice(3); const f = new URL(`../${n}/${n}.meta.json`, import.meta.url); return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null; };
+const metaOf = tag => { const n = tag.slice(3); const e = findElementFolder(n); return e ? JSON.parse(fs.readFileSync(path.join(e.dir, `${n}.meta.json`), 'utf8')) : null; };
 
 test('the meta file passes the API validator against its template and stylesheet', () => {
     assert.deepEqual(validateApi(meta, { template: read('html'), css: read('css') }), []);

@@ -1,4 +1,4 @@
-// pk-dock's pointer drag-to-dock and floater keyboard/focus handling, split out of elements/dock/dock.js (issue #639) to keep dock.js's own bundle
+// pk-dock's pointer drag-to-dock and floater keyboard/focus handling, split out of components/dock/dock.js (issue #639) to keep dock.js's own bundle
 // under the blanket per-element gzip budget: this cluster (drag a header/tab onto another group, arrow-key move/resize a floater) is reached far
 // less often than opening/closing/resizing a dock, so it is the first thing to move out once dock.js itself needed to shrink. Every export takes
 // the pk-dock element instance (`el`) as its first argument and reads/writes the same private fields dock.js always did ($doc, $drag, $flyout is

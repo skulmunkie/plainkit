@@ -1,4 +1,4 @@
-// pk-dock's collapse-to-rail flyout, split out of elements/dock/dock.js (issue #639) to keep dock.js's own bundle under the blanket per-element
+// pk-dock's collapse-to-rail flyout, split out of components/dock/dock.js (issue #639) to keep dock.js's own bundle under the blanket per-element
 // gzip budget: collapsing a group to a rail button and opening it as a flyout is a less-common edge-docked-panel path than the everyday
 // open/close/resize/tab dock interactions dock.js keeps for itself. Every export takes the pk-dock element instance (`el`) as its first argument
 // and reads/writes the same private fields dock.js always did ($flyout); nothing here is a public API of its own.

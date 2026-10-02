@@ -1,5 +1,5 @@
 // Unit tests for pk-list-page: the page frame around its pk-data-table (toolbar actions from config, the load and rowHref callbacks handed down, the config handed down).
-// The query, load, states and selection live in pk-data-table and are tested in core/elements/data-table/. Stub base, no DOM.
+// The query, load, states and selection live in pk-data-table and are tested in core/components/data-table/. Stub base, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './list-page.js';

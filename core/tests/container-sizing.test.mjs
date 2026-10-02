@@ -41,5 +41,5 @@ test('every :host with container-type: inline-size also sets an explicit inline 
         if (!decls.has('container-type')) continue; // container-type is on a :host(...) variant, not the plain host: a different, size-established case
         if (!SIZE_PROPS.some(p => decls.has(p))) bad.push(`${folder}/${name}/${name}.css`);
     }
-    assert.deepEqual(bad, [], `:host declares container-type: inline-size with no explicit inline-size/width (issue #403): without one, the host silently collapses to 0 width as a flex or grid item instead of erroring.\n${bad.join('\n')}\nFix: add "inline-size: 100%;" (or a min-inline-size) to the same :host rule, the way elements/page-header/page-header.css and elements/toolbar/toolbar.css already do.`);
+    assert.deepEqual(bad, [], `:host declares container-type: inline-size with no explicit inline-size/width (issue #403): without one, the host silently collapses to 0 width as a flex or grid item instead of erroring.\n${bad.join('\n')}\nFix: add "inline-size: 100%;" (or a min-inline-size) to the same :host rule, the way components/page-header/page-header.css and components/toolbar/toolbar.css already do.`);
 });
