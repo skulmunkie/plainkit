@@ -222,7 +222,7 @@ The most-used parameters (the full lists are in the references):
 | Component | Parameters |
 |---|---|
 | `PkCard` | `Heading` (the title), `Level` (heading level), `Tone`, `Href`, `ChildContent`, `FooterContent` |
-| `PkEmptyState` | `Title`, `Description`, `ActionContent` |
+| `PkEmptyState` | `Title`, `Description`, `ChildContent` (a rich description), `ActionContent` (the next step: a link or a button) |
 | `PkStat` | `Label`, `Value`, `Delta`, `DeltaUnit`, `Subtext`, `Tone` |
 | `PkAlert` | `Kind` (`PkAlertKind`), `Title`, `Message`, `Dismissible`, `OnDismiss`, `Inline`, `Compact` |
 | `PkTooltip` | `Text`, `Placement` (`PkTooltipPlacement`), `Help`, `LinksContent`, `ChildContent` |
