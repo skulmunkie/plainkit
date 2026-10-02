@@ -83,7 +83,8 @@ export default Base => class extends Base {
     settle() {
         if (this.paused) return;
         const s = this.part('scroller');
-        s.scrollTop = this.$setTop = s.scrollHeight;
+        s.scrollTop = s.scrollHeight;
+        this.$setTop = s.scrollTop; // read back: the browser clamps it to scrollHeight - clientHeight, so the event for this jump must compare with the clamped value
     }
     // A 'scroll' event fires for the reader's own scrolling, but also for the scrollTop settle() just set, and (while paused, with
     // overflow-anchor on) for the browser keeping the reader's row stable as rows are trimmed: none of those are the reader scrolling.
