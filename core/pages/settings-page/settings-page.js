@@ -6,7 +6,7 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
-        // The bar, buttons and alerts are real pk-* elements in this shadow tree from the start; load them once here (core/elements/detail-layout
+        // The bar, buttons and alerts are real pk-* elements in this shadow tree from the start; load them once here (core/components/detail-layout
         // does the same for its own strip and Next button, and pk-tool-page for its Run button).
         loadElements(this.shadowRoot);
         this.part('form').addEventListener('submit', e => { e.preventDefault(); this.saveNow(); });

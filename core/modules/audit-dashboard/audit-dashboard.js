@@ -2,7 +2,7 @@
 // disk (docs/superpowers/specs/2026-09-30-audit-dashboard-design.md) -- module-ruleset baseline debt today; UI review and conformance-audit
 // findings are follow-up panels, not yet built (see the module's header comment in the spec for why). It NEVER shells out or triggers a
 // script: it only fetch()es a JSON file a build/audit step already wrote, and a refresh only re-reads that same file. Laid out as a pk-dock
-// workspace (module baseline | Properties), matching the dockable-panel pattern other devtools surfaces use (core/elements/dock); the
+// workspace (module baseline | Properties), matching the dockable-panel pattern other devtools surfaces use (core/components/dock); the
 // module-baseline panel itself is a flat, client-side-filterable list rather than nested dock groups -- pk-dock's tree groups are a
 // workspace arrangement of whole panels (split/tabs), not a facet of one panel's data, so forcing "by file" / "by rule" into dock groups
 // would misuse that model. Selecting a finding populates the shared Properties panel with its full detail instead.
