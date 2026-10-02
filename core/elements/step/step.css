@@ -53,5 +53,5 @@
 @media (--phone) {
     :host(:not([orientation="vertical"])) { flex: 0 1 auto; }
     :host(:not([orientation="vertical"]):not([state="active"])) [part="text"] { display: none; }
-    :host([clickable]) { min-height: var(--touch-target); align-items: center; }
+    :host([clickable]) { min-height: var(--touch-target); min-width: var(--touch-target); align-items: center; }
 }

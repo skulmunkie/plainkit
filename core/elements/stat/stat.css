@@ -1,7 +1,7 @@
 :host { display: block; }
 [part="tile"] { position: relative; display: flex; flex-direction: column; gap: var(--space-1); block-size: 100%; padding: var(--space-4) var(--space-5); background: var(--color-flyout); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text); }
 :host([href]:hover) [part="tile"] { border-color: var(--color-accent); }
-[part="label"] { color: var(--color-muted); font-size: var(--text-meta); letter-spacing: 0.05em; text-transform: uppercase; }
+[part="label"] { color: var(--color-muted-strong); font-size: var(--text-meta); letter-spacing: 0.05em; text-transform: uppercase; }
 [part="row"] { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
 [part="value"] { font-size: var(--pk-stat-value-size, 1.5rem); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 :host([tone="positive"]) [part="value"] { color: var(--delta-up); }
