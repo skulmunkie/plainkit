@@ -356,3 +356,24 @@ export const layoutCases = [
         t.eq(box.scrollTop, kept, 'after the drop the box stays put');
     }],
 ];
+
+// Issue 837: the actions of a card header (a PkCardMenu button) stay on the header row at the inline end when the heading is long and wraps.
+const LONG = 'Quarterly orders and fulfilment overview for every regional warehouse and distribution partner in the network';
+layoutCases.push(
+    ['card: a long heading wraps beside the header actions, which stay at the inline end of the first row (LTR and RTL, desktop and phone widths)', async t => {
+        for (const dir of ['ltr', 'rtl']) for (const width of [600, 375]) {
+            const host = t.stage(`<div dir="${dir}"><pk-card heading="${LONG}"><span slot="actions" class="u-contents"><pk-dropdown placement="bottom-end"><span slot="trigger" class="u-contents"><pk-button variant="ghost" size="mini" icon icon-name="more" label="Orders actions"></pk-button></span><pk-menu-item>Export</pk-menu-item></pk-dropdown></span><p>Body</p></pk-card></div>`);
+            host.style.inlineSize = `${width}px`; await t.load(host);
+            const card = host.querySelector('pk-card'); const title = card.part('title').getBoundingClientRect(); const header = card.part('header').getBoundingClientRect();
+            const btn = host.querySelector('pk-button').getBoundingClientRect(); const c = card.getBoundingClientRect(); const at = `${dir} ${width}px`;
+            t.ok(title.height > btn.height * 1.5, `${at}: the heading wraps onto several lines (${Math.round(title.height)}px tall)`);
+            t.ok(btn.top < title.top + title.height / 2 && btn.bottom > title.top, `${at}: the button shares the heading's first row (button ${Math.round(btn.top)}-${Math.round(btn.bottom)}, heading ${Math.round(title.top)}-${Math.round(title.bottom)})`);
+            t.ok(btn.bottom <= header.bottom, `${at}: the button is inside the header`);
+            const dist = dir === 'ltr' ? c.right - btn.right : btn.left - c.left;
+            const pad = parseFloat(getComputedStyle(card.part('content')).paddingInlineEnd);
+            t.ok(Math.abs(dist - pad - 1) <= 2, `${at}: the button sits at the inline end, ${Math.round(dist)}px from the card edge (padding ${Math.round(pad)}px)`);
+            t.ok(dir === 'ltr' ? title.right <= btn.left + 1 : title.left >= btn.right - 1, `${at}: the heading does not run under the button`);
+            t.ok(c.width <= width + 1, `${at}: no horizontal overflow`);
+        }
+    }],
+);

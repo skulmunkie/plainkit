@@ -726,3 +726,26 @@ export const overlaysCases = [
         } finally { window.setTimeout = st; window.clearTimeout = ct; }
     }],
 ];
+
+// Issue 837: the card-menu pattern (PkCardMenu) is a pk-dropdown whose trigger is an icon pk-button inside the display: contents span the Blazor wrapper adds (a span cannot take focus). The button's real <button> is in its shadow root, so the
+// focus the dropdown gives back must land inside it (walking shadow roots), not on the body.
+const deepActive = () => { let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement; return a; };
+const cardMenu = '<pk-dropdown placement="bottom-end"><span slot="trigger" class="u-contents"><pk-button variant="ghost" size="mini" icon icon-name="more" label="Orders actions"></pk-button></span><pk-menu-item value="export">Export</pk-menu-item><pk-menu-item value="archive">Archive</pk-menu-item></pk-dropdown>';
+overlaysCases.push(
+    ['dropdown with a pk-button trigger: Escape returns focus to the button inside it (issue 837)', async t => {
+        const el = await t.mount(cardMenu); const btn = el.querySelector('pk-button');
+        btn.focus(); await t.settle(); const inner = deepActive(); t.eq(inner?.localName, 'button', 'the trigger takes focus');
+        t.key(inner, 'ArrowDown'); await t.settle(); t.ok(el.open, 'opens');
+        t.eq(document.activeElement, el.querySelector('pk-menu-item'), 'first item focused');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await t.settle();
+        t.ok(!el.open, 'closed'); t.eq(deepActive(), inner, 'focus is back on the real button, not the body');
+    }],
+    ['dropdown with a pk-button trigger: choosing an item returns focus to the button inside it (issue 837)', async t => {
+        const el = await t.mount(cardMenu); const btn = el.querySelector('pk-button');
+        btn.focus(); await t.settle(); const inner = deepActive();
+        t.key(inner, 'ArrowDown'); await t.settle();
+        const items = el.querySelectorAll('pk-menu-item'); t.key(items[0], 'ArrowDown'); await t.settle();
+        t.key(items[1], 'Enter'); await t.settle();
+        t.ok(!el.open, 'closed'); t.eq(deepActive(), inner, 'focus is back on the real button, not the body');
+    }],
+);
