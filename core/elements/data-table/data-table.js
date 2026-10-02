@@ -46,7 +46,7 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         if (name === 'config') { this.buildFilters(); this.refresh(); }
-        else if (name === 'selected' || name === 'selectScope' || name === 'selectable' || name === 'rowKey') this.sync();
+        else if (name === 'selected' || name === 'selectScope' || name === 'selectable' || name === 'rowKey' || name === 'clickable' || name === 'currentRow') this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
@@ -75,7 +75,8 @@ export default Base => class extends Base {
         this.forwardSlots();
         table.columns = this.config?.columns ?? [];
         table.rowKey = this.rowKey;
-        table.clickable = typeof this.rowHref === 'function';
+        table.clickable = this.clickable || typeof this.rowHref === 'function';
+        table.currentRow = this.currentRow;
         table.sort = q.sort ?? '';
         table.sortDir = q.sortDir;
         table.selectable = this.selectable;
