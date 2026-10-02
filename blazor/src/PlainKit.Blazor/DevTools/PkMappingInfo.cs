@@ -94,6 +94,8 @@ public static class PkMappingInfo
                 var def = p.TryGetProperty("default", out var dv) ? (dv.ValueKind == JsonValueKind.String ? dv.GetString() : dv.GetRawText()) : defaults is not null && defaults.TryGetValue(prop, out var d) ? d : null;
                 parameters.Add(new(name, "parameter", type, def, changeEvent is not null, Kebab(prop), reason));
                 if (changeEvent is not null) parameters.Add(new(name + "Changed", "event", $"EventCallback<{type}>", null, false, changeEvent, reason));
+                if (model is { } fm && Str(fm, "prop") == prop && fm.TryGetProperty("field", out var fld) && fld.ValueKind == JsonValueKind.True)
+                    parameters.Add(new(name + "Expression", "parameter", $"Expression<Func<{type}>>", null, false, null, reason));
             }
             else parameters.Add(new(name, "parameter", type, null, false, null, reason));
         }

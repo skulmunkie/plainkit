@@ -1,0 +1,26 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@* PkInput, PkSelect, PkCheckbox and PkCombobox bound with @bind-X inside an EditForm (issue #753): ValueExpression/CheckedExpression names the field. *@
+<EditForm EditContext="Context">
+    <DataAnnotationsValidator />
+    <PkInput id="name" @bind-Value="Model.Name" />
+    <ValidationMessage For="() => Model.Name" />
+    <PkSelect id="size" @bind-Value="Model.Size" />
+    <PkCheckbox id="agree" @bind-Checked="Model.Agree" />
+    <PkCombobox id="sku" @bind-Value="Model.Sku" />
+</EditForm>
+
+@code {
+    public sealed class Form
+    {
+        [Required(ErrorMessage = "Name is required")] public string? Name { get; set; }
+        public string? Size { get; set; }
+        public bool Agree { get; set; }
+        public string? Sku { get; set; }
+    }
+
+    public Form Model { get; } = new();
+    public EditContext Context { get; private set; } = default!;
+
+    protected override void OnInitialized() => Context = new EditContext(Model);
+}

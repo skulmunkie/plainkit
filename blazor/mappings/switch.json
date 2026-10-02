@@ -51,6 +51,7 @@
     "prop": "checked",
     "event": "pk-change",
     "key": "checked",
-    "type": "bool"
+    "type": "bool",
+    "field": true
   }
 }

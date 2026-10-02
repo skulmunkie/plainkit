@@ -79,6 +79,7 @@
     "prop": "value",
     "event": "pk-combo-select",
     "key": "value",
-    "type": "string"
+    "type": "string",
+    "field": true
   }
 }
