@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// PkCard, PkEmptyState, PkFieldList and PkStat: hand-written over their elements (blazor/mappings marks them "existing").
+// PkCard, PkEmptyState, PkFieldList and PkStat. all four are generated now (blazor/mappings), these tests guard the markup they used to produce.
 public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -146,7 +146,7 @@ public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
         var clicks = 0;
         var cut = Render<PkStat>(p => p
             .Add(x => x.Interactive, true)
-            .Add(x => x.OnClick, EventCallback.Factory.Create(this, () => clicks++))
+            .Add(x => x.OnClick, EventCallback.Factory.Create<PkActivateEventArgs>(this, () => clicks++))
             .AddUnmatched("data-test", "s"));
 
         await cut.Find("pk-stat").TriggerEventAsync("onpk-activate", new PkActivateEventArgs { Href = null });

@@ -1,6 +1,5 @@
 {
   "component": "PkEmptyState",
-  "existing": true,
   "params": [
     {
       "name": "Title",

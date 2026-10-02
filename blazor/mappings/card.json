@@ -57,6 +57,5 @@
       "type": "bool"
     }
   ],
-  "existing": true,
   "notes": "Keeps the existing PkCard parameters (Title maps to heading). The card renders no other element: a loading, empty or error state is drawn by the page that owns the data (issue #764), so there is no State parameter."
 }
