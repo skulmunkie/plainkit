@@ -1,4 +1,6 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
-[part="actions"] { display: flex; gap: var(--space-2); align-items: center; }
+/* The search, filters and actions sit above the table, not in its toolbar slot: a load or an empty result hides only the table, so the search box keeps its focus and stays clearable (#836). */
+[part="toolbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); margin-block-end: var(--space-3); }
+[part="actions"] { display: flex; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 [part="filters"][data-nosearch]::part(search) { display: none; }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }

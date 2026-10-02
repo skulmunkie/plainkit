@@ -124,7 +124,8 @@
   ],
   "parts": [
     { "name": "table", "description": "The pk-table, in manual mode." },
-    { "name": "filters", "description": "The pk-table-filters search/filter panel, in the table's toolbar." },
+    { "name": "toolbar", "description": "Holds the filters and the actions, above the table." },
+    { "name": "filters", "description": "The pk-table-filters search/filter panel, in the toolbar above the table (it stays shown and focused while rows load and when nothing matches)." },
     { "name": "actions", "description": "Holds the actions slot, at the end of the toolbar." },
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
     { "name": "empty", "description": "Holds the empty slot while it is shown." },

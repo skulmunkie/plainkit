@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './data-table.js';
+import { readFileSync } from 'node:fs';
 
 globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
 
@@ -332,4 +333,14 @@ test('scope all: pk-select-all widens it, the event carries the query for a serv
     const n = events.length;
     parts.table.fire('pk-select-all', inner({ scope: 'page', count: 2 }));
     assert.equal(events.length, n, 'a page-scope select-all adds nothing: pk-select already carried the ids');
+});
+
+test('the search, filters and actions are outside the pk-table, so hiding the table for a load or an empty result never hides or unfocuses them (#836)', () => {
+    const html = readFileSync(new URL('./data-table.html', import.meta.url), 'utf8');
+    const table = html.slice(html.indexOf('<pk-table '), html.indexOf('</pk-table>'));
+    for (const part of ['filters', 'actions', 'toolbar']) {
+        assert.ok(html.includes(`part="${part}"`), part);
+        assert.ok(!table.includes(`part="${part}"`), `${part} is not inside the pk-table`);
+    }
+    assert.ok(!table.includes('slot="toolbar"'));
 });
