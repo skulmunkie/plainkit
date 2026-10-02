@@ -232,6 +232,9 @@
     },
     "ServiceCollectionExtensions.cs": {
       "category": "runtime"
+    },
+    "Testing/PkDataTableTesting.cs": {
+      "category": "callback-slot"
     }
   }
 }

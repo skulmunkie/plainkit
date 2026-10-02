@@ -71,7 +71,8 @@
     "PkTableTypes.cs": 192,
     "PkThemePreset.cs": 17,
     "PkTimeZone.cs": 161,
-    "ServiceCollectionExtensions.cs": 39
+    "ServiceCollectionExtensions.cs": 39,
+    "Testing/PkDataTableTesting.cs": 44
   },
   "debt": [
     {
