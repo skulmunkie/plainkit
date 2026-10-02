@@ -39,7 +39,11 @@ const inner = detail => ({ detail, stopPropagation() {} });
 test('the host\'s cell-<id>-<key> slots are re-slotted into the inner pk-table (only those), and rebuilt when they change (#817)', () => {
     const { el, parts } = make();
     el.children = [{ slot: 'cell-1-name' }, { slot: 'actions' }, { slot: 'cell-2-name' }];
+    const bulk = { localName: 'slot', name: 'bulk', slot: 'bulk' };
+    parts.table.children.push(bulk);
     el.forwardSlots();
+    assert.ok(!bulk.gone, 'the template\'s own bulk slot is left alone');
+    parts.table.children = parts.table.children.filter(c => c !== bulk);
     const slots = () => parts.table.children.filter(c => c.localName === 'slot');
     assert.deepEqual(slots().map(s => [s.name, s.slot]), [['cell-1-name', 'cell-1-name'], ['cell-2-name', 'cell-2-name']]);
     const first = slots(), updates = parts.table.updates;

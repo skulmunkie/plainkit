@@ -318,6 +318,19 @@ export const dataDisplayCases = [
         el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
     }],
 
+    ['data-table: bulk slot content shows in the selection bar beside the count, only while rows are selected (#817)', async t => {
+        const el = await t.mount(`<pk-data-table selectable config='{"columns":[{"key":"sku","label":"SKU"}]}'><button slot="bulk" id="del">Delete</button></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
+        el.refresh();
+        const root = el.part('table').shadowRoot, bar = () => root.querySelector('[part="bulk"]'), btn = el.querySelector('#del');
+        await until(() => root.querySelectorAll('tbody tr').length === 2, 'the rows');
+        t.ok(bar().hidden && btn.getBoundingClientRect().width === 0, 'hidden with nothing selected');
+        root.querySelector('[data-select="1"]').click(); await t.settle();
+        const b = btn.getBoundingClientRect(), r = bar().getBoundingClientRect(), c = root.querySelector('[part="bulk-count"]').getBoundingClientRect();
+        t.ok(b.width > 0 && b.left >= r.left && b.right <= r.right && b.top >= r.top && b.bottom <= r.bottom, 'the button sits inside the bar');
+        t.ok(b.left >= c.right - 1 || b.top >= c.bottom - 1, 'and does not overlap the count');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;
