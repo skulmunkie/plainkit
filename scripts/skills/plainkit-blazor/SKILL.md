@@ -158,6 +158,8 @@ Do not assemble `PkDropdown` + `PkButton` + `PkMenuItem` by hand: `PkCardMenu` i
 
 `PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time (a new search/sort/page size goes back to page 1, a superseded request is cancelled, `ReloadAsync()` reloads). Every parameter, paging a selection past SignalR's message-size limit, editing cells in place (`Editable`, `Editor`, `OnCellEdit`) and the routed list-and-record-page recipe (`PkRecordForm`, `references/record-form.md`, `references/record-editor.md`): `references/data-list.md`.
 
+To select rows set `Selectable` and bind `@bind-Selected` (ids); the selection survives paging and search, and `LoadAllIds` (returns the ids of the whole searched list) turns select-all on a full page into "Select all N".
+
 ```razor
 <PkDataList TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
             SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentId="@_openId" />
