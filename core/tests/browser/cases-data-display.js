@@ -318,6 +318,19 @@ export const dataDisplayCases = [
         el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
     }],
 
+    ['data-table: striped, density, cards, maxHeight and stickyHeader reach the table; maxHeight makes the rows scroll inside it and the header sticks (#817)', async t => {
+        const el = await t.mount(`<pk-data-table striped cards density="compact" max-height="8rem" sticky-header config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":20}'></pk-data-table>`);
+        el.load = async () => ({ rows: Array.from({ length: 20 }, (_, i) => ({ id: i + 1, sku: `S${i}` })), total: 20 });
+        el.refresh();
+        const tb = el.part('table'), scroll = () => tb.shadowRoot.querySelector('[part="scroll"]');
+        await until(() => tb.shadowRoot.querySelectorAll('tbody tr').length === 20, 'the rows');
+        t.ok(tb.hasAttribute('striped') && tb.hasAttribute('cards') && tb.hasAttribute('sticky-header') && tb.getAttribute('density') === 'compact', 'the attributes reach pk-table');
+        t.ok(scroll().clientHeight <= 8 * 16 + 40 && scroll().scrollHeight > scroll().clientHeight, 'the rows scroll inside the capped height');
+        scroll().scrollTop = 100; await t.settle();
+        const th = tb.shadowRoot.querySelector('thead th').getBoundingClientRect(), box = scroll().getBoundingClientRect();
+        t.ok(Math.abs(th.top - box.top) < 2, 'the header stays at the top of the scroll area');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;
