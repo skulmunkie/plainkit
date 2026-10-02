@@ -91,7 +91,7 @@ export function apply(p, rootDir = root) {
     for (const e of p.edits) (byFile.get(e.file) ?? byFile.set(e.file, []).get(e.file)).push(e);
     for (const [file, list] of byFile) {
         const f = path.join(rootDir, file), text = fs.readFileSync(f, 'utf8'), eol = text.includes('\r\n') ? '\r\n' : '\n', lines = text.split(/\r?\n/);
-        const plain = plan(p.tier, { files: { [file]: text } }).edits; // same rewrite, line by line, on the current text
+        const plain = plan(p.tier, { elements: listElements(rootDir), files: { [file]: text } }).edits; // same rewrite, line by line, on the current text
         for (const e of plain) lines[e.line - 1] = lines[e.line - 1].replace(e.before, e.after);
         fs.writeFileSync(f, lines.join(eol));
     }

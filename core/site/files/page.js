@@ -3,7 +3,7 @@ import { mountCodeExplorer } from '../../modules/code-explorer/code-explorer.js'
 import { LazyProvider } from '../../modules/code-explorer/providers.js';
 mountShell({ page: 'files', title: 'SDK files' });
 
-// Deep link: files/#path=elements/tabs/tabs.js&line=12 opens that file at that line.
+// Deep link: files/#path=components/tabs/tabs.js&line=12 opens that file at that line.
 const link = new URLSearchParams(location.hash.slice(1));
 // The live default (issue 196): a lean file list up front, each file's real text fetched same-origin, on demand, from this
 // page's own copy of core/ (../../ from here, both locally and in the Pages deploy: build-pages.mjs mirrors core/'s own

@@ -10,7 +10,7 @@ const rules = f => auditFacts(f).map(x => x.rule);
 const phone = { viewport: { width: 375 }, docScrollWidth: 375, exampleWidth: 300 };
 
 test('changed elements come from element folders and Blazor mappings, and a base file means every element', () => {
-    assert.deepEqual(changedFromFiles(['core/elements/page-header/page-header.css', 'blazor/mappings/breadcrumb.json', 'README.md'], known), { names: ['breadcrumb', 'page-header'], base: false });
+    assert.deepEqual(changedFromFiles(['core/components/page-header/page-header.css', 'blazor/mappings/breadcrumb.json', 'README.md'], known), { names: ['breadcrumb', 'page-header'], base: false });
     assert.deepEqual(changedFromFiles(['core/elements/not-an-element/x.css'], known).names, []);
     assert.equal(changedFromFiles(['core/tokens/tokens.css'], known).base, true);
     assert.deepEqual(changedFromFiles(['core\\elements\\breadcrumb\\breadcrumb.css'], known).names, ['breadcrumb']);
@@ -29,7 +29,7 @@ test('a meta.json edit to a non-rendering field (tier, group) selects no element
 
 test('a changed element selects its dependents, transitively, and only them', () => {
     // split-button composes button; toolbar's gallery example composes split-button.
-    const dependents = dependentsFromIndex({ button: { files: { elements: ['core/elements/split-button/split-button.html'], gallery: [] } }, 'split-button': { files: { elements: [], gallery: ['core/elements/toolbar/toolbar.meta.json'] } }, toolbar: { files: { elements: [], gallery: [] } }, card: { files: { elements: [], gallery: [] } } });
+    const dependents = dependentsFromIndex({ button: { files: { elements: ['core/elements/split-button/split-button.html'], gallery: [] } }, 'split-button': { files: { elements: [], gallery: ['core/components/toolbar/toolbar.meta.json'] } }, toolbar: { files: { elements: [], gallery: [] } }, card: { files: { elements: [], gallery: [] } } });
     const knownAll = new Set(['button', 'split-button', 'toolbar', 'card']);
     assert.deepEqual(selectElements(['button'], dependents, knownAll), { button: 'changed', 'split-button': 'dependent of pk-button', toolbar: 'dependent of pk-split-button' });
     assert.deepEqual(selectElements(['card'], dependents, knownAll), { card: 'changed' });

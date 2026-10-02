@@ -9,7 +9,7 @@ import { schemeOf, safeLink, safeHref } from '../js/safe-url.js';
 import { safeLink as menuSafeLink } from '../js/menu-logic.js';
 import { linkAttrs } from '../elements/button/button.js';
 import { frameUrl } from '../elements/gallery/gallery.js';
-import { safeSrc as gallerySrc } from '../elements/image-gallery/image-gallery.js';
+import { safeSrc as gallerySrc } from '../components/image-gallery/image-gallery.js';
 import { safeSrc as lightboxSrc } from '../elements/lightbox/lightbox.js';
 
 import { listElementFolders } from '../tools/element-folders.mjs';

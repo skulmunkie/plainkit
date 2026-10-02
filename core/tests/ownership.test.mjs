@@ -83,7 +83,7 @@ export function findings(file, source, kind) {
 // anything fails the test, so this list cannot rot.
 const ALLOWED = {
     'elements/chart/chart.js': { observer: 'a ResizeObserver on the element\'s own shadow part: it lives and dies with the element' },
-    'elements/tabs/tabs.js': { observer: 'a ResizeObserver on the element\'s own shadow part: it lives and dies with the element' },
+    'components/tabs/tabs.js': { observer: 'a ResizeObserver on the element\'s own shadow part: it lives and dies with the element' },
     'elements/select/select.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/radio-group/radio-group.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/combobox/combobox.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
@@ -404,13 +404,13 @@ export function writesOf(source) {
 // Receivers the check cannot classify, per source: { receiver: why it is not a node the host owns }.
 const OWN_SHADOW = 'a node in the element\'s own shadow tree (or one it builds for it)';
 const ALLOWED_WRITES = {
-    'elements/app-bar-search/app-bar-search.js': { e: 'a node the el() helper creates' },
+    'components/app-bar-search/app-bar-search.js': { e: 'a node the el() helper creates' },
     'elements/chart/chart.js': { li: 'a legend item the chart builds itself, inside its shadow tree' },
     'elements/combobox/combobox.js': { o:'an option of the popup the element renders in its shadow tree', c: OWN_SHADOW + ' (the control or the trigger)' },
     'elements/command-palette/command-palette.js': { e: 'a node the el() helper creates' },
     'elements/dialog/dialog.js': { input: 'the field of the prompt dialog the helper creates itself', error: 'the error line of the prompt dialog the helper creates itself' },
     'elements/dropzone/dropzone.js': { b: 'the remove button of a row the element renders in its shadow tree' },
-    'elements/image-gallery/image-gallery.js': { make: 'a button inside a tile the element renders in its shadow tree', remove: 'a button inside a tile the element renders in its shadow tree' },
+    'components/image-gallery/image-gallery.js': { make: 'a button inside a tile the element renders in its shadow tree', remove: 'a button inside a tile the element renders in its shadow tree' },
     'elements/nav-item/nav-item.js': { row: 'the row (the anchor) in the element\'s own shadow tree' },
     'elements/pagination/pagination.js': { more: OWN_SHADOW },
     'elements/select/select.js': { o: 'an option of the native select in the element\'s shadow tree' },
