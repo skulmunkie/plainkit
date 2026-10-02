@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { flagsOf, selectedValues, buildOption, buildOptions } from './select.js';
+import { flagsOf, selectedValues, buildOption, buildOptions, joinValues, splitValues } from './select.js';
 
 test('selectedValues returns the values of the selected options in order', () => {
     assert.deepEqual(selectedValues([{ value: 'a', selected: true }, { value: 'b', selected: false }, { value: 'c', selected: true }]), ['a', 'c']);
@@ -44,4 +44,12 @@ test('buildOptions groups entries with a group key into an optgroup holding its 
     assert.equal(g.tag, 'optgroup');
     assert.equal(g.label, 'Fruit');
     assert.deepEqual(g.children.map(o => o.value), ['Apple', 'Pear']);
+});
+
+test('multi values round trip through the comma-joined string, commas and backslashes included', () => {
+    for (const list of [['a', 'b'], ['a,b', 'c'], ['x\\', 'y'], ['a\\,b'], ['']]) assert.deepEqual(splitValues(joinValues(list)), list);
+    assert.equal(joinValues(['a', 'b c']), 'a,b c');
+    assert.equal(joinValues(['a,b', 'c']), 'a\\,b,c');
+    assert.deepEqual(splitValues('a,b'), ['a', 'b']);
+    assert.deepEqual(splitValues('C:\\dir,x'), ['C:\\dir', 'x']);
 });

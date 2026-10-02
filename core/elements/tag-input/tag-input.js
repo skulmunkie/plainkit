@@ -1,4 +1,7 @@
 // pk-tag-input behaviour: free-text tags typed into one control. Enter or a separator adds, paste splits, Backspace in an empty field removes the last, duplicates and a maximum are handled.
+// Comma-joined multi-value encoding: a comma inside a value is written \, and a backslash \\, only when the value needs it, so values without commas or backslashes are unchanged.
+export const joinValues = list => list.map(v => (/,|\\[\\,]|\\$/.test(v) ? v.replace(/[\\,]/g, '\\$&') : v)).join(',');
+export const splitValues = text => { const out = []; let cur = ''; const s = String(text ?? ''); for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '\\' && (s[i + 1] === ',' || s[i + 1] === '\\')) cur += s[++i]; else if (c === ',') { out.push(cur); cur = ''; } else cur += c; } out.push(cur); return out; };
 export function parseTags(text, separators = ',') {
     const cut = new RegExp(`[${separators.replace(/[\]\\^-]/g, '\\$&')}\\n\\r]`);
     return String(text ?? '').split(cut).map(t => t.trim()).filter(Boolean);
@@ -24,15 +27,15 @@ export default Base => class extends Base {
         f.addEventListener('focusout', () => { if (f.value.trim()) { this.add(parseTags(f.value, this.separators)); f.value = ''; } });
         this.part('box').addEventListener('click', e => { const x = e.target.closest?.('.px'); if (x) this.removeTag(x.previousElementSibling.textContent); f.focus(); });
     }
-    get tags() { return this.value === '' ? [] : this.value.split(','); }
+    get tags() { return this.value === '' ? [] : splitValues(this.value); }
     get lockedTagList() { return parseTags(this.lockedTags, ','); }
-    set tags(list) { this.value = list.join(','); }
+    set tags(list) { this.value = joinValues(list); }
     say(text) { this.part('status').textContent = text; }
     commit(list, said) {
-        this.value = list.join(',');
+        this.value = joinValues(list);
         this.say(said);
         for (const t of ['input', 'change']) this.dispatchEvent(new Event(t, { bubbles: true, composed: true }));
-        this.emit('pk-tags-change', { value: list.join(','), tags: list });
+        this.emit('pk-tags-change', { value: joinValues(list), tags: list });
     }
     add(pieces) {
         const { tags, refused } = addTags(this.tags, pieces, { unique: !this.allowDuplicates, max: this.max > 0 ? this.max : Infinity });
