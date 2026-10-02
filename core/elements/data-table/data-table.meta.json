@@ -1,0 +1,76 @@
+{
+  "tag": "pk-data-table",
+  "title": "Data table",
+  "group": "Data display",
+  "tier": "component",
+  "summary": "A paged, searchable, sortable table that owns its data flow: a pk-table (manual), a pk-table-filters search/filter panel and a pk-pagination footer, with the query, the load and the states in one place. Set the load(query) callback as a property (business logic, never config data): it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page. A loading state shows while it is in flight, a rejection shows the built-in error state with Retry, zero rows show the configured empty state, and an older response arriving after a newer request is dropped. With selectable set, the selection survives paging and searching: selected holds the chosen ids, selectScope is 'page' (those ids) or 'all' (the reader chose Select all N rows of the query; the ids stay the loaded page, never every id). Each change raises pk-select with the ids, the scope and the current query, so for scope 'all' the host runs its bulk action against that query on the server. A search or filter change narrows scope 'all' back to 'page'. rowHref(row), also a callback property, makes rows clickable and is called with the row. pk-list-page and the lookup picker are built on this element.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ columns, filters?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows. pageSize is the initial page size (default 25). Other keys are ignored, so a page can hand its whole config over."
+    },
+    {
+      "name": "selectable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show a checkbox column and the bulk bar, with 'Select all N rows' when the query has more rows than the page."
+    },
+    {
+      "name": "rowKey",
+      "type": "string",
+      "default": "id",
+      "reflect": false,
+      "description": "The row field that identifies a row, which is what selected holds."
+    },
+    {
+      "name": "selected",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The ids of the selected rows, as strings, across every page and search the reader has visited. Set it to preselect; read it (or the pk-select event) to act on the selection. For selectScope 'all' it is only the loaded page: expand the scope with the query."
+    },
+    {
+      "name": "selectScope",
+      "type": "enum",
+      "default": "page",
+      "values": ["page", "all"],
+      "reflect": false,
+      "description": "'all' once the reader chose Select all N rows: every row of the current query is selected, not only the ids in selected."
+    }
+  ],
+  "slots": [
+    { "name": "actions", "description": "Toolbar buttons at the end of the search row." }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": { "selected": "string[]", "scope": "'page' | 'all'", "query": "{ page, pageSize, sort, sortDir, search, filters }" },
+      "description": "The selection changed (a row, the page or Select all N, a cleared selection, or a search that narrowed scope all to page). For scope 'all' run the bulk action against query on the server. pk-table's own pk-select and pk-select-all stop inside the element.",
+      "cancelable": true,
+      "detailProps": { "selected": "string[]", "scope": "string", "query": "object" }
+    }
+  ],
+  "parts": [
+    { "name": "table", "description": "The pk-table, in manual mode." },
+    { "name": "filters", "description": "The pk-table-filters search/filter panel, in the table's toolbar." },
+    { "name": "actions", "description": "Holds the actions slot, at the end of the toolbar." },
+    { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
+    { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
+  ],
+  "cssProperties": [],
+  "methods": [
+    { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },
+    { "name": "query", "description": "A getter: a copy of the current query { page, pageSize, sort, sortDir, search, filters }." }
+  ],
+  "a11y": "Every filter field is a labelled real control (pk-input/pk-select, showLabel on); the table, search box, bulk bar and pagination keep their own roles, names and announcements ('Select all N rows' is a named button); the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
+  "examples": [
+    {
+      "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",
+      "html": "<pk-data-table selectable config='{\"columns\":[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}],\"empty\":{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}}'></pk-data-table>"
+    }
+  ]
+}
