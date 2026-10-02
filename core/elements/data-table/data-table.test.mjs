@@ -16,6 +16,7 @@ const fakeEl = tag => ({
     ownerDocument: { createElement: fakeEl },
     requestUpdate() { this.updates = (this.updates ?? 0) + 1; },
     remove() { this.gone = true; },
+    toggleAttribute(k, on) { this.attrs[k] = on; },
     set textContent(v) { this._t = v; }, get textContent() { return this._t; },
 });
 
@@ -185,6 +186,27 @@ test('clickable (no rowHref) makes rows clickable and currentRow reaches the tab
     el.clickable = false; el.currentRow = '';
     await el.refresh();
     assert.deepEqual([parts.table.clickable, parts.table.currentRow], [false, '']);
+});
+
+test('config feeds the pager, search, table labels and the initial sort and page size; a config that arrives late still counts until the reader changes the query (#817)', async () => {
+    const { el, parts } = make();
+    const queries = [];
+    el.load = async q => { queries.push(q); return rowsOf(1); };
+    el.connected();
+    await el.refresh();
+    assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Search', 250, [], 'Pagination', '', '']);
+    assert.equal(parts.filters.attrs['data-nosearch'], false);
+    el.config = { searchLabel: 'Find orders', searchDebounce: 400, searchable: false, pageSizeOptions: [10, 50], pagerLabel: 'Order pages', label: 'Orders', caption: 'All orders', sort: 'name', sortDir: 'descending', pageSize: 10 };
+    el.changed('config');
+    await el.refresh();
+    assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Find orders', 400, [10, 50], 'Order pages', 'Orders', 'All orders']);
+    assert.equal(parts.filters.attrs['data-nosearch'], true);
+    assert.deepEqual([queries.at(-1).sort, queries.at(-1).sortDir, queries.at(-1).pageSize], ['name', 'descending', 10]);
+    assert.deepEqual([parts.table.sort, parts.table.sortDir], ['name', 'descending'], 'the header shows the initial sort');
+    parts.pagination.fire('pk-page', { detail: { page: 2 } });
+    el.config = { ...el.config, sort: 'other' };
+    el.changed('config');
+    assert.equal(queries.at(-1).sort, 'name', 'once the reader has moved, the config no longer resets the query');
 });
 
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {

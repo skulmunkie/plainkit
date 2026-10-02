@@ -301,6 +301,23 @@ export const dataDisplayCases = [
         el.currentRow = '1'; await until(() => rows()[0].hasAttribute('aria-current') && !rows()[1].hasAttribute('aria-current'), 'the mark to follow currentRow');
     }],
 
+    ['data-table: config sets the initial sort, page size options, pager/search/table labels and the caption, and searchable false hides the search box (#817)', async t => {
+        const cfg = { columns: [{ key: 'sku', label: 'SKU', sortable: true }], sort: 'sku', sortDir: 'descending', pageSizeOptions: [5, 10], pagerLabel: 'Order pages', searchLabel: 'Find orders', searchDebounce: 20, label: 'Orders', caption: 'All orders' };
+        const el = await t.mount(`<pk-data-table config='${JSON.stringify(cfg)}'></pk-data-table>`), queries = [];
+        el.load = async q => { queries.push(q); return { rows: [{ id: 1, sku: 'A' }], total: 30 }; };
+        el.refresh();
+        const root = el.part('table').shadowRoot, pager = el.part('pagination').shadowRoot, search = () => el.part('filters').shadowRoot.querySelector('[part="search"]');
+        await until(() => root.querySelector('tbody tr'), 'the row');
+        t.eq(queries[0].sort, 'sku'); t.eq(queries[0].sortDir, 'descending', 'load gets the initial sort');
+        t.eq(root.querySelector('th[data-key="sku"]').getAttribute('aria-sort'), 'descending', 'the header shows it');
+        t.eq(root.querySelector('caption').textContent.trim(), 'All orders'); t.eq(root.querySelector('[part="scroll"]').getAttribute('aria-label'), 'Orders');
+        t.eq(pager.querySelector('nav').getAttribute('aria-label'), 'Order pages');
+        const sel = pager.querySelector('[part="size-select"]'); t.eq([...sel.options].map(o => o.value).join(), '5,10', 'the page size options');
+        t.eq(search().getAttribute('aria-label'), 'Find orders'); t.eq(search().placeholder, 'Find orders');
+        t.ok(search().getBoundingClientRect().width > 0, 'the search box shows');
+        el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;
