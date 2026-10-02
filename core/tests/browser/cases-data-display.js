@@ -249,6 +249,43 @@ export const dataDisplayCases = [
         t.eq(el.selectScope, 'page'); t.eq(el.selected.length, 0); t.ok(r.querySelector('[part="bulk"]').hidden && btn().hidden, 'cleared: scope reset, bar hidden');
     }],
 
+    ['data-table: pages and searches through load(query), keeps the selection across pages, offers Select all N rows, and a new search narrows scope all back to page (#801)', async t => {
+        const el = await t.mount(`<pk-data-table selectable config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [], events = [];
+        el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
+        el.addEventListener('pk-select', e => events.push(e.detail));
+        el.refresh();
+        const table = el.part('table'), tr = () => table.shadowRoot.querySelectorAll('tbody tr').length, btn = () => table.shadowRoot.querySelector('[part="bulk-all"]');
+        await until(() => tr() === 5, 'the first page of five rows');
+        t.ok(!table.hidden && el.part('state').children.length === 0, 'the table shows, no state');
+        table.shadowRoot.querySelector('[data-select="2"]').click(); await t.settle();
+        t.eq(events.length, 1, 'one pk-select reaches the host (the inner event stops inside)'); t.eq(events[0].selected.join(), '2'); t.eq(events[0].scope, 'page');
+        el.part('pagination').shadowRoot.querySelector('[part~="next"]').click();
+        await until(() => queries.at(-1).page === 2 && table.shadowRoot.querySelector('[data-select="7"]'), 'page two');
+        t.eq(el.selected.join(), '2', 'the selection survives paging'); t.eq(table.selected.join(), '2');
+        table.shadowRoot.querySelector('[data-select-all]').click(); await t.settle();
+        await until(() => btn() && !btn().hidden, 'the select-all button'); t.eq(btn().textContent, 'Select all 40 rows');
+        btn().click(); await t.settle();
+        const last = events.at(-1); t.eq(last.scope, 'all'); t.eq(el.selectScope, 'all'); t.eq(last.query.search, ''); t.eq(last.query.page, 2, 'the host gets the query to run its bulk action on');
+        const box = el.part('filters').shadowRoot.querySelector('[part="search"]'); box.value = 'SKU-1'; box.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => queries.at(-1).search === 'SKU-1', 'the search to reach load');
+        t.eq(queries.at(-1).page, 1, 'a search goes back to page 1'); t.eq(el.selectScope, 'page', 'the scope narrowed'); t.eq(events.at(-1).scope, 'page');
+        await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
+    }],
+
+    ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
+        const el = await t.mount('<pk-data-table></pk-data-table>');
+        let n = 0;
+        el.config = { columns: JSON.parse(cols), empty: { heading: 'Nothing here' } };
+        el.load = async () => { if (++n === 1) throw new Error('Server said no'); return n === 2 ? { rows: [], total: 0 } : { rows: [{ id: 1, sku: 'A' }], total: 1 }; };
+        el.refresh();
+        const alert = await until(() => el.part('state').querySelector('pk-alert'), 'the error alert');
+        t.ok(alert.textContent.includes('Server said no')); t.ok(el.part('table').hidden, 'the table is hidden');
+        (await until(() => alert.querySelector('pk-button'), 'Retry')).click();
+        await until(() => el.part('state').querySelector('pk-empty-state'), 'the empty state'); t.eq(el.part('state').querySelector('pk-empty-state').getAttribute('heading'), 'Nothing here');
+        el.refresh(); await until(() => !el.part('table').hidden, 'the table');
+    }],
+
     ['table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order', async t => {
         const el = await t.mount(`<pk-table label="P" columns='${cols}' rows='${rows}'></pk-table>`);
         t.eq(bodyIds(el).join(), '1,2,3'); t.eq(el.shadowRoot.querySelector('th[data-key="sku"]').getAttribute('aria-sort'), 'none');

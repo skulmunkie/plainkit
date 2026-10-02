@@ -1,0 +1,38 @@
+{
+  "component": "PkDataTable",
+  "existing": true,
+  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics; the hand-written PkDataList becomes PkDataTable in step 5 of issue 801, with PkDataList kept one release as an obsolete alias",
+  "params": [
+    {
+      "name": "Config",
+      "type": "string",
+      "default": "{}",
+      "map": "prop",
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], empty?: { heading?, description? }, pageSize? }."
+    },
+    {
+      "name": "Selectable",
+      "prop": "selectable",
+      "type": "bool"
+    },
+    {
+      "name": "RowKey",
+      "prop": "rowKey",
+      "type": "string"
+    },
+    {
+      "name": "Selected",
+      "prop": "selected",
+      "type": "IReadOnlyList<string>?",
+      "note": "The ids of the selected rows across every page and search; follows OnSelect."
+    },
+    {
+      "name": "SelectScope",
+      "prop": "selectScope",
+      "type": "string?",
+      "note": "page or all: all after the user chose Select all N rows; the OnSelect detail then carries the query to run the bulk action against on the server."
+    }
+  ],
+  "notes": "Mapped now so the element is covered (issue 801 step 4); the Blazor component is the hand-written PkDataList until step 5 renames it and adds Selectable/Selected/OnSelect over this element. Load(query) and RowHref are callback properties set from script, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; they are not mapped params because the generator only maps props, slots and events."
+}
