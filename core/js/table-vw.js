@@ -17,11 +17,9 @@ const OVERSCAN = 10; // extra rows drawn above and below the viewport, so a fast
 // cache instead of re-sorting thousands of rows every frame. Correctness never depends on the cache: any changed input recomputes
 // through the getter itself, so windowing can never show a different order or a different set of rows than a plain table would.
 function view(el) {
-    const rows = el.rows, columns = el.columns, filters = el.filters, sort = el.sort, sortDir = el.sortDir, c = el.$vc;
-    if (c && c.rows === rows && c.columns === columns && c.filters === filters && c.sort === sort && c.sortDir === sortDir) return c.result;
-    const result = el.view;
-    el.$vc = { rows, columns, filters, sort, sortDir, result };
-    return result;
+    const k = ['rows', 'columns', 'filters', 'sort', 'sortDir'], c = el.$vc;
+    if (c && k.every(n => c[n] === el[n])) return c.result;
+    return (el.$vc = { ...Object.fromEntries(k.map(n => [n, el[n]])), result: el.view }).result;
 }
 
 // The first time a render windows: listens on the scroll frame (the table's own shadow node, built once in the constructor, never
@@ -34,15 +32,10 @@ function attach(el) {
     }, { passive: true });
 }
 
-// The rows to draw, or null when this render should not window: table.js then draws every row itself, as it does for a table under
-// THRESHOLD rows. Windowing never applies to an expandable table (a detail row changes its row's height, which a fixed row height
-// cannot follow) or a host-supplied one (table.js never calls this for that case). Sets el.$virtual, which the scroll listener above
-// reads. When it does window: only the rows near the scroll frame's viewport, plus a buffer, flanked by a spacer standing in for the
-// rest. el.$rowH drives the range (32 is a first guess); refined here from the previous render's actual row height each time, so it
-// converges without table.js ever having to ask for a post-render measurement. h is table.js's own element-builder, passed through so
-// this stays a pure function of its arguments (no document dependency of its own), like table-expand.js's h-taking functions. cols is
-// el.list('columns') (table.js already validated it once for its own header, so this reads it again rather than take it as a third
-// argument).
+// The rows to draw, or null when this render should not window (table.js then draws every row itself): never for an expandable table (a detail row
+// changes its row's height) or a host-supplied one. Sets el.$virtual for the scroll listener above. Otherwise only the rows near the viewport, plus a buffer,
+// flanked by spacers. el.$rowH (32 is a first guess) is refined from the previous render's real row height. h is table.js's element-builder, passed through
+// so this stays pure, like table-expand.js's h-taking functions.
 function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
     if (prev) el.$rowH = prev.getBoundingClientRect().height || el.$rowH;
