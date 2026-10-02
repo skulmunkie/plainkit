@@ -227,6 +227,14 @@ test('load gets an AbortSignal that a newer request (or leaving the page) aborts
     assert.equal(calls[2].aborted, true, 'leaving the page aborts the one in flight');
 });
 
+test('presentation props pass straight to the table (#817)', async () => {
+    const { el, parts } = make();
+    el.load = async () => rowsOf(1);
+    Object.assign(el, { cards: true, striped: true, density: 'compact', maxHeight: '10rem', stickyHeader: true });
+    await el.refresh();
+    assert.deepEqual(['cards', 'striped', 'density', 'maxHeight', 'stickyHeader'].map(k => parts.table[k]), [true, true, 'compact', '10rem', true]);
+});
+
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {
     const { el, parts } = make();
     el.load = async () => ({ rows: [{ id: 1 }], total: 40 });

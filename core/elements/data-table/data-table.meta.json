@@ -41,6 +41,42 @@
       "description": "The id (rowKey value) of the row that is open elsewhere, for example in a detail pane: pk-table tints it, marks it with an accent bar and gives it aria-current. The host sets it, from the route or from pk-row-click."
     },
     {
+      "name": "cards",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows become stacked cards on a phone, as pk-table's cards."
+    },
+    {
+      "name": "striped",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Alternate row tint, as pk-table's striped."
+    },
+    {
+      "name": "density",
+      "type": "enum",
+      "default": "default",
+      "values": ["default", "compact", "comfortable"],
+      "reflect": true,
+      "description": "Row height, as pk-table's density."
+    },
+    {
+      "name": "maxHeight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A CSS length that caps the table's height (the rows scroll inside it), as pk-table's maxHeight; combine with stickyHeader."
+    },
+    {
+      "name": "stickyHeader",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader."
+    },
+    {
       "name": "selected",
       "type": "json",
       "default": [],
