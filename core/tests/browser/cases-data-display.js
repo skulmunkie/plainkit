@@ -527,6 +527,19 @@ export const dataDisplayCases = [
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
 
+    ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
+        for (const width of ['40rem', '12rem']) {
+            const host = t.stage('<pk-table-filters label="Search products" filter-count="1"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>');
+            host.style.inlineSize = width;
+            const el = host.firstElementChild; await t.load(host);
+            for (const name of ['search', 'trigger']) {
+                const part = el.part(name), r = getComputedStyle(part).borderTopLeftRadius;
+                t.ok(!/%|\s/.test(r), `${name} at ${width}: one length radius, equal horizontally and vertically (got "${r}")`);
+                t.ok(parseFloat(r) >= part.getBoundingClientRect().height / 2, `${name} at ${width}: rounded at least half the height (${r})`);
+            }
+        }
+    }],
+
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
         const bare = await t.mount('<pk-table-filters debounce="10" label="Search products"></pk-table-filters>');
         t.ok(bare.part('trigger').hidden, 'no filter fields slotted: no trigger');
