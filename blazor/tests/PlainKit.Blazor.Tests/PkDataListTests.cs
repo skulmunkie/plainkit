@@ -365,4 +365,80 @@ public sealed class PkDataListTests : BunitContext, IAsyncLifetime
 
         Assert.Equal(new PkListRequest(null, "name", true, 1, 50), Plain(_requests.Single()));
     }
+
+    // Selection (#798): ids are kept across pages and searches; the table only ever shows (and reports) the selected rows of its own page.
+    private static PkListResult<Customer> Rows(int total, int page, int size) =>
+        new(Enumerable.Range((page - 1) * size + 1, Math.Max(0, Math.Min(size, total - (page - 1) * size))).Select(i => new Customer(i, "C" + i, "Leeds")).ToList(), total);
+
+    private static string[] Sorted(IReadOnlyList<string>? ids) => ids!.OrderBy(i => i, StringComparer.Ordinal).ToArray();
+
+    private static Task Pick(IRenderedComponent<PkDataList<Customer>> cut, params string[] ids) =>
+        cut.Find("pk-table").TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Selected = ids });
+
+    [Fact]
+    public async Task A_selectable_list_reports_the_selected_ids_and_keeps_them_across_pages_and_searches()
+    {
+        IReadOnlyList<string>? selected = null;
+        var cut = Render(Immediate(r => Rows(60, r.Page, 2)), p => p.Add(x => x.Selectable, true).Add(x => x.PageSize, 2).Add(x => x.SelectedChanged, s => selected = s));
+        Assert.True(cut.Find("pk-table").HasAttribute("selectable"));
+
+        await Pick(cut, "1", "2");
+        Assert.Equal(["1", "2"], Sorted(selected));
+
+        await cut.Find("pk-pagination").TriggerEventAsync("onpk-page", new PkPageEventArgs { Page = 2 });
+        Assert.Equal("[]", cut.Find("pk-table").GetAttribute("selected"));   // page 2 shows none of them as selected
+        await Pick(cut, "3");
+        Assert.Equal(["1", "2", "3"], Sorted(selected));                              // and adds to the selection
+
+        await Search(cut, "C");                                               // a search goes to page 1; the selection stays
+        Assert.Equal(["1", "2", "3"], Sorted(selected));
+        Assert.Equal("[\"1\",\"2\"]", cut.Find("pk-table").GetAttribute("selected"));
+
+        await Pick(cut, "2");                                                 // clearing one box on page 1 removes only that id
+        Assert.Equal(["2", "3"], Sorted(selected));
+    }
+
+    [Fact]
+    public void Selected_is_two_way_so_a_value_from_the_host_is_the_selection()
+    {
+        var cut = Render(Immediate(r => Rows(10, r.Page, 5)), p => p.Add(x => x.Selectable, true).Add(x => x.PageSize, 5).Add(x => x.Selected, new[] { "2", "9" }));
+        Assert.Equal("[\"2\"]", cut.Find("pk-table").GetAttribute("selected"));
+        Assert.Contains("2 selected", cut.Find("[data-selection]").TextContent);
+    }
+
+    [Fact]
+    public async Task Select_all_on_the_page_offers_the_whole_searched_list_and_hands_back_every_id()
+    {
+        PkListRequest? asked = null;
+        IReadOnlyList<string>? selected = null;
+        var cut = Render(Immediate(r => Rows(112, r.Page, 25)), p => p
+            .Add(x => x.Selectable, true)
+            .Add(x => x.LoadAllIds, r => { asked = r; return Task.FromResult<IReadOnlyList<string>>(Enumerable.Range(1, 112).Select(i => i.ToString()).ToList()); })
+            .Add(x => x.SelectedChanged, s => selected = s));
+        Assert.Empty(cut.FindAll("[data-select-all]"));
+
+        await Pick(cut, Enumerable.Range(1, 25).Select(i => i.ToString()).ToArray());
+        Assert.Contains("All 25 rows on this page are selected", cut.Find("[data-selection]").TextContent);
+        var all = cut.Find("[data-select-all]");
+        Assert.Contains("Select all 112", all.TextContent);
+
+        all.Click();
+        cut.WaitForAssertion(() => Assert.Equal(112, selected!.Count));
+        Assert.Equal(1, asked!.Page);
+        Assert.Contains("All 112 rows are selected", cut.Find("[data-selection]").TextContent);
+        Assert.Empty(cut.FindAll("[data-select-all]"));
+
+        cut.Find("[data-clear-selection]").Click();
+        Assert.Empty(selected!);
+        Assert.Empty(cut.FindAll("[data-selection]"));
+    }
+
+    [Fact]
+    public async Task Without_LoadAllIds_there_is_no_select_all_button_but_the_count_across_pages_still_shows()
+    {
+        var cut = Render(Immediate(r => Rows(112, r.Page, 25)), p => p.Add(x => x.Selectable, true));
+        await Pick(cut, "1", "2");
+        Assert.Empty(cut.FindAll("[data-select-all]"));
+        Assert.Contains("2 selected", cut.Find("[data-selection]").TextContent);
+    }
 }

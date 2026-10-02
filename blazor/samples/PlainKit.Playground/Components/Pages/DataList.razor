@@ -19,9 +19,13 @@
                 OnRowClick="Open"
                 CurrentId="@_current?.Id.ToString()"
                 PageSize="10"
+                Selectable="true"
+                @bind-Selected="_selected"
+                LoadAllIds="LoadAllIdsAsync"
                 id="people"
                 @ref="_list" />
     <p>Loads: <code id="out-loads">@_loads</code>, cancelled: <code id="out-cancelled">@_cancelled</code>, last request: <code id="out-request">@_last</code></p>
+    <p>Selected: <code id="out-selected">@(_selected?.Count ?? 0)</code></p>
     <p>Opened: <code id="out-open">@(_current?.Name ?? "-")</code> | Added clicks: <code id="out-added">@_adds</code></p>
     <PkButton OnClick="Remove">Delete the last 60 (then reload)</PkButton>
 
@@ -43,6 +47,7 @@
 
     private PkDataList<Person>? _list;
     private Person? _current;
+    private IReadOnlyList<string>? _selected;
     private int _loads, _cancelled, _adds;
     private string _last = "-", _rawSort = "-", _rawRow = "-";
 
@@ -60,8 +65,7 @@
         await InvokeAsync(StateHasChanged);
         try { await Task.Delay(250, request.CancellationToken); }
         catch (OperationCanceledException) { _cancelled++; await InvokeAsync(StateHasChanged); throw; }
-        IEnumerable<Person> q = _all;
-        if (request.Search is { } s) q = q.Where(p => p.Name.Contains(s, StringComparison.OrdinalIgnoreCase) || p.City.Contains(s, StringComparison.OrdinalIgnoreCase));
+        var q = Matching(request.Search);
         q = (request.SortKey, request.Descending) switch
         {
             ("name", false) => q.OrderBy(p => p.Name),
@@ -73,6 +77,12 @@
         var list = q.ToList();
         return new PkListResult<Person>(list.Skip(request.Skip).Take(request.PageSize).ToList(), list.Count);
     }
+
+    private IEnumerable<Person> Matching(string? search) =>
+        search is null ? _all : _all.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) || p.City.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    private Task<IReadOnlyList<string>> LoadAllIdsAsync(PkListRequest request) =>
+        Task.FromResult<IReadOnlyList<string>>(Matching(request.Search).Select(p => p.Id.ToString()).ToList());
 
     private void Open(Person person) => _current = person;
     private void Add() => _adds++;
