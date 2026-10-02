@@ -137,9 +137,10 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
     {
         var cut = Render(Deferred);
         var host = Host();
-        var first = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "a")));
-        var second = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "ab")));
+        var first = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "a"), 1));
+        var second = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "ab"), 2));
         cut.WaitForState(() => _pending.Count == 2);
+        host.Cancel(1);                                      // the element aborts the older request's signal
         Assert.True(_requests[0].CancellationToken.IsCancellationRequested);
         Assert.False(_requests[1].CancellationToken.IsCancellationRequested);
 
@@ -159,9 +160,10 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         Exception? reported = null;
         var cut = Render(Deferred, p => p.Add(x => x.OnLoadError, e => reported = e));
         var host = Host();
-        var first = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "x")));
-        var second = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "y")));   // supersedes the first
+        var first = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "x"), 1));
+        var second = cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(Search: "y"), 2));   // supersedes the first
         cut.WaitForState(() => _pending.Count == 2);
+        host.Cancel(1);
         _pending[0].SetCanceled(_requests[0].CancellationToken);                              // a database call throws like this
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
         Assert.Null(reported);
