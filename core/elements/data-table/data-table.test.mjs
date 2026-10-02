@@ -40,7 +40,11 @@ const inner = detail => ({ detail, stopPropagation() {} });
 test('the host\'s cell-<id>-<key> slots are re-slotted into the inner pk-table (only those), and rebuilt when they change (#817)', () => {
     const { el, parts } = make();
     el.children = [{ slot: 'cell-1-name' }, { slot: 'actions' }, { slot: 'cell-2-name' }];
+    const bulk = { localName: 'slot', name: 'bulk', slot: 'bulk' };
+    parts.table.children.push(bulk);
     el.forwardSlots();
+    assert.ok(!bulk.gone, 'the template\'s own bulk slot is left alone');
+    parts.table.children = parts.table.children.filter(c => c !== bulk);
     const slots = () => parts.table.children.filter(c => c.localName === 'slot');
     assert.deepEqual(slots().map(s => [s.name, s.slot]), [['cell-1-name', 'cell-1-name'], ['cell-2-name', 'cell-2-name']]);
     const first = slots(), updates = parts.table.updates;
@@ -234,6 +238,32 @@ test('no results, the empty slot and the load error text and event (#817)', asyn
     assert.equal(parts.state.children[0].textContent, 'boom');
     assert.deepEqual(events.map(e => e.name), ['pk-load-error']);
     assert.equal(events[0].detail.error.message, 'boom');
+});
+
+test('load gets an AbortSignal that a newer request (or leaving the page) aborts; the aborted rejection draws nothing (#817)', async () => {
+    const { el, parts, events } = make();
+    const calls = [];
+    el.load = (q, opts) => new Promise((ok, no) => { calls.push(opts.signal); opts.signal.addEventListener('abort', () => no(new DOMException('aborted', 'AbortError'))); calls.ok = ok; });
+    const first = el.refresh(), second = el.refresh();
+    assert.equal(calls[0].aborted, true, 'the first request was aborted by the second');
+    assert.equal(calls[1].aborted, false);
+    await first;
+    assert.equal(parts.state.children[0].localName, 'pk-skeleton', 'the abort shows no error');
+    assert.equal(events.length, 0, 'and raises no pk-load-error');
+    calls.ok({ rows: [{ id: 1 }], total: 1 });
+    await second;
+    assert.equal(parts.table.hidden, false);
+    el.refresh();
+    el.disconnected();
+    assert.equal(calls[2].aborted, true, 'leaving the page aborts the one in flight');
+});
+
+test('presentation props pass straight to the table (#817)', async () => {
+    const { el, parts } = make();
+    el.load = async () => rowsOf(1);
+    Object.assign(el, { cards: true, striped: true, density: 'compact', maxHeight: '10rem', stickyHeader: true });
+    await el.refresh();
+    assert.deepEqual(['cards', 'striped', 'density', 'maxHeight', 'stickyHeader'].map(k => parts.table[k]), [true, true, 'compact', '10rem', true]);
 });
 
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {

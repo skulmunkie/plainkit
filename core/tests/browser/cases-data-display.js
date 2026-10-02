@@ -335,6 +335,44 @@ export const dataDisplayCases = [
         t.eq(alert.getAttribute('heading'), 'Orders failed'); t.ok(alert.textContent.includes('Server said no')); t.eq(errs.join(), 'Server said no');
     }],
 
+    ['data-table: bulk slot content shows in the selection bar beside the count, only while rows are selected (#817)', async t => {
+        const el = await t.mount(`<pk-data-table selectable config='{"columns":[{"key":"sku","label":"SKU"}]}'><button slot="bulk" id="del">Delete</button></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
+        el.refresh();
+        const root = el.part('table').shadowRoot, bar = () => root.querySelector('[part="bulk"]'), btn = el.querySelector('#del');
+        await until(() => root.querySelectorAll('tbody tr').length === 2, 'the rows');
+        t.ok(bar().hidden && btn.getBoundingClientRect().width === 0, 'hidden with nothing selected');
+        root.querySelector('[data-select="1"]').click(); await t.settle();
+        const b = btn.getBoundingClientRect(), r = bar().getBoundingClientRect(), c = root.querySelector('[part="bulk-count"]').getBoundingClientRect();
+        t.ok(b.width > 0 && b.left >= r.left && b.right <= r.right && b.top >= r.top && b.bottom <= r.bottom, 'the button sits inside the bar');
+        t.ok(b.left >= c.right - 1 || b.top >= c.bottom - 1, 'and does not overlap the count');
+    }],
+
+    ['data-table: load receives an AbortSignal, a newer query aborts the request in flight, and the aborted one draws no error (#817)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-data-table>`), signals = [], errs = [];
+        el.addEventListener('pk-load-error', () => errs.push(1));
+        el.load = (q, { signal }) => new Promise((ok, no) => { signals.push(signal); signal.addEventListener('abort', () => no(signal.reason)); if (q.search) ok({ rows: [{ id: 1, sku: 'A' }], total: 1 }); });
+        el.refresh();
+        await until(() => signals.length === 1, 'the first request');
+        const box = el.part('filters').shadowRoot.querySelector('[part="search"]'); box.value = 'a'; box.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => signals.length === 2 && !el.part('table').hidden, 'the second request to draw');
+        t.ok(signals[0].aborted && !signals[1].aborted, 'the first was aborted by the second');
+        t.ok(!el.part('state').querySelector('pk-alert') && errs.length === 0, 'the abort shows no error');
+    }],
+
+    ['data-table: striped, density, cards, maxHeight and stickyHeader reach the table; maxHeight makes the rows scroll inside it and the header sticks (#817)', async t => {
+        const el = await t.mount(`<pk-data-table striped cards density="compact" max-height="8rem" sticky-header config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":20}'></pk-data-table>`);
+        el.load = async () => ({ rows: Array.from({ length: 20 }, (_, i) => ({ id: i + 1, sku: `S${i}` })), total: 20 });
+        el.refresh();
+        const tb = el.part('table'), scroll = () => tb.shadowRoot.querySelector('[part="scroll"]');
+        await until(() => tb.shadowRoot.querySelectorAll('tbody tr').length === 20, 'the rows');
+        t.ok(tb.hasAttribute('striped') && tb.hasAttribute('cards') && tb.hasAttribute('sticky-header') && tb.getAttribute('density') === 'compact', 'the attributes reach pk-table');
+        t.ok(scroll().clientHeight <= 8 * 16 + 40 && scroll().scrollHeight > scroll().clientHeight, 'the rows scroll inside the capped height');
+        scroll().scrollTop = 100; await t.settle();
+        const th = tb.shadowRoot.querySelector('thead th').getBoundingClientRect(), box = scroll().getBoundingClientRect();
+        t.ok(Math.abs(th.top - box.top) < 2, 'the header stays at the top of the scroll area');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;

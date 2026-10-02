@@ -14,7 +14,7 @@ export default {
     issue: [801, 798],
     elements: ['data-table'],
     html: `<pk-stack gap="md"><pk-stack direction="row" gap="sm"><pk-button id="loading" size="sm">Loading</pk-button><pk-button id="fail" size="sm">Fail</pk-button><pk-button id="none" size="sm">Empty</pk-button><pk-button id="ok" size="sm">Rows</pk-button></pk-stack>
-<pk-data-table id="dt" selectable clickable current-row="2"><pk-badge slot="cell-1-po">PO&nbsp;1042</pk-badge></pk-data-table></pk-stack>`,
+<pk-data-table id="dt" selectable striped clickable current-row="2"><pk-badge slot="cell-1-po">PO&nbsp;1042</pk-badge><pk-button slot="bulk" id="del" size="sm">Delete</pk-button></pk-data-table></pk-stack>`,
     setup(frame) {
         const el = frame.querySelector(DT);
         el.config = { columns: [{ key: 'po', label: 'PO', sortable: true }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', type: 'number' }], empty: { heading: 'No orders match', description: 'Try another search.' }, pageSize: 5, loadError: 'Orders failed',pageSizeOptions: [5, 10, 25], caption: 'Orders', sort: 'po', sortDir: 'descending' };
@@ -47,6 +47,7 @@ export default {
         }
         if (t.shot === 'rows') { t.hidden(BAR, 'the bulk bar with nothing selected'); t.visible('#dt > pk-badge', 'the slotted cell content'); t.visible(`${TABLE} >>> tr[aria-current]`, 'the current row'); t.visible(`${PARTS}[part=pagination] >>> [part=size-select]`, 'the page size select'); t.noOverlap(`${PARTS}[part=pagination] >>> [part=size]`, `${PARTS}[part=pagination] >>> [part=summary]`); }
         if (t.shot === 'page' || t.shot === 'all') { t.visible(BAR, 'the bulk bar'); t.visible(BTN, 'the select-all button'); t.within(BTN, BAR, 1); t.noOverlap(BTN, COUNT); t.atLeast(BTN, 'height', t.viewport.name === 'phone' ? 44 : 20); }
+        if (t.shot === 'page' || t.shot === 'all') { t.visible('#del', 'the bulk action'); t.within('#del', BAR, 1); t.noOverlap('#del', COUNT); t.noOverlap('#del', BTN); }
         if (t.shot === 'page') { t.hasText(BTN, 'Select all 112 rows'); t.hasText(COUNT, '5 selected'); }
         if (t.shot === 'all') { t.hasText(BTN, 'Clear selection'); t.hasText(COUNT, 'All 112 selected'); }
     },
