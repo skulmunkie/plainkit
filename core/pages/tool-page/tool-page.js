@@ -11,7 +11,7 @@ export default Base => class extends Base {
         this.$w = true;
         this.part('form').addEventListener('submit', e => { e.preventDefault(); this.runNow(); });
         // The Run button is a real pk-* element in this shadow tree from the start (the static template, build-time bundled with this
-        // element - core/elements/detail-layout does the same for its own strip and Next button); load it once here.
+        // element - core/components/detail-layout does the same for its own strip and Next button); load it once here.
         loadElements(this.shadowRoot);
         this.buildFields();
     }

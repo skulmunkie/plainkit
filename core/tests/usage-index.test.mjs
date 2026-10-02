@@ -103,7 +103,7 @@ test('mostComposedBy: elements referenced from other elements\' own files, most 
     const entries = [
         { relPath: 'core/elements/card/card.html', category: 'elements', refs: ['button', 'icon'] },
         { relPath: 'core/elements/dialog/dialog.html', category: 'elements', refs: ['button'] },
-        { relPath: 'core/elements/tabs/tabs.html', category: 'elements', refs: ['icon'] },
+        { relPath: 'core/components/tabs/tabs.html', category: 'elements', refs: ['icon'] },
     ];
     const index = buildIndex(entries, ['button', 'icon', 'unused']);
     assert.deepEqual(mostComposedBy(index), [{ name: 'button', count: 2 }, { name: 'icon', count: 2 }]);

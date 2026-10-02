@@ -1,4 +1,4 @@
-// pk-dock's tree-to-DOM rendering, split out of elements/dock/dock.js (issue #639) to keep dock.js's own bundle under the blanket per-element gzip
+// pk-dock's tree-to-DOM rendering, split out of components/dock/dock.js (issue #639) to keep dock.js's own bundle under the blanket per-element gzip
 // budget: draw() and everything it calls (the splitter/tabs tree, the panel menu, the toolbar's Panels menu) is one cohesive, self-contained piece
 // of dock.js that only ever runs from draw() itself, so moving it to its own statically-imported module shrinks dock.js's own measured file with
 // no behaviour change (the generated dist module is never inlined into the element that imports it; see tools/build.mjs). Every export takes the
