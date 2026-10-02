@@ -141,6 +141,20 @@ test('a stale response (an older load finishing after a newer one) never draws, 
     assert.equal(parts.table.hidden, false);
 });
 
+test('a page past the last one (rows deleted) settles on the last page with one more load; total 0 still shows empty (#829)', async () => {
+    const { el, parts } = make();
+    const seen = [];
+    el.$query = { ...el.query, page: 3, pageSize: 10 };
+    el.load = q => { seen.push(q.page); return Promise.resolve(q.page === 3 ? { rows: [], total: 12 } : { rows: [{ id: 1 }], total: 12 }); };
+    await el.refresh();
+    assert.deepEqual(seen, [3, 2]);
+    assert.equal(parts.table.hidden, false);
+    assert.equal(parts.pagination.page, 2);
+    el.load = q => { seen.push(q.page); return Promise.resolve({ rows: [], total: 0 }); };
+    await el.refresh();
+    assert.deepEqual(seen, [3, 2, 2], 'no correction for total 0');
+    assert.equal(parts.table.hidden, true);
+});
 test('sort, search, filter, page and page-size events narrow the query, reset the page, and re-run load', async () => {
     const { el, parts } = make();
     el.config = { filters: [{ key: 'status', type: 'text', label: 'Status' }] };

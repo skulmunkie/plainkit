@@ -121,6 +121,8 @@ export default Base => class extends Base {
         }
         if (this.$token !== token) return;
         const rows = result?.rows ?? [], total = result?.total ?? rows.length;
+        // Rows deleted under the reader: a page past the last one settles on the last page (one more load), not the empty state.
+        if (rows.length === 0 && total > 0 && q.page > Math.ceil(total / q.pageSize)) { this.$query = { ...q, page: Math.ceil(total / q.pageSize) }; return this.refresh(); }
         if (rows.length === 0) { this.showEmpty(q); return; }
         showState(state, 'ready');
         table.hidden = false;

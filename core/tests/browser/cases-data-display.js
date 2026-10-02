@@ -273,6 +273,23 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: a page past the last one (rows deleted) settles on the last page with one more load, and total 0 still shows the empty state (#829)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        let n = 12; const pages = [];
+        el.load = async q => { pages.push(q.page); const rows = Array.from({ length: n }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })).slice((q.page - 1) * q.pageSize, q.page * q.pageSize); return { rows, total: n }; };
+        el.refresh();
+        const table = el.part('table'), tr = () => table.shadowRoot.querySelectorAll('tbody tr').length;
+        await until(() => tr() === 5, 'the first page');
+        el.part('pagination').shadowRoot.querySelector('[part~="next"]').click();
+        await until(() => pages.at(-1) === 2 && tr() === 5, 'page two');
+        el.part('pagination').shadowRoot.querySelector('[part~="next"]').click();
+        await until(() => pages.at(-1) === 3 && tr() === 2, 'page three');
+        n = 10; el.refresh();
+        await until(() => pages.slice(-2).join() === '3,2' && tr() === 5, 'one more load lands on page two');
+        t.ok(!table.hidden && el.part('state').children.length === 0, 'rows show, not the empty state');
+        n = 0; el.refresh();
+        await until(() => table.hidden && el.part('state').children.length > 0, 'total 0 shows the empty state'); t.eq(pages.at(-1), 2, 'no further correction');
+    }],
     ['data-table: cell-<id>-<key> slots reach the inner table cell (also one added later), and column align and hidePhone pass through (#817)', async t => {
         const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"},{"key":"note","label":"Note","hidePhone":true}]}'><b slot="cell-1-sku">Custom one</b></pk-data-table>`);
         el.load = async () => ({ rows: [{ id: 1, sku: 'A', qty: 3, note: 'n' }, { id: 2, sku: 'B', qty: 4, note: 'm' }], total: 2 });
