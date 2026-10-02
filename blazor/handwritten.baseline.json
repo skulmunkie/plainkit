@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "budgets": {
+    "Components/_Imports.razor": 4,
+    "Components/PkAppBarSearch.razor": 82,
+    "Components/PkCardMenu.razor": 37,
+    "Components/PkCodeExplorer.razor": 77,
+    "Components/PkConsole.razor": 55,
+    "Components/PkDataTable.razor": 241,
+    "Components/PkDevTools.razor": 109,
+    "Components/PkDevToolsPage.razor": 89,
+    "Components/PkDock.razor": 79,
+    "Components/PkFieldGroup.razor": 134,
+    "Components/PkFieldListRow.razor": 34,
+    "Components/PkGallery.razor": 63,
+    "Components/PkListPage.razor": 43,
+    "Components/PkLogs.razor": 64,
+    "Components/PkLogSettings.razor": 52,
+    "Components/PkPageHeader.razor": 147,
+    "Components/PkPerformance.razor": 55,
+    "Components/PkQuality.razor": 47,
+    "Components/PkRawTable.razor": 59,
+    "Components/PkRecordForm.razor": 137,
+    "Components/PkScorecard.razor": 62,
+    "Components/PkSettingsPage.razor": 40,
+    "Components/PkSideNav.razor": 108,
+    "Components/PkStyles.razor": 55,
+    "Components/PkTable.razor": 317,
+    "Components/PkTableBase.cs": 50,
+    "Components/PkThemeEditor.razor": 77,
+    "Components/PkToolDock.razor": 120,
+    "Components/PkToolDockPanel.razor": 38,
+    "Components/PkToolPage.razor": 43,
+    "DevTools/PkCircuitHandler.cs": 34,
+    "DevTools/PkCircuitState.cs": 68,
+    "DevTools/PkCodePattern.cs": 18,
+    "DevTools/PkDevToolsHost.cs": 49,
+    "DevTools/PkGallerySection.cs": 63,
+    "DevTools/PkInteropLog.cs": 80,
+    "DevTools/PkMappingInfo.cs": 188,
+    "DevTools/PkSnapshot.cs": 132,
+    "DevTools/PkSourceProvider.cs": 16,
+    "EndpointExtensions.cs": 14,
+    "PageBase.cs": 215,
+    "PkAppBarSearchTypes.cs": 19,
+    "PkAssets.cs": 114,
+    "PkCallbackSlot.cs": 77,
+    "PkChartData.cs": 22,
+    "PkCrumb.cs": 6,
+    "PkDataList.cs": 15,
+    "PkDockTypes.cs": 6,
+    "PkElementBase.cs": 106,
+    "PkEnums.cs": 94,
+    "PkFieldGroupTypes.cs": 138,
+    "PkFieldListTypes.cs": 16,
+    "PkFormControlBase.cs": 65,
+    "PkGalleryImage.cs": 22,
+    "PkHostEnvironment.cs": 41,
+    "PkInputFormat.cs": 67,
+    "PkListTypes.cs": 47,
+    "PkLogging.cs": 213,
+    "PkNotifications.cs": 121,
+    "PkOptions.cs": 26,
+    "PkRecordEditor.cs": 159,
+    "PkRuntime.cs": 125,
+    "PkScoreTarget.cs": 25,
+    "PkSelectOption.cs": 20,
+    "PkSharedState.cs": 157,
+    "PkStore.cs": 220,
+    "PkTableColumn.cs": 88,
+    "PkTableTypes.cs": 192,
+    "PkThemePreset.cs": 17,
+    "PkTimeZone.cs": 161,
+    "ServiceCollectionExtensions.cs": 39
+  },
+  "debt": [
+    {
+      "rule": "name-parity",
+      "file": "Components/PkCardMenu.razor",
+      "reason": "Blazor-only component: a card menu (PkDropdown plus PkButton) with no element; to be moved into core as an element, then generated"
+    },
+    {
+      "rule": "layout-recipe",
+      "file": "Components/PkCardMenu.razor",
+      "reason": "same: the PkDropdown and PkButton composition belongs in a core element"
+    },
+    {
+      "rule": "state-machine",
+      "file": "Components/PkDataTable.razor",
+      "reason": "stale-load guard (_sequence) around Load; goes when the element sends an abort signal through the bridge (#801 step 5 remainder)"
+    },
+    {
+      "rule": "layout-recipe",
+      "file": "Components/PkDevToolsPage.razor",
+      "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
+    },
+    {
+      "rule": "layout-recipe",
+      "file": "Components/PkFieldGroup.razor",
+      "reason": "kind-to-control table and visibility rule that js/page-fields.js already has; moves to a pk-field-group element (#801 section 2.3)"
+    },
+    {
+      "rule": "name-parity",
+      "file": "Components/PkFieldListRow.razor",
+      "reason": "Blazor-only skip-empty wrapper around a dt/dd pair; removed when pk-field-list hides empty slotted pairs (#801 name map)"
+    },
+    {
+      "rule": "layout-recipe",
+      "file": "Components/PkPageHeader.razor",
+      "reason": "builds breadcrumb, home crumb and back link; becomes a crumbs prop on pk-page-header (#801 section 2.3)"
+    },
+    {
+      "rule": "name-parity",
+      "file": "Components/PkRawTable.razor",
+      "reason": "old name of the raw-slot mode of PkTable; folds into PkTable with an [Obsolete] alias (#801 name map)"
+    },
+    {
+      "rule": "name-parity",
+      "file": "Components/PkRecordForm.razor",
+      "reason": "old name of PkRecordPage; renamed once pk-record-page has slots for actions, sidebar and tabs (#801 name map)"
+    },
+    {
+      "rule": "layout-recipe",
+      "file": "Components/PkRecordForm.razor",
+      "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
+    },
+    {
+      "rule": "state-machine",
+      "file": "PageBase.cs",
+      "reason": "busy delay and minimum time duplicate the rule in js/page.js; one rule in core (#801 section 2.3)"
+    }
+  ]
+}
