@@ -201,6 +201,41 @@ export const appShellCases = [
         history.replaceState(null, '', location.pathname + location.search);
     }],
 
+    // #859: the boundary's own states (not found, forbidden, a module that fails to start) are a page the reader lands on, so focus after navigation must land on a heading, not <main>.
+    ['mountApp: the boundary states not found, forbidden and error each give exactly one focusable level 1 heading, focused after navigation and drawn once', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const page = defineModule({ id: 'ok', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'ok'; } } }] });
+        history.replaceState(null, '', '#/ok');
+        const app = mountApp(el, { modules: [
+            { id: 'ok', title: 'Fine', load: async () => page },
+            { id: 'payroll', title: 'Payroll', can: () => false, load: async () => page },
+            { id: 'throws', title: 'Throws', load: async () => defineModule({ id: 'throws', mount() { throw new Error('boom'); } }) },
+        ], home: 'ok' });
+        const main = () => el.querySelector('#pk-main');
+        await until(() => main()?.textContent.includes('ok'), 'the first page', 200);
+        const check = async (what, path, heading, ready) => {
+            app.navigate(path);
+            await until(ready, `the ${what} state`, 200);
+            await wait(150);
+            const found = main().querySelectorAll('h1,pk-heading[level="1"]');
+            t.eq(found.length, 1, `${what}: exactly one level 1 heading under main`);
+            const h = found[0], state = h.closest('pk-empty-state');
+            t.ok(state, `${what}: it is the state's own heading`); t.eq(h.textContent.trim(), heading, `${what}: the heading text`);
+            t.eq(h.getAttribute('tabindex'), '-1', `${what}: focusable by script`);
+            t.eq(document.activeElement, h, `${what}: focus is on the heading, not <main>`);
+            t.eq(h.getAttribute('slot'), 'heading', `${what}: it fills the state's heading slot, so the heading is drawn once`);
+            const mine = state.shadowRoot.querySelector('slot[name="heading"]').assignedElements({ flatten: true });
+            t.ok(mine.includes(h) && state.shadowRoot.querySelector('[part="heading"]').getBoundingClientRect().height > 0, `${what}: drawn in the heading position of the state`);
+        };
+        await check('forbidden', '/payroll', 'Not allowed', () => main()?.querySelector('pk-empty-state'));
+        await check('not found', '/ok/nothing-here', 'Not found', () => main()?.querySelector('pk-empty-state[heading="Not found"]'));
+        app.navigate('/ok'); await until(() => main()?.textContent.includes('ok') && !main().querySelector('pk-empty-state'), 'the module again', 200);
+        await check('error', '/throws', 'Nothing to show', () => main()?.querySelector('pk-empty-state[heading="Nothing to show"]'));
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+
     ['mountApp: the theme is kept in the store (?theme= wins and is not saved), the header search asks the active module, and a config typo is one warning', async t => {
         const a = await demo(t, 1280, { hash: '#/orders', search: '?theme=light' });
         t.eq(a.d.documentElement.getAttribute('data-theme'), 'light', '?theme=light wins');

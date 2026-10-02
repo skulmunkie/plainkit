@@ -10,17 +10,12 @@
 import { flattenRoutes, matchRoute, buildCrumbs, fillPath, labelOf } from '../route-tree.js';
 import { safeHref } from '../safe-url.js';
 import { createLogger } from '../log.js';
+import { h } from './shell.js';
 
 export const MAX_TOP = 12;
 export const MAX_ALL = 40;
 const log = createLogger('app');
 const told = new Set();
-const h = (doc, tag, attrs = {}, text) => {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-    if (text != null) el.textContent = text;
-    return el;
-};
 const total = items => items.reduce((n, i) => n + 1 + total(i.children ?? []), 0);
 
 // The module's nav tree, or [] (a module without `nav`, or one whose function threw).
@@ -54,12 +49,7 @@ export function paintNav(doc, into, groups) {
     const rows = new Map();
     const build = (item, slot) => {
         const kids = item.children ?? [], section = item.module && kids.length;
-        const row = h(doc, 'pk-nav-item');
-        const href = section ? null : safeHref(item.href);
-        if (href) row.setAttribute('href', href);
-        if (slot) row.setAttribute('slot', slot);
-        if (item.module) row.setAttribute('data-module', item.module);
-        if (section) row.setAttribute('expanded', ''); else if (item.active) row.setAttribute('current', '');
+        const row = h(doc, 'pk-nav-item', { href: (!section && safeHref(item.href)) || null, slot, 'data-module': item.module || null, expanded: !!section, current: !section && item.active });
         if (item.icon) row.append(h(doc, 'pk-icon', { slot: 'icon', name: item.icon }));
         row.append(doc.createTextNode(item.title));
         if (item.badge != null) row.append(h(doc, 'span', { slot: 'badge' }, String(item.badge)));
@@ -72,11 +62,7 @@ export function paintNav(doc, into, groups) {
 }
 
 // Top layout: the modules as links in the bar (aria-current on the active one).
-export const paintLinks = (doc, tree) => tree.map(it => {
-    const a = h(doc, 'a', { href: it.href, 'data-module': it.module }, it.title);
-    if (it.active) a.setAttribute('aria-current', 'page');
-    return a;
-});
+export const paintLinks = (doc, tree) => tree.map(it => h(doc, 'a', { href: it.href, 'data-module': it.module, 'aria-current': it.active && 'page' }, it.title));
 
 // Where `path` is: `tree` is navRoutes(nav), built once per module. The module's route tree says which nav entry the page belongs to (the deepest route on the way to it
 // that is a nav entry: a record route sits under its list) and what comes after it in the trail (route labels). Returns the ids from the entry's top ancestor down to the

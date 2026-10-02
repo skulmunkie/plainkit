@@ -17,6 +17,7 @@
 // is marked userFacing itself, since it never carries anything but the timeout it already announces.
 import { messageFor } from '../page.js';
 import { isLogEnabled } from '../log.js';
+import { h } from './shell.js';
 
 export const BOUNDARY_FAILED_TEXT = 'Something went wrong loading this part of the app. Try again.';
 
@@ -24,10 +25,13 @@ export const BOUNDARY_FAILED_TEXT = 'Something went wrong loading this part of t
 // for the log-level check.
 export const failureText = err => ((err && err.userFacing === true) || isLogEnabled('debug', 'app') ? messageFor(err) : BOUNDARY_FAILED_TEXT);
 
-const h = (doc, tag, attrs = {}) => {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-    return el;
+// A boundary state: a pk-empty-state whose heading is also the page's one level 1 title (#859). app.js focuses `h1,pk-heading[level="1"]` after a route change, and the
+// empty state's own heading lives in its shadow tree, out of that query's reach, so the same text goes in the empty state's heading slot as a focusable pk-heading level 1
+// (the way page-shell.js titleHeading does for the page types). The slot replaces the attribute's text, so the heading is drawn once; level 1 makes the heading wrapper agree.
+const titled = (doc, a) => {
+    const s = h(doc, 'pk-empty-state', { ...a, level: 1 });
+    s.append(h(doc, 'pk-heading', { slot: 'heading', level: 1, variant: 'h3', tabindex: -1 }, a.heading));
+    return s;
 };
 
 // `rendered()` is called after the boundary drew something new (so the host can load the elements it uses: none is created defined).
@@ -42,7 +46,7 @@ export function createBoundary(doc, rendered = () => {}) {
     root.append(error, status, busy);
 
     const clear = () => { error.hidden = true; error.replaceChildren(); };
-    const state = (heading, description, tone = 'error') => { clear(); body.replaceChildren(h(doc, 'pk-empty-state', { heading, description, tone, announce: '' })); rendered(); };
+    const state = (heading, description, tone = 'error') => { clear(); body.replaceChildren(titled(doc, { heading, description, tone, announce: '' })); rendered(); };
     return {
         root, body, status, busy,
         // A module is loading: with nothing shown yet a skeleton holds the space; otherwise the previous module stays (the host covers it with the busy overlay).
@@ -55,14 +59,13 @@ export function createBoundary(doc, rendered = () => {}) {
         // A boundary error: heading, the error's message, and Retry (onRetry). The shell and the other modules keep working; the body is left as it is.
         fail(heading, err, onRetry) {
             clear();
-            const retry = h(doc, 'pk-button', { slot: 'action', variant: 'secondary' });
-            retry.textContent = 'Retry';
+            const retry = h(doc, 'pk-button', { slot: 'action', variant: 'secondary' }, 'Retry');
             retry.addEventListener('click', onRetry);
             error.setAttribute('heading', heading);
             error.textContent = `${failureText(err)}${globalThis.navigator?.onLine === false ? ' You appear to be offline.' : ''}`;
             error.append(retry);
             error.hidden = false;
-            if (!body.firstChild) body.replaceChildren(h(doc, 'pk-empty-state', { heading: 'Nothing to show', description: 'This part of the app did not load.', tone: 'compact' }));
+            if (!body.firstChild) body.replaceChildren(titled(doc, { heading: 'Nothing to show', description: 'This part of the app did not load.', tone: 'compact' }));
             rendered();
         },
         forbidden: title => state('Not allowed', `You do not have access to ${title}.`),
