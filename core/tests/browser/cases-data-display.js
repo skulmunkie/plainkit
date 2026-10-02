@@ -797,6 +797,18 @@ export const dataDisplayCases = [
         el.clear(); await t.settle(); t.eq(rowsIn(), 0);
         el.paused = true; await t.settle(); const b = el.part('resume').getBoundingClientRect(); t.ok(b.height >= 44 || innerWidth > 640, 'the resume button is 44px tall on a phone'); t.ok(b.width > 0);
     }],
+    ['log: the scroll event of the programmatic jump to the bottom is not the reader scrolling, even when the host pauses before it is delivered', async t => {
+        const el = await t.mount('<pk-log label="Stream" style="--pk-log-height: 6rem"></pk-log>');
+        const sc = el.part('scroller'), seen = []; el.addEventListener('pk-pause', e => seen.push(e.detail.paused));
+        const frame = () => new Promise(r => requestAnimationFrame(r));
+        el.append(...Array.from({ length: 60 }, (_, i) => 'line ' + i));
+        // The jump runs in a frame callback; the scroll event for it is delivered with the next frame's rendering steps. Pause as soon as the
+        // jump has happened (still before that event), so the event meets a host-paused log sitting at the bottom.
+        while (!(sc.scrollHeight > sc.clientHeight && sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4)) await frame();
+        el.paused = true;
+        for (let i = 0; i < 4; i++) await frame();
+        t.eq(seen.length, 0, 'a host pause raises nothing, and the late scroll event of the jump does not resume it'); t.ok(el.paused, 'it stays paused');
+    }],
     ['log: a burst of separate-tick appends settles once per frame, not once per row, and keeps following across frames', async t => {
         const el = await t.mount('<pk-log label="Stream" style="--pk-log-height: 6rem"></pk-log>');
         const sc = el.part('scroller'); const atBottom = () => sc.scrollHeight - sc.scrollTop - sc.clientHeight <= 4;
