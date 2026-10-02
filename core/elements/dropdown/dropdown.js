@@ -25,7 +25,14 @@ export default Base => class extends Base {
     hide() { this.open = false; }
     request(reason) {
         if (reason === null) { this.open = true; return; }
-        if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') this.trigger?.focus({ preventScroll: true }); }
+        if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') this.focusTrigger(); }
+    }
+    // The slotted trigger may be a wrapper (a display: contents span, as the Blazor wrapper adds), which cannot take focus: give it to the control inside.
+    focusTrigger() {
+        const t = this.trigger; if (!t) return;
+        const held = () => t.matches?.(':focus-within') !== false;
+        t.focus({ preventScroll: true });
+        if (!held()) for (const d of t.querySelectorAll('*')) { d.focus({ preventScroll: true }); if (held()) return; }
     }
     apply() {
         const menu = this.part('menu');
