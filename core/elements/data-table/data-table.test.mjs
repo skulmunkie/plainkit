@@ -21,10 +21,11 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state'].map(n => [n, fakeEl(n)]));
+    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
         children = [];
+        querySelector(sel) { return this.slotted?.some(s => sel.includes(`"${s}"`)) ? {} : null; }
         part(n) { return parts[n]; }
         get ownerDocument() { return { createElement: fakeEl }; }
         get shadowRoot() { return { querySelectorAll: () => [], matches: () => false }; }
@@ -207,6 +208,32 @@ test('config feeds the pager, search, table labels and the initial sort and page
     el.config = { ...el.config, sort: 'other' };
     el.changed('config');
     assert.equal(queries.at(-1).sort, 'name', 'once the reader has moved, the config no longer resets the query');
+});
+
+test('no results, the empty slot and the load error text and event (#817)', async () => {
+    const { el, parts, events } = make();
+    el.config = { empty: { heading: 'No orders' }, noResults: { heading: 'Nothing matches' }, loadError: 'Orders failed' };
+    el.load = async () => ({ rows: [], total: 0 });
+    await el.refresh();
+    assert.equal(parts.state.children[0].attrs.heading, 'No orders');
+    el.slotted = ['empty'];
+    await el.refresh();
+    assert.equal(parts.empty.hidden, false, 'the empty slot shows when nothing is searched');
+    assert.equal(parts.state.children.length, 0);
+    el.$query = { ...el.query, search: 'zz' };
+    await el.refresh();
+    assert.equal(parts.empty.hidden, true);
+    assert.equal(parts.state.children[0].attrs.heading, 'Nothing matches', 'a search shows the no-results state, not the slot');
+    el.config = { empty: { heading: 'No orders' } };
+    await el.refresh();
+    assert.equal(parts.state.children[0].attrs.heading, 'No orders', 'no noResults: the empty wording');
+    el.config = { loadError: 'Orders failed' };
+    el.load = async () => { throw new Error('boom'); };
+    await el.refresh();
+    assert.equal(parts.state.children[0].attrs.heading, 'Orders failed');
+    assert.equal(parts.state.children[0].textContent, 'boom');
+    assert.deepEqual(events.map(e => e.name), ['pk-load-error']);
+    assert.equal(events[0].detail.error.message, 'boom');
 });
 
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {

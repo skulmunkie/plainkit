@@ -17,7 +17,7 @@ export default {
 <pk-data-table id="dt" selectable clickable current-row="2"><pk-badge slot="cell-1-po">PO&nbsp;1042</pk-badge></pk-data-table></pk-stack>`,
     setup(frame) {
         const el = frame.querySelector(DT);
-        el.config = { columns: [{ key: 'po', label: 'PO', sortable: true }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', type: 'number' }], empty: { heading: 'No orders match', description: 'Try another search.' }, pageSize: 5, pageSizeOptions: [5, 10, 25], caption: 'Orders', sort: 'po', sortDir: 'descending' };
+        el.config = { columns: [{ key: 'po', label: 'PO', sortable: true }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', type: 'number' }], empty: { heading: 'No orders match', description: 'Try another search.' }, pageSize: 5, loadError: 'Orders failed',pageSizeOptions: [5, 10, 25], caption: 'Orders', sort: 'po', sortDir: 'descending' };
         const use = load => () => { el.load = load; el.refresh(); };
         frame.querySelector('#loading').addEventListener('click', use(() => new Promise(() => {})));
         frame.querySelector('#fail').addEventListener('click', use(() => Promise.reject(new Error('The orders could not be loaded.'))));
@@ -38,7 +38,7 @@ export default {
         t.inViewport(DT);
         const state = `${PARTS}[part=state] `;
         if (t.shot === 'loading') { t.visible(`${state}pk-skeleton`, 'the loading skeleton'); t.hidden(TABLE, 'the table while loading'); }
-        if (t.shot === 'error') { t.visible(`${state}pk-alert`, 'the error alert'); t.hasText(`${state}pk-alert`, 'could not be loaded'); t.visible(`${state}pk-button`, 'Retry'); t.hidden(TABLE, 'the table after an error'); }
+        if (t.shot === 'error') { t.visible(`${state}pk-alert`, 'the error alert'); t.hasText(`${state}pk-alert`, 'could not be loaded'); t.hasText(`${state}pk-alert >>> [part=title]`, 'Orders failed'); t.visible(`${state}pk-button`, 'Retry'); t.hidden(TABLE, 'the table after an error'); }
         if (t.shot === 'empty') { t.visible(`${state}pk-empty-state`, 'the empty state'); t.hasText(`${state}pk-empty-state >>> [part=heading]`, 'No orders match'); t.hidden(TABLE, 'the table when empty'); }
         if (['rows', 'page', 'all'].includes(t.shot)) {
             t.visible(TABLE, 'the table'); t.visible(`${PARTS}[part=pagination]`, 'the pager'); t.visible(`${PARTS}[part=filters] >>> [part=search]`, 'the search box');

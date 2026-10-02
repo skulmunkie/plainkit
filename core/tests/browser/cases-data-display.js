@@ -318,6 +318,23 @@ export const dataDisplayCases = [
         el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
     }],
 
+    ['data-table: the empty slot replaces the built-in empty state (not while searching), loadError words the error and pk-load-error reaches the host (#817)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"noResults":{"heading":"Nothing matches"},"loadError":"Orders failed"}'><p slot="empty" id="mine">Add your first order</p></pk-data-table>`);
+        let mode = 'none'; const errs = [];
+        el.load = async () => { if (mode === 'fail') throw new Error('Server said no'); return { rows: [], total: 0 }; };
+        el.addEventListener('pk-load-error', e => errs.push(e.detail.error.message));
+        el.refresh();
+        const mine = el.querySelector('#mine'), box = el.part('empty');
+        await until(() => !box.hidden && mine.getBoundingClientRect().height > 0, 'the empty slot to show');
+        t.ok(!el.part('state').querySelector('pk-empty-state'), 'no built-in empty state beside it');
+        el.$query = { ...el.query, search: 'zz' }; el.refresh();
+        await until(() => el.part('state').querySelector('pk-empty-state'), 'the no-results state');
+        t.eq(el.part('state').querySelector('pk-empty-state').getAttribute('heading'), 'Nothing matches'); t.ok(box.hidden, 'the slot is hidden while searching');
+        mode = 'fail'; el.refresh();
+        const alert = await until(() => el.part('state').querySelector('pk-alert'), 'the error');
+        t.eq(alert.getAttribute('heading'), 'Orders failed'); t.ok(alert.textContent.includes('Server said no')); t.eq(errs.join(), 'Server said no');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;
