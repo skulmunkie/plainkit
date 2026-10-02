@@ -176,6 +176,17 @@ test('rowHref makes the table clickable and is called on pk-row-click; without i
     assert.deepEqual(seen, [{ id: 1 }]);
 });
 
+test('clickable (no rowHref) makes rows clickable and currentRow reaches the table (#817)', async () => {
+    const { el, parts } = make();
+    el.load = async () => rowsOf(2);
+    el.clickable = true; el.currentRow = '2';
+    await el.refresh();
+    assert.deepEqual([parts.table.clickable, parts.table.currentRow], [true, '2']);
+    el.clickable = false; el.currentRow = '';
+    await el.refresh();
+    assert.deepEqual([parts.table.clickable, parts.table.currentRow], [false, '']);
+});
+
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {
     const { el, parts } = make();
     el.load = async () => ({ rows: [{ id: 1 }], total: 40 });

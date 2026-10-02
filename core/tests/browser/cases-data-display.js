@@ -287,6 +287,20 @@ export const dataDisplayCases = [
         t.eq(td(1, 'qty').dataset.align, 'end', 'a number column aligns to the end'); t.ok(td(1, 'note').hasAttribute('data-hide-phone'), 'hidePhone reaches the cell');
     }],
 
+    ['data-table: clickable rows are tab stops, Enter or a click raises pk-row-click on the host with the row id, and currentRow marks the open row (#817)', async t => {
+        const el = await t.mount(`<pk-data-table clickable current-row="2" config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
+        el.refresh();
+        const root = el.part('table').shadowRoot, rows = () => [...root.querySelectorAll('tbody tr')];
+        await until(() => rows().length === 2 && rows().every(r => r.tabIndex === 0), 'focusable rows');
+        t.ok(!rows()[0].hasAttribute('aria-current') && rows()[1].getAttribute('aria-current') === 'true', 'only the current row is marked');
+        const got = []; el.addEventListener('pk-row-click', e => got.push([e.detail.id, e.detail.row.sku]));
+        rows()[0].focus(); t.eq(root.activeElement, rows()[0], 'a row can take focus');
+        key(rows()[0], 'Enter'); rows()[1].click(); await t.settle();
+        t.eq(JSON.stringify(got), '[["1","A"],["2","B"]]', 'the host hears the id and the row');
+        el.currentRow = '1'; await until(() => rows()[0].hasAttribute('aria-current') && !rows()[1].hasAttribute('aria-current'), 'the mark to follow currentRow');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;

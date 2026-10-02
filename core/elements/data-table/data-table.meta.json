@@ -27,6 +27,20 @@
       "description": "The row field that identifies a row, which is what selected holds."
     },
     {
+      "name": "clickable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows can be activated: a click, or Enter or Space on the focused row (each row is a tab stop), raises pk-row-click with the row id. For a host that cannot pass a rowHref callback (a wrapper, a page that opens the row itself). Setting rowHref makes rows clickable too."
+    },
+    {
+      "name": "currentRow",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The id (rowKey value) of the row that is open elsewhere, for example in a detail pane: pk-table tints it, marks it with an accent bar and gives it aria-current. The host sets it, from the route or from pk-row-click."
+    },
+    {
       "name": "selected",
       "type": "json",
       "default": [],
@@ -47,6 +61,13 @@
     { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell, exactly as pk-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value. Column options (align, type, hidePhone) in config.columns apply as in pk-table." }
   ],
   "events": [
+    {
+      "name": "pk-row-click",
+      "detail": { "id": "string", "row": "object" },
+      "description": "pk-table's own event, passed through: a clickable row was activated. id is the row's rowKey value, row the row object from load(). A control inside the row (checkbox, button, link) does not raise it.",
+      "cancelable": true,
+      "detailProps": { "id": "string", "row": "object" }
+    },
     {
       "name": "pk-select",
       "detail": { "selected": "string[]", "scope": "'page' | 'all'", "query": "{ page, pageSize, sort, sortDir, search, filters }" },
