@@ -26,7 +26,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
 | A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
 | Static informational page: a heading and a block of prose, no data | Template `page`; elements `pk-heading`, `pk-card` | Page type `note` | `PkNotePage` |
-| List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | Page type `list` | `PkTable`, or `PkDataList` when the server pages, searches and sorts |
+| List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | Page type `list` | `PkTable`, or `PkDataTable` when the server pages, searches and sorts |
 | List and detail on one page | Template `crud`; template `master-detail`; template `routed-list-detail` (the route drives it) | Page type `master-detail`, or `list` with a record route under it | `PkTable` beside a `PkCard`; routes and `NavigationManager` for the record |
 | Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
@@ -34,7 +34,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Long form built from a list of fields | Pattern `forms` for the controls | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
-| Filtered table | Pattern `filter-table`; element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataList` |
+| Filtered table | Pattern `filter-table`; element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
 | Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | Page type `wizard` | `PkStepper` |
 | Master and detail with tabs | Template `master-detail`; pattern `master-detail-pattern` | Page type `master-detail` | `PkListGroup` beside `PkTabs` |
 | Tool page (one input, one outcome) | Layout `tool`; template `workspace` for a multi-pane tool | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace` |
@@ -84,7 +84,7 @@ and recoloured through a token, never a literal colour:
 
 | Instead of | Use | Why |
 |---|---|---|
-| Your own table markup with sort, select and paging | `pk-table` (Blazor: `PkTable` or `PkDataList`) | Keyboard, sorting, selection, row menus, an empty state and the phone layout are already done and tested |
+| Your own table markup with sort, select and paging | `pk-table` (Blazor: `PkTable` or `PkDataTable`) | Keyboard, sorting, selection, row menus, an empty state and the phone layout are already done and tested |
 | A `<div>` overlay with your own focus handling for a modal | `pk-dialog`, opened with `data-open` or `PkDialog.confirm` | Focus trap, Escape, backdrop and scroll lock come with it |
 | Tabs from buttons and `hidden` panels | `pk-tabs` with `pk-tab` and `pk-tab-panel` | Arrow keys, roles and the phone strip |
 | A hand-written `PkField` plus `PkInput` wrapper component per field | `PkFieldGroup` with a list of `PkFieldSpec` | One place for label, hint, help, validation, options, conditional fields and read-only state |
@@ -111,7 +111,7 @@ Write your own only when the SDK has nothing for the job and composing existing 
 
 - **Every page starts as a `PageBase`** when it needs a title, breadcrumbs, a status notice or a busy overlay: derive from it instead of repeating that state.
 - **A record page is three pieces**: `PkRecordForm` draws it (toolbar, tabs, error, cards, sidebar), `PkFieldGroup` renders the fields from `PkFieldSpec` items, `PkRecordEditor` holds the load, validate, save and delete state.
-- **A list is `PkTable`** for rows you already have, and **`PkDataList`** when the list is searched, sorted and paged on the server.
+- **A list is `PkTable`** for rows you already have, and **`PkDataTable`** when the list is searched, sorted and paged on the server.
 - **The frame is `PkAppShell`**, with `PkSideNav` (it follows the route by itself) and `PkAppBarSearch` in the header.
 - **An element with no component** is used as raw markup with `@onpk-...` handlers, not re-wrapped by hand.
 

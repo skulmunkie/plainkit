@@ -46,7 +46,7 @@ Options are `--name=value` (no space). `PK_CHROME` names the browser (as for `sc
 | `pages css` | adopted sheets, theme switch | 5,000 elements: is each class's stylesheet shared, and what switching the theme costs |
 | `package` | sizes | the nupkg and the static web assets, raw / gzip / brotli, runtime files against tooling files |
 | `blazor table` | bytes over the circuit | WebSocket frame bytes the server sends to draw a `PkTable<T>` of N rows, a no-change re-render, and what "select all" sends back |
-| `blazor list` | Load calls | `PkDataList` under fast typing (debounce) |
+| `blazor list` | Load calls | `PkDataTable` under fast typing (debounce) |
 | `blazor assets` | headers, warm visit | cache headers and compression of what the package serves; requests of a warm visit (`--publish=<dir>` runs the published app in Production) |
 
 ## Blazor

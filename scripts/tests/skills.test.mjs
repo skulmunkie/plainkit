@@ -163,10 +163,10 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
     assert.match(skill, /Blazor Server and standalone Blazor WebAssembly are verified/);
     assert.match(gaps, /Standalone Blazor WebAssembly is verified.*Not run: AOT/);
-    // PkTable is hand-written now (the last element without a component), and so is PkDataList, which has no element at all.
+    // PkTable is hand-written now (the last element without a component), and so is PkDataTable (the wrapper of pk-data-table).
     assert.ok(src.manifest.skipped.some(s => s.component === 'PkTable' && s.handWritten), 'PkTable is hand-written');
     assert.ok(src.manifest.skipped.every(s => s.handWritten), 'every element has a component');
-    for (const c of ['PkTable', 'PkDataList']) assert.ok(skill.includes(`\`${c}\``), c);
+    for (const c of ['PkTable', 'PkDataTable']) assert.ok(skill.includes(`\`${c}\``), c);
     assert.match(gaps, /None: every element has a component/);
     // PkCard, PkEmptyState, PkFieldList and PkStat are hand-written now, so they are not in the "does not exist" list.
     for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.manifest.skipped.some(s => s.component === c && s.handWritten), `${c} is hand-written`);
@@ -322,14 +322,14 @@ test('razorParams reads every [Parameter], including one whose doc has a remarks
 
 // ---------------------------------------------------------------- the table, the list and the raw events (issues #49, #50)
 
-test('the Blazor skill documents PkDataList with every parameter, the request and result records and the table and list workflows', () => {
-    const list = gen.get('plainkit-blazor/references/data-list.md');
-    assert.ok(list, 'references/data-list.md exists');
-    for (const p of src.razor.PkDataList.params) assert.ok(list.includes(`\`${p.name}\``), `PkDataList.${p.name}`);
+test('the Blazor skill documents PkDataTable with every parameter, the request and result records and the table and list workflows', () => {
+    const list = gen.get('plainkit-blazor/references/data-table.md');
+    assert.ok(list, 'references/data-table.md exists');
+    for (const p of src.razor.PkDataTable.params) assert.ok(list.includes(`\`${p.name}\``), `PkDataTable.${p.name}`);
     for (const t of ['PkListRequest', 'PkListResult', 'CancellationToken', 'Skip', 'ReloadAsync', 'PkTableColumn<TItem>']) assert.ok(list.includes(t), t);
     for (const p of ['Search', 'SortKey', 'Descending', 'Page', 'PageSize', 'Items', 'Total']) assert.ok(list.includes(p), p);
     const skill = gen.get('plainkit-blazor/SKILL.md');
-    assert.ok(skill.includes('references/data-list.md'), 'the skill points to the list reference');
+    assert.ok(skill.includes('references/data-table.md'), 'the skill points to the list reference');
     for (const h of ['### Show a table of typed rows', '### Show a searchable, server-paged list']) assert.ok(skill.includes(h), h);
     // PkTable's own section lists its parameters, including the ones for the newer element features
     const components = [...gen].filter(([f]) => f.includes('references/components-')).map(([, t]) => t).join('\n');

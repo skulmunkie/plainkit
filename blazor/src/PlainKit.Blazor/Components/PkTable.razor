@@ -273,30 +273,17 @@
     private async Task HandleSelect(PkTableSelectEventArgs e)
     {
         // A big selection arrives as runs of row indexes (see PkTableSelectEventArgs): back to the ids of the rows this table sent.
-        if (e.Ranges is not null && !await ExpandAsync(e)) return;
+        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _items.Select(r => r.Id).ToList()))
+        {
+            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {_items.Count} rows; it was ignored (the next event carries the selection).");
+            return;
+        }
         // pk-select also bubbles up from menus, calendars and trees in the table's own slots: only the table's carries "selected".
         if (e.Selected is null) return;
         Selected = e.Selected;
         SelectScope = "page"; // any change of the ids leaves scope all
         await SelectedChanged.InvokeAsync(Selected);
         await OnSelect.InvokeAsync(e);
-    }
-
-    // False when the element's rows are not the rows of the last render (the parameters changed after the element raised the event): the event is dropped
-    // and the next one, raised for the new rows, carries the selection.
-    private async Task<bool> ExpandAsync(PkTableSelectEventArgs e)
-    {
-        var n = _items.Count;
-        if (e.RowCount != n || n == 0 || e.FirstId != _items[0].Id || e.LastId != _items[n - 1].Id || e.Ranges!.Length % 2 != 0)
-        {
-            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {n} rows; it was ignored (the next event carries the selection).");
-            return false;
-        }
-        var ids = new List<string>();
-        for (var r = 0; r < e.Ranges.Length; r += 2)
-            for (var i = Math.Max(0, e.Ranges[r]); i <= Math.Min(n - 1, e.Ranges[r + 1]); i++) ids.Add(_items[i].Id);
-        e.Selected = ids.ToArray();
-        return true;
     }
 
     private async Task HandleSelectAll(PkSelectAllEventArgs e)

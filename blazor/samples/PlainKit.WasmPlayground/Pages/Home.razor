@@ -29,8 +29,8 @@
              OnSort="@(e => _sort = $"{e.Key} {e.Direction}")" OnRowClick="@(e => _row = e.Item.Name)" />
     <p>Table sort: <code id="out-sort">@_sort</code> | row: <code id="out-row">@_row</code></p>
 
-    <PkDataList TItem="Person" Load="LoadAsync" Columns="_columns" IdOf="p => p.Id.ToString()" Label="Everyone" PagerLabel="Pages"
-                SearchPlaceholder="Search people" PageSize="5" id="list" />
+    <PkDataTable TItem="Person" Load="LoadAsync" Columns="_columns" IdOf="p => p.Id.ToString()" Label="Everyone" PagerLabel="Pages"
+                 SearchPlaceholder="Search people" PageSize="5" id="list" />
     <p>Loads: <code id="out-loads">@_loads</code>, last request: <code id="out-request">@_last</code></p>
 
     <PkButton OnClick="WriteLogs">Write logs with IPkLog</PkButton>
