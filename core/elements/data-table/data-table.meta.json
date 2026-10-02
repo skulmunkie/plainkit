@@ -81,6 +81,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
+      "commit": "pk-select",
       "description": "The ids of the selected rows, as strings, across every page and search the reader has visited. Set it to preselect; read it (or the pk-select event) to act on the selection. For selectScope 'all' it is only the loaded page: expand the scope with the query."
     },
     {
