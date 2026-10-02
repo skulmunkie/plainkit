@@ -27,7 +27,7 @@ export default Base => class extends Base {
     updated() {
         const i = this.part('input');
         i.checked = this.checked; i.indeterminate = this.indeterminate;
-        this.setValidity(flagsOf(i.validity), i.validationMessage, i);
+        this.setValidity(i.willValidate ? flagsOf(i.validity) : {}, i.validationMessage, i);
         this.setFormValue(this.checked ? this.value : null, this.checked ? 'checked' : '');
     }
     onReset() { this.checked = this.$initial; this.indeterminate = false; }

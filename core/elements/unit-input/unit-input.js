@@ -47,7 +47,7 @@ export default Base => class extends Base {
         const wanted = p ? p.number : '';
         if (!this.$typing && n.value !== wanted) n.value = wanted;
         this.$typing = false;
-        this.setValidity(flagsOf(n.validity), n.validationMessage, n);
+        this.setValidity(n.willValidate ? flagsOf(n.validity) : {}, n.validationMessage, n);
         this.setFormValue(this.value);
     }
     onReset() { this.value = this.$initial ?? ''; this.$unit = undefined; }
