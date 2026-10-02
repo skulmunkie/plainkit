@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace PlainKit.Blazor;
 
-/// <summary>What a <see cref="PkFieldSpec{TItem}"/> renders. Textarea, Select and Checkbox pick that control; every other value is a
+/// <summary>What a <see cref="PkFieldSpec{TItem}"/> renders. Textarea, Select, Checkbox and Combobox pick that control; every other value is a
 /// <c>PkInput</c> with that value as its <c>Type</c>.</summary>
 public enum PkFieldKind
 {
@@ -28,6 +28,8 @@ public enum PkFieldKind
     Select,
     /// <summary>A <c>PkCheckbox</c>. <see cref="PkFieldSpec{TItem}.Get"/>/<see cref="PkFieldSpec{TItem}.Set"/> still deal in strings: checked is a non-empty value other than "false".</summary>
     Checkbox,
+    /// <summary>A <c>PkCombobox</c>: type to find an option. Its options come from <see cref="PkFieldSpec{TItem}.Options"/>, <see cref="PkFieldSpec{TItem}.OptionsSource"/> or, as the user types, <see cref="PkFieldSpec{TItem}.Search"/>; <see cref="PkFieldSpec{TItem}.Free"/> lets the text itself be the value.</summary>
+    Combobox,
 }
 
 /// <summary>One option of a <see cref="PkFieldKind.Select"/> field.</summary>
@@ -105,6 +107,12 @@ public sealed record PkFieldSpec<TItem>
 
     /// <summary>Whether the control is read-only, evaluated per render: selectable and copyable but not editable. <c>PkInput</c> and <c>PkTextarea</c> only; <c>PkSelect</c> and <c>PkCheckbox</c> have no read-only state, so there it disables the control.</summary>
     public Func<TItem, bool>? ReadOnly { get; init; }
+
+    /// <summary>The async options source of a <see cref="PkFieldKind.Combobox"/> field: called with what the user typed, it returns the options to show (like <c>PkCombobox.OnSearchInput</c>; the element then does not filter them again). A newer query supersedes an older one whose answer is still pending. Until the first answer the static <see cref="Options"/> show.</summary>
+    public Func<string, Task<IReadOnlyList<PkFieldOption>>>? Search { get; init; }
+
+    /// <summary><see cref="PkFieldKind.Combobox"/> only: the typed text is itself a valid value (<c>PkCombobox.Free</c>), not only a listed option.</summary>
+    public bool Free { get; init; }
 
     /// <summary>The field takes every column of the <c>pk-form-section</c> grid it sits in (the <c>form-span</c> class on its <c>pk-field</c>).</summary>
     public bool Span { get; init; }

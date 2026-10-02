@@ -23,6 +23,16 @@
                 }
             </PkSelect>
         }
+        else if (f.Kind == PkFieldKind.Combobox)
+        {
+            <PkCombobox Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" Free="@f.Free" Placeholder="@f.Placeholder" Filtering="@(f.Search is null ? null : "off")"
+                        AriaLabel="@Accessible(f)" Disabled="@(IsDisabled(f) || IsReadOnly(f))" OnSearchInput="@(e => SearchAsync(f, e.Query))">
+                @foreach (var o in (_found.TryGetValue(f.Key, out var found) ? found : null) ?? f.OptionsSource?.Invoke() ?? f.Options ?? [])
+                {
+                    <option value="@o.Value">@o.Label</option>
+                }
+            </PkCombobox>
+        }
         else if (f.Kind == PkFieldKind.Textarea)
         {
             <PkTextarea Name="@f.Key" Value="@f.Get(Model)" ValueChanged="@(v => Update(f, v))" Required="@f.Required" MaxLength="@f.MaxLength" AriaLabel="@Accessible(f)" Disabled="@IsDisabled(f)" ReadOnly="@IsReadOnly(f)"
@@ -98,6 +108,20 @@
         builder.AddAttribute(3, nameof(PkTooltip.Label), "Help for " + f.Label);
         builder.CloseComponent();
     });
+    }
+
+    // The answers of the Search callbacks by field key; a newer query makes an older pending answer stale (the sequence per field).
+    private readonly Dictionary<string, IReadOnlyList<PkFieldOption>> _found = new();
+    private readonly Dictionary<string, int> _queries = new();
+
+    private async Task SearchAsync(PkFieldSpec<TItem> f, string? query)
+    {
+        if (f.Search is null) return;
+        var n = _queries[f.Key] = _queries.GetValueOrDefault(f.Key) + 1;
+        var options = await f.Search(query ?? "");
+        if (_queries[f.Key] != n) return;
+        _found[f.Key] = options;
+        await InvokeAsync(StateHasChanged);
     }
 
     private static bool IsChecked(string? value) => !string.IsNullOrEmpty(value) && value != "false";
