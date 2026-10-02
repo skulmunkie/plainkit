@@ -7,7 +7,7 @@ import behaviour from './empty-state.js';
 const make = (props = {}, slots = {}) => {
     const parts = { heading: { hidden: null }, description: { hidden: null }, icon: { hidden: null }, actions: { hidden: null } }; const watched = [];
     const shadowRoot = { querySelector: sel => { const m = /name="([^"]+)"/.exec(sel); return { assignedNodes: () => slots[m ? m[1] : ''] ?? [] }; } };
-    const el = new (behaviour(class { part(n) { return parts[n]; } aria(m) { this.ariaSet = m; } watchSlot(n) { watched.push(n); } requestUpdate() {} }))();
+    const el = new (behaviour(class { part(n) { return parts[n] ?? (this.textPart ??= { hidden: null }); } aria(m) { this.ariaSet = m; } watchSlot(n) { watched.push(n); } requestUpdate() {} }))();
     Object.assign(el, { heading: '', description: '', announce: false, shadowRoot }, props);
     return { el, parts, watched };
 };
@@ -31,6 +31,13 @@ test('blank text in a slot does not count as content', () => {
     const { el, parts } = make({}, { '': [text('  \n ')], actions: [text('')] });
     el.updated();
     assert.equal(parts.description.hidden, true); assert.equal(parts.actions.hidden, true);
+});
+
+test('the description prop shows next to blank slot text, and rich slot content replaces it', () => {
+    const a = make({ description: 'Try again' }, { '': [text('  ')] }); a.el.updated();
+    assert.equal(a.parts.description.hidden, false); assert.equal(a.el.textPart.hidden, false);
+    const b = make({ description: 'Try again' }, { '': [text('Rich')] }); b.el.updated();
+    assert.equal(b.el.textPart.hidden, true);
 });
 
 test('announce turns the box into a status region, otherwise it has no role', () => {

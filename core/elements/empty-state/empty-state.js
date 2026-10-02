@@ -5,7 +5,9 @@ export default Base => class extends Base {
     connected() { for (const s of ['heading', '', 'icon', 'actions']) this.watchSlot(s, () => this.requestUpdate()); }
     updated() {
         this.part('heading').hidden = !this.heading && !filled(this, 'heading');
-        this.part('description').hidden = !this.description && !filled(this, '');
+        const rich = filled(this, '');
+        this.part('text').hidden = rich;
+        this.part('description').hidden = !this.description && !rich;
         this.part('icon').hidden = !filled(this, 'icon');
         this.part('actions').hidden = !filled(this, 'actions');
         this.aria({ role: this.announce ? 'status' : null });

@@ -62,7 +62,7 @@
     },
     {
       "name": "actions",
-      "description": "Buttons that fill the empty state."
+      "description": "The next step: a link back or a primary button, centred under the description."
     }
   ],
   "events": [],
@@ -84,6 +84,10 @@
       "description": "The description."
     },
     {
+      "name": "text",
+      "description": "The description prop text; hidden when the default slot has content."
+    },
+    {
       "name": "actions",
       "description": "The action row."
     }
@@ -101,6 +105,10 @@
     {
       "title": "With an action",
       "html": "<pk-empty-state heading=\"No products yet\" description=\"Create your first product to see it here.\">\n  <pk-button slot=\"actions\">Add product</pk-button>\n</pk-empty-state>"
+    },
+    {
+      "title": "With a link and a button",
+      "html": "<pk-empty-state heading=\"Nothing here\" description=\"This list has no items yet.\">\n  <span slot=\"actions\"><a href=\"#back\">Back to list</a></span>\n  <pk-button slot=\"actions\" variant=\"primary\">Add item</pk-button>\n</pk-empty-state>"
     },
     {
       "title": "Compact",
