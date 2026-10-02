@@ -2,3 +2,4 @@
 [part="form"] { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 [part="fields"] { display: grid; gap: var(--space-3); inline-size: 100%; }
 [part="outcome"] { margin-block-start: var(--space-6); }
+::slotted([slot="title"]) { display: block; margin-block-end: var(--space-4); }

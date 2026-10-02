@@ -18,7 +18,7 @@ const h = (doc, tag, attrs = {}) => {
 };
 
 /** Fills `container` (cleared and redrawn each call) with the markup for `state`, or empties it for 'ready' so the caller draws its own
- * content there instead. `opts`: `label` (loading), `heading`/`description` (empty, error, forbidden), `retry` (error only: a `() => void`
+ * content there instead. `opts`: `label` (loading), `heading`/`description` (empty, error, forbidden; heading null = the page already shows the title, draw none), `retry` (error only: a `() => void`
  * shown as a Retry action). `heading`/`description`/`label` are always text, never markup. Throws on an unknown state (a caller mistake,
  * not a runtime condition to recover from). */
 export function renderState(container, state, opts = {}) {
@@ -27,9 +27,9 @@ export function renderState(container, state, opts = {}) {
     container.replaceChildren();
     if (state === 'ready') return;
     if (state === 'loading') { container.append(h(doc, 'pk-skeleton', { variant: 'block', size: '10rem', label: opts.label || 'Loading' })); return; }
-    if (state === 'empty') { container.append(h(doc, 'pk-empty-state', { heading: opts.heading || 'Nothing here yet', description: opts.description || '' })); return; }
-    if (state === 'forbidden') { container.append(h(doc, 'pk-empty-state', { heading: opts.heading || 'Not allowed', description: opts.description || '' })); return; }
-    const alert = h(doc, 'pk-alert', { kind: 'danger', heading: opts.heading || 'Something went wrong' });
+    if (state === 'empty') { container.append(h(doc, 'pk-empty-state', { heading: opts.heading === null ? '' : opts.heading || 'Nothing here yet', description: opts.description || '' })); return; }
+    if (state === 'forbidden') { container.append(h(doc, 'pk-empty-state', { heading: opts.heading === null ? '' : opts.heading || 'Not allowed', description: opts.description || '' })); return; }
+    const alert = h(doc, 'pk-alert', { kind: 'danger', heading: opts.heading === null ? '' : opts.heading || 'Something went wrong' });
     alert.textContent = opts.description || '';
     if (opts.retry) {
         const retry = h(doc, 'pk-button', { slot: 'action', size: 'mini', variant: 'ghost' });
