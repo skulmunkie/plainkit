@@ -1,7 +1,7 @@
 {
   "component": "PkDataTable",
   "existing": true,
-  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics; the hand-written PkDataList becomes PkDataTable in step 5 of issue 801, with PkDataList kept one release as an obsolete alias",
+  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5)",
   "params": [
     {
       "name": "Config",
@@ -9,7 +9,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], empty?: { heading?, description? }, pageSize? }."
+      "note": "Not a parameter of the component: PkDataTable<TItem> builds the config JSON ({ columns, pageSize, pageSizeOptions, sort, sortDir, searchable, searchLabel, searchDebounce, pagerLabel, label, caption, empty, noResults, loadError }) from its typed parameters (Columns, PageSize, SortKey, Descending, Searchable, SearchPlaceholder, SearchLabel, SearchDebounceMs, PagerLabel, Label, Caption, EmptyText, NoResultsText, LoadErrorText)."
     },
     {
       "name": "Selectable",
@@ -31,8 +31,8 @@
       "name": "SelectScope",
       "prop": "selectScope",
       "type": "string?",
-      "note": "page or all: all after the user chose Select all N rows; the OnSelect detail then carries the query to run the bulk action against on the server."
+      "note": "page or all: all after the user chose Select all N rows; OnSelect then carries the query (Scope, Query, read with PkSelectQuery.ToRequest) to run the bulk action against on the server. No ids of other pages are ever sent."
     }
   ],
-  "notes": "Mapped now so the element is covered (issue 801 step 4); the Blazor component is the hand-written PkDataList until step 5 renames it and adds Selectable/Selected/OnSelect over this element. Load(query) and RowHref are callback properties set from script, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; they are not mapped params because the generator only maps props, slots and events."
+  "notes": "PkDataTable<TItem> (Components/PkDataTable.razor) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges). PkDataList<TItem> is an [Obsolete] subclass kept for one release."
 }

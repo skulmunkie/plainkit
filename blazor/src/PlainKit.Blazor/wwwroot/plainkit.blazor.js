@@ -104,6 +104,9 @@ export async function mountToolDock(container, options, panelHosts) {
 // that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.
 export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = arg => host.invokeMethodAsync('Invoke', arg); if (refresh) el.refresh?.(); } else delete el[name]; };
 
+// Runs an element's load again (PkDataTable.ReloadAsync).
+export const refresh = el => el.refresh?.();
+
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();

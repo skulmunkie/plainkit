@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataList).
+// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataTable).
 public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;

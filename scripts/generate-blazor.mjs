@@ -496,13 +496,15 @@ function plain(v, depth = 0) {
 }
 
 // A selection is the ids of the rows, and every id of a big table would travel back in one SignalR message (SignalR closes the circuit above
-// MaximumReceiveMessageSize, 32 KB: about 800 GUIDs, 5,000 numbers). A PkTable component marks its element with data-pk-ranges; the selection of such
-// a pk-table then goes as runs of row indexes ([first, last, first, last, ...] into its rows, so select all is one run) with the row count and the first and
+// MaximumReceiveMessageSize, 32 KB: about 800 GUIDs, 5,000 numbers). A PkTable or PkDataTable component marks its element with data-pk-ranges; the selection of such
+// a pk-table (or the table inside a pk-data-table, whose scope and query go along) then goes as runs of row indexes ([first, last, first, last, ...] into its rows, so select all is one run) with the row count and the first and
 // last row id as a check. PkTable turns it back into ids from the rows it sent. Any other pk-select, and a selection that names a row the element does not have, goes as is.
 function compact(e, d) {
     const el = e.target, sel = d && d.selected;
-    if (!Array.isArray(sel) || sel.length < 64 || !el || !el.hasAttribute || !el.hasAttribute('data-pk-ranges') || !Array.isArray(el.rows)) return d;
-    const rows = el.rows, key = el.rowKey || 'id', at = new Map();
+    if (!Array.isArray(sel) || sel.length < 64 || !el || !el.hasAttribute || !el.hasAttribute('data-pk-ranges')) return d;
+    const rows = el.rows ?? el.part?.('table')?.rows;
+    if (!Array.isArray(rows)) return d;
+    const key = el.rowKey || 'id', at = new Map();
     rows.forEach((r, i) => at.set(String(r && r[key] !== undefined && r[key] !== null ? r[key] : i), i));
     const ix = [];
     for (const id of sel) { const i = at.get(String(id)); if (i === undefined) return d; ix.push(i); }
@@ -510,7 +512,7 @@ function compact(e, d) {
     const ranges = [];
     for (const i of ix) { const n = ranges.length; if (n && ranges[n - 1] === i - 1) ranges[n - 1] = i; else ranges.push(i, i); }
     const idAt = i => String(rows[i][key] !== undefined && rows[i][key] !== null ? rows[i][key] : i);
-    return { ranges, rowCount: rows.length, firstId: idAt(0), lastId: idAt(rows.length - 1) };
+    return { ranges, rowCount: rows.length, firstId: idAt(0), lastId: idAt(rows.length - 1), scope: d.scope, query: d.query };
 }
 
 function register(blazor) {

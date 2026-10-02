@@ -135,7 +135,7 @@ Do not assemble `PkDropdown` + `PkButton` + `PkMenuItem` by hand: `PkCardMenu` i
 ```
 
 ### Show a table of typed rows (`PkTable`)
-`PkTable<TItem>` takes typed columns and items. Write `TItem="Order"` on the component whenever a handler such as `OnRowClick` is a method group: Razor infers `TItem` from `Items` and `Columns` but not through `EventCallback<PkTableRowClickArgs<TItem>>`, so without it the build fails with CS1503 (the same for `PkDataList`). A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`: the rows are serialised only when `Items` (its reference or count), `Columns` or `IdOf` change, so replace an item inside the same list with a new list, or call `Refresh()` on the table (`@ref`). `CurrentRow` marks the row whose record is open elsewhere (tinted, `aria-current`; set it from the route, the table never changes it); the routed list and detail page with a `PkWorkspace` is the `routed-list-detail` template in the `plainkit-sdk` skill.
+`PkTable<TItem>` takes typed columns and items. Write `TItem="Order"` on the component whenever a handler such as `OnRowClick` is a method group: Razor infers `TItem` from `Items` and `Columns` but not through `EventCallback<PkTableRowClickArgs<TItem>>`, so without it the build fails with CS1503 (the same for `PkDataTable`). A column's `Text` computes the cell text; its `Cell` template renders markup into the element's `cell-<id>-<key>` slot. Give it `IdOf` for stable row ids. With `Manual` you load, sort and filter yourself: the table shows `Items` as given and reports `OnSort` and `OnFilter`; put a `PkPagination` in `FooterContent`. Blazor renders the cell slots as ordinary children of the element and re-renders them with the `rows` attribute (no per-render JavaScript), so change rows by changing `Items`: the rows are serialised only when `Items` (its reference or count), `Columns` or `IdOf` change, so replace an item inside the same list with a new list, or call `Refresh()` on the table (`@ref`). `CurrentRow` marks the row whose record is open elsewhere (tinted, `aria-current`; set it from the route, the table never changes it); the routed list and detail page with a `PkWorkspace` is the `routed-list-detail` template in the `plainkit-sdk` skill.
 
 ```razor
 <PkTable TItem="Order" Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
@@ -158,15 +158,15 @@ Do not assemble `PkDropdown` + `PkButton` + `PkMenuItem` by hand: `PkCardMenu` i
 
 For a `PkTable` with `Manual` rows, set `SelectAllTotal` to the number of rows that match your query (all pages). `Selected` then keeps its ids when you replace `Items` for paging, search or sort. When every loaded row is selected the table offers "Select all N rows"; choosing it sets `SelectScope` to `"all"` (it follows the table, and goes back to `"page"` when the selection changes) and raises `OnSelectAll` with `Scope` (`page` or `all`) and `Count`. The ids of the other pages are not sent: on `all`, run your action from the query you already hold.
 
-### Show a searchable, server-paged list (`PkDataList`)
+### Show a searchable, server-paged table (`PkDataTable`)
 
-`PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time (a new search/sort/page size goes back to page 1, a superseded request is cancelled, `ReloadAsync()` reloads). Every parameter, paging a selection past SignalR's message-size limit, editing cells in place (`Editable`, `Editor`, `OnCellEdit`) and the routed list-and-record-page recipe (`PkRecordForm`, `references/record-form.md`, `references/record-editor.md`): `references/data-list.md`.
+`PkDataTable<TItem>` is a thin wrapper over the `pk-data-table` element, which owns search, sort, page, page size, the loading, empty and error states and the selection; the component calls your `Load` for one page at a time (a new search/sort/page size goes back to page 1, a superseded request has its `CancellationToken` cancelled, `ReloadAsync()` reloads). A column's `Cell` template renders into the element's `cell-<id>-<key>` slot; `OnRowClick` makes the rows keyboard stops. Every parameter, paging a selection past SignalR's message-size limit, and the routed list-and-record-page recipe (`PkRecordForm`, `references/record-form.md`, `references/record-editor.md`): `references/data-table.md`. `PkDataList` is the old name: an `[Obsolete]` alias for one release, so rename it (`CurrentId` is now `CurrentRow`).
 
-To select rows set `Selectable` and bind `@bind-Selected` (ids); the selection survives paging and search, and `LoadAllIds` (returns the ids of the whole searched list) turns select-all on a full page into "Select all N".
+To select rows set `Selectable` and bind `@bind-Selected` (ids); the selection survives paging and search. "Select all N rows" is the **query**, not a list of ids: `OnSelect` raises `Scope == "all"` and the query (`args.ToRequest()` gives the search and sort), and you run the bulk action against it on the server. `LoadAllIds` is gone.
 
 ```razor
-<PkDataList TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
-            SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentId="@_openId" />
+<PkDataTable TItem="Customer" @ref="_list" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
+             SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentRow="@_openId" />
 
 @code {
     private async Task<PkListResult<Customer>> LoadAsync(PkListRequest request)
@@ -175,7 +175,7 @@ To select rows set `Selectable` and bind `@bind-Selected` (ids); the selection s
         var items = await query.Skip(request.Skip).Take(request.PageSize).ToListAsync(request.CancellationToken);
         return new PkListResult<Customer>(items, await query.CountAsync(request.CancellationToken));
     }
-    // Columns are PkTableColumn<Customer> records (see references/data-list.md); Open and Add are your handlers.
+    // Columns are PkTableColumn<Customer> records (see references/data-table.md); Open and Add are your handlers.
 }
 ```
 

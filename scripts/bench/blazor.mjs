@@ -1,7 +1,7 @@
 // Blazor Server behaviour in a real browser, against the Playground (blazor/samples/PlainKit.Playground, its /bench and /datalist pages):
 //   table  - PkTable<T> with 100 / 1,000 / 5,000 rows: bytes the server sends over the SignalR WebSocket to draw it, time to the first row, the bytes of a
 //            server re-render that changes nothing, and what "select all" does (it sends the ids back: the default SignalR MaximumReceiveMessageSize is 32 KB).
-//   list   - PkDataList under fast typing: how many Load calls 12 keystrokes cause (the search box debounces in the element).
+//   list   - PkDataTable under fast typing: how many Load calls 12 keystrokes cause (the search box debounces in the element).
 //   node scripts/bench/blazor.mjs [--only=table|list] [--runs 3] [--json file]
 // It builds nothing: run `dotnet build blazor/samples/PlainKit.Playground -c Release` first (node scripts/bootstrap.mjs before that on a fresh clone).
 import fs from 'node:fs';
@@ -80,19 +80,19 @@ async function tableCase(pg, browser, { runs }) {
 async function listCase(pg, browser) {
     const page = await browser.newPage();
     await page.goto(`${pg.origin}/datalist`, { wait: 'dom' });
-    await until(page, `document.querySelector('#out-loads')?.textContent >= 1 && document.querySelector('pk-table')?.shadowRoot?.querySelectorAll('tbody tr').length > 0`);
+    await until(page, `document.querySelector('#out-loads')?.textContent >= 1 && document.querySelector('#people')?.shadowRoot?.querySelector('pk-table')?.shadowRoot?.querySelectorAll('tbody tr').length > 0`);
     await sleep(500);
     const before = Number(await page.eval(`document.querySelector('#out-loads').textContent`));
     const typed = 'gracealanedsg';
     // Real keystrokes 30 ms apart into the pk-input search box, then wait past the debounce.
-    await page.eval(`document.querySelector('#people').shadowRoot.querySelector('pk-input[type=search]')?.focus() ?? document.querySelector('pk-input[type=search]').focus()`);
+    await page.eval(`(function deep(r) { return r.querySelector('pk-input[type=search]') ?? [...r.querySelectorAll('*')].map(e => e.shadowRoot && deep(e.shadowRoot)).find(Boolean); })(document.querySelector('#people').shadowRoot)?.focus()`);
     for (const ch of typed) { await page.send('Input.dispatchKeyEvent', { type: 'keyDown', text: ch, key: ch }); await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key: ch }); await sleep(30); }
     await sleep(1500);
     const after = Number(await page.eval(`document.querySelector('#out-loads').textContent`));
     const cancelled = await page.eval(`document.querySelector('#out-cancelled').textContent`);
     const last = await page.eval(`document.querySelector('#out-request').textContent`);
     await page.close();
-    return [{ caption: 'PkDataList: fast typing (13 keystrokes, 30 ms apart, default 300 ms debounce)', rows: [{ keystrokes: typed.length, 'Load calls caused': after - before, cancelled, 'last request': last }], cols: ['keystrokes', 'Load calls caused', 'cancelled', 'last request'] }];
+    return [{ caption: 'PkDataTable: fast typing (13 keystrokes, 30 ms apart, default 300 ms debounce)', rows: [{ keystrokes: typed.length, 'Load calls caused': after - before, cancelled, 'last request': last }], cols: ['keystrokes', 'Load calls caused', 'cancelled', 'last request'] }];
 }
 
 // Caching and compression of what the package serves: response headers, and how many requests a WARM visit still makes (revalidations).

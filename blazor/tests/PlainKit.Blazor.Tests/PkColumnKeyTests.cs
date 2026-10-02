@@ -72,40 +72,4 @@ public sealed class PkColumnKeyTests : BunitContext, IAsyncLifetime
         await table.TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "2" });
         Assert.Equal("Grace", clicked!.Name);
     }
-
-    private IRenderedComponent<PkDataList<Person>> RenderList(List<PkListRequest> requests, Action<Person>? onClick = null) =>
-        Render<PkDataList<Person>>(p =>
-        {
-            p.Add(x => x.Columns, Columns).Add(x => x.IdOf, x => x.Id.ToString());
-            p.Add(x => x.Load, r => { requests.Add(r); return Task.FromResult(new PkListResult<Person>(People, People.Length)); });
-            if (onClick is not null) p.Add(x => x.OnRowClick, onClick);
-        });
-
-    [Fact]
-    public async Task DataList_shows_the_cells_and_reports_the_sort_key_as_given()
-    {
-        var requests = new List<PkListRequest>();
-        var cut = RenderList(requests);
-        AssertKeysAgree(cut.Find("pk-table"));
-
-        await cut.Find("pk-table").TriggerEventAsync("onpk-sort", new PkSortEventArgs { Key = "Role", Direction = "descending" });
-        Assert.Equal(("Role", true), (requests.Last().SortKey, requests.Last().Descending));
-        Assert.Equal("Role", cut.Find("pk-table").GetAttribute("sort"));
-
-        await cut.Find("pk-table").TriggerEventAsync("onpk-sort", new PkSortEventArgs { Key = "city", Direction = "ascending" });
-        Assert.Equal("city", requests.Last().SortKey);
-    }
-
-    [Fact]
-    public async Task DataList_first_column_with_a_PascalCase_key_shows_its_text_and_opens_the_row()
-    {
-        Person? opened = null;
-        var requests = new List<PkListRequest>();
-        var cut = RenderList(requests, x => opened = x);
-
-        // The first column (Key "Name", no Text) is wrapped in the identity link: its text is the property found in any casing.
-        Assert.Equal("Ada", cut.FindAll("pk-table > span[slot='cell-1-Name'] a").Single().TextContent);
-        await cut.Find("pk-table").TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "2" });
-        Assert.Equal("Grace", opened!.Name);
-    }
 }
