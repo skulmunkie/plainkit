@@ -101,6 +101,9 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
 }
 ```
 
+### Bind several values (tags, a multiple select)
+`PkTagInput` and `PkSelect` with `Multiple` bind a typed list: `<PkTagInput @bind-Values="_tags" />` with `IReadOnlyList<string>? _tags`. A value with a comma is safe (the element's comma-joined `Value` string escapes it; do not split it yourself). Inside an `EditForm` `@bind-Values` also names the field (`ValuesExpression`): it is marked modified on change and shows its validation messages. `Value` (the joined string) still works; bind one of the two. Parameters appear in the component's reference file as `Values`, `ValuesChanged`, `ValuesExpression`.
+
 ### Give a page a header with breadcrumbs
 `PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `BackLink` and `Sticky`: `references/components-navigation.md`. A "..." menu of secondary actions in a card header is `PkCardMenu` (an icon button over a `PkDropdown`, in the card's `ActionsContent`, with `PkMenuItem` children): `references/card-menu.md`.
 

@@ -15,12 +15,16 @@ public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
     private EditContext? _context;
     private FieldIdentifier _field;
     private Expression<Func<T>>? _expression;
+    private Expression<Func<IReadOnlyList<string>?>>? _values;
     private bool _hasField;
 
     [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
 
     /// <summary>The expression the generated component takes for the bound value.</summary>
     protected abstract Expression<Func<T>>? FieldExpression { get; }
+
+    /// <summary>The expression of a typed list binding (<c>ValuesExpression</c>), on a control whose mapping says <c>"multi"</c>; it names the field in place of <see cref="FieldExpression"/>.</summary>
+    protected virtual Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => null;
 
     /// <summary>True when the bound field has validation messages in the surrounding <c>EditContext</c>.</summary>
     protected bool FieldInvalid => _hasField && _context!.GetValidationMessages(_field).Any();
@@ -36,7 +40,8 @@ public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
     {
         base.OnParametersSet();
         var expression = FieldExpression;
-        if (ReferenceEquals(expression, _expression) && ReferenceEquals(CascadedEditContext, _context)) return;
+        var values = ValuesFieldExpression;
+        if (ReferenceEquals(expression, _expression) && ReferenceEquals(values, _values) && ReferenceEquals(CascadedEditContext, _context)) return;
         if (!ReferenceEquals(CascadedEditContext, _context))
         {
             if (_context is not null) _context.OnValidationStateChanged -= OnValidationStateChanged;
@@ -44,8 +49,9 @@ public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
             if (_context is not null) _context.OnValidationStateChanged += OnValidationStateChanged;
         }
         _expression = expression;
-        _hasField = _context is not null && expression is not null;
-        if (_hasField) _field = FieldIdentifier.Create(expression!);
+        _values = values;
+        _hasField = _context is not null && (values is not null || expression is not null);
+        if (_hasField) _field = values is not null ? FieldIdentifier.Create(values) : FieldIdentifier.Create(expression!);
     }
 
     private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);

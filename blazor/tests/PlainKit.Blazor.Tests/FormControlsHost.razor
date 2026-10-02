@@ -8,6 +8,9 @@
     <PkSelect id="size" @bind-Value="Model.Size" />
     <PkCheckbox id="agree" @bind-Checked="Model.Agree" />
     <PkCombobox id="sku" @bind-Value="Model.Sku" />
+    <PkSelect id="sizes" Multiple="true" @bind-Values="Model.Sizes" />
+    <PkTagInput id="tags" @bind-Values="Model.Tags" />
+    <ValidationMessage For="() => Model.Tags" />
 </EditForm>
 
 @code {
@@ -17,6 +20,8 @@
         public string? Size { get; set; }
         public bool Agree { get; set; }
         public string? Sku { get; set; }
+        public IReadOnlyList<string>? Sizes { get; set; }
+        [Required(ErrorMessage = "Add a tag")] public IReadOnlyList<string>? Tags { get; set; }
     }
 
     public Form Model { get; } = new();

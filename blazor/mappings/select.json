@@ -53,6 +53,7 @@
     "event": "pk-value-change",
     "key": "value",
     "type": "string",
-    "field": true
+    "field": true,
+    "multi": true
   }
 }
