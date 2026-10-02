@@ -24,7 +24,7 @@ test('no file under core/js/ imports from core/elements/<name>/', () => {
     const problems = [];
     for (const file of jsFiles(path.join(root, 'js'))) {
         const text = fs.readFileSync(file, 'utf8');
-        for (const m of text.matchAll(/from\s+['"]([^'"]*\/elements\/[^'"]*)['"]/g)) {
+        for (const m of text.matchAll(/from\s+['"]([^'"]*\/(?:elements|components|pages|shells)\/[^'"]*)['"]/g)) {
             problems.push(`${path.relative(root, file).replace(/\\/g, '/')}: imports '${m[1]}'`);
         }
     }

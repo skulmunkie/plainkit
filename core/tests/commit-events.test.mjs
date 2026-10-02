@@ -5,10 +5,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { elementFile } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const load = async name => (await import(`../elements/${name}/${name}.js`)).default;
+const load = async name => (await import(pathToFileURL(elementFile(name, 'js')).href)).default;
 const make = async (name, props = {}) => Object.assign(new ((await load(name))(Base))(), props);
 
 // A stand-in for PkElement: the props are plain fields, emit() records the event and answers what the host "decided".

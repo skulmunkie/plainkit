@@ -29,6 +29,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
@@ -41,7 +42,7 @@ const BASE_DIRS = [/^core\/(base|tokens|layouts)\//];
 
 /**
  * The element names a list of changed files touches, and whether a base file (tokens, base CSS) changed. Pure.
- * core/elements/<name>/ and blazor/mappings/<name>.json name one element; `known` (the registry's names) drops folders that are not elements.
+ * core/<tier folder>/<name>/ (elements, components, pages, shells) and blazor/mappings/<name>.json name one element; `known` (the registry's names) drops folders that are not elements.
  */
 export function changedFromFiles(files, known = null, ignore = () => false) {
     const names = new Set();
@@ -49,8 +50,8 @@ export function changedFromFiles(files, known = null, ignore = () => false) {
     for (const raw of files) {
         const f = raw.replace(/\\/g, '/');
         if (ignore(f)) continue;
-        const m = /^core\/elements\/([^/]+)\//.exec(f) ?? /^blazor\/mappings\/([^/]+)\.json$/.exec(f);
-        if (m && (!known || known.has(m[1]))) names.add(m[1]);
+        const name = elementOfPath(f)?.name ?? /^blazor\/mappings\/([^/]+)\.json$/.exec(f)?.[1];
+        if (name && (!known || known.has(name))) names.add(name);
         if (BASE_DIRS.some(r => r.test(f))) base = true;
     }
     return { names: [...names].sort(), base };
@@ -73,7 +74,7 @@ export function dependentsFromIndex(index) {
     const out = {};
     for (const [name, e] of Object.entries(index)) {
         const owners = new Set();
-        for (const f of [...e.files.elements, ...e.files.gallery]) { const m = /^core\/elements\/([^/]+)\//.exec(f); if (m && m[1] !== name) owners.add(m[1]); }
+        for (const f of [...e.files.elements, ...e.files.gallery]) { const o = elementOfPath(f)?.name; if (o && o !== name) owners.add(o); }
         out[name] = [...owners].sort();
     }
     return out;
@@ -293,7 +294,8 @@ async function main() {
         try { files = changedFiles(o.base); } catch (e) { console.error(e.message); return 2; }
         const mb = git(['merge-base', 'HEAD', o.base]).stdout.trim();
         const show = (ref, f) => { const r = git(['show', `${ref}:${f}`]); return r.status === 0 ? r.stdout : null; };
-        const ignore = f => /^core\/elements\/[^/]+\/[^/]+\.meta\.json$/.test(f) && !metaRenders(show(mb, f), fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null);
+        const isMeta = f => { const e = elementOfPath(f); return !!e && e.rest === `${e.name}.meta.json`; };
+        const ignore = f => isMeta(f) && !metaRenders(show(mb, f), fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null);
         const c = changedFromFiles(files, known, ignore);
         const { usageIndex } = await import(pathToFileURL(path.join(root, 'core', 'tools', 'usage-index.mjs')).href);
         reasons = selectElements(c.names, dependentsFromIndex(usageIndex(root).index), known, c.base && !o.skipBase);

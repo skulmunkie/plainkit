@@ -30,12 +30,13 @@ export const isDocsOnly = (file, { forNode = false } = {}) => {
     return false;
 };
 
-const BROWSER_PATHS = [/^core\/elements\//, /^core\/modules\//, /^core\/js\//, /^core\/tests\/browser\//, /^scripts\/attest-browser\.mjs$/, /^core\/tools\/serve\.mjs$/];
+const ELEMENT_DIR = /^core\/(elements|components|pages|shells)\//; // an element folder lives under its tier's folder (#767)
+const BROWSER_PATHS = [ELEMENT_DIR, /^core\/modules\//, /^core\/js\//, /^core\/tests\/browser\//, /^scripts\/attest-browser\.mjs$/, /^core\/tools\/serve\.mjs$/];
 const PACK_PATHS = [/^blazor\/src\/PlainKit\.Blazor\//, /^blazor\/mappings\//, /^Directory\.(Build|Packages)\.props$/, /^global\.json$/, /^core\/VERSION$/,
-    /^scripts\/(publish-dist|generate-blazor|check-package|verify)\.mjs$/, /^core\/(elements|js|modules|base|tokens)\//];
+    /^scripts\/(publish-dist|generate-blazor|check-package|verify)\.mjs$/, ELEMENT_DIR, /^core\/(js|modules|base|tokens)\//];
 // The UI review reviews the elements it can name: a folder under core/elements/ or a Blazor mapping. A token, base or layout file selects every element, so it
 // is a full sweep and runs on a pull request only when the label ui-review-full is set (UI_REVIEW_FULL=true); the nightly sweep covers the rest (issue #777).
-const UI_REVIEW_PATHS = [/^core\/elements\//, /^blazor\/mappings\//];
+const UI_REVIEW_PATHS = [ELEMENT_DIR, /^blazor\/mappings\//];
 const UI_REVIEW_BASE_PATHS = [/^core\/(base|tokens|layouts)\//];
 // Tests that only node runs.
 const NODE_ONLY_TESTS = [/^core\/tests\//, /^scripts\/tests\//];

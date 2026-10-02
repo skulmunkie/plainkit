@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { TIER_FOLDERS, existingTierFolders } from '../core/tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const core = path.join(root, 'core');
@@ -19,6 +20,8 @@ ensureGenerated(); // dist/ and the site's generated modules are not in git: boo
 // Folders and files the site loads at run time (source layout) plus dist. Test files beside a component or element are stripped here
 // (they are not part of what a page imports), but kept whole in FULL below: the code explorer browses the real source tree, tests included.
 const INCLUDE = ['index.html', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
+// elements/registry.js imports each element from its tier's folder (../components/<name>/<name>.element.js), so the tier folders that exist are served too (#767).
+INCLUDE.push(...TIER_FOLDERS.filter(f => f !== 'elements' && existingTierFolders(core).has(f)));
 const FULL = ['tests', 'tools', 'icons'];
 const SKIP_NAMES = new Set(['node_modules', '.git']);
 const skip = name => SKIP_NAMES.has(name) || /\.test\.mjs$/.test(name);

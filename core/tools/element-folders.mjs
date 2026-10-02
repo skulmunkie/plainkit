@@ -27,6 +27,12 @@ export function listElementFolders(coreDir = CORE) {
 /** The folder of one element by name ({ name, dir, folder }), or undefined. */
 export const findElementFolder = (name, coreDir = CORE) => listElementFolders(coreDir).find(e => e.name === name);
 
+/** { folder, name, rest } for a repo-relative path inside an element folder (`core/<tier folder>/<name>/<rest>`), else null (`core/elements/registry.js` has no folder). */
+export function elementOfPath(relPath) {
+    const m = new RegExp(`^core/(${TIER_FOLDERS.join('|')})/([^/]+)/(.+)$`).exec(relPath.replace(/\\/g, '/'));
+    return m ? { folder: m[1], name: m[2], rest: m[3] } : null;
+}
+
 /** The absolute path of a file of an element (`name.ext` by default) wherever its folder is. */
 export function elementFile(name, ext, coreDir = CORE) {
     const e = findElementFolder(name, coreDir);

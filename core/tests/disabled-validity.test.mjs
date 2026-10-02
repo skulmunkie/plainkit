@@ -3,9 +3,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { elementFile } from '../tools/element-folders.mjs';
 
-const read = f => fs.readFileSync(fileURLToPath(new URL(`../elements/${f}.js`, import.meta.url)), 'utf8');
+const read = f => fs.readFileSync(elementFile(path.basename(f), 'js'), 'utf8'); // f = '<name>/<name>'
 
 for (const f of ['input/input', 'textarea/textarea', 'select/select', 'unit-input/unit-input', 'checkbox/checkbox']) {
     test(`${f} reports no validity flags while its inner control is barred from validation`, () => {
