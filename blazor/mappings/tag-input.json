@@ -56,6 +56,7 @@
     "prop": "value",
     "event": "pk-tags-change",
     "key": "value",
-    "type": "string"
+    "type": "string",
+    "field": true
   }
 }

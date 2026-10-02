@@ -56,6 +56,7 @@
     "prop": "value",
     "event": "pk-range",
     "key": "value",
-    "type": "number"
+    "type": "number",
+    "field": true
   }
 }

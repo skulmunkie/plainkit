@@ -146,6 +146,7 @@
     "prop": "value",
     "event": "pk-value-change",
     "key": "value",
-    "type": "string"
+    "type": "string",
+    "field": true
   }
 }

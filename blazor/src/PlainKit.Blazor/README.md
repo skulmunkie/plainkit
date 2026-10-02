@@ -25,7 +25,7 @@ Every element has a component, named `Pk` plus the tag in PascalCase, so `pk-ale
 | a prop | a `[Parameter]` sent as an attribute: `bool` is present or absent, numbers use the invariant culture, dates are ISO strings, structures are JSON. A prop with a fixed set of values is an enum (`ButtonVariant`, `PkAlertKind`, ...); a null enum or a nullable number is left off, so the element's own default applies |
 | a slot | a `RenderFragment` (`ChildContent` for the default slot; a named slot is rendered as `<span slot="name">`). Body markup next to a named slot needs an explicit `<ChildContent>`, see below |
 | an event | an `EventCallback`, or `EventCallback<PkXxxEventArgs>` when the event carries a detail (`pk-value-change` gives `PkValueChangeEventArgs`); `click` gives `MouseEventArgs` |
-| a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, `@bind-Open` (a `...Changed` callback next to it) |
+| a value that a change event drives | a two-way parameter: `@bind-Value`, `@bind-Checked`, `@bind-IsOpen`, `@bind-Open` (a `...Changed` and a `...Expression` parameter next to it; inside an `EditForm` the field is marked modified and shows validation state) |
 
 **Body next to a named slot.** As soon as you use a named slot such as `FooterContent`, Razor no longer treats the rest of the markup as `ChildContent`: write it inside an explicit `<ChildContent>` element (without it the compiler stops with RZ9996, "Unrecognized child content inside component"):
 

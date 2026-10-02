@@ -46,6 +46,7 @@
     "prop": "value",
     "event": "pk-otp-change",
     "key": "value",
-    "type": "string"
+    "type": "string",
+    "field": true
   }
 }
