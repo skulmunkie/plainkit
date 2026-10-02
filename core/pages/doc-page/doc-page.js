@@ -36,7 +36,7 @@ export default Base => class extends Base {
     changed(name) { if (this.$w && name === 'config') this.$pending = this.paint(); }
 
     // Every light-DOM child this element shows is one it creates and owns itself (never a host-given node), slotted into its own shadow
-    // template - like pk-states-page (core/elements/states-page/states-page.js): the SDK's on-demand loader watches only the document's light
+    // template - like pk-states-page (core/pages/states-page/states-page.js): the SDK's on-demand loader watches only the document's light
     // DOM for pk-* tags (js/loader.js), so anything a page type needs findable from outside (pk-toc's `for`, which uses document.querySelector
     // and cannot see into any shadow root) has to live there too. See core/STANDARDS.md, "Ownership and reactivity" rule 3.
     buildShell() {
