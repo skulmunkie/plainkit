@@ -1,6 +1,7 @@
 // pk-combobox behaviour (see meta.json for the API).
 import { place, autoUpdate } from '../../js/positioning.js';
 import { nextIndex, typeaheadIndex } from '../../js/menu-logic.js';
+import { highlightRow } from '../../js/listbox.js';
 export function filterOptions(labels, query) {
     const q = String(query ?? '').trim().toLowerCase();
     return labels.map(l => q === '' || l.toLowerCase().includes(q));
@@ -30,10 +31,7 @@ export default Base => class extends Base {
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
     ctl() { return this.mode === 'select' ? this.part('trigger') : this.part('control'); }
     chosen() { return this.ops().find(o => o.dataset.value === this.value && this.value !== ''); }
-    highlight(op) {
-        for (const o of this.ops()) o.classList.toggle('hl', o === op);
-        if (op) { this.ctl().setAttribute('aria-activedescendant', op.id); op.scrollIntoView?.({ block: 'nearest' }); } else this.ctl().removeAttribute('aria-activedescendant');
-    }
+    highlight(op) { highlightRow(this.ops(), op, this.ctl(), 'hl'); }
     // The one way the element opens or closes itself: it says so, so a host that mirrors `open` hears it.
     setOpen(open) { if (this.open !== open) this.emit('pk-combo-toggle', { open: this.open = open }, { cancelable: false }); }
     show() { this.$query = ''; this.setOpen(true); this.filter(); const c = this.chosen(); this.highlight(c?.hidden ? null : c); }
