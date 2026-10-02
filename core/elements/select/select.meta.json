@@ -78,7 +78,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Allows several selections (value is comma-separated; the form submits one entry each)."
+      "description": "Allows several selections (value is comma-separated with a comma inside an option value written as a backslash and a comma, a backslash before a comma or backslash doubled; the form submits one entry each)."
     },
     {
       "name": "options",

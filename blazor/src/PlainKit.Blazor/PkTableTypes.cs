@@ -169,6 +169,18 @@ internal static class PkTableRows
         return node;
     }
 
+    /// <summary>Turns the runs of a compacted selection back into ids of the rows last sent. False when the element's rows are not those rows (the parameters changed after it raised the event): the event is dropped and the next one carries the selection.</summary>
+    internal static bool TryExpand(PkTableSelectEventArgs e, IReadOnlyList<string> ids)
+    {
+        var n = ids.Count;
+        if (e.RowCount != n || n == 0 || e.FirstId != ids[0] || e.LastId != ids[n - 1] || e.Ranges!.Length % 2 != 0) return false;
+        var selected = new List<string>();
+        for (var r = 0; r < e.Ranges.Length; r += 2)
+            for (var i = Math.Max(0, e.Ranges[r]); i <= Math.Min(n - 1, e.Ranges[r + 1]); i++) selected.Add(ids[i]);
+        e.Selected = selected.ToArray();
+        return true;
+    }
+
     /// <summary>The property of a serialized item that a column key names, ignoring case; null when there is none.</summary>
     internal static JsonNode? Find(JsonObject node, string key)
     {

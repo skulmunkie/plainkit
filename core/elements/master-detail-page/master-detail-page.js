@@ -34,7 +34,7 @@ export default Base => class extends Base {
     }
     // Back to the list: the row just left gets focus (the detail's own controls are gone on a phone), else the table.
     focusRow(id) {
-        const table = this.part('list').part?.('table');
+        const table = this.part('list').part?.('table')?.part?.('table');
         const row = table?.shadowRoot?.querySelector(`tbody tr[data-pk-context="${id.replace(/["\\]/g, '\\$&')}"]`);
         (row ?? table)?.focus?.();
     }

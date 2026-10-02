@@ -1,0 +1,241 @@
+@namespace PlainKit.Blazor
+@typeparam TItem
+@inherits PkElementBase
+@implements IDisposable
+
+@* Hand-written (blazor/mappings/data-table.json marks it "existing"): a typed wrapper over pk-data-table, which owns the query, the load, the
+   states, the paging and the selection (issue 801). This component only turns .NET into what the element takes: the columns and the options into
+   its config, Load into the element's load(query) callback (PkCallbackSlot, as PkListPage), the loaded items into rows and cell slots, and the
+   element's events back into callbacks. The element never sends the ids of a whole query: a selection of scope "all" is the query. *@
+<pk-data-table data-pk-ranges
+               config="@_config"
+               @ref="Element"
+               selectable="@Selectable"
+               selected="@PkAttr.Json(Selected)"
+               select-scope="@SelectScope"
+               clickable="@OnRowClick.HasDelegate"
+               current-row="@CurrentRow"
+               cards="@Cards"
+               striped="@Striped"
+               density="@(Density?.ToAttr())"
+               max-height="@MaxHeight"
+               sticky-header="@StickyHeader"
+               class="@Css()"
+               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null || !string.IsNullOrEmpty(AddLabel)) {<span slot="actions" class="u-contents">@ToolbarContent@if (!string.IsNullOrEmpty(AddLabel)) {<PkButton Variant="ButtonVariant.Primary" OnClick="OnAdd">@AddLabel</PkButton>}</span>}@foreach (var row in _rows)
+{
+    @foreach (var column in Columns.Where(c => c.Cell is not null))
+    {
+        <span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>
+    }
+}</pk-data-table>
+
+@code {
+    private sealed record Row(string Id, TItem Item);
+
+    [Inject] private PkRuntime Runtime { get; set; } = default!;
+
+    private readonly PkCallbackSlot _load = new("load");
+    private string _config = "{}";
+    private List<Row> _rows = [];
+    private int _sequence;
+
+    /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called for the first page, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that a newer one replaces has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
+    [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
+
+    /// <summary>The columns. A column <c>Cell</c> template fills the element's <c>cell-&lt;rowId&gt;-&lt;key&gt;</c> slot of each loaded row.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PkTableColumn<TItem>> Columns { get; set; } = [];
+
+    /// <summary>The id of an item: names the row for click, current-row, selection and the cell slots. Ids must not contain a double quote.</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> IdOf { get; set; } = default!;
+
+    /// <summary>The page size to start with (initial only; the user changes it in the pager). Default 25.</summary>
+    [Parameter] public int PageSize { get; set; } = 25;
+
+    /// <summary>The page sizes the pager offers. Default 10, 25, 50, 100; an empty array hides the choice.</summary>
+    [Parameter] public int[]? PageSizeOptions { get; set; } = [10, 25, 50, 100];
+
+    /// <summary>The key of the column to sort by first (initial only). Null loads the default order.</summary>
+    [Parameter] public string? SortKey { get; set; }
+
+    /// <summary>Sort <see cref="SortKey"/> descending first (initial only).</summary>
+    [Parameter] public bool Descending { get; set; }
+
+    /// <summary>Show the search box. Default true.</summary>
+    [Parameter] public bool Searchable { get; set; } = true;
+
+    /// <summary>The placeholder of the search box.</summary>
+    [Parameter] public string? SearchPlaceholder { get; set; }
+
+    /// <summary>The accessible name of the search box; defaults to the placeholder, then "Search".</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    /// <summary>Milliseconds to wait after the last keystroke before searching (the element's own timer). Default 300.</summary>
+    [Parameter] public int SearchDebounceMs { get; set; } = 300;
+
+    /// <summary>The text shown when the list is empty and there is no search.</summary>
+    [Parameter] public string EmptyText { get; set; } = "Nothing to show.";
+
+    /// <summary>The text shown when a search matched nothing.</summary>
+    [Parameter] public string NoResultsText { get; set; } = "Nothing matches your search.";
+
+    /// <summary>Your own empty state (for example a <c>PkEmptyState</c>), shown instead of the text when the list is empty and there is no search.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>The heading of the failed-load message. The element shows it with a Retry button when <c>Load</c> throws.</summary>
+    [Parameter] public string LoadErrorText { get; set; } = "The list could not be loaded.";
+
+    /// <summary>Raised when <c>Load</c> throws (not for a cancelled request), so you can log it.</summary>
+    [Parameter] public EventCallback<Exception> OnLoadError { get; set; }
+
+    /// <summary>The label of the primary action button after the search box (for example "+ Add customer"). Empty shows no button.</summary>
+    [Parameter] public string? AddLabel { get; set; }
+
+    /// <summary>The primary action button was pressed.</summary>
+    [Parameter] public EventCallback OnAdd { get; set; }
+
+    /// <summary>A row was activated (a click, or Enter or Space on the focused row): the item of that row. Setting it makes the rows clickable.</summary>
+    [Parameter] public EventCallback<TItem> OnRowClick { get; set; }
+
+    /// <summary>The id (<see cref="IdOf"/>) of the row whose record is open in a detail pane: it is tinted and marked <c>aria-current</c>. Set it from the route; the list never changes it.</summary>
+    [Parameter] public string? CurrentRow { get; set; }
+
+    /// <summary>A checkbox column with select-all for the page, and "Select all N rows" when the searched list has more. The selection is kept by id across pages and searches (see <see cref="Selected"/>).</summary>
+    [Parameter] public bool Selectable { get; set; }
+
+    /// <summary>The ids (<see cref="IdOf"/>) of the selected rows, across every page and search the user visited (two-way: <c>@bind-Selected</c>). The order carries no meaning. After "Select all N rows" (<see cref="SelectScope"/> <c>all</c>) it holds only the loaded page: the rest is the query.</summary>
+    [Parameter] public IReadOnlyList<string>? Selected { get; set; }
+
+    /// <summary>Raised with the new value of <see cref="Selected"/> (two-way).</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>?> SelectedChanged { get; set; }
+
+    /// <summary><c>page</c> or <c>all</c>: <c>all</c> after the user chose "Select all N rows", when every row of the query counts as selected. It follows the element and goes back to <c>page</c> when the selection changes.</summary>
+    [Parameter] public string? SelectScope { get; set; }
+
+    /// <summary>The selection changed: <c>Selected</c> holds the ids (every selected id across pages, or the loaded page for scope <c>all</c>), <c>Scope</c> is <c>page</c> or <c>all</c> and <c>Query</c> the search and sort it refers to (read it with <see cref="PkSelectQuery.ToRequest"/>). For scope <c>all</c> run the bulk action against that query on the server: the ids of the other pages are never sent.</summary>
+    [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
+
+    /// <summary>Actions shown while rows are selected (the element's <c>bulk</c> slot).</summary>
+    [Parameter] public RenderFragment? BulkContent { get; set; }
+
+    /// <summary>Extra toolbar content, after the search box and before the add button (the element's <c>actions</c> slot).</summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    /// <summary>Each row becomes a card below 640px, columns marked <c>HidePhone</c> dropped. Default true.</summary>
+    [Parameter] public bool Cards { get; set; } = true;
+
+    /// <summary>Alternate row tint.</summary>
+    [Parameter] public bool Striped { get; set; }
+
+    /// <summary>The cell padding step; null leaves the element's default.</summary>
+    [Parameter] public PkTableDensity? Density { get; set; }
+
+    /// <summary>Bounds the table's height (a CSS length); with <see cref="StickyHeader"/> the header stays while the rows scroll.</summary>
+    [Parameter] public string? MaxHeight { get; set; }
+
+    /// <summary>Pin the header row (needs <see cref="MaxHeight"/>).</summary>
+    [Parameter] public bool StickyHeader { get; set; }
+
+    /// <summary>The accessible name of the table. Default "List"; give each list its own.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The accessible name of the pager. Default "List pages".</summary>
+    [Parameter] public string? PagerLabel { get; set; }
+
+    /// <summary>The table caption, as text.</summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>Loads the current page again (search, sort and page stay), for example after the host saved something.</summary>
+    public async Task ReloadAsync() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("refresh", Element);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // The element compares the config text, so a parameter set that changes nothing costs it nothing.
+        _config = PkAttr.Json(new
+        {
+            columns = Columns.Select(c => c.ToColumn()),
+            pageSize = PageSize,
+            pageSizeOptions = PageSizeOptions,
+            sort = SortKey,
+            sortDir = Descending ? "descending" : "ascending",
+            searchable = Searchable,
+            searchLabel = SearchLabel ?? SearchPlaceholder ?? "Search",
+            searchDebounce = SearchDebounceMs,
+            pagerLabel = PagerLabel ?? "List pages",
+            label = Label ?? "List",
+            caption = Caption,
+            empty = new { heading = EmptyText },
+            noResults = new { heading = NoResultsText },
+            loadError = LoadErrorText,
+        })!;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        // The callback runs the current Load, so a new delegate needs no new setup; only set versus unset matters.
+        await _load.SyncAsync<PkListPageQuery>(await Runtime.BridgeAsync(Assets), Element, Load is not null, LoadPageAsync, refresh: true);
+    }
+
+    /// <inheritdoc />
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
+    {
+        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);
+        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);
+    }
+
+    // The element asks for one page at a time and drops the answer of a request a newer one replaced. The element's abort signal for the older one (and Dispose)
+    // cancels its token (PkCallbackSlot), and a superseded answer is not drawn: its cell slots would show stale rows.
+    private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)
+    {
+        var sequence = ++_sequence;
+        PkListResult<TItem> result;
+        try
+        {
+            result = await Load(query.ToRequest() with { CancellationToken = cancel });
+        }
+        catch (Exception ex) when (!cancel.IsCancellationRequested)
+        {
+            await InvokeAsync(() => OnLoadError.InvokeAsync(ex));
+            throw; // the rejection is the element's error state with Retry
+        }
+        if (sequence != _sequence) return new { rows = Array.Empty<object>(), total = 0 };
+        var rows = new System.Text.Json.Nodes.JsonArray();
+        var shown = new List<Row>(result.Items.Count);
+        foreach (var item in result.Items)
+        {
+            var id = IdOf(item);
+            var node = PkTableRows.Serialize(item, Columns);
+            node["id"] = id;
+            rows.Add(node);
+            shown.Add(new Row(id, item));
+        }
+        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });
+        return new { rows, total = result.Total };
+    }
+
+    private async Task HandleSelectAsync(PkTableSelectEventArgs e)
+    {
+        // A selection of 64 rows or more arrives as runs of row indexes into the page the element shows: back to ids.
+        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _rows.Select(r => r.Id).ToList())) return;
+        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots
+        Selected = e.Selected;
+        SelectScope = e.Scope ?? "page";
+        await SelectedChanged.InvokeAsync(Selected);
+        await OnSelect.InvokeAsync(e);
+    }
+
+    private async Task HandleRowClickAsync(PkRowClickEventArgs e)
+    {
+        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowClick.InvokeAsync(row.Item);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _sequence++;
+        _load.Dispose();
+    }
+}

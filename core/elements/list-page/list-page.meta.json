@@ -4,7 +4,7 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "list",
-  "summary": "A filterable, sortable, paginated list of records: a pk-table (manual - the host owns sorting, filtering and paging), a pk-table-filters search/filter panel, optional toolbar actions and a pk-pagination footer. Set the load(query) callback as a property (business logic, never config data) - it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page; a rejection shows the built-in error state with Retry, and zero rows show the configured empty state. rowHref(row), also a callback property, makes rows clickable and is called instead of the element navigating itself, so the host wires it through its own router.",
+  "summary": "A filterable, sortable, paginated list of records: a pk-data-table (the one implementation of the query, load and states: a manual pk-table, a pk-table-filters search/filter panel and a pk-pagination footer) under an optional title bar, with optional toolbar actions. Set the load(query) callback as a property (business logic, never config data) - it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page; a rejection shows the built-in error state with Retry, and zero rows show the configured empty state. rowHref(row), also a callback property, makes rows clickable and is called instead of the element navigating itself, so the host wires it through its own router.",
   "props": [
     {
       "name": "config",
@@ -18,11 +18,8 @@
   "events": [],
   "parts": [
     { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
-    { "name": "table", "description": "The pk-table, in manual mode." },
-    { "name": "filters", "description": "The pk-table-filters search/filter panel, in the table's toolbar." },
-    { "name": "actions", "description": "Holds one button per config.actions entry, at the end of the toolbar." },
-    { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
-    { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
+    { "name": "table", "description": "The pk-data-table, which owns the query, the load, the states, the search/filter panel and the pager (its own parts: table, filters, pagination, state; part('filters'), part('pagination') and part('state') on this page reach them)." },
+    { "name": "actions", "description": "Holds one button per config.actions entry, in the data table's actions slot at the end of the toolbar." }
   ],
   "cssProperties": [],
   "a11y": "Every filter field is a labelled real control (pk-input/pk-select, showLabel on); the table, search box and pagination keep their own roles, names and announcements; the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",

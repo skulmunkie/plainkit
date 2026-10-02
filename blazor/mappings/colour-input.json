@@ -36,6 +36,7 @@
     "prop": "value",
     "event": "pk-colour",
     "key": "value",
-    "type": "string"
+    "type": "string",
+    "field": true
   }
 }

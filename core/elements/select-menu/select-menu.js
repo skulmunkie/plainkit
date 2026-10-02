@@ -1,5 +1,6 @@
 import { place, autoUpdate, onOutside, unplace } from '../../js/positioning.js';
 import { nextIndex, typeaheadIndex, typeaheadBuffer } from '../../js/menu-logic.js';
+import { highlightRow } from '../../js/listbox.js';
 
 // pk-select-menu: a single-choice listbox that reads its native <option> children; form-associated.
 const ids = { n: 0 };
@@ -57,9 +58,8 @@ export default Base => class extends Base {
     close(reason) { if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') this.part('trigger').focus({ preventScroll: true }); } }
     active(i) {
         this.$a = i;
-        for (const o of this.part('list').children) o.toggleAttribute('data-active', Number(o.dataset.i) === i);
-        const el = this.part('list').children[i];
-        if (el) { this.part('trigger').setAttribute('aria-activedescendant', el.id); el.scrollIntoView({ block: 'nearest' }); }
+        const rows = [...this.part('list').children];
+        highlightRow(rows, rows[i], this.part('trigger'), 'data-active');
     }
     choose(o) {
         if (!o || o.disabled) return;

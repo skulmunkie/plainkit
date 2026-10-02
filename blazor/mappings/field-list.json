@@ -1,6 +1,5 @@
 {
   "component": "PkFieldList",
-  "existing": true,
   "params": [
     {
       "name": "Title",

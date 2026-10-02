@@ -102,7 +102,18 @@ export async function mountToolDock(container, options, panelHosts) {
 // A callback property of a page element (pk-tool-page run, pk-settings-page save, pk-list-page load): config is data, so a callback is set from script. host is a DotNetObjectReference
 // of PkCallbackHost<TArg>; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it. refresh: an element
 // that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.
-export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = arg => host.invokeMethodAsync('Invoke', arg); if (refresh) el.refresh?.(); } else delete el[name]; };
+// A call the element can abort (load(query, { signal })) gets an id; its abort signal calls the host's Cancel(id), which cancels the CancellationToken of that call.
+let callIds = 0;
+const abortable = async (host, arg, signal) => {
+    if (!signal) return host.invokeMethodAsync('Invoke', arg);
+    const id = ++callIds, cancel = () => host.invokeMethodAsync('Cancel', id);
+    signal.addEventListener('abort', cancel, { once: true });
+    try { return await host.invokeMethodAsync('Invoke', arg, id); } finally { signal.removeEventListener('abort', cancel); }
+};
+export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = (arg, opts) => abortable(host, arg, opts?.signal); if (refresh) el.refresh?.(); } else delete el[name]; };
+
+// Runs an element's load again (PkDataTable.ReloadAsync).
+export const refresh = el => el.refresh?.();
 
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();

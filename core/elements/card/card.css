@@ -6,7 +6,8 @@
 :host([flush]) [part="content"] { padding: 0; }
 [part="header"] { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--color-border); }
 :host([flush]) [part="header"] { margin-bottom: 0; padding: var(--pk-card-padding, var(--space-4) 1.25rem); padding-block-end: 0.6rem; }
-[part="title"] { font-size: var(--text-lg, 1.15rem); font-weight: 600; }
+/* The heading takes the row and wraps inside it (a zero basis never wraps onto a row of its own), so header actions stay beside it at the inline end. */
+[part="title"] { flex: 1 1 0; min-inline-size: 0; overflow-wrap: anywhere; font-size: var(--text-lg, 1.15rem); font-weight: 600; }
 [part="footer"] { margin-top: var(--space-4); }
 :host([orientation="horizontal"]) [part="card"] { flex-direction: row; }
 :host([orientation="horizontal"]) [part="media"] { flex: 0 0 var(--pk-card-media-width, 40%); }

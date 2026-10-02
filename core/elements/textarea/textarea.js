@@ -23,7 +23,7 @@ export default Base => class extends Base {
         this.$typing = false;
         if (this.maxHeight > 0) this.style.setProperty('--pk-textarea-max-height', `${this.maxHeight}px`); else this.style.removeProperty('--pk-textarea-max-height');
         this.fit();
-        this.setValidity(flagsOf(t.validity), t.validationMessage, t);
+        this.setValidity(t.willValidate ? flagsOf(t.validity) : {}, t.validationMessage, t);
         this.setFormValue(this.value);
     }
     onReset() { this.value = this.$initial ?? ''; }

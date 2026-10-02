@@ -1,23 +1,11 @@
 // pk-combobox behaviour (see meta.json for the API).
 import { place, autoUpdate } from '../../js/positioning.js';
+import { nextIndex, typeaheadIndex } from '../../js/menu-logic.js';
+import { highlightRow } from '../../js/listbox.js';
 export function filterOptions(labels, query) {
     const q = String(query ?? '').trim().toLowerCase();
     return labels.map(l => q === '' || l.toLowerCase().includes(q));
 }
-export function nextIndex(current, count, key) {
-    if (count === 0) return -1;
-    if (key === 'Home') return 0;
-    if (key === 'End') return count - 1;
-    if (key === 'ArrowDown') return current < 0 ? 0 : (current + 1) % count;
-    if (key === 'ArrowUp') return current < 0 ? count - 1 : (current - 1 + count) % count;
-    return current;
-}
-export function typeaheadIndex(labels, buffer, from = -1) {
-    const b = buffer.toLowerCase(); const len = labels.length;
-    for (let n = 1; n <= len; n++) { const i = (((from + n) % len) + len) % len; if (labels[i].toLowerCase().startsWith(b)) return i; }
-    return -1;
-}
-
 export default Base => class extends Base {
     connected() {
         if (this.$init) return;
@@ -43,10 +31,7 @@ export default Base => class extends Base {
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
     ctl() { return this.mode === 'select' ? this.part('trigger') : this.part('control'); }
     chosen() { return this.ops().find(o => o.dataset.value === this.value && this.value !== ''); }
-    highlight(op) {
-        for (const o of this.ops()) o.classList.toggle('hl', o === op);
-        if (op) { this.ctl().setAttribute('aria-activedescendant', op.id); op.scrollIntoView?.({ block: 'nearest' }); } else this.ctl().removeAttribute('aria-activedescendant');
-    }
+    highlight(op) { highlightRow(this.ops(), op, this.ctl(), 'hl'); }
     // The one way the element opens or closes itself: it says so, so a host that mirrors `open` hears it.
     setOpen(open) { if (this.open !== open) this.emit('pk-combo-toggle', { open: this.open = open }, { cancelable: false }); }
     show() { this.$query = ''; this.setOpen(true); this.filter(); const c = this.chosen(); this.highlight(c?.hidden ? null : c); }
@@ -89,7 +74,7 @@ export default Base => class extends Base {
             const t = this.$type, now = Date.now(), buffer =now - t.at < 700 ? t.text + k : k;
             this.$type = { text: buffer, at: now };
             const cur = at >= 0 ? at : items.indexOf(this.chosen());
-            const i = typeaheadIndex(items.map(o => o.textContent), buffer, buffer.length > 1 ? cur - 1 : cur);
+            const i = typeaheadIndex(items.map(o => o.textContent), cur, buffer);
             if (i < 0) return;
             if (this.open) this.highlight(items[i]); else this.pick(items[i]);
         }

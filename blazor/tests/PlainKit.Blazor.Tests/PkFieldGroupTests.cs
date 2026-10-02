@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataList).
+// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataTable).
 public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -302,5 +302,62 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal("A", first.GetAttribute("label"));
         Assert.Contains("flag", cut.FindAll("pk-field")[1].QuerySelector("[slot=label-action]")!.TextContent);
         Assert.Empty(cut.FindAll("pk-field")[2].QuerySelectorAll("[slot=label-action]"));
+    }
+
+    // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback, and Free text.
+    private sealed class Pick { public string Sku { get; set; } = ""; }
+
+    [Fact]
+    public async Task A_combobox_field_renders_a_pk_combobox_with_its_static_options_and_commits_a_pick()
+    {
+        var pick = new Pick();
+        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, pick).Add(x => x.Fields, [
+            new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Free = true, Placeholder = "Find a SKU", Options = [new("a1", "Alpha"), new("b2", "Beta")], Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
+
+        var combo = cut.Find("pk-field pk-combobox");
+        Assert.Equal("sku", combo.GetAttribute("name"));
+        Assert.True(combo.HasAttribute("free"));
+        Assert.Equal("Find a SKU", combo.GetAttribute("placeholder"));
+        Assert.Equal(["Alpha", "Beta"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray());
+
+        await combo.TriggerEventAsync("onpk-combo-select", new PkComboSelectEventArgs { Value = "b2" });
+        Assert.Equal("b2", pick.Sku);
+    }
+
+    [Fact]
+    public async Task A_Search_callback_answers_the_query_and_its_options_replace_the_static_ones_without_the_element_filtering_them()
+    {
+        var pick = new Pick();
+        var queries = new List<string>();
+        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, pick).Add(x => x.Fields, [
+            new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Options = [new("seed", "Seed")],
+                Search = q => { queries.Add(q); return Task.FromResult<IReadOnlyList<PkFieldOption>>([new("a1", "Alpha " + q), new("a2", "Abacus " + q)]); },
+                Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
+
+        var combo = cut.Find("pk-combobox");
+        Assert.Equal("off", combo.GetAttribute("filtering"));
+        await combo.TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "ab" });
+
+        Assert.Equal(["ab"], queries);
+        cut.WaitForAssertion(() => Assert.Equal(["Alpha ab", "Abacus ab"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray()));
+    }
+
+    [Fact]
+    public async Task A_slower_answer_to_an_older_query_is_dropped()
+    {
+        var pending = new List<(string Query, TaskCompletionSource<IReadOnlyList<PkFieldOption>> Done)>();
+        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, new Pick()).Add(x => x.Fields, [
+            new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox,
+                Search = q => { var t = new TaskCompletionSource<IReadOnlyList<PkFieldOption>>(); pending.Add((q, t)); return t.Task; },
+                Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
+
+        // The handler waits for the answer, so the events are not awaited until the answers are in.
+        var first = cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "a" });
+        var second = cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "ab" });
+        pending[1].Done.SetResult([new("n", "New")]);
+        pending[0].Done.SetResult([new("o", "Old")]);
+        await Task.WhenAll(first, second);
+
+        cut.WaitForAssertion(() => Assert.Equal(["New"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray()));
     }
 }

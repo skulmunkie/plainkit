@@ -1,27 +1,31 @@
 @page "/datalist"
 
-@* A searchable, sortable, server-paged list (PkDataList) over an in-memory "database" with a short delay, plus a RAW <pk-table> whose
+@* A searchable, sortable, server-paged list (PkDataTable) over an in-memory "database" with a short delay, plus a RAW <pk-table> whose
    @onpk-sort and @onpk-row-click reach C# (issue #49: no JavaScript workaround). Each result is shown in an element with an id so a script can
    check it. *@
 <div style="padding:1rem;display:grid;gap:1.5rem;max-width:56rem">
     <h1>Data list</h1>
 
-    <PkDataList TItem="Person"
-                Load="LoadAsync"
-                Columns="_columns"
-                IdOf="p => p.Id.ToString()"
-                Label="People"
-                PagerLabel="People pages"
-                SearchPlaceholder="Search people"
-                EmptyText="No people yet."
-                AddLabel="+ Add person"
-                OnAdd="Add"
-                OnRowClick="Open"
-                CurrentId="@_current?.Id.ToString()"
-                PageSize="10"
-                id="people"
-                @ref="_list" />
+    <PkDataTable TItem="Person"
+                 Load="LoadAsync"
+                 Columns="_columns"
+                 IdOf="p => p.Id.ToString()"
+                 Label="People"
+                 PagerLabel="People pages"
+                 SearchPlaceholder="Search people"
+                 EmptyText="No people yet."
+                 AddLabel="+ Add person"
+                 OnAdd="Add"
+                 OnRowClick="Open"
+                 CurrentRow="@_current?.Id.ToString()"
+                 PageSize="10"
+                 Selectable="true"
+                 @bind-Selected="_selected"
+                 OnSelect="Picked"
+                 id="people"
+                 @ref="_list" />
     <p>Loads: <code id="out-loads">@_loads</code>, cancelled: <code id="out-cancelled">@_cancelled</code>, last request: <code id="out-request">@_last</code></p>
+    <p>Selected: <code id="out-selected">@(_selected?.Count ?? 0)</code>, scope: <code id="out-scope">@_scope</code> (for scope all the bulk action runs against the query: <code id="out-select-query">@_selectQuery</code>)</p>
     <p>Opened: <code id="out-open">@(_current?.Name ?? "-")</code> | Added clicks: <code id="out-added">@_adds</code></p>
     <PkButton OnClick="Remove">Delete the last 60 (then reload)</PkButton>
 
@@ -41,10 +45,11 @@
     private static readonly string[] Cities = ["London", "Leeds", "Oslo", "Lima", "Paris", "Turin"];
     private readonly List<Person> _all = Enumerable.Range(1, 87).Select(i => new Person(i, $"{Names[i % Names.Length]} {i:00}", Cities[i % Cities.Length], i % 3 == 0 ? "Away" : "Active")).ToList();
 
-    private PkDataList<Person>? _list;
+    private PkDataTable<Person>? _list;
     private Person? _current;
+    private IReadOnlyList<string>? _selected;
     private int _loads, _cancelled, _adds;
-    private string _last = "-", _rawSort = "-", _rawRow = "-";
+    private string _last = "-", _rawSort = "-", _rawRow = "-", _scope = "page", _selectQuery = "-";
 
     private readonly IReadOnlyList<PkTableColumn<Person>> _columns =
     [
@@ -60,8 +65,7 @@
         await InvokeAsync(StateHasChanged);
         try { await Task.Delay(250, request.CancellationToken); }
         catch (OperationCanceledException) { _cancelled++; await InvokeAsync(StateHasChanged); throw; }
-        IEnumerable<Person> q = _all;
-        if (request.Search is { } s) q = q.Where(p => p.Name.Contains(s, StringComparison.OrdinalIgnoreCase) || p.City.Contains(s, StringComparison.OrdinalIgnoreCase));
+        var q = Matching(request.Search);
         q = (request.SortKey, request.Descending) switch
         {
             ("name", false) => q.OrderBy(p => p.Name),
@@ -72,6 +76,16 @@
         };
         var list = q.ToList();
         return new PkListResult<Person>(list.Skip(request.Skip).Take(request.PageSize).ToList(), list.Count);
+    }
+
+    private IEnumerable<Person> Matching(string? search) =>
+        search is null ? _all : _all.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) || p.City.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    // "Select all N rows" is the query: the host runs its bulk action against it (here it only counts the people that match).
+    private void Picked(PkSelectEventArgs e)
+    {
+        _scope = e.Scope ?? "page";
+        _selectQuery = e.ToRequest() is { } q ? $"{q.Search ?? "-"} ({Matching(q.Search).Count()} match)" : "-";
     }
 
     private void Open(Person person) => _current = person;

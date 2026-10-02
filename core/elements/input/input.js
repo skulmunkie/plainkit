@@ -63,7 +63,7 @@ export default Base => class extends Base {
     check() {
         const i = this.part('control');
         if (this.money()) { i.setCustomValidity(moneyProblem(this.$badMoney ? null : this.n(), this.$badMoney ? 'x' : this.value, num(this.min), num(this.max))); }
-        this.setValidity(flagsOf(i.validity), i.validationMessage, i);
+        this.setValidity(i.willValidate ? flagsOf(i.validity) : {}, i.validationMessage, i);
         this.setFormValue(this.value);
     }
     fromInner() {

@@ -1,6 +1,5 @@
 {
   "component": "PkStat",
-  "existing": true,
   "params": [
     {
       "name": "Label",

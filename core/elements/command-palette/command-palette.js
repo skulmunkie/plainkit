@@ -2,6 +2,7 @@ import { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteS
 export { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteShortcut };
 
 import { syncDialog, wireDialog, nextIndex, safeLink } from '../../js/menu-logic.js';
+import { highlightRow } from '../../js/listbox.js';
 import { createLogger } from '../../js/log.js';
 
 const log = createLogger('pk-command-palette');
@@ -53,10 +54,8 @@ export default Base => class extends Base {
     }
     active(i) {
         this.$a = Math.max(0, i);
-        const input = this.part('input');
-        for (const r of this.part('list').querySelectorAll('[role="option"]')) r.toggleAttribute('data-active', Number(r.dataset.i) === this.$a);
-        const cur = this.part('list').querySelector(`#pk-palette-${this.$a}`);
-        if (cur) { input.setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); } else input.removeAttribute('aria-activedescendant');
+        const rows = [...this.part('list').querySelectorAll('[role="option"]')];
+        highlightRow(rows, rows.find(r => Number(r.dataset.i) === this.$a), this.part('input'), 'data-active');
     }
     key(e) {
         const n = this.$rows.length;

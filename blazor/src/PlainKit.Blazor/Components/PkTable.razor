@@ -23,6 +23,8 @@
           selected="@PkAttr.Json(Selected)"
           expanded="@PkAttr.Json(Expanded)"
           selectable="@Selectable"
+          total="@(SelectAllTotal > 0 ? SelectAllTotal : null)"
+          select-scope="@SelectScope"
           clickable="@Clickable"
           current-row="@CurrentRow"
           filterable="@Filterable"
@@ -103,6 +105,12 @@
     /// <summary>A checkbox column with select-all.</summary>
     [Parameter] public bool Selectable { get; set; }
 
+    /// <summary>How many rows match the current query across all pages (the <c>total</c> attribute). Once every loaded row is selected the table offers "Select all N rows" and raises <see cref="OnSelectAll"/>. 0 (the default) means not paged: no button. <see cref="Selected"/> keeps the ids of other pages when you replace <see cref="Items"/> in manual mode.</summary>
+    [Parameter] public int SelectAllTotal { get; set; }
+
+    /// <summary><c>"page"</c> or <c>"all"</c> (the <c>select-scope</c> attribute): <c>"all"</c> after the user chose "Select all N rows", when every row of the query counts as selected though <see cref="Selected"/> holds only the loaded ids. It follows the table and goes back to <c>"page"</c> when the selection changes.</summary>
+    [Parameter] public string? SelectScope { get; set; }
+
     /// <summary>Rows are activatable: they show a pointer and raise <see cref="OnRowClick"/>. Each row is a keyboard stop (Enter or Space activates it).</summary>
     [Parameter] public bool Clickable { get; set; }
 
@@ -147,6 +155,9 @@
 
     /// <summary>The selection changed: <c>Selected</c> holds the ids.</summary>
     [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
+
+    /// <summary>The user selected every loaded row (<c>Scope</c> "page", <c>Count</c> the rows on the page) or chose "Select all N rows" (<c>Scope</c> "all", <c>Count</c> the total; no ids are sent: run the action from your query). Needs <see cref="SelectAllTotal"/>.</summary>
+    [Parameter] public EventCallback<PkSelectAllEventArgs> OnSelectAll { get; set; }
 
     /// <summary>A row of a <see cref="Clickable"/> table was activated: its id and item.</summary>
     [Parameter] public EventCallback<PkTableRowClickArgs<TItem>> OnRowClick { get; set; }
@@ -236,6 +247,7 @@
         handlers["onpk-sort"] = EventCallback.Factory.Create<PkSortEventArgs>(this, HandleSort);
         handlers["onpk-filter"] = EventCallback.Factory.Create<PkFilterEventArgs>(this, HandleFilter);
         handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelect);
+        handlers["onpk-select-all"] = EventCallback.Factory.Create<PkSelectAllEventArgs>(this, HandleSelectAll);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClick);
         handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpand);
         handlers["onpk-cell-edit"] = EventCallback.Factory.Create<PkCellEditEventArgs>(this, HandleCellEdit);
@@ -261,29 +273,23 @@
     private async Task HandleSelect(PkTableSelectEventArgs e)
     {
         // A big selection arrives as runs of row indexes (see PkTableSelectEventArgs): back to the ids of the rows this table sent.
-        if (e.Ranges is not null && !await ExpandAsync(e)) return;
+        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _items.Select(r => r.Id).ToList()))
+        {
+            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {_items.Count} rows; it was ignored (the next event carries the selection).");
+            return;
+        }
         // pk-select also bubbles up from menus, calendars and trees in the table's own slots: only the table's carries "selected".
         if (e.Selected is null) return;
         Selected = e.Selected;
+        SelectScope = "page"; // any change of the ids leaves scope all
         await SelectedChanged.InvokeAsync(Selected);
         await OnSelect.InvokeAsync(e);
     }
 
-    // False when the element's rows are not the rows of the last render (the parameters changed after the element raised the event): the event is dropped
-    // and the next one, raised for the new rows, carries the selection.
-    private async Task<bool> ExpandAsync(PkTableSelectEventArgs e)
+    private async Task HandleSelectAll(PkSelectAllEventArgs e)
     {
-        var n = _items.Count;
-        if (e.RowCount != n || n == 0 || e.FirstId != _items[0].Id || e.LastId != _items[n - 1].Id || e.Ranges!.Length % 2 != 0)
-        {
-            await Log.WriteAsync(PkLogLevel.Debug, "pk-table", $"A selection for {e.RowCount} rows arrived while the table holds {n} rows; it was ignored (the next event carries the selection).");
-            return false;
-        }
-        var ids = new List<string>();
-        for (var r = 0; r < e.Ranges.Length; r += 2)
-            for (var i = Math.Max(0, e.Ranges[r]); i <= Math.Min(n - 1, e.Ranges[r + 1]); i++) ids.Add(_items[i].Id);
-        e.Selected = ids.ToArray();
-        return true;
+        SelectScope = e.Scope;
+        await OnSelectAll.InvokeAsync(e);
     }
 
     private async Task HandleRowClick(PkRowClickEventArgs e)

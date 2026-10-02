@@ -1,7 +1,7 @@
-@* The README and the skill say a PkTable whose OnRowClick is a method group needs an explicit TItem, and so does a PkDataList with a method group OnRowClick (issue #94): Razor cannot infer TItem
+@* The README and the skill say a PkTable whose OnRowClick is a method group needs an explicit TItem, and so does a PkDataTable with a method group OnRowClick (issue #94): Razor cannot infer TItem
    through the EventCallback<PkTableRowClickArgs<TItem>> conversion. Compiling this file is the proof that the documented form works. *@
 <PkTable TItem="Row" Items="_rows" Columns="_columns" IdOf="r => r.Id.ToString()" Label="Rows" Clickable OnRowClick="Open" />
-<PkDataList TItem="Row" Load="LoadAsync" Columns="_columns" IdOf="r => r.Id.ToString()" Label="List" OnRowClick="OpenRow" />
+<PkDataTable TItem="Row" Load="LoadAsync" Columns="_columns" IdOf="r => r.Id.ToString()" Label="List" OnRowClick="OpenRow" />
 
 @code {
     public sealed record Row(int Id, string Name);

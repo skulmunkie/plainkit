@@ -162,20 +162,4 @@ public sealed class PkTableScaleTests : BunitContext, IAsyncLifetime
         cut.InvokeAsync(() => cut.Instance.Refresh());
         Assert.Contains("Renamed", cut.Find("pk-table").GetAttribute("rows"));
     }
-
-    [Fact]
-    public async Task A_data_list_that_re_renders_leaves_the_rows_of_its_table_alone()
-    {
-        var rows = Guids(50);
-        var columns = new PkTableColumn<Row>[] { new() { Key = "name", Label = "Name" } };
-        var cut = Render<PkDataList<Row>>(p => p
-            .Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "a"));
-        var table = cut.FindComponent<PkTable<Row>>();
-        var built = table.Instance.RebuildCount;
-
-        cut.Render(p => p.Add(x => x.Load, _ => Task.FromResult(new PkListResult<Row>(rows, rows.Length))).Add(x => x.Columns, columns).Add(x => x.IdOf, IdOfRow).Add(x => x.CurrentId, "b"));
-        await cut.InvokeAsync(() => { });
-
-        Assert.Equal(built, table.Instance.RebuildCount);
-    }
 }

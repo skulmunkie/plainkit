@@ -31,6 +31,7 @@
     "prop": "value",
     "event": "pk-rating-change",
     "key": "value",
-    "type": "number"
+    "type": "number",
+    "field": true
   }
 }

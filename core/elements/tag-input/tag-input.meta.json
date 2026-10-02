@@ -20,7 +20,7 @@
       "default": "",
       "reflect": false,
       "commit": "pk-tags-change",
-      "description": "The tags, comma-joined. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+      "description": "The tags, comma-joined (a comma inside a tag is written as a backslash and a comma; read the tags property for the list). A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
       "name": "placeholder",

@@ -388,7 +388,8 @@ const ids = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => 'id-' 
 test('a select-all of a marked pk-table is one run, a few bytes instead of every id', () => {
     const detail = { selected: ids(0, 4999) };
     const args = selectArgs(tableElement(5000), detail);
-    assert.deepEqual(args, { ranges: [0, 4999], rowCount: 5000, firstId: 'id-0', lastId: 'id-4999' });
+    // compared as sent: the keys a pk-table select leaves undefined (scope and query belong to pk-data-table) are not on the wire
+    assert.deepEqual(JSON.parse(JSON.stringify(args)), { ranges: [0, 4999], rowCount: 5000, firstId: 'id-0', lastId: 'id-4999' });
     assert.ok(JSON.stringify(detail).length > 32 * 1024, 'the whole selection is over the SignalR default');
     assert.ok(JSON.stringify(args).length < 256);
 });
