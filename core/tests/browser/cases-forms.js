@@ -576,7 +576,7 @@ export const formCases = [
     }],
     ['a disabled pk-input holding a step mismatch updates without throwing from setValidity (#797)', async t => {
         const errors = []; const onError = e => errors.push(e.message); window.addEventListener('error', onError);
-        const el = t.stage('<pk-input type="number" step="0.01" value="1.7183" disabled></pk-input>'); await t.load(el); await t.settle();
+        const el = t.stage('<pk-input type="number" step="0.01" value="1.7183" disabled></pk-input>').firstElementChild; await t.load(el); await t.settle();
         el.value = '2.4567'; await t.settle();
         window.removeEventListener('error', onError);
         t.eq(errors.length, 0, errors.join('; '));
