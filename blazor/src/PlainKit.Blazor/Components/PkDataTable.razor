@@ -38,7 +38,6 @@
     private string _config = "{}";
     private List<Row> _rows = [];
     private int _sequence;
-    private CancellationTokenSource? _cancel;
 
     /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called for the first page, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that a newer one replaces has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
     [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
@@ -187,17 +186,15 @@
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);
     }
 
-    // The element asks for one page at a time and drops the answer of a request a newer one replaced. The newer request (or Dispose) also cancels the
-    // token of the older one, the element's abort signal in .NET terms, and a superseded answer is not drawn: its cell slots would show stale rows.
-    private async Task<object?> LoadPageAsync(PkListPageQuery query)
+    // The element asks for one page at a time and drops the answer of a request a newer one replaced. The element's abort signal for the older one (and Dispose)
+    // cancels its token (PkCallbackSlot), and a superseded answer is not drawn: its cell slots would show stale rows.
+    private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)
     {
-        _cancel?.Cancel();
-        var cancel = _cancel = new CancellationTokenSource();
         var sequence = ++_sequence;
         PkListResult<TItem> result;
         try
         {
-            result = await Load(query.ToRequest() with { CancellationToken = cancel.Token });
+            result = await Load(query.ToRequest() with { CancellationToken = cancel });
         }
         catch (Exception ex) when (!cancel.IsCancellationRequested)
         {
@@ -239,7 +236,6 @@
     public void Dispose()
     {
         _sequence++;
-        _cancel?.Cancel();
         _load.Dispose();
     }
 }
