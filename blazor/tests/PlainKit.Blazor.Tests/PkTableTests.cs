@@ -167,6 +167,23 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task SelectAllTotal_and_SelectScope_pass_through_and_pk_select_all_reaches_OnSelectAll()
+    {
+        PkSelectAllEventArgs? got = null;
+        var cut = Render(p => p.Add(x => x.Selectable, true).Add(x => x.SelectAllTotal, 112).Add(x => x.OnSelectAll, a => got = a));
+        var table = cut.Find("pk-table");
+        Assert.Equal("112", table.GetAttribute("total"));
+
+        await table.TriggerEventAsync("onpk-select-all", new PkSelectAllEventArgs { Scope = "all", Count = 112 });
+        Assert.Equal("all", got!.Scope);
+        Assert.Equal(112, got.Count);
+        Assert.Equal("all", cut.Find("pk-table").GetAttribute("select-scope"));
+
+        await table.TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Selected = ["1042"] });   // any change of the ids leaves scope all
+        Assert.Equal("page", cut.Find("pk-table").GetAttribute("select-scope"));
+    }
+
+    [Fact]
     public async Task Selection_and_expansion_are_two_way_and_a_foreign_pk_select_is_ignored()
     {
         IReadOnlyList<string>? selected = null, expanded = null;

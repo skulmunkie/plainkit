@@ -42,7 +42,7 @@ function body(el, rowsAll, h) {
     if (el.expandable || el.editable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
-    const cols = el.list('columns'), lead = Number(el.selectable), sel = idSet(el.selected);
+    const cols = el.list('columns'), lead = Number(el.selectable), sel = el.chosen?.() ?? idSet(el.selected);
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
     const start = Math.max(0, Math.floor(s.scrollTop / rowH) - OVERSCAN);
     const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + OVERSCAN * 2);

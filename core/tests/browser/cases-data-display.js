@@ -227,6 +227,28 @@ export const dataDisplayCases = [
         el.currentRow = ''; await t.settle(); t.eq(el.shadowRoot.querySelectorAll('tr[aria-current]').length, 0, 'empty marks no row');
     }],
 
+    ['table: with a total, selecting the loaded rows offers a named "Select all N rows" button in the bulk status; it widens the scope (pk-select-all, no ids), survives a page change, and clearing resets it (#801)', async t => {
+        const el = await t.mount(`<pk-table label="P" manual selectable total="112" columns='${cols}' rows='${rows}'></pk-table>`);
+        const r = el.shadowRoot, btn = () => r.querySelector('[part="bulk-all"]'), events = [];
+        el.addEventListener('pk-select-all', e => events.push(e.detail));
+        await until(() => el.$s, 'the scope module (it loads on demand, once total is set)');
+        t.ok(btn().hidden, 'no button while the page is not selected');
+        r.querySelector('[data-select-all]').click(); await t.settle(); await until(() => !btn().hidden, 'the select-all button (its module loads on demand)');
+        t.ok(!btn().hidden, 'the whole page is selected and the query has more rows: the button shows');
+        t.eq(btn().textContent, 'Select all 112 rows', 'its name includes the count');
+        t.ok(btn().closest('[role="status"]') === r.querySelector('[part="bulk"]'), 'it sits inside the polite status region');
+        t.eq(JSON.stringify(events), JSON.stringify([{ scope: 'page', count: 3 }]));
+        btn().focus(); t.ok(r.activeElement === btn(), 'a real button: it takes focus');
+        btn().click(); await t.settle();
+        t.eq(el.selectScope, 'all'); t.eq(r.querySelector('[part="bulk-count"]').textContent, 'All 112 selected');
+        t.eq(JSON.stringify(events[1]), JSON.stringify({ scope: 'all', count: 112 })); t.eq(el.selected.length, 3, 'only the loaded ids travel');
+        el.rows = [{ id: 4, sku: 'D', price: '$1' }, { id: 5, sku: 'E', price: '$1' }]; await t.settle();
+        t.ok([...r.querySelectorAll('[data-select]')].every(b => b.checked), 'the next page reads as selected too');
+        t.eq(el.selected.join(), '1,2,3', 'the ids are kept, not matched against the new rows');
+        btn().click(); await t.settle();
+        t.eq(el.selectScope, 'page'); t.eq(el.selected.length, 0); t.ok(r.querySelector('[part="bulk"]').hidden && btn().hidden, 'cleared: scope reset, bar hidden');
+    }],
+
     ['table: renders rows from JSON attributes, sorts on a header click with aria-sort, and a cancelled pk-sort leaves the order', async t => {
         const el = await t.mount(`<pk-table label="P" columns='${cols}' rows='${rows}'></pk-table>`);
         t.eq(bodyIds(el).join(), '1,2,3'); t.eq(el.shadowRoot.querySelector('th[data-key="sku"]').getAttribute('aria-sort'), 'none');

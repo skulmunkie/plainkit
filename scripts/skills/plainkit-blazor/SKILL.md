@@ -154,6 +154,10 @@ Do not assemble `PkDropdown` + `PkButton` + `PkMenuItem` by hand: `PkCardMenu` i
 }
 ```
 
+### Select all rows of a paged `PkTable`
+
+For a `PkTable` with `Manual` rows, set `SelectAllTotal` to the number of rows that match your query (all pages). `Selected` then keeps its ids when you replace `Items` for paging, search or sort. When every loaded row is selected the table offers "Select all N rows"; choosing it sets `SelectScope` to `"all"` (it follows the table, and goes back to `"page"` when the selection changes) and raises `OnSelectAll` with `Scope` (`page` or `all`) and `Count`. The ids of the other pages are not sent: on `all`, run your action from the query you already hold.
+
 ### Show a searchable, server-paged list (`PkDataList`)
 
 `PkDataList<TItem>` owns search, sort, page, page size and total and calls your `Load` for one page at a time (a new search/sort/page size goes back to page 1, a superseded request is cancelled, `ReloadAsync()` reloads). Every parameter, paging a selection past SignalR's message-size limit, editing cells in place (`Editable`, `Editor`, `OnCellEdit`) and the routed list-and-record-page recipe (`PkRecordForm`, `references/record-form.md`, `references/record-editor.md`): `references/data-list.md`.

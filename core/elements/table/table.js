@@ -2,7 +2,7 @@
 // re-exported through js/table-vw.js so table.js needs only one import for both).
 
 import V, { sortKey, sortRows, filterRows, nextSort } from '../../js/table-vw.js';
-import { rowId, rowIds, rowAt, toggleId, boxState } from '../../js/rowset.js';
+import { rowId, rowIds, rowAt, idSet, toggleId, setPage, boxState } from '../../js/rowset.js';
 export { sortKey, sortRows, filterRows };
 
 // h('td', { 'data-x': 1 }, 'text' | node ...) builds an element; null, undefined and false attributes are skipped.
@@ -22,12 +22,16 @@ export default Base => class extends Base {
     list(n) { const v = this[n]; return Array.isArray(v) ? v : (this.warnOnce(n, n + ' is not an array'), []); }
     get view() { return this.manual ? this.list('rows') : sortRows(filterRows(this.list('rows'), this.filters), this.list('columns').find(c => c.key === this.sort), this.sortDir); }
     ids() { return rowIds(this.view, this.rowKey); }
-    pick(ids) { this.selected = ids; this.emit('pk-select', { selected: ids }); }
+    // Selection scope (#801): `selectScope` is 'all' once "Select all <total>" was chosen. The ids stay the loaded page (never 10k ids): the host expands
+    // the scope itself. Any change of the ids, and a selection the host empties, leave it. A manual table keeps the ids of other pages (rows are replaced per page).
+    get wide() { return this.selectScope === 'all' && this.selected.length > 0; }
+    chosen(ids = this.ids()) { return this.wide ? new Set(ids) : idSet(this.selected); }
+    pick(ids) { this.selected = ids; this.selectScope = 'page'; this.emit('pk-select', { selected: ids }); }
     sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key ?? ''; this.sortDir = direction ?? 'ascending'; } }
 
     click(e) {
         const t = e.target, th = t.closest('th[data-key]'), tr = t.closest('tr[data-pk-context]');
-        if (this.$m?.click(this, e)) return;
+        if (this.$m?.click(this, e) || this.$s?.click(this, e)) return;
         // The whole checkbox cell is the tap area: a click on the cell (not on the box) toggles the box.
         if (t.matches('[data-check]')) t.firstChild.click();
         else if (th && t.closest('button')) this.sortBy(...nextSort(this.sort, this.sortDir, th.dataset.key));
@@ -36,8 +40,12 @@ export default Base => class extends Base {
     input(e) {
         const t = e.target, d = t.dataset;
         // A checkbox raises both change and input: the selection follows change only, so one click is one pk-select.
-        if ('selectAll' in d && e.type === 'change') this.pick(t.checked ? this.ids() : []);
-        else if ('select' in d && e.type === 'change') this.pick(toggleId(this.ids(), this.selected, d.select, t.checked));
+        if (e.type === 'change' && ('selectAll' in d || 'select' in d)) {
+            // Under scope all every loaded row counts as selected, so a change starts from the loaded page.
+            const ids = this.ids(), base = this.wide ? ids : this.selected;
+            if ('select' in d) this.pick(toggleId(ids, base, d.select, t.checked, this.manual));
+            else { this.pick(setPage(ids, base, t.checked, this.manual)); if (t.checked) this.$s?.page(this, ids.length); }
+        }
         else if ('filter' in d && e.type === 'input') { clearTimeout(this.$t); this.$t = setTimeout(() => { const filters = { ...this.filters, [d.filter]: t.value }; if (this.emit('pk-filter', { filters })) this.filters = filters; }, 250); }
     }
 
@@ -46,8 +54,10 @@ export default Base => class extends Base {
         this.part('toolbar').hidden = this.slotted('toolbar').length === 0;
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        const k = this.list('columns'), r = V.view(this), sel = boxState(this.selected, r.length), s = new Set(this.selected.map(String));
+        if (this.selectScope === 'all' && !this.wide) this.selectScope = 'page';
+        const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), wide = this.wide, s = this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
         if (this.expandable || this.clickable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
+        if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope did not load', e));
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
@@ -74,6 +84,8 @@ export default Base => class extends Base {
         this.part('body').replaceChildren(...body);
         this.$m?.after(this); this.$e?.after(this);
         this.part('empty').hidden = this.loading || r.length > 0;
-        this.part('bulk').hidden = sel.count === 0; this.part('bulk-count').textContent = `${sel.count} selected`;
+        const n = idSet(this.selected).size;
+        this.part('bulk').hidden = n === 0; this.part('bulk-count').textContent = `${n} selected`;
+        this.$s?.after(this, r.length, sel.checked);
     }
 };

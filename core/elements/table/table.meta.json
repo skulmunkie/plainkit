@@ -140,7 +140,25 @@
       "default": [],
       "reflect": false,
       "commit": "pk-select",
-      "description": "Ids of the selected rows. The user changes it with the row checkboxes and the element raises pk-select with the new ids; a change the host makes raises nothing."
+      "description": "Ids of the selected rows. The user changes it with the row checkboxes and the element raises pk-select with the new ids; a change the host makes raises nothing. In a manual table the ids of rows that are not loaded stay (paging, searching and sorting replace the rows, not the selection); see total and selectScope for selecting every row of the query."
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "How many rows match the current query across all pages (a manual table shows one page of them). With a total larger than the loaded rows, once every loaded row is selected the bulk bar offers a \"Select all N rows\" button, which raises pk-select-all with scope \"all\". 0 means unknown or not paged: no button. The selection survives the host replacing the rows (paging, search, sort): ids are kept, not matched against the loaded rows, so clear selected when the query changes if the selection should not outlive it."
+    },
+    {
+      "name": "selectScope",
+      "type": "enum",
+      "default": "page",
+      "values": [
+        "page",
+        "all"
+      ],
+      "reflect": false,
+      "description": "\"all\" after the user chose \"Select all N rows\": every row of the query counts as selected, though selected holds only the ids that were loaded. Any change of the selection, and a host that empties selected, sets it back to \"page\". The element sets it; a host may set it to restore a state."
     },
     {
       "name": "editable",
@@ -293,6 +311,15 @@
       "cancelable": false
     },
     {
+      "name": "pk-select-all",
+      "detail": {
+        "scope": "string",
+        "count": "number"
+      },
+      "description": "Raised on a table that has a total (the rows are paged by the host) when the user selects every loaded row (scope \"page\", count the rows on the page; pk-select carries the ids as well) or chooses \"Select all N\" (scope \"all\", count the total; no ids: the host expands the scope by asking its data source again, with the query it has). selectScope is then \"all\" until the selection changes.",
+      "cancelable": false
+    },
+    {
       "name": "pk-row-expand",
       "detail": {
         "id": "string",
@@ -328,6 +355,10 @@
     {
       "name": "bulk-count",
       "description": "The selected count."
+    },
+    {
+      "name": "bulk-all",
+      "description": "The button that widens the selection to every row of the query (\"Select all 112 rows\"), then clears it (\"Clear selection\"). Shown only with a total."
     },
     {
       "name": "scroll",
@@ -371,11 +402,15 @@
       "description": "Sort programmatically. sortBy(null) clears the sort."
     }
   ],
-  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML. The current row (current-row) carries aria-current=\"true\", so a screen reader announces which record is open. An editable table is role=\"grid\": one cell is the tab stop (arrow keys, Home and End move it, Tab moves and commits), the active cell has aria-selected, a cell that cannot be edited has aria-readonly, an invalid cell has aria-invalid and its message is tied to its editor with aria-describedby, every editor is named \"<column>, row <id>\" (a control the host slots into a cell needs its own name: the pk-switch's own text, e.g. <span class=\"u-sr-only\">Listed, row 1</span> to keep it off the screen), and a committed or cancelled edit is announced in a polite status region.",
+  "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status, and the \"Select all N rows\" / \"Clear selection\" button inside it is a real button (a tab stop, named with the count) whose change of text is announced by the same status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML. The current row (current-row) carries aria-current=\"true\", so a screen reader announces which record is open. An editable table is role=\"grid\": one cell is the tab stop (arrow keys, Home and End move it, Tab moves and commits), the active cell has aria-selected, a cell that cannot be edited has aria-readonly, an invalid cell has aria-invalid and its message is tied to its editor with aria-describedby, every editor is named \"<column>, row <id>\" (a control the host slots into a cell needs its own name: the pk-switch's own text, e.g. <span class=\"u-sr-only\">Listed, row 1</span> to keep it off the screen), and a committed or cancelled edit is announced in a polite status region.",
   "examples": [
     {
       "title": "Sortable, selectable table",
       "html": "<pk-table id=\"t1\" label=\"Products\" caption=\"Stock by product\" striped hover selectable\n  columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true}]'\n  rows='[{\"id\":1,\"sku\":\"AC-001\",\"price\":\"$4.99\"},{\"id\":2,\"sku\":\"AC-002\",\"price\":\"$3.99\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n</pk-table>"
+    },
+    {
+      "title": "Select all rows of a paged list",
+      "html": "<pk-table label=\"Orders\" manual selectable total=\"112\" selected='[\"1\",\"2\"]' columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Export</pk-button>\n</pk-table>"
     },
     {
       "title": "Empty and loading",

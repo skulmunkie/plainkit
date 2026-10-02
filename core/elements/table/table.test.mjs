@@ -274,3 +274,44 @@ test('the edit props and the pk-cell-edit event are in the meta, and an editable
     assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous']);
     assert.match(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/);
 });
+
+// Selection scope (#801): the selection spans pages (ids are kept when a manual table's rows are replaced), and `total` offers "Select all N".
+test('a manual table keeps the ids of other pages when a row or the page box changes', () => {
+    const t = host({ selected: ['9'] });
+    t.input({ type: 'change', ...box({ select: '2' }, true) });
+    assert.deepEqual(t.selected, ['9', '2']);
+    t.input({ type: 'change', ...box({ selectAll: '' }, true) });
+    assert.deepEqual(t.selected, ['9', '2', '1', '3']);
+    t.input({ type: 'change', ...box({ selectAll: '' }, false) });
+    assert.deepEqual(t.selected, ['9'], 'unchecking the page box removes the page, not the other pages');
+    const own = host({ manual: false, sort: '', selected: ['9'] });
+    own.input({ type: 'change', ...box({ select: '2' }, true) });
+    assert.deepEqual(own.selected, ['2'], 'a table that holds all its rows still drops ids it does not have');
+});
+
+const scope = await import('../../js/table-scope.js');
+const bulkAll = { target: { matches: () => false, closest: s => (s === '[part="bulk-all"]' ? {} : null) } };
+test('with a total, the page box raises pk-select-all (scope page) and the button widens it to all; clearing resets the scope', () => {
+    const t = host({ total: 112, $s: scope });
+    t.input({ type: 'change', ...box({ selectAll: '' }, true) });
+    assert.deepEqual(t.events.map(e => e[0]), ['pk-select', 'pk-select-all']);
+    assert.deepEqual(t.events[1][1], { scope: 'page', count: 3 });
+    t.events.length = 0;
+    t.click(bulkAll);
+    assert.equal(t.selectScope, 'all');
+    assert.deepEqual(t.events, [['pk-select-all', { scope: 'all', count: 112 }]]);
+    assert.deepEqual(t.selected, ['1', '2', '3'], 'the ids stay the loaded page: the host expands the scope by asking again');
+    t.events.length = 0;
+    t.click(bulkAll);
+    assert.equal(t.selectScope, 'page', 'the same button, now "Clear selection"');
+    assert.deepEqual(t.selected, []);
+    assert.deepEqual(t.events, [['pk-select', { selected: [] }]]);
+});
+
+test('leaving scope all through a row keeps the loaded page minus that row; an emptied selection is not scope all', () => {
+    const t = host({ total: 112, selectScope: 'all', selected: ['1'] });
+    t.input({ type: 'change', ...box({ select: '2' }, false) });
+    assert.equal(t.selectScope, 'page');
+    assert.deepEqual(t.selected, ['1', '3']);
+    assert.equal(host({ total: 112, selectScope: 'all', selected: [] }).wide, false);
+});

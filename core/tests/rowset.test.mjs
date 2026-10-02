@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rowId, rowIds, rowAt, idSet, toggleId, boxState } from '../js/rowset.js';
+import { rowId, rowIds, rowAt, idSet, toggleId, boxState, setPage } from '../js/rowset.js';
 
 const rows = [{ id: 7, n: 'a' }, { n: 'b' }, { id: 'x', n: 'c' }];
 
@@ -26,4 +26,15 @@ test('the select-all box is checked when all rows are selected and mixed when so
     assert.deepEqual(boxState(['1'], 3), { count: 1, checked: false, mixed: true });
     assert.deepEqual(boxState(['1', '2', '3'], 3), { count: 3, checked: true, mixed: false });
     assert.deepEqual(boxState([], 0), { count: 0, checked: false, mixed: false });
+});
+
+// Selection across pages (#801): with keep, ids outside the loaded rows survive, because a manual table replaces its rows on every page.
+test('keep: toggling and the page box leave the ids of other pages alone', () => {
+    const ids = ['4', '5', '6'];
+    assert.deepEqual(toggleId(ids, ['1', '5'], '4', true, true), ['1', '5', '4']);
+    assert.deepEqual(toggleId(ids, ['1', '5'], '5', false, true), ['1']);
+    assert.deepEqual(setPage(ids, ['1', '5'], true, true), ['1', '5', '4', '6']);
+    assert.deepEqual(setPage(ids, ['1', '5'], false, true), ['1']);
+    assert.deepEqual(setPage(ids, ['1', '5'], true, false), ['4', '5', '6'], 'without keep the page is the whole selection');
+    assert.deepEqual(setPage(ids, ['1', '5'], false, false), []);
 });
