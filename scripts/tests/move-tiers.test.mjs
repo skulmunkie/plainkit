@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { plan, apply, listElements, FOLDER } from '../move-tiers.mjs';
+import { plan, apply, listElements, FOLDER, root } from '../move-tiers.mjs';
 
 const elements = [{ name: 'button', tier: 'element' }, { name: 'tabs', tier: 'component' }, { name: 'tab-x', tier: 'element' }];
 const files = {
@@ -44,7 +44,11 @@ test('apply moves the folders and rewrites the references, keeping CRLF', () => 
 
 test('the real tree has every tier the script knows, and only the three tier folders are targets', () => {
     assert.deepEqual(FOLDER, { shell: 'shells', page: 'pages', component: 'components' });
+    // A tier whose folder already exists has been moved (shells and pages in batch 1, #767): its plan is empty and its folder holds elements of that tier.
     const tiers = new Set(listElements().map(e => e.tier));
-    for (const t of ['element', ...Object.keys(FOLDER)]) assert.ok(tiers.has(t), t);
-    for (const t of Object.keys(FOLDER)) assert.ok(plan(t).moves.length > 0, `${t} plan finds files`);
+    for (const t of ['element', ...Object.keys(FOLDER)]) {
+        const moved = fs.existsSync(path.join(root, 'core', FOLDER[t] ?? 'elements')) && t !== 'element';
+        assert.ok(moved || tiers.has(t), t);
+        if (t !== 'element') assert.equal(plan(t).moves.length > 0, !moved, `${t}: plan finds files exactly while its folder does not exist`);
+    }
 });
