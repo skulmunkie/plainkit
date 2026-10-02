@@ -2,7 +2,7 @@
 // demand, only when `expandable` or `clickable` is set, so its own module stays inside the per-element budget. The table owns everything drawn here (shadow tree); the detail content is host-provided
 // light DOM in a `detail-<rowId>` slot, and expanding only renders that slot, it never moves or edits the host's nodes.
 
-import { sheetFor } from './element.js';
+import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 
 // The styles of what this module draws, adopted by the table's shadow root the first time a row is drawn (the table's own css knows nothing of them).
 const STYLES = ('[data-expand]{inline-size:var(--space-8);text-align:center}[data-expand] button{all:unset;display:inline-block;padding:var(--space-1) var(--space-2);cursor:pointer}[data-expand] button:focus-visible{outline:var(--focus-ring)}@media (max-width:640px){[data-expand] button{display:inline-flex;align-items:center;min-block-size:var(--touch-target);min-inline-size:var(--touch-target)}:host([cards]) tr[data-detail] td{display:block;text-align:start}:host([cards]) td[data-expand]:empty{display:none}}');
@@ -31,7 +31,7 @@ export function rows(table, tr, id, i, span, h) {
 export function slotted(table, e) {
     const p = table.clickable && !table.shadowRoot.contains(e.target) ? e.composedPath?.() ?? [] : [], i = p.findIndex(n => n.matches?.('tbody tr[data-pk-context]'));
     if (i < 0) return false;
-    if (!p.slice(0, i).some(n => n.matches?.('input,button,a,select,label'))) table.emit('pk-row-click', { id: p[i].dataset.pkContext, row: table.view[table.ids().indexOf(p[i].dataset.pkContext)] });
+    if (!p.slice(0, i).some(n => n.matches?.('input,button,a,select,label'))) table.emit('pk-row-click', { id: p[i].dataset.pkContext, row: rowAt(table.view, table.ids(), p[i].dataset.pkContext) });
     return true;
 }
 

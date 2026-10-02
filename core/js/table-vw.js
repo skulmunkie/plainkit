@@ -3,11 +3,9 @@
 // host-supplied one (the default slot): every row this module ever draws is a plain data row of the element's own shadow tree, built the
 // same way table.js builds one when it draws all of them.
 
-// Re-exported so table.js can take both this module and table-data.js's pure sort/filter helpers from one import: table-vw.js is
-// already an unconditional dependency of table.js (this default export, below), so folding the two saves a second import statement.
-// Neither this module nor table-data.js touches the DOM at import time (no PkElement/HTMLElement dependency): view(), like the rest of
-// table-data.js, is plain data logic table.js can call, and is tested, outside a browser.
+// Re-exported so table.js takes this module and table-data.js's pure sort/filter helpers from one import (neither touches the DOM at import time).
 export { sortKey, sortRows, filterRows, nextSort } from './table-data.js';
+import { rowId, idSet } from './rowset.js';
 
 // Issue 131: at or above this many rows a non-expandable, non-slotted table windows instead of drawing every row. One constant, not a
 // magic number scattered across the source; table.meta.json's summary documents it, so it is the one place a host reads it (no prop:
@@ -51,14 +49,14 @@ function body(el, rowsAll, h) {
     if (el.expandable || el.editable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
-    const cols = el.list('columns'), lead = Number(el.selectable), sel = new Set(el.selected.map(String));
+    const cols = el.list('columns'), lead = Number(el.selectable), sel = idSet(el.selected);
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
     const start = Math.max(0, Math.floor(s.scrollTop / rowH) - OVERSCAN);
     const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + OVERSCAN * 2);
     const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
     const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.setProperty('padding', '0'); td.style.setProperty('border', '0'); td.style.setProperty('block-size', `${size}px`); return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
     const drawn = rowsAll.slice(start, end).flatMap((row, j) => {
-        const i = start + j, id = String(row[el.rowKey] ?? i), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
+        const i = start + j, id = rowId(row, i, el.rowKey), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
         pick.checked = sel.has(id);
         return [h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
             ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
