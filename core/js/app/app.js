@@ -46,7 +46,8 @@ import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
-const LABELS = { 'not-found': 'Not found', forbidden: 'Not allowed', error: 'Something went wrong' }; // the last crumb of a page that is not a page
+// the last crumb of a page that is not a page
+const LABELS = { 'not-found': 'Not found', forbidden: 'Not allowed', error: 'Something went wrong' };
 
 export function mountApp(container, config) {
     const cfg = readConfig(config);
@@ -115,7 +116,8 @@ export function mountApp(container, config) {
     const syncToggle = () => ui.toggle.toggleAttribute('hidden', side && !narrow.matches);
     narrow.addEventListener('change', syncToggle);
     syncToggle();
-    drawNav(); // the menu is in the page from the first paint: nothing moves when the first module arrives
+    // the menu is in the page from the first paint: nothing moves when the first module arrives
+    drawNav();
 
     function trail(a) {
         const inner = status === 'ok' && a.route.path !== '/' ? here(a).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
@@ -132,7 +134,8 @@ export function mountApp(container, config) {
 
     function settle(result) {
         const a = host.current();
-        status = result === 'error' && a ? 'ok' : result; // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
+        // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
+        status = result === 'error' && a ? 'ok' : result;
         if (a?.id !== active) { active = a?.id ?? null; drawNav(); if (a?.def.footer !== undefined || footerCustom) drawFooter(a); footerCustom = a?.def.footer !== undefined; }
         mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
@@ -140,18 +143,22 @@ export function mountApp(container, config) {
         page.setBreadcrumbs(crumbs);
         page.setTitle(crumbs.length > 1 ? `${label} - ${cfg.title}` : cfg.title);
         if (first) { first = false; return; }
-        if (result === 'error') return; // the boundary's alert announces itself
-        ui.live.textContent = `${label}, page loaded`;
-        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main;
+        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main, own = target.closest('pk-empty-state'), go = () => target.focus({ preventScroll: true });
+        // the boundary's alert announces itself; only its own placeholder title takes focus
+        if (result === 'error' && !own) return;
+        if (result !== 'error') ui.live.textContent = `${label}, page loaded`;
         target.tabIndex = -1;
-        target.focus({ preventScroll: true });
+        // a boundary title is drawn by elements that may be undefined yet: focus given before they upgrade is lost
+        own ? loadElements(ui.main).then(go) : go();
         ui.main.scrollIntoView?.({ block: 'nearest' });
     }
 
     async function render() {
         const cur = router.current(), n = ++seq;
-        if (ui.sideNav.open) ui.sideNav.hide(); // a chosen page closes the drawer at once, not after it has loaded
-        if (cur.url.split('/')[1] !== active) subs.clear(); // ctx.search subscribers end with their module, before the next one mounts and subscribes
+        // a chosen page closes the drawer at once, not after it has loaded
+        if (ui.sideNav.open) ui.sideNav.hide();
+        // ctx.search subscribers end with their module, before the next one mounts and subscribes
+        if (cur.url.split('/')[1] !== active) subs.clear();
         const result = await host.open(cur.url, cur.query);
         if (n === seq && !dead && result !== 'superseded') settle(result);
     }
@@ -190,7 +197,8 @@ export function mountApp(container, config) {
         clearTimeout(timer);
         const entry = id && MODULE_ID.test(id) && entries.get(id);
         if (!entry || warm.has(id) || globalThis.navigator?.connection?.saveData) return;
-        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, 100); // ms: the prefetch delay
+        // ms: the prefetch delay
+        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, 100);
     }
 
     return {

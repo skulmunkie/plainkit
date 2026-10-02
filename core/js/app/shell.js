@@ -10,7 +10,7 @@
 //     <span slot="footer">...</span>                                                 only with config.footer
 //   <div role="status" aria-live="polite">                                           the route announcement (the framework's u-sr-only utility keeps it off the screen)
 //   <pk-toast-stack/>, <div data-pk-dialogs/>                                        regions reserved for the toasts and the dialog host (#373 fills them)
-const h = (doc, tag, attrs = {}, text) => {
+export const h = (doc, tag, attrs = {}, text) => {
     const el = doc.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
     if (text != null) el.textContent = text;

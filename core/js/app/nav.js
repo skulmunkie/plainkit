@@ -10,17 +10,12 @@
 import { flattenRoutes, matchRoute, buildCrumbs, fillPath, labelOf } from '../route-tree.js';
 import { safeHref } from '../safe-url.js';
 import { createLogger } from '../log.js';
+import { h } from './shell.js';
 
 export const MAX_TOP = 12;
 export const MAX_ALL = 40;
 const log = createLogger('app');
 const told = new Set();
-const h = (doc, tag, attrs = {}, text) => {
-    const el = doc.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-    if (text != null) el.textContent = text;
-    return el;
-};
 const total = items => items.reduce((n, i) => n + 1 + total(i.children ?? []), 0);
 
 // The module's nav tree, or [] (a module without `nav`, or one whose function threw).

@@ -60,12 +60,10 @@ export function readConfig(config) {
     if (c.can !== undefined && !isFn(c.can)) fail('can', 'must be a function');
     const brand = known(obj(c.brand, 'brand'), ['text'], 'brand.');
     const search = c.search === false ? null : known(obj(c.search, 'search'), ['placeholder', 'minLength'], 'search.');
-    const foot = c.footer === undefined ? null : known(obj(c.footer, 'footer'), ['text', 'links'], 'footer.');
     const theme = known(obj(c.theme, 'theme'), ['default', 'param'], 'theme.');
     const storage = known(obj(c.storage, 'storage'), ['prefix', 'version', 'legacy'], 'storage.');
     if (theme.default !== undefined && theme.default !== 'light' && theme.default !== 'dark') fail('theme.default', "must be 'light' or 'dark'");
     if (storage.version !== undefined && !Number.isInteger(storage.version)) fail('storage.version', 'must be an integer');
-    const links = (foot?.links ?? []).map((l, i) => (typeof l?.label === 'string' && safeHref(l.href) ? { label: l.label, href: l.href } : fail(`footer.links[${i}]`, 'needs a label and an http(s), mailto, tel or relative href')));
     return {
         title: str(c.title, 'title', str(brand.text, 'brand.text', 'App')),
         brand: { text: str(brand.text, 'brand.text', 'App') },

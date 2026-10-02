@@ -9,7 +9,7 @@ const ALERT = '#app pk-alert[kind=danger]';
 
 export default {
     name: 'app-boundaries',
-    elements: ['alert', 'loading-overlay', 'skeleton', 'empty-state', 'button'],
+    elements: ['alert', 'loading-overlay', 'skeleton', 'empty-state', 'heading', 'button'],
     html: `<pk-stack gap="md"><pk-cluster gap="sm">${BUTTONS.map(([id, label]) => `<pk-button id="${id}" variant="secondary" size="sm">${label}</pk-button>`).join('')}</pk-cluster><div id="app"></div></pk-stack>`,
     setup(frame) {
         const gates = {};
@@ -47,6 +47,14 @@ export default {
         const phone = t.viewport.name === 'phone';
         const state = '#app pk-empty-state';
         t.inViewport('#app');
+        // #859: a boundary state's heading is the page's one level 1 title (what the app focuses after navigation), drawn once and centred in the state like the shadow heading it replaces.
+        if (['mount-error', 'forbidden', 'not-found'].includes(t.shot)) {
+            const title = `${state} pk-heading[level="1"]`;
+            t.exists(title); t.visible(title, 'the state title'); t.within(title, state, 1);
+            const s = t.rect(state), h = t.rect(title);
+            if (s && h) t.ok(Math.abs(s.cx - h.cx) <= 2, `the title is centred in its state (state centre ${s.cx.toFixed(0)}, title centre ${h.cx.toFixed(0)})`);
+            t.ok(t.attr(title, 'tabindex') === '-1', 'the title is focusable by script');
+        }
         if (t.shot === 'loading-first') {
             t.visible('#app pk-skeleton', 'the skeleton that holds the space');
             t.atLeast('#app pk-skeleton', 'height', 200);
