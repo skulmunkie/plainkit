@@ -273,6 +273,30 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: the search box keeps focus and its text across the debounce and the load, and a search with no results keeps the toolbar with a clearable search (#836)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"searchDebounce":20,"noResults":{"heading":"Nothing matches"}}'><pk-button slot="actions" id="add">Add</pk-button></pk-data-table>`);
+        const all = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
+        el.load = async q => { queries.push(q.search); await wait(120); const rows = all.filter(r => r.sku.includes(q.search)); return { rows, total: rows.length }; };
+        el.refresh();
+        const root = el.part('table').shadowRoot, filters = el.part('filters'), box = () => filters.shadowRoot.querySelector('[part="search"]');
+        const focused = () => { let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement; return a; };
+        const type = ch => { box().value += ch; box().dispatchEvent(new InputEvent('input', { bubbles: true, composed: true, data: ch })); };
+        await until(() => root.querySelector('tbody tr'), 'the rows');
+        box().focus(); t.ok(focused() === box(), 'the search box takes focus');
+        type('S'); await until(() => queries.at(-1) === 'S', 'the first search to load');
+        t.ok(box().getBoundingClientRect().width > 0 && focused() === box(), 'a load in flight keeps the search box shown and focused');
+        type('K'); await until(() => queries.at(-1) === 'SK' && root.querySelector('tbody tr'), 'the second search');
+        t.ok(focused() === box(), 'focus is still on the search box after the load'); t.eq(box().value, 'SK', 'no keystroke is lost');
+        for (const ch of 'U-9') type(ch);
+        await until(() => queries.at(-1) === 'SKU-9' && el.part('state').children.length, 'no results');
+        const shown = e => e.getBoundingClientRect().width > 0;
+        t.ok(shown(box()) && shown(el.part('actions')) && shown(el.querySelector('#add')), 'the search box and the actions stay shown when nothing matches');
+        t.ok(focused() === box() && box().value === 'SKU-9', 'the search keeps its focus and text');
+        box().value = ''; box().dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
+        await until(() => queries.at(-1) === '' && root.querySelector('tbody tr'), 'the cleared search to bring the rows back');
+        t.ok(focused() === box(), 'still focused after clearing');
+    }],
+
     ['data-table: a page past the last one (rows deleted) settles on the last page with one more load, and total 0 still shows the empty state (#829)', async t => {
         const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
         let n = 12; const pages = [];
