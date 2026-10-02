@@ -23,6 +23,14 @@
       "description": "The tags, comma-joined (a comma inside a tag is written as a backslash and a comma; read the tags property for the list). A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
     },
     {
+      "name": "values",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "commit": "pk-tags-change",
+      "description": "The tags as an array of strings (any text, commas and backslashes included); the typed form of value, which stays the comma-joined string for forms. Setting it (or its JSON attribute) sets value; reading it parses value. The commit event carries it as detail.values."
+    },
+    {
       "name": "placeholder",
       "type": "string",
       "default": "",
@@ -114,9 +122,10 @@
     },
     {
       "name": "pk-tags-change",
-      "detail": "{ value: string, tags: string[] }",
+      "detail": "{ value: string, tags: string[], values: string[] }",
       "detailProps": {
-        "value": "string"
+        "value": "string",
+        "values": "string[]"
       },
       "description": "A tag was added or removed."
     }

@@ -30,12 +30,14 @@ export default Base => class extends Base {
     get tags() { return this.value === '' ? [] : splitValues(this.value); }
     get lockedTagList() { return parseTags(this.lockedTags, ','); }
     set tags(list) { this.value = joinValues(list); }
+    // `values` is the same list as a declared prop (a JSON attribute too): each side writes through to the other, value being the string forms read.
+    changed(name, v) { if (name === 'values') this.value = joinValues(Array.isArray(v) ? v : []); else if (name === 'value') this.$.values = v === '' ? [] : splitValues(v); }
     say(text) { this.part('status').textContent = text; }
     commit(list, said) {
         this.value = joinValues(list);
         this.say(said);
         for (const t of ['input', 'change']) this.dispatchEvent(new Event(t, { bubbles: true, composed: true }));
-        this.emit('pk-tags-change', { value: joinValues(list), tags: list });
+        this.emit('pk-tags-change', { value: joinValues(list), tags: list, values: list });
     }
     add(pieces) {
         const { tags, refused } = addTags(this.tags, pieces, { unique: !this.allowDuplicates, max: this.max > 0 ? this.max : Infinity });

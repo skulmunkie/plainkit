@@ -81,6 +81,14 @@
       "description": "Allows several selections (value is comma-separated with a comma inside an option value written as a backslash and a comma, a backslash before a comma or backslash doubled; the form submits one entry each)."
     },
     {
+      "name": "values",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "commit": "pk-value-change",
+      "description": "The selection as an array of strings (one entry for a single select, none when empty; any text, commas and backslashes included); the typed form of value, which stays the comma-separated string for forms. Setting it (or its JSON attribute) sets value, so set multiple first; reading it parses value. The commit event carries it as detail.values."
+    },
+    {
       "name": "options",
       "type": "json",
       "default": [],
@@ -107,9 +115,10 @@
     },
     {
       "name": "pk-value-change",
-      "detail": "{ value: string }",
+      "detail": "{ value: string, values: string[] }",
       "detailProps": {
-        "value": "string"
+        "value": "string",
+        "values": "string[]"
       },
       "description": "The user committed a new value (same moment as change; carries the value)."
     }

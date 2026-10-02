@@ -36,11 +36,16 @@ export default Base => class extends Base {
         this.watchSlot('', () => { this.$opts = true; this.requestUpdate(); });
         this.$obs = new MutationObserver(() => { this.$opts = true; this.requestUpdate(); });
         this.$obs.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'selected', 'disabled', 'label'] });
-        s.addEventListener('change', () => { this.$typing = true; this.value = this.multiple ? joinValues(selectedValues([...s.options])) : s.value; this.dispatchEvent(new Event('change', { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); });
+        s.addEventListener('change', () => { this.$typing = true; this.value = this.multiple ? joinValues(selectedValues([...s.options])) : s.value; this.dispatchEvent(new Event('change', { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value, values: this.values }); });
         s.addEventListener('input', () => this.dispatchEvent(new Event('input', { bubbles: true, composed: true })));
         this.$opts = true;
     }
-    changed(name) { if (name === 'options') { this.$opts = true; this.requestUpdate(); } }
+    // `values` is the selection as a declared prop (a JSON attribute too; one entry for a single select): each side writes through to the other, value being the string forms read.
+    changed(name, v) {
+        if (name === 'options') { this.$opts = true; this.requestUpdate(); }
+        else if (name === 'values') { const l = Array.isArray(v) ? v : []; this.value = this.multiple ? joinValues(l) : (l[0] ?? ''); }
+        else if (name === 'value' || name === 'multiple') this.$.values = this.value === '' ? [] : this.multiple ? splitValues(this.value) : [this.value];
+    }
     updated() {
         const s = this.part('control');
         s.multiple = this.multiple;

@@ -19,3 +19,24 @@ test('tag lists round trip through the comma-joined value, commas inside a tag i
     assert.deepEqual(splitValues(joinValues(['a,b', 'c'])), ['a,b', 'c']);
     assert.equal(joinValues(['red', 'green']), 'red,green');
 });
+
+const fake = (mixin, init) => {
+    class B { constructor() { this.$ = { value: '', values: [], multiple: false, ...init }; } }
+    for (const n of ['value', 'values', 'multiple']) Object.defineProperty(B.prototype, n, { get() { return this.$[n]; }, set(v) { if (v === this.$[n]) return; this.$[n] = v; this.changed?.(n, v); } });
+    return new (mixin(B))();
+};
+test('values is the tag array: set, get, empty, commas and backslashes, and value stays the joined string', async () => {
+    const mixin = (await import('./tag-input.js')).default;
+    const el = fake(mixin);
+    assert.deepEqual(el.values, []);
+    el.values = ['a,b', 'c\\d', 'plain', '\\'];
+    assert.equal(el.value, 'a\\,b,c\\d,plain,\\\\');
+    assert.deepEqual(el.values, ['a,b', 'c\\d', 'plain', '\\']);
+    assert.deepEqual(el.tags, el.values);
+    el.value = 'p\\,q,r';
+    assert.deepEqual(el.values, ['p,q', 'r']);
+    el.values = ['x,y'];
+    assert.equal(el.value, 'x\\,y');
+    el.values = [];
+    assert.equal(el.value, '');
+});

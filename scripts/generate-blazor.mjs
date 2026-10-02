@@ -277,18 +277,20 @@ export function modelElement(el, mapping, reg) {
             const inv = out.attrs.find(a => a.attr === 'invalid');
             if (inv) inv.expr = '@(IsInvalid || FieldInvalid)';
         }
-        // `model.multi`: the model prop is a comma-joined list (core writes a comma inside a value as \, and a backslash as \\). Values / ValuesChanged (and
-        // ValuesExpression on a form control) are its typed form; the element is still given the joined string and PkAttr converts both ways. Values wins while
-        // it is set and is written back only when the host bound ValuesChanged, so a host that binds Value alone never sees it.
+        // `model.multi`: the element has a `values` array prop and an event field `values` next to the comma-joined string model prop (core owns the
+        // encoding, #850). Values / ValuesChanged (and ValuesExpression on a form control) are the typed form, sent as the element's JSON `values` attribute.
+        // Values wins while it is set (the string attribute is then left off) and is written back only when the host bound ValuesChanged.
         if (r && mapping.model.multi) {
             const h = [...out.handlers.values()].find(x => x.name === mapping.model.event);
             if (!h || r.cs.replace('?', '') !== 'string') throw new Error(`${comp}: model.multi needs a string model prop driven by ${mapping.model.event}`);
+            const vf = eventInfo(mapping.model.event).fields.find(f => f.key === 'values');
+            if (!vf || !el.props.some(x => x.name === 'values')) throw new Error(`${comp}: model.multi needs a values prop and a values event field`);
             const list = 'IReadOnlyList<string>?';
             declare({ name: 'Values', kind: 'param', cs: list, doc: `${r.name} as a list (typed: no comma-joining or escaping in the host); when set it is used instead of ${r.name}.` });
             declare({ name: 'ValuesChanged', kind: 'param', cs: `EventCallback<${list}>`, doc: 'Raised when the list changes (two-way binding: <c>@bind-Values</c>).' });
             const a = out.attrs.find(x => x.attr === kebab(mapping.model.prop));
-            if (a) a.expr = `@(Values is null ? ${r.name} : PkAttr.JoinValues(Values))`;
-            h.multi = { value: r.name };
+            if (a) { a.expr = `@(Values is null ? ${r.name} : null)`; out.attrs.push({ attr: 'values', expr: '@PkAttr.Json(Values)' }); }
+            h.multi = { value: `e.${vf.prop}` };
             if (out.field) {
                 declare({ name: 'ValuesExpression', kind: 'param', cs: `Expression<Func<${list}>>?`, doc: 'The expression that names the bound list (<c>@bind-Values</c> sets it); it names the EditContext field in place of ValueExpression.' });
                 out.field.values = 'ValuesExpression';
@@ -441,7 +443,7 @@ export function renderComponent(m, mappingName) {
         L.push(`    private async Task ${handlerName(h)}(${h.args} e)`, '    {');
         for (const u of h.updates) L.push(`        ${u.param} = ${u.assign};`);
         for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.param});`);
-        if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = PkAttr.SplitValues(${h.multi.value});`, '            await ValuesChanged.InvokeAsync(Values);', '        }');
+        if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = ${h.multi.value};`, '            await ValuesChanged.InvokeAsync(Values);', '        }');
         if (m.field && h.updates.some(u => u.param === m.field.param)) L.push('        NotifyFieldChanged();');
         for (const c of h.callbacks) {
             if (c.call === 'args') L.push(`        await ${c.name}.InvokeAsync(e);`);
