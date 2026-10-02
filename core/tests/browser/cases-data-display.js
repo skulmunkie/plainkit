@@ -273,6 +273,20 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: cell-<id>-<key> slots reach the inner table cell (also one added later), and column align and hidePhone pass through (#817)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"},{"key":"note","label":"Note","hidePhone":true}]}'><b slot="cell-1-sku">Custom one</b></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A', qty: 3, note: 'n' }, { id: 2, sku: 'B', qty: 4, note: 'm' }], total: 2 });
+        el.refresh();
+        const root = el.part('table').shadowRoot, td = (id, key) => root.querySelector(`tbody tr[data-pk-context="${id}"] td[data-key="${key}"]`);
+        await until(() => td(2, 'sku'), 'the rows');
+        const inside = (cell, node) => { const a = node.getBoundingClientRect(), b = cell.getBoundingClientRect(); return a.width > 0 && a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1; };
+        t.ok(inside(td(1, 'sku'), el.querySelector('b')), 'the slotted node renders inside its cell');
+        t.eq(td(2, 'sku').textContent, 'B', 'a row with no slot keeps the plain text');
+        const late = document.createElement('i'); late.slot = 'cell-2-sku'; late.textContent = 'Late'; el.append(late);
+        await until(() => inside(td(2, 'sku'), late), 'the later slot to render in its cell');
+        t.eq(td(1, 'qty').dataset.align, 'end', 'a number column aligns to the end'); t.ok(td(1, 'note').hasAttribute('data-hide-phone'), 'hidePhone reaches the cell');
+    }],
+
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;

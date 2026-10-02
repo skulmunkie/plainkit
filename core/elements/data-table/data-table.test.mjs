@@ -4,6 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './data-table.js';
 
+globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
+
 const fakeEl = tag => ({
     localName: tag, attrs: {}, dataset: {}, children: [], listeners: {},
     setAttribute(k, v) { this.attrs[k] = String(v); },
@@ -12,6 +14,8 @@ const fakeEl = tag => ({
     addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); },
     fire(type, e) { for (const fn of [...(this.listeners[type] ?? [])]) fn(e); },
     ownerDocument: { createElement: fakeEl },
+    requestUpdate() { this.updates = (this.updates ?? 0) + 1; },
+    remove() { this.gone = true; },
     set textContent(v) { this._t = v; }, get textContent() { return this._t; },
 });
 
@@ -19,6 +23,7 @@ const make = () => {
     const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
+        children = [];
         part(n) { return parts[n]; }
         get ownerDocument() { return { createElement: fakeEl }; }
         get shadowRoot() { return { querySelectorAll: () => [], matches: () => false }; }
@@ -29,6 +34,22 @@ const make = () => {
 };
 const rowsOf = n => ({ rows: Array.from({ length: n }, (_, i) => ({ id: i + 1 })), total: n });
 const inner = detail => ({ detail, stopPropagation() {} });
+
+test('the host\'s cell-<id>-<key> slots are re-slotted into the inner pk-table (only those), and rebuilt when they change (#817)', () => {
+    const { el, parts } = make();
+    el.children = [{ slot: 'cell-1-name' }, { slot: 'actions' }, { slot: 'cell-2-name' }];
+    el.forwardSlots();
+    const slots = () => parts.table.children.filter(c => c.localName === 'slot');
+    assert.deepEqual(slots().map(s => [s.name, s.slot]), [['cell-1-name', 'cell-1-name'], ['cell-2-name', 'cell-2-name']]);
+    const first = slots(), updates = parts.table.updates;
+    el.forwardSlots();
+    assert.equal(parts.table.updates, updates, 'unchanged: nothing rebuilt');
+    el.children = [{ slot: 'cell-3-name' }];
+    el.forwardSlots();
+    assert.ok(first.every(s => s.gone), 'stale forwards are removed');
+    assert.deepEqual(slots().filter(s => !s.gone).map(s => s.name), ['cell-3-name']);
+    assert.equal(parts.table.updates, updates + 1, 'the table is asked to redraw so it finds them');
+});
 
 test('filters map field types to controls, add an Any option to a select, and rebuild only when config.filters changes', () => {
     const { el, parts } = make();
