@@ -5,6 +5,45 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-02
+
+### Breaking
+
+- `pk-list-page` no longer exposes the shadow parts `filters`, `pagination` and `state`: the list, its search, paging and states now live in the new `pk-data-table` inside it. `part('filters')`, `part('pagination')` and `part('state')` in script still reach them, but CSS that styled `pk-list-page::part(filters)`, `::part(pagination)` or `::part(state)` no longer matches; style the `pk-data-table` parts or the elements through their own tokens instead. `part('table')` is now the `pk-data-table`. (#801)
+
+### Added
+
+- PkCardMenu puts a "..." (or settings) button in a card header that opens a menu of PkMenuItem actions, replacing the hand-assembled PkDropdown, icon button and items. (#728)
+- PkFieldKind.Combobox renders a PkCombobox in a PkFieldGroup, with static Options, an async Search callback (a newer query supersedes an older one) and Free text. (#753)
+- The Blazor form controls (PkInput, PkTextarea, PkSelect, PkCombobox, PkCheckbox, PkSwitch, PkRadioGroup, PkRange, PkRating, PkOtpInput, PkTagInput, PkColourInput) take part in an EditForm: @bind-Value (or @bind-Checked) also supplies a ValueExpression/CheckedExpression, so a change marks the field modified in the EditContext and a field with validation messages shows the element as invalid. Generated from the mapping marker "field": true. (#753)
+- `PkDataTable` can select rows: `Selectable`, `Selected` (two-way) and `OnSelect` keep the ids across paging and search, and selecting a full page offers "Select all 112", which raises `OnSelect` with `Scope` `all` and the query to run the bulk action against (no ids of other pages are sent). (#798)
+- New component `pk-data-table`: a paged, searchable, sortable `pk-table` that owns its query, its `load(query)` callback and its loading, error (with Retry) and empty states, so a stale response never draws. With `selectable`, the selection survives paging and searching: `selected` holds the ids, `selectScope` is `page` or `all` (the "Select all N rows" choice), and one `pk-select` event carries the ids, the scope and the current query, so a bulk action on scope `all` runs against that query on the server. `pk-list-page` is now built on it with the same output and behaviour. The Blazor mapping `data-table` is added; the `PkDataTable` component itself follows when `PkDataList` is renamed. (#801)
+- `pk-table` has a selection scope for paged lists: `total` (rows matching the query across all pages) makes the bulk bar offer a "Select all N rows" button once the loaded rows are selected, `selectScope` (`page` or `all`) says which is meant, and the new `pk-select-all` event carries `{ scope, count }` without ids so the host expands "all" by asking its data source again. A `manual` table now keeps the ids of other pages when its rows are replaced by paging, search or sort. Blazor `PkTable` gets `SelectAllTotal`, `SelectScope` and `OnSelectAll`. (#801)
+- `pk-data-table` has a `bulk` slot for bulk-action buttons, shown in the selection bar while rows are selected. (#817)
+- `pk-data-table` passes `load(query, { signal })` an `AbortSignal` that aborts when a newer request replaces the one in flight or the element leaves the page; the aborted request shows no error. (#817)
+- `pk-data-table` takes `cell-<rowId>-<key>` children as custom cell content, the same slots `pk-table` has, and passes column options (`align`, `type`, `hidePhone`) through to its table. (#817)
+- `pk-data-table` config takes `pageSizeOptions`, an initial `sort` and `sortDir`, `searchable`, `searchLabel`, `searchDebounce`, `pagerLabel`, `label` and `caption`, passed to its search box, pager and table; a config that arrives after the first draw still sets the initial page size and sort. (#817)
+- `pk-data-table` takes an `empty` slot for its own empty content, `config.noResults` for the empty state while a search or filter is active, `config.loadError` for the error heading, and raises `pk-load-error` when `load()` rejects. (#817)
+- `pk-data-table` takes `cards`, `striped`, `density`, `maxHeight` and `stickyHeader` and passes them to its table, with the same meaning as on `pk-table`. (#817)
+- `pk-data-table` has a `clickable` prop (rows are tab stops and raise `pk-row-click` with the row id, no callback needed) and a `currentRow` prop that marks the row open elsewhere. (#817)
+- Blazor: the AbortSignal an element passes to a callback property (`load(query, { signal })` on `pk-data-table`) now reaches .NET as a `CancellationToken`, so a superseded request, or one still running when the element leaves the page, is cancelled on the server. This holds for every callback slot; `PkDataTable.Load` already received the token in `PkListRequest.CancellationToken`. (#830)
+
+### Changed
+
+- Blazor: `PkDataTable<TItem>` is a thin typed wrapper over `pk-data-table` and replaces `PkDataList<TItem>`, which stays for one release as an `[Obsolete]` alias (rename it; parameters and `Load` are the same, `CurrentId` is `CurrentRow` and tints the whole row). The element now owns the query, paging, states and selection, so the component's own state machine is gone. "Select all N rows" is the query: `OnSelect` raises `Scope` `all` with the search and sort (`args.ToRequest()`) and `Selected` holds only the loaded page; `LoadAllIds` is removed (on the alias it is obsolete and ignored), so run the bulk action on the server against the query. (#801)
+- `pk-combobox` typeahead now follows `pk-dropdown` and `pk-select`: a repeated letter ("aa") cycles through the options starting with that letter, and a multi-letter buffer with no option highlighted starts at the first option instead of the last. (#801)
+- `PkCard`, `PkStat`, `PkEmptyState` and `PkFieldList` are generated from their mappings like the other wrappers; the hand-written razor and `PkStatTone` in `PkEnums.cs` are gone. Parameter names are unchanged. Two small typing differences: `PkStat.Tone` is nullable (unset sends no attribute) and `PkStat.OnClick` is an `EventCallback<PkActivateEventArgs>` (a lambda still binds; a non-generic `EventCallback` value no longer does). (#805)
+
+### Fixed
+
+- A disabled pk-input, pk-textarea, pk-select or pk-unit-input holding a value its constraints reject (for example a step mismatch) no longer throws from setValidity on every update. (#797)
+- A multiple pk-select and pk-tag-input keep values that contain a comma: the comma-joined value escapes it as a backslash and a comma, so such values survive set, get and change events. Values without a comma or backslash are unchanged. (#803)
+- In dark mode the pk-stat label and the pk-table header cells now use the stronger muted text token and clear 4.5:1 contrast on their surfaces, and a clickable pk-step keeps a 44px touch target in both directions on a phone. (#810)
+- The pk-table-filters search box and filter trigger are now pills (fully rounded ends) at any width instead of an ellipse. (#815)
+- A data table whose current page is past the last page after a reload (rows deleted) moves to the last page with one more load instead of showing the empty state. (#829)
+- `pk-data-table` keeps its search box, filters and actions shown and focused while a page loads, so typing is no longer cut off after the first debounce, and a search with no results keeps them above the empty state so the search can be edited or cleared. (#836)
+- pk-dropdown returns focus to its trigger when the trigger is wrapped (a PkDropdown TriggerContent, so PkCardMenu): after Escape or choosing an item the button is focused again instead of the page body. A long pk-card heading now wraps beside the header actions, which stay at the inline end of the first row, instead of dropping the actions under the heading. (#837)
+
 ## [0.10.0] - 2026-10-01
 
 ### Breaking
