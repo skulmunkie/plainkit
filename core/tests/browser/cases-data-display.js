@@ -921,4 +921,38 @@ export const dataDisplayCases = [
         el.setAttribute('allow-same-origin', ''); await t.settle();
         t.eq(frame().getAttribute('sandbox'), 'allow-scripts allow-same-origin', 'allow-same-origin opts the combination back in');
     }],
+
+    ['contrast (dark, #810): a stat label on its tile and a table header on the flyout surface clear 4.5:1', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '800px'; f.style.height = '300px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc('<pk-stat id="s" label="Open POs" value="12"></pk-stat><pk-table id="t" label="Rows" columns=\'[{"key":"a","label":"File"}]\' rows=\'[{"id":1,"a":"x"}]\'></pk-table>', { theme: 'dark' }); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+        const w = f.contentWindow, doc = f.contentDocument;
+        await until(() => w.customElements.get('pk-stat') && w.customElements.get('pk-table') && doc.getElementById('s')?.shadowRoot?.querySelector('[part=label]') && doc.getElementById('t')?.shadowRoot?.querySelector('th'), 'the stat and the table');
+        const rgb = c => (/rgba?\(([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)/.exec(c) || []).slice(1, 4).map(Number);
+        const lum = ([r, g, b]) => { const k = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * k(r) + 0.7152 * k(g) + 0.0722 * k(b); };
+        const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+        const cs = (el, p) => w.getComputedStyle(el)[p];
+        const tile = doc.getElementById('s').shadowRoot.querySelector('[part=tile]'), label = doc.getElementById('s').shadowRoot.querySelector('[part=label]');
+        const r1 = ratio(rgb(cs(label, 'color')), rgb(cs(tile, 'backgroundColor')));
+        t.ok(r1 >= 4.5, `the stat label is ${r1.toFixed(2)}:1 on its tile`);
+        const th = doc.getElementById('t').shadowRoot.querySelector('th'), probe = doc.createElement('div');
+        probe.style.backgroundColor = 'var(--color-flyout)'; doc.body.append(probe);
+        const r2 = ratio(rgb(cs(th, 'color')), rgb(cs(probe, 'backgroundColor')));
+        t.ok(r2 >= 4.5, `a table header is ${r2.toFixed(2)}:1 on the flyout surface`);
+    }],
+
+    ['step (375px): a clickable step keeps the touch target in both directions on a phone', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '200px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc('<pk-stepper clickable><pk-step>One</pk-step><pk-step>Two</pk-step><pk-step>Three</pk-step><pk-step>Four</pk-step><pk-step>Five</pk-step><pk-step>Six</pk-step><pk-step>Seven</pk-step></pk-stepper>'); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+        const w = f.contentWindow, doc = f.contentDocument;
+        await until(() => w.customElements.get('pk-step') && doc.querySelector('pk-step')?.shadowRoot?.querySelector('[part=marker]'), 'the steps'); await wait(300);
+        t.eq(w.innerWidth, 375);
+        const touch = parseFloat(w.getComputedStyle(doc.documentElement).getPropertyValue('--touch-target')) || 44;
+        for (const s of doc.querySelectorAll('pk-step')) { const r = s.getBoundingClientRect(); t.ok(r.width >= touch - 0.5 && r.height >= touch - 0.5, `a step is ${Math.round(r.width)}x${Math.round(r.height)}, at least ${touch}px`); }
+    }],
 ];
