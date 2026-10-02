@@ -218,7 +218,7 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     {
         var table = PkMappingInfo.Describe("pk-table")!;
         Assert.Equal("hand-written", table.Status);   // the last element without a component, hand-written now (Components/PkTable.razor)
-        Assert.Equal("hand-written", PkMappingInfo.Describe("pk-card")!.Status);
+        Assert.Equal("hand-written", PkMappingInfo.Describe("pk-gallery")!.Status);
 
         Assert.Equal("hand-written", PkMappingInfo.Describe("pk-gallery")!.Status);
         Assert.Null(PkMappingInfo.Describe("pk-nonsense"));

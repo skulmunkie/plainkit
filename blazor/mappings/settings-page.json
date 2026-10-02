@@ -1,6 +1,7 @@
 {
   "component": "PkSettingsPage",
   "existing": true,
+  "existingReason": "callback: Save runs through PkCallbackSlot",
   "params": [
     {
       "name": "Config",

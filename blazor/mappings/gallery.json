@@ -1,6 +1,7 @@
 {
   "component": "PkGallery",
   "existing": true,
+  "existingReason": "server: ensures the SDK runtime is loaded and memoises the Sections JSON per list",
   "params": [
     {
       "name": "Kind",

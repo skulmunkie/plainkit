@@ -1,6 +1,7 @@
 {
   "component": "PkDock",
   "existing": true,
+  "existingReason": "callback: ConfirmLayout runs through PkCallbackSlot",
   "params": [
     {
       "name": "Layout",

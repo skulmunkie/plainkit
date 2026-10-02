@@ -1,6 +1,7 @@
 {
   "component": "PkToolPage",
   "existing": true,
+  "existingReason": "callback: Run runs through PkCallbackSlot",
   "params": [
     {
       "name": "Config",

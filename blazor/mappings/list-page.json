@@ -1,6 +1,7 @@
 {
   "component": "PkListPage",
   "existing": true,
+  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics",
   "params": [
     {
       "name": "Config",

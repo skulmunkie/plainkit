@@ -1,6 +1,7 @@
 {
   "component": "PkTable",
   "existing": true,
+  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON",
   "params": [
     {
       "name": "Columns",
