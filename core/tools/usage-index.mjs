@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { scanHtml } from './strict/scanners/html.mjs';
 import { scanJs } from './strict/scanners/js.mjs';
 import { elementFolders } from './usage.mjs';
-import { TIER_FOLDERS } from './element-folders.mjs';
+import { TIER_FOLDERS, elementOfPath } from './element-folders.mjs';
 
 const coreRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(coreRoot, '..');
@@ -87,9 +87,10 @@ export function classify(relPath) {
     if (/\.test\.m?js$/.test(relPath)) return null; // not scanned: "non-test" per the issue
 
     let m;
-    if ((m = /^core\/elements\/([a-z][a-z0-9-]*)\/\1\.meta\.json$/.exec(relPath))) return { category: 'gallery', owner: m[1] };
-    if ((m = /^core\/(?:elements|components|pages|shells)\/([a-z][a-z0-9-]*)\/\1\.(html|js)$/.exec(relPath))) return { category: 'elements', owner: m[1] };
-    if (/^core\/elements\//.test(relPath)) return null; // generated (*.element.js) or anything else in the folder
+    const tiers = TIER_FOLDERS.join('|');
+    if ((m = new RegExp(`^core/(?:${tiers})/([a-z][a-z0-9-]*)/\\1\\.meta\\.json$`).exec(relPath))) return { category: 'gallery', owner: m[1] };
+    if ((m = new RegExp(`^core/(?:${tiers})/([a-z][a-z0-9-]*)/\\1\\.(html|js)$`).exec(relPath))) return { category: 'elements', owner: m[1] };
+    if (elementOfPath(relPath)) return null; // generated (*.element.js) or anything else in an element folder
 
     if (/^core\/modules\//.test(relPath) && /\.(html|js)$/.test(relPath)) return { category: 'site', owner: null };
 

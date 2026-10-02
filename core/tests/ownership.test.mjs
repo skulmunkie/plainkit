@@ -10,7 +10,7 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { listElementFolders, elementFile } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -223,7 +223,7 @@ class Stub {
 }
 
 async function make(name, props) {
-    const mixin = (await import(`../elements/${name}/${name}.js`)).default;
+    const mixin = (await import(pathToFileURL(elementFile(name, 'js')).href)).default;
     const el = new (mixin(Stub))(props);
     const call = (fn, ...a) => el[fn]?.(...a);
     return {

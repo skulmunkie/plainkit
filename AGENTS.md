@@ -41,7 +41,7 @@ option or workflow appears in the docs, the gallery samples and the skills' work
 ### Reviewing what it looks like
 
 Green CI does not say a layout looks right (the record header in #311 and a chevron inside a breadcrumb link merged green and were wrong on screen). A change to how an element **looks**
-(`core/elements/**/*.css`, `*.html`, the layout or tokens, Blazor razor markup) therefore also needs:
+(`core/{elements,components,pages,shells}/**/*.css`, `*.html`, the layout or tokens, Blazor razor markup) therefore also needs:
 
 - **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
   into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).

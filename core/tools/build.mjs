@@ -211,11 +211,11 @@ export const PK_VERSION = '${version}';
     // The conformance-audit CLI (core/package.json's `bin`, issue #629) and the pure strict-module engine it is
     // built on (#605) ship as plain .mjs source, copied verbatim so the folder layout (and therefore every
     // relative import between them) is identical in dist/: a consumer's `npx plainkit audit` runs the same code
-    // this repository tests. Test files never ship.
+    // this repository tests. Test files never ship, and neither does audit/data.mjs: the build step that reads the repository and imports ../element-folders.mjs, which is not in the package (#767).
     for (const sub of ['tools/audit', 'tools/strict']) {
         for (const f of fs.readdirSync(path.join(root, sub), { recursive: true })) {
             const src = path.join(root, sub, f);
-            if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, read(src));
+            if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs') && !(sub === 'tools/audit' && f === 'data.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, read(src));
         }
     }
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).

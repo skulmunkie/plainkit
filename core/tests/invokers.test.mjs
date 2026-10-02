@@ -105,8 +105,9 @@ test('elements install the openers on demand: each connecting root is wired once
 
 test('the dialog, drawer and popover sources each call initInvokers from connected()', async () => {
     const { readFileSync } = await import('node:fs');
+    const { elementFile } = await import('../tools/element-folders.mjs');
     for (const name of ['dialog', 'drawer', 'popover']) {
-        const src = readFileSync(new URL(`../elements/${name}/${name}.js`, import.meta.url), 'utf8');
+        const src = readFileSync(elementFile(name, 'js'), 'utf8');
         assert.match(src, /initInvokers\(this\.ownerDocument\)/, `pk-${name} installs the openers`);
     }
 });

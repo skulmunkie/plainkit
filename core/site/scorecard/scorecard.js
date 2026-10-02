@@ -8,6 +8,7 @@ import { SCORING, TEXT_PAIRS, PRIMARY_CSS, BUDGETS } from './scoring.data.js';
 import { loadAllElements } from '../gallery/gallery.data.js';
 import { sampleDoc } from '../gallery/frame.js';
 import { mountScorecard } from '../../modules/scorecard/scorecard.js';
+import { elementCssPaths } from './css-paths.js';
 
 const here = path => new URL(path, import.meta.url).href;
 
@@ -18,7 +19,7 @@ const elementTargets = () => ELEMENTS.map(m => ({ id: m.tag, name: m.title, kind
 // The page-level sheets and every element's css.
 async function stylesheetFiles() {
     const registry = (await import('../../elements/registry.js')).default;
-    return Object.fromEntries([...PRIMARY_CSS, ...Object.keys(registry).map(tag => `elements/${tag.slice(3)}/${tag.slice(3)}.css`)].map(n => [n, here(`../../${n}`)]));
+    return Object.fromEntries([...PRIMARY_CSS, ...Object.keys(elementCssPaths(registry))].map(n => [n, here(`../../${n}`)]));
 }
 const SCRIPTS = ['theme', 'colour', 'quality', 'scoring', 'audit', 'plainkit', 'code-explorer/element', 'code-explorer/providers', 'code-explorer/tokenize'];
 const scriptFiles = () => Object.fromEntries(SCRIPTS.map(n => [n, here(`../../js/${n}.js`)]));
