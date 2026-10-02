@@ -3,6 +3,9 @@
 // (STANDARDS "Ownership and reactivity"), so data options never get written there and instead go directly to the shadow-side control they already own.
 export const flagsOf = v => { const o = {}; for (const k in v) o[k] = v[k]; return o; };
 // The selected values of a select-like list of {value, selected} options.
+// Comma-joined multi-value encoding: a comma inside a value is written \, and a backslash \\, only when the value needs it, so values without commas or backslashes are unchanged.
+export const joinValues = list => list.map(v => (/,|\\[\\,]|\\$/.test(v) ? v.replace(/[\\,]/g, '\\$&') : v)).join(',');
+export const splitValues = text => { const out = []; let cur = ''; const s = String(text ?? ''); for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '\\' && (s[i + 1] === ',' || s[i + 1] === '\\')) cur += s[++i]; else if (c === ',') { out.push(cur); cur = ''; } else cur += c; } out.push(cur); return out; };
 export const selectedValues = options => options.filter(o => o.selected).map(o => o.value);
 // One option entry (a plain value, or { value, label, disabled }) as an <option> element.
 export function buildOption(doc, o) {
@@ -33,7 +36,7 @@ export default Base => class extends Base {
         this.watchSlot('', () => { this.$opts = true; this.requestUpdate(); });
         this.$obs = new MutationObserver(() => { this.$opts = true; this.requestUpdate(); });
         this.$obs.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'selected', 'disabled', 'label'] });
-        s.addEventListener('change', () => { this.$typing = true; this.value = this.multiple ? selectedValues([...s.options]).join(',') : s.value; this.dispatchEvent(new Event('change', { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); });
+        s.addEventListener('change', () => { this.$typing = true; this.value = this.multiple ? joinValues(selectedValues([...s.options])) : s.value; this.dispatchEvent(new Event('change', { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); });
         s.addEventListener('input', () => this.dispatchEvent(new Event('input', { bubbles: true, composed: true })));
         this.$opts = true;
     }
@@ -51,7 +54,7 @@ export default Base => class extends Base {
             this.$pushed = false;
         }
         if (!this.$typing) {
-            const wanted = this.multiple ? this.value.split(',') : [this.value];
+            const wanted = this.multiple ? splitValues(this.value) : [this.value];
             if ([...s.options].some(o => wanted.includes(o.value))) for (const o of s.options) o.selected = wanted.includes(o.value);
             this.$pushed = true;
         }

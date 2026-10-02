@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTags, addTags } from './tag-input.js';
+import { parseTags, addTags, joinValues, splitValues } from './tag-input.js';
 
 test('parseTags splits on separators and newlines, trims and drops empties; special characters in separators are safe', () => {
     assert.deepEqual(parseTags(' a, b ,,c\nd'), ['a', 'b', 'c', 'd']);
@@ -13,4 +13,9 @@ test('addTags ignores case-insensitive duplicates, honours the limit, and explai
     assert.deepEqual(r.tags, ['red', 'green']);
     assert.deepEqual(r.refused, [{ tag: 'Red', why: 'duplicate' }, { tag: 'blue', why: 'limit' }]);
     assert.deepEqual(addTags(['a'], ['A'], { unique: false }).tags, ['a', 'A']);
+});
+
+test('tag lists round trip through the comma-joined value, commas inside a tag included', () => {
+    assert.deepEqual(splitValues(joinValues(['a,b', 'c'])), ['a,b', 'c']);
+    assert.equal(joinValues(['red', 'green']), 'red,green');
 });
