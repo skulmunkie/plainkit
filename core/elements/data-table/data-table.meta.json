@@ -3,7 +3,7 @@
   "title": "Data table",
   "group": "Data display",
   "tier": "component",
-  "summary": "A paged, searchable, sortable table that owns its data flow: a pk-table (manual), a pk-table-filters search/filter panel and a pk-pagination footer, with the query, the load and the states in one place. Set the load(query) callback as a property (business logic, never config data): it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page. A loading state shows while it is in flight, a rejection shows the built-in error state with Retry, zero rows show the configured empty state, and an older response arriving after a newer request is dropped. With selectable set, the selection survives paging and searching: selected holds the chosen ids, selectScope is 'page' (those ids) or 'all' (the reader chose Select all N rows of the query; the ids stay the loaded page, never every id). Each change raises pk-select with the ids, the scope and the current query, so for scope 'all' the host runs its bulk action against that query on the server. A search or filter change narrows scope 'all' back to 'page'. rowHref(row), also a callback property, makes rows clickable and is called with the row. pk-list-page and the lookup picker are built on this element.",
+  "summary": "A paged, searchable, sortable table that owns its data flow: a pk-table (manual), a pk-table-filters search/filter panel and a pk-pagination footer, with the query, the load and the states in one place. Set the load(query) callback as a property (business logic, never config data): it receives { page, pageSize, sort, sortDir, search, filters } and, as a second argument, { signal }, an AbortSignal that aborts when a newer request replaces it or the element leaves the page (pass it to fetch), and returns (or resolves to) { rows, total } for that page. A loading state shows while it is in flight, a rejection shows the built-in error state with Retry, zero rows show the configured empty state, and an older response arriving after a newer request is dropped. With selectable set, the selection survives paging and searching: selected holds the chosen ids, selectScope is 'page' (those ids) or 'all' (the reader chose Select all N rows of the query; the ids stay the loaded page, never every id). Each change raises pk-select with the ids, the scope and the current query, so for scope 'all' the host runs its bulk action against that query on the server. A search or filter change narrows scope 'all' back to 'page'. rowHref(row), also a callback property, makes rows clickable and is called with the row. pk-list-page and the lookup picker are built on this element.",
   "props": [
     {
       "name": "config",
@@ -39,6 +39,42 @@
       "default": "",
       "reflect": false,
       "description": "The id (rowKey value) of the row that is open elsewhere, for example in a detail pane: pk-table tints it, marks it with an accent bar and gives it aria-current. The host sets it, from the route or from pk-row-click."
+    },
+    {
+      "name": "cards",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows become stacked cards on a phone, as pk-table's cards."
+    },
+    {
+      "name": "striped",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Alternate row tint, as pk-table's striped."
+    },
+    {
+      "name": "density",
+      "type": "enum",
+      "default": "default",
+      "values": ["default", "compact", "comfortable"],
+      "reflect": true,
+      "description": "Row height, as pk-table's density."
+    },
+    {
+      "name": "maxHeight",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A CSS length that caps the table's height (the rows scroll inside it), as pk-table's maxHeight; combine with stickyHeader."
+    },
+    {
+      "name": "stickyHeader",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader."
     },
     {
       "name": "selected",

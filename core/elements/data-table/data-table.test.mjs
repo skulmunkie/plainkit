@@ -213,6 +213,32 @@ test('config feeds the pager, search, table labels and the initial sort and page
     assert.equal(queries.at(-1).sort, 'name', 'once the reader has moved, the config no longer resets the query');
 });
 
+test('load gets an AbortSignal that a newer request (or leaving the page) aborts; the aborted rejection draws nothing (#817)', async () => {
+    const { el, parts, events } = make();
+    const calls = [];
+    el.load = (q, opts) => new Promise((ok, no) => { calls.push(opts.signal); opts.signal.addEventListener('abort', () => no(new DOMException('aborted', 'AbortError'))); calls.ok = ok; });
+    const first = el.refresh(), second = el.refresh();
+    assert.equal(calls[0].aborted, true, 'the first request was aborted by the second');
+    assert.equal(calls[1].aborted, false);
+    await first;
+    assert.equal(parts.state.children[0].localName, 'pk-skeleton', 'the abort shows no error');
+    assert.equal(events.length, 0, 'and raises no pk-load-error');
+    calls.ok({ rows: [{ id: 1 }], total: 1 });
+    await second;
+    assert.equal(parts.table.hidden, false);
+    el.refresh();
+    el.disconnected();
+    assert.equal(calls[2].aborted, true, 'leaving the page aborts the one in flight');
+});
+
+test('presentation props pass straight to the table (#817)', async () => {
+    const { el, parts } = make();
+    el.load = async () => rowsOf(1);
+    Object.assign(el, { cards: true, striped: true, density: 'compact', maxHeight: '10rem', stickyHeader: true });
+    await el.refresh();
+    assert.deepEqual(['cards', 'striped', 'density', 'maxHeight', 'stickyHeader'].map(k => parts.table[k]), [true, true, 'compact', '10rem', true]);
+});
+
 test('selectable: the table gets selectable, rowKey and the total; not selectable: no total (the scope helper is never loaded)', async () => {
     const { el, parts } = make();
     el.load = async () => ({ rows: [{ id: 1 }], total: 40 });

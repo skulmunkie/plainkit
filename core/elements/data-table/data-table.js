@@ -35,7 +35,7 @@ export default Base => class extends Base {
         this.buildFilters();
         this.refresh();
     }
-    disconnected() { this.$mo?.disconnect(); }
+    disconnected() { this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
         if (names.join() === have.map(c => c.name).join()) return;
@@ -47,7 +47,7 @@ export default Base => class extends Base {
         if (!this.$w) return;
         // A config that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
         if (name === 'config') { if (!this.$touched) this.$query = null; this.buildFilters(); this.refresh(); }
-        else if (name === 'selected' || name === 'selectScope' || name === 'selectable' || name === 'rowKey' || name === 'clickable' || name === 'currentRow') this.sync();
+        else this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
@@ -87,6 +87,7 @@ export default Base => class extends Base {
         table.selectable = this.selectable;
         table.selected = this.selected ?? [];
         table.selectScope = this.selectScope;
+        for (const k of ['cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
     // Runs load(query) for the current page/sort/filter/search and draws the result: a loading state while it is in flight, an error state
@@ -96,12 +97,15 @@ export default Base => class extends Base {
         const table = this.part('table'), state = this.part('state'), q = this.query;
         this.sync();
         const token = (this.$token = {});
+        // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.
+        this.$abort?.abort();
+        const { signal } = (this.$abort = new AbortController());
         table.hidden = true;
         showState(state, 'loading', { label: 'Loading' });
         if (typeof this.load !== 'function') { showState(state, 'empty', this.config?.empty); return; }
         let result;
         try {
-            result = await this.load(q);
+            result = await this.load(q, { signal });
         } catch (err) {
             if (this.$token !== token) return;
             showState(state, 'error', { error: err, retry: () => this.refresh() });
