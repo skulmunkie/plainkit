@@ -28,10 +28,10 @@ export const failureText = err => ((err && err.userFacing === true) || isLogEnab
 // A boundary state: a pk-empty-state whose heading is also the page's one level 1 title (#859). app.js focuses `h1,pk-heading[level="1"]` after a route change, and the
 // empty state's own heading lives in its shadow tree, out of that query's reach, so the same text goes in the empty state's heading slot as a focusable pk-heading level 1
 // (the way page-shell.js titleHeading does for the page types). The slot replaces the attribute's text, so the heading is drawn once; level 1 makes the heading wrapper agree.
-const titled = (doc, attrs) => {
-    const state = h(doc, 'pk-empty-state', { ...attrs, level: 1 });
-    state.append(h(doc, 'pk-heading', { slot: 'heading', level: 1, variant: 'h3', tabindex: -1 }, attrs.heading));
-    return state;
+const titled = (doc, a) => {
+    const s = h(doc, 'pk-empty-state', { ...a, level: 1 });
+    s.append(h(doc, 'pk-heading', { slot: 'heading', level: 1, variant: 'h3', tabindex: -1 }, a.heading));
+    return s;
 };
 
 // `rendered()` is called after the boundary drew something new (so the host can load the elements it uses: none is created defined).
