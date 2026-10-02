@@ -1,5 +1,6 @@
 import { place, autoUpdate, onOutside, unplace } from '../../js/positioning.js';
 import { moveFocus } from '../../js/menu-logic.js';
+import { triggerControl, focusTrigger } from '../../js/overlay.js';
 
 // pk-dropdown: a menu opened from a slotted trigger. Items are pk-menu-item children. The menu layer is fixed and placed beside the trigger.
 const rows = el => el.slotted().filter(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.type) && !i.disabled);
@@ -19,20 +20,13 @@ export default Base => class extends Base {
     }
     disconnected() { this.stop(); }
     get trigger() { return this.slotted('trigger')[0]; }
-    aria2() { const t = this.trigger; if (t) { t.setAttribute('aria-haspopup', 'menu'); t.setAttribute('aria-expanded', String(this.open)); } }
+    aria2() { const t = triggerControl(this.trigger); if (t) { t.setAttribute('aria-haspopup', 'menu'); t.setAttribute('aria-expanded', String(this.open)); } }
     changed(name) { if (name === 'open') this.apply(); }
     show() { this.open = true; }
     hide() { this.open = false; }
     request(reason) {
         if (reason === null) { this.open = true; return; }
-        if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') this.focusTrigger(); }
-    }
-    // The slotted trigger may be a wrapper (a display: contents span, as the Blazor wrapper adds), which cannot take focus: give it to the control inside.
-    focusTrigger() {
-        const t = this.trigger; if (!t) return;
-        const held = () => t.matches?.(':focus-within') !== false;
-        t.focus({ preventScroll: true });
-        if (!held()) for (const d of t.querySelectorAll('*')) { d.focus({ preventScroll: true }); if (held()) return; }
+        if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') focusTrigger(this.trigger); }
     }
     apply() {
         const menu = this.part('menu');

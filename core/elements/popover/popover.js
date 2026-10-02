@@ -1,5 +1,6 @@
 import { initInvokers } from '../../js/invokers.js';
 import { place, autoUpdate, onOutside } from '../../js/positioning.js';
+import { triggerControl, focusTrigger } from '../../js/overlay.js';
 
 // Popover logic: the open/close state machine. Pure, so it can be tested without a DOM.
 export const HOVER_DELAY = 200;
@@ -36,7 +37,7 @@ export default Base => class extends Base {
     }
     disconnected() { this.stop(); clearTimeout(this.$t); }
     get triggerEl() { return this.slotted('trigger')[0]; }
-    aria2() { this.triggerEl?.setAttribute('aria-expanded', String(this.open)); this.triggerEl?.setAttribute('aria-haspopup', 'dialog'); }
+    aria2() { const t = triggerControl(this.triggerEl); t?.setAttribute('aria-expanded', String(this.open)); t?.setAttribute('aria-haspopup', 'dialog'); }
     changed(name) { if (name === 'open') this.apply(); }
     show() { this.open = true; }
     hide() { this.open = false; }
@@ -45,7 +46,7 @@ export default Base => class extends Base {
         if (!this.emit('pk-close', { reason })) return;
         const had = this.shadowRoot.contains(this.shadowRoot.activeElement) || this.contains(document.activeElement);
         this.open = false;
-        if (had && reason !== 'outside' && reason !== 'blur') this.triggerEl?.focus({ preventScroll: true });
+        if (had && reason !== 'outside' && reason !== 'blur') focusTrigger(this.triggerEl);
     }
     apply() {
         this.stop(); this.aria2();

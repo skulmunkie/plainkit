@@ -749,3 +749,23 @@ overlaysCases.push(
         t.ok(!el.open, 'closed'); t.eq(deepActive(), inner, 'focus is back on the real button, not the body');
     }],
 );
+
+// Issues 839 and 840: a trigger slot that holds a wrapper (the span Blazor adds) must still give focus back, and carry aria-haspopup/aria-expanded, on the real control inside it.
+overlaysCases.push(
+    ['popover with a wrapper-span trigger: Escape returns focus to the button inside it (issue 839)', async t => {
+        const el = await t.mount('<pk-popover heading="Info"><span slot="trigger" class="u-contents"><button>Info</button></span><button id="in">Inside</button></pk-popover>');
+        const btn = el.querySelector('span button'); btn.focus(); btn.click(); await t.settle(); t.ok(el.open, 'opens');
+        el.querySelector('#in').focus();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await t.settle();
+        t.ok(!el.open, 'closed'); t.eq(document.activeElement, btn, 'focus is back on the real button, not the body');
+    }],
+    ['dropdown and popover with a wrapper-span trigger: aria-haspopup and aria-expanded sit on the real control (issue 840)', async t => {
+        const host = await t.mount('<div><pk-dropdown><span slot="trigger" class="u-contents"><button>Actions</button></span><pk-menu-item>Edit</pk-menu-item></pk-dropdown><pk-popover><span slot="trigger" class="u-contents"><button>Info</button></span>Body</pk-popover></div>');
+        for (const [el, popup] of [[host.querySelector('pk-dropdown'), 'menu'], [host.querySelector('pk-popover'), 'dialog']]) {
+            const btn = el.querySelector('button'), wrap = el.querySelector('span');
+            t.eq(btn.getAttribute('aria-haspopup'), popup, `${el.localName}: haspopup on the button`); t.eq(btn.getAttribute('aria-expanded'), 'false', `${el.localName}: collapsed on the button`);
+            t.ok(!wrap.hasAttribute('aria-haspopup') && !wrap.hasAttribute('aria-expanded'), `${el.localName}: none on the wrapper`);
+            el.open = true; await t.settle(); t.eq(btn.getAttribute('aria-expanded'), 'true', `${el.localName}: expanded on the button`);
+        }
+    }],
+);
