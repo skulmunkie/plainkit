@@ -3,7 +3,7 @@
 // arrow keys), and swaps the active cell's content for an editor while it is edited. The edit state lives here and is drawn again on each render, so a render never loses a draft.
 // A commit raises the cancelable pk-cell-edit; unless the host cancels it the table then holds the new value in a copy of its rows (the host owns them after the event).
 
-import { sheetFor } from './element.js';
+import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 import { keyStep, stepIndex } from './roving.js';
 
 const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
@@ -107,7 +107,7 @@ function begin(t, td, draft) {
     const s = st(t), { id, key: k } = at(td), c = col(t, k);
     if (slot(td)) return void control(td)?.focus();
     if (!c.editor) return;
-    const row = t.view[t.ids().indexOf(id)], v = row?.[k];
+    const v = rowAt(t.view, t.ids(), id)?.[k];
     s.a = { id, key: k }; s.edit = { id, key: k, draft: draft ?? String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
 }
 
