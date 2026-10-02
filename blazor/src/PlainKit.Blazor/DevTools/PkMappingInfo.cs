@@ -96,6 +96,13 @@ public static class PkMappingInfo
                 if (changeEvent is not null) parameters.Add(new(name + "Changed", "event", $"EventCallback<{type}>", null, false, changeEvent, reason));
                 if (model is { } fm && Str(fm, "prop") == prop && fm.TryGetProperty("field", out var fld) && fld.ValueKind == JsonValueKind.True)
                     parameters.Add(new(name + "Expression", "parameter", $"Expression<Func<{type}>>", null, false, null, reason));
+                // "multi": the typed list form of the model prop (Values, ValuesChanged and, for a form control, ValuesExpression).
+                if (model is { } mm && Str(mm, "prop") == prop && mm.TryGetProperty("multi", out var multi) && multi.ValueKind == JsonValueKind.True)
+                {
+                    parameters.Add(new("Values", "parameter", "IReadOnlyList<string>", null, true, Kebab(prop), reason));
+                    parameters.Add(new("ValuesChanged", "event", "EventCallback<IReadOnlyList<string>>", null, false, Str(mm, "event"), reason));
+                    if (mm.TryGetProperty("field", out var vf) && vf.ValueKind == JsonValueKind.True) parameters.Add(new("ValuesExpression", "parameter", "Expression<Func<IReadOnlyList<string>>>", null, false, null, reason));
+                }
             }
             else parameters.Add(new(name, "parameter", type, null, false, null, reason));
         }
