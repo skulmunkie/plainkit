@@ -14,7 +14,7 @@ export default {
     issue: [801, 798],
     elements: ['data-table'],
     html: `<pk-stack gap="md"><pk-stack direction="row" gap="sm"><pk-button id="loading" size="sm">Loading</pk-button><pk-button id="fail" size="sm">Fail</pk-button><pk-button id="none" size="sm">Empty</pk-button><pk-button id="ok" size="sm">Rows</pk-button></pk-stack>
-<pk-data-table id="dt" selectable clickable current-row="2"><pk-badge slot="cell-1-po">PO&nbsp;1042</pk-badge></pk-data-table></pk-stack>`,
+<pk-data-table id="dt" selectable striped clickable current-row="2"><pk-badge slot="cell-1-po">PO&nbsp;1042</pk-badge></pk-data-table></pk-stack>`,
     setup(frame) {
         const el = frame.querySelector(DT);
         el.config = { columns: [{ key: 'po', label: 'PO', sortable: true }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', type: 'number' }], empty: { heading: 'No orders match', description: 'Try another search.' }, pageSize: 5, pageSizeOptions: [5, 10, 25], caption: 'Orders', sort: 'po', sortDir: 'descending' };
