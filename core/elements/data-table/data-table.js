@@ -35,7 +35,7 @@ export default Base => class extends Base {
         this.buildFilters();
         this.refresh();
     }
-    disconnected() { this.$mo?.disconnect(); }
+    disconnected() { this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.localName === 'slot');
         if (names.join() === have.map(c => c.name).join()) return;
@@ -97,12 +97,15 @@ export default Base => class extends Base {
         const table = this.part('table'), state = this.part('state'), q = this.query;
         this.sync();
         const token = (this.$token = {});
+        // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.
+        this.$abort?.abort();
+        const { signal } = (this.$abort = new AbortController());
         table.hidden = true;
         showState(state, 'loading', { label: 'Loading' });
         if (typeof this.load !== 'function') { showState(state, 'empty', this.config?.empty); return; }
         let result;
         try {
-            result = await this.load(q);
+            result = await this.load(q, { signal });
         } catch (err) {
             if (this.$token !== token) return;
             showState(state, 'error', { error: err, retry: () => this.refresh() });

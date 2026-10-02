@@ -318,6 +318,18 @@ export const dataDisplayCases = [
         el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
     }],
 
+    ['data-table: load receives an AbortSignal, a newer query aborts the request in flight, and the aborted one draws no error (#817)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-data-table>`), signals = [], errs = [];
+        el.addEventListener('pk-load-error', () => errs.push(1));
+        el.load = (q, { signal }) => new Promise((ok, no) => { signals.push(signal); signal.addEventListener('abort', () => no(signal.reason)); if (q.search) ok({ rows: [{ id: 1, sku: 'A' }], total: 1 }); });
+        el.refresh();
+        await until(() => signals.length === 1, 'the first request');
+        const box = el.part('filters').shadowRoot.querySelector('[part="search"]'); box.value = 'a'; box.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => signals.length === 2 && !el.part('table').hidden, 'the second request to draw');
+        t.ok(signals[0].aborted && !signals[1].aborted, 'the first was aborted by the second');
+        t.ok(!el.part('state').querySelector('pk-alert') && errs.length === 0, 'the abort shows no error');
+    }],
+
     ['data-table: striped, density, cards, maxHeight and stickyHeader reach the table; maxHeight makes the rows scroll inside it and the header sticks (#817)', async t => {
         const el = await t.mount(`<pk-data-table striped cards density="compact" max-height="8rem" sticky-header config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":20}'></pk-data-table>`);
         el.load = async () => ({ rows: Array.from({ length: 20 }, (_, i) => ({ id: i + 1, sku: `S${i}` })), total: 20 });
