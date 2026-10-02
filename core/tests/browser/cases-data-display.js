@@ -586,6 +586,18 @@ export const dataDisplayCases = [
         const f = await t.mount('<pk-empty-state description="Only text"></pk-empty-state>'); t.ok(f.part('heading').hidden);
     }],
 
+    ['empty-state: a description prop shows beside indented markup, and the actions sit centred under it (wide, narrow, rtl)', async t => {
+        const markup = '<pk-empty-state heading="Nothing here" description="No items yet.">' + String.fromCharCode(10) + '  <span slot="actions"><a href="#back">Back to list</a></span>' + String.fromCharCode(10) + '  <pk-button slot="actions">Add item</pk-button>' + String.fromCharCode(10) + '</pk-empty-state>';
+        for (const [label, width, dir] of [['wide', 900, 'ltr'], ['narrow', 280, 'ltr'], ['rtl', 360, 'rtl']]) {
+            const e = await t.mount(markup); e.style.width = width + 'px'; e.setAttribute('dir', dir); await t.settle();
+            const r = n => n.getBoundingClientRect(), desc = r(e.part('description')), head = r(e.part('heading')), act = r(e.part('actions')), host = r(e);
+            t.ok(desc.width > 0 && e.part('description').textContent.includes('No items yet.'), label + ': the description prop shows');
+            t.ok(desc.top >= head.bottom - 1 && act.top >= desc.bottom - 1, label + ': heading, description and actions stack in order');
+            t.ok(act.left >= host.left - 1 && act.right <= host.right + 1, label + ': the actions stay inside the host');
+            t.ok(Math.abs((act.left + act.right) / 2 - (host.left + host.right) / 2) < 3, label + ': the actions are centred');
+        }
+    }],
+
     ['field-list: hides an empty heading and lays dt and dd out as a grid', async t => {
         const l = await t.mount('<pk-field-list heading="IDs"><dt>SKU</dt><dd>X</dd></pk-field-list>');
         t.ok(!l.part('heading').hidden); t.eq(getComputedStyle(l.part('list')).display, 'grid');

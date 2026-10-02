@@ -22,7 +22,7 @@
       "type": "RenderFragment?"
     },
     {
-      "name": "DescriptionContent",
+      "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment?"
     },
@@ -37,5 +37,5 @@
       "type": "RenderFragment?"
     }
   ],
-  "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot."
+  "notes": "Keeps the existing parameter names: Title maps to heading and TitleContent to the heading slot. The default slot is ChildContent like every other component (it was DescriptionContent, and a ChildContent written in markup was silently dropped); next-step links and buttons go in ActionContent, the actions slot."
 }
