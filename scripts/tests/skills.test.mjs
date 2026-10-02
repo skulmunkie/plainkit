@@ -168,8 +168,8 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     assert.ok(src.manifest.skipped.every(s => s.handWritten), 'every element has a component');
     for (const c of ['PkTable', 'PkDataTable']) assert.ok(skill.includes(`\`${c}\``), c);
     assert.match(gaps, /None: every element has a component/);
-    // PkCard, PkEmptyState, PkFieldList and PkStat are hand-written now, so they are not in the "does not exist" list.
-    for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.manifest.skipped.some(s => s.component === c && s.handWritten), `${c} is hand-written`);
+    // PkCard, PkEmptyState, PkFieldList and PkStat are generated from their mappings now (#808): they are components, and not in the skipped list.
+    for (const c of ['PkCard', 'PkEmptyState', 'PkFieldList', 'PkStat']) assert.ok(src.razor[c] && !src.manifest.skipped.some(s => s.component === c), `${c} is a generated component`);
     const wrapper = src.manifest.notGenerated.filter(n => n.reason.startsWith('wrapper behaviour'));
     assert.match(skill, new RegExp(String.raw`\b${wrapper.length} wrapper-only parameters\b`));
     for (const n of wrapper) assert.ok(gaps.includes(`\`${n.param}\``), n.param);
@@ -330,7 +330,7 @@ test('the Blazor skill documents PkDataTable with every parameter, the request a
     for (const p of ['Search', 'SortKey', 'Descending', 'Page', 'PageSize', 'Items', 'Total']) assert.ok(list.includes(p), p);
     const skill = gen.get('plainkit-blazor/SKILL.md');
     assert.ok(skill.includes('references/data-table.md'), 'the skill points to the list reference');
-    for (const h of ['### Show a table of typed rows', '### Show a searchable, server-paged list']) assert.ok(skill.includes(h), h);
+    for (const h of ['### Show a table of typed rows', '### Show a searchable, server-paged table (`PkDataTable`)']) assert.ok(skill.includes(h), h);
     // PkTable's own section lists its parameters, including the ones for the newer element features
     const components = [...gen].filter(([f]) => f.includes('references/components-')).map(([, t]) => t).join('\n');
     for (const p of ['EmptyText', 'Loading', 'Expandable', 'Expanded', 'DetailTemplate', 'OnRowExpand', 'OnSort', 'OnFilter', 'OnRowClick', 'Manual', 'IdOf']) assert.ok(components.includes(`\`${p}\``), `PkTable.${p}`);
