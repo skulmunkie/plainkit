@@ -102,22 +102,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
 ```
 
 ### Give a page a header with breadcrumbs
-`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `BackLink` and `Sticky`: `references/components-navigation.md`.
-
-### Put a menu of secondary actions in a card header (`PkCardMenu`)
-Do not assemble `PkDropdown` + `PkButton` + `PkMenuItem` by hand: `PkCardMenu` is that button ("..." icon, accessible name `Label`, default "Card actions"; `IconName="settings"` for a cog) opening a menu at the end of the header. Put it in the card's `ActionsContent` and give it `PkMenuItem` children with a `Value` each; `OnSelect` gets the chosen value (a `PkMenuItem` with `Href` just navigates).
-
-```razor
-<PkCard Heading="Orders">
-    <ActionsContent>
-        <PkCardMenu Label="Orders actions" OnSelect="e => Run(e.Value)">
-            <PkMenuItem Value="export">Export</PkMenuItem>
-            <PkMenuItem Value="archive" Danger="true">Archive</PkMenuItem>
-        </PkCardMenu>
-    </ActionsContent>
-    ...
-</PkCard>
-```
+`PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `BackLink` and `Sticky`: `references/components-navigation.md`. A "..." menu of secondary actions in a card header is `PkCardMenu` (an icon button over a `PkDropdown`, in the card's `ActionsContent`, with `PkMenuItem` children): `references/card-menu.md`.
 
 ### Open a dialog from C#
 `Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
