@@ -7,7 +7,7 @@ export const PAGE_TYPE = {
     summary: 'A list pane plus a detail pane for the selected record, on one route.',
     configKeys: ['heading', 'breadcrumb', 'actions', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
     states: ['none'],
-    useWhen: 'A record opened beside its list rather than on its own page, such as an inbox.',
+    useWhen: 'A record opened beside its list on one route, such as an inbox. Not the default: a list and its record are usually two routes (the list and record page types).',
 };
 import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {

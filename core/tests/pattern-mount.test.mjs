@@ -86,7 +86,7 @@ test('bootPattern does nothing for a frame that names no script or one of a bad 
         assert.equal(loaded, 0);
         assert.equal(win.count('pagehide'), 0);
     }
-    assert.ok(SCRIPT_NAME.test('master-detail-pattern/master-detail-pattern.js'));
+    assert.ok(SCRIPT_NAME.test('filter-table/filter-table.js'));
 });
 
 test('a sample frame carries data-pattern only for a real script name; the data names one for every scripted pattern', () => {

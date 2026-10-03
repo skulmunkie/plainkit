@@ -197,6 +197,18 @@ test('rowHref makes the table clickable and is called on pk-row-click; without i
     assert.deepEqual(seen, [{ id: 1 }]);
 });
 
+test('props handed to the inner pk-table before it is defined are applied again once it is (#699: rows of a list page were not clickable)', async () => {
+    const { el, parts } = make();
+    let define;
+    Object.defineProperty(el, 'ownerDocument', { value: { createElement: fakeEl, defaultView: { customElements: { whenDefined: () => new Promise(r => { define = r; }) } } } });
+    el.rowHref = () => {};
+    el.connected();
+    parts.table.clickable = false; // what a not-yet-defined pk-table keeps
+    define();
+    await new Promise(r => setImmediate(r));
+    assert.equal(parts.table.clickable, true);
+});
+
 test('clickable (no rowHref) makes rows clickable and currentRow reaches the table (#817)', async () => {
     const { el, parts } = make();
     el.load = async () => rowsOf(2);

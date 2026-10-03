@@ -27,8 +27,8 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.render(); } }
-        else if (name === 'mode') this.render();
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.draw(); } }
+        else if (name === 'mode') this.draw();
     }
 
     // The record is loaded by id (config.id, the route's param) through the load(id) callback; no id means a new record (no load, edit mode).
@@ -54,11 +54,12 @@ export default Base => class extends Base {
     }
     // The shared title bar; config.heading already titles the field list, so the page's own heading is config.title.
     bar() { showTitleBar(this, this.part('header'), { ...this.config, heading: this.config?.title }); }
-    done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.render(); }
+    done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.draw(); }
     get editing() { return this.mode === 'edit' || this.$id == null; }
     get fields() { return this.config?.fields ?? []; }
 
-    render() {
+    // Not named render(): the base class calls render() on every prop change (dirty, mode), which would rebuild the form under the reader on the first keystroke.
+    draw() {
         const doc = this.ownerDocument, main = this.part('main'), side = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
         renderState(this.part('notice'), 'ready');
         main.replaceChildren(editing ? this.form(doc, vals) : this.list(doc, this.fields, vals, this.config?.heading));
@@ -139,7 +140,7 @@ export default Base => class extends Base {
             this.$values = { ...values, ...(out && typeof out === 'object' ? out : {}) };
             this.emit('pk-record-save', { values: this.$values });
             this.setDirty(false);
-            if (this.$id != null) this.mode = 'view'; else this.render();
+            if (this.$id != null) this.mode = 'view'; else this.draw();
         } catch (err) {
             if (gen !== this.$gen) return;
             this.log.error('record save failed', err);
