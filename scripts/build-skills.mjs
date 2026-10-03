@@ -515,7 +515,7 @@ function sdkGapsMd(src) {
 // issue 237: a blast-radius recipe for moving a consuming app from an older Plainkit version to a newer one. `findVersion` is the
 // skill-specific step (a NuGet PackageReference for Blazor, dist/manifest.json or js/version.js for the vanilla SDK); the rest of the
 // recipe (read the changelog, cross-reference the app, checklist, mechanical vs. judgment) is identical for both.
-function upgradingMd(src, findVersion) {
+function upgradingMd(src, findVersion, testingNote = '') {
     return ['# Upgrading', '', stamp(src, 'CHANGELOG.md and core/tools/api-surface.mjs'), '',
         `This is a blast-radius recipe, not a changelog readout: the goal is a checklist of what to change in *this app*, not a summary of what Plainkit changed in the abstract.`, '',
         '## 1. Find the two versions', '', findVersion, '',
@@ -528,7 +528,12 @@ function upgradingMd(src, findVersion) {
         '## 4. Produce a checklist, most severe first', '',
         'Group the matches from step 3 by severity (breaking first), each with the file(s) it appears in — the shape a person or another agent can work through and tick off, not a wall of prose.', '',
         '## 5. Say what is mechanical and what needs a judgment call', '',
-        'A renamed parameter or component is a mechanical find-and-replace: make the change yourself. A removed component with no direct replacement, or a behaviour change with no compile-time signal, needs a person to decide: flag it on the checklist instead of guessing.', ''].join('\n');
+        'A renamed parameter or component is a mechanical find-and-replace: make the change yourself. A removed component with no direct replacement, or a behaviour change with no compile-time signal, needs a person to decide: flag it on the checklist instead of guessing.', '',
+        '## 6. Report what you found back upstream', '',
+        `An upgrade often turns up something Plainkit itself should fix. File it on ${code('https://github.com/skulmunkie/plainkit/issues')} instead of leaving it as a private workaround. File when you find: a bug during or after the upgrade; a gap or missing feature the app works around; a deprecation with no clear replacement; or an inaccuracy in the docs or these skills. A common upgrade-time enhancement is a supported way to test code that depends on an element.${testingNote}`, '',
+        'Before you file, search the existing issues, open and closed, for the same problem. If one exists, add a comment with your case and version instead of opening a duplicate; a closed one may be fixed in a newer version than you have.', '',
+        'Write it so a stranger can act on it: a generic, reusable title that names the element, component or export and not your app; the smallest repro you can make (a few lines, not your page); actual versus expected behaviour; and the affected Plainkit version. Leave out app-specific names, data, page paths and any other internal details. Give the type in the title or as a label (bug, enhancement or docs) so triage is quick.', '',
+        'Record the stopgap in the app next to the code that needs it, with the issue link, and remove it in the pull request that bumps Plainkit to the version containing the fix.', ''].join('\n');
 }
 
 // The "Choose before you build" reference: the Guide "Choosing what to build with" (core/site/guides/content) is the one source of the decision path,
@@ -1052,7 +1057,7 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/conformance-rules.md', conformanceRulesMd(src));
     for (const [rel, text] of blazor.files) put('plainkit-blazor', rel, text);
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
-    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).'));
+    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).', ' For Blazor, `PlainKit.Blazor.Testing` is already that seam for `PkDataTable` (see the Blazor skill).'));
     put('plainkit-blazor', 'references/conformance-rules.md', conformanceRulesMd(src));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
     const CONFORMANCE_DESC = 'the audit CLI\'s full rule catalogue (id, normal/strict severity, what it detects, a wrong/right snippet) - what `npx plainkit audit --explain <id>` also shows';

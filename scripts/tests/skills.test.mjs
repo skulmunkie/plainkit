@@ -358,6 +358,15 @@ test('both skills have a "Choose before you build" workflow and a generated refe
     for (const s of SKILL_NAMES) assert.match(gen.get(`${s}/references/upgrading.md`) + gen.get(`${s}/SKILL.md`), /choosing\.md/);
 });
 
+test('the upgrading reference closes with how to report a problem upstream (#854)', () => {
+    for (const s of SKILL_NAMES) {
+        const text = gen.get(`${s}/references/upgrading.md`);
+        assert.match(text, /## 6. Report what you found back upstream/, s);
+        assert.match(text, /search the existing issues, open and closed/, s);
+        assert.match(text, /remove it in the pull request that bumps/, s);
+    }
+});
+
 test('a deprecated item in an element meta is listed in the element reference with what to use instead, and only then', () => {
     const marked = structuredClone(src); const badge = marked.api.find(e => e.tag === 'pk-badge');
     badge.props[0].deprecated = { since: '0.2.0', remove: '0.3.0', message: 'use tone' };
