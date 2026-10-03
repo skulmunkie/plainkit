@@ -512,10 +512,15 @@ function sdkGapsMd(src) {
         '## Rules from the standards', '', appFacing(section(src.standards, 'Security (CSP)')), '', appFacing(section(src.standards, 'Styling')), ''].join('\n');
 }
 
+// issue 768: the 0.11 namespace move, a Blazor-only step of the upgrading recipe.
+const BLAZOR_NAMESPACE_STEP = ['## 5b. Moving to 0.11 or later: tier namespaces (Blazor)', '',
+    'From 0.11 the generated components of the component, page and shell tiers live in `PlainKit.Blazor.Components` (`PkTabs`, `PkKanban`, `PkDetailLayout`, `PkDataTable<TItem>` ...), `PlainKit.Blazor.Pages` (`PkWizardPage`, `PkRecordPage`, `PkListPage<TItem>` ...) and `PlainKit.Blazor.Shells` (`PkAppShell`); base elements (`PkButton`, `PkCard`, `PkInput` ...) stay in `PlainKit.Blazor`. Razor resolves a tag only through an `@using`, so a build full of RZ10012 ("add a @using directive") means: add `@using PlainKit.Blazor.Components`, `@using PlainKit.Blazor.Pages` and `@using PlainKit.Blazor.Shells` to `_Imports.razor` (keep `@using PlainKit.Blazor`). This is mechanical; do it first. The generic `PkDataTable<TItem>` and `PkListPage<TItem>` need these lines for every tag.', '',
+    'C# needs nothing for the common cases: the package ships `buildTransitive/PlainKit.Blazor.targets`, which adds the three namespaces as global usings, so `typeof(PkTabs)`, `@ref` fields, code-behind and `OpenComponent` resolve through the namespace alone (generic components included). The same file adds an explicit alias per moved non-generic component (`PkTabs` for `PlainKit.Blazor.Components.PkTabs`); the aliases are redundant with the namespace usings, kept for explicitness for one minor version and then removed. If a C# file still does not resolve a moved type, add `using PlainKit.Blazor.Components;` (or `.Pages`, `.Shells`) to it.', ''];
+
 // issue 237: a blast-radius recipe for moving a consuming app from an older Plainkit version to a newer one. `findVersion` is the
 // skill-specific step (a NuGet PackageReference for Blazor, dist/manifest.json or js/version.js for the vanilla SDK); the rest of the
 // recipe (read the changelog, cross-reference the app, checklist, mechanical vs. judgment) is identical for both.
-function upgradingMd(src, findVersion, testingNote = '') {
+function upgradingMd(src, findVersion, testingNote = '', extraSteps = []) {
     return ['# Upgrading', '', stamp(src, 'CHANGELOG.md and core/tools/api-surface.mjs'), '',
         `This is a blast-radius recipe, not a changelog readout: the goal is a checklist of what to change in *this app*, not a summary of what Plainkit changed in the abstract.`, '',
         '## 1. Find the two versions', '', findVersion, '',
@@ -529,6 +534,7 @@ function upgradingMd(src, findVersion, testingNote = '') {
         'Group the matches from step 3 by severity (breaking first), each with the file(s) it appears in — the shape a person or another agent can work through and tick off, not a wall of prose.', '',
         '## 5. Say what is mechanical and what needs a judgment call', '',
         'A renamed parameter or component is a mechanical find-and-replace: make the change yourself. A removed component with no direct replacement, or a behaviour change with no compile-time signal, needs a person to decide: flag it on the checklist instead of guessing.', '',
+        ...extraSteps,
         '## 6. Report what you found back upstream', '',
         `An upgrade often turns up something Plainkit itself should fix. File it on ${code('https://github.com/skulmunkie/plainkit/issues')} instead of leaving it as a private workaround. File when you find: a bug during or after the upgrade; a gap or missing feature the app works around; a deprecation with no clear replacement; or an inaccuracy in the docs or these skills. A common upgrade-time enhancement is a supported way to test code that depends on an element.${testingNote}`, '',
         'Before you file, search the existing issues, open and closed, for the same problem. If one exists, add a comment with your case and version instead of opening a duplicate; a closed one may be fixed in a newer version than you have.', '',
@@ -1057,7 +1063,7 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/conformance-rules.md', conformanceRulesMd(src));
     for (const [rel, text] of blazor.files) put('plainkit-blazor', rel, text);
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
-    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).', ' For Blazor, `PlainKit.Blazor.Testing` is already that seam for `PkDataTable` (see the Blazor skill).'));
+    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).', ' For Blazor, `PlainKit.Blazor.Testing` is already that seam for `PkDataTable` (see the Blazor skill).', BLAZOR_NAMESPACE_STEP));
     put('plainkit-blazor', 'references/conformance-rules.md', conformanceRulesMd(src));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
     const CONFORMANCE_DESC = 'the audit CLI\'s full rule catalogue (id, normal/strict severity, what it detects, a wrong/right snippet) - what `npx plainkit audit --explain <id>` also shows';
