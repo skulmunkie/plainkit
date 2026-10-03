@@ -14,10 +14,13 @@ summary: Install PlainKit.Blazor, register it, put PkStyles first in the head, p
 dotnet add package PlainKit.Blazor --prerelease
 ```
 
-Add the namespace once, in `_Imports.razor`. It brings the components, `PkStyles`, `PkAssets` and the enums such as `PkLogLevel`:
+Add the namespaces once, in `_Imports.razor`. The root brings the base elements, `PkStyles`, `PkAssets` and the enums such as `PkLogLevel`; the components, pages and shells have a namespace each (Razor finds a tag only through an `@using`):
 
 ```razor
 @using PlainKit.Blazor
+@using PlainKit.Blazor.Components
+@using PlainKit.Blazor.Pages
+@using PlainKit.Blazor.Shells
 ```
 
 ## Register the services
