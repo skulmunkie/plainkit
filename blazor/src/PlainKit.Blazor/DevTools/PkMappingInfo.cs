@@ -75,7 +75,7 @@ public static class PkMappingInfo
             var name = Str(p, "name")!;
             var type = (Str(p, "type") ?? "string").TrimEnd('?');
             // An untyped mapping takes its type from the element prop; the component is the truth, and a JSON prop is generated as object.
-            if (Str(p, "type") is null && typeof(PkMappingInfo).Assembly.GetType($"PlainKit.Blazor.{component}")?.GetProperty(name)?.PropertyType == typeof(object)) type = "object";
+            if (Str(p, "type") is null && typeof(PkMappingInfo).Assembly.GetTypes().FirstOrDefault(t => t.Name == component && t.Namespace?.StartsWith("PlainKit.Blazor", StringComparison.Ordinal) == true)?.GetProperty(name)?.PropertyType == typeof(object)) type = "object";
             var prop = Str(p, "prop");
             var reason = Find(manifest, "notGenerated", e => Str(e, "component") == component && Str(e, "param") == name) is { } ng ? Str(ng, "reason") : null;
             // A type the repository does not define yet (issue #9) is generated as object.
@@ -108,7 +108,7 @@ public static class PkMappingInfo
         }
 
         // "events" (a list of event names, or "pk") generates On<Event> callbacks the params list does not name; the component says which exist and their type.
-        var comp = typeof(PkMappingInfo).Assembly.GetType($"PlainKit.Blazor.{component}");
+        var comp = typeof(PkMappingInfo).Assembly.GetTypes().FirstOrDefault(t => t.Name == component && t.Namespace?.StartsWith("PlainKit.Blazor", StringComparison.Ordinal) == true);
         if (comp is not null && root.TryGetProperty("events", out var evs))
             foreach (var pi in comp.GetProperties().Where(x => x.PropertyType.FullName?.Contains("EventCallback") == true && x.Name.StartsWith("On", StringComparison.Ordinal) && parameters.All(q => q.Name != x.Name)))
             {

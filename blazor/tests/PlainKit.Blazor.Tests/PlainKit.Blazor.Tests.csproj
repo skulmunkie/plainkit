@@ -12,8 +12,16 @@
     <PackageReference Include="bunit" />
   </ItemGroup>
 
+  <!-- The generated old-name aliases (#768) are global usings of the library only; compiling the file here lets TierNamespaceTests use the old C# names. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\PlainKit.Blazor\Generated\PkGeneratedAliases.cs" Link="PkGeneratedAliases.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="PlainKit.Blazor.Components" />
+    <Using Include="PlainKit.Blazor.Pages" />
+    <Using Include="PlainKit.Blazor.Shells" />
   </ItemGroup>
 
   <!-- PlainKit.Blazor keeps its framework reference private (so it does not reach a WebAssembly app); the tests exercise the server types. -->

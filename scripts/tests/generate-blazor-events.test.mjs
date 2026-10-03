@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { generate } from '../generate-blazor.mjs';
 
 const el = {
-    tag: 'pk-evdemo', summary: 'Demo.',
+    tag: 'pk-evdemo', tier: 'element', summary: 'Demo.',
     props: [{ name: 'start', type: 'string' }, { name: 'end', type: 'string' }],
     slots: [],
     events: [

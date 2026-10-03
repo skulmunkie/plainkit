@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, knownTypes, generate, load, outputs, differences } from '../generate-blazor.mjs';
+import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, knownTypes, generate, load, outputs, differences, tierNamespace, TIER_NAMESPACES } from '../generate-blazor.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const generatedDir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
@@ -46,6 +46,7 @@ test('field types and converters', () => {
 
 const el = {
     tag: 'pk-demo',
+    tier: 'element',
     props: [
         { name: 'label', type: 'string', description: 'The label.' },
         { name: 'open', type: 'boolean', description: 'Open.' },
@@ -404,4 +405,24 @@ test('a small selection, an unmarked table, another element and an id the table 
     assert.deepEqual(selectArgs(tableElement(100, false), { selected: ids(0, 99) }), { selected: ids(0, 99) });
     assert.deepEqual(selectArgs({}, { value: 'x' }), { value: 'x' });
     assert.deepEqual(selectArgs(tableElement(100), { selected: [...ids(0, 98), 'gone'] }), { selected: [...ids(0, 98), 'gone'] });
+});
+
+// ---- tier namespaces (#768): the tier comes from the element's meta.json (api.json), never from the mapping
+
+test('tier namespaces: every mapped element has one, base elements stay in the root, the old names are aliased', () => {
+    const api = JSON.parse(fs.readFileSync(path.join(root, 'core', 'dist', 'elements', 'api.json'), 'utf8'));
+    const mapped = fs.readdirSync(path.join(root, 'blazor', 'mappings')).filter(f => f.endsWith('.json')).map(f => f.replace(/\.json$/, ''));
+    const aliases = fs.readFileSync(path.join(generatedDir, 'PkGeneratedAliases.cs'), 'utf8');
+    for (const name of mapped) {
+        const el = api.find(e => e.tag === 'pk-' + name);
+        const ns = tierNamespace(el);
+        assert.ok(Object.values(TIER_NAMESPACES).includes(ns), `${name}: ${ns}`);
+        const comp = pkName(el.tag), file = path.join(generatedDir, `${comp}.razor`);
+        const mapping = JSON.parse(fs.readFileSync(path.join(root, 'blazor', 'mappings', `${name}.json`), 'utf8'));
+        assert.equal('tier' in mapping, false, `${name}: the tier is read from core, not from the mapping`);
+        if (!fs.existsSync(file)) continue; // hand-written: keeps its namespace until the hand-written step of #768
+        assert.match(fs.readFileSync(file, 'utf8'), new RegExp(`@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
+        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element', `${comp} alias`);
+    }
+    assert.throws(() => tierNamespace({ tag: 'pk-x', tier: 'module' }), /no Blazor namespace/);
 });
