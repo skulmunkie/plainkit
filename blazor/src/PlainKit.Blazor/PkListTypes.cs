@@ -1,6 +1,6 @@
 namespace PlainKit.Blazor;
 
-/// <summary>What a <see cref="PkDataTable{TItem}"/> asks its <c>Load</c> function for: one page of the list, in the order and with the search the user chose.</summary>
+/// <summary>What a <see cref="Components.PkDataTable{TItem}"/> asks its <c>Load</c> function for: one page of the list, in the order and with the search the user chose.</summary>
 /// <param name="Search">The text in the search box, trimmed; null when it is empty.</param>
 /// <param name="SortKey">The key of the column the list is sorted by; null for the default order.</param>
 /// <param name="Descending">True when the sort is descending.</param>
@@ -11,7 +11,7 @@ public sealed record PkListRequest(string? Search, string? SortKey, bool Descend
     /// <summary>Cancelled when a newer request replaces this one (the user typed, sorted or paged again) or the list goes away. Pass it to the database call; the list ignores the result of a superseded request in any case.</summary>
     public CancellationToken CancellationToken { get; init; }
 
-    /// <summary>The values of the filter fields a <see cref="PkListPage{TItem}"/> shows, keyed by filter key (text, as typed or chosen); null when none is set. Always null for a <see cref="PkDataTable{TItem}"/>.</summary>
+    /// <summary>The values of the filter fields a <see cref="Pages.PkListPage{TItem}"/> shows, keyed by filter key (text, as typed or chosen); null when none is set. Always null for a <see cref="Components.PkDataTable{TItem}"/>.</summary>
     public IReadOnlyDictionary<string, string>? Filters { get; init; }
 
     /// <summary>The number of items to skip: <c>(Page - 1) * PageSize</c>, for <c>Skip</c> in a query.</summary>
@@ -24,7 +24,7 @@ public sealed record PkListRequest(string? Search, string? SortKey, bool Descend
 /// <param name="Total">The number of items in the whole list for the request's search, not only this page. The pager and the last-page correction use it.</param>
 public sealed record PkListResult<T>(IReadOnlyList<T> Items, int Total);
 
-/// <summary>Reads the query of a <see cref="PkDataTable{TItem}"/> selection.</summary>
+/// <summary>Reads the query of a <see cref="Components.PkDataTable{TItem}"/> selection.</summary>
 public static class PkSelectQuery
 {
     private static readonly System.Text.Json.JsonSerializerOptions Web = new(System.Text.Json.JsonSerializerDefaults.Web);

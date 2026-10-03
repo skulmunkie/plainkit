@@ -54,4 +54,11 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <!-- The tier namespaces as <Using> items, and for one minor version the old root names of the moved components as aliases (#768), so a consumer's C# resolves them
+       without edits. Generated (not in git) from the element tiers by node scripts/generate-blazor.mjs. buildTransitive only (not also build/): a direct reference gets
+       it too, and both folders would import two copies, whose duplicate aliases are an error. It is a targets file (the SDK already writes buildTransitive/PlainKit.Blazor.props for the static web assets), not content, so nothing is copied into a consumer's project. -->
+  <ItemGroup>
+    <None Include="Generated\PlainKit.Blazor.targets" Pack="true" PackagePath="buildTransitive\PlainKit.Blazor.targets" />
+  </ItemGroup>
+
 </Project>

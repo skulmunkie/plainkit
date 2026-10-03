@@ -420,9 +420,42 @@ test('tier namespaces: every mapped element has one, base elements stay in the r
         const comp = pkName(el.tag), file = path.join(generatedDir, `${comp}.razor`);
         const mapping = JSON.parse(fs.readFileSync(path.join(root, 'blazor', 'mappings', `${name}.json`), 'utf8'));
         assert.equal('tier' in mapping, false, `${name}: the tier is read from core, not from the mapping`);
-        if (!fs.existsSync(file)) continue; // hand-written: keeps its namespace until the hand-written step of #768
+        if (!fs.existsSync(file)) { // hand-written: its own file says the tier namespace too (the generator refuses a mismatch)
+            if (el.tier === 'element') continue; // the root namespace comes from Components/_Imports.razor
+            const hand = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Components', `${comp}.razor`);
+            assert.match(fs.readFileSync(hand, 'utf8'), new RegExp(`^@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
+            continue;
+        }
         assert.match(fs.readFileSync(file, 'utf8'), new RegExp(`@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
         assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element', `${comp} alias`);
     }
     assert.throws(() => tierNamespace({ tag: 'pk-x', tier: 'module' }), /no Blazor namespace/);
+});
+
+test('the package targets file lists each tier namespace and the old name of each moved component, generic hand-written ones apart (#768)', () => {
+    const targets = fs.readFileSync(path.join(generatedDir, 'PlainKit.Blazor.targets'), 'utf8');
+    const aliases = fs.readFileSync(path.join(generatedDir, 'PkGeneratedAliases.cs'), 'utf8');
+    const manifest = JSON.parse(fs.readFileSync(path.join(generatedDir, 'generated.manifest.json'), 'utf8'));
+    for (const ns of Object.values(TIER_NAMESPACES).filter(n => n !== 'PlainKit.Blazor')) assert.ok(targets.includes(`<Using Include="${ns}" />`), ns);
+    assert.ok(!targets.includes('<Using Include="PlainKit.Blazor" />'), 'the root namespace is the consumer\'s own business');
+    const fromCs = [...aliases.matchAll(/^global using (\w+) = ([\w.]+);$/gm)].map(m => [m[1], m[2]]);
+    const fromTargets = [...targets.matchAll(/<Using Include="([\w.]+)" Alias="(\w+)" \/>/g)].map(m => [m[2], m[1]]);
+    assert.ok(fromCs.length > 20);
+    assert.deepEqual(fromTargets, fromCs, 'the targets file aliases are the C# aliases of the library');
+    for (const c of ['PkTabs', 'PkAppShell', 'PkPageHeader', 'PkDock', 'PkAppBarSearch', 'PkSettingsPage', 'PkToolPage']) assert.ok(fromCs.some(([n]) => n === c), c);
+    assert.deepEqual(manifest.movedGeneric, ['PlainKit.Blazor.Components.PkDataTable', 'PlainKit.Blazor.Pages.PkListPage'], 'a generic type cannot be aliased: it needs the namespace using');
+    assert.ok(!fromCs.some(([n]) => n === 'PkDataTable' || n === 'PkListPage'));
+});
+
+test('a hand-written component must say the namespace of its element\'s tier; a generic one is listed, not aliased (#768)', () => {
+    const page = { ...el, tier: 'page' };
+    const m = { ...mapping, existing: true };
+    const hand = new Set(['PkDemo']);
+    assert.throws(() => generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor', generic: false }]])), /@namespace PlainKit\.Blazor\.Pages/);
+    const ok = generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor.Pages', generic: false }]]));
+    assert.match(ok.files.get('PkGeneratedAliases.cs'), /global using PkDemo = PlainKit\.Blazor\.Pages\.PkDemo;/);
+    assert.match(ok.files.get('PlainKit.Blazor.targets'), /<Using Include="PlainKit\.Blazor\.Pages\.PkDemo" Alias="PkDemo" \/>/);
+    const generic = generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor.Pages', generic: true }]]));
+    assert.doesNotMatch(generic.files.get('PkGeneratedAliases.cs'), /PkDemo/);
+    assert.match(generic.files.get('generated.manifest.json'), /PlainKit\.Blazor\.Pages\.PkDemo/);
 });

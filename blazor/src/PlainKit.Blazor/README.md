@@ -175,7 +175,7 @@ Fields left at their default are left out of the JSON. Two former parameters bec
 
 This is the Blazor Server / Web App setup; for a standalone Blazor WebAssembly app see "Blazor WebAssembly" below.
 
-Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the components and `PkLogLevel`).
+Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the base elements such as `PkButton` and `PkLogLevel`). The components, pages and shells live in tier namespaces: add `@using PlainKit.Blazor.Components`, `@using PlainKit.Blazor.Pages` and `@using PlainKit.Blazor.Shells` to `_Imports.razor` too (Razor resolves a tag only from an `@using`). The package's `buildTransitive/PlainKit.Blazor.targets` adds the same three namespaces, and for one minor version the old root names, as C# global usings, so C# code needs no edit.
 
 ```csharp
 // Program.cs
