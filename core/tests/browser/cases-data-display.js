@@ -70,7 +70,7 @@ export const dataDisplayCases = [
         }
     }],
 
-    ['gallery inline patterns: live search, master-detail and the filter table respond to typing and clicks in the sample frame, with nothing in the log', async t => {
+    ['gallery inline patterns: live search and the data-table filter pattern respond to typing and clicks in the sample frame, with nothing in the log', async t => {
         const type = (win, el, text) => { el.value = text; el.dispatchEvent(new win.Event('input', { bubbles: true, composed: true })); };
         const g = await inlineGallery(t, 'search-results', 1200);
         let s = g.sample(0); const shown = () => [...s.doc.querySelectorAll('pk-list-group > button')].filter(b => !b.hidden).length;
@@ -80,20 +80,12 @@ export const dataDisplayCases = [
         type(s.win, q, ''); await until(() => shown() >= all && empty.hidden, 'the full list again'); // the sample opens with the query "item", so clearing shows at least as many rows
         t.eq(await g.logged(s), '', 'search-results: nothing in the log');
 
-        await g.go('master-detail-pattern');
-        s = g.sample(0);
-        const detail = s.doc.querySelector('[data-detail]'); const first = detail.textContent;
-        const other = [...s.doc.querySelectorAll('a[data-id]')].find(a => !first.includes(a.textContent.trim()));
-        other.click(); await until(() => detail.textContent !== first, 'the detail to change');
-        t.eq(await g.logged(s), '', 'master-detail: nothing in the log');
-
         await g.go('filter-table');
         s = g.sample(0);
-        const table = s.doc.querySelector('[data-table]'); const rowsIn = () => table.shadowRoot?.querySelectorAll('tbody tr').length ?? 0;
-        await until(() => rowsIn() > 0, 'the table rows'); const total = rowsIn();
-        type(s.win, s.doc.querySelector('[data-field="name"]'), 'zzqq');
-        await until(() => rowsIn() === 0 && s.doc.querySelectorAll('[data-applied] pk-tag').length > 0, 'the table to filter and a tag to show');
-        s.doc.querySelector('[data-clear]').click(); await until(() => rowsIn() >= total && !s.doc.querySelector('[data-applied] pk-tag'), 'Clear to bring the rows back and drop the tags');
+        const dt = s.doc.querySelector('[data-table]'); const rowsIn = () => dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]').length ?? 0;
+        await until(() => rowsIn() === 5, 'the first page of five rows');
+        const box = dt.part('filters').shadowRoot.querySelector('[part="search"]'); type(s.win, box, 'Item 7'); await until(() => rowsIn() === 1, 'the search to narrow the rows');
+        type(s.win, box, ''); await until(() => rowsIn() === 5, 'clearing the search to bring the page back');
         t.eq(await g.logged(s), '', 'filter-table: nothing in the log');
     }],
 

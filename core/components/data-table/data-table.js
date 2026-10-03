@@ -10,6 +10,8 @@ export default Base => class extends Base {
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
+        // The inner pk-table loads on demand: props set on it before it is defined (clickable above all) are applied again once it is.
+        this.ownerDocument.defaultView?.customElements.whenDefined('pk-table').then(() => this.sync());
         const table = this.part('table'), filters = this.part('filters'), pagination = this.part('pagination');
         // `narrows`: a search or filter changes WHICH rows the query means, so a selection of "all rows" no longer holds (the ids stay selected).
         const go = (patch, narrows) => {

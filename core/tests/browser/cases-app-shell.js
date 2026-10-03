@@ -291,4 +291,32 @@ export const appShellCases = [
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
+    // #699: the routed list-page + record-page template. Two routes, a row click navigates, Save navigates back, and focus follows to the new page's h1 each time.
+    ['routed-pair template (#699): list -> record -> save -> list is route changes only, focus lands on each page\'s h1, unsaved edits mark the record dirty and the saved change shows in the list', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair template'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        const h1 = () => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])');
+        const settle = async what => { await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), what); await wait(150); };
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const bodyRows = () => deep(d, 'pk-table')?.shadowRoot.querySelectorAll('tbody tr[data-pk-context]') ?? [];
+        await settle('the list page'); await until(() => bodyRows().length > 1, 'the list rows');
+        t.eq(h1().textContent.trim(), 'Things', 'the list page has its h1'); t.eq(bodyRows().length, 10, 'the first page of ten rows');
+        // A row click is a route change to the record page: its own page, its own h1, focus on it.
+        bodyRows()[2].click();
+        await until(() => win.location.hash === '#/things/3', 'the record route'); await settle('the record page');
+        t.eq(d.activeElement, h1(), 'focus is on the record heading'); t.ok(!deep(d, 'pk-list-page'), 'the list page is not on screen beside the record');
+        const rec = await until(() => deep(d, 'pk-record-page'), 'the record page'); await until(() => rec.part('edit') && !rec.part('edit').hidden, 'the Edit button');
+        rec.part('edit').click(); await until(() => rec.controls().length, 'the form'); await wait(400);
+        const input = rec.controls()[0];
+        t.ok(!rec.dirty, 'nothing edited: not dirty'); input.value = 'Renamed thing'; input.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }));
+        await until(() => rec.dirty, 'the dirty flag');
+        await wait(150); t.ok(rec.controls()[0] === input && input.value === 'Renamed thing', 'the first edit does not rebuild the form under the reader');
+        rec.part('save').click();
+        await until(() => win.location.hash === '#/things', 'Save to navigate back to the list'); await settle('the list after Save');
+        t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
+        t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
+    }],
 ];

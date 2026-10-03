@@ -127,3 +127,7 @@ test('save: a rejection with errors marks the fields inline, another rejection i
     assert.ok(events.some(([n]) => n === 'pk-record-save'));
     assert.equal(parts.save.busy, false);
 });
+
+test('the page does not override the base class render hook: a prop change (dirty on the first keystroke) must not rebuild the form (#699)', () => {
+    assert.equal(Object.hasOwn(behaviour(class {}).prototype, 'render'), false);
+});

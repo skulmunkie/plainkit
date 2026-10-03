@@ -35,7 +35,7 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 1. Name the page type or job, and find it in the use-case table.
 2. Open what it names: a template (`templates.md`), else a layout (`layouts.md`), else patterns (`patterns.md`), else the element that names the job (`elements-index.md`; a paged, searchable, selectable list is `pk-data-table` and selecting across pages `pk-table` with `total`: `patterns.md`). The frame around pages is `pk-app-shell` with `pk-side-nav` or `pk-navbar`; an app of several parts is `mountPage`/`mountApp` and page types with no markup of your own (workflow **Build an app**, `references/build-an-app.md`; API in `references/app.md`). Blazor has no app framework surface yet.
 3. Paste its markup into `<main>` and its page script (if shown) into your script file (the demo shell `mountChrome` is not part of it). Change only content, slots, props, `::part()`, `--pk-*` properties and tokens. Never copy an element's internals, add `!important` or wrap slotted content in a `display: contents` element.
-4. Write your own (from `pk-stack`, `pk-cluster`, `pk-grid`, `pk-text`, tokens) only when nothing fits, say which gap it fills, and never invent a `pk-*` tag.
+4. Write your own (from `pk-stack`, `pk-cluster`, `pk-grid`, `pk-text`, tokens) only when nothing fits, say which gap it fills, and never invent a `pk-*` tag. Never put a list and its record on one page (it scrolls three ways and the record is off screen): they are two routed pages, template `routed-pair` (page types `list` and `record`), and a peek at context is a flyout (`pk-drawer`); "Which list shape" in `references/choosing.md`.
 
 ### Start a page
 

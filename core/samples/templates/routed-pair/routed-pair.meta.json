@@ -1,0 +1,9 @@
+{
+  "id": "routed-pair",
+  "title": "List page and record page",
+  "summary": "The canonical list-and-record shape: a list page (search, filter, sort, paging) and a record page (form, save, dirty guard) as two separately routed pages. A row click navigates to the record; Save navigates back.",
+  "slots": "list page (pk-data-table), New action, record page (pk-form), save",
+  "notes": "Use this one by default. It is a mountApp module of two page types: `list` (a pk-data-table: search, status filter, sort, paging, empty and error states, all from one `load(query)` callback) and `record` (a form with Save; `load(id)` for an existing record, none for `/new`). The record route is a child of the list route, so the list's nav entry stays current and the breadcrumbs read Things > Thing 7. A row click is `rowHref` (a route change) and Save calls `ctx.navigate('/')`, so a deep link, a refresh and the back button all land in the right place and the route is the only state. The record page marks itself dirty and asks before the tab closes with unsaved edits. Do not put a list and its record on one page (a list with the record stacked below or beside it): it scrolls three ways and the record is off screen while the list is in view. When the record is only a peek at context, open a flyout over the list instead. A tool shell with panes (`routed-list-detail`) is the workspace variant, not the default.",
+  "used": [],
+  "order": 3
+}
