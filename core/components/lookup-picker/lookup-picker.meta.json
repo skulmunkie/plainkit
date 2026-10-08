@@ -189,6 +189,10 @@
       "description": "The pk-button that shows the chosen label (or the placeholder) and opens the popup."
     },
     {
+      "name": "chevron",
+      "description": "The arrow at the end of the field (turns over while the popup is open)."
+    },
+    {
       "name": "chips",
       "description": "The list of chips (pk-tag, removable) under a multiple picker."
     },
@@ -241,7 +245,7 @@
       "description": "Focuses the field."
     }
   ],
-  "a11y": "The field is a real button (pk-button) that the popover marks aria-haspopup=\"dialog\" and aria-expanded, named \"<label>: <chosen label or placeholder>\"; the popup is a labelled dialog holding the table's search box and rows, so focus really moves into it (a combobox with aria-activedescendant cannot reach rows inside the table's shadow roots; this is the disclosure-plus-dialog pattern, not role=combobox). Down or Up on the field, Enter or Space open it and focus lands in the search box; Down there enters the rows, Up, Down, Home and End walk them, Enter or Space picks the focused row and closes; Escape closes and returns focus to the field; Tab moves on through the pager and out of the picker, which closes it. A polite status announces loading and the number of results. The table's own loading, error and empty states keep their roles. The field and the rows are at least 44px tall on a phone. Multiple: the chips are a labelled list (role=list, each pk-tag role=listitem) whose remove buttons are real buttons (named \"Remove\" by pk-tag: the chip text is the context); removing one returns focus to the field and a status announces it. The table rows have checkboxes named for their row, and a tick past max is undone with \"Limit of N reached\" announced.",
+  "a11y": "The field is a real button (pk-button) that the popover marks aria-haspopup=\"dialog\" and aria-expanded, named \"<label>: <chosen label or placeholder>\"; the popup is a labelled dialog holding the table's search box and rows, so focus really moves into it (a combobox with aria-activedescendant cannot reach rows inside the table's shadow roots; this is the disclosure-plus-dialog pattern, not role=combobox). Down or Up on the field, Enter or Space open it and focus lands in the search box; Down there enters the rows, Up, Down, Home and End walk them, Enter or Space picks the focused row and closes; Escape closes and returns focus to the field; Tab moves on through the pager and out of the picker, which closes it. A polite status announces loading and the number of results. The table's own loading, error and empty states keep their roles. The field is at least 44px tall on a phone (the table's own search box and rows are the table's to size). Multiple: the chips are a labelled list (role=list, each pk-tag role=listitem) whose remove buttons are real buttons (pk-tag names each \"Remove <key>\"); removing one returns focus to the field and a status announces it. The table rows have checkboxes named for their row, and a tick past max is undone with \"Limit of N reached\" announced.",
   "examples": [
     {
       "title": "Customer lookup (set load from script: an inline script cannot run under this site's CSP)",

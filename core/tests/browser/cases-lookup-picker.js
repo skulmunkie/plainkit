@@ -18,6 +18,10 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
+    ['lookup-picker: the invalid field draws the error colour on its border', async t => {
+        const a = await mount(t), b = await mount(t, 'invalid'), edge = el => getComputedStyle(el.part('control').shadowRoot.querySelector('button')).borderTopColor;
+        t.ok(edge(b) !== edge(a), 'invalid changes the border colour');
+    }],
     ['lookup-picker: a closed picker builds no table and loads nothing; opening it builds the popup, loads page one and moves focus into the search box', async t => {
         const el = await mount(t);
         const ctl = el.part('control');
