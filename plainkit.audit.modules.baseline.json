@@ -1847,11 +1847,6 @@
       "fingerprint": "c127dd54a2a0c2ed"
     },
     {
-      "rule": "S1",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "c127dd54a2a0c2ed"
-    },
-    {
       "rule": "S10",
       "file": "core/site/theme/index.html",
       "fingerprint": "dc77d3ccbb33af2f"
@@ -1867,29 +1862,9 @@
       "fingerprint": "d253804066a98ea0"
     },
     {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/theme/theme.css",
-      "fingerprint": "345410b1903ffdb3"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/theme/theme.css",
-      "fingerprint": "d1189356f25f659f"
-    },
-    {
-      "rule": "S3",
+      "rule": "S7",
       "file": "core/site/theme/theme.js",
-      "fingerprint": "55d3f697dbb20b07"
+      "fingerprint": "bab4d733e0e7633b"
     },
     {
       "rule": "S7",

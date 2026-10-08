@@ -26,7 +26,6 @@ const BEFORE = {
     'site/guides/guides.css': ['(max-width: 1280px)', '(max-width: 1024px)', '(max-width: 640px)'],
     'site/layout-builder/layout-builder.css': ['(max-width: 640px)'],
     'site/site.css': ['(max-width: 1024px)', '(max-width: 640px)'],
-    'site/theme/theme.css': ['(max-width: 640px)'],
 };
 
 test('every site and module stylesheet resolves to exactly the media queries it carried before the breakpoint names', () => {
