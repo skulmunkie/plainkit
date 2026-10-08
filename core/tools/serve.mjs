@@ -42,6 +42,12 @@ function fileFor(pathname) {
     return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative)) ? file : null;
 }
 
+// A read that fails for a passing reason (too many open files, a file another process holds for a moment) is retried instead of answered 404. Under load the old
+// answer was a 404, and a browser caches a failed module import for the whole page (#876).
+const TRANSIENT = new Set(['EMFILE', 'ENFILE', 'EBUSY', 'EAGAIN']);
+function readFile(file, done, left = 6) {
+    fs.readFile(file, (err, data) => (err && TRANSIENT.has(err.code) && left > 0 ? setTimeout(() => readFile(file, done, left - 1), 40) : done(err, data)));
+}
 http.createServer((req, res) => {
     if (!hostArg && !localHost.test(req.headers.host ?? '')) { res.writeHead(403).end('forbidden host'); return; }
     // Dev only: --write-reports lets the scorecard page store its sweep results next to the other reports.
@@ -79,7 +85,7 @@ http.createServer((req, res) => {
         const AUDIT_FILES = { 'module-baseline.json': path.join(repoRoot, 'plainkit.audit.modules.baseline.json'), 'ui-review-manifest.json': path.join(repoRoot, 'review-output', 'manifest.json') };
         const file = AUDIT_FILES[auditPath];
         if (!file) { res.writeHead(404).end('not found'); return; }
-        fs.readFile(file, (err, data) => {
+        readFile(file, (err, data) => {
             if (err) { res.writeHead(404).end('not generated yet'); return; }
             res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }).end(data);
         });
@@ -92,7 +98,7 @@ http.createServer((req, res) => {
     let file = fileFor(pathname);
     if (!file) { res.writeHead(403).end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
-    fs.readFile(file, (err, data) => {
+    readFile(file, (err, data) => {
         if (err) { res.writeHead(404).end('not found'); return; }
         // Site and module stylesheets name their breakpoints (@media (--phone)): the browser gets the real queries, as in the dist units (tools/breakpoints.mjs).
         if (/\.css$/.test(file) && /^(site|modules)[\\/]/.test(path.relative(root, file))) {
