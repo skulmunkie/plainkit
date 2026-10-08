@@ -847,6 +847,11 @@
       "fingerprint": "fc94288deb9c287f"
     },
     {
+      "rule": "S3",
+      "file": "core/modules/scorecard/sections.js",
+      "fingerprint": "fc94288deb9c287f"
+    },
+    {
       "rule": "S7",
       "file": "core/modules/scorecard/sections.js",
       "fingerprint": "12edd3b00ea24d4f"
@@ -1040,16 +1045,6 @@
       "rule": "S7",
       "file": "core/modules/tool-dock/tool-dock.js",
       "fingerprint": "34d2c015e300cc87"
-    },
-    {
-      "rule": "S6",
-      "file": "core/modules/tool-dock/tool-dock.test.mjs",
-      "fingerprint": "ab7a4dfa8867363c"
-    },
-    {
-      "rule": "S6",
-      "file": "core/modules/tool-dock/tool-dock.test.mjs",
-      "fingerprint": "369fa3451ad837ba"
     },
     {
       "rule": "S1",
@@ -1325,21 +1320,6 @@
       "rule": "S7",
       "file": "core/site/gallery/embed.js",
       "fingerprint": "e61a2f41c852bd14"
-    },
-    {
-      "rule": "S2",
-      "file": "core/site/gallery/frame-boot.js",
-      "fingerprint": "a51959ebf6c5cbf5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/frame-boot.js",
-      "fingerprint": "7a675de840c1180c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/frame-boot.js",
-      "fingerprint": "7a675de840c1180c"
     },
     {
       "rule": "S7",
@@ -2125,21 +2105,6 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S8",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b68125f054530002"
-    },
-    {
-      "rule": "S8",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b68125f054530002"
-    },
-    {
-      "rule": "S8",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b68125f054530002"
     },
     {
       "rule": "S1",
