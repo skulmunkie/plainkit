@@ -22,7 +22,6 @@ import { applyDynamic } from '../../js/dynamic.js';
 const modLog = createLogger('logs');
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./logs.css'];
 
 export const DEFAULTS = Object.freeze({ max: 1000, level: 'debug', order: 'newest' });
 const LEVEL_LABEL = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
@@ -33,7 +32,7 @@ export async function mountLogs(container, options = {}) {
     const { theme, height, max = DEFAULTS.max } = options;
     const doc = container.ownerDocument;
     const win = doc.defaultView;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     let entries = [];
     let nextId = 1;
@@ -62,14 +61,14 @@ export async function mountLogs(container, options = {}) {
     const file = h(doc, 'input', { type: 'file', accept: '.json,application/json', hidden: true, 'aria-label': 'Import a log file' });
     const table = h(doc, 'pk-table', { label: 'Log entries', density: 'compact', stickyHeader: true, clickable: true, manual: true, cards: true, maxHeight: '18rem', columns: JSON.stringify(COLUMNS) },
         h(doc, 'pk-empty-state', { slot: 'empty', heading: 'No log entries', tone: 'compact', description: 'Entries appear here as the SDK or your code logs them.' }));
-    const detail = h(doc, 'div', { class: 'lg-detail', hidden: true });
+    const detail = h(doc, 'div', { hidden: true });
 
-    const root = h(doc, 'section', { class: 'lg-module', 'aria-label': 'Logs' },
+    const root = h(doc, 'section', { 'aria-label': 'Logs' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' },
         h(doc, 'pk-stack', { gap: 'sm' },
             h(doc, 'pk-cluster', {}, search, levels, scopeSelect),
             h(doc, 'pk-cluster', {}, ...VIEW_LEVELS.map(v => badges[v]), status),
             h(doc, 'pk-cluster', {}, pause, order, clear, copy, exportBtn, importBtn, file),
-            table, detail));
+            table, detail)));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
@@ -99,7 +98,7 @@ export async function mountLogs(container, options = {}) {
         const card = h(doc, 'pk-card', { heading: `${LEVEL_LABEL[entry.level]}: ${entry.scope}`, level: 4 }, close,
             h(doc, 'pk-stack', { gap: 'xs' },
                 h(doc, 'span', { class: 'muted' }, facts),
-                h(doc, 'p', { class: 'lg-message' }, entry.message),
+                h(doc, 'pk-code-block', { label: 'Message', wrap: true, 'no-copy': true }, entry.message),
                 d.kind === 'none' ? null : h(doc, 'pk-code-block', { label: d.kind === 'error' ? 'Error stack' : d.kind === 'text' ? 'Detail' : 'Detail (JSON)', wrap: true, maxHeight: '14rem' }, d.text)));
         detail.replaceChildren(card);
         detail.hidden = false;

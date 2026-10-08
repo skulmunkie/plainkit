@@ -18,7 +18,7 @@ export const MODULES = {
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
     performance: { files: ['performance.js'] },
     console: { files: ['console.js', 'console.css'] },
-    logs: { files: ['logs.js', 'logs.css'] },
+    logs: { files: ['logs.js'] },
     'log-settings': { files: ['log-settings.js'] },
     devtools: { files: ['devtools.js', 'panels.js'] },
     'tool-dock': { files: ['tool-dock.js', 'tool-dock.css'] },
