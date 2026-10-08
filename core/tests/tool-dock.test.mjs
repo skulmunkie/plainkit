@@ -3,7 +3,7 @@
 // available to node:test here, matching how the other mount* modules in core/modules/ are covered (see core/tests/devtools-logic.test.mjs).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { matchesHotkey, SIZES } from './tool-dock.js';
+import { matchesHotkey, SIZES } from '../modules/tool-dock/tool-dock.js';
 
 test('the dock hotkey matches a chord exactly: the key and only the modifiers named', () => {
     assert.ok(matchesHotkey({ key: '`', ctrlKey: true }, 'Ctrl+`'));
@@ -26,7 +26,7 @@ test('the three named sizes are small, medium and large, in that order', () => {
 });
 
 test('mountToolDock requires label and launcherLabel (no silent default, per AGENTS.md "no silent failure")', async () => {
-    const { mountToolDock } = await import('./tool-dock.js');
+    const { mountToolDock } = await import('../modules/tool-dock/tool-dock.js');
     await assert.rejects(() => mountToolDock(null, { panels: [] }), TypeError);
     await assert.rejects(() => mountToolDock(null, { panels: [], label: 'Tools' }), TypeError);
 });

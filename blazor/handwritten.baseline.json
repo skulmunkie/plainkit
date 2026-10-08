@@ -5,7 +5,7 @@
     "Components/PkAppBarSearch.razor": 82,
     "Components/PkCodeExplorer.razor": 77,
     "Components/PkConsole.razor": 55,
-    "Components/PkDataTable.razor": 240,
+    "Components/PkDataTable.razor": 238,
     "Components/PkDevTools.razor": 109,
     "Components/PkDevToolsPage.razor": 89,
     "Components/PkDock.razor": 79,
@@ -72,11 +72,6 @@
     "Testing/PkDataTableTesting.cs": 44
   },
   "debt": [
-    {
-      "rule": "state-machine",
-      "file": "Components/PkDataTable.razor",
-      "reason": "stale-load guard (_sequence) around Load; goes when the element sends an abort signal through the bridge (#801 step 5 remainder)"
-    },
     {
       "rule": "layout-recipe",
       "file": "Components/PkDevToolsPage.razor",
