@@ -126,11 +126,6 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
     assert.ok(!out.has('dist/plainkit-compat.css') && ![...out.keys()].some(f => f.startsWith('dist/components/')), 'the class-based layer is gone');
 });
 
-test('generated element files on disk are the build output, and the build is deterministic (run node scripts/bootstrap.mjs)', () => {
-    const out = built();
-    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `${e.folder}/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
-});
-
 test('the element base stays small: element.js + element-core.js under 2.8 KB gzipped (comments and blank lines stripped)', () => {
     const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\n\s+/g, '\n').replace(/\n+/g, '\n');
     const size = ['js/element.js', 'js/element-core.js'].reduce((n, f) => n + zlib.gzipSync(strip(read(f))).length, 0);

@@ -6,7 +6,6 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { scan, bySeverity, unsafeRegex, RULES, isReassigned } from '../tools/security.mjs';
-import { build } from '../tools/build.mjs';
 import { sanitizeOverrides, sanitizeDict, parseOverrides, buildOverrides, MAX_OVERRIDES } from '../js/theme.js';
 import { matcherFor } from '../js/code-explorer/providers.js';
 
@@ -56,13 +55,10 @@ test('the SDK has no dependencies and no lockfile (a package.json may exist for 
     assert.deepEqual(JSON.parse(read('dist/manifest.json')).dependencies, []);
 });
 
-test('the dist manifest lists every file with a correct SRI hash, and a rebuild is byte-identical', () => {
+test('the dist manifest lists every file with a correct SRI hash (that a rebuild is byte-identical to the files on disk is generated-current.test.mjs)', () => {
     const manifest = JSON.parse(read('dist/manifest.json'));
     assert.ok(manifest.files.length > 60);
     for (const f of manifest.files.slice(0, 40)) assert.equal(f.integrity, 'sha384-' + crypto.createHash('sha384').update(fs.readFileSync(path.join(root, 'dist', f.path))).digest('base64'), f.path);
-    // Build in memory (write: false): rewriting dist/ here would race the C# tests that read it in parallel.
-    const { out } = build({ write: false });
-    for (const f of ['dist/manifest.json', 'dist/plainkit.css', 'plainkit.css', 'site/gallery/gallery.data.js']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale: run node core/tools/build.mjs`);
 });
 
 test('hostile override input cannot pollute a prototype and is validated like PkThemeOverrides', () => {

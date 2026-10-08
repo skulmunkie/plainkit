@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, loadElementSources } from '../tools/build.mjs';
+import { loadElementSources } from '../tools/build.mjs';
 import { tierReport, DEBT_RULES } from '../tools/tier-report.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -42,9 +42,6 @@ test('a baseline entry for something that is not an element is an error, not sil
     assert.throws(() => tierReport(elements, { entries: [{ rule: 'C1', element: 'nope', ref: 'pk-x' }] }, { entries: [] }), /not an element/);
 });
 
-test('tiers.current.json is what the build produces (run node scripts/bootstrap.mjs when it fails)', () => {
-    const built = build({ write: false }).out.get('site/scorecard/tiers.current.json');
-    assert.ok(built, 'the build does not write tiers.current.json');
-    assert.equal(fs.readFileSync(path.join(root, 'site/scorecard/tiers.current.json'), 'utf8').replace(/\r\n/g, '\n'), built.replace(/\r\n/g, '\n'));
-    assert.deepEqual(JSON.parse(built), report);
+test('tiers.current.json holds the report derived from the sources and baselines (that the file is what the build produces is generated-current.test.mjs)', () => {
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'site/scorecard/tiers.current.json'), 'utf8')), report);
 });
