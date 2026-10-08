@@ -54,6 +54,9 @@
     "Components/PkListPage.razor": {
       "category": "typed-generics"
     },
+    "Components/PkLookupPicker.razor": {
+      "category": "typed-generics"
+    },
     "Components/PkLogs.razor": {
       "category": "mount"
     },

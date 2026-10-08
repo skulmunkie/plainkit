@@ -1,22 +1,22 @@
 {
   "component": "PkLookupPicker",
+  "existing": true,
+  "existingReason": "typed-generics and callback: PkLookupPicker<TItem> is a thin typed wrapper; Load and Resolve run through PkCallbackSlot, columns come from typed columns, Value and Values bind typed (issue 801 step 8)",
   "params": [
-    { "name": "Value", "prop": "value", "type": "string" },
+    { "name": "Value", "prop": "value", "type": "string", "note": "The key of the chosen item when not Multiple (two-way: @bind-Value; ValueExpression for an EditForm)." },
+    { "name": "Values", "prop": "values", "type": "IReadOnlyList<string>?", "note": "The keys of the chosen items when Multiple (two-way: @bind-Values; ValuesExpression for an EditForm)." },
     { "name": "Name", "prop": "name", "type": "string" },
-    { "name": "Config", "prop": "config", "type": "string", "default": "{}", "note": "The popup table's config as JSON, as PkDataTable's: columns, pageSize, empty and the rest." },
+    { "name": "Config", "prop": "config", "type": "string", "default": "{}", "map": "prop", "note": "Not a parameter: PkLookupPicker<TItem> builds it from Columns, PageSize and AriaLabel." },
     { "name": "Multiple", "prop": "multiple", "type": "bool" },
     { "name": "Max", "prop": "max", "type": "int" },
-    { "name": "RowKey", "prop": "rowKey", "type": "string" },
-    { "name": "LabelKey", "prop": "labelKey", "type": "string" },
+    { "name": "SelectedLabels", "prop": "selectedLabels", "type": "IReadOnlyDictionary<string, string>?" },
     { "name": "Placeholder", "prop": "placeholder", "type": "string" },
     { "name": "Disabled", "prop": "disabled", "type": "bool" },
     { "name": "Readonly", "prop": "readonly", "type": "bool" },
     { "name": "Required", "prop": "required", "type": "bool" },
     { "name": "IsInvalid", "prop": "invalid", "type": "bool" },
     { "name": "AriaLabel", "prop": "label", "type": "string" },
-    { "name": "Open", "prop": "open", "type": "bool", "bind": { "event": "pk-lookup-toggle", "value": "detail.open" } },
-    { "name": "OnToggle", "event": "pk-lookup-toggle" }
+    { "name": "Open", "prop": "open", "type": "bool", "note": "Two-way: @bind-Open." }
   ],
-  "model": { "prop": "value", "event": "pk-lookup-select", "key": "value", "type": "string", "field": true },
-  "notes": "Slice 1 of #801 step 8: the generated wrapper has no Load yet. Load (and resolve) are callback properties the element needs from .NET; the typed PkLookupPicker<TItem, TValue> with Load through PkCallbackSlot follows in the Blazor slice."
+  "notes": "PkLookupPicker<TItem> (Components/PkLookupPicker.razor) wraps pk-lookup-picker 1:1: Load and Resolve are callback properties, so the component hands the element .NET references (PkCallbackSlot) exactly as PkDataTable does; pk-lookup-select, pk-values-change and pk-lookup-toggle come back as ValueChanged, ValuesChanged and OpenChanged. Keys are strings."
 }
