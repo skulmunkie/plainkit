@@ -1,7 +1,7 @@
 {
   "component": "PkDock",
   "existing": true,
-  "existingReason": "callback: ConfirmLayout runs through PkCallbackSlot",
+  "existingReason": "callback: ConfirmLayout runs through PkCallbackSlot Missing generator feature: a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate); everything else on this mapping (Layout and its two-way binding, Label, ResizeLabel, Fill, OnLayoutChange, the panel slots) the generator already expresses.",
   "params": [
     {
       "name": "Layout",

@@ -1,7 +1,7 @@
 {
   "component": "PkGallery",
   "existing": true,
-  "existingReason": "server: ensures the SDK runtime is loaded and memoises the Sections JSON per list",
+  "existingReason": "server: ensures the SDK runtime is loaded and memoises the Sections JSON per list Not a generator gap: the component loads the SDK runtime before it renders and memoises the Sections JSON per list, which are server concerns (PkRuntime), so it stays hand-written unless the element takes the sections as data it can read itself.",
   "params": [
     {
       "name": "Kind",

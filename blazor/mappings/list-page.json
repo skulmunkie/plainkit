@@ -1,7 +1,7 @@
 {
   "component": "PkListPage",
   "existing": true,
-  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics",
+  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics Missing generator features: @typeparam generation (a typed component) and a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate).",
   "params": [
     {
       "name": "Config",

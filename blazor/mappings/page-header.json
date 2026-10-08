@@ -84,6 +84,6 @@
     }
   ],
   "existing": true,
-  "existingReason": "typed-generics: Crumbs is a typed PkCrumb list sent as JSON; and the title is also a slotted pk-heading in light DOM (FocusOnNavigate cannot reach into a shadow tree, #773)",
+  "existingReason": "typed-generics: Crumbs is a typed PkCrumb list sent as JSON; and the title is also a slotted pk-heading in light DOM (FocusOnNavigate cannot reach into a shadow tree, #773) Missing generator features: a slot built from a prop (the title as a light-DOM pk-heading) and a typed record list serialised to a JSON prop (#893).",
   "notes": "Hand-written: Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773); Level starts at 1; SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
 }

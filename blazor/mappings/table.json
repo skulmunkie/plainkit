@@ -1,7 +1,7 @@
 {
   "component": "PkTable",
   "existing": true,
-  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON",
+  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON Missing generator features: @typeparam generation (a typed component), typed columns and typed rows turned into JSON props, and per-row cell and detail slot templates (RenderFragment<TItem>).",
   "params": [
     {
       "name": "Columns",
