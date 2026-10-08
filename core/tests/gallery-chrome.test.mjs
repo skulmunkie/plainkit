@@ -21,7 +21,7 @@ test("the pagebar title is a level-1 heading only in a full view, where it is th
 // slotted brand link pk-side-nav already sizes.
 test('the nav section-title links get a 44px minimum tap target on a phone', () => {
     const css = read('site/gallery', 'gallery.css');
-    const phoneBlock = css.match(/@media \(max-width: 640px\) \{([\s\S]*)\}\s*$/)[1];
+    const phoneBlock = css.match(/@media \(--phone\) \{([\s\S]*)\}\s*$/)[1];
     assert.match(phoneBlock, /\.gx-nav-title\s*\{[^}]*min-height:\s*var\(--touch-target\)/, '44px target on a phone');
 });
 
@@ -38,7 +38,7 @@ test('a fill template sets flush on the shell so the workspace body has no page 
 // width: the backdrop shows but the menu itself is invisible (issue #421).
 test('the off-canvas nav flow-width reset only applies before the element is defined, not to the open drawer', () => {
     const css = read('site/gallery', 'gallery.css');
-    const block = css.match(/@media \(max-width: 1024px\) \{\s*\.gx-nav[^}]*\}\s*\}/)[0];
+    const block = css.match(/@media \(--tablet\) \{\s*\.gx-nav[^}]*\}\s*\}/)[0];
     assert.match(block, /\.gx-nav:not\(:defined\)\s*\{\s*width:\s*0/, 'the width: 0 reset must be scoped to :not(:defined)');
 });
 

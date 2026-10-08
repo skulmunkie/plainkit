@@ -26,3 +26,9 @@ export const BREAKPOINTS_FILE = path.join(here, '..', 'tokens', 'breakpoints.jso
 export { parseBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties };
 
 export const loadBreakpoints = (file = BREAKPOINTS_FILE) => parseBreakpoints(JSON.parse(fs.readFileSync(file, 'utf8')));
+
+// Site and module stylesheets (site/*.css, modules/*/*.css) are served and shipped as written, so they name their breakpoints too (@media (--phone)); every
+// place that serves or copies one runs it through this: the dev server (tools/serve.mjs), the gallery unit (tools/gallery-dist.mjs) and the modules unit
+// (tools/modules-dist.mjs). The one transform is the one element CSS gets in tools/build.mjs; an unknown name throws.
+let named;
+export const resolveSiteCss = (css, label) => resolveCustomMedia(css, named ??= loadBreakpoints(), label);
