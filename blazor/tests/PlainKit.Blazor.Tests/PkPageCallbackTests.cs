@@ -171,4 +171,23 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         await DisposeComponentsAsync();
         Assert.Throws<ObjectDisposedException>(() => again.Value);
     }
+
+    [Fact]
+    public async Task ListPage_passes_selection_and_bulk_actions_to_OnSelect_and_OnBulk()
+    {
+        PkSelectEventArgs? selected = null; PkBulkEventArgs? bulk = null;
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"selectable\":true,\"bulkActions\":[{\"id\":\"archive\",\"label\":\"Archive\"}]}")
+            .Add(x => x.OnSelect, e => { selected = e; })
+            .Add(x => x.OnBulk, e => { bulk = e; }));
+        var query = JsonDocument.Parse("{\"page\":2,\"pageSize\":10,\"search\":\"ab\"}").RootElement.Clone();
+
+        await cut.Find("pk-list-page").TriggerEventAsync("onpk-select", new PkSelectEventArgs { Selected = ["A-1", "A-2"], Scope = "all", Query = query });
+        await cut.Find("pk-list-page").TriggerEventAsync("onpk-bulk", new PkBulkEventArgs { Action = "archive", Selected = ["A-1"], Scope = "page", Query = query });
+
+        Assert.Equal(["A-1", "A-2"], selected!.Selected!);
+        Assert.Equal("all", selected.Scope);
+        Assert.Equal("ab", selected.ToRequest()!.Search);
+        Assert.Equal("archive", bulk!.Action);
+        Assert.Equal(["A-1"], bulk.Selected!);
+    }
 }

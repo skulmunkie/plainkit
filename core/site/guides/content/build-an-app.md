@@ -65,7 +65,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 
 | Family | Page type | Config (data) | Your callbacks |
 |---|---|---|---|
-| Data | `list` | `heading`, `breadcrumb`, `columns`, `filters`, `actions`, `empty`, `pageSize` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)` |
+| Data | `list` | `heading`, `breadcrumb`, `columns`, `filters`, `actions`, `empty`, `pageSize`, `selectable`, `rowKey`, `bulkActions` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)`; `onSelect(detail, ctx)`; `onBulk({ action, selected, scope, query }, ctx)` |
 | Data | `dashboard` | `widgets`, `tabs`, `sections`, `filters`, `empty` | `load(key, ctx)` returns what the widget shows |
 | Data | `master-detail` | `list`, `backLabel`, `none`, `param` | `load(query, ctx)`, `rowHref(row)`, `listHref`, `mountDetail(pane, id, ctx)` |
 | Forms | `record` | `fields`, `sidebar`, `heading`, `editable` | `load(id, ctx)`, `save(values, ctx)` |

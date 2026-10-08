@@ -6,6 +6,9 @@ import { queryList } from '../../../js/list-query.js';
 const STATUS = ['Active', 'Draft', 'Archived'];
 let things = Array.from({ length: 60 }, (_, i) => ({ id: String(i + 1), name: `Thing ${i + 1}`, status: STATUS[i % 3] }));
 
+// The list query applied to the data: what load() answers and what a bulk action on the whole query (scope 'all') acts on.
+const run = (q, over) => queryList(things, { filter: q.filters?.status ? r => r.status === q.filters.status : null, search: q.search, searchKeys: ['name'], sort: q.sort, sortDir: q.sortDir, page: q.page, pageSize: q.pageSize, ...over });
+
 // One record config for both routes: `load` is left out for a new record. Save returns to the list; reject with { errors: { field: message } } to mark a field instead.
 const record = (load, title, id) => ({
     heading: 'Details', title, load,
@@ -29,7 +32,14 @@ const thingsModule = defineModule({
             actions: [{ label: 'New thing', href: '#/things/new', variant: 'primary' }],
             empty: { heading: 'No things yet', description: 'Add one with New thing.' },
             pageSize: 10,
-            load: async q => queryList(things, { filter: q.filters?.status ? r => r.status === q.filters.status : null, search: q.search, searchKeys: ['name'], sort: q.sort, sortDir: q.sortDir, page: q.page, pageSize: q.pageSize }),
+            // Selection and a bulk action: onBulk gets { action, selected, scope, query }; for scope 'all' act on the query (the server), never on the ids. The list reloads when it returns.
+            selectable: true, bulkActions: [{ id: 'archive', label: 'Archive' }],
+            onBulk: async ({ selected, scope, query }, ctx) => {
+                const hit = scope === 'all' ? run(query, { page: 1, pageSize: things.length }).rows.map(r => r.id) : selected;
+                things = things.map(r => (hit.includes(r.id) ? { ...r, status: 'Archived' } : r));
+                ctx.notify?.success(`Archived ${hit.length}`);
+            },
+            load: async q => run(q),
             rowHref: row => `/${row.id}`,
         }, children: [
             // The record page type: a form with Save, a dirty flag (closing the tab with unsaved edits asks first) and its own loading, not-found and error states.

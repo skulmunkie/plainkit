@@ -239,7 +239,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     const cleanup1 = factory(host1, {}, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-list-page');
-    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, columns: undefined, filters: undefined, actions: undefined, empty: undefined, pageSize: undefined });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, columns: undefined, filters: undefined, actions: undefined, empty: undefined, pageSize: undefined, selectable: undefined, rowKey: undefined, bulkActions: undefined });
     assert.equal(el1.load, undefined, 'no load callback unless given');
     assert.equal(el1.rowHref, undefined, 'no rowHref callback unless given');
     cleanup1();
@@ -256,12 +256,26 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
         rowHref: row => `/orders/${row.id}`,
     }, ctx);
     const el2 = host2.children[0];
-    assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10 });
+    assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10, selectable: undefined, rowKey: undefined, bulkActions: undefined });
     const query = { page: 1, pageSize: 10, sort: null, sortDir: 'ascending', search: '', filters: {} };
     assert.deepEqual(el2.load(query), { rows: [{ id: 1 }], total: 1 });
     assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
     el2.rowHref({ id: 42 });
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
+});
+
+test("'list' forwards selectable, rowKey and bulkActions in the config and hands the selection and a bulk action to onSelect and onBulk with the page ctx (#873)", async () => {
+    const on = {};
+    const el = { addEventListener: (n, fn) => { on[n] = fn; }, remove() {} };
+    const host = { ownerDocument: { createElement: () => el }, append() {} };
+    const factory = (await import('../js/app/pages/list.js')).default;
+    const seen = [];
+    const ctx = { id: 'x' };
+    factory(host, { selectable: true, rowKey: 'sku', bulkActions: [{ id: 'archive', label: 'Archive' }], onSelect: (d, c) => seen.push(['select', d, c]), onBulk: (d, c) => seen.push(['bulk', d, c]) }, ctx);
+    assert.equal(el.config.selectable, true); assert.equal(el.config.rowKey, 'sku'); assert.deepEqual(el.config.bulkActions, [{ id: 'archive', label: 'Archive' }]);
+    on['pk-select']({ detail: { selected: ['1'], scope: 'page', query: {} } });
+    on['pk-bulk']({ detail: { action: 'archive', selected: ['1'], scope: 'page', query: {} } });
+    assert.deepEqual(seen, [['select', { selected: ['1'], scope: 'page', query: {} }, ctx], ['bulk', { action: 'archive', selected: ['1'], scope: 'page', query: {} }, ctx]]);
 });
 
 test("'dashboard' (#436) creates a pk-dashboard-page, splits config into the element's data (tabs, widgets, sections, filters, empty), wires load(key) with the page ctx, and cleanup removes the element", async () => {

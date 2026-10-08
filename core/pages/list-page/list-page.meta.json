@@ -11,14 +11,28 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ columns, filters?, actions?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. actions is [{ label, href?, variant? }], toolbar buttons shown beside the search box (a page that needs one wired to app logic points its href at another route, the same way a module's own nav does - it is data, never a callback). empty is { heading?, description? } shown when a page has zero rows. pageSize is the initial page size (default 25); the reader can change it if pk-pagination's own sizes are configured through further host script. Optional title bar from the shared page shell: heading?: string and breadcrumb?: [{ label, href? }] (config.actions remain the table toolbar's buttons). Nothing is drawn when neither is set."
+      "description": "{ columns, filters?, actions?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. actions is [{ label, href?, variant? }], toolbar buttons shown beside the search box (a page that needs one wired to app logic points its href at another route, the same way a module's own nav does - it is data, never a callback). empty is { heading?, description? } shown when a page has zero rows. selectable? (boolean) shows the checkbox column and the bulk bar, rowKey? names the row field that identifies a row (default id), bulkActions? is [{ id, label, variant? }], the buttons of the bulk bar. pageSize is the initial page size (default 25); the reader can change it if pk-pagination's own sizes are configured through further host script. Optional title bar from the shared page shell: heading?: string and breadcrumb?: [{ label, href? }] (config.actions remain the table toolbar's buttons). Nothing is drawn when neither is set."
     }
   ],
   "slots": [],
-  "events": [],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": { "selected": "string[]", "scope": "'page' | 'all'", "query": "{ page, pageSize, sort, sortDir, search, filters }" },
+      "description": "The selection changed (config.selectable), passed through from the pk-data-table. For scope 'all' run the bulk action against query on the server, never against the ids.",
+      "detailProps": { "selected": "string[]", "scope": "string", "query": "object" }
+    },
+    {
+      "name": "pk-bulk",
+      "detail": { "action": "string", "selected": "string[]", "scope": "'page' | 'all'", "query": "object" },
+      "description": "A button of config.bulkActions was pressed: its id and the selection at that moment, as pk-select carries it.",
+      "detailProps": { "action": "string", "selected": "string[]", "scope": "string", "query": "object" }
+    }
+  ],
   "parts": [
     { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "table", "description": "The pk-data-table, which owns the query, the load, the states, the search/filter panel and the pager (its own parts: table, filters, pagination, state; part('filters'), part('pagination') and part('state') on this page reach them)." },
+    { "name": "bulk", "description": "Holds one button per config.bulkActions entry, in the data table's bulk bar (shown while rows are selected)." },
     { "name": "actions", "description": "Holds one button per config.actions entry, in the data table's actions slot at the end of the toolbar." }
   ],
   "cssProperties": [],
