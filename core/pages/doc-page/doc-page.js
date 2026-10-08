@@ -12,7 +12,7 @@ import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 // Callback properties (business logic, never JSON - STANDARDS.md): loadItem(id) -> { title, summary, html } | Promise<...>; href(id, anchor?) ->
 // string, used for nav items, the pager and the home list's links. (The element's own load(id) method drives loadItem; do not confuse the two.)
 // Options (config): navLabel ('Contents'), pagerLabel ('Page navigation'), breadcrumb: true (a pk-breadcrumb above the title: the home title, then the item),
-// home.cards: true (the home list as a grid of pk-cards). Host search (a callback property): searchItems(query) -> { ids, status? } replaces the nav's title filter with a search
+// home.cards: true (the home list as a grid of pk-cards), scroller (a selector: the host's own scrolling box, which the table of contents follows instead of the window). Host search (a callback property): searchItems(query) -> { ids, status? } replaces the nav's title filter with a search
 // box that shows only the items whose id is in `ids` and says `status` in a polite line under it (the host decides what matches, for example the text of the documents).
 // Event: pk-navigate { id, anchor, replace: false } - a same-page link inside the article was followed; the host rewrites the address
 // (history.pushState/replaceState) and keeps `anchor` in the next config it sets. The element never touches history or the document itself.
@@ -59,6 +59,7 @@ export default Base => class extends Base {
         // A same-page link inside the article (the toc, a heading's own permalink) scrolls the article, not the whole page shell, and reports
         // the new address through pk-navigate rather than touching history itself.
         this.$body.addEventListener('click', e => this.onBodyClick(e));
+        this.$toc.addEventListener('click', e => this.onBodyClick(e)); // the table of contents is the article's own index: its links scroll the article too
     }
 
     linkFor(id, anchor) { return typeof this.href === 'function' ? this.href(id, anchor) : `#${id ?? ''}`; }
@@ -87,6 +88,7 @@ export default Base => class extends Base {
         }
         this.$nav.setAttribute('label', this.config?.navLabel || 'Contents');
         this.$pager.setAttribute('label', this.config?.pagerLabel || 'Page navigation');
+        if (this.config?.scroller) this.$toc.setAttribute('scroller', this.config.scroller);
         this.$nav.toggleAttribute('filterable', (this.config?.search ?? true) && items.length > 0 && typeof this.searchItems !== 'function');
         this.syncSearch();
         for (const n of this.$nav.querySelectorAll('pk-nav-item')) n.toggleAttribute('current', n.dataset.docId === currentId);
@@ -212,7 +214,10 @@ export default Base => class extends Base {
     scrollToHeading(id) {
         const t = id && this.$body.querySelector(`[id="${CSS.escape(id)}"]`);
         if (!t) { if (id) this.warnOnce?.(`heading:${id}`, `pk-doc-page: no heading "${id}"`, { id }); return false; }
-        t.scrollIntoView({ block: 'start' });
+        const sc = this.config?.scroller && this.ownerDocument.querySelector(this.config.scroller);
+        // With the host's own scroller only that box moves (scrollIntoView would also move every box around it, the page shell included).
+        if (sc) sc.scrollTop += t.getBoundingClientRect().top - sc.getBoundingClientRect().top - (parseFloat(getComputedStyle(t).scrollMarginTop) || 0);
+        else t.scrollIntoView({ block: 'start' });
         return true;
     }
     // The first time this item loads, the elements above and below the article are still upgrading and can still shift its position; retry

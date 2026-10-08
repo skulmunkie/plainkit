@@ -12,14 +12,15 @@ async function open(t, hash, { width = 1280, height = 800, theme = 'dark', toc =
     const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
     f.src = new URL(`../../site/guides/index.html?theme=${theme}${hash}`, import.meta.url).href; host.append(f); await loaded;
     const win = f.contentWindow, doc = f.contentDocument;
-    await until(() => doc.getElementById('gd-body')?.firstElementChild && doc.getElementById('gd-title').textContent, 'the guide to paint');
-    await until(() => ['pk-side-nav', 'pk-nav-item', 'pk-toc', 'pk-breadcrumb', 'pk-pager', 'pk-code-block', 'pk-card', 'pk-alert'].every(n => !doc.querySelector(n) || win.customElements.get(n)), 'the elements to be defined');
-    const $ = id => doc.getElementById(id);
+    await until(() => doc.querySelector('pk-doc-page > .prose')?.firstElementChild && doc.querySelector('.doc-page-title')?.textContent, 'the guide to paint');
+    await until(() => ['pk-doc-page', 'pk-side-nav', 'pk-nav-item', 'pk-toc', 'pk-breadcrumb', 'pk-pager', 'pk-code-block', 'pk-card', 'pk-alert', 'pk-input'].every(n => !doc.querySelector(n) || win.customElements.get(n)), 'the elements to be defined');
+    const q = { 'gd-title': '.doc-page-title', 'gd-body': 'pk-doc-page > .prose', 'gd-toc': 'pk-toc', 'gd-pager': 'pk-pager', 'gd-crumbs': 'pk-breadcrumb', 'gd-nav': 'pk-side-nav', 'gd-scroll': '.site-docs', 'gd-contents': '.doc-page-toggle', 'gd-summary': '.doc-page-summary', 'gd-search': 'pk-side-nav pk-input', 'gd-search-status': 'pk-side-nav pk-text' };
+    const $ = id => doc.querySelector(q[id]);
     if (toc) await until(() => $('gd-toc').shadowRoot?.querySelector('a'), 'the toc to list the headings');
     await t.settle(); await wait(400);
     const problems = () => win.PkLog.getLogBuffer().filter(e => e.level === 'warn' || e.level === 'error').map(e => `${e.scope}: ${e.message}`);
     const links = () => [...$('gd-toc').shadowRoot.querySelectorAll('a')];
-    return { f, win, doc, $, problems, links, scroller: $('gd-scroll'), nav: $('gd-nav'), items: [...doc.querySelectorAll('#gd-nav pk-nav-item')] };
+    return { f, win, doc, $, problems, links, scroller: $('gd-scroll'), nav: $('gd-nav'), items: [...doc.querySelectorAll('pk-side-nav pk-nav-item')].map(i => (i.dataset.guide = i.dataset.docId, i)) };
 }
 const hashIs = (p, re, what) => until(() => re.test(p.win.location.hash), what);
 const rgb = c => { const m = /rgba?\(([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:[, /]+([\d.]+))?/.exec(c); return m && Number(m[4] ?? 1) > 0.99 ? [1, 2, 3].map(i => Number(m[i])) : null; };
@@ -70,17 +71,17 @@ export const guidesCases = [
         await hashIs(p, new RegExp(`^#/getting-started/${id}$`), 'the address to name the heading');
         await until(() => p.scroller.scrollTop > 100, 'the article to scroll');
         t.eq(p.doc.scrollingElement.scrollTop, 0, 'the page shell did not move');
-        const h = p.doc.getElementById(id), bar = p.doc.querySelector('.gd-bar').getBoundingClientRect();
-        t.ok(h.getBoundingClientRect().top >= bar.bottom - 1, 'the heading sits below the sticky bar, not under it');
+        const h = p.doc.getElementById(id), box = p.scroller.getBoundingClientRect();
+        t.ok(h.getBoundingClientRect().top >= box.top - 1, 'the heading is inside the article scroller, not above it');
         await until(() => p.links().find(a => a.getAttribute('aria-current') === 'location')?.getAttribute('href') === `#${id}`, 'the toc to mark that heading');
         const reload = await open(t, p.win.location.hash);
-        t.ok(reload.doc.getElementById(id).getBoundingClientRect().top >= reload.doc.querySelector('.gd-bar').getBoundingClientRect().bottom - 1, 'the copied address opens at the heading');
+        t.ok(reload.doc.getElementById(id).getBoundingClientRect().top >= reload.scroller.getBoundingClientRect().top - 1, 'the copied address opens at the heading');
     }],
 
     ['guides: a heading has a permalink (named, empty until drawn) that copies to a deep link, and a deep link opens at its heading', async t => {
         const p = await open(t, '#/theming/change-a-token');
         const h = p.doc.getElementById('change-a-token');
-        t.ok(h && h.getBoundingClientRect().top >= p.doc.querySelector('.gd-bar').getBoundingClientRect().bottom - 1 && h.getBoundingClientRect().top < 300, 'the deep link scrolled to the heading');
+        t.ok(h && h.getBoundingClientRect().top >= p.scroller.getBoundingClientRect().top - 1 && h.getBoundingClientRect().top < 300, 'the deep link scrolled to the heading');
         const anchor = h.querySelector('a.anchor');
         t.eq(anchor.getAttribute('aria-label'), 'Link to this section'); t.eq(anchor.getAttribute('href'), '#change-a-token'); t.eq(anchor.textContent, '', 'no text of its own, so the toc and the heading text stay clean');
         const other = p.doc.getElementById('the-families-of-tokens');
@@ -113,7 +114,7 @@ export const guidesCases = [
         t.ok(p.doc.documentElement.scrollWidth <= 375, 'the page fits the phone width');
         t.ok(p.$('gd-body').getBoundingClientRect().right <= 375 + 1, 'so does the article');
         for (const wrap of p.$('gd-body').querySelectorAll('.table-wrap')) t.ok(wrap.getBoundingClientRect().right <= 376, 'a table scrolls inside its own region');
-        const button = p.$('gd-contents');
+        const button = p.$('gd-contents'); // doc-page's own Menu button
         t.ok(shown(button), 'the Guides button is shown'); t.ok(!shown(p.nav), 'the nav is off screen until asked');
         button.click(); await until(() => shown(p.nav), 'the drawer to open');
         t.ok(p.nav.hasAttribute('open') && button.hasAttribute('pressed'), 'the button shows it is pressed');
@@ -129,12 +130,12 @@ export const guidesCases = [
 
     ['guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning', async t => {
         const list = await open(t, '#/', { toc: false });
-        const cards = [...list.$('gd-body').querySelectorAll('pk-card')];
+        const cards = [...list.$('gd-body').querySelectorAll('pk-grid pk-card')];
         t.eq(cards.length, 9); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/choosing-what-to-build-with,#/build-an-app,#/theming,#/responsive-design,#/logging,#/migrating-from-compat,#/conformance-audit');
-        t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-aside').hidden, true, 'no toc on the list');
+        t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-toc').hidden, true, 'no toc on the list');
         const gone = await open(t, '#/no-such-guide', { toc: false });
-        t.eq(gone.$('gd-title').textContent, 'Guide not found');
-        t.eq(gone.$('gd-body').querySelector('pk-alert').getAttribute('kind'), 'warning'); t.eq(gone.$('gd-body').querySelector('a').getAttribute('href'), '#/');
+        t.eq(gone.$('gd-title').textContent, 'Not found');
+        t.ok(/no-such-guide/.test(gone.$('gd-body').querySelector('pk-empty-state')?.getAttribute('description') ?? ''), 'the page names what is missing'); t.eq(gone.$('gd-crumbs').querySelector('a').getAttribute('href'), '#/', 'the breadcrumb offers the list');
         t.ok(gone.problems().some(m => /no guide named "no-such-guide"/.test(m)), 'the mistake is logged, not silent');
     }],
 
@@ -143,14 +144,13 @@ export const guidesCases = [
         const input = p.$('gd-search'), control = input.part('control'), status = p.$('gd-search-status');
         const type = value => { control.value = value; control.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
         type('Theming');
-        await until(() => p.items.find(i => i.dataset.guide === 'theming')?.getAttribute('data-match') === 'title', 'the title match to be marked');
+        await until(() => /titled/.test(status.textContent), 'the title match to be reported');
         t.ok(!p.items.find(i => i.dataset.guide === 'theming').hidden, 'the guide titled "Theming and tokens" is shown');
         t.ok(status.textContent.includes('titled') && status.textContent.includes('Theming and tokens'), 'the status names it as a title match');
         type('swatch'); // only in theming's body text (the theme editor section), not in any guide's title
         await until(() => p.items.filter(i => !i.hidden).length === 1, 'the body-only match to narrow the nav');
         const shownItem = p.items.find(i => !i.hidden);
         t.eq(shownItem.dataset.guide, 'theming', 'the guide whose text mentions "swatch" is found');
-        t.eq(shownItem.getAttribute('data-match'), 'body', 'found by its text, not its title');
         t.ok(status.textContent.includes('mentioned in') && status.textContent.includes('Theming and tokens'), 'the status says it was found in the text');
         type('there-is-no-such-word-in-any-guide');
         await until(() => p.items.every(i => i.hidden), 'no guide to match a nonsense query');

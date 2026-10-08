@@ -1398,21 +1398,6 @@
     },
     {
       "rule": "S1",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "46455537194809e6"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "c0202b1d8dfe0d62"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "e965efa75f47fc79"
-    },
-    {
-      "rule": "S1",
       "file": "core/site/guides/index.html",
       "fingerprint": "e965efa75f47fc79"
     },
@@ -1440,81 +1425,6 @@
       "rule": "S3",
       "file": "core/site/guides/index.html",
       "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dabed4517f643c74"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dabed4517f643c74"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dabed4517f643c74"
     },
     {
       "rule": "S7",
@@ -1549,7 +1459,7 @@
     {
       "rule": "S7",
       "file": "core/site/guides/page.js",
-      "fingerprint": "6e4bda7b7d89861f"
+      "fingerprint": "dabed4517f643c74"
     },
     {
       "rule": "S7",
