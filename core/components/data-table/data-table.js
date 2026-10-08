@@ -12,6 +12,7 @@ export default Base => class extends Base {
     connected() {
         // Cell content (#817): the host's `cell-<id>-<key>` children are re-slotted into the inner pk-table, which finds them as its own children.
         (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
