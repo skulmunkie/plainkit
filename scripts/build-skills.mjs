@@ -526,6 +526,7 @@ const BLAZOR_REMOVED_STEP = ['## 5c. Names that were removed or renamed (Blazor)
     '| `<PkFieldListRow>` (`Label`, `Value`, `SkipEmpty`, `When`) | plain `<dt>`/`<dd>` in `PkFieldList`: an empty `dd` hides its pair; `ShowEmpty` on the list for `SkipEmpty="false"`; `@if` for `When` |',
     '| `PageBase.ShowBusyOverlay`, `BusyDelay`, `BusyMinTime`, `Clock` | `<PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel">`: the overlay owns the timing; `PageBase` keeps only the busy count and label |',
     '| `PkEmptyState.DescriptionContent` | `ChildContent` (a link back or a button goes in `ActionContent`) |',
+    '| `PkPageHeader` `Crumbs` drawing a `pk-breadcrumb` child | the same `Crumbs` parameter, but the `pk-breadcrumb` is now inside the header\'s shadow tree: a bUnit `Find("pk-breadcrumb")`, a browser test or a style that looks for it in the page DOM finds nothing (assert on the `crumbs` attribute, a JSON array of `{ label, href }`, instead) |',
     '| `PkCardMenu` built by hand from `PkDropdown` and an icon `PkButton` | `PkCardMenu` (generated from `pk-card-menu`); the generated components now live in tier namespaces, see the previous step |', ''];
 
 const SDK_REMOVED_STEP = ['## 5b. Names and behaviour that changed (SDK)', '',
@@ -533,7 +534,7 @@ const SDK_REMOVED_STEP = ['## 5b. Names and behaviour that changed (SDK)', '',
     '- `createPage` no longer runs its own busy timers: `pk-loading-overlay` owns the rule (`delay`, `min-time`, both default 0 on the element; the page hands it 150 and 300). An app that sets `busy` on its own overlay now sets `delay` and `min-time` there when it needs them.',
     '- `pk-data-table` and `pk-lookup-picker` take plain props only (`columns`, `page-size`, `label`, `filters`, `empty` ...); there is no `config` (removed: a one-key-per-prop migration is in the changelog). A leftover `config` is ignored, with a one-time console warning: search the app, plain HTML and JS-only pages included, for `config=` and `.config =` on these two tags. `pk-data-table` also has `add-label` and `pk-add`.',
     '- `pk-field-list` hides a slotted `dt`/`dd` pair whose `dd` is empty (`show-empty` keeps it): an app that kept empty pairs for layout adds `show-empty`.',
-    '- `pk-page-header` draws a breadcrumb from `crumbs` (JSON), `home-href` and `back-link`; the `breadcrumb` slot still works.', ''];
+    '- `pk-page-header` draws a breadcrumb from `crumbs` (JSON), `home-href` and `back-link`; the `breadcrumb` slot still works. The `pk-breadcrumb` it draws is inside the header\'s shadow tree, no longer a child in the page DOM: a test, script or style that queries `pk-page-header pk-breadcrumb` (or `pk-breadcrumb` on the page) for the trail finds nothing now; read `crumbs`, or reach through `header.shadowRoot`.', ''];
 
 // issue 237: a blast-radius recipe for moving a consuming app from an older Plainkit version to a newer one. `findVersion` is the
 // skill-specific step (a NuGet PackageReference for Blazor, dist/manifest.json or js/version.js for the vanilla SDK); the rest of the
