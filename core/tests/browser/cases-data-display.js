@@ -265,6 +265,40 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: config.search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
+        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5,"searchDebounce":20,"search":"SKU-3"}'></pk-data-table>`);
+        const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
+        el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
+        el.refresh();
+        const box = () => el.part('filters').shadowRoot.querySelector('[part="search"]'), rowsShown = () => el.part('table').shadowRoot.querySelectorAll('tbody tr').length;
+        await until(() => rowsShown() === 5, 'the searched first page');
+        t.eq(queries[0].search, 'SKU-3', 'the first load already carries the term'); t.eq(box().value, 'SKU-3', 'the visible input shows it');
+        el.part('pagination').shadowRoot.querySelector('[part~="next"]').click();
+        await until(() => queries.at(-1).page === 2, 'page two of the preset search'); t.eq(queries.at(-1).search, 'SKU-3', 'paging keeps the term');
+        box().value = 'SKU-1'; box().dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => queries.at(-1).search === 'SKU-1', 'typing replaces the preset'); t.eq(queries.at(-1).page, 1);
+        el.config = { ...el.config, search: 'SKU-2' };
+        await until(() => queries.at(-1).search === 'SKU-2' && box().value === 'SKU-2', 'the host changed the term: the query and the box follow'); t.eq(queries.at(-1).page, 1);
+    }],
+
+    ['table and data-table: selectPageOnly keeps the header checkbox on the page and never offers "Select all N rows" (#865)', async t => {
+        const el = await t.mount(`<pk-table label="P" manual selectable select-page-only total="112" columns='${cols}' rows='${rows}'></pk-table>`);
+        const r = el.shadowRoot, btn = () => r.querySelector('[part="bulk-all"]'), events = [];
+        el.addEventListener('pk-select-all', e => events.push(e.detail));
+        await until(() => el.$s, 'the scope module');
+        r.querySelector('[data-select-all]').click(); await t.settle();
+        t.eq(el.selected.length, 3, 'the page is selected'); t.ok(btn().hidden, 'no Select all offer although the query has more rows'); t.eq(el.selectScope, 'page');
+        el.selectPageOnly = false; await t.settle(); t.ok(!btn().hidden, 'without it the offer shows (the default is unchanged)');
+        const dt = await t.mount(`<pk-data-table selectable select-page-only config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        dt.load = async q => ({ rows: Array.from({ length: 5 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), total: 40 });
+        dt.refresh();
+        const table = dt.part('table');
+        await until(() => table.shadowRoot.querySelector('[data-select-all]'), 'the rows');
+        table.shadowRoot.querySelector('[data-select-all]').click(); await t.settle();
+        await until(() => table.$s, 'the scope module'); await t.settle();
+        t.eq(dt.selected.length, 5); t.eq(dt.selectScope, 'page'); t.ok(table.shadowRoot.querySelector('[part="bulk-all"]').hidden, 'data-table passes it on');
+    }],
+
     ['data-table: the search box keeps focus and its text across the debounce and the load, and a search with no results keeps the toolbar with a clearable search (#836)', async t => {
         const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"searchDebounce":20,"noResults":{"heading":"Nothing matches"}}'><pk-button slot="actions" id="add">Add</pk-button></pk-data-table>`);
         const all = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];

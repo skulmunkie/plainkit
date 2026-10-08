@@ -3,14 +3,13 @@
 @inherits PkElementBase
 @implements IDisposable
 
-@* Hand-written (blazor/mappings/data-table.json marks it "existing"): a typed wrapper over pk-data-table, which owns the query, the load, the
-   states, the paging and the selection (issue 801). This component only turns .NET into what the element takes: the columns and the options into
-   its config, Load into the element's load(query) callback (PkCallbackSlot, as PkListPage), the loaded items into rows and cell slots, and the
-   element's events back into callbacks. The element never sends the ids of a whole query: a selection of scope "all" is the query. *@
+@* Hand-written (mapping "existing"): a typed wrapper over pk-data-table, which owns the query, load, states, paging and selection (issue 801). It only
+   turns .NET into what the element takes (columns and options into config, Load into load(query), items into rows and cell slots) and its events back into callbacks. *@
 <pk-data-table data-pk-ranges
                config="@_config"
                @ref="Element"
                selectable="@Selectable"
+               select-page-only="@SelectPageOnly"
                selected="@PkAttr.Json(Selected)"
                select-scope="@SelectScope"
                clickable="@OnRowClick.HasDelegate"
@@ -60,6 +59,9 @@
     /// <summary>Sort <see cref="SortKey"/> descending first (initial only).</summary>
     [Parameter] public bool Descending { get; set; }
 
+    /// <summary>The search term to start with, for example from a query string: it fills the search box and the first <c>Load</c> request, and typing replaces it. Changing it later replaces the term and loads page 1.</summary>
+    [Parameter] public string? Search { get; set; }
+
     /// <summary>Show the search box. Default true.</summary>
     [Parameter] public bool Searchable { get; set; } = true;
 
@@ -101,6 +103,9 @@
 
     /// <summary>A checkbox column with select-all for the page, and "Select all N rows" when the searched list has more. The selection is kept by id across pages and searches (see <see cref="Selected"/>).</summary>
     [Parameter] public bool Selectable { get; set; }
+
+    /// <summary>Never offer "Select all N rows": the header checkbox selects the loaded page and <see cref="SelectScope"/> stays <c>page</c>. For a list whose bulk action works only on explicit ids. Default false.</summary>
+    [Parameter] public bool SelectPageOnly { get; set; }
 
     /// <summary>The ids (<see cref="IdOf"/>) of the selected rows, across every page and search the user visited (two-way: <c>@bind-Selected</c>). The order carries no meaning. After "Select all N rows" (<see cref="SelectScope"/> <c>all</c>) it holds only the loaded page: the rest is the query.</summary>
     [Parameter] public IReadOnlyList<string>? Selected { get; set; }
@@ -160,6 +165,7 @@
             sort = SortKey,
             sortDir = Descending ? "descending" : "ascending",
             searchable = Searchable,
+            search = Search,
             searchLabel = SearchLabel ?? SearchPlaceholder ?? "Search",
             searchDebounce = SearchDebounceMs,
             pagerLabel = PagerLabel ?? "List pages",
@@ -227,15 +233,8 @@
         await OnSelect.InvokeAsync(e);
     }
 
-    private async Task HandleRowClickAsync(PkRowClickEventArgs e)
-    {
-        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowClick.InvokeAsync(row.Item);
-    }
+    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-        _sequence++;
-        _load.Dispose();
-    }
+    public void Dispose() { _sequence++; _load.Dispose(); }
 }

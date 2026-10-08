@@ -13,6 +13,14 @@
       "description": "The search box's placeholder and accessible name."
     },
     {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-search",
+      "description": "The text in the search box, to preset it or replace it later. Typing writes it at once and pk-search follows after the debounce; a change the host makes raises nothing."
+    },
+    {
       "name": "debounce",
       "type": "number",
       "default": 250,
