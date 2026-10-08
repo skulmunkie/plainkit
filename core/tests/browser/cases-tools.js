@@ -92,14 +92,15 @@ export const toolCases = [
         const card = await mountScorecard(host, { sections: ['tiers'], data: { tiers: new URL('../../site/scorecard/tiers.current.json', import.meta.url).href } });
         await card.ready; await t.load(host); await t.settle();
         const tables = [...host.querySelectorAll('pk-table')];
-        t.eq(tables.length, 2, 'the tier table and the rule table');
+        t.eq(tables.length, report.modules ? 3 : 2, 'the tier table, the module table (when the build had the module baseline) and the rule table');
         const rows = table => JSON.parse(table.getAttribute('rows'));
-        const [byTier, byRule] = tables.map(rows);
+        const [byTier, ...rest] = tables.map(rows), byRule = rest.at(-1), byModule = report.modules ? rest[0] : null;
         t.eq(byTier.map(r => r.tier.toLowerCase()).join(), report.tiers.join(), 'one row per tier');
         t.eq(byTier.map(r => r.elements).join(), report.tiers.map(x => report.counts[x]).join(), 'element counts match the report');
         t.eq(byTier.reduce((n, r) => n + r.elements, 0), report.total, 'the counts sum to the element count');
         t.eq(byRule.map(r => r.rule).join(), report.rules.join(), 'one row per rule');
         t.eq(byRule.reduce((n, r) => n + r.total, 0), report.debtTotal, 'the debt per rule sums to the baseline total');
+        if (byModule) { t.eq(byModule.map(r => r.rule).join(), Object.keys(report.modules.rules).join(), 'one row per module rule'); t.eq(byModule.reduce((n, r) => n + r.count, 0), report.modules.total, 'the module rows sum to the module baseline'); }
         t.ok(tables.every(x => x.getBoundingClientRect().width > 0 && x.getBoundingClientRect().height > 0), 'both tables are drawn');
         card.destroy();
     }],

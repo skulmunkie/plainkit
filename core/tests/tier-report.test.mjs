@@ -13,7 +13,8 @@ const json = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
 const tiers = json('tools/tiers.baseline.json');
 const tags = json('tools/tier-tags.baseline.json');
 const elements = loadElementSources();
-const report = tierReport(elements, tiers, tags);
+const modulesBaseline = JSON.parse(fs.readFileSync(path.join(root, '..', 'plainkit.audit.modules.baseline.json'), 'utf8'));
+const report = tierReport(elements, tiers, tags, modulesBaseline);
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 test('the tier counts add up to the element count and match each meta tier', () => {
@@ -27,6 +28,14 @@ test('the debt per rule adds up to the baseline totals', () => {
     for (const r of ['D1', 'S3', 'T1']) assert.equal(sum(report.debt[r]), tags.entries.filter(e => e.rule === r).reduce((n, e) => n + e.count, 0), r);
     assert.equal(report.debtTotal, tiers.entries.length + tags.entries.reduce((n, e) => n + e.count, 0));
     assert.deepEqual(Object.keys(report.debt), DEBT_RULES);
+});
+
+test('the module baseline is one separate group: debt per module rule, summing to the baseline, and no tier gains debt from it', () => {
+    assert.equal(report.modules.total, modulesBaseline.entries.length);
+    assert.equal(sum(report.modules.rules), modulesBaseline.entries.length);
+    assert.deepEqual(Object.keys(report.modules.rules), [...new Set(modulesBaseline.entries.map(e => e.rule))].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })));
+    assert.equal(report.debtTotal, tiers.entries.length + tags.entries.reduce((n, e) => n + e.count, 0), 'the module debt is not added to the tier debt');
+    assert.equal(tierReport(elements, tiers, tags).modules, undefined, 'without the module baseline (a core/ built on its own) the group is absent');
 });
 
 test('a baseline entry for something that is not an element is an error, not silently dropped', () => {
