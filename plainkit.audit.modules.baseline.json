@@ -1777,16 +1777,6 @@
       "fingerprint": "6db933d6bc089fc5"
     },
     {
-      "rule": "S3",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "013399e2177c65ae"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "013399e2177c65ae"
-    },
-    {
       "rule": "S7",
       "file": "core/site/settings/page.js",
       "fingerprint": "0df686ad7913b7ab"
@@ -1804,32 +1794,7 @@
     {
       "rule": "S7",
       "file": "core/site/settings/page.js",
-      "fingerprint": "e8c164dcc7bbe1a6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
       "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "e8c164dcc7bbe1a6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "e8c164dcc7bbe1a6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "e8c164dcc7bbe1a6"
     },
     {
       "rule": "S3",
