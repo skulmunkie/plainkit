@@ -27,6 +27,7 @@ import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
 import { on, later, loadText } from '../../js/mount-support.js';
+import { mountRouter } from '../../js/router.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -89,15 +90,22 @@ function allSections() {
 // A bare embed (no nav) with no route of its own lists the matching elements one after another.
 const collection = () => bare && !location.hash && (isScoped(opts) || Boolean(opts.filter)) && tree().some(s => s.id === 'elements');
 
+// The old addresses that keep working: layouts and templates now live under samples, a control page is its element's page, building blocks are gone.
+// (The router follows these once and rewrites the address, so the address always names the view it shows.)
+const element = (path, query, { name }) => (ELEMENTS.some(m => m.tag === `pk-${name}`) ? `/elements/pk-${name}` : '/elements');
+const ALIASES = {
+    '/controls/:group/:name': element, '/controls/:group': '/elements', '/controls': '/elements',
+    '/samples/blocks/:x': '/samples', '/samples/blocks': '/samples',
+    '/layouts/:id': '/samples/layouts/:id', '/layouts': '/samples/layouts',
+    '/templates/block/:x': '/samples', '/templates/block': '/samples',
+    '/templates/:id': '/samples/templates/:id', '/templates': '/samples/templates',
+};
+let router = null;
+
+// Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
 function route() {
-    const hash = location.hash || (isScoped(opts) && !collection() ? initialHash(tree()) : '');
-    const [raw = '', a0, b0] = hash.replace(/^#\/?/, '').split('?')[0].split('/');
-    // Old routes keep working: layouts and templates now live under samples, a control page is its element's page, building blocks are gone.
-    if (raw === 'controls') { const tag = `pk-${b0}`; return { section: 'elements', a: ELEMENTS.some(m => m.tag === tag) ? tag : undefined }; }
-    if (raw === 'samples' && a0 === 'blocks') return { section: 'samples' };
-    if (raw === 'layouts') return { section: 'samples', a: 'layouts', b: a0 };
-    if (raw === 'templates') return a0 === 'block' ? { section: 'samples' } : { section: 'samples', a: 'templates', b: a0 };
-    return { section: raw || 'overview', a: a0, b: b0 };
+    const [section = 'overview', a, b] = (router?.current()?.url ?? '/').split('/').filter(Boolean);
+    return { section, a, b };
 }
 
 // ---- nav -----------------------------------------------------------------------------------------------------------------
@@ -579,6 +587,11 @@ export async function mountGallery(container, options = {}) {
     state.open = new Set(bare ? [] : JSON.parse(readSetting('pk-gallery-open') ?? '[]'));
     if (opts.theme) setTheme(document.documentElement, opts.theme);
     document.documentElement.dataset.width = state.width;
+    // A scoped mount with no address of its own opens the first view of its scope (the address says so from then on).
+    const first = !location.hash && isScoped(opts) && !collection() ? initialHash(tree()) : '';
+    if (first) history.replaceState(null, '', first);
+    router?.destroy();
+    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES });
     container.innerHTML = bare ? BARE_HTML : CHROME_HTML;
     if (!bare) container.classList.add('gx-mount');
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
@@ -600,7 +613,7 @@ export async function mountGallery(container, options = {}) {
         on(navEl(), 'pk-close', () => { const btn = $('[data-gx-contents]'); if (btn) setAttr(btn, 'pressed', false); });
         on($('#gx-inspector'), 'pk-close', () => setInspector(false));
     }
-    window.addEventListener('hashchange', render);
+    router.subscribe(render);
     on($('#gx-shell'), 'click', e => {
         const contents = e.target.closest('[data-gx-contents]');
         if (contents) { const on = !navEl().hasAttribute('open'); setAttr(navEl(), 'open', on); setAttr(contents, 'pressed', on); }
