@@ -6,18 +6,19 @@
 <title>SDK Theme editor</title>
 <link rel="stylesheet" href="../../plainkit.css">
 <link rel="stylesheet" href="../site.css">
-<link rel="stylesheet" href="theme.css">
 </head>
 <body class="site">
 <div class="site-boot-bar" aria-hidden="true"></div>
-<div class="site-body">
-    <pk-alert kind="warning" class="gx-notice-file" id="boot-notice" role="status">
-        Loading the theme editor. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
-    </pk-alert>
+<pk-stack fill gap="none">
+    <pk-container id="boot-notice" padding="md">
+        <pk-alert kind="warning" role="status">
+            Loading the theme editor. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
+        </pk-alert>
+    </pk-container>
     <pk-loading-overlay busy label="Loading theme editor…" id="te-loading">
-        <div id="te-host"></div>
+        <pk-container id="te-host" size="full" padding="md"></pk-container>
     </pk-loading-overlay>
-</div>
+</pk-stack>
 <script type="module" src="theme.js"></script>
 </body>
 </html>
