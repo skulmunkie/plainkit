@@ -1,0 +1,93 @@
+{
+  "tag": "pk-card-menu",
+  "a11yRequires": ["label"],
+  "aliases": ["card actions menu", "more menu", "kebab menu"],
+  "title": "Card menu",
+  "group": "Overlays",
+  "tier": "component",
+  "summary": "The \"...\" (or settings) button of a card header that opens a menu of secondary actions. A pk-dropdown opened by an icon-only button, so the keyboard, the focus return and the placement are the dropdown's; put it in the actions slot of a pk-card with pk-menu-item children.",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "default": "Card actions",
+      "reflect": true,
+      "description": "The accessible name of the button, which is also its tooltip. Name what the menu acts on when a page has several (\"Orders actions\")."
+    },
+    {
+      "name": "iconName",
+      "type": "string",
+      "default": "more",
+      "reflect": true,
+      "description": "The icon of the button: more (the default), settings, or any other name of the icon sprite."
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "default": "bottom-end",
+      "reflect": true,
+      "description": "Which side the menu opens on. The default aligns it with the button at the end of the header."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": ["pk-open", "pk-close"],
+      "description": "Whether the menu is shown."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "pk-menu-item children (give each a value to tell them apart in pk-select, or an href)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "element",
+        "value": "string",
+        "checked": "boolean"
+      },
+      "description": "An item was chosen (the pk-dropdown's event, which reaches this element)."
+    },
+    {
+      "name": "pk-open",
+      "detail": null,
+      "description": "Opened."
+    },
+    {
+      "name": "pk-close",
+      "detail": {
+        "reason": "string"
+      },
+      "description": "Closed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "menu",
+      "description": "The pk-dropdown."
+    },
+    {
+      "name": "button",
+      "description": "The icon pk-button that opens it."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The button is named by label and carries aria-haspopup=menu and aria-expanded (set by the pk-dropdown); Enter, Space and ArrowDown open it, arrows, Home, End and typeahead move between items, Escape or choosing an item closes it and returns focus to the button.",
+  "mobile": "The button is a touch-sized target on a phone and the menu stays inside the viewport (the pk-dropdown shifts it).",
+  "examples": [
+    {
+      "title": "In a card header",
+      "html": "<pk-card heading=\"Orders\">\n  <pk-card-menu slot=\"actions\" label=\"Orders actions\">\n    <pk-menu-item value=\"export\">Export</pk-menu-item>\n    <pk-menu-item value=\"archive\">Archive</pk-menu-item>\n    <pk-menu-item value=\"delete\" danger>Delete</pk-menu-item>\n  </pk-card-menu>\n  <p>Recent orders.</p>\n</pk-card>"
+    },
+    {
+      "title": "A settings button",
+      "html": "<pk-card heading=\"Panel\">\n  <pk-card-menu slot=\"actions\" label=\"Panel settings\" icon-name=\"settings\">\n    <pk-menu-item value=\"rename\">Rename</pk-menu-item>\n    <pk-menu-item value=\"duplicate\">Duplicate</pk-menu-item>\n  </pk-card-menu>\n  <p>Body.</p>\n</pk-card>"
+    }
+  ]
+}

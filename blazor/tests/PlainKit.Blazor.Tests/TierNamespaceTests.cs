@@ -11,6 +11,7 @@ public sealed class TierNamespaceTests
     {
         Assert.Equal("PlainKit.Blazor.Components", typeof(PkTabs).Namespace);
         Assert.Equal("PlainKit.Blazor.Components", typeof(PkKanban).Namespace);
+        Assert.Equal("PlainKit.Blazor.Components", typeof(PkCardMenu).Namespace); // generated from pk-card-menu since #728; was hand-written in the root namespace
         Assert.Equal("PlainKit.Blazor.Pages", typeof(PkWizardPage).Namespace);
         Assert.Equal("PlainKit.Blazor.Shells", typeof(PkAppShell).Namespace);
     }
@@ -28,7 +29,7 @@ public sealed class TierNamespaceTests
     [Fact]
     public void Hand_written_elements_and_Blazor_only_helpers_stay_in_the_root_namespace()
     {
-        foreach (var t in new[] { typeof(PkTable<>), typeof(PkSideNav), typeof(PkGallery), typeof(PkCardMenu), typeof(PkRecordForm), typeof(PkElementBase), typeof(PageBase) })
+        foreach (var t in new[] { typeof(PkTable<>), typeof(PkSideNav), typeof(PkGallery), typeof(PkRecordForm), typeof(PkElementBase), typeof(PageBase) })
             Assert.Equal("PlainKit.Blazor", t.Namespace);
     }
 

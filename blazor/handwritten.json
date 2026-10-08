@@ -19,9 +19,6 @@
     "Components/PkAppBarSearch.razor": {
       "category": "router"
     },
-    "Components/PkCardMenu.razor": {
-      "category": "debt"
-    },
     "Components/PkCodeExplorer.razor": {
       "category": "mount"
     },
