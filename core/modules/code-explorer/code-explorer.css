@@ -16,15 +16,7 @@ pk-code-explorer {
 pk-code-explorer [hidden] { display: none !important; }
 pk-code-explorer pk-workspace { --pk-workspace-pad: 0; }
 
-/* Nav pane: two search boxes, their buttons and the file tree. */
-.ce-nav { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
-.ce-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.ce-name { min-inline-size: 0; overflow-wrap: anywhere; }
-.ce-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-inline-size: 0; }
-.ce-folder { font-weight: 600; }
 pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
-.ce-muted { color: var(--color-muted); }
-.ce-error { margin: var(--space-1); color: var(--field-error); }
 
 /* Main pane: the tab strip of open files over the viewer. */
 .ce-main { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; min-inline-size: 0; }
@@ -33,10 +25,6 @@ pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0;
 .ce-pane { display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; padding: var(--space-3); }
 .ce-pane pk-empty-state { margin: auto; }
 
-/* Aside pane: the outline or the usages of a word. */
-.ce-aside { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
-.ce-aside-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.ce-aside-head h2 { margin: 0; font-size: var(--text-read); }
 
 /* Outline. */
 .co { list-style: none; margin: 0; padding: 0; }
