@@ -158,9 +158,6 @@
     "PkCrumb.cs": {
       "category": "dto"
     },
-    "PkDataList.cs": {
-      "category": "typed-generics"
-    },
     "PkDockTypes.cs": {
       "category": "dto"
     },
