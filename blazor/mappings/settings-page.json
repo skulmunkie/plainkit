@@ -1,7 +1,7 @@
 {
   "component": "PkSettingsPage",
   "existing": true,
-  "existingReason": "callback: Save runs through PkCallbackSlot",
+  "existingReason": "callback: Save runs through PkCallbackSlot Missing generator feature: a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate); its other parameters (Config, Values) are plain props.",
   "params": [
     {
       "name": "Config",

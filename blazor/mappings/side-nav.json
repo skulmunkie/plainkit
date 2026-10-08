@@ -1,7 +1,7 @@
 {
   "component": "PkSideNav",
   "existing": true,
-  "existingReason": "router: tracks the current path from NavigationManager, two-way Collapsed and Open",
+  "existingReason": "router: tracks the current path from NavigationManager, two-way Collapsed and Open Missing generator feature: a hook that runs component code on NavigationManager.LocationChanged to keep the current path, which the element cannot read from the Blazor router.",
   "notes": "Hand-written (issue 210): CurrentPath is an explicit override; unset, the component tracks NavigationManager itself instead of the host wiring LocationChanged by hand.",
   "params": [
     {
