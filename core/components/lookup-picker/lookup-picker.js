@@ -22,13 +22,12 @@ export function rowStep(at, count, key) {
 }
 // A multiple selection under a limit: `next` replaces `prev` unless it would hold more than max (0 or less: no limit), then `prev` stays and `refused` says so.
 export const limitSelection = (prev, next, max) => (max > 0 && next.length > max ? { values: prev, refused: true } : { values: next, refused: false });
-// The popup table's config: the defaults, then config, then the plain props that differ from their default (#805).
-export function tableConfig(el) {
-    const cfg = { searchLabel: `Search ${el.label || 'options'}`, label: el.label, ...el.config };
-    if (el.columns?.length) cfg.columns = el.columns;
-    if (el.pageSize !== undefined && el.pageSize !== 25) cfg.pageSize = el.pageSize;
-    if (el.searchLabel) cfg.searchLabel = el.searchLabel;
-    return cfg;
+// The popup table's props, from the picker's own: label, search label (default "Search <label>"), columns, page size, and the filters and states when set.
+export function tableProps(el) {
+    const p = { label: el.label, searchLabel: el.searchLabel || `Search ${el.label || 'options'}`, columns: el.columns ?? [], pageSize: el.pageSize ?? 25, searchDebounce: el.searchDebounce ?? 250 };
+    if (el.filters?.length) p.filters = el.filters;
+    for (const k of ['empty', 'noResults', 'loadError']) if (el[k]) p[k] = el[k];
+    return p;
 }
 const rowsOf =dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [])];
 
@@ -85,6 +84,9 @@ export default Base => class extends Base {
             } finally { queueMicrotask(() => this.tryFocus()); }
         };
         dt.addEventListener('pk-row-click', e => { e.stopPropagation(); this.pick(e.detail); });
+        const first = tableProps(this);
+        this.$cfg = JSON.stringify(first);
+        Object.assign(dt, first); // before it is connected: the table's first load already has its columns, page size and states
         this.part('popover').append(dt);
         // The search box lives in pk-table-filters, which the table itself loads on demand: try again once that element is defined and has drawn.
         const win = this.ownerDocument.defaultView;
@@ -148,9 +150,9 @@ export default Base => class extends Base {
             const dt = this.ensureTable();
             dt.rowKey = this.rowKey;
             if (this.multiple) { if (JSON.stringify(dt.selected) !== JSON.stringify(keys)) dt.selected = [...keys]; } else dt.currentRow = this.value;
-            // config is handed over only when it changed: setting it makes the table load again.
-            const cfg = tableConfig(this), key = JSON.stringify(cfg);
-            if (key !== this.$cfg) { this.$cfg = key; dt.config = cfg; }
+            // The table's props are handed over only when they changed: setting one makes the table load again.
+            const p = tableProps(this), key = JSON.stringify(p);
+            if (key !== this.$cfg) { this.$cfg = key; Object.assign(dt, p); }
         } else this.$wantFocus = false;
         const empty = this.multiple ? keys.length === 0 : this.value === '';
         this.setValidity(this.required && empty ? { valueMissing: true } : {}, this.multiple ? 'Choose at least one option.' : 'Choose an option.', btn);

@@ -1,6 +1,8 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError'];
+
 // The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
 export default Base => class extends Base {
     connected() {
@@ -22,7 +24,10 @@ export default Base => class extends Base {
         table.selectable = !!this.config?.selectable;
         if (this.config?.rowKey) table.rowKey = this.config.rowKey;
         this.buildActions();
-        table.config = this.config ?? {};
+        // The page's config keys the table has a plain prop for are handed down as those props (an unset key is the prop's default).
+        const cfg = this.config ?? {};
+        for (const k of TABLE_KEYS) table[k] = cfg[k];
+        table.hideSearch = cfg.searchable === false;
     }
 
     // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant), never a callback - a page that

@@ -2,7 +2,7 @@
 // is labelled from selectedLabels or resolve(keys) without a refetch, and open/close raise the toggle event once.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour, { labelOf, labelMap, rowStep, limitSelection, tableConfig } from './lookup-picker.js';
+import behaviour, { labelOf, labelMap, rowStep, limitSelection, tableProps } from './lookup-picker.js';
 
 globalThis.document ??= undefined;
 
@@ -95,8 +95,9 @@ test('keys without a label go to one resolve call, each key asked once' , async 
     assert.equal(el.labelFor('b'), 'B');
 });
 
-test('tableConfig: defaults, then config, then plain props that differ from their default (#805)', () => {
-    assert.deepEqual(tableConfig({ label: 'Customer', config: { columns: [{ key: 'a' }], pageSize: 5 } }), { searchLabel: 'Search Customer', label: 'Customer', columns: [{ key: 'a' }], pageSize: 5 });
-    assert.deepEqual(tableConfig({ label: 'Customer', config: { columns: [{ key: 'a' }], pageSize: 5 }, columns: [{ key: 'b' }], pageSize: 10, searchLabel: 'Find' }), { searchLabel: 'Find', label: 'Customer', columns: [{ key: 'b' }], pageSize: 10 });
-    assert.equal(tableConfig({ label: '', config: {}, columns: [], pageSize: 25, searchLabel: '' }).searchLabel, 'Search options', 'plain props left at their default change nothing');
+test('tableProps: the popup table gets the picker props, with defaults for what is unset', () => {
+    assert.deepEqual(tableProps({ label: 'Customer', columns: [{ key: 'a' }], pageSize: 5, searchLabel: 'Find' }), { label: 'Customer', searchLabel: 'Find', columns: [{ key: 'a' }], pageSize: 5, searchDebounce: 250 });
+    assert.deepEqual(tableProps({ label: 'Customer' }), { label: 'Customer', searchLabel: 'Search Customer', columns: [], pageSize: 25, searchDebounce: 250 });
+    assert.equal(tableProps({ label: '', searchLabel: '' }).searchLabel, 'Search options');
+    assert.deepEqual(tableProps({ label: 'C', filters: [{ key: 'k' }], empty: { heading: 'None' }, noResults: { heading: 'No match' }, loadError: 'Failed', searchDebounce: 20 }), { label: 'C', searchLabel: 'Search C', columns: [], pageSize: 25, searchDebounce: 20, filters: [{ key: 'k' }], empty: { heading: 'None' }, noResults: { heading: 'No match' }, loadError: 'Failed' });
 });
