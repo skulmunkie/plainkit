@@ -308,7 +308,9 @@ export const dataDisplayCases = [
         el.focus('previous'); t.eq(deep(), rows()[0], 'previous: back to the first'); el.focus('previous'); t.eq(deep(), rows()[0], 'and it stops at the first');
         el.focus('last'); t.eq(deep(), rows()[4], 'last'); el.focus('next'); t.eq(deep(), rows()[4], 'and next stops at the last');
         el.focus('first'); t.eq(deep(), rows()[0], 'first');
+        t.ok(el.focus('search') === true, "'search' is the search box");
         el.hideSearch = true; await t.settle(); await wait(100);
+        t.ok(el.focus('search') === false, "'search' does nothing while the search is hidden");
         el.focus('next'); el.focus('next'); t.ok(el.focus(), 'with the search hidden focus() lands on the first row'); t.eq(deep(), rows()[0]);
         t.ok(el.focus({ preventScroll: true }) === true, 'the standard options argument still means focus()');
     }],

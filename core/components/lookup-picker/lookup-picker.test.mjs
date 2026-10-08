@@ -2,7 +2,7 @@
 // is labelled from selectedLabels or resolve(keys) without a refetch, and open/close raise the toggle event once.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour, { labelOf, labelMap, rowStep, limitSelection, tableProps } from './lookup-picker.js';
+import behaviour, { labelOf, labelMap, limitSelection, tableProps } from './lookup-picker.js';
 
 globalThis.document ??= undefined;
 
@@ -16,16 +16,6 @@ test('labelMap accepts a map or an array of { key | value | id, label }', () => 
     assert.deepEqual(labelMap({ 1: 'A', 2: 'B' }), { 1: 'A', 2: 'B' });
     assert.deepEqual(labelMap([{ key: 1, label: 'A' }, { value: 2, label: 'B' }, { id: 3, label: 'C' }]), { 1: 'A', 2: 'B', 3: 'C' });
     assert.deepEqual(labelMap(null), {});
-});
-
-test('rowStep walks the rows with arrows, Home and End and stops at the ends', () => {
-    assert.equal(rowStep(-1, 5, 'ArrowDown'), 0);
-    assert.equal(rowStep(4, 5, 'ArrowDown'), 4);
-    assert.equal(rowStep(0, 5, 'ArrowUp'), 0);
-    assert.equal(rowStep(2, 5, 'Home'), 0);
-    assert.equal(rowStep(2, 5, 'End'), 4);
-    assert.equal(rowStep(2, 5, 'a'), null);
-    assert.equal(rowStep(0, 0, 'ArrowDown'), null);
 });
 
 const make = props => {
