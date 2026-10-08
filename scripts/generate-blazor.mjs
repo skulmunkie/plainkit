@@ -192,6 +192,9 @@ export function modelElement(el, mapping, reg) {
             declare({ name: p.name, kind: 'param', cs: r.cs, init: r.init, doc: api.description, note: p.note });
             out.attrs.push({ attr: kebab(p.prop), expr: r.expr, boolean: r.attr === 'bool' });
             if (r.todo) todo(p.name, r.todo);
+            // `slotted`: the value is also a light-DOM child of its own, { tag, slot, attrs } (an attribute value starting with @ is a Razor expression, else a literal):
+            // a title that is both the element's heading attribute and a real <pk-heading slot="title"> a router can focus (FocusOnNavigate cannot reach into a shadow tree, #773).
+            if (p.slotted) out.children.push({ slotted: p.slotted, name: p.name });
             // `bind` is one event or a list of them (PkCommandPalette.Open follows pk-open and pk-close).
             for (const b of [p.bind].flat().filter(Boolean)) addBind(r, { event: b.event, literal: typeof b.value !== 'string' && b.field === undefined ? b.value : undefined, path: typeof b.value === 'string' ? b.value.replace(/^detail\./, '') : b.field });
         } else if (map === 'slot' || map === 'text') {
@@ -202,7 +205,7 @@ export function modelElement(el, mapping, reg) {
             const text = t === 'string' || t === 'string?';
             const api = el.slots.find(s => s.name === slot);
             declare({ name: p.name, kind: 'param', cs: text ? 'string?' : 'RenderFragment?', doc: api?.description ?? (slot === '' ? 'The content.' : `The ${slot} slot.`), note: p.note });
-            out.children.push({ slot, name: p.name, text });
+            out.children.push({ slot, name: p.name, text, unless: p.unless }); // unless: another (list) parameter that, once it has items, replaces this slot (a custom trail only when no Crumbs)
         } else if (map === 'event') {
             const ev = eventInfo(p.event);
             if (!ev) { skip(p.name, `the element has no event ${p.event}`); continue; }
@@ -379,7 +382,7 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
             attr = 'num';
         }
         else if (base === 'DateOnly') { cs = 'DateOnly?'; attr = 'date'; }
-        else if (isJsonType(t, api.type === 'json' ? types : undefined)) { cs = base + '?'; attr = 'json'; }
+        else if (isJsonType(t, api.type === 'json' || p.json === true ? types : undefined)) { cs = base + '?'; attr = 'json'; }
         else if (api.type === 'enum' && /^[A-Z][A-Za-z0-9]*$/.test(base)) {
             enumType(base, api.values.map(v => [memberName(v), v]), comp);
             const def = hasDefault ? api.values.find(v => v.toLowerCase() === String(p.default).toLowerCase() || memberName(v).toLowerCase() === String(p.default).toLowerCase()) : null;
@@ -454,7 +457,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // A named slot's wrapper span carries u-contents (core/base/utilities.css) so it never breaks the host element's own flex/grid layout of
     // its slotted content (issue 211): Razor cannot put a slot attribute on multiple root elements from one RenderFragment independently, so
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
-    const children = m.children.map(c => (c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
+    const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
+    const children = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);

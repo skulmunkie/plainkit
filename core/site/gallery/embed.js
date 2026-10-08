@@ -3,6 +3,7 @@
 import { mountGallery, setGallerySections } from './gallery.js';
 import { parseQuery } from '../../js/gallery-options.js';
 import { READY_MESSAGE, acceptedSections } from '../../js/gallery-sections.js';
+import { on } from '../../js/mount-support.js';
 
 const options = { chrome: 'full', ...parseQuery(location.search) };
 const host = document.getElementById('gx-host');
@@ -22,7 +23,7 @@ const flush = () => {
 const tell = () => { if (!queued) queued = requestAnimationFrame(flush); };
 
 // The embedding page adds sections to the Details drawer by message (js/gallery-sections.js); only that window is believed. Told it is ready, it answers.
-addEventListener('message', e => { const sections = acceptedSections(e, parent, target); if (sections) setGallerySections(sections); });
+on(window, 'message', e => { const sections = acceptedSections(e, parent, target); if (sections) setGallerySections(sections); });
 
 mountGallery(host, options).then(() => {
     if (parent !== window) parent.postMessage({ type: READY_MESSAGE }, target);
