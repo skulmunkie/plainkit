@@ -55,6 +55,9 @@ test('mountRouter reads the location, navigates with pushState, notifies subscri
     win.location.pathname = '/';
     win.listeners.popstate();
     assert.equal(seen.at(-1), 'Home');
+    const count = seen.length;
+    win.listeners.popstate(); // the address is the one already shown (a leave guard restored it, #872): not a change, no remount
+    assert.equal(seen.length, count);
     router.destroy();
     assert.equal(win.listeners.popstate, undefined);
     assert.equal(router.href('/orders/:id', { id: 9 }), '/orders/9');
