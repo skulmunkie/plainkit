@@ -36,7 +36,7 @@
       "name": "pk-record-dirty",
       "detail": "{ dirty }",
       "detailProps": { "dirty": "boolean" },
-      "description": "The unsaved-changes state changed. An app that owns its router uses it to confirm before leaving."
+      "description": "The unsaved-changes state changed. The app framework's record page type uses it to confirm before an in-app leave (link, breadcrumb, back/forward)."
     },
     {
       "name": "pk-record-save",

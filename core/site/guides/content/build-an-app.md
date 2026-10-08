@@ -112,7 +112,7 @@ The dashboard is configured explicitly: you list the widgets and write `load`.
 
 ### Form pages
 
-A record page loads one record by the route's `id` (no `id` is a new record), tracks unsaved changes, validates inline and saves. Report the outcome with `ctx.notify`, which is the app's one toast stack:
+A record page loads one record by the route's `id` (no `id` is a new record), tracks unsaved changes (leaving by a link, a breadcrumb or back/forward asks first through `ctx.dialogs.confirm`; closing the tab asks too; a Save that navigates itself is not asked), validates inline and saves. Report the outcome with `ctx.notify`, which is the app's one toast stack:
 
 ```text
 const recordConfig = {

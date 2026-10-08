@@ -191,7 +191,7 @@ function refreshFrames(changes) {
 // A template, pattern or layout is a whole page, so it is shown as one: the preview fills the gallery's main area (the page scrolls itself, no
 // heading or padding around it) and the toolbar shrinks to one slim bar. Templates are their own standalone pages; patterns and layouts are
 // fragments that preview.html hosts as a page. The same URL is what "Open in new page" opens.
-const KIND_LABEL = { templates: 'Templates', patterns: 'Patterns', layouts: 'Layouts' };
+const KIND_LABEL = Object.fromEntries(['templates', 'patterns', 'layouts'].map(k => [k, k[0].toUpperCase() + k.slice(1)]));
 let full = null; // the full-page sample on show, or null
 let stage = null; // its iframe
 
@@ -371,8 +371,8 @@ function overviewHtml() {
 }
 
 function samplesView(out, put, a, b) {
-    const groups = { templates: 'Templates', patterns: 'Patterns', layouts: 'Layouts' };
-    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours) and layouts.') + grid(Object.entries(groups).filter(([id]) => scopeGroup('samples', id)).map(([id, t]) => cardLink(`#/samples/${id}`, t, { templates: `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`, patterns: `${PATTERNS.length} realistic composed examples.`, layouts: 'Page anatomies at desktop and phone width.' }[id])).join('')));
+    const groups = KIND_LABEL;
+    if (!a) return put(heading('Samples', 'Everything here is built only from the SDK: templates (page structures), patterns (composed behaviours) and layouts.') + grid(Object.entries(groups).filter(([id]) => scopeGroup('samples', id)).map(([id, t]) => cardLink(`#/samples/${id}`, t, new Map([['templates', `${TEMPLATE_PAGES.length} full-page templates with a slot contract.`], ['patterns', `${PATTERNS.length} realistic composed examples.`], ['layouts', 'Page anatomies at desktop and phone width.']]).get(id))).join('')));
     const groupCrumb = (id, name) => crumbs(['Samples', '#/samples'], [groups[id], `#/samples/${id}`], [name]);
     if (a === 'templates') {
         if (!b) return put(heading('Templates', 'Full-page templates, each a runnable example with a slot contract: preview one in the side-nav or top-nav variant, light or dark.', crumbs(['Samples', '#/samples'], ['Templates'])) + grid(TEMPLATE_PAGES.filter(([id]) => keeps('samples', 'templates', id)).map(([id, tt, , d]) => cardLink(`#/samples/templates/${id}`, tt, d)).join('')));
