@@ -71,7 +71,7 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             try { const msg = c.validate(values()); if (msg) { (inputs[0]?.field ?? {}).error = clipS(msg, 300); return true; } } catch (e) { log.error('a dialog validate() threw; the dialog stays open', e); return true; }
             return false;
         };
-        const choose = r => { if (r && problem()) return; req.result = r; d.open = false; };
+        const choose = r => { if (r && problem()) return; req.result = r; d.open = false; settle(req); }; // settle at once: before pk-dialog is upgraded no close event ever comes (#897)
         const first = inputs[0]?.input ?? (kind === 'confirm' && c.danger ? buttons[0] : buttons.at(-1));
         const on = (type, fn) => { d.addEventListener(type, fn); req.offs.push(() => d.removeEventListener(type, fn)); };
         on('click', e => {

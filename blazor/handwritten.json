@@ -36,17 +36,11 @@
       "category": "wrapper",
       "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
     },
-    "Components/PkDock.razor": {
-      "category": "callback-slot"
-    },
     "Components/PkFieldGroup.razor": {
       "category": "debt"
     },
     "Components/PkGallery.razor": {
       "category": "wrapper"
-    },
-    "Components/PkListPage.razor": {
-      "category": "typed-generics"
     },
     "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
@@ -72,9 +66,6 @@
     "Components/PkScorecard.razor": {
       "category": "mount"
     },
-    "Components/PkSettingsPage.razor": {
-      "category": "callback-slot"
-    },
     "Components/PkSideNav.razor": {
       "category": "router"
     },
@@ -97,9 +88,6 @@
     "Components/PkToolDockPanel.razor": {
       "category": "mount",
       "blazorOnly": "a tab of PkToolDock rendered by Razor; the dock mounts its host div"
-    },
-    "Components/PkToolPage.razor": {
-      "category": "callback-slot"
     },
     "DevTools/PkCircuitHandler.cs": {
       "category": "devtools"

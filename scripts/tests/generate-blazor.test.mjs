@@ -427,7 +427,7 @@ test('tier namespaces: every mapped element has one, base elements stay in the r
             continue;
         }
         assert.match(fs.readFileSync(file, 'utf8'), new RegExp(`@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
-        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element', `${comp} alias`);
+        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element' && !mapping.typeparam, `${comp} alias (a generic component cannot be aliased)`);
     }
     assert.throws(() => tierNamespace({ tag: 'pk-x', tier: 'module' }), /no Blazor namespace/);
 });
@@ -458,4 +458,28 @@ test('a hand-written component must say the namespace of its element\'s tier; a 
     const generic = generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor.Pages', generic: true }]]));
     assert.doesNotMatch(generic.files.get('PkGeneratedAliases.cs'), /PkDemo/);
     assert.match(generic.files.get('generated.manifest.json'), /PlainKit\.Blazor\.Pages\.PkDemo/);
+});
+test('callback: a delegate parameter is wired to the element property through a PkCallbackSlot, with an optional result, adapter arguments and abort token', () => {
+    const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, doc: 'Saves.' },
+        { name: 'Load', callback: 'load', type: 'Func<string, CancellationToken, Task<string?>>?', arg: 'Req', args: 'a.Id', abort: true, doc: 'Loads.' }] };
+    const r = run(m), razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /@implements IDisposable/);
+    assert.match(razor, /@using System\.Text\.Json/);
+    assert.match(razor, /private readonly PkCallbackSlot _save = new\("save"\);/);
+    assert.match(razor, /\/\/\/ <summary>Saves\.<\/summary>\r?\n\s+\[Parameter\] public Func<IReadOnlyDictionary<string, JsonElement>, Task>\? Save/);
+    assert.match(razor, /_save\.SyncAsync<Dictionary<string, JsonElement>>\(await Runtime\.BridgeAsync\(Assets\), Element, Save is not null, async a => \{ await Save!\(a\); return null; \}\);/);
+    assert.match(razor, /_load\.SyncAsync<Req>\(await Runtime\.BridgeAsync\(Assets\), Element, Load is not null, async \(a, ct\) => \(object\?\)await Load!\(a\.Id, ct\)\);/);
+    assert.match(razor, /public void Dispose\(\) \{ _save\.Dispose\(\); _load\.Dispose\(\); \}/);
+    assert.ok(!/@implements IDisposable/.test(run().files.get('PkDemo.razor')), 'no callback, no IDisposable');
+    const bad = run({ ...mapping, params: [...mapping.params, { name: 'Oops', callback: 'oops', type: 'Func<Task>' }] });
+    assert.ok(bad.report.notGenerated.some(n => n.param === 'Oops'), 'a callback without arg and doc is reported, not guessed');
+});
+
+test('typeparam: a generic component declares @typeparam, is left out of the using aliases, and a callback can shape its result and ask for a refresh', () => {
+    const m = { ...mapping, typeparam: 'TItem', params: [...mapping.params, { name: 'Load', callback: 'load', type: 'Func<Req, Task<Page<TItem>>>?', arg: 'Query', args: 'a.ToRequest()', returns: 'new { rows = r.Items, total = r.Total }', refresh: true, doc: 'Loads.' }] };
+    const r = run(m), razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /^@namespace [^\n]*\n@typeparam TItem\n/m);
+    assert.match(razor, /_load\.SyncAsync<Query>\(await Runtime\.BridgeAsync\(Assets\), Element, Load is not null, async a => \{ var r = await Load!\(a\.ToRequest\(\)\); return new \{ rows = r\.Items, total = r\.Total \}; \}, refresh: true\);/);
+    assert.ok(!/@typeparam/.test(run().files.get('PkDemo.razor')), 'no typeparam, no @typeparam');
+    assert.ok(!(r.files.get('PkGeneratedAliases.cs') ?? '').includes('PkDemo'), 'a generic component cannot be aliased');
 });

@@ -279,10 +279,12 @@ export const workspaceCases = [
             f.title = 'template'; f.style.cssText = `width:${w}px;height:${h}px;border:0`;
             const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
             f.src = new URL('../../samples/templates/workspace/workspace.html?nav=side', import.meta.url).href;
-            host.replaceChildren(f); await loaded; await wait(400);
-            const d = f.contentDocument, ws = d.querySelector('pk-workspace, .workspace'), foot = d.querySelector('[slot="footer"], .shell-footer');
-            const strip = foot?.assignedSlot?.parentElement ?? foot;
-            const want = h - (strip?.getBoundingClientRect().height ?? 0);
+            host.replaceChildren(f); await loaded;
+            const d = f.contentDocument, pick = () => d.querySelector('pk-workspace, .workspace'), foot = () => d.querySelector('[slot="footer"], .shell-footer');
+            const wantNow = () => h - ((foot()?.assignedSlot?.parentElement ?? foot())?.getBoundingClientRect().height ?? 0);
+            // The template builds its shell and workspace after load: wait until they are drawn and the workspace has filled (it never does if it is broken, and the assertion below says so).
+            for (let i = 0; i < 100 && !(pick() && foot() && pick().getBoundingClientRect().bottom >= wantNow() - 2); i++) await wait(50);
+            const ws = pick(), want = wantNow();
             t.ok(ws.getBoundingClientRect().bottom >= want - 2, `${w}x${h}: the template's workspace reaches ${Math.round(want)}px, got ${Math.round(ws.getBoundingClientRect().bottom)}`);
             t.ok(d.documentElement.scrollHeight <= h + 1, `${w}x${h}: the template does not scroll the page`);
         }

@@ -39,12 +39,13 @@ test('every parameter maps to a real prop, slot, event or css property, or is a 
         for (const p of b.params) {
             const at = `${n}.${p.name}`;
             assert.ok(p.name && !seen.has(p.name), `${at} is named once`); seen.add(p.name);
-            assert.ok(['prop', 'slot', 'event', 'cssProperty', 'text', 'wrapper'].includes(p.map ?? (p.prop !== undefined ? 'prop' : p.slot !== undefined ? 'slot' : p.event !== undefined ? 'event' : p.cssProperty !== undefined ? 'cssProperty' : p.text !== undefined ? 'text' : 'wrapper')), `${at} map`);
+            assert.ok(['prop', 'slot', 'event', 'callback', 'cssProperty', 'text', 'wrapper'].includes(p.map ?? (p.prop !== undefined ? 'prop' : p.slot !== undefined ? 'slot' : p.event !== undefined ? 'event' : p.callback !== undefined ? 'callback' : p.cssProperty !== undefined ? 'cssProperty' : p.text !== undefined ? 'text' : 'wrapper')), `${at} map`);
             // A missing type is fine: the generator derives it from the SDK prop, and the mapping only overrides.
             assert.ok(p.type === undefined || typeof p.type === 'string', `${at} type`);
             if (p.prop !== undefined) assert.ok(m.props.some(x => x.name === p.prop), `${at} names a prop (${p.prop})`);
             else if (p.slot !== undefined) assert.ok(m.slots.some(x => x.name === p.slot) || p.note, `${at} names a slot (${p.slot}) or explains why it is not a fixed one`);
             else if (p.event !== undefined) assert.ok(m.events.some(x => x.name === p.event), `${at} names an event (${p.event})`);
+            else if (p.callback !== undefined) assert.ok(p.type && p.arg && p.doc, `${at} (a callback property, ${p.callback}) states its delegate type, the argument JavaScript passes and its doc`);
             else if (p.cssProperty !== undefined) assert.ok(m.cssProperties.some(x => x.name === p.cssProperty), `${at} names a css property (${p.cssProperty})`);
             else if (p.text !== undefined) assert.equal(p.text, '', `${at} maps the element's own text content`);
             else assert.ok(p.note, `${at} explains why it stays in the wrapper`);
