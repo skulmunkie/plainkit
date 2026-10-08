@@ -1059,4 +1059,27 @@ export const dataDisplayCases = [
         const touch = parseFloat(w.getComputedStyle(doc.documentElement).getPropertyValue('--touch-target')) || 44;
         for (const s of doc.querySelectorAll('pk-step')) { const r = s.getBoundingClientRect(); t.ok(r.width >= touch - 0.5 && r.height >= touch - 0.5, `a step is ${Math.round(r.width)}x${Math.round(r.height)}, at least ${touch}px`); }
     }],
+
+    // #924: a cards-layout table with clickable rows and a max height (the logs module's entries table) at 375px: every card is as tall as its labelled rows, cards do not overlap, nothing is cut off sideways.
+    ['table (375px, #924): cards with clickable rows and a max height keep each card as tall as its rows, no card overlaps the next and no long value is clipped', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const rows = JSON.stringify([1, 2, 3].map(i => ({ id: String(i), time: '10:16:5' + i, level: 'error', message: 'request failed: https://example.test/api/orders/' + 'abcdef0123456789'.repeat(4) })));
+        const html = `<pk-table cards clickable max-height="22rem" label="Entries" columns='[{"key":"time","label":"Time"},{"key":"level","label":"Level"},{"key":"message","label":"Message"}]' rows='${rows}'></pk-table>`;
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '700px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        const tb = await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody tr td') && f.contentDocument.querySelector('pk-table'), 'the table');
+        await wait(300);
+        t.eq(f.contentWindow.innerWidth, 375);
+        const trs = [...tb.shadowRoot.querySelectorAll('tbody tr')];
+        t.eq(trs.length, 3);
+        const rects = trs.map(tr => tr.getBoundingClientRect());
+        trs.forEach((tr, i) => {
+            const tds = [...tr.querySelectorAll('td')].map(td => td.getBoundingClientRect());
+            t.ok(tds.every(r => r.top >= rects[i].top - 1 && r.bottom <= rects[i].bottom + 1), `card ${i + 1}: every labelled row sits inside its card (the card is not shorter than its content)`);
+            t.ok(tr.scrollHeight <= tr.clientHeight + 1, `card ${i + 1}: nothing overflows the card vertically`);
+            for (const td of tr.querySelectorAll('td')) t.ok(td.scrollWidth <= td.clientWidth + 1, `card ${i + 1}: the ${td.dataset.label} value is not cut off sideways`);
+            if (i) t.ok(rects[i].top >= rects[i - 1].bottom - 1, `card ${i + 1} starts below card ${i}`);
+        });
+    }],
 ];
