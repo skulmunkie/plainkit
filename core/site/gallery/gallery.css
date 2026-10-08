@@ -90,7 +90,7 @@
 
 .gx-main { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-panel); }
 
-@media (max-width: 1024px) {
+@media (--tablet) {
     .gx-nav:not(:defined) { width: 0; }
 }
 
@@ -134,23 +134,23 @@
 /* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
 .gx-pagebar .gx-compact-only { display: none; }
 
-@media (max-width: 1280px) {
+@media (--wide) {
     .gx-pagebar .gx-wide-only { display: none; }
     .gx-pagebar .gx-compact-only { display: inline-flex; }
     .gx-pagebar > pk-button { min-width: var(--touch-target); }
 }
 
 /* The nav becomes an off-canvas drawer (the element's own breakpoint): the Contents button opens it. */
-@media (max-width: 1024px) {
+@media (--tablet) {
     .gx-contents { display: inline-block; }
 }
 
-@media (max-width: 1024px) {
+@media (--tablet) {
     .gx-el-play { grid-template-columns: minmax(0, 1fr); }
     .gx-pair { grid-template-columns: minmax(0, 1fr); }
 }
 
-@media (max-width: 640px) {
+@media (--phone) {
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
     .gx-view, .gx-view.gx-view--inspecting { padding: var(--space-3) var(--space-2); }
     .gx-view .gx-entry { --pk-card-padding: var(--space-2); }

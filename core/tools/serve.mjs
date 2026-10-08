@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { resolveSiteCss } from './breakpoints.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // The site imports generated files (element modules, gallery data, dist/), which are not in git: generate them on a fresh clone. In the repository that is
@@ -93,6 +94,11 @@ http.createServer((req, res) => {
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, data) => {
         if (err) { res.writeHead(404).end('not found'); return; }
+        // Site and module stylesheets name their breakpoints (@media (--phone)): the browser gets the real queries, as in the dist units (tools/breakpoints.mjs).
+        if (/\.css$/.test(file) && /^(site|modules)[\\/]/.test(path.relative(root, file))) {
+            try { data = Buffer.from(resolveSiteCss(data.toString('utf8'), path.relative(root, file))); }
+            catch (error) { console.error(`serve: ${error.message}`); res.writeHead(500).end('breakpoint name not known'); return; }
+        }
         res.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store', ...(csp ? { 'content-security-policy': csp } : {}) }).end(data);
     });
 }).listen(port, host, () => console.log(`SDK site on http://${host === '127.0.0.1' ? 'localhost' : host}:${port}/`));

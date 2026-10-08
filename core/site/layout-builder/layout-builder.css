@@ -2,6 +2,6 @@
 
 #lb-host { padding: var(--space-4); }
 
-@media (max-width: 640px) {
+@media (--phone) {
     #lb-host { padding: var(--space-2); }
 }

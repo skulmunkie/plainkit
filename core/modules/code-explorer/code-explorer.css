@@ -100,7 +100,7 @@ pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0;
 .cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .cv--fill .cv-scroll { flex: 1; min-height: 0; --pk-code-view-max-height: none; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     .cv-scroll { --pk-code-view-max-height: 60vh; }
     .cv--fill .cv-scroll { --pk-code-view-max-height: none; }
 }

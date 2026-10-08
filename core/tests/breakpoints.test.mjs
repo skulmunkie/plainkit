@@ -112,12 +112,13 @@ test('no literal breakpoint remains: element CSS uses names, unbuilt CSS only th
     const widths = new Set(bps.flatMap(b => [b.width, b.width + 1]));
     const files = dir => fs.readdirSync(core + dir, { recursive: true }).map(f => `${dir}/${f.replace(/\\/g, '/')}`);
     const problems = [];
-    // Element CSS is built, so it names its breakpoints: any (min|max)-width or range condition with a px value in an @media is a literal.
-    for (const f of [...existingTierFolders(core)].flatMap(files).filter(x => x.endsWith('.css'))) {
+    // Element CSS is built, and site and module CSS is resolved by the dev server and the dist units (tools/breakpoints.mjs resolveSiteCss, #682 S9), so all of it
+    // names its breakpoints: any (min|max)-width or range condition with a px value in an @media is a literal.
+    for (const f of [...existingTierFolders(core), 'site', 'modules'].flatMap(files).filter(x => x.endsWith('.css'))) {
         for (const m of read(f).matchAll(/@media([^{;]*)\{/g)) if (/(?:min|max)-width\s*:|width\s*[<>]=?|\d+px/.test(m[1])) problems.push(`${f}: @media${m[1]}uses a literal width; write (--phone), (--above-phone), (--tablet)...`);
     }
     // CSS the site loads unbuilt cannot use a name; its literal widths must be a named one (or one above it).
-    const unbuilt = ['tokens', 'base', 'site', 'modules', 'samples', 'layouts'].flatMap(files).filter(x => x.endsWith('.css'));
+    const unbuilt = ['tokens', 'base', 'samples', 'layouts'].flatMap(files).filter(x => x.endsWith('.css'));
     for (const f of unbuilt) {
         for (const m of read(f).matchAll(/@media([^{;]*)\{/g)) {
             if (/\(\s*--/.test(m[1])) problems.push(`${f}: @media${m[1]}names a breakpoint, but this file is served unbuilt; write the literal width`);

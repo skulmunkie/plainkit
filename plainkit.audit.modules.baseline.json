@@ -12,11 +12,6 @@
       "fingerprint": "72df4cff072aac59"
     },
     {
-      "rule": "S9",
-      "file": "core/modules/code-explorer/code-explorer.css",
-      "fingerprint": "e62f876f6fe26b27"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/code-explorer/element.js",
       "fingerprint": "e522384e0e0b147a"
@@ -492,11 +487,6 @@
       "fingerprint": "7795249e2be51db3"
     },
     {
-      "rule": "S9",
-      "file": "core/modules/layout-builder/layout-builder.css",
-      "fingerprint": "9896ae3244784580"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/layout-builder/layout-builder.js",
       "fingerprint": "48feed30d3a63598"
@@ -880,11 +870,6 @@
       "rule": "S10",
       "file": "core/modules/theme-editor/theme-editor.css",
       "fingerprint": "58689a87031c398c"
-    },
-    {
-      "rule": "S9",
-      "file": "core/modules/theme-editor/theme-editor.css",
-      "fingerprint": "cc5bf2df9dd50d0a"
     },
     {
       "rule": "S1",
@@ -1380,31 +1365,6 @@
       "rule": "S10",
       "file": "core/site/gallery/gallery.css",
       "fingerprint": "6b618684d299ef1c"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/gallery/gallery.css",
-      "fingerprint": "0d625a870581f866"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/gallery/gallery.css",
-      "fingerprint": "f28f340447788169"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/gallery/gallery.css",
-      "fingerprint": "0d625a870581f866"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/gallery/gallery.css",
-      "fingerprint": "0d625a870581f866"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/gallery/gallery.css",
-      "fingerprint": "210adf82c6ad9737"
     },
     {
       "rule": "S1",
@@ -2312,21 +2272,6 @@
       "fingerprint": "c0202b1d8dfe0d62"
     },
     {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "e943a4ea1705758e"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "7d85afca7b812504"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/guides/guides.css",
-      "fingerprint": "e791b3afdaa1c47e"
-    },
-    {
       "rule": "S1",
       "file": "core/site/guides/index.html",
       "fingerprint": "e965efa75f47fc79"
@@ -2535,11 +2480,6 @@
       "rule": "S10",
       "file": "core/site/layout-builder/layout-builder.css",
       "fingerprint": "bc15d03df9c5ade5"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/layout-builder/layout-builder.css",
-      "fingerprint": "720712dd71f14f8c"
     },
     {
       "rule": "S3",
@@ -2832,16 +2772,6 @@
       "fingerprint": "8c5f2a83d749b3a1"
     },
     {
-      "rule": "S9",
-      "file": "core/site/site.css",
-      "fingerprint": "370f0712ba139269"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/site.css",
-      "fingerprint": "4ae754901d31a881"
-    },
-    {
       "rule": "S10",
       "file": "core/site/spacing/index.html",
       "fingerprint": "a131b36e8a95527c"
@@ -2895,11 +2825,6 @@
       "rule": "S10",
       "file": "core/site/theme/theme.css",
       "fingerprint": "d1189356f25f659f"
-    },
-    {
-      "rule": "S9",
-      "file": "core/site/theme/theme.css",
-      "fingerprint": "ef4794e9a4d32e8c"
     },
     {
       "rule": "S3",
