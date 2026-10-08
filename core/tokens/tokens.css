@@ -272,7 +272,7 @@
     --dg-card-label-fg: #8a8a8a;
     --dg-sortable-hover-fg: #fff;
     --ft-selected-bg: rgba(59, 108, 240, 0.15);
-    --csr-mark-bg: rgba(250, 204, 21, 0.5);
+    --csr-mark-bg: rgba(250, 204, 21, 0.3);
     --dg-clickable-hover-bg: rgba(74, 144, 226, 0.08);
 }
 
