@@ -373,16 +373,6 @@
     },
     {
       "rule": "S1",
-      "file": "core/modules/log-settings/log-settings.css",
-      "fingerprint": "4241844d84ed89b6"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/log-settings/log-settings.css",
-      "fingerprint": "8817e551ac352185"
-    },
-    {
-      "rule": "S1",
       "file": "core/modules/logs/logs.css",
       "fingerprint": "d52af45425aa4745"
     },

@@ -20,7 +20,6 @@ import { applyDynamic } from '../../js/dynamic.js';
 const modLog = createLogger('log-settings');
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./log-settings.css'];
 
 const LEVEL_OPTIONS = [['debug', 'Debug (everything)'], ['info', 'Info'], ['warn', 'Warn'], ['error', 'Error (errors only)'], ['silent', 'Silent (nothing)']];
 const LEVEL_NAMES = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
@@ -31,7 +30,7 @@ export async function mountLogSettings(container, opts = {}) {
     const { theme, height, onsave, onchange } = opts;
     const doc = container.ownerDocument;
     const win = doc.defaultView;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     const seen = new Set(getLogBuffer().map(e => e.scope));
     const unsink = addLogSink(e => { if (!seen.has(e.scope)) { seen.add(e.scope); } });
@@ -52,13 +51,13 @@ export async function mountLogSettings(container, opts = {}) {
     const testBtn = h(doc, 'pk-button', { variant: 'secondary' }, 'Send a test');
     const saveBtn = h(doc, 'pk-button', { variant: 'primary' }, 'Save');
     const resetBtn = h(doc, 'pk-button', { variant: 'ghost' }, 'Reset');
-    const root = h(doc, 'section', { class: 'ls-module', 'aria-label': 'Logging settings' },
+    const root = h(doc, 'section', { 'aria-label': 'Logging settings' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' },
         h(doc, 'pk-stack', { gap: 'md' },
             overrideNote,
             levelField,
-            h(doc, 'pk-stack', { gap: 'sm' }, h(doc, 'h3', { class: 'ls-heading' }, 'Level per scope'), scopeTable, h(doc, 'pk-cluster', { align: 'end' }, newScope, addBtn)),
-            h(doc, 'pk-stack', { gap: 'sm' }, h(doc, 'h3', { class: 'ls-heading' }, 'Where each level goes'), routeTable),
-            h(doc, 'pk-cluster', {}, testBtn, saveBtn, resetBtn, status)));
+            h(doc, 'pk-stack', { gap: 'sm' }, h(doc, 'pk-heading', { level: 3, variant: 'h3' }, 'Level per scope'), scopeTable, h(doc, 'pk-cluster', { align: 'end' }, newScope, addBtn)),
+            h(doc, 'pk-stack', { gap: 'sm' }, h(doc, 'pk-heading', { level: 3, variant: 'h3' }, 'Where each level goes'), routeTable),
+            h(doc, 'pk-cluster', {}, testBtn, saveBtn, resetBtn, status))));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);

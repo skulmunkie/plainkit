@@ -19,7 +19,7 @@ export const MODULES = {
     performance: { files: ['performance.js', 'performance.css'] },
     console: { files: ['console.js', 'console.css'] },
     logs: { files: ['logs.js', 'logs.css'] },
-    'log-settings': { files: ['log-settings.js', 'log-settings.css'] },
+    'log-settings': { files: ['log-settings.js'] },
     devtools: { files: ['devtools.js', 'panels.js'] },
     'tool-dock': { files: ['tool-dock.js', 'tool-dock.css'] },
     quality: { files: ['quality.js'] },
