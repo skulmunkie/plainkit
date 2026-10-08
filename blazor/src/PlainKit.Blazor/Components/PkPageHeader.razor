@@ -1,18 +1,20 @@
 @namespace PlainKit.Blazor.Components
 @inherits PkElementBase
 
-@* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title (a slotted <pk-heading>, a real heading element with tabindex -1 so a router can focus it after navigation: FocusOnNavigate Selector="pk-heading[level='1']", #773), a pk-breadcrumb built from
-   a list of crumbs (the last one is the current page). BackLink adds a back anchor to the parent crumb (a ghost icon-only pk-button link: a chevron, with the text "Back to <label>" hidden visually and kept as its name). Which crumbs belong to a route is the app's business: pass the list. *@
-@if (BackCrumb is not null)
-{
-    @BackAnchor
-}
-<pk-page-header heading="@InPageTitle"
+@* Hand-written (blazor/mappings/page-header.json marks it "existing"): the top of a page over <pk-page-header>. The title is a slotted <pk-heading> (a real heading element with tabindex -1, so a router can focus it after navigation:
+   FocusOnNavigate Selector="pk-heading[level='1']", #773) and the typed list of crumbs goes down as the element's crumbs attribute (JSON); the element draws the breadcrumb, home crumb and back link itself (#801). *@
+<pk-page-header heading="@Title"
                 level="@PkAttr.Num(Level)"
                 variant="@Variant"
                 spacious="@Spacious"
+                crumbs="@(HasCrumbs ? PkAttr.Json(Crumbs!.Select(c => new { c.Label, c.Href })) : null)"
+                breadcrumb-label="@BreadcrumbLabel"
+                home-href="@HomeHref"
+                home-label="@HomeLabel"
+                home-icon="@HomeIcon"
+                back-link="@BackLink"
                 class="@Css()"
-                @attributes="Splat">@if (!string.IsNullOrEmpty(Title)) {<pk-heading slot="title" level="@PkAttr.Num(Level)" weight="semibold" variant="h3" tabindex="-1">@Title</pk-heading>}@SuffixContent@Trail@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
+                @attributes="Splat">@if (!string.IsNullOrEmpty(Title)) {<pk-heading slot="title" level="@PkAttr.Num(Level)" weight="semibold" variant="h3" tabindex="-1">@Title</pk-heading>}@SuffixContent@if (!HasCrumbs && BreadcrumbContent is not null) {<span slot="breadcrumb" class="u-contents">@BreadcrumbContent</span>}@if (ActionsContent is not null) {<span slot="actions" class="u-contents">@ActionsContent</span>}@if (MetaContent is not null) {<span slot="meta" class="u-contents">@MetaContent</span>}@if (TabsContent is not null) {<span slot="tabs" class="u-contents">@TabsContent</span>}</pk-page-header>
 
 @code {
     /// <summary>
@@ -70,78 +72,5 @@
     /// <summary>The icon of the home crumb.</summary>
     [Parameter] public string HomeIcon { get; set; } = "dashboard";
 
-    // The breadcrumb, written without whitespace between the crumbs (the element reads its light DOM).
-    private RenderFragment Trail => builder =>
-    {
-        if (HasCrumbs)
-        {
-            builder.OpenElement(0, "pk-breadcrumb");
-            builder.AddAttribute(1, "slot", "breadcrumb");
-            builder.AddAttribute(2, "label", BreadcrumbLabel);
-            if (!string.IsNullOrEmpty(HomeHref))
-            {
-                builder.OpenElement(10, "a");
-                builder.AddAttribute(11, "href", HomeHref);
-                builder.AddAttribute(12, "aria-label", HomeLabel);
-                builder.OpenComponent<PkIcon>(13);
-                builder.AddAttribute(14, nameof(PkIcon.Name), HomeIcon);
-                builder.CloseComponent();
-                builder.CloseElement();
-            }
-            for (var i = 0; i < Crumbs!.Count; i++)
-            {
-                var crumb = Crumbs[i];
-                // The crumb element defaults to a span (a plain a when it also links, e.g. an unusual last-crumb Href): role="heading" is valid on either.
-                builder.OpenElement(3, crumb.Href is null ? "span" : "a");
-                if (crumb.Href is not null) builder.AddAttribute(4, "href", crumb.Href);
-                if (i == Crumbs.Count - 1)
-                {
-                    builder.AddAttribute(5, "aria-current", "page");
-                    // The last crumb doubles as the page's only title exactly when no explicit Title is drawn
-                    // elsewhere as a real heading: give it the heading role itself.
-                    if (string.IsNullOrEmpty(Title))
-                    {
-                        builder.AddAttribute(15, "role", "heading");
-                        builder.AddAttribute(16, "aria-level", Level);
-                    }
-                }
-                builder.AddContent(6, crumb.Label);
-                builder.CloseElement();
-            }
-            builder.CloseElement();
-        }
-        else if (BreadcrumbContent is not null)
-        {
-            builder.OpenElement(7, "span");
-            builder.AddAttribute(8, "slot", "breadcrumb");
-            builder.AddContent(9, BreadcrumbContent);
-            builder.CloseElement();
-        }
-    };
-
-    // The parent: the last crumb before the current one (the last) that links somewhere.
-    private PkCrumb? BackCrumb => BackLink && HasCrumbs ? Crumbs!.Take(Crumbs!.Count - 1).LastOrDefault(c => !string.IsNullOrEmpty(c.Href)) : null;
-
-    private RenderFragment BackAnchor => builder =>
-    {
-        builder.OpenComponent<PkButton>(0);
-        builder.AddAttribute(1, nameof(PkButton.Variant), ButtonVariant.Ghost);
-        builder.AddAttribute(2, nameof(PkButton.Href), BackCrumb!.Href);
-        builder.AddAttribute(3, nameof(PkButton.Icon), true);
-        // Icon mode hides the text visually and keeps it as the accessible name: no separate aria-label.
-        builder.AddAttribute(4, nameof(PkButton.ChildContent), (RenderFragment)(inner =>
-        {
-            inner.OpenComponent<PkIcon>(0);
-            inner.AddAttribute(1, nameof(PkIcon.Name), "chevron-left");
-            inner.CloseComponent();
-            inner.AddContent(2, "Back to " + BackCrumb.Label);
-        }));
-        builder.CloseComponent();
-    };
-
     private bool HasCrumbs => Crumbs is { Count: > 0 };
-
-    // No fallback to the last crumb's label: an explicit Title always draws its own heading; without one, the
-    // last crumb doubles as the title (see Trail above) and must not also get a duplicate heading from here.
-    private string? InPageTitle => Title;
 }
