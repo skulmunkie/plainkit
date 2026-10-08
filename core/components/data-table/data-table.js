@@ -62,6 +62,21 @@ export default Base => class extends Base {
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
     get query() { return { ...(this.$query ??= { page: 1, pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: {} }) }; }
 
+    // Focus from the host (#885), so a host never reaches into the search box or the rows. focus(): the search box, the first row when the search is hidden; 'search': the search box only;
+    // 'next': the row after the focused one (the first when no row has focus); 'previous', 'first', 'last': only while a row has focus, so Home and the arrows stay the
+    // search box's own. Returns whether focus moved. (focus({ preventScroll }), the standard call, means focus().)
+    focus(where) {
+        const tbl = this.part('table').shadowRoot, rows = [...(tbl?.querySelectorAll('tbody tr[data-pk-context]') ?? [])], at = rows.indexOf(tbl?.activeElement);
+        const found = this.part('filters').shadowRoot?.querySelector('[part="search"]'), box = found?.getBoundingClientRect().width ? found : null; // drawn and shown
+        let to;
+        if (where === 'next') to = rows[Math.min(at + 1, rows.length - 1)];
+        else if (where === 'search') to = box;
+        else if (typeof where === 'string') to = at < 0 ? undefined : rows[where === 'previous' ? Math.max(at - 1, 0) : where === 'first' ? 0 : where === 'last' ? rows.length - 1 : at];
+        else to = box ?? rows[0];
+        to?.focus();
+        return Boolean(to);
+    }
+
     announce() { this.emit('pk-select', { selected: [...(this.selected ?? [])], scope: this.selectScope, query: this.query }); }
 
     // Rebuilt only when `filters` itself changes (a JSON prop, so a cheap string compare is the dirty check): every other prop change
