@@ -1,7 +1,5 @@
 {
   "component": "PkDock",
-  "existing": true,
-  "existingReason": "callback: ConfirmLayout runs through PkCallbackSlot Missing generator feature: a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate); everything else on this mapping (Layout and its two-way binding, Label, ResizeLabel, Fill, OnLayoutChange, the panel slots) the generator already expresses.",
   "params": [
     {
       "name": "Layout",
@@ -39,7 +37,15 @@
       "name": "ChildContent",
       "slot": "",
       "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id). slot=\"empty\" and slot=\"toolbar-start\" are reserved (the empty state, and a host app's own top-level toolbar menus) and are never treated as a panel."
+    },
+    {
+      "name": "ConfirmLayout",
+      "callback": "confirmLayout",
+      "type": "Func<string, string, Task<string?>>?",
+      "arg": "PkLayoutChangingRequest",
+      "args": "a.Layout, a.Reason",
+      "doc": "Turns on controlled mode: every resize, tab switch or panel repair holds before the element applies it, calling this delegate with the proposed layout (as JSON, the same shape as Layout) and the reason (resize, activate or panels). Return the layout json to apply (typically the proposed one, stored first and returned unchanged, or a different one .NET computed), or null to keep the previous layout unchanged. A delegate that throws also keeps the previous layout. Left null (the default), the element is free-running."
     }
   ],
-  "notes": "Hand-written (issue #592): controlled mode. confirmLayout(arg) is a callback property (business logic, not config data, set from script the same way pk-tool-page's run is), so the component hands it a .NET reference (PkCallbackSlot) built from the ConfirmLayout parameter. Not set, the element is free-running (unchanged from PR #540): a resize or tab change applies right away and then fires pk-layout-change. ConfirmLayout set, every change holds until it resolves with the confirmed layout json (or null to keep the previous one); a rejection also keeps the previous layout. Not a mapped param: the generator only maps props, slots and events."
+  "notes": "confirmLayout(arg) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the ConfirmLayout parameter. Not set, the element is free-running (a resize or tab change applies right away and then fires pk-layout-change); set, every change holds until it resolves with the confirmed layout json (or null to keep the previous one); a rejection also keeps the previous layout."
 }
