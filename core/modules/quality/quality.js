@@ -15,7 +15,7 @@
 
 import { collect, evaluate, focusProblems } from '../../js/quality.js';
 import { pageScore, scoreTone, findingRows } from '../../js/inspect-logic.js';
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -70,7 +70,7 @@ export async function mountQuality(container, options = {}) {
         onresult?.(last);
         return last;
     }
-    run.addEventListener('click', check);
+    on(run, 'click', check);
     if (autorun) check();
     return { run: async () => check(), results: () => last, destroy() { run.removeEventListener('click', check); root.remove(); } };
 }

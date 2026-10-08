@@ -34,7 +34,7 @@
 
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
-import { h } from '../../js/mount-support.js';
+import { h, on } from '../../js/mount-support.js';
 
 const log = createLogger('field-group');
 const INPUT_KINDS = new Set(['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel']);
@@ -66,7 +66,7 @@ export function mountFieldGroup(container, opts = {}) {
             onChange?.(spec.key, value, data);
             applyVisibility(data);
         };
-        control.addEventListener(COMMIT[spec.kind] ?? 'pk-value-change', handler);
+        on(control, COMMIT[spec.kind] ?? 'pk-value-change', handler);
         return { field, control, spec, handler, visible: true };
     });
 

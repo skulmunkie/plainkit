@@ -15,7 +15,7 @@
 // deactivate are called as its tab is shown and hidden, so a panel can pause work while unseen. context is { doc, win, theme, whileHidden(fn), isTool(el) }.
 // Returns { open(), close(), toggle(), isOpen(), select(id), tabs(), destroy() }.
 
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -74,10 +74,10 @@ export async function mountToolDock(container, options = {}) {
             ...Object.keys(SIZES).map(k => h(doc, 'pk-button', { toggle: true, variant: 'ghost', size: 'mini', value: k, pressed: k === (options.size ?? 'medium') }, k[0].toUpperCase() + k.slice(1))));
         const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', label: `Close ${label.toLowerCase()}`, slot: 'trailing' }, 'Close');
         tabs.append(sizes, close);
-        close.addEventListener('click', () => api.close());
-        sizes.addEventListener('pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
+        on(close, 'click', () => api.close());
+        on(sizes, 'pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
         toggleButton = h(doc, 'pk-button', { class: 'td-launcher', size: 'mini', variant: 'secondary' }, launcherLabel);
-        toggleButton.addEventListener('click', () => api.toggle());
+        on(toggleButton, 'click', () => api.toggle());
         doc.body.append(surface, toggleButton);
     } else {
         container.replaceChildren(surface);
@@ -95,10 +95,10 @@ export async function mountToolDock(container, options = {}) {
     const context = { doc, win, theme, whileHidden, isTool: e => surface.contains(e) || e === toggleButton };
     await Promise.all(panels.map(async p => { mounted.set(p.id, (await p.mount(bodies.get(p.id), context)) ?? {}); }));
     const sync = () => { for (const [id, m] of mounted) (opened && id === active ? m.activate : m.deactivate)?.(); };
-    tabs.addEventListener('pk-tab-change', e => { active = e.detail.value; sync(); });
+    on(tabs, 'pk-tab-change', e => { active = e.detail.value; sync(); });
 
     const onKey = e => { if (dock && matchesHotkey(e, hotkey)) { e.preventDefault(); api.toggle(); } };
-    if (dock) doc.addEventListener('keydown', onKey);
+    if (dock) on(doc, 'keydown', onKey);
     sync();
 
     const api = {

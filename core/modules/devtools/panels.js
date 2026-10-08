@@ -10,7 +10,7 @@ import { createLogger } from '../../js/log.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
 import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
-import { h } from '../../js/mount-support.js';
+import { h, on } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
 const log = createLogger('devtools');
@@ -67,8 +67,8 @@ export const inspectorPanel = {
             const timer = win.setTimeout(() => { restore(); outlined = null; }, 2000);
             outlined = { restore: () => { win.clearTimeout(timer); restore(); } };
         }
-        refresh.addEventListener('click', list);
-        table.addEventListener('pk-row-click', highlight);
+        on(refresh, 'click', list);
+        on(table, 'pk-row-click', highlight);
         return {
             activate: list,
             destroy() { outlined?.restore(); refresh.removeEventListener('click', list); table.removeEventListener('pk-row-click', highlight); },

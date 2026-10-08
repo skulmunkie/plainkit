@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -133,13 +133,13 @@ export async function mountConsole(container, options = {}) {
     if (capture.has('errors')) {
         const onError = e => record('error', `${e.message}${e.filename ? ` (${shortName(e.filename)}:${e.lineno})` : ''}`, { source: 'error' });
         const onReject = e => record('error', `Unhandled rejection: ${formatArg(e.reason)}`, { source: 'rejection' });
-        win.addEventListener('error', onError); win.addEventListener('unhandledrejection', onReject);
+        on(win, 'error', onError); on(win, 'unhandledrejection', onReject);
         undo.push(() => { win.removeEventListener('error', onError); win.removeEventListener('unhandledrejection', onReject); });
     }
     if (capture.has('events')) {
         const names = await eventNames(win, options.events);
         const onEvent = e => { const t = e.composedPath?.()[0] ?? e.target; record('info', `${e.type} on <${t?.localName ?? '?'}${t?.id ? `#${t.id}` : ''}> ${e.detail === undefined || e.detail === null ? '' : formatArg(e.detail)}`.trim(), { source: 'event' }); };
-        for (const n of names) doc.addEventListener(n, onEvent, true);
+        for (const n of names) on(doc, n, onEvent, true);
         undo.push(() => { for (const n of names) doc.removeEventListener(n, onEvent, true); });
     }
     if (capture.has('network') && typeof win.PerformanceObserver === 'function') {
@@ -151,11 +151,11 @@ export async function mountConsole(container, options = {}) {
     }
 
     // ---- controls ---------------------------------------------------------------------------------------------------------
-    tabs.addEventListener('pk-tab-change', e => { active = e.detail.value; render(); });
-    search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
-    levels.addEventListener('pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
-    clear.addEventListener('click', () => { entries = []; render(); });
-    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
+    on(tabs, 'pk-tab-change', e => { active = e.detail.value; render(); });
+    on(search, 'pk-search', e => { text = e.detail.value ?? ''; render(); });
+    on(levels, 'pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
+    on(clear, 'click', () => { entries = []; render(); });
+    on(copy, 'click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
     const timer = win.setInterval(() => { if (active === 'elements' || active === 'environment') render(); }, 2000);
 
     render();

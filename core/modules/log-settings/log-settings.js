@@ -13,7 +13,7 @@
 
 import { configureLogging, getLoggingConfig, resetLogging, getLogBuffer, getLogOutputs, addLogSink, createLogger } from '../../js/log.js';
 import { INHERIT, draftFrom, configFrom, scopeRows, addScope, removeScope, setScopeLevel, setGlobalLevel, setRoute, routeRows, sameDraft, levelOverride, describeOverride, outputsFor, testMessages, TEST_SCOPE } from '../../js/log-settings-logic.js';
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
@@ -77,9 +77,9 @@ export async function mountLogSettings(container, opts = {}) {
         const cells = [];
         for (const r of rows) {
             const select = h(doc, 'pk-select', { slot: `cell-${r.id}-level`, label: `Level for ${r.scope}`, value: r.level }, ...options(doc, [[INHERIT, 'Same as global'], ...LEVEL_OPTIONS], r.level));
-            select.addEventListener('pk-value-change', e => { draft = setScopeLevel(draft, r.scope, e.detail.value); touched(); });
+            on(select, 'pk-value-change', e => { draft = setScopeLevel(draft, r.scope, e.detail.value); touched(); });
             const remove = h(doc, 'pk-button', { slot: `cell-${r.id}-remove`, variant: 'ghost', size: 'mini', label: `Remove ${r.scope}` }, 'Remove');
-            remove.addEventListener('click', () => { draft = removeScope(draft, r.scope); drawScopes(); touched(); });
+            on(remove, 'click', () => { draft = removeScope(draft, r.scope); drawScopes(); touched(); });
             cells.push(select, remove);
         }
         scopeTable.replaceChildren(...cells, h(doc, 'pk-empty-state', { slot: 'empty', tone: 'compact', heading: 'No scopes yet', description: 'A scope is listed once it has logged. Add one by name to set its level ahead of time.' }));
@@ -95,7 +95,7 @@ export async function mountLogSettings(container, opts = {}) {
         for (const r of rows) {
             for (const o of outputs) {
                 const box = h(doc, 'pk-checkbox', { slot: `cell-${r.id}-${o}`, label: `${LEVEL_NAMES[r.level]} to ${o}`, checked: r[o] });
-                box.addEventListener('pk-change', e => { draft = setRoute(draft, r.level, o, Boolean(e.detail.checked)); touched(); });
+                on(box, 'pk-change', e => { draft = setRoute(draft, r.level, o, Boolean(e.detail.checked)); touched(); });
                 cells.push(box);
             }
         }
@@ -117,15 +117,15 @@ export async function mountLogSettings(container, opts = {}) {
     }
 
     // ---- controls -------------------------------------------------------------------------------------------------------------
-    levelSelect.addEventListener('pk-value-change', e => { draft = setGlobalLevel(draft, e.detail.value); touched(); });
+    on(levelSelect, 'pk-value-change', e => { draft = setGlobalLevel(draft, e.detail.value); touched(); });
     const add = () => {
         const r = addScope(draft, newScope.value ?? newScope.getAttribute('value'));
         if (r.error) { newScope.setAttribute('invalid', ''); say(r.error); return; }
         newScope.removeAttribute('invalid'); newScope.value = ''; newScope.setAttribute('value', '');
         draft = r.draft; drawScopes(); touched();
     };
-    addBtn.addEventListener('click', add);
-    newScope.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+    on(addBtn, 'click', add);
+    on(newScope, 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
 
     const api = {
         config: () => configFrom(draft),
@@ -152,9 +152,9 @@ export async function mountLogSettings(container, opts = {}) {
         },
         destroy() { unsink(); root.remove(); },
     };
-    testBtn.addEventListener('click', () => api.test());
-    saveBtn.addEventListener('click', () => api.save());
-    resetBtn.addEventListener('click', () => api.reset());
+    on(testBtn, 'click', () => api.test());
+    on(saveBtn, 'click', () => api.save());
+    on(resetBtn, 'click', () => api.reset());
 
     drawAll();
     return api;
