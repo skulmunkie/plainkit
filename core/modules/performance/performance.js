@@ -12,7 +12,7 @@
 // expose (INP and heap outside Chromium, for one) show a dash rather than a guess.
 
 import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, summarizeResources, formatBytes, formatMs, shortName } from '../../js/perf-logic.js';
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -140,7 +140,7 @@ export async function mountPerformance(container, options = {}) {
     const paintButton = () => { const on = c.running(); toggle.textContent = on ? 'Pause' : 'Resume'; status.textContent = on ? `Updating every ${interval / 1000} s` : 'Paused'; };
     function start() { c.start(); win.clearInterval(timer); timer = win.setInterval(tick, interval); paintButton(); }
     function stop() { c.stop(); win.clearInterval(timer); timer = 0; paintButton(); if (last) draw(last); }
-    toggle.addEventListener('click', () => (c.running() ? stop() : start()));
+    on(toggle, 'click', () => (c.running() ? stop() : start()));
 
     draw(c.snapshot());
     paintButton();

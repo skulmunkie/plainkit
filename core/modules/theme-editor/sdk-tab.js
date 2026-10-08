@@ -10,7 +10,7 @@ import { validateBreakpoints, deltaRows, readSettings, RANGE } from '../../js/cu
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
-import { runtimeUrl, h } from '../../js/mount-support.js';
+import { runtimeUrl, h, on as listen } from '../../js/mount-support.js';
 const log = createLogger('theme-editor.sdk');
 
 /** The runtime dist folder (two levels above this module in the release layout, where the modules sit in dist/modules/); the source tree points at core/dist (the build rewrites this line). */
@@ -23,7 +23,7 @@ export const DIST = '../../dist/';
 export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(DIST, import.meta.url) }) {
     const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null };
     const listeners = [];
-    const on = (el, type, fn) => { el.addEventListener(type, fn); listeners.push(() => el.removeEventListener(type, fn)); };
+    const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const chkTheme = h(doc, 'pk-checkbox', { label: 'Theme (the token edits)', checked: true, 'data-sdk': 'include-theme' });
     const chkBp = h(doc, 'pk-checkbox', { label: 'Breakpoints', checked: true, 'data-sdk': 'include-breakpoints' });
     const inputsBox = h(doc, 'div', { class: 'te-palette-inputs' });

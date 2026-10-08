@@ -31,7 +31,7 @@
 import { collect, evaluate, focusProblems, unusedSelectors } from '../../js/quality.js';
 import { scoreFindings, rankWorstFirst, groupFindings, scoreAll, readHistory, pushRun, deltas, exportHistory, importHistory } from '../../js/scoring.js';
 import { staticMetrics } from '../../js/audit.js';
-import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, on } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { readSetting, writeSetting } from '../../js/settings.js';
@@ -108,7 +108,7 @@ export function openFrame(host, frame, { theme = 'dark', width = 1280, settleMs 
         const f = host.ownerDocument.createElement('iframe');
         f.dataset.dyn = `position:absolute; left:0; top:0; width:${width}px; height:700px; border:0`;
         applyDynamic(f);
-        f.addEventListener('load', () => {
+        on(f, 'load', () => {
             if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch (error) { log.debug('could not set the theme in a frame from another origin', error); }
             whenDefined(f).then(() => setTimeout(() => resolve(f), settleMs));
         }, { once: true });
@@ -335,7 +335,7 @@ export async function mountScorecard(container, options = {}) {
         return items;
     }
 
-    $('[data-sc-run]')?.addEventListener('click', run);
+    const runButton = $('[data-sc-run]'); if (runButton) on(runButton, 'click', run);
     loadElements(root);
     if (autorun && runs) await run();
     return { run, results: () => items, report: () => last, ready, destroy: () => root.remove() };

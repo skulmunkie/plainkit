@@ -42,7 +42,7 @@
 import * as M from '../../js/layout-model.js';
 import * as L from '../../js/layout-builder-logic.js';
 import { createElementInspector } from '../../js/element-inspector.js';
-import { ensureStyles, styleUrls, loadJson, runtimeUrl, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, runtimeUrl, h, on as listen } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { setTheme } from '../../js/theme.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -366,7 +366,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     }
 
     // ---- events
-    const on = (el, type, fn, opts) => { el.addEventListener(type, fn, opts); cleanups.push(() => el.removeEventListener(type, fn, opts)); };
+    const on = (el, type, fn, opts) => { cleanups.push(listen(el, type, fn, opts)); };
 
     // ---- the properties form
     function onControl(e) {
@@ -501,8 +501,8 @@ export async function mountLayoutBuilder(container, options = {}) {
         };
         const win = doc.defaultView ?? window;
         sortable.beginExternalDrag({ tag });
-        win.addEventListener('pointermove', over);
-        win.addEventListener('pointerup', up, { once: true });
+        on(win, 'pointermove', over);
+        on(win, 'pointerup', up, { once: true });
     }
     on(paletteList, 'pointerdown', e => {
         if (e.button > 0) return;

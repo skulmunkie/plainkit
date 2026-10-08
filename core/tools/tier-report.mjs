@@ -7,7 +7,7 @@ import { TIERS } from './element-api.mjs';
 export const DEBT_RULES = ['C1', 'C4', 'D1', 'S3', 'T1'];
 
 /** elements: loadElementSources() (name, meta.tier); tiersBaseline / tagsBaseline: the parsed baseline files. */
-export function tierReport(elements, tiersBaseline, tagsBaseline) {
+export function tierReport(elements, tiersBaseline, tagsBaseline, modulesBaseline = null) {
     const tierOf = new Map(elements.map(e => [e.name, e.meta.tier]));
     const counts = Object.fromEntries(TIERS.map(t => [t, 0]));
     for (const t of tierOf.values()) counts[t]++;
@@ -21,5 +21,14 @@ export function tierReport(elements, tiersBaseline, tagsBaseline) {
     for (const e of tiersBaseline.entries) add(e.rule, e.element, 1);
     for (const e of tagsBaseline.entries) add(e.rule, e.element, e.count);
     const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
-    return { version: 1, tiers: TIERS, rules: DEBT_RULES, counts, total: sum(counts), debt, debtTotal: sum(Object.fromEntries(DEBT_RULES.map(r => [r, sum(debt[r])]))) };
+    return { version: 1, tiers: TIERS, rules: DEBT_RULES, counts, total: sum(counts), debt, debtTotal: sum(Object.fromEntries(DEBT_RULES.map(r => [r, sum(debt[r])]))), ...(modulesBaseline ? { modules: moduleDebt(modulesBaseline) } : {}) };
+}
+
+// The module ruleset's baseline (plainkit.audit.modules.baseline.json, repository root) is not tiered: modules are not elements. Its debt is counted per module rule (S1, S3 ... of the
+// module ruleset, not the tier rules of the same name) as one separate group; absent when core/ is built without the repository around it.
+export function moduleDebt(baseline) {
+    const rules = {};
+    for (const e of baseline.entries) rules[e.rule] = (rules[e.rule] ?? 0) + 1;
+    const sorted = Object.fromEntries(Object.entries(rules).sort(([a], [b]) => a.localeCompare(b, 'en', { numeric: true })));
+    return { rules: sorted, total: baseline.entries.length };
 }
