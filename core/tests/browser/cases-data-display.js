@@ -281,6 +281,34 @@ export const dataDisplayCases = [
         await until(() => queries.at(-1).search === 'SKU-2' && box().value === 'SKU-2', 'the host changed the term: the query and the box follow'); t.eq(queries.at(-1).page, 1);
     }],
 
+    ['data-table: add-label draws a primary button after the search box and the actions slot, and pressing it raises pk-add (#805)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]'><button slot="actions" id="own">Export</button></pk-data-table>`);
+        const add = el.part('add'); let added = 0; el.addEventListener('pk-add', () => added++);
+        t.ok(add.hidden, 'no add-label, no button');
+        el.addLabel = '+ Add SKU'; await t.settle();
+        t.ok(!add.hidden && add.textContent === '+ Add SKU', 'the label shows the button');
+        const own = el.querySelector('#own').getBoundingClientRect(), b = add.getBoundingClientRect();
+        t.ok(b.left >= own.right - 1, `after the actions slot (add ${Math.round(b.left)}, own ${Math.round(own.right)})`); t.ok(Math.abs((b.top + b.height / 2) - (own.top + own.height / 2)) < b.height, 'on the same row');
+        add.click(); await t.settle(); t.eq(added, 1, 'one pk-add per press');
+    }],
+
+    ['data-table: plain props (no config) set the columns, page size, labels, search term and empty states, and win over config (#805)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}' config='{"pageSize":50,"label":"From config","caption":"From config"}'></pk-data-table>`);
+        const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
+        el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
+        el.refresh();
+        const box = () => el.part('filters').shadowRoot.querySelector('[part="search"]'), rowsShown = () => el.part('table').shadowRoot.querySelectorAll('tbody tr').length;
+        await until(() => rowsShown() === 5, 'the first page of five');
+        t.eq(queries[0].pageSize, 5, 'page-size beats config.pageSize'); t.eq(queries[0].search, 'SKU-3', 'the first load carries the term');
+        t.eq(box().value, 'SKU-3'); t.eq(box().getAttribute('aria-label'), 'Find SKU', 'search-label names the box');
+        t.eq(el.part('table').label, 'SKUs', 'label beats config.label'); t.eq(el.part('table').caption, 'All SKUs');
+        t.eq(el.part('pagination').label, 'SKU pages'); t.eq(el.part('pagination').sizes.join(), '5,10');
+        box().value = 'nothing-like-this'; box().dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => queries.at(-1).search === 'nothing-like-this', 'a search that matches nothing');
+        await until(() => el.part('state').querySelector('pk-empty-state')?.getAttribute('heading') === 'No SKU matches', 'the no-results heading from the plain prop');
+        el.hideSearch = true; await t.settle(); t.ok(el.part('filters').hasAttribute('data-nosearch'), 'hide-search hides the box');
+    }],
+
     ['table and data-table: selectPageOnly keeps the header checkbox on the page and never offers "Select all N rows" (#865)', async t => {
         const el = await t.mount(`<pk-table label="P" manual selectable select-page-only total="112" columns='${cols}' rows='${rows}'></pk-table>`);
         const r = el.shadowRoot, btn = () => r.querySelector('[part="bulk-all"]'), events = [];

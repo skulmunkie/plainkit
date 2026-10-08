@@ -132,6 +132,11 @@ export function paintTiers(doc, host, report) {
             columns: [text('tier', 'Tier'), num('elements', 'Elements'), num('debt', 'Baseline debt')],
             rows: tiers.map((t, i) => ({ id: i + 1, tier: cap(t), elements: counts[t], debt: debtOf(t) })),
         }),
+        ...(report.modules ? [note(doc, `Modules are not tiered. Their own ruleset (plainkit.audit.modules.baseline.json) holds ${report.modules.total} accepted findings; the rule names are the module ruleset's, not the tier rules above.`), table(doc, {
+            label: 'Module baseline debt per rule',
+            columns: [text('rule', 'Module rule'), num('count', 'Findings')],
+            rows: Object.entries(report.modules.rules).map(([r, n], i) => ({ id: i + 1, rule: r, count: n })),
+        })] : []),
         table(doc, {
             label: 'Baseline debt per rule and tier',
             columns: [text('rule', 'Rule'), text('what', 'What'), ...tiers.map(t => num(t, cap(t))), num('total', 'Total')],
