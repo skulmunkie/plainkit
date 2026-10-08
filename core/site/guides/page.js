@@ -8,6 +8,7 @@ import { mountRouter } from '../../js/router.js';
 import { GUIDES } from './guides.data.js';
 import { neighbours, routeHash, isAnchorHash } from './guides-logic.js';
 import { searchGuides } from './guides-search.js';
+import { on } from '../../js/mount-support.js';
 
 const log = createLogger('guides');
 const $ = id => document.getElementById(id);
@@ -158,13 +159,13 @@ mountShell({ page: 'guides', title: null });
 buildNav();
 // pk-input's own 'input' event (native, bubbling and composed) reaches the nav as soon as the box changes, typed or cleared (Escape); no debounce needed
 // for this few guides.
-searchInput.addEventListener('input', () => applySearch(searchInput.value));
+on(searchInput, 'input', () => applySearch(searchInput.value));
 // On the bar, not on the button: the toggle button flips its own `pressed` first, and this sets it to what the drawer really is afterwards.
-contents.parentElement.addEventListener('click', e => { if (!e.target.closest('#gd-contents')) return; const on = !nav.hasAttribute('open'); nav.toggleAttribute('open', on); contents.toggleAttribute('pressed', on); });
-nav.addEventListener('pk-close', () => contents.removeAttribute('pressed')); // Escape or a tap on the backdrop closed the drawer
+on(contents.parentElement, 'click', e => { if (!e.target.closest('#gd-contents')) return; const on = !nav.hasAttribute('open'); nav.toggleAttribute('open', on); contents.toggleAttribute('pressed', on); });
+on(nav, 'pk-close', () => contents.removeAttribute('pressed')); // Escape or a tap on the backdrop closed the drawer
 // A same-page link (the toc, a heading's permalink) scrolls the article's own scroller and gets its own history entry. The browser's default would also scroll the page
 // shell around the article (the top bar would slide away), so it is done here; a hash typed by hand still comes through hashchange above.
-$('gd-scroll').addEventListener('click', e => {
+on($('gd-scroll'), 'click', e => {
     const a = e.composedPath().find(n => n.localName === 'a' && /^#[^/]/.test(n.getAttribute('href') ?? ''));
     if (!a || !current || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
     const id = decodeURIComponent(a.getAttribute('href').slice(1));

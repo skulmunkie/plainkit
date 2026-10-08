@@ -1,6 +1,7 @@
 import { mountShell } from '../shell.js';
 import { mountCodeExplorer } from '../../modules/code-explorer/code-explorer.js';
 import { LazyProvider } from '../../modules/code-explorer/providers.js';
+import { on } from '../../js/mount-support.js';
 mountShell({ page: 'files', title: 'SDK files' });
 
 // Deep link: files/#path=components/tabs/tabs.js&line=12 opens that file at that line.
@@ -20,4 +21,4 @@ explorer.catch(error => {
     n.textContent = `Could not load index.json: ${error.message}. Run node core/tools/snapshot.mjs to regenerate it.`;
     document.body.append(n);
 });
-document.addEventListener('site-theme', async e => (await explorer).element.setAttribute('theme', e.detail));
+on(document, 'site-theme', async e => (await explorer).element.setAttribute('theme', e.detail));

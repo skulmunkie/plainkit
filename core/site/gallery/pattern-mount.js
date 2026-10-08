@@ -3,6 +3,7 @@
 // realm that owns the markup, so `document` inside it is the frame's own document and a frame's listeners go away with the frame.
 // Framework-free; ES module.
 import { createLogger } from '../../js/log.js';
+import { on } from '../../js/mount-support.js';
 
 const log = createLogger('gallery-pattern');
 
@@ -40,7 +41,7 @@ export async function bootPattern(win, doc, base, options) {
     const name = doc.documentElement.getAttribute('data-pattern') ?? '';
     if (!SCRIPT_NAME.test(name)) return null;
     const handle = await mountPattern(doc.body, new URL(name, base).href, name, options);
-    win.addEventListener('pagehide', () => handle.destroy(), { once: true });
-    win.addEventListener(DESTROY_EVENT, () => handle.destroy(), { once: true });
+    on(win, 'pagehide', () => handle.destroy(), { once: true });
+    on(win, DESTROY_EVENT, () => handle.destroy(), { once: true });
     return handle;
 }

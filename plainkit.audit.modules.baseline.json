@@ -413,16 +413,6 @@
     },
     {
       "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "ffadada73fde038a"
-    },
-    {
-      "rule": "S7",
       "file": "core/site/gallery/boots/code-explorer.js",
       "fingerprint": "77456563fe943378"
     },
@@ -469,27 +459,7 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "3edc9f36dce38fc7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "3edc9f36dce38fc7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "3edc9f36dce38fc7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
       "fingerprint": "bfc41c63e1fc1a5f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "3edc9f36dce38fc7"
     },
     {
       "rule": "S7",
@@ -650,11 +620,6 @@
       "rule": "S7",
       "file": "core/site/gallery/frame.js",
       "fingerprint": "35a2d9a69cbdd1a8"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "827b13a5545525d5"
     },
     {
       "rule": "S1",
@@ -1144,11 +1109,6 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "8383d2a151e611f6"
     },
     {
@@ -1194,26 +1154,6 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "8383d2a151e611f6"
     },
     {
@@ -1250,26 +1190,6 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "8383d2a151e611f6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
     },
     {
       "rule": "S7",
@@ -1284,11 +1204,6 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "8383d2a151e611f6"
     },
     {
@@ -1304,47 +1219,7 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "8383d2a151e611f6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "8383d2a151e611f6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
     },
     {
       "rule": "S7",
@@ -1360,11 +1235,6 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "94903c043211bca4"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "2669816cc5d105d9"
     },
     {
       "rule": "S1",
@@ -1410,16 +1280,6 @@
       "rule": "S3",
       "file": "core/site/gallery/index.html",
       "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/pattern-mount.js",
-      "fingerprint": "a8daf2033a225141"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/pattern-mount.js",
-      "fingerprint": "a8daf2033a225141"
     },
     {
       "rule": "S1",
@@ -1520,16 +1380,6 @@
       "rule": "S7",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "40466c9aed1de3cf"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "40466c9aed1de3cf"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "e9e45c96253e6ee0"
     },
     {
       "rule": "S7",
@@ -1715,26 +1565,6 @@
       "rule": "S7",
       "file": "core/site/guides/page.js",
       "fingerprint": "6e4bda7b7d89861f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dcacce5ee93322b3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dcacce5ee93322b3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dcacce5ee93322b3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
-      "fingerprint": "dcacce5ee93322b3"
     },
     {
       "rule": "S7",
@@ -1984,11 +1814,6 @@
     {
       "rule": "S7",
       "file": "core/site/shell.js",
-      "fingerprint": "0d774f9beb218cda"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/shell.js",
       "fingerprint": "9b4c4b70a68cd56c"
     },
     {
@@ -2010,11 +1835,6 @@
       "rule": "S7",
       "file": "core/site/shell.js",
       "fingerprint": "9b4c4b70a68cd56c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/shell.js",
-      "fingerprint": "0d774f9beb218cda"
     },
     {
       "rule": "S7",
