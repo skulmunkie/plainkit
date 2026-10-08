@@ -1,5 +1,7 @@
 // Browser cases for the Gallery's routing (site/gallery/gallery.js, #401): the real page in a frame, driven only through its address, so they hold whatever draws the routes. Deep links,
 // the old addresses that keep working, back and forward, the query inside the hash (?q ?p) and a scoped mount's first route. Same contract as cases.js: [name, async (t) => void].
+import { instrument } from './cases-app.js';
+
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what, tries = 120) => { for (let i = 0; i < tries; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 
@@ -17,6 +19,28 @@ async function open(t, hash = '', search = '', width = 1280) {
 }
 
 export const galleryCases = [
+    ['gallery: mounting again ends the gallery on show, and destroy() leaves no listener, observer or timer behind and empties its container (#401)', async t => {
+        const { mountGallery } = await import(new URL('../../site/gallery/gallery.js', import.meta.url).href);
+        const inst = instrument();
+        try {
+            const host = t.stage('');
+            const before = inst.snapshot();
+            let last;
+            for (let i = 0; i < 3; i++) last = await mountGallery(host, { chrome: 'full', init: false }); // each mount ends the one before it
+            t.eq(host.querySelectorAll('#gx-view').length, 1, 'one gallery in the container, not three');
+            document.dispatchEvent(new CustomEvent('site-search', { detail: 'flex' }));
+            await wait(100);
+            last.destroy();
+            t.eq(host.childElementCount, 0, 'the container is empty');
+            document.dispatchEvent(new CustomEvent('site-search', { detail: 'nothing' })); // nobody listens any more: this must not throw or draw
+            await wait(300);
+            const after = inst.snapshot();
+            t.eq(after.listeners.join('\n'), before.listeners.join('\n'), 'no window or document listener is left');
+            t.eq(after.observers, before.observers, 'no observer is left'); t.eq(after.timers, before.timers, 'no long timer is left');
+            t.ok(typeof last.destroy === 'function', 'mountGallery resolves with the handle');
+        } finally { inst.restore(); }
+    }],
+
     ['gallery: a deep link opens its view, marks its nav row and names the page, for a foundation, an element, a sample list and a full-page sample', async t => {
         const p = await open(t, '#/foundations/colours');
         await p.shows('Colours');

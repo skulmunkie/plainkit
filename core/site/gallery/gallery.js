@@ -101,6 +101,7 @@ const ALIASES = {
     '/templates/:id': '/samples/templates/:id', '/templates': '/samples/templates',
 };
 let router = null;
+let mounted = null; // the gallery on show: { destroy() }, so a second mount ends the first instead of stacking on it
 
 // Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
 function route() {
@@ -574,8 +575,10 @@ export function setGallerySections(sections) {
 }
 
 // Show the gallery in `container` (its document must load the SDK stylesheets and gallery.css). Options: kind, group, control, theme,
-// width, filter, chrome ('full' keeps the nav, toolbar and inspector; 'none' shows only the content), sections (see the header). Resolves once the first view is drawn.
+// width, filter, chrome ('full' keeps the nav, toolbar and inspector; 'none' shows only the content), sections (see the header). Resolves once the first view is drawn,
+// with { destroy() }: the router, the document's events and the sample frames end, and the container is emptied. Mounting again destroys the gallery already on show.
 export async function mountGallery(container, options = {}) {
+    mounted?.destroy();
     opts = normalizeOptions(options);
     hostSections = normalizeSections(options.sections);
     baseTitle = document.title || baseTitle;
@@ -630,8 +633,8 @@ export async function mountGallery(container, options = {}) {
         if (sc) setScale(Number(sc.dataset.scale));
     });
     on($('#gx-shell'), 'change', e => { const s = e.target.closest?.('pk-select.gx-scale'); if (s) setScale(Number(s.value)); });
-    on(document, 'site-search', e => setFilter(e.detail));
-    on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); });
+    // What outlives the container's own elements: the document's events, the router, the lazy frames; destroy() ends them (the elements and their listeners go with the container).
+    const offs = [on(document, 'site-search', e => setFilter(e.detail)), on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); })];
     const view = $('#gx-view');
     on(view, 'submit', e => { e.preventDefault(); });
     on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
@@ -641,4 +644,19 @@ export async function mountGallery(container, options = {}) {
         form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     on(view, 'change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
+    const handle = {
+        destroy() {
+            if (mounted !== handle) return;
+            mounted = null;
+            for (const off of offs) off();
+            for (const form of container.querySelectorAll('.gx-find')) form._cancel?.();
+            router?.destroy(); router = null;
+            lazy?.disconnect(); lazy = null;
+            releaseFrames();
+            full = stage = inspecting = inspector = null;
+            container.replaceChildren(); container.classList.remove('gx-mount');
+        },
+    };
+    mounted = handle;
+    return handle;
 }
