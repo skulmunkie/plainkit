@@ -5,9 +5,11 @@
 @implements IDisposable
 
 @* Hand-written (mapping "existing"): a typed wrapper over pk-lookup-picker, which owns the popup table, the query, the states and the selection (issue 801). It only turns
-   .NET into what the element takes (columns into config, Load into load(query), Resolve into resolve(keys)) and its events back into the bound Value or Values. *@
+   .NET into what the element takes (Columns, PageSize and AriaLabel into the element's columns, page-size and search-label, Load into load(query), Resolve into resolve(keys)) and its events back into the bound Value or Values. *@
 <pk-lookup-picker data-pk-ranges
-                  config="@_config"
+                  columns="@PkAttr.Json(Columns.Select(c => c.ToColumn()))"
+                  page-size="@PkAttr.Num(PageSize)"
+                  search-label="@(AriaLabel is { Length: > 0 } ? $"Search {AriaLabel}" : "Search")"
                   @ref="Element"
                   value="@Value"
                   values="@PkAttr.Json(Values)"
@@ -32,7 +34,6 @@
 
     private readonly PkCallbackSlot _load = new("load");
     private readonly PkCallbackSlot _resolve = new("resolve");
-    private string _config = "{}";
 
     /// <summary>Loads one page of the popup table: the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) in, the items of that page and the total of the searched list out. A request a newer one replaces has its <c>CancellationToken</c> cancelled.</summary>
     [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
@@ -111,18 +112,6 @@
 
     /// <inheritdoc />
     protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ValuesExpression;
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        _config = PkAttr.Json(new
-        {
-            columns = Columns.Select(c => c.ToColumn()),
-            pageSize = PageSize,
-            searchLabel = AriaLabel is { Length: > 0 } ? $"Search {AriaLabel}" : "Search",
-        })!;
-    }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)

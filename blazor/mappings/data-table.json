@@ -1,16 +1,8 @@
 {
   "component": "PkDataTable",
   "existing": true,
-  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5) Missing generator features: @typeparam generation (a typed component), a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate), and typed columns turned into the config JSON with per-row cell slots.",
+  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5) Missing generator features: @typeparam generation (a typed component), a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate), and typed columns turned into the columns JSON with per-row cell slots.",
   "params": [
-    {
-      "name": "Config",
-      "type": "string",
-      "default": "{}",
-      "map": "prop",
-      "prop": "config",
-      "note": "Not a parameter of the component: PkDataTable<TItem> sends its typed parameters (Columns, PageSize, PageSizeOptions, SortKey, Descending, Searchable, Search, SearchPlaceholder, SearchLabel, SearchDebounceMs, PagerLabel, Label, Caption, EmptyText, NoResultsText, LoadErrorText, AddLabel) as the element's plain props; config stays the element's fallback only."
-    },
     {
       "name": "Selectable",
       "prop": "selectable",

@@ -26,12 +26,12 @@ const make = () => {
     return { el, parts };
 };
 
-test('connected hands the config to the data table and builds the toolbar actions, once', () => {
+test('connected hands the table keys of the config to the data table as props and builds the toolbar actions, once', () => {
     const { el, parts } = make();
     el.config = { columns: [{ key: 'a', label: 'A' }], actions: [{ label: 'New', href: '#/orders/new' }] };
     el.connected();
     el.connected();
-    assert.equal(parts.table.config, el.config);
+    assert.deepEqual(parts.table.columns, [{ key: 'a', label: 'A' }], 'the page config keys the table has a plain prop for are handed down as those props');
     assert.equal(parts.actions.children.length, 1);
     assert.equal(parts.actions.children[0].localName, 'pk-button');
 });
