@@ -53,42 +53,37 @@
     },
     {
       "name": "HomeHref",
-      "map": "wrapper",
-      "type": "string?",
-      "note": "Blazor only: an address for a leading home crumb, an icon-only link (the icon, with HomeLabel as its aria-label) drawn first in the pk-breadcrumb that Crumbs renders. Off (null) by default."
+      "type": "string",
+      "prop": "homeHref"
     },
     {
       "name": "HomeLabel",
-      "map": "wrapper",
       "type": "string",
-      "note": "Blazor only: the accessible name of the home crumb; Home by default."
+      "prop": "homeLabel"
     },
     {
       "name": "HomeIcon",
-      "map": "wrapper",
       "type": "string",
-      "note": "Blazor only: the icon name of the home crumb; dashboard by default."
+      "prop": "homeIcon"
     },
     {
       "name": "Crumbs",
       "map": "wrapper",
       "type": "IReadOnlyList<PkCrumb>?",
-      "note": "Blazor only: the trail is rendered as a pk-breadcrumb in the breadcrumb slot, one link per PkCrumb and aria-current on the last."
+      "note": "Typed list of PkCrumb: sent as the element's crumbs attribute (a JSON array of { label, href }); the element draws the breadcrumb, home crumb and back link (#801)."
     },
     {
       "name": "BreadcrumbLabel",
-      "map": "wrapper",
       "type": "string",
-      "note": "Blazor only: the label of the pk-breadcrumb the crumbs are rendered into."
+      "prop": "breadcrumbLabel"
     },
     {
       "name": "BackLink",
-      "map": "wrapper",
       "type": "bool",
-      "note": "Blazor only: draws a back link (a ghost pk-button with href and a chevron, named Back to <label>) to the last crumb before the current one that has an Href, above the header. Off by default."
+      "prop": "backLink"
     }
   ],
   "existing": true,
-  "existingReason": "behaviour: builds the breadcrumb, home crumb and back link in Razor; moves to core as a crumbs prop (#801)",
-  "notes": "Hand-written: Title maps to heading (and is also drawn as a slotted pk-heading in the title slot, level from Level, tabindex -1, like the JS page shell, #773) and falls back to the last crumb's label; Level starts at 1; SuffixContent is the default slot (beside the title)."
+  "existingReason": "typed-generics: Crumbs is a typed PkCrumb list sent as JSON; and the title is also a slotted pk-heading in light DOM (FocusOnNavigate cannot reach into a shadow tree, #773)",
+  "notes": "Hand-written: Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773); Level starts at 1; SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
 }

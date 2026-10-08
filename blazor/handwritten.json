@@ -58,7 +58,7 @@
       "category": "mount"
     },
     "Components/PkPageHeader.razor": {
-      "category": "debt"
+      "category": "wrapper"
     },
     "Components/PkPerformance.razor": {
       "category": "mount"

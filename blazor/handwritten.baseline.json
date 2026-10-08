@@ -15,7 +15,7 @@
     "Components/PkListPage.razor": 43,
     "Components/PkLogs.razor": 64,
     "Components/PkLogSettings.razor": 52,
-    "Components/PkPageHeader.razor": 147,
+    "Components/PkPageHeader.razor": 76,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
     "Components/PkRecordForm.razor": 137,
@@ -91,11 +91,6 @@
       "rule": "name-parity",
       "file": "Components/PkFieldListRow.razor",
       "reason": "Blazor-only skip-empty wrapper around a dt/dd pair; removed when pk-field-list hides empty slotted pairs (#801 name map)"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkPageHeader.razor",
-      "reason": "builds breadcrumb, home crumb and back link; becomes a crumbs prop on pk-page-header (#801 section 2.3)"
     },
     {
       "rule": "name-parity",
