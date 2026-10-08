@@ -341,16 +341,18 @@ export const appShellCases = [
         let { rec, input } = await edit();
         const link = () => deep(d, 'a[href="#/things"]');
         t.ok(link(), 'the list is linked from the page');
-        link().click(); await until(dialog, 'the leave dialog');
-        t.eq(win.location.hash, '#/things/3', 'the address has not moved while asking');
-        (await until(() => button('Stay'), 'the Stay button ')).click(); await until(() => !dialog(), 'the dialog to close'); await wait(200);
-        t.eq(win.location.hash, '#/things/3', 'Stay keeps the address'); t.ok(deep(d, 'pk-record-page') === rec && rec.controls()[0] === input && input.value === 'Unsaved name', 'Stay keeps the page and the edits'); t.ok(rec.dirty); t.ok(d.activeElement && d.activeElement !== d.body, 'focus went back into the page after Stay');
+        // The dialog is answered once it has opened and settled (a click in its first frames can orphan it, #876), and is done when its element is gone.
+        const answer = async (trigger, label, what) => {
+            trigger(); await until(dialog, `the leave dialog (${what})`); await wait(300);
+            (await until(() => button(label), `the ${label} button`)).click(); await until(() => !d.querySelector('pk-dialog'), `the dialog to close (${what})`); await wait(50);
+        };
+        await answer(() => link().click(), 'Stay', 'link');
+        t.eq(win.location.hash, '#/things/3', 'Stay keeps the address'); t.ok(deep(d, 'pk-record-page') === rec && rec.controls()[0] === input && input.value === 'Unsaved name', 'Stay keeps the page and the edits'); t.ok(rec.dirty);
+        t.ok(d.activeElement && d.activeElement !== d.body, 'focus went back into the page after Stay');
         // Back/forward: a script cannot traverse history without a user gesture (Chrome skips entries made without one), so the browser's own two events are replayed after moving the address.
-        win.history.replaceState(null, '', '#/things'); for (const type of ['popstate', 'hashchange']) win.dispatchEvent(new win.Event(type));
-        await until(dialog, 'the leave dialog for back', 200); t.eq(win.location.hash, '#/things/3', 'the address is restored while asking');
-        (await until(() => button('Stay'), 'the Stay button ')).click(); await until(() => !dialog(), 'the dialog to close'); await wait(200);
+        await answer(() => { win.history.replaceState(null, '', '#/things'); for (const type of ['popstate', 'hashchange']) win.dispatchEvent(new win.Event(type)); t.eq(win.location.hash, '#/things/3', 'the address is restored while asking'); }, 'Stay', 'back');
         t.ok(deep(d, 'pk-record-page') === rec && input.value === 'Unsaved name', 'Stay after back keeps the edits'); t.eq(win.location.hash, '#/things/3');
-        link().click(); await until(dialog, 'the leave dialog again'); (await until(() => button('Leave'), 'the Leave button')).click();
+        await answer(() => link().click(), 'Leave', 'leave');
         await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Leave to go to the list'); await until(() => h1()?.textContent.trim() === 'Things', 'the list heading');
         await wait(300); t.eq(d.activeElement, h1(), 'focus is on the list heading after leaving');
         win.location.hash = '#/things/4'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('4'), 'record 4'); await wait(300);
