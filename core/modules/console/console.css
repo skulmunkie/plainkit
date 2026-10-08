@@ -1,3 +1,0 @@
-/* Dev console chrome. Everything inside is SDK components; this only paints a mounted console that carries its own theme. */
-
-.dc-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }

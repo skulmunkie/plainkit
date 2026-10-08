@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h, on, later, every, addressOf } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, loadJson, h, on, later, every, addressOf } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -21,7 +21,6 @@ import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./console.css'];
 
 export const DEFAULTS = Object.freeze({ max: 500, capture: ['console', 'errors', 'events', 'network'] });
 
@@ -37,8 +36,8 @@ const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([],
 async function eventNames(win, given) {
     if (given?.length) return given;
     try {
-        const res = await win.fetch(runtimeUrl('../../dist/elements/api.json', import.meta.url));
-        if (res.ok) return [...new Set((await res.json()).flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
+        const api = await loadJson(runtimeUrl('../../dist/elements/api.json', import.meta.url), win.fetch.bind(win)); // a missing file rejects and lands in the catch below
+        return [...new Set(api.flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
     } catch (err) { log.debug('no api.json next to this module: using the built-in event list', err); }
     return FALLBACK_EVENTS;
 }
@@ -48,7 +47,7 @@ export async function mountConsole(container, options = {}) {
     const capture = new Set(options.capture ?? DEFAULTS.capture);
     const doc = container.ownerDocument;
     const win = doc.defaultView;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     let entries = [];
     let level = 'debug';
@@ -79,7 +78,7 @@ export async function mountConsole(container, options = {}) {
     panel('elements', table('elements', 'pk-* elements on this page', [{ key: 'tag', label: 'Element' }, { key: 'count', label: 'On page', align: 'end' }, { key: 'defined', label: 'Registered' }]));
     panel('environment', table('environment', 'Environment', [{ key: 'name', label: 'Setting' }, { key: 'value', label: 'Value' }]));
 
-    const root = h(doc, 'section', { 'aria-label': 'Dev console', class: 'dc-module' }, tabs);
+    const root = h(doc, 'section', { 'aria-label': 'Dev console' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' }, tabs));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
