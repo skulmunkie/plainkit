@@ -2,7 +2,7 @@
 // config, and selection that survives paging and search (scope page or all; for all the host gets the current query). Stub base, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour from './data-table.js';
+import behaviour, { DEFAULTS } from './data-table.js';
 import { readFileSync } from 'node:fs';
 
 globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
@@ -22,7 +22,7 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty'].map(n => [n, fakeEl(n)]));
+    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty', 'add'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
         children = [];
@@ -382,4 +382,35 @@ test('selectPageOnly passes to the inner table (#865)', async () => {
     el.connected();
     await el.refresh();
     assert.equal(parts.table.selectPageOnly, true);
+});
+
+test('plain props win over the same key of config once they differ from their default, and config is the fallback (#805)', () => {
+    const { el, parts } = make();
+    el.config = { pageSize: 5, sort: 'sku', sortDir: 'descending', search: 'x', label: 'From config', searchLabel: 'Find', pagerLabel: 'Pages', caption: 'Cap', searchDebounce: 40, pageSizeOptions: [5, 10], columns: [{ key: 'a' }] };
+    assert.deepEqual(el.query, { page: 1, pageSize: 5, sort: 'sku', sortDir: 'descending', search: 'x', filters: {} }, 'config alone');
+    el.pageSize = 10; el.sort = 'name'; el.search = 'y'; el.label = 'Plain'; el.columns = [{ key: 'b' }]; el.pageSizeOptions = [10, 20]; el.searchDebounce = 100; el.hideSearch = true;
+    el.$query = null;
+    assert.deepEqual(el.query, { page: 1, pageSize: 10, sort: 'name', sortDir: 'descending', search: 'y', filters: {} }, 'plain props win (sortDir left at its default falls back to config)');
+    el.sync();
+    assert.equal(parts.table.label, 'Plain'); assert.equal(parts.table.caption, 'Cap', 'a plain prop left at its default falls back to config');
+    assert.deepEqual(parts.table.columns, [{ key: 'b' }]);
+    assert.deepEqual(parts.pagination.sizes, [10, 20]); assert.equal(parts.pagination.label, 'Pages'); assert.equal(parts.filters.debounce, 100); assert.equal(parts.filters.label, 'Find');
+    assert.equal(parts.filters.attrs['data-nosearch'], true);
+    el.hideSearch = false; el.sync(); assert.equal(parts.filters.attrs['data-nosearch'], false);
+    el.config = { searchable: false }; el.sync(); assert.equal(parts.filters.attrs['data-nosearch'], true, 'config.searchable false still hides it');
+});
+
+test('DEFAULTS are the defaults of the element meta', () => {
+    const meta = JSON.parse(readFileSync(new URL('./data-table.meta.json', import.meta.url), 'utf8'));
+    for (const [name, d] of Object.entries(DEFAULTS)) assert.deepEqual(meta.props.find(p => p.name === name)?.default, d, name);
+});
+
+test('addLabel shows the add button with that text, and a click raises pk-add (#805)', () => {
+    const { el, parts, events } = make();
+    el.sync();
+    assert.equal(parts.add.hidden, true, 'no label, no button');
+    el.addLabel = '+ Add customer'; el.sync();
+    assert.equal(parts.add.hidden, false); assert.equal(parts.add.textContent, '+ Add customer');
+    el.connected(); parts.add.fire('click');
+    assert.deepEqual(events.filter(e => e.name === 'pk-add'), [{ name: 'pk-add', detail: null }]);
 });

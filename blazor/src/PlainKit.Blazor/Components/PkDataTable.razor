@@ -3,10 +3,25 @@
 @inherits PkElementBase
 @implements IDisposable
 
-@* Hand-written (mapping "existing"): a typed wrapper over pk-data-table, which owns the query, load, states, paging and selection (issue 801). It only
-   turns .NET into what the element takes (columns and options into config, Load into load(query), items into rows and cell slots) and its events back into callbacks. *@
+@* Hand-written (mapping "existing"): a typed wrapper over pk-data-table, which owns the query, load, states, paging, the add button and selection (issue 801). It only
+   turns .NET into what the element takes (typed columns and options into its props, Load into load(query), items into rows and cell slots) and its events back into callbacks. *@
 <pk-data-table data-pk-ranges
-               config="@_config"
+               columns="@PkAttr.Json(Columns.Select(c => c.ToColumn()))"
+               page-size="@PageSize"
+               page-size-options="@PkAttr.Json(PageSizeOptions)"
+               sort="@SortKey"
+               sort-dir="@(Descending ? "descending" : "ascending")"
+               hide-search="@(!Searchable)"
+               search="@Search"
+               search-label="@(SearchLabel ?? SearchPlaceholder ?? "Search")"
+               search-debounce="@SearchDebounceMs"
+               pager-label="@(PagerLabel ?? "List pages")"
+               label="@(Label ?? "List")"
+               caption="@Caption"
+               empty="@PkAttr.Json(new { heading = EmptyText })"
+               no-results="@PkAttr.Json(new { heading = NoResultsText })"
+               load-error="@LoadErrorText"
+               add-label="@AddLabel"
                @ref="Element"
                selectable="@Selectable"
                select-page-only="@SelectPageOnly"
@@ -20,7 +35,7 @@
                max-height="@MaxHeight"
                sticky-header="@StickyHeader"
                class="@Css()"
-               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null || !string.IsNullOrEmpty(AddLabel)) {<span slot="actions" class="u-contents">@ToolbarContent@if (!string.IsNullOrEmpty(AddLabel)) {<PkButton Variant="ButtonVariant.Primary" OnClick="OnAdd">@AddLabel</PkButton>}</span>}@foreach (var row in _rows)
+               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null) {<span slot="actions" class="u-contents">@ToolbarContent</span>}@foreach (var row in _rows)
 {
     @foreach (var column in Columns.Where(c => c.Cell is not null))
     {
@@ -34,7 +49,6 @@
     [Inject] private PkRuntime Runtime { get; set; } = default!;
 
     private readonly PkCallbackSlot _load = new("load");
-    private string _config = "{}";
     private List<Row> _rows = [];
 
     /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called for the first page, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that a newer one replaces has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
@@ -152,31 +166,6 @@
     public async Task ReloadAsync() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("refresh", Element);
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        // The element compares the config text, so a parameter set that changes nothing costs it nothing.
-        _config = PkAttr.Json(new
-        {
-            columns = Columns.Select(c => c.ToColumn()),
-            pageSize = PageSize,
-            pageSizeOptions = PageSizeOptions,
-            sort = SortKey,
-            sortDir = Descending ? "descending" : "ascending",
-            searchable = Searchable,
-            search = Search,
-            searchLabel = SearchLabel ?? SearchPlaceholder ?? "Search",
-            searchDebounce = SearchDebounceMs,
-            pagerLabel = PagerLabel ?? "List pages",
-            label = Label ?? "List",
-            caption = Caption,
-            empty = new { heading = EmptyText },
-            noResults = new { heading = NoResultsText },
-            loadError = LoadErrorText,
-        })!;
-    }
-
-    /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -187,6 +176,7 @@
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
+        handlers["onpk-add"] = EventCallback.Factory.Create<PkAddEventArgs>(this, () => OnAdd.InvokeAsync());
         handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);
     }
