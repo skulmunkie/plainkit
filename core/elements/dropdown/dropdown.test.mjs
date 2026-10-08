@@ -96,9 +96,9 @@ test('Tab inside an open menu closes it with reason tab; keys are ignored while 
 test('closed apply leaves nothing behind; disconnected releases the position and outside-press subscriptions', () => {
     const { el } = make();
     let stopped = 0;
-    el.$u = () => { stopped++; }; el.$o = () => { stopped++; };
+    el.$au = () => { stopped++; }; el.$o = () => { stopped++; };
     el.disconnected();
-    assert.equal(stopped, 2); assert.equal(el.$u, null); assert.equal(el.$o, null);
+    assert.equal(stopped, 2); assert.equal(el.$au, null); assert.equal(el.$o, null);
     assert.doesNotThrow(() => el.disconnected());
 });
 
