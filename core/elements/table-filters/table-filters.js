@@ -11,6 +11,7 @@ export default Base => class extends Base {
         if (this.$c) return;
         this.$c = 1;
         this.part('search').addEventListener('input', () => {
+            this.value = this.$v = this.part('search').value;
             clearTimeout(this.$t);
             this.$t = setTimeout(() => this.emit('pk-search', { query: this.part('search').value }), this.debounce);
         });
@@ -21,6 +22,8 @@ export default Base => class extends Base {
     }
     toggle(open) { if (this.emit('pk-toggle', { open })) this.open = open; }
     updated() {
+        // `value` is two-way: the box follows when the host changes it, and typing writes it (pk-search then reports the debounced text).
+        if (this.value !== this.$v) this.part('search').value = this.$v = this.value ?? '';
         const has = this.slotted().length > 0;
         this.part('trigger').hidden = !has;
         this.part('trigger').setAttribute('aria-expanded', String(!!this.open));

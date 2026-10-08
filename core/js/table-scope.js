@@ -21,7 +21,7 @@ export const page = (t, count) => t.emit('pk-select-all', { scope: 'page', count
 export function after(t, rows, checked) {
     const root = t.shadowRoot, b = t.part('bulk-all'), wide = t.wide;
     if (!root.adoptedStyleSheets.includes(sheet ??= sheetFor(STYLES))) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
-    b.hidden = !(wide || (t.total > rows && checked));
+    b.hidden = !(wide || (!t.selectPageOnly && t.total > rows && checked));
     b.textContent = wide ? 'Clear selection' : `Select all ${t.total} rows`;
     if (wide) t.part('bulk-count').textContent = `All ${t.total || t.selected.length} selected`;
 }

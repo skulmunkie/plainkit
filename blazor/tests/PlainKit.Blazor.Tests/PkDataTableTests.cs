@@ -94,6 +94,17 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Search_and_SelectPageOnly_pass_through_to_the_element()
+    {
+        var cut = Render(Immediate(_ => Page(0)), p => p.Add(x => x.Search, "acme").Add(x => x.Selectable, true).Add(x => x.SelectPageOnly, true));
+        var el = cut.Find("pk-data-table");
+        using var config = JsonDocument.Parse(el.GetAttribute("config")!);
+        Assert.Equal("acme", config.RootElement.GetProperty("search").GetString());
+        Assert.True(el.HasAttribute("select-page-only"));
+        Assert.False(Render(Immediate(_ => Page(0)), p => p.Add(x => x.Selectable, true)).Find("pk-data-table").HasAttribute("select-page-only"));
+    }
+
+    [Fact]
     public void Without_Load_no_callback_is_set()
     {
         Render(null);
