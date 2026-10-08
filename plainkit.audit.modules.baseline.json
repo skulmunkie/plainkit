@@ -318,11 +318,6 @@
     },
     {
       "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "bfc41c63e1fc1a5f"
-    },
-    {
-      "rule": "S7",
       "file": "core/site/gallery/elements/command-palette.data.js",
       "fingerprint": "065a50986d8b5f9e"
     },
@@ -425,11 +420,6 @@
       "rule": "S7",
       "file": "core/site/gallery/embed.js",
       "fingerprint": "003d8302e9f86e04"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/embed.js",
-      "fingerprint": "a2a424c30a0f21a6"
     },
     {
       "rule": "S7",
@@ -924,11 +914,6 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "fa22853201ae28e7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
     },
     {
@@ -1087,16 +1072,6 @@
       "fingerprint": "ad731324cc7c5c5a"
     },
     {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "94903c043211bca4"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "94903c043211bca4"
-    },
-    {
       "rule": "S1",
       "file": "core/site/gallery/index.html",
       "fingerprint": "abdc4a92626d642b"
@@ -1240,11 +1215,6 @@
       "rule": "S7",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "40466c9aed1de3cf"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "e9e45c96253e6ee0"
     },
     {
       "rule": "S3",
@@ -1424,11 +1394,6 @@
     {
       "rule": "S7",
       "file": "core/site/guides/page.js",
-      "fingerprint": "6e4bda7b7d89861f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/guides/page.js",
       "fingerprint": "63558c176d70bc1e"
     },
     {
@@ -1479,17 +1444,7 @@
     {
       "rule": "S7",
       "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "7d868ea981bfc006"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
       "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "7d868ea981bfc006"
     },
     {
       "rule": "S7",
@@ -1590,11 +1545,6 @@
       "rule": "S5",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "221af7a6320ac21d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "61172e8aeef06c0d"
     },
     {
       "rule": "S7",

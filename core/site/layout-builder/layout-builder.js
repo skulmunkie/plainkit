@@ -4,6 +4,7 @@
 import { mountShell } from '../shell.js';
 import { mountLayoutBuilder } from '../../modules/layout-builder/layout-builder.js';
 import { createLogger } from '../../js/log.js';
+import { storedText, storeText } from '../../js/mount-support.js';
 const log = createLogger('layout-builder-page');
 
 const DRAFT = 'pk-layout-builder-draft';
@@ -17,7 +18,7 @@ const START = `<pk-stack gap="md">
 </pk-stack>`;
 
 function stored() {
-    try { return localStorage.getItem(DRAFT); } catch (error) { log.debug('the draft cannot be read: starting from the sample page', error); return null; }
+    try { return storedText(window, DRAFT); } catch (error) { log.debug('the draft cannot be read: starting from the sample page', error); return null; }
 }
 
 async function main() {
@@ -29,7 +30,8 @@ async function main() {
         ...(draft ? { model: draft } : { html: START }),
         height: 'calc(100vh - 10rem)',
         onchange: ({ model }) => {
-            try { localStorage.setItem(DRAFT, JSON.stringify(model)); } catch (error) { log.debug('the draft cannot be kept in this browser', error); }
+            const error = storeText(window, DRAFT, JSON.stringify(model));
+            if (error) log.debug('the draft cannot be kept in this browser', error);
         },
     });
     if (draft && !builder.getModel().nodes.length) builder.setHtml(START);

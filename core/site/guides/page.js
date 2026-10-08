@@ -8,7 +8,7 @@ import { mountRouter } from '../../js/router.js';
 import { GUIDES } from './guides.data.js';
 import { neighbours, routeHash, isAnchorHash } from './guides-logic.js';
 import { searchGuides } from './guides-search.js';
-import { on } from '../../js/mount-support.js';
+import { on, later } from '../../js/mount-support.js';
 
 const log = createLogger('guides');
 const $ = id => document.getElementById(id);
@@ -148,7 +148,7 @@ function route() {
         current = id;
         scroller.scrollTop = 0;
     }
-    if (kind === 'guide' && frag) { scrollToHeading(frag); if (first) setTimeout(() => scrollToHeading(frag), 400); } // on a first load the elements above it are still upgrading and change its position
+    if (kind === 'guide' && frag) { scrollToHeading(frag); if (first) later(window, () => scrollToHeading(frag), 400); } // on a first load the elements above it are still upgrading and change its position
     else if (!changed) scroller.scrollTop = 0; // the link to the guide you are already reading goes to its top
     closeNav();
     if (!first && changed) requestAnimationFrame(() => $('gd-title').focus({ preventScroll: true })); // a new page: keyboard and screen reader users start at its title
