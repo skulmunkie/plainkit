@@ -362,16 +362,6 @@
       "fingerprint": "dd5f24c09c429726"
     },
     {
-      "rule": "S1",
-      "file": "core/modules/performance/performance.css",
-      "fingerprint": "5f18c351a6124fb0"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/performance/performance.css",
-      "fingerprint": "20104a4133168aa9"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/scorecard/measure.js",
       "fingerprint": "9faae848bad66f0b"

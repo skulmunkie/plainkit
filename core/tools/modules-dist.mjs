@@ -16,7 +16,7 @@ const minifyJs = code => transformSync(code, { loader: 'js', minify: true }).cod
 export const MODULES = {
     'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'symbols.js', 'tokenize.js', 'reports.js', 'code-explorer.css'] },
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
-    performance: { files: ['performance.js', 'performance.css'] },
+    performance: { files: ['performance.js'] },
     console: { files: ['console.js', 'console.css'] },
     logs: { files: ['logs.js', 'logs.css'] },
     'log-settings': { files: ['log-settings.js'] },
