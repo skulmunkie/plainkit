@@ -104,6 +104,17 @@ export const toolCases = [
         t.ok(tables.every(x => x.getBoundingClientRect().width > 0 && x.getBoundingClientRect().height > 0), 'both tables are drawn');
         card.destroy();
     }],
+    ['theme editor module: with its preview on it mounts (a regression: the preview frame handler was used before it was defined) and the preview frame holds the sample the module writes', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: host });
+        const frame = host.querySelector('iframe[title="Theme preview"]');
+        t.ok(frame, 'the preview frame is drawn');
+        await until(() => frame.contentDocument?.querySelector('pk-card'), 'the sample in the preview frame');
+        t.ok(frame.contentDocument.querySelector('pk-table[columns]') && !frame.contentDocument.querySelector('[class]:not(html):not(body)'), 'the sample table is data-driven and the sample has no class attributes');
+        editor.destroy();
+    }],
+
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;

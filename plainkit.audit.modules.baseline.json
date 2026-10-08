@@ -382,11 +382,6 @@
       "fingerprint": "fc94288deb9c287f"
     },
     {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/sdk-tab.js",
-      "fingerprint": "8683d0af8d23252e"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/theme-editor/theme-editor.css",
       "fingerprint": "0a2d4612dcb15e3c"
@@ -434,26 +429,6 @@
     {
       "rule": "S3",
       "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "87224faf64bd4dda"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "87224faf64bd4dda"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "87224faf64bd4dda"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "87224faf64bd4dda"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/theme-editor/theme-editor.js",
       "fingerprint": "845e1d9666c5608e"
     },
     {
@@ -470,11 +445,6 @@
       "rule": "S5",
       "file": "core/modules/theme-editor/theme-editor.js",
       "fingerprint": "8fe38aac3f1d531c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "92690d4738d4c764"
     },
     {
       "rule": "S1",

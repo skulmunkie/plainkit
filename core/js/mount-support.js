@@ -29,6 +29,13 @@ export function runtimeUrl(path, base, doc = globalThis.document) {
 // Resolve stylesheet paths written relative to a module against that module's own address (through runtimeUrl).
 export const styleUrls = (paths, base, doc) => paths.map(p => runtimeUrl(p, base, doc));
 
+// A text file from a URL; a response that is not ok throws.
+export async function loadText(url, fetchFn = globalThis.fetch) {
+    const res = await fetchFn(url);
+    if (!res.ok) throw new Error(`${url}: ${res.status}`);
+    return res.text();
+}
+
 // A string option is a URL to fetch JSON from; anything else is the value itself.
 export async function loadJson(value, fetchFn = globalThis.fetch) {
     if (typeof value !== 'string') return value;
