@@ -41,7 +41,7 @@ export const FORBIDDEN = [
     // The `plainkit audit` CLI is a Node program shipped through npm's `bin` entry (core/package.json); the design
     // (2026-09-28-conformance-audit-cli-design.md, "Blazor package") says the NuGet package does not ship it - the Blazor skill
     // documents `npx plainkit audit` instead. scripts/publish-dist.mjs excludes dist/tools/** from wwwroot/plainkit for this (#518 A-10a).
-    [/^staticwebassets\/plainkit\/tools\//, 'staticwebassets/plainkit/tools/ (the audit CLI must not ship in the Blazor package; see scripts/publish-dist.mjs)'],
+    [/^staticwebassets\/plainkit\/tools\/(?!audit\/scanners\/literals\.mjs$)/, 'staticwebassets/plainkit/tools/ (the audit CLI must not ship in the Blazor package, only the one scanner js/quality.js imports; see scripts/publish-dist.mjs)'],
 ];
 
 /** The tier namespaces the targets file must import (#768); the generator's TIER_NAMESPACES without the root. */
