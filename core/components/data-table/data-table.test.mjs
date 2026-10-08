@@ -22,7 +22,7 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty'].map(n => [n, fakeEl(n)]));
+    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty', 'add'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
         children = [];
@@ -403,4 +403,14 @@ test('plain props win over the same key of config once they differ from their de
 test('DEFAULTS are the defaults of the element meta', () => {
     const meta = JSON.parse(readFileSync(new URL('./data-table.meta.json', import.meta.url), 'utf8'));
     for (const [name, d] of Object.entries(DEFAULTS)) assert.deepEqual(meta.props.find(p => p.name === name)?.default, d, name);
+});
+
+test('addLabel shows the add button with that text, and a click raises pk-add (#805)', () => {
+    const { el, parts, events } = make();
+    el.sync();
+    assert.equal(parts.add.hidden, true, 'no label, no button');
+    el.addLabel = '+ Add customer'; el.sync();
+    assert.equal(parts.add.hidden, false); assert.equal(parts.add.textContent, '+ Add customer');
+    el.connected(); parts.add.fire('click');
+    assert.deepEqual(events.filter(e => e.name === 'pk-add'), [{ name: 'pk-add', detail: null }]);
 });

@@ -41,6 +41,7 @@ export default Base => class extends Base {
             this.updateFilterCount();
         });
         filters.addEventListener('pk-clear-filters', () => { for (const el of Object.values(this.$controls ?? {})) el.value = ''; go({ filters: {}, page: 1 }, true); this.updateFilterCount(); });
+        this.part('add').addEventListener('click', () => this.emit('pk-add', null));
         pagination.addEventListener('pk-page', e => go({ page: e.detail.page }));
         pagination.addEventListener('pk-page-size', e => go({ pageSize: e.detail.pageSize, page: 1 }));
         this.buildFilters();
@@ -83,6 +84,7 @@ export default Base => class extends Base {
 
     // The table's own props follow the query and the selection state.
     sync() {
+        this.part('add').hidden = !this.addLabel; this.part('add').textContent = this.addLabel;
         const table = this.part('table'), q = this.query, filters = this.part('filters'), pagination = this.part('pagination');
         this.forwardSlots();
         // The labels and inputs of the parts, from config (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
