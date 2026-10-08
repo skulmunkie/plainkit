@@ -89,5 +89,5 @@ if (!entry) {
 // sample's own DOM only, and its listeners are removed when the page goes away.
 async function runScript(entry, page) {
     const handle = await mountPattern(page, new URL(PATTERNS_DIR + entry.script, import.meta.url).href, entry.script);
-    addEventListener('pagehide', () => handle.destroy(), { once: true });
+    on(window, 'pagehide', () => handle.destroy(), { once: true });
 }

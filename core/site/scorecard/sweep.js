@@ -9,6 +9,7 @@ import { LAYOUTS, PATTERNS, TEMPLATES, loadAllElements } from '../gallery/galler
 
 const ELEMENTS = await loadAllElements(); // the sweep opens every element's examples: all the chunks
 import { sampleDoc } from '../gallery/frame.js';
+import { later } from '../../js/mount-support.js';
 import { TEXT_TIERS, TARGET_EXCEPTIONS } from './scoring.data.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -112,7 +113,7 @@ export function measure(doc, width, { checkH1 = true } = {}) {
 export const POLL_MS = 40;
 export const QUIET_POLLS = 4;
 export const SETTLE_TIMEOUT_MS = 20000;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = ms => new Promise(r => later(globalThis, r, ms));
 
 // What a document looks like right now: deep node count (shadow trees included), scroll size and font state as one string (`text`), and `ready`:
 // loaded, every stylesheet applied, no toolkit element left undefined, the gallery's boot notice gone (it removes it when its shell is drawn).

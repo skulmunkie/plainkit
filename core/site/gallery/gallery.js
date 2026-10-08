@@ -26,7 +26,7 @@ import { createElementInspector, sectionFromData } from '../../js/element-inspec
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
-import { on } from '../../js/mount-support.js';
+import { on, later, loadText } from '../../js/mount-support.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -41,7 +41,7 @@ const frames = new Set();
 let css = null;
 let lazy = null;
 
-const text = async path => (await fetch(new URL(path, import.meta.url))).text();
+const text = path => loadText(new URL(path, import.meta.url));
 
 // A boolean or string prop set through its attribute, so it also lands on an element that is not upgraded yet (the elements load on demand).
 const setAttr = (el, name, on) => { if (typeof on === 'boolean') el.toggleAttribute(name, on); else el.setAttribute(name, on); };
@@ -624,8 +624,8 @@ export async function mountGallery(container, options = {}) {
     on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
     on(view, 'input', e => {
         const form = e.target.closest('.gx-find'); if (!form) return;
-        clearTimeout(form._t);
-        form._t = setTimeout(() => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; setTimeout(() => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
+        form._cancel?.();
+        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     on(view, 'change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
 }
