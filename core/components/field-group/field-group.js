@@ -1,4 +1,4 @@
-// pk-field-group behaviour (see meta.json): draws a pk-field + control per field spec in this element's own shadow tree, keeps the values, raises pk-change, and
+// pk-field-group behaviour (see meta.json): draws a pk-field + control per field spec in this element's own shadow tree, keeps the values, raises pk-field-change, and
 // shows or hides conditional fields. A field that is not shown is not in the tree at all, so it takes no part in validation (#226). The kind table, the commit
 // events, the `when` rules and the form entries are js/field-kinds.js, shared with js/page-fields.js.
 // The element is form-associated: its form value is a FormData with one entry per shown field, its validity is the first invalid control's (anchored on it, so
@@ -72,18 +72,31 @@ export default Base => class extends Base {
         const commit = commitOf(kind), row = { spec, kind, field, control };
         control.addEventListener(commit.event, e => {
             if (e.target !== control) return;
-            e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-change below leaves
+            e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-field-change below leaves
             this.$vals = { ...this.$vals, [spec.key]: commit.read(e) };
             this.$own = true; this.values = this.$vals; this.$own = false;
-            this.emit('pk-change', { key: spec.key, value: this.$vals[spec.key], values: { ...this.$vals } });
+            this.emit('pk-field-change', { key: spec.key, value: this.$vals[spec.key], values: { ...this.$vals } });
             this.reconcile();
         });
+        if (kind === 'combobox') control.addEventListener('pk-combo-query', e => this.onQuery(row, e));
         writeValue(control, kind, this.$vals[spec.key]); // before the control is upgraded this is its own property, adopted when it upgrades
         this.$rows.set(spec.key, row);
         return row;
     }
+    // A combobox field with a search({ key, query }) callback property takes its options from the answer (a promise of [{ value, label }]) instead of filtering its own;
+    // a newer query makes an older pending answer stale.
+    async onQuery(row, e) {
+        if (typeof this.search !== 'function') return;
+        e.stopPropagation();
+        const n = row.q = (row.q ?? 0) + 1, key = row.spec.key;
+        let options;
+        try { options = await this.search({ key, query: e.detail.query }); } catch (error) { this.log.warn(`search for "${key}" failed`, error); return; }
+        if (row.q !== n || this.$rows.get(key) !== row) return;
+        row.control.replaceChildren(...(options ?? []).map(o => { const opt = this.ownerDocument.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; return opt; }));
+    }
     syncState() {
-        for (const { spec, control } of this.$rows.values()) {
+        for (const { spec, kind, control } of this.$rows.values()) {
+            if (kind === 'combobox') { if (typeof this.search === 'function') control.setAttribute('filtering', 'off'); else control.removeAttribute('filtering'); }
             control.toggleAttribute('disabled', Boolean(this.disabled || spec.disabled));
             control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly));
         }

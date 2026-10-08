@@ -37,7 +37,7 @@
       "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
     },
     "Components/PkFieldGroup.razor": {
-      "category": "debt"
+      "category": "typed-generics"
     },
     "Components/PkGallery.razor": {
       "category": "wrapper"
@@ -147,6 +147,9 @@
       "category": "base"
     },
     "PkEnums.cs": {
+      "category": "dto"
+    },
+    "PkFieldDef.cs": {
       "category": "dto"
     },
     "PkFieldGroupTypes.cs": {

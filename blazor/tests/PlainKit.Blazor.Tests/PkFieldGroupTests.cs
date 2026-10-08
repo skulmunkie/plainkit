@@ -1,19 +1,28 @@
+using System.Text.Json;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using PlainKit.Blazor;
+using PlainKit.Blazor.Components;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 222: a plain field bound to a model property, from a list of PkFieldSpec<TItem>. No element of its own (like PkDataTable).
+// Issues 222 and 226: PkFieldGroup<TItem> is the typed adapter over the generated PkFieldGroup (the pk-field-group element). The element owns the controls, the conditional
+// rendering, the form value and the validation, so these tests check what the adapter sends it (the fields and values as data) and what it writes back, and play the element
+// for the events and the search callback.
 public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
     async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
 
+    private readonly BunitJSModuleInterop _bridge;
+
     public PkFieldGroupTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
+        _bridge = JSInterop.SetupModule(PkAssets.Bridge);
+        _bridge.Mode = JSRuntimeMode.Loose;
         Services.AddPlainKit();
     }
 
@@ -25,7 +34,7 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         public string Status { get; set; } = "";
     }
 
-    private static IReadOnlyList<PkFieldSpec<Order>> Fields() =>
+    private static PkFieldSpec<Order>[] Fields() =>
     [
         new() { Key = "name", Label = "Name", Hint = "Full name", Required = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         new() { Key = "qty", Label = "Quantity", Kind = PkFieldKind.Number, Min = "1", Max = "99", Step = "1", Get = o => o.Qty.ToString(), Set = (o, v) => o.Qty = int.Parse(v ?? "0") },
@@ -33,44 +42,37 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         new() { Key = "status", Label = "Status", Kind = PkFieldKind.Select, Options = [new("open", "Open"), new("closed", "Closed")], Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
     ];
 
-    [Fact]
-    public void A_plain_field_renders_a_PkField_wrapping_a_pk_input_with_its_label_hint_required_and_initial_value()
-    {
-        var order = new Order { Name = "Acme" };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, order));
+    private IRenderedComponent<PkFieldGroup<Order>> Render(IReadOnlyList<PkFieldSpec<Order>> fields, Order? model = null, EventCallback? changed = null) =>
+        Render<PkFieldGroup<Order>>(p =>
+        {
+            p.Add(x => x.Fields, fields).Add(x => x.Model, model ?? new Order());
+            if (changed is { } c) p.Add(x => x.ModelChanged, c);
+        });
 
-        var field = cut.Find("pk-field");
-        Assert.Equal("Name", field.GetAttribute("label"));
-        Assert.Equal("Full name", field.GetAttribute("help"));
-        Assert.NotNull(field.GetAttribute("required"));
-        var input = field.QuerySelector("pk-input");
-        Assert.NotNull(input);
-        Assert.Equal("text", input!.GetAttribute("type"));
-        Assert.Equal("Acme", input.GetAttribute("value"));
-    }
+    // The element's `fields` and `values` attributes, as the element reads them.
+    private static JsonElement[] Defs(IRenderedComponent<PkFieldGroup<Order>> cut) => cut.Markup.Length < 0 ? [] : JsonDocument.Parse(cut.Find("pk-field-group").GetAttribute("fields")!).RootElement.EnumerateArray().Select(e => e.Clone()).ToArray();
+    private static JsonElement ValuesOf(IRenderedComponent<PkFieldGroup<Order>> cut) => JsonDocument.Parse(cut.Find("pk-field-group").GetAttribute("values")!).RootElement.Clone();
 
     [Fact]
-    public void Kind_picks_the_control_and_the_input_type()
+    public void The_specs_become_the_elements_fields_and_the_model_its_values()
     {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order()));
+        var cut = Render(Fields(), new Order { Name = "Acme", Qty = 3, Active = true, Status = "open" });
 
-        var controls = cut.FindAll("pk-field").Select(f => f.Children.First()).ToList();
-        Assert.Equal("pk-input", controls[0].TagName.ToLowerInvariant());
-        Assert.Equal("number", controls[1].GetAttribute("type"));
-        Assert.Equal("1", controls[1].GetAttribute("min")); Assert.Equal("99", controls[1].GetAttribute("max")); Assert.Equal("1", controls[1].GetAttribute("step"));
-        Assert.Equal("pk-checkbox", controls[2].TagName.ToLowerInvariant());
-        Assert.Equal("pk-select", controls[3].TagName.ToLowerInvariant());
-        var options = controls[3].QuerySelectorAll("option");
-        Assert.Equal(2, options.Length);
-        Assert.Equal("open", options[0].GetAttribute("value")); Assert.Equal("Open", options[0].TextContent);
-    }
+        
+        var d = Defs(cut);
+        Assert.Equal(["name", "qty", "active", "status"], d.Select(x => x.GetProperty("key").GetString()!).ToArray());
+        Assert.Equal("Name", d[0].GetProperty("label").GetString()); Assert.Equal("Full name", d[0].GetProperty("hint").GetString()); Assert.True(d[0].GetProperty("required").GetBoolean());
+        Assert.Equal("number", d[1].GetProperty("kind").GetString());
+        Assert.Equal("1", d[1].GetProperty("min").GetString()); Assert.Equal("99", d[1].GetProperty("max").GetString()); Assert.Equal("1", d[1].GetProperty("step").GetString());
+        Assert.Equal("checkbox", d[2].GetProperty("kind").GetString());
+        Assert.Equal("select", d[3].GetProperty("kind").GetString());
+        Assert.Equal(["open", "closed"], d[3].GetProperty("options").EnumerateArray().Select(o => o.GetProperty("value").GetString()!).ToArray());
+        Assert.Equal("Open", d[3].GetProperty("options")[0].GetProperty("label").GetString());
 
-    [Fact]
-    public void Checkbox_checked_reflects_a_non_empty_non_false_value_from_Get()
-    {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order { Active = true }));
-        var checkbox = cut.Find("pk-checkbox");
-        Assert.NotNull(checkbox.GetAttribute("checked"));
+        var v = ValuesOf(cut);
+        Assert.Equal("Acme", v.GetProperty("name").GetString()); Assert.Equal("3", v.GetProperty("qty").GetString()); Assert.Equal("open", v.GetProperty("status").GetString());
+        Assert.Equal(JsonValueKind.True, v.GetProperty("active").ValueKind);
+        Assert.Equal(JsonValueKind.False, ValuesOf(Render(Fields())).GetProperty("active").ValueKind);
     }
 
     [Fact]
@@ -78,286 +80,129 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     {
         var order = new Order();
         var changed = 0;
-        var cut = Render<PkFieldGroup<Order>>(p => p
-            .Add(x => x.Fields, Fields())
-            .Add(x => x.Model, order)
-            .Add(x => x.ModelChanged, EventCallback.Factory.Create(this, () => changed++)));
+        var cut = Render(Fields(), order, EventCallback.Factory.Create(this, () => changed++));
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("Ada") });
+        Assert.Equal("Ada", order.Name); Assert.Equal(1, changed);
 
-        await cut.Find("pk-input").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "Ada" });
-
-        Assert.Equal("Ada", order.Name);
-        Assert.Equal(1, changed);
-    }
-
-    [Fact]
-    public async Task A_committed_checkbox_change_calls_Set_with_true_or_empty_string()
-    {
-        var order = new Order();
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, order));
-
-        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = true });
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "active", Value = JsonSerializer.SerializeToElement(true) });
         Assert.True(order.Active);
-
-        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "active", Value = JsonSerializer.SerializeToElement(false) });
         Assert.False(order.Active);
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "qty", Value = JsonSerializer.SerializeToElement("7") });
+        Assert.Equal(7, order.Qty);
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "nobody", Value = JsonSerializer.SerializeToElement("x") });
+        Assert.Equal(4, changed);
     }
 
-    // Issue 226: a field spec's When gates whether it renders at all, re-evaluated on every render (so a field that gates another
-    // field just works), and a hidden Required field has no markup left for PkForm to validate.
-    private static IReadOnlyList<PkFieldSpec<Order>> FieldsWithConditionalNote() =>
+    // Issue 226: a field whose When is false is not sent at all (the element renders no markup for it, so a hidden required field has nothing to validate).
+    private static PkFieldSpec<Order>[] WithConditionalNote() =>
     [
         new() { Key = "status", Label = "Status", Kind = PkFieldKind.Select, Options = [new("open", "Open"), new("closed", "Closed")], Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
         new() { Key = "name", Label = "Closing note", Required = true, When = o => o.Status == "closed", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
     ];
 
     [Fact]
-    public void A_field_whose_When_is_false_for_the_current_model_is_not_rendered()
+    public async Task A_field_whose_When_is_false_is_not_sent_and_one_whose_gate_flips_is_sent_on_the_next_render()
     {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, new Order { Status = "open" }));
+        var order = new Order { Status = "open", Name = "kept" };
+        var cut = Render(WithConditionalNote(), order, EventCallback.Factory.Create(this, () => { }));
+        Assert.Equal(["status"], Defs(cut).Select(x => x.GetProperty("key").GetString()!).ToArray());
+        Assert.False(ValuesOf(cut).TryGetProperty("name", out _));
 
-        Assert.Single(cut.FindAll("pk-field"));
-        Assert.Null(cut.Find("pk-field").GetAttribute("required"));
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "status", Value = JsonSerializer.SerializeToElement("closed") });
+        cut.Render();
+        var d = Defs(cut);
+        Assert.Equal(["status", "name"], d.Select(x => x.GetProperty("key").GetString()!).ToArray());
+        Assert.True(d[1].GetProperty("required").GetBoolean());
+        Assert.Equal("kept", ValuesOf(cut).GetProperty("name").GetString());
     }
 
     [Fact]
-    public async Task Committing_a_value_that_flips_another_fields_When_shows_or_hides_it_on_the_next_render()
-    {
-        var order = new Order { Status = "open" };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, order));
-        Assert.Single(cut.FindAll("pk-field"));
-
-        await cut.Find("pk-select").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "closed" });
-
-        var fields = cut.FindAll("pk-field");
-        Assert.Equal(2, fields.Count);
-        Assert.NotNull(fields[1].GetAttribute("required"));
-    }
-
-    [Fact]
-    public void A_hidden_Required_field_renders_no_markup_so_PkForm_has_nothing_to_validate_for_it()
-    {
-        // PkForm's own validity check is native HTML5 constraint validation in the browser, not something bUnit's virtual DOM runs;
-        // what this component controls -- and what issue 226 asks for -- is that a hidden field's `required` control is not emitted
-        // at all, so there is nothing left in the form for a real browser to check.
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, FieldsWithConditionalNote()).Add(x => x.Model, new Order { Status = "open" }));
-
-        var fields = cut.FindAll("pk-field");
-        Assert.Single(fields);
-        Assert.DoesNotContain(fields, f => f.GetAttribute("label") == "Closing note");
-    }
-
-    // Issue 258: Placeholder, Rows, Help, Key as Name, and a typed bool factory.
-    [Fact]
-    public void Key_is_emitted_as_the_control_name_on_every_kind()
-    {
-        var fields = new List<PkFieldSpec<Order>>(Fields()) { new() { Key = "notes", Label = "Notes", Kind = PkFieldKind.Textarea, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" } };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
-
-        Assert.Equal("name", cut.Find("pk-input[type=text]").GetAttribute("name"));
-        Assert.Equal("active", cut.Find("pk-checkbox").GetAttribute("name"));
-        Assert.Equal("status", cut.Find("pk-select").GetAttribute("name"));
-        Assert.Equal("notes", cut.Find("pk-textarea").GetAttribute("name"));
-    }
-
-    [Fact]
-    public void Placeholder_and_Rows_reach_the_input_and_the_textarea()
+    public void Disabled_ReadOnly_and_the_help_text_are_read_from_the_model_on_every_render()
     {
         PkFieldSpec<Order>[] fields =
         [
-            new() { Key = "a", Label = "A", Placeholder = "Your name", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new() { Key = "b", Label = "B", Kind = PkFieldKind.Textarea, Placeholder = "Notes", Rows = 6, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "a", Label = "A", Disabled = o => o.Qty > 0, ReadOnly = o => o.Active, Help = "Why", HelpWhen = o => o.Qty > 0 ? "Locked" : null, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "s", Label = "S", Kind = PkFieldKind.Select, ReadOnly = o => true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "c", Label = "C", Kind = PkFieldKind.Checkbox, ReadOnly = o => true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         ];
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
-
-        Assert.Equal("Your name", cut.Find("pk-input").GetAttribute("placeholder"));
-        var ta = cut.Find("pk-textarea");
-        Assert.Equal("Notes", ta.GetAttribute("placeholder"));
-        Assert.Equal("6", ta.GetAttribute("rows"));
+        var open = Defs(Render(fields, new Order()));
+        Assert.False(open[0].GetProperty("disabled").GetBoolean()); Assert.False(open[0].GetProperty("readonly").GetBoolean()); Assert.Equal("Why", open[0].GetProperty("help").GetString());
+        var locked = Defs(Render(fields, new Order { Qty = 1, Active = true }));
+        Assert.True(locked[0].GetProperty("disabled").GetBoolean()); Assert.True(locked[0].GetProperty("readonly").GetBoolean()); Assert.Equal("Locked", locked[0].GetProperty("help").GetString());
+        Assert.True(locked[1].GetProperty("disabled").GetBoolean()); Assert.False(locked[1].GetProperty("readonly").GetBoolean(), "a select has no read-only state: it is disabled");
+        Assert.True(locked[2].GetProperty("disabled").GetBoolean());
     }
 
     [Fact]
-    public void Help_renders_a_help_tooltip_beside_the_label_text_and_is_absent_when_unset()
+    public void Placeholder_Rows_Span_HideLabel_Free_and_OptionsSource_reach_the_element()
     {
         PkFieldSpec<Order>[] fields =
         [
-            new() { Key = "a", Label = "A", Help = "Why we ask", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new() { Key = "b", Label = "B", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "n", Label = "N", Placeholder = "Type", Span = true, HideLabel = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "t", Label = "T", Kind = PkFieldKind.Textarea, Rows = 5, MaxLength = "40", Pattern = "x", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "s", Label = "S", Kind = PkFieldKind.Combobox, Free = true, Options = [new("old", "Old")], OptionsSource = () => [new("new", "New")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         ];
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order()));
-
-        var tip = cut.Find("pk-field [slot=label-action] pk-tooltip");
-        Assert.NotNull(tip.GetAttribute("help"));
-        Assert.Equal("Why we ask", tip.GetAttribute("text"));
-        // Issue 268: the tooltip must not take over the label slot, which would replace the label text.
-        Assert.Equal("A", cut.Find("pk-field").GetAttribute("label"));
-        Assert.Empty(cut.FindAll("pk-field [slot=label]"));
-        Assert.Single(cut.FindAll("pk-tooltip"));
+        var d = Defs(Render(fields));
+        Assert.Equal("Type", d[0].GetProperty("placeholder").GetString()); Assert.True(d[0].GetProperty("span").GetBoolean()); Assert.True(d[0].GetProperty("hideLabel").GetBoolean());
+        Assert.Equal("textarea", d[1].GetProperty("kind").GetString()); Assert.Equal(5, d[1].GetProperty("rows").GetInt32());
+        Assert.Equal("40", d[1].GetProperty("maxLength").GetString()); Assert.Equal("x", d[1].GetProperty("pattern").GetString());
+        Assert.Equal("combobox", d[2].GetProperty("kind").GetString()); Assert.True(d[2].GetProperty("free").GetBoolean());
+        Assert.Equal(["new"], d[2].GetProperty("options").EnumerateArray().Select(o => o.GetProperty("value").GetString()!).ToArray());
     }
 
     [Fact]
     public async Task Bool_wraps_a_bool_property_as_a_checkbox()
     {
         var order = new Order();
-        PkFieldSpec<Order>[] fields = [PkFieldSpec<Order>.Bool("active", "Active", o => o.Active, (o, v) => o.Active = v) with { Hint = "On or off" }];
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, order));
-
-        Assert.Null(cut.Find("pk-checkbox").GetAttribute("checked"));
-        Assert.Equal("On or off", cut.Find("pk-field").GetAttribute("help"));
-        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = true });
+        var cut = Render([PkFieldSpec<Order>.Bool("active", "Active", o => o.Active, (o, v) => o.Active = v) with { Hint = "On or off" }], order);
+        Assert.Equal("checkbox", Defs(cut)[0].GetProperty("kind").GetString()); Assert.Equal("On or off", Defs(cut)[0].GetProperty("hint").GetString());
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-change", new PkFieldChangeEventArgs { Key = "active", Value = JsonSerializer.SerializeToElement(true) });
         Assert.True(order.Active);
-        await cut.Find("pk-checkbox").TriggerEventAsync("onpk-change", new PkChangeEventArgs { Checked = false });
-        Assert.False(order.Active);
     }
 
-    // Issue 264: per-render Disabled/ReadOnly, Span, OptionsSource, HideLabel, HelpWhen and the help button's accessible name.
+    // Issue 270: a per-field LabelAction goes in the element's label-action slot for that field, re-evaluated with the record on every render.
     [Fact]
-    public void Disabled_and_ReadOnly_are_evaluated_against_the_model_on_every_render()
-    {
-        var order = new Order();
-        var spec = new PkFieldSpec<Order> { Key = "name", Label = "Name", Disabled = o => o.Qty > 0, ReadOnly = o => o.Status == "locked", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, order));
-        Assert.Null(cut.Find("pk-input").GetAttribute("disabled"));
-        Assert.Null(cut.Find("pk-input").GetAttribute("readonly"));
-
-        order.Qty = 1; order.Status = "locked";
-        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, order));
-        Assert.NotNull(cut.Find("pk-input").GetAttribute("disabled"));
-        Assert.NotNull(cut.Find("pk-input").GetAttribute("readonly"));
-    }
-
-    [Fact]
-    public void ReadOnly_disables_a_select_and_a_checkbox_which_have_no_read_only_state()
-    {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
-            new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, ReadOnly = _ => true, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
-            PkFieldSpec<Order>.Bool("a", "A", o => o.Active, (o, v) => o.Active = v) with { ReadOnly = _ => true }]).Add(x => x.Model, new Order()));
-        Assert.NotNull(cut.Find("pk-select").GetAttribute("disabled"));
-        Assert.NotNull(cut.Find("pk-checkbox").GetAttribute("disabled"));
-    }
-
-    [Fact]
-    public void Span_puts_form_span_on_the_field_wrapper_and_Name_is_a_typed_attribute_on_select_and_checkbox()
-    {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
-            new PkFieldSpec<Order> { Key = "name", Label = "Name", Span = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" },
-            PkFieldSpec<Order>.Bool("a", "A", o => o.Active, (o, v) => o.Active = v)]).Add(x => x.Model, new Order()));
-        var fields = cut.FindAll("pk-field");
-        Assert.Contains("form-span", fields[0].ClassList);
-        Assert.DoesNotContain("form-span", fields[1].ClassList);
-        Assert.Equal("s", cut.Find("pk-select").GetAttribute("name"));
-        Assert.Equal("a", cut.Find("pk-checkbox").GetAttribute("name"));
-    }
-
-    [Fact]
-    public void OptionsSource_is_read_at_every_render_and_wins_over_Options()
-    {
-        var loaded = new List<PkFieldOption>();
-        var spec = new PkFieldSpec<Order> { Key = "s", Label = "S", Kind = PkFieldKind.Select, Options = [new("x", "X")], OptionsSource = () => loaded, Get = o => o.Status, Set = (o, v) => o.Status = v ?? "" };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
-        Assert.Empty(cut.FindAll("option"));
-        loaded.Add(new("a", "A"));
-        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
-        Assert.Equal("a", cut.Find("option").GetAttribute("value"));
-    }
-
-    [Fact]
-    public void HideLabel_drops_the_visible_label_and_keeps_it_as_the_controls_accessible_name()
-    {
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [
-            new PkFieldSpec<Order> { Key = "n", Label = "Notes", Kind = PkFieldKind.Textarea, HideLabel = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" }]).Add(x => x.Model, new Order()));
-        Assert.Null(cut.Find("pk-field").GetAttribute("label"));
-        Assert.Equal("Notes", cut.Find("pk-textarea").GetAttribute("label"));
-    }
-
-    [Fact]
-    public void HelpWhen_overrides_Help_per_record_and_the_help_button_is_named_for_the_field()
-    {
-        var spec = new PkFieldSpec<Order> { Key = "n", Label = "Code", Help = "Editable", HelpWhen = o => o.Qty > 0 ? "Locked" : null, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" };
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()));
-        Assert.Equal("Editable", cut.Find("pk-tooltip").GetAttribute("text"));
-        Assert.Equal("Help for Code", cut.Find("pk-tooltip").GetAttribute("label"));
-        cut.Render(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order { Qty = 1 }));
-        Assert.Equal("Locked", cut.Find("pk-tooltip").GetAttribute("text"));
-    }
-
-    // Issue 270: a per-field LabelAction beside the label, after the Help tooltip.
-    [Fact]
-    public void LabelAction_renders_in_the_label_action_slot_after_Help_and_keeps_the_label_text()
+    public void LabelAction_is_slotted_for_its_field_key()
     {
         PkFieldSpec<Order>[] fields =
         [
-            new() { Key = "a", Label = "A", Help = "Why", LabelAction = o => b => { b.OpenElement(0, "button"); b.AddAttribute(1, "class", "adopt"); b.AddContent(2, "From " + o.Name); b.CloseElement(); },
-                    Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new() { Key = "b", Label = "B", LabelAction = o => b => b.AddContent(0, "flag"), Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "a", Label = "A", LabelAction = o => b => { b.OpenElement(0, "button"); b.AddContent(1, "From " + o.Name); b.CloseElement(); }, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
             new() { Key = "c", Label = "C", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         ];
-        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Order { Name = "X" }));
-
-        var first = cut.FindAll("pk-field")[0];
-        var slot = first.QuerySelector("[slot=label-action]")!;
-        Assert.Equal("pk-tooltip", slot.Children[0].LocalName);
-        Assert.Equal("button", slot.Children[1].LocalName);
-        Assert.Equal("From X", slot.Children[1].TextContent);
-        Assert.Equal("A", first.GetAttribute("label"));
-        Assert.Contains("flag", cut.FindAll("pk-field")[1].QuerySelector("[slot=label-action]")!.TextContent);
-        Assert.Empty(cut.FindAll("pk-field")[2].QuerySelectorAll("[slot=label-action]"));
+        var cut = Render(fields, new Order { Name = "X" });
+        var slotted = cut.FindAll("pk-field-group > [slot]");
+        Assert.Single(slotted);
+        Assert.Equal("label-action-a", slotted[0].GetAttribute("slot"));
+        Assert.Equal("From X", slotted[0].TextContent);
     }
 
-    // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback, and Free text.
+    // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 
     [Fact]
-    public async Task A_combobox_field_renders_a_pk_combobox_with_its_static_options_and_commits_a_pick()
+    public async Task A_Search_callback_is_handed_to_the_element_and_answers_with_the_options()
     {
-        var pick = new Pick();
-        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, pick).Add(x => x.Fields, [
-            new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Free = true, Placeholder = "Find a SKU", Options = [new("a1", "Alpha"), new("b2", "Beta")], Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
-
-        var combo = cut.Find("pk-field pk-combobox");
-        Assert.Equal("sku", combo.GetAttribute("name"));
-        Assert.True(combo.HasAttribute("free"));
-        Assert.Equal("Find a SKU", combo.GetAttribute("placeholder"));
-        Assert.Equal(["Alpha", "Beta"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray());
-
-        await combo.TriggerEventAsync("onpk-combo-select", new PkComboSelectEventArgs { Value = "b2" });
-        Assert.Equal("b2", pick.Sku);
-    }
-
-    [Fact]
-    public async Task A_Search_callback_answers_the_query_and_its_options_replace_the_static_ones_without_the_element_filtering_them()
-    {
-        var pick = new Pick();
         var queries = new List<string>();
-        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, pick).Add(x => x.Fields, [
+        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, new Pick()).Add(x => x.Fields, [
             new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Options = [new("seed", "Seed")],
-                Search = q => { queries.Add(q); return Task.FromResult<IReadOnlyList<PkFieldOption>>([new("a1", "Alpha " + q), new("a2", "Abacus " + q)]); },
+                Search = q => { queries.Add(q); return Task.FromResult<IReadOnlyList<PkFieldOption>>([new("a1", "Alpha " + q)]); },
                 Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
 
-        var combo = cut.Find("pk-combobox");
-        Assert.Equal("off", combo.GetAttribute("filtering"));
-        await combo.TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "ab" });
+        cut.WaitForAssertion(() => Assert.Contains(_bridge.Invocations, i => i.Identifier == "setCallback"));
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("search", call.Arguments[1]); Assert.Equal(true, call.Arguments[3]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkFieldSearch>>>(call.Arguments[2]).Value;
+        var answer = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Invoke(new PkFieldSearch { Key = "sku", Query = "ab" })), new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         Assert.Equal(["ab"], queries);
-        cut.WaitForAssertion(() => Assert.Equal(["Alpha ab", "Abacus ab"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray()));
+        Assert.Equal("a1", answer[0].GetProperty("value").GetString()); Assert.Equal("Alpha ab", answer[0].GetProperty("label").GetString());
     }
 
     [Fact]
-    public async Task A_slower_answer_to_an_older_query_is_dropped()
+    public void Without_a_Search_spec_no_callback_is_set()
     {
-        var pending = new List<(string Query, TaskCompletionSource<IReadOnlyList<PkFieldOption>> Done)>();
-        var cut = Render<PkFieldGroup<Pick>>(p => p.Add(x => x.Model, new Pick()).Add(x => x.Fields, [
-            new PkFieldSpec<Pick> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox,
-                Search = q => { var t = new TaskCompletionSource<IReadOnlyList<PkFieldOption>>(); pending.Add((q, t)); return t.Task; },
-                Get = o => o.Sku, Set = (o, v) => o.Sku = v ?? "" }]));
-
-        // The handler waits for the answer, so the events are not awaited until the answers are in.
-        var first = cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "a" });
-        var second = cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-query", new PkComboQueryEventArgs { Query = "ab" });
-        pending[1].Done.SetResult([new("n", "New")]);
-        pending[0].Done.SetResult([new("o", "Old")]);
-        await Task.WhenAll(first, second);
-
-        cut.WaitForAssertion(() => Assert.Equal(["New"], cut.FindAll("pk-combobox option").Select(o => o.TextContent).ToArray()));
+        Render(Fields());
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
     }
 }

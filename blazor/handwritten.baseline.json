@@ -8,7 +8,7 @@
     "Components/PkDataTable.razor": 228,
     "Components/PkDevTools.razor": 109,
     "Components/PkDevToolsPage.razor": 89,
-    "Components/PkFieldGroup.razor": 134,
+    "Components/PkFieldGroup.razor": 79,
     "Components/PkGallery.razor": 63,
     "Components/PkLookupPicker.razor": 152,
     "Components/PkLogs.razor": 64,
@@ -44,6 +44,7 @@
     "PkDockTypes.cs": 6,
     "PkElementBase.cs": 106,
     "PkEnums.cs": 94,
+    "PkFieldDef.cs": 72,
     "PkFieldGroupTypes.cs": 138,
     "PkFieldListTypes.cs": 15,
     "PkFormControlBase.cs": 65,
@@ -72,11 +73,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkDevToolsPage.razor",
       "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkFieldGroup.razor",
-      "reason": "kind-to-control table and visibility rule that js/page-fields.js already has; moves to a pk-field-group element (#801 section 2.3)"
     },
     {
       "rule": "name-parity",
