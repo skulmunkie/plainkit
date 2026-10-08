@@ -347,16 +347,6 @@
       "fingerprint": "6263ad578044a147"
     },
     {
-      "rule": "S3",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "dd20796cc3585b68"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "dd20796cc3585b68"
-    },
-    {
       "rule": "S7",
       "file": "core/site/devtools/page.js",
       "fingerprint": "3cb75da86a5084fd"
@@ -1830,16 +1820,6 @@
       "rule": "S10",
       "file": "core/site/scorecard/index.html",
       "fingerprint": "d5723be2f7bd111e"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
     },
     {
       "rule": "S3",
