@@ -33,8 +33,12 @@ const EXCLUDE_FROM_BLAZOR = new Set([
 // (docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md, "Blazor package") says explicitly the NuGet package does not ship it -
 // the Blazor skill documents `npx plainkit audit` instead. Excluding the whole `tools/` folder here keeps it out of staticwebassets/plainkit/.
 const EXCLUDE_PREFIXES_FROM_BLAZOR = ['tools/'];
+// ...except what the browser code imports: js/quality.js (the quality checks of the dev tools, the scorecard and the layout builder) takes the shared literal-colour
+// scanner from tools/audit/scanners/literals.mjs. Without it the dev tools module fails to load (404) and the /_plainkit circuit ends. A test keeps every static import
+// of the shipped JavaScript inside the package.
+export const KEEP_FROM_TOOLS = new Set(['tools/audit/scanners/literals.mjs']);
 
-const list = (dir, exclude = null, excludePrefixes = null) => (fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => path.relative(dir, path.join(e.parentPath, e.name)).replaceAll('\\', '/')).filter(f => !exclude || !exclude.has(f)).filter(f => !excludePrefixes || !excludePrefixes.some(p => f.startsWith(p))).sort() : []);
+const list = (dir, exclude = null, excludePrefixes = null) => (fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => path.relative(dir, path.join(e.parentPath, e.name)).replaceAll('\\', '/')).filter(f => !exclude || !exclude.has(f)).filter(f => !excludePrefixes || KEEP_FROM_TOOLS.has(f) || !excludePrefixes.some(p => f.startsWith(p))).sort() : []);
 
 export function differences(from = source, to = target) {
     const a = list(from, EXCLUDE_FROM_BLAZOR, EXCLUDE_PREFIXES_FROM_BLAZOR), b = new Set(list(to));
