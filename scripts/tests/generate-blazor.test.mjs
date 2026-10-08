@@ -474,3 +474,12 @@ test('callback: a delegate parameter is wired to the element property through a 
     const bad = run({ ...mapping, params: [...mapping.params, { name: 'Oops', callback: 'oops', type: 'Func<Task>' }] });
     assert.ok(bad.report.notGenerated.some(n => n.param === 'Oops'), 'a callback without arg and doc is reported, not guessed');
 });
+
+test('typeparam: a generic component declares @typeparam, is left out of the using aliases, and a callback can shape its result and ask for a refresh', () => {
+    const m = { ...mapping, typeparam: 'TItem', params: [...mapping.params, { name: 'Load', callback: 'load', type: 'Func<Req, Task<Page<TItem>>>?', arg: 'Query', args: 'a.ToRequest()', returns: 'new { rows = r.Items, total = r.Total }', refresh: true, doc: 'Loads.' }] };
+    const r = run(m), razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /^@namespace [^\n]*\n@typeparam TItem\n/m);
+    assert.match(razor, /_load\.SyncAsync<Query>\(await Runtime\.BridgeAsync\(Assets\), Element, Load is not null, async a => \{ var r = await Load!\(a\.ToRequest\(\)\); return new \{ rows = r\.Items, total = r\.Total \}; \}, refresh: true\);/);
+    assert.ok(!/@typeparam/.test(run().files.get('PkDemo.razor')), 'no typeparam, no @typeparam');
+    assert.ok(!(r.files.get('PkGeneratedAliases.cs') ?? '').includes('PkDemo'), 'a generic component cannot be aliased');
+});
