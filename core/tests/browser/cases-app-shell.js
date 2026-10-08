@@ -135,7 +135,8 @@ export const appShellCases = [
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.
         const probe = s.d.createElement('div'); probe.textContent = 'x'; s.main().prepend(probe); probe.style.height = '120px';
-        await wait(300);
+        // The entry arrives after the next frame: wait for it (a busy machine is late), not a fixed 300 ms.
+        await until(() => shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0) > cls, 'the layout-shift observer to report the deliberate shift', 200);
         const after = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         po.disconnect();
         t.ok(after > cls, 'the layout-shift observer sees a deliberate shift (the measurement works)');
@@ -301,7 +302,7 @@ export const appShellCases = [
         const h1 = () => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])');
         const settle = async what => { await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), what); await wait(150); };
         const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
-        const bodyRows = () => deep(d, 'pk-table')?.shadowRoot.querySelectorAll('tbody tr[data-pk-context]') ?? [];
+        const bodyRows = () => deep(d, 'pk-table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [];
         await settle('the list page'); await until(() => bodyRows().length > 1, 'the list rows');
         t.eq(h1().textContent.trim(), 'Things', 'the list page has its h1'); t.eq(bodyRows().length, 10, 'the first page of ten rows');
         // A row click is a route change to the record page: its own page, its own h1, focus on it.

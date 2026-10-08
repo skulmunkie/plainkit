@@ -10,7 +10,7 @@ export default Base => class extends Base {
         this.sync();
     }
     // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
-    part(name) { return super.part(name) ?? super.part('table')?.part?.(name) ?? null; }
+    part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }
     changed(name) { if (name === 'config' && this.$w) this.sync(); }
 
     sync() {
