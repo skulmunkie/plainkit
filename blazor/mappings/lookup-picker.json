@@ -1,0 +1,20 @@
+{
+  "component": "PkLookupPicker",
+  "params": [
+    { "name": "Value", "prop": "value", "type": "string" },
+    { "name": "Name", "prop": "name", "type": "string" },
+    { "name": "Config", "prop": "config", "type": "string", "default": "{}", "note": "The popup table's config as JSON, as PkDataTable's: columns, pageSize, empty and the rest." },
+    { "name": "RowKey", "prop": "rowKey", "type": "string" },
+    { "name": "LabelKey", "prop": "labelKey", "type": "string" },
+    { "name": "Placeholder", "prop": "placeholder", "type": "string" },
+    { "name": "Disabled", "prop": "disabled", "type": "bool" },
+    { "name": "Readonly", "prop": "readonly", "type": "bool" },
+    { "name": "Required", "prop": "required", "type": "bool" },
+    { "name": "IsInvalid", "prop": "invalid", "type": "bool" },
+    { "name": "AriaLabel", "prop": "label", "type": "string" },
+    { "name": "Open", "prop": "open", "type": "bool", "bind": { "event": "pk-lookup-toggle", "value": "detail.open" } },
+    { "name": "OnToggle", "event": "pk-lookup-toggle" }
+  ],
+  "model": { "prop": "value", "event": "pk-lookup-select", "key": "value", "type": "string", "field": true },
+  "notes": "Slice 1 of #801 step 8: the generated wrapper has no Load yet. Load (and resolve) are callback properties the element needs from .NET; the typed PkLookupPicker<TItem, TValue> with Load through PkCallbackSlot follows in the Blazor slice."
+}

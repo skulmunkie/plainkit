@@ -1,0 +1,229 @@
+{
+  "tag": "pk-lookup-picker",
+  "a11yRequires": [
+    "label"
+  ],
+  "title": "Lookup picker",
+  "group": "Form controls",
+  "tier": "component",
+  "summary": "A select-style field for a long list (customers, products, users) that does not fit pk-combobox: its popup holds a searchable, pageable pk-data-table, so the reader tells rows apart by columns. Set the load(query) callback as a property, exactly as pk-data-table's: it receives { page, pageSize, sort, sortDir, search, filters } and { signal }, and returns (or resolves to) { rows, total }; loading, error and empty states come from the table. Picking a row sets value to its rowKey field and closes the popup. The field shows the option's label: its labelKey field when picked in this session, else selectedLabels[value], else what the resolve(keys) callback property returns for it ({ key: label } or [{ key, label }]), so a stored value shows its name even when its row is on no loaded page. The popup is built on the first open: a closed picker loads nothing but itself.",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "commit": "pk-lookup-select",
+      "description": "The key (rowKey field) of the chosen row; what the form submits. A form reset sets it back to its initial value silently, as a native control does."
+    },
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "The popup table's config, as pk-data-table's: { columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel? }. columns is required for the table to show anything."
+    },
+    {
+      "name": "rowKey",
+      "type": "string",
+      "default": "id",
+      "reflect": false,
+      "description": "The row field that identifies a row: what value holds."
+    },
+    {
+      "name": "labelKey",
+      "type": "string",
+      "default": "name",
+      "reflect": false,
+      "description": "The row field shown in the field once a row is picked (the rowKey field when the row has none)."
+    },
+    {
+      "name": "selectedLabels",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ key: label } for values whose row is not on a loaded page, so the field can show a stored value's name without asking the server."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name of the field and of the popup. pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks interaction; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the value but cannot open the popup."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot be submitted while no row is chosen."
+    },
+    {
+      "name": "invalid",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the invalid state and sets aria-invalid; set by pk-field or pk-form (or by a Blazor EditContext)."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-lookup-toggle",
+      "description": "Whether the popup is open."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The value changed (native, composed). Read event.target.value."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The reader picked a row (native, composed)."
+    },
+    {
+      "name": "pk-lookup-select",
+      "detail": {
+        "value": "string",
+        "label": "string",
+        "row": "object"
+      },
+      "detailProps": {
+        "value": "string",
+        "label": "string",
+        "row": "object"
+      },
+      "description": "A row was picked: its key, its label and the row object from load()."
+    },
+    {
+      "name": "pk-lookup-toggle",
+      "detail": {
+        "open": "bool"
+      },
+      "description": "The popup opened or closed by itself (a click, a key, a pick, Escape, an outside press, focus leaving); open already has the new value. Not raised for a change the host made."
+    }
+  ],
+  "parts": [
+    {
+      "name": "popover",
+      "description": "The pk-popover that holds the popup (placement, outside press, Escape and focus return are its)."
+    },
+    {
+      "name": "control",
+      "description": "The pk-button that shows the chosen label (or the placeholder) and opens the popup."
+    },
+    {
+      "name": "text",
+      "description": "The label inside the field."
+    },
+    {
+      "name": "table",
+      "description": "The pk-data-table in the popup, created on the first open."
+    },
+    {
+      "name": "status",
+      "description": "The polite live region that announces loading and the result count."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-lookup-picker-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the field.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "show()",
+      "description": "Opens the popup."
+    },
+    {
+      "name": "hide()",
+      "description": "Closes the popup."
+    },
+    {
+      "name": "focus()",
+      "description": "Focuses the field."
+    }
+  ],
+  "a11y": "The field is a real button (pk-button) that the popover marks aria-haspopup=\"dialog\" and aria-expanded, named \"<label>: <chosen label or placeholder>\"; the popup is a labelled dialog holding the table's search box and rows, so focus really moves into it (a combobox with aria-activedescendant cannot reach rows inside the table's shadow roots; this is the disclosure-plus-dialog pattern, not role=combobox). Down or Up on the field, Enter or Space open it and focus lands in the search box; Down there enters the rows, Up, Down, Home and End walk them, Enter or Space picks the focused row and closes; Escape closes and returns focus to the field; Tab moves on through the pager and out of the picker, which closes it. A polite status announces loading and the number of results. The table's own loading, error and empty states keep their roles. The field and the rows are at least 44px tall on a phone.",
+  "examples": [
+    {
+      "title": "Customer lookup (set load from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-lookup-picker label=\"Customer\" placeholder=\"Choose a customer\" label-key=\"name\" config='{\"columns\":[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"city\",\"label\":\"City\"}],\"pageSize\":8}'></pk-lookup-picker>"
+    }
+  ],
+  "writes": [
+    {
+      "target": "the pk-data-table in the popup",
+      "attributes": [
+        "clickable"
+      ],
+      "why": "The picker creates the table in its own shadow tree on the first open and drives it (rows clickable, keyed, the current one marked, its config and a wrapped load); only the attribute-like clickable is a write the check can see."
+    },
+    {
+      "target": "the text span of the field",
+      "attributes": [
+        "data-placeholder"
+      ],
+      "why": "Marks the text span (created by the picker in its own shadow tree) while it shows the placeholder, so it is styled muted."
+    }
+  ]
+}
