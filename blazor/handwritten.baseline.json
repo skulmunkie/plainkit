@@ -10,7 +10,6 @@
     "Components/PkDevToolsPage.razor": 89,
     "Components/PkDock.razor": 79,
     "Components/PkFieldGroup.razor": 134,
-    "Components/PkFieldListRow.razor": 34,
     "Components/PkGallery.razor": 63,
     "Components/PkListPage.razor": 43,
     "Components/PkLookupPicker.razor": 163,
@@ -50,7 +49,7 @@
     "PkElementBase.cs": 106,
     "PkEnums.cs": 94,
     "PkFieldGroupTypes.cs": 138,
-    "PkFieldListTypes.cs": 16,
+    "PkFieldListTypes.cs": 15,
     "PkFormControlBase.cs": 65,
     "PkGalleryImage.cs": 22,
     "PkHostEnvironment.cs": 41,
@@ -87,11 +86,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkFieldGroup.razor",
       "reason": "kind-to-control table and visibility rule that js/page-fields.js already has; moves to a pk-field-group element (#801 section 2.3)"
-    },
-    {
-      "rule": "name-parity",
-      "file": "Components/PkFieldListRow.razor",
-      "reason": "Blazor-only skip-empty wrapper around a dt/dd pair; removed when pk-field-list hides empty slotted pairs (#801 name map)"
     },
     {
       "rule": "name-parity",
