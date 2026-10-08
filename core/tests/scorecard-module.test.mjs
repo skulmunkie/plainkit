@@ -18,26 +18,38 @@ test('keepChecks keeps findings whose check or category is listed, and everythin
     assert.deepEqual(keepChecks(f, ['touch-target', 'zero-gap']).map(x => x.check), ['touch-target', 'zero-gap']);
 });
 
+// A recording document: nodes keep their tag, attributes and children, so the module's DOM building can be read back without a browser.
+const recorder = () => {
+    const make = tag => ({ tag, attrs: {}, kids: [], setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k] ?? null; }, append(...k) { this.kids.push(...k); }, textContent: '' });
+    return { createElement: make };
+};
+const textOf = n => (typeof n === 'string' ? n : [n.textContent, ...(n.kids ?? []).map(textOf)].join(''));
+const findAll = (n, pred, out = []) => { if (n && typeof n === 'object') { if (pred(n)) out.push(n); for (const k of n.kids ?? []) findAll(k, pred, out); } return out; };
+
 test('tone and change formatting follow the score bands', () => {
-    assert.deepEqual([90, 60, 10, null].map(tone), ['sc-good', 'sc-warn', 'sc-bad', '']);
-    assert.match(fmtDelta(5), /sc-good.*\+5/);
-    assert.match(fmtDelta(-3), /sc-bad.*-3/);
-    assert.match(fmtDelta(0), /±0/);
-    assert.equal(fmtDelta(null), '');
+    const doc = recorder();
+    assert.deepEqual([90, 60, 10, null].map(tone), ['positive', 'warning', 'critical', '']);
+    const [up, down, zero] = [5, -3, 0].map(d => fmtDelta(doc, d));
+    assert.deepEqual([up, down, zero].map(n => [n.attrs.tone, textOf(n)]), [['positive', '+5'], ['critical', '-3'], ['muted', '±0']]);
+    assert.equal(fmtDelta(doc, null), null);
 });
 
-test('the ranked table lists the worst first, escapes names, links and finding text, and shows the change', () => {
+test('the ranked table lists the worst first, sets names, links and finding text as text and attributes, and shows the change', () => {
     const items = [
         { id: 'a', name: 'Good <b>', kind: '', score: 100, findings: [] },
         { id: 'b', name: 'Bad', kind: 'Page', score: 42, findings: [{ check: 'touch-target', severity: 'warn', selector: 'a > b', message: 'm "q"', contexts: ['dark 375px'], count: 2 }] },
     ];
-    const html = rankedTable(items, { changes: [{ name: 'Bad', delta: -8 }], link: i => `#${i.id}"x` });
-    assert.ok(html.indexOf('Bad') < html.indexOf('Good'));
-    assert.ok(html.includes('Good &lt;b&gt;') && !html.includes('<b>'));
-    assert.ok(html.includes('href="#b&quot;x"'));
-    assert.ok(html.includes('touch-target x2') && html.includes('&quot;q&quot;'));
-    assert.match(html, /sc-bad">-8/);
-    assert.ok(html.includes('<span class="muted">none</span>'));
+    const table = rankedTable(recorder(), items, { changes: [{ name: 'Bad', delta: -8 }], link: i => `#${i.id}"x` });
+    assert.deepEqual(JSON.parse(table.attrs.rows).map(r => r.name), ['Bad', 'Good <b>'], 'worst first, the name kept as data');
+    assert.equal(table.attrs.label, 'Target ranking');
+    const slot = (id, key) => table.kids.find(k => k.attrs.slot === `cell-${id}-${key}`);
+    assert.equal(findAll(slot('b', 'name'), n => n.tag === 'a')[0].attrs.href, '#b"x', 'the link target is an attribute value, never markup');
+    assert.equal(textOf(slot('a', 'name')), 'Good <b>', 'the name is text, so no element is made from it');
+    const badge = findAll(slot('b', 'failing'), n => n.tag === 'pk-badge')[0];
+    assert.equal(textOf(badge), 'touch-target x2'); assert.equal(badge.attrs.title, 'a > b: m "q" (dark 375px)');
+    assert.equal(textOf(slot('b', 'change')), '-8');
+    assert.equal(textOf(slot('a', 'failing')), 'none');
+    assert.equal(findAll(slot('b', 'score'), n => n.tag === 'pk-text')[0].attrs.tone, 'critical');
 });
 
 // A frame the module cannot read (another origin): it must score as an unreadable page, not crash the run.
