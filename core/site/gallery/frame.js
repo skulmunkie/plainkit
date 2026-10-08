@@ -6,6 +6,7 @@
 import { PAGE_CSS } from './paths.js';
 import { SCRIPT_NAME, DESTROY_EVENT } from './pattern-mount.js';
 import { applyDynamic } from '../../js/dynamic.js';
+import { on } from '../../js/mount-support.js';
 
 export const GALLERY_BASE = new URL('./', import.meta.url).href;
 export const PHONE_WIDTH = 375;
@@ -85,7 +86,7 @@ export function makeFrame(sample, state, control = '') {
     if (control) frame.dataset.control = control;
     if (sample.height) frame.dataset.height = String(sample.height);
     frame.srcdoc = sampleDoc(sample.html, { theme: state.theme, scale: state.scale, script: sample.script, pattern: sample.pattern });
-    frame.addEventListener('load', () => {
+    on(frame, 'load', () => {
         applyToFrame(frame, state);
         const doc = frame.contentDocument;
         if (doc?.body && 'ResizeObserver' in window) new ResizeObserver(() => fit(frame)).observe(doc.body);
