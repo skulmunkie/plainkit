@@ -306,8 +306,8 @@ export class CodeExplorerElement extends Base {
         const r = this.#reports;
         if (r.error) return `<pk-alert kind="danger">${esc(r.error)}</pk-alert>`;
         const kinds = this.#reportKinds();
-        const picker = `<div class="csr-kinds">${kinds.map(k => `<button type="button" class="csr-kind${k.key === r.kind ? ' csr-kind--active' : ''}" data-kind="${k.key}" aria-pressed="${k.key === r.kind}">${k.label}</button>`).join('')}</div>`;
-        return picker + this.#reportRowsHtml(r.kind, r[r.kind] ?? []);
+        const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
+        return `<pk-stack gap="sm">${picker}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
@@ -337,7 +337,7 @@ export class CodeExplorerElement extends Base {
 
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
-        const kindBtn = e.target.closest?.('.csr-kind');
+        const kindBtn = e.target.closest?.('[data-kind]');
         if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
         const hit = e.target.closest?.('.csr-hit');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
