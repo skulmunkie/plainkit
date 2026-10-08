@@ -171,6 +171,36 @@ export function usefulLines(text, { maxLines = 14, maxChars = 1500 } = {}) {
     return text2;
 }
 
+/**
+ * Every failing test of a node test run: [{ file, name }], from the runner's "failing tests:" block (complete, not cut to a few lines). Passing tests' stderr noise
+ * (for example "[pk:app] ... threw Error: boom") never appears in that block, so it is never listed here.
+ */
+export function failedTests(text) {
+    const lines = stripAnsi(text).split(/\r?\n/);
+    const start = lines.findIndex(l => /^\s*(✖\s*)?failing tests:/i.test(l));
+    if (start < 0) return [];
+    const found = [], seen = new Set();
+    let file = null;
+    for (const l of lines.slice(start + 1)) {
+        const at = /^\s*test at (.+?):\d+:\d+\s*$/.exec(l);
+        if (at) { file = at[1].replace(/\\/g, '/').replace(/^(\.\.\/)+/, ''); continue; }
+        const t = /^\s*✖ (.+?) \([0-9.]+ms\)\s*$/.exec(l);
+        if (t && file && !seen.has(file + '\0' + t[1])) { seen.add(file + '\0' + t[1]); found.push({ file, name: t[1] }); }
+    }
+    return found;
+}
+
+/** What a failed check shows: the complete list of failing tests (file and name), else the first useful lines. A missing esbuild (a checkout without node_modules) gets its own line. */
+export function failureSummary(text, opts = {}) {
+    const tests = failedTests(text);
+    if (!tests.length) return usefulLines(text, opts);
+    const files = [...new Set(tests.map(t => t.file))];
+    const head = `${tests.length} failing test${tests.length === 1 ? '' : 's'} in ${files.length} file${files.length === 1 ? '' : 's'} (the full list; the stderr noise of passing tests is not part of it):`;
+    const list = tests.map(t => `  ${t.file}: ${t.name.length > 150 ? `${t.name.slice(0, 150)} ...` : t.name}`);
+    const hint = /esbuild/.test(text) && /Cannot find (package|module)|ERR_MODULE_NOT_FOUND|esbuild cannot be resolved/.test(text) ? ['  (esbuild cannot be resolved: this checkout has no node_modules; run `npm ci`)'] : [];
+    return [head, ...list, ...hint].join('\n');
+}
+
 /** The generated "When CI fails" table (markdown), from the CHECKS table. */
 export function fixTable(checks = CHECKS) {
     const cell = s => String(s).replaceAll('|', '\\|');
@@ -316,7 +346,7 @@ export function formatResult(check, r, { verbose = false, ci = false } = {}) {
     if (r.status === 'skip') return `skip  ${pad} ${r.reason}`;
     const lines = [`${r.status === 'ok' ? 'ok   ' : 'FAIL '} ${pad} ${seconds(r.ms)}`];
     if (r.status === 'FAIL') {
-        const ex = usefulLines(r.out);
+        const ex = failureSummary(r.out);
         if (ex) lines.push(...ex.split('\n').map(l => `      ${l}`));
         lines.push(`FIX: ${check.fix}`);
         if (ci) lines.push(`::group::full output of ${check.id}`, stripAnsi(r.out).trimEnd(), '::endgroup::');
@@ -325,7 +355,7 @@ export function formatResult(check, r, { verbose = false, ci = false } = {}) {
 }
 
 /** The failures for the CI summary job: [{ id, name, fix, excerpt }]. */
-export const failuresOf = results => results.filter(r => r.status === 'FAIL').map(r => ({ id: r.check.id, name: r.check.name, fix: r.check.fix, excerpt: usefulLines(r.out, { maxChars: 900 }) }));
+export const failuresOf = results => results.filter(r => r.status === 'FAIL').map(r => ({ id: r.check.id, name: r.check.name, fix: r.check.fix, excerpt: failureSummary(r.out, { maxChars: 3000, maxLines: 60 }) }));
 
 const escapeAnnotation = s => String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 
