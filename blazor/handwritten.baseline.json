@@ -3,7 +3,6 @@
   "budgets": {
     "Components/_Imports.razor": 4,
     "Components/PkAppBarSearch.razor": 82,
-    "Components/PkCardMenu.razor": 37,
     "Components/PkCodeExplorer.razor": 77,
     "Components/PkConsole.razor": 55,
     "Components/PkDataTable.razor": 240,
@@ -74,16 +73,6 @@
     "Testing/PkDataTableTesting.cs": 44
   },
   "debt": [
-    {
-      "rule": "name-parity",
-      "file": "Components/PkCardMenu.razor",
-      "reason": "Blazor-only component: a card menu (PkDropdown plus PkButton) with no element; to be moved into core as an element, then generated"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkCardMenu.razor",
-      "reason": "same: the PkDropdown and PkButton composition belongs in a core element"
-    },
     {
       "rule": "state-machine",
       "file": "Components/PkDataTable.razor",
