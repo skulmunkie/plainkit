@@ -322,26 +322,6 @@
       "fingerprint": "de461f0d9d402a89"
     },
     {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "000173e65e3818d6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "53f653a0a101d967"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "cb7e1a8e143ab68b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "75d7f82f63300227"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/layout-builder/layout-builder.css",
       "fingerprint": "388fa27d00222c50"
@@ -380,36 +360,6 @@
       "rule": "S10",
       "file": "core/modules/logs/logs.css",
       "fingerprint": "dd5f24c09c429726"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "6a042bb3774f91d7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "6a042bb3774f91d7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "3484ed6c04144085"
-    },
-    {
-      "rule": "S1",
-      "file": "core/modules/performance/performance.css",
-      "fingerprint": "5f18c351a6124fb0"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/performance/performance.css",
-      "fingerprint": "20104a4133168aa9"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "2de96503cfe4cd66"
     },
     {
       "rule": "S3",
@@ -649,42 +599,7 @@
     {
       "rule": "S7",
       "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
       "fingerprint": "92690d4738d4c764"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "dfec1bca5f6fb64d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "dfec1bca5f6fb64d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "dfec1bca5f6fb64d"
     },
     {
       "rule": "S1",

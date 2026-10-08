@@ -12,14 +12,13 @@
 // expose (INP and heap outside Chromium, for one) show a dash rather than a guess.
 
 import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, summarizeResources, formatBytes, formatMs, shortName } from '../../js/perf-logic.js';
-import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on, every } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
 const log = createLogger('performance');
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./performance.css'];
 
 export const DEFAULTS = Object.freeze({ interval: 1000, history: 60 });
 
@@ -88,7 +87,7 @@ export async function mountPerformance(container, options = {}) {
     const doc = container.ownerDocument;
     const win = options.target?.defaultView ?? doc.defaultView;
     const watched = options.target ?? doc;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     const stats = Object.fromEntries([['lcp', 'LCP'], ['inp', 'INP'], ['cls', 'CLS'], ['fcp', 'FCP'], ['ttfb', 'TTFB'], ['fps', 'Frame rate'], ['tasks', 'Long tasks'], ['nodes', 'DOM nodes'], ['heap', 'JS heap']]
         .map(([key, label]) => [key, h(doc, 'pk-stat', { label, tile: true })]));
@@ -96,17 +95,17 @@ export async function mountPerformance(container, options = {}) {
     const status = h(doc, 'span', { class: 'muted', role: 'status' });
     const kinds = h(doc, 'p', { class: 'muted' });
     const resources = h(doc, 'pk-table', { label: 'Slowest requests', density: 'compact', columns: JSON.stringify([{ key: 'name', label: 'Request' }, { key: 'time', label: 'Time', align: 'end' }, { key: 'size', label: 'Size', align: 'end' }]) });
-    const root = h(doc, 'section', { 'aria-label': 'Performance monitor', class: 'pf-module' },
+    const root = h(doc, 'section', { 'aria-label': 'Performance monitor' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' }, h(doc, 'pk-stack', { gap: 'md' },
         h(doc, 'pk-cluster', {}, h(doc, 'h2', {}, 'Performance'), toggle, status),
         h(doc, 'pk-cluster', { align: 'stretch' }, ...Object.values(stats)),
-        h(doc, 'pk-card', { heading: 'What loaded', level: 3 }, kinds, resources));
+        h(doc, 'pk-card', { heading: 'What loaded', level: 3 }, kinds, resources))));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
     const c = collect(win, watched, { history });
-    let timer = 0;
+    let stopTimer = () => {};
     let last = null;
     let rowsKey = '';
 
@@ -138,8 +137,8 @@ export async function mountPerformance(container, options = {}) {
 
     const tick = () => draw(c.sample());
     const paintButton = () => { const on = c.running(); toggle.textContent = on ? 'Pause' : 'Resume'; status.textContent = on ? `Updating every ${interval / 1000} s` : 'Paused'; };
-    function start() { c.start(); win.clearInterval(timer); timer = win.setInterval(tick, interval); paintButton(); }
-    function stop() { c.stop(); win.clearInterval(timer); timer = 0; paintButton(); if (last) draw(last); }
+    function start() { c.start(); stopTimer(); stopTimer = every(win, tick, interval); paintButton(); }
+    function stop() { c.stop(); stopTimer(); stopTimer = () => {}; paintButton(); if (last) draw(last); }
     on(toggle, 'click', () => (c.running() ? stop() : start()));
 
     draw(c.snapshot());
@@ -147,6 +146,6 @@ export async function mountPerformance(container, options = {}) {
     if (autostart) start();
     return {
         start, stop, running: c.running, snapshot: () => c.sample(),
-        destroy() { win.clearInterval(timer); c.destroy(); root.remove(); },
+        destroy() { stopTimer(); c.destroy(); root.remove(); },
     };
 }
