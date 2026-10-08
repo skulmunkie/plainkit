@@ -36,7 +36,6 @@
     private readonly PkCallbackSlot _load = new("load");
     private string _config = "{}";
     private List<Row> _rows = [];
-    private int _sequence;
 
     /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called for the first page, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that a newer one replaces has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
     [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
@@ -196,7 +195,6 @@
     // cancels its token (PkCallbackSlot), and a superseded answer is not drawn: its cell slots would show stale rows.
     private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)
     {
-        var sequence = ++_sequence;
         PkListResult<TItem> result;
         try
         {
@@ -207,7 +205,7 @@
             await InvokeAsync(() => OnLoadError.InvokeAsync(ex));
             throw; // the rejection is the element's error state with Retry
         }
-        if (sequence != _sequence) return new { rows = Array.Empty<object>(), total = 0 };
+        if (cancel.IsCancellationRequested) return new { rows = Array.Empty<object>(), total = 0 };
         var rows = new System.Text.Json.Nodes.JsonArray();
         var shown = new List<Row>(result.Items.Count);
         foreach (var item in result.Items)
@@ -236,5 +234,5 @@
     private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;
 
     /// <inheritdoc />
-    public void Dispose() { _sequence++; _load.Dispose(); }
+    public void Dispose() => _load.Dispose();
 }
