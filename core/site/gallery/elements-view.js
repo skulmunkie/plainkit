@@ -6,7 +6,7 @@
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { on } from '../../js/mount-support.js';
+import { on, later } from '../../js/mount-support.js';
 
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -63,7 +63,7 @@ export function renderElement(meta, options = {}) {
         while (log.children.length > 12) log.lastChild.remove();
         refresh();
         // An element that hides itself (an alert's dismiss) would leave an empty stage: bring it back so the playground stays usable.
-        setTimeout(() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
+        later(window, () => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
     });
     const theming = h('pk-stack', { gap: 'sm' });
     // Custom-property overrides go through data-dyn + applyDynamic() (core/js/dynamic.js), never .style directly;

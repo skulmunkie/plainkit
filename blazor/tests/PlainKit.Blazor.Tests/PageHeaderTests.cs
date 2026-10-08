@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// PkPageHeader (hand-written, blazor/mappings/page-header.json): the slotted title and the typed PkCrumb list as the element's crumbs attribute (the trail itself is the element's).
+// PkPageHeader (generated from blazor/mappings/page-header.json: slotted option and json: true): the slotted title and the typed PkCrumb list as the element's crumbs attribute (the trail itself is the element's).
 public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;

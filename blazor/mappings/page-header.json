@@ -4,12 +4,23 @@
     {
       "name": "Title",
       "prop": "heading",
-      "type": "string"
+      "type": "string",
+      "slotted": {
+        "tag": "pk-heading",
+        "slot": "title",
+        "attrs": {
+          "level": "@PkAttr.Num(Level)",
+          "weight": "semibold",
+          "variant": "h3",
+          "tabindex": "-1"
+        }
+      }
     },
     {
       "name": "Level",
       "prop": "level",
-      "type": "int"
+      "type": "int",
+      "default": 1
     },
     {
       "name": "Variant",
@@ -34,7 +45,8 @@
     {
       "name": "BreadcrumbContent",
       "slot": "breadcrumb",
-      "type": "RenderFragment?"
+      "type": "RenderFragment?",
+      "unless": "Crumbs"
     },
     {
       "name": "ActionsContent",
@@ -68,9 +80,10 @@
     },
     {
       "name": "Crumbs",
-      "map": "wrapper",
+      "prop": "crumbs",
       "type": "IReadOnlyList<PkCrumb>?",
-      "note": "Typed list of PkCrumb: sent as the element's crumbs attribute (a JSON array of { label, href }); the element draws the breadcrumb, home crumb and back link (#801)."
+      "note": "Typed list of PkCrumb: sent as the element's crumbs attribute (a JSON array of { label, href }); the element draws the breadcrumb, home crumb and back link (#801). BreadcrumbContent is for a trail you draw yourself, without Crumbs.",
+      "json": true
     },
     {
       "name": "BreadcrumbLabel",
@@ -83,7 +96,5 @@
       "prop": "backLink"
     }
   ],
-  "existing": true,
-  "existingReason": "typed-generics: Crumbs is a typed PkCrumb list sent as JSON; and the title is also a slotted pk-heading in light DOM (FocusOnNavigate cannot reach into a shadow tree, #773) Missing generator features: a slot built from a prop (the title as a light-DOM pk-heading) and a typed record list serialised to a JSON prop (#893).",
-  "notes": "Hand-written: Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773); Level starts at 1; SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
+  "notes": "Generated. Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773: the generator's slotted option); SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
 }

@@ -26,8 +26,9 @@ export default {
     steps: [
         { wait: 1200 }, { shot: 'file' },
         { click: `${HOST} [data-ce-outline]` }, { wait: 500 }, { shot: 'outline' },
-        { click: `${HOST} [data-ce-reports]`, on: ['desktop'] }, { wait: 800, on: ['desktop'] }, { shot: 'reports', on: ['desktop'] },
+        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, { wait: 300, on: ['phone'] },
         { focus: `${HOST} pk-input[data-ce-query] >>> [part=control]` }, { type: 'return' }, { key: 'Enter' }, { wait: 800 }, { shot: 'results' },
+        { click: `${HOST} [data-ce-reports]`, on: ['desktop'] }, { wait: 800, on: ['desktop'] }, { shot: 'reports', on: ['desktop'] },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

@@ -51,9 +51,6 @@
     "Components/PkLogSettings.razor": {
       "category": "mount"
     },
-    "Components/PkPageHeader.razor": {
-      "category": "wrapper"
-    },
     "Components/PkPerformance.razor": {
       "category": "mount"
     },

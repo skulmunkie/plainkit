@@ -80,7 +80,6 @@ const KNOWN = new Set([
     'site/layout-builder/layout-builder.js::mount-shell', 'site/scorecard/scorecard.js::mount-shell', 'site/settings/page.js::mount-shell', 'site/theme/theme.js::mount-shell',
     'site/shell.js::mount-shell', 'site/shell.js::pages-array', 'site/shell.js::theme-observer', 'site/theme/theme.js::theme-observer',
     'site/guides/page.js::navigation-listener', 'site/guides/page.js::history-push',
-    'site/layout-builder/layout-builder.js::storage',
 ]);
 // Internal files the site still reaches into (ledgered by pattern so the list needs no per-file entry); also only shrinks.
 const KNOWN_IMPORTS = /::non-public-import:(modules\/code-explorer\/providers\.js)$/;
