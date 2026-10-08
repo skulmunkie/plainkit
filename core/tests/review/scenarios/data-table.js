@@ -39,7 +39,9 @@ export default {
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
-        t.inViewport(DT);
+        // A phone shows the whole table taller than the screen (44px rows): the page scrolls, so there only the width must fit; on desktop it is all on screen.
+        const onScreen = sel => (t.viewport.name === 'phone' ? t.fitsWidth(sel) : t.inViewport(sel));
+        onScreen(DT);
         const state = `${PARTS}[part=state] `;
         if (t.shot === 'loading') { t.visible(`${state}pk-skeleton`, 'the loading skeleton'); t.hidden(TABLE, 'the table while loading'); t.visible(SEARCH, 'the search box while loading'); t.visible('#add', 'the actions while loading'); }
         if (t.shot === 'error') { t.visible(`${state}pk-alert`, 'the error alert'); t.hasText(`${state}pk-alert`, 'could not be loaded'); t.hasText(`${state}pk-alert >>> [part=title]`, 'Orders failed'); t.visible(`${state}pk-button`, 'Retry'); t.hidden(TABLE, 'the table after an error'); }
@@ -48,7 +50,7 @@ export default {
         if (['rows', 'page', 'all'].includes(t.shot)) {
             t.visible(TABLE, 'the table'); t.visible(`${PARTS}[part=pagination]`, 'the pager'); t.visible(`${PARTS}[part=filters] >>> [part=search]`, 'the search box');
             t.noOverlap(`${PARTS}[part=filters] >>> [part=search]`, `${PARTS}[part=pagination]`);
-            t.inViewport(`${PARTS}[part=pagination]`);
+            onScreen(`${PARTS}[part=pagination]`);
         }
         if (t.shot === 'rows') { t.hidden(BAR, 'the bulk bar with nothing selected'); t.visible('#dt > pk-badge', 'the slotted cell content'); t.visible(`${TABLE} >>> tr[aria-current]`, 'the current row'); t.visible(`${PARTS}[part=pagination] >>> [part=size-select]`, 'the page size select'); t.noOverlap(`${PARTS}[part=pagination] >>> [part=size]`, `${PARTS}[part=pagination] >>> [part=summary]`); }
         if (t.shot === 'page' || t.shot === 'all') { t.visible(BAR, 'the bulk bar'); t.visible(BTN, 'the select-all button'); t.within(BTN, BAR, 1); t.noOverlap(BTN, COUNT); t.atLeast(BTN, 'height', t.viewport.name === 'phone' ? 44 : 20); }
