@@ -308,21 +308,6 @@
     },
     {
       "rule": "S1",
-      "file": "core/modules/console/console.css",
-      "fingerprint": "fcc84d6be50ce76f"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/console/console.css",
-      "fingerprint": "3a6394154b696b44"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "de461f0d9d402a89"
-    },
-    {
-      "rule": "S1",
       "file": "core/modules/layout-builder/layout-builder.css",
       "fingerprint": "388fa27d00222c50"
     },
