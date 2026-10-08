@@ -15,7 +15,7 @@ export default {
         if (t.shot === 'list') {
             t.hasText('#pk-main pk-heading[level="1"]', 'Things');
             t.ok(!document.querySelector('pk-record-page'), 'the record is not on screen beside the list');
-            t.inViewport('pk-list-page >>> pk-data-table');
+            t.viewport.name === 'phone' ? t.fitsWidth('pk-list-page >>> pk-data-table') : t.inViewport('pk-list-page >>> pk-data-table'); // phone: 44px rows make the list taller than the screen, the page scrolls
         } else {
             t.ok(!document.querySelector('pk-list-page'), 'the list page is not on screen beside the record');
             t.inViewport('pk-record-page');
