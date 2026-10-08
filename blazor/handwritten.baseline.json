@@ -12,6 +12,7 @@
     "Components/PkFieldGroup.razor": 134,
     "Components/PkGallery.razor": 63,
     "Components/PkListPage.razor": 43,
+    "Components/PkLookupPicker.razor": 163,
     "Components/PkLogs.razor": 64,
     "Components/PkLogSettings.razor": 52,
     "Components/PkPageHeader.razor": 76,
