@@ -10,7 +10,7 @@ This package is a pre-release. What it covers and what it does not:
 
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
 - **Verified:** standalone Blazor WebAssembly (.NET 10, a normal publish needs no wasm workload), driven in headless Chrome against the `PlainKit.WasmPlayground` sample (`blazor/samples/`): the assets, the `pk-*` events into `EventCallback`s, `@bind-Value`, `@bind-Checked` and `@bind-IsOpen`, `PkTable<TItem>` events, `PkDataTable<TItem>`, `AddPlainKit` with the `ILogger` forwarder and `IPkLog`, and the dev tools page. See "Blazor WebAssembly" for the setup and the limits: the Files tool needs a server, and AOT and the `InteractiveWebAssembly` render mode of a Web App were not run.
-- **Every element has a component.** `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable<TItem>` (the data table) are hand-written in `Components/`, and so are `PkDataTable<TItem>` (a searchable, sortable, server-paged table over `pk-data-table`: see "Tables and lists" below). `PkCardMenu` (the "..." or settings button of a card header: put it in `PkCard` `ActionsContent` with `PkMenuItem` children; `Label`, `IconName`, `OnSelect`) is generated from `pk-card-menu`.
+- **Every element has a component.** Most are generated from the element's API. A few are hand-written in `Components/` because they carry typed parameters or need the Blazor router or server: `PkTable<TItem>` (typed columns and rows, and its raw mode), `PkDataTable<TItem>` (a searchable, sortable, server-paged table over `pk-data-table`: see "Tables and lists" below), `PkLookupPicker<TItem>` (a select-style field for a long list, see below), `PkPageHeader`, `PkSideNav`, `PkGallery` and `PkAppBarSearch`. `PkCardMenu` (the "..." or settings button of a card header: put it in `PkCard` `ActionsContent` with `PkMenuItem` children; `Label`, `IconName`, `OnSelect`) is generated from `pk-card-menu`.
 - **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
 - **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
 
@@ -114,6 +114,10 @@ Blazor delivers a custom DOM event only when two things are true: it is register
   ```
   The component never filters anything itself: read `OnSearch`/your own field bindings and reload, the same way `PkTable`'s own `OnFilter`/`OnSort` already work in `Manual` mode.
 
+**Raw mode: your own table markup.** Set `ChildContent` on `PkTable` (write `TItem="object"`; `Columns` and `Items` are then ignored) to compose the table yourself: `HeadContent`, `ChildContent` (the `tbody` rows, typically a `@foreach` over your own collection) and `FootContent`, with `TableClass` for the inner table and `IsEmpty` with `EmptyText` or `EmptyContent` to show something instead of a header over no rows. The chrome (`Label`, `Caption`, `Flow`, `Striped`, `ToolbarContent` ...) is the same as the typed mode's. `references/table-raw-mode.md` of the skill has an example.
+
+**Description lists.** `PkFieldList` takes plain `<dt>`/`<dd>` pairs in its content; a pair whose `dd` has no element and no text hides itself (an optional value needs no `@if`), and `ShowEmpty` keeps empty pairs. `Items` rows with an empty `Value` hide the same way.
+
 ```razor
 <PkDataTable TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
              SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentRow="@_openId" />
@@ -137,7 +141,7 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 The table marks the open record with `CurrentRow` (the id of the row: it is tinted, gets an accent bar and `aria-current`). You set it, for example from the route; the table never changes it and raises no event for it. `PkDataTable` passes it through (`CurrentRow`). The routed list and detail page (list in the main pane, the record in the aside of a `PkWorkspace`) is the `routed-list-detail` template; the `plainkit-blazor` skill has the page skeleton.
 Rows are keyboard stops, a third click on a sortable header clears the sort, and a `HidePhone` column is hidden in the `cards` layout too.
 
-What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkGallery`, `PkPageHeader`, `PkStat`, `PkTable`; `PkStyles` has no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`, each mapping says why; `PkStyles` has no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
 
 ## Large tables and the circuit's message limit
 
@@ -250,6 +254,17 @@ A standalone Blazor WebAssembly app needs no server and no extra package; the sa
 - **The dev tools page** (`/_plainkit`) is routable with `AdditionalAssemblies` on the router, as on Server (a standalone app has no `MapRazorComponents`, so no `AddPlainKitDevTools`). It serves in the `Development` environment (`dotnet run`, or a publish with `-p:WasmApplicationEnvironmentName=Development`) and otherwise says it is off: set `AddPlainKit(o => o.DevTools = true)`. The **Files** workspace reads a folder on the server, so in a browser-only app it shows "No source to browse" instead of failing.
 - **The package keeps the ASP.NET Core server framework a private compile-time reference** (`PrivateAssets="all"`), because a public framework reference cannot be restored by a WebAssembly app (NETSDK1082). A Blazor Server app has the framework from its own SDK; a plain class library that uses the package's server types needs its own `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
 - **Not verified:** AOT, the `InteractiveWebAssembly` render mode of a Blazor Web App (the same components, but no such host was run) and an ASP.NET Core hosted deployment.
+
+### Lookup picker
+
+`PkLookupPicker<TItem>` is a select-style field for a list too long for `PkSelect` or `PkCombobox`: the field opens a popup holding a searchable, pageable table fed by the same `Load` (`PkListRequest` in, `PkListResult<TItem>` out) and `Columns` as `PkDataTable`. `@bind-Value` holds the key of the chosen item (`IdOf`); with `Multiple`, `@bind-Values` holds the keys, the chosen items show as removable chips and `Max` limits them. Both work with `EditForm` (`ValueExpression`, `ValuesExpression`) and the form value. `LabelOf` names an item (default its key); `SelectedLabels` and the `Resolve` callback give stored keys their labels without loading their page; `@bind-Open`, `PageSize`, `Placeholder`, `Disabled`, `Readonly`, `Required`, `IsInvalid` and `AriaLabel` are the usual field parameters.
+
+```razor
+<PkLookupPicker TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id" LabelOf="c => c.Name"
+                AriaLabel="Customer" Placeholder="Choose a customer" @bind-Value="_order.CustomerId" />
+```
+
+It is not a combobox: the field is a button that opens a labelled dialog, so focus really moves into the popup. Down or Up on the field, Enter or Space open it with focus in the search box; Down there enters the rows, the arrow keys, Home and End walk them, Enter or Space picks the focused row and closes it; Escape closes and returns focus to the field.
 
 ### Page header
 

@@ -517,6 +517,24 @@ const BLAZOR_NAMESPACE_STEP = ['## 5b. Moving to 0.11 or later: tier namespaces 
     'From 0.11 the generated components of the component, page and shell tiers live in `PlainKit.Blazor.Components` (`PkTabs`, `PkKanban`, `PkDetailLayout`, `PkDataTable<TItem>` ...), `PlainKit.Blazor.Pages` (`PkWizardPage`, `PkRecordPage`, `PkListPage<TItem>` ...) and `PlainKit.Blazor.Shells` (`PkAppShell`); base elements (`PkButton`, `PkCard`, `PkInput` ...) stay in `PlainKit.Blazor`. Razor resolves a tag only through an `@using`, so a build full of RZ10012 ("add a @using directive") means: add `@using PlainKit.Blazor.Components`, `@using PlainKit.Blazor.Pages` and `@using PlainKit.Blazor.Shells` to `_Imports.razor` (keep `@using PlainKit.Blazor`). This is mechanical; do it first. The generic `PkDataTable<TItem>` and `PkListPage<TItem>` need these lines for every tag.', '',
     'C# needs nothing for the common cases: the package ships `buildTransitive/PlainKit.Blazor.targets`, which adds the three namespaces as global usings, so `typeof(PkTabs)`, `@ref` fields, code-behind and `OpenComponent` resolve through the namespace alone (generic components included). The same file adds an explicit alias per moved non-generic component (`PkTabs` for `PlainKit.Blazor.Components.PkTabs`); the aliases are redundant with the namespace usings, kept for explicitness for one minor version and then removed. If a C# file still does not resolve a moved type, add `using PlainKit.Blazor.Components;` (or `.Pages`, `.Shells`) to it.', ''];
 
+// Names removed or renamed between versions, as a lookup: the changelog's Breaking entries say it per release, this is the same list in one place so an app on an old version can search it for what it uses.
+const BLAZOR_REMOVED_STEP = ['## 5c. Names that were removed or renamed (Blazor)', '',
+    'A removed name has no obsolete alias: the app stops compiling, which is the signal. Search the app for each name in the left column; the right column is the replacement.', '',
+    '| Old | Now |', '| --- | --- |',
+    '| `PkDataList<TItem>`, its `CurrentId` and `LoadAllIds` | `PkDataTable<TItem>`, `CurrentRow`; for `LoadAllIds` run the bulk action against the query that `OnSelect` carries when the scope is `all` (`args.ToRequest()`) |',
+    '| `<PkRawTable>` | `<PkTable TItem="object">` with `HeadContent`, `ChildContent`, `FootContent` (same parameter names; see `table-raw-mode.md`) |',
+    '| `<PkFieldListRow>` (`Label`, `Value`, `SkipEmpty`, `When`) | plain `<dt>`/`<dd>` in `PkFieldList`: an empty `dd` hides its pair; `ShowEmpty` on the list for `SkipEmpty="false"`; `@if` for `When` |',
+    '| `PageBase.ShowBusyOverlay`, `BusyDelay`, `BusyMinTime`, `Clock` | `<PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel">`: the overlay owns the timing; `PageBase` keeps only the busy count and label |',
+    '| `PkEmptyState.DescriptionContent` | `ChildContent` (a link back or a button goes in `ActionContent`) |',
+    '| `PkCardMenu` built by hand from `PkDropdown` and an icon `PkButton` | `PkCardMenu` (generated from `pk-card-menu`); the generated components now live in tier namespaces, see the previous step |', ''];
+
+const SDK_REMOVED_STEP = ['## 5b. Names and behaviour that changed (SDK)', '',
+    'Nothing is removed without a Breaking entry in the changelog; these are the ones that need a search of the app:', '',
+    '- `createPage` no longer runs its own busy timers: `pk-loading-overlay` owns the rule (`delay`, `min-time`, both default 0 on the element; the page hands it 150 and 300). An app that sets `busy` on its own overlay now sets `delay` and `min-time` there when it needs them.',
+    '- `pk-data-table` and `pk-lookup-picker` take plain props (`columns`, `page-size`, `label` ...) besides `config`; `config` still works and the plain prop wins once set. `pk-data-table` also has `add-label` and `pk-add`.',
+    '- `pk-field-list` hides a slotted `dt`/`dd` pair whose `dd` is empty (`show-empty` keeps it): an app that kept empty pairs for layout adds `show-empty`.',
+    '- `pk-page-header` draws a breadcrumb from `crumbs` (JSON), `home-href` and `back-link`; the `breadcrumb` slot still works.', ''];
+
 // issue 237: a blast-radius recipe for moving a consuming app from an older Plainkit version to a newer one. `findVersion` is the
 // skill-specific step (a NuGet PackageReference for Blazor, dist/manifest.json or js/version.js for the vanilla SDK); the rest of the
 // recipe (read the changelog, cross-reference the app, checklist, mechanical vs. judgment) is identical for both.
@@ -1040,12 +1058,12 @@ export function generate(src = collect()) {
     put('plainkit-sdk', 'references/theming.md', themingMd(src));
     put('plainkit-sdk', 'references/loading.md', loadingMd(src));
     put('plainkit-sdk', 'references/known-gaps.md', sdkGapsMd(src));
-    put('plainkit-sdk', 'references/upgrading.md', upgradingMd(src, 'The installed version is `dist/manifest.json`\'s `version` field, or the `PK_VERSION` export of `dist/js/version.js`. The target is the version you are moving to (latest release unless the user names one).'));
+    put('plainkit-sdk', 'references/upgrading.md', upgradingMd(src, 'The installed version is `dist/manifest.json`\'s `version` field, or the `PK_VERSION` export of `dist/js/version.js`. The target is the version you are moving to (latest release unless the user names one).', '', SDK_REMOVED_STEP));
     put('plainkit-sdk', 'references/choosing.md', choosingMd(src, 'plainkit-sdk'));
     put('plainkit-sdk', 'references/conformance-rules.md', conformanceRulesMd(src));
     for (const [rel, text] of blazor.files) put('plainkit-blazor', rel, text);
     put('plainkit-blazor', 'references/choosing.md', choosingMd(src, 'plainkit-blazor'));
-    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).', ' For Blazor, `PlainKit.Blazor.Testing` is already that seam for `PkDataTable` (see the Blazor skill).', BLAZOR_NAMESPACE_STEP));
+    put('plainkit-blazor', 'references/upgrading.md', upgradingMd(src, 'The installed version is the `Version` of the `PackageReference Include="PlainKit.Blazor"` in the app\'s `.csproj`. The target is the version you are moving to (latest release unless the user names one).', ' For Blazor, `PlainKit.Blazor.Testing` is already that seam for `PkDataTable` (see the Blazor skill).', [...BLAZOR_NAMESPACE_STEP, ...BLAZOR_REMOVED_STEP]));
     put('plainkit-blazor', 'references/conformance-rules.md', conformanceRulesMd(src));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
     const CONFORMANCE_DESC = 'the audit CLI\'s full rule catalogue (id, normal/strict severity, what it detects, a wrong/right snippet) - what `npx plainkit audit --explain <id>` also shows';
