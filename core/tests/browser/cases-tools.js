@@ -63,13 +63,13 @@ export const toolCases = [
         const card = await mountScorecard(host, { targets, themes: ['dark'], widths: [375, 1024], theme: 'light' });
         t.eq(card.results().length, 0, 'nothing runs until asked');
         host.querySelector('[data-sc-run]').click();
-        await until(() => host.querySelector('.sc-table'), 'the ranked table');
-        const rows = [...host.querySelectorAll('.sc-table tbody tr')].map(r => r.cells[0].textContent.trim());
+        await until(() => host.querySelector('pk-table[label="Target ranking"]'), 'the ranked table');
+        const rows = JSON.parse(host.querySelector('pk-table[label="Target ranking"]').getAttribute('rows')).map(r => r.name);
         t.eq(rows.join(), 'Bad,Good', 'worst first');
         const [bad, good] = card.results().sort((a, b) => a.score - b.score);
         t.ok(bad.score < 100 && good.score === 100, 'the unnamed button and the image without alt cost points');
         t.ok(bad.findings.some(f => f.check === 'unnamed-input') && bad.findings.some(f => f.check === 'image-alt'));
-        t.eq(host.querySelectorAll('.sc-frames iframe').length, 0, 'the measuring frames are removed');
+        t.eq(host.querySelectorAll('[data-sc-frames] iframe').length, 0, 'the measuring frames are removed');
         const only = await (await mountScorecard(t.stage(''), { targets, themes: ['dark'], widths: [375], checks: ['image-alt'] })).run();
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();

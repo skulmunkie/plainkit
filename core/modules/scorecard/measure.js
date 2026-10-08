@@ -11,9 +11,14 @@ export function timeRows(doc, n) {
     host.dataset.dyn = 'position:absolute; left:var(--sc-frames-offscreen); top:0; width:var(--sc-measure-host-w)';
     doc.body.append(host);
     applyDynamic(doc);
-    const rows = Array.from({ length: n }, (_, i) => `<tr><td><code>SKU-${i}</code></td><td>Title of product ${i}</td><td>Active</td><td class="num">$${(i % 90) + 9}.99</td></tr>`).join('');
+    const el = (tag, text, ...kids) => { const e = doc.createElement(tag); if (text !== undefined) e.textContent = text; e.append(...kids); return e; };
+    const cell = (tag, text) => el(tag, text);
+    const tbody = el('tbody');
+    for (let i = 0; i < n; i++) tbody.append(el('tr', undefined, el('td', undefined, el('code', `SKU-${i}`)), cell('td', `Title of product ${i}`), cell('td', 'Active'), cell('td', `$${(i % 90) + 9}.99`)));
+    const grid = el('table', undefined, el('thead', undefined, el('tr', undefined, ...['SKU', 'Title', 'Status', 'Price'].map(x => cell('th', x)))), tbody);
+    const pkTable = doc.createElement('pk-table'); pkTable.setAttribute('density', 'compact'); pkTable.append(grid);
     const t0 = performance.now();
-    host.innerHTML = `<pk-table density="compact"><table><thead><tr><th>SKU</th><th>Title</th><th>Status</th><th class="num">Price</th></tr></thead><tbody>${rows}</tbody></table></pk-table>`;
+    host.append(pkTable);
     host.offsetHeight; // force layout
     doc.defaultView.getComputedStyle(host.querySelector('tbody tr:last-child td')).color;
     const ms = performance.now() - t0;

@@ -337,91 +337,11 @@
       "fingerprint": "ee1a503dd3c512e1"
     },
     {
-      "rule": "S3",
-      "file": "core/modules/scorecard/measure.js",
-      "fingerprint": "9faae848bad66f0b"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/measure.js",
-      "fingerprint": "9faae848bad66f0b"
-    },
-    {
-      "rule": "S5",
-      "file": "core/modules/scorecard/measure.js",
-      "fingerprint": "b3b97b499975fc6a"
-    },
-    {
-      "rule": "S1",
-      "file": "core/modules/scorecard/scorecard.css",
-      "fingerprint": "2fdfb954de400f44"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/scorecard/scorecard.css",
-      "fingerprint": "5d576f2d8df4b589"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "68b7826634c2f9ea"
     },
     {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "a1283ff4af8becfe"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "5240b69f304a7270"
-    },
-    {
       "rule": "S5",
       "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "e341df6d657a4165"
@@ -454,27 +374,7 @@
     {
       "rule": "S5",
       "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "bb3404a159d5eb19"
-    },
-    {
-      "rule": "S5",
-      "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "e341df6d657a4165"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "54dfc1b2c29e5fba"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "54dfc1b2c29e5fba"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/scorecard/sections.js",
-      "fingerprint": "fc94288deb9c287f"
     },
     {
       "rule": "S3",
@@ -2070,11 +1970,6 @@
       "rule": "S7",
       "file": "core/site/layout-builder/layout-builder.js",
       "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "a22efeff1024cbb1"
     },
     {
       "rule": "S1",
