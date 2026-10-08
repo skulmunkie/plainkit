@@ -313,6 +313,16 @@ export const overlaysCases = [
         el.busy = false; await t.settle(); t.ok(!el.part('content').inert);
     }],
 
+    ['loading overlay: delay keeps a fast action from flashing it, and min-time keeps it from flickering (the one busy rule)', async t => {
+        const el = await t.mount('<pk-loading-overlay delay="60" min-time="150" label="Loading"><button>Inside</button></pk-loading-overlay>');
+        const shown = () => getComputedStyle(el.part('overlay')).display === 'flex', wait = ms => new Promise(r => setTimeout(r, ms));
+        el.busy = true; await wait(10); t.ok(!shown(), 'not shown inside the delay'); t.ok(el.hasAttribute('aria-busy') && el.part('content').hasAttribute('aria-busy'), 'aria-busy follows busy at once'); t.ok(!el.part('content').inert);
+        el.busy = false; await wait(120); t.ok(!shown(), 'a fast action never flashes it'); t.ok(!el.hasAttribute('aria-busy'));
+        el.busy = true; await wait(110); t.ok(shown() && el.part('content').inert, 'shown after the delay, content inert');
+        el.busy = false; await wait(20); t.ok(shown(), 'stays for the minimum time'); await wait(200); t.ok(!shown() && !el.part('content').inert, 'hidden after it');
+        el.busy = true; await wait(110); el.busy = false; await wait(20); el.busy = true; await wait(250); t.ok(shown(), 'busy again during the hold keeps it shown');
+    }],
+
     ['loading overlay: the label sits on a solid panel over a strong scrim, in view, for short and tall regions (issue 374)', async t => {
         const rgba = c => { const m = /(-?[\d.]+)[ ,]+(-?[\d.]+)[ ,]+(-?[\d.]+)(?:\s*[,/]\s*([\d.]+))?\)/.exec(c); const k = c.startsWith('color(') ? 255 : 1; return m && { r: m[1] * k, g: m[2] * k, b: m[3] * k, a: m[4] === undefined ? 1 : +m[4] }; };
         const lum = ({ r, g, b }) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
@@ -647,13 +657,13 @@ export const overlaysCases = [
         const same = () => { const r = body.getBoundingClientRect(); return r.x === before.x && r.y === before.y && r.width === before.width && r.height === before.height; };
         t.ok(same(), 'wrapping does not move the body');
         const fast = page.begin('Quick'); await wait(20); t.eq(body.getAttribute('aria-busy'), 'true'); fast(); await wait(140);
-        t.ok(!ov.busy && getComputedStyle(ov.part('overlay')).display === 'none', 'an action shorter than the delay never shows the overlay'); t.ok(!body.hasAttribute('aria-busy'));
-        const slow = page.begin('Saving <b>x</b>'); await wait(30); t.ok(!ov.busy, 'not yet, inside the delay');
-        await wait(90); t.ok(ov.busy, 'shown after the delay'); t.eq(getComputedStyle(ov.part('overlay')).display, 'flex');
+        t.ok(getComputedStyle(ov.part('overlay')).display === 'none', 'an action shorter than the delay never shows the overlay'); t.ok(!body.hasAttribute('aria-busy'));
+        const slow = page.begin('Saving <b>x</b>'); await wait(30); t.ok(getComputedStyle(ov.part('overlay')).display === 'none', 'not yet, inside the delay');
+        await wait(90); t.ok(getComputedStyle(ov.part('overlay')).display === 'flex', 'shown after the delay'); t.eq(getComputedStyle(ov.part('overlay')).display, 'flex');
         t.eq(ov.part('label').textContent, 'Saving <b>x</b>', 'the label is text'); t.eq(ov.part('label').children.length, 0);
         t.ok(ov.part('overlay').getAttribute('aria-live') === 'polite' && ov.part('overlay').getAttribute('role') === 'status', 'announced politely');
         t.ok(same(), 'showing the overlay moves nothing');
-        slow(); await wait(20); t.ok(ov.busy, 'still shown inside the minimum time'); await wait(260); t.ok(!ov.busy, 'hidden after the minimum time');
+        slow(); await wait(20); t.ok(getComputedStyle(ov.part('overlay')).display === 'flex', 'still shown inside the minimum time'); await wait(260); t.ok(getComputedStyle(ov.part('overlay')).display === 'none', 'hidden after the minimum time');
         await wait(50); po.disconnect(); t.ok(cls < 0.001, `layout shift while the overlay showed and hid: ${cls}`);
         page.destroy(); t.ok(body.parentElement === host.firstElementChild, 'destroy puts the body back'); t.ok(!host.querySelector('pk-loading-overlay'));
     }],

@@ -246,31 +246,32 @@ function ownedDom() {
     return { root, body };
 }
 
-test('framework-owned overlay: wraps body once, shows only after the delay, keeps the minimum time, sets aria-busy, unwraps on destroy', async () => {
+test('framework-owned overlay: wraps body once, hands it the delay and minimum time, follows busy, sets aria-busy, unwraps on destroy', () => {
     const { root, body } = ownedDom();
     const page = createPage({ body, delay: 40, minTime: 80 });
     const ov = root.children[0];
     assert.equal(ov.localName, 'pk-loading-overlay');
     assert.equal(ov.children[0], body);
-    const end = page.begin('Fast');
+    assert.deepEqual([ov.delay, ov.minTime], [40, 80], 'the timing rule belongs to the overlay element: the page only passes the numbers (pk-loading-overlay delay and min-time)');
+    const end = page.begin('Slow & <b>bold</b>');
     assert.equal(body.attrs['aria-busy'], 'true');
-    assert.notEqual(ov.busy, true);
-    await sleep(10); end();
-    await sleep(60);
-    assert.notEqual(ov.busy, true, 'no flash for an action under the delay');
-    assert.equal(body.attrs['aria-busy'], undefined);
-    const end2 = page.begin('Slow & <b>bold</b>');
-    await sleep(60);
-    assert.equal(ov.busy, true);
+    assert.equal(ov.busy, true, 'busy follows the tokens at once: the element delays the overlay itself');
     assert.equal(ov.label, 'Slow & <b>bold</b>', 'the label is handed over as text');
+    const end2 = page.begin('Overlap'); end();
+    assert.equal(ov.busy, true); assert.equal(ov.label, 'Overlap');
     end2();
-    assert.equal(ov.busy, true, 'still shown right after it ended (minimum time)');
-    await sleep(120);
-    assert.equal(ov.busy, false);
-    const e3 = page.begin('Again'); await sleep(60); assert.equal(ov.busy, true);
-    e3(); const e4 = page.begin('Overlap'); await sleep(120); assert.equal(ov.busy, true, 'a new action during the hold keeps it shown'); e4();
+    assert.equal(ov.busy, false); assert.equal(body.attrs['aria-busy'], undefined);
     page.destroy();
     assert.equal(root.children[0], body, 'destroy puts the body back');
+});
+
+test('the default delay and minimum time of a page-owned overlay are 150 and 300 ms; a host-placed overlay gets none', () => {
+    const { root, body } = ownedDom();
+    const owned = createPage({ body }), ov = root.children[0];
+    assert.deepEqual([ov.delay, ov.minTime], [150, 300]);
+    const mine = new El('pk-loading-overlay'); createPage({ overlay: mine });
+    assert.deepEqual([mine.delay, mine.minTime], [0, 0]);
+    owned.destroy();
 });
 
 test('fullscreen (app scope) creates a fullscreen overlay on the document body and removes it on destroy', () => {

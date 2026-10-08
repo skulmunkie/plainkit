@@ -39,7 +39,7 @@
     "DevTools/PkSnapshot.cs": 132,
     "DevTools/PkSourceProvider.cs": 16,
     "EndpointExtensions.cs": 14,
-    "PageBase.cs": 215,
+    "PageBase.cs": 149,
     "PkAppBarSearchTypes.cs": 19,
     "PkAssets.cs": 114,
     "PkCallbackSlot.cs": 77,
@@ -91,11 +91,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkRecordForm.razor",
       "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
-    },
-    {
-      "rule": "state-machine",
-      "file": "PageBase.cs",
-      "reason": "busy delay and minimum time duplicate the rule in js/page.js; one rule in core (#801 section 2.3)"
     }
   ]
 }

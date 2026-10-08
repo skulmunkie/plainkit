@@ -16,6 +16,20 @@
       "prop": "label"
     },
     {
+      "name": "Delay",
+      "type": "int",
+      "default": 0,
+      "map": "prop",
+      "prop": "delay"
+    },
+    {
+      "name": "MinTime",
+      "type": "int",
+      "default": 0,
+      "map": "prop",
+      "prop": "minTime"
+    },
+    {
       "name": "Fullscreen",
       "type": "bool",
       "default": false,
