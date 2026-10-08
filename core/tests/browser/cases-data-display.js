@@ -630,6 +630,19 @@ export const dataDisplayCases = [
         const m = await t.mount('<pk-field-list><dt>A</dt><dd>B</dd></pk-field-list>'); t.ok(m.part('heading').hidden);
     }],
 
+    ['field-list: a slotted dt/dd pair with an empty dd hides itself, shows again when a value appears, and showEmpty keeps it (issue 801)', async t => {
+        const l = await t.mount('<pk-field-list><dt id="a">Number</dt><dd id="b">AC-1</dd><dt id="c">Note</dt><dd id="d"></dd><dt id="e">Tag</dt><dd id="f"><span>x</span></dd></pk-field-list>');
+        t.ok(!l.querySelector('#a').hidden && !l.querySelector('#b').hidden, 'a pair with a value shows');
+        t.ok(l.querySelector('#c').hidden && l.querySelector('#d').hidden, 'a pair with an empty dd is hidden together');
+        t.ok(!l.querySelector('#e').hidden, 'a dd holding an element is not empty');
+        t.eq(l.querySelector('#c').getBoundingClientRect().height, 0, 'and takes no room');
+        l.querySelector('#d').textContent = 'later'; await t.settle(); await new Promise(r => setTimeout(r, 50));
+        t.ok(!l.querySelector('#c').hidden && !l.querySelector('#d').hidden, 'a value that arrives shows the pair again');
+        l.querySelector('#d').textContent = ''; await t.settle(); await new Promise(r => setTimeout(r, 50));
+        t.ok(l.querySelector('#c').hidden, 'and emptying it hides it again');
+        l.showEmpty = true; await t.settle(); t.ok(!l.querySelector('#c').hidden, 'showEmpty keeps empty pairs');
+    }],
+
     ['field-list: a page re-flows the columns through --pk-field-list-columns without touching the shadow root', async t => {
         const l = await t.mount('<pk-field-list><dt>A</dt><dd>B</dd></pk-field-list>');
         const cols = () => getComputedStyle(l.part('list')).gridTemplateColumns.split(' ').length;

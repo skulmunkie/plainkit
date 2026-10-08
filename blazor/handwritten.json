@@ -42,9 +42,6 @@
     "Components/PkFieldGroup.razor": {
       "category": "debt"
     },
-    "Components/PkFieldListRow.razor": {
-      "category": "debt"
-    },
     "Components/PkGallery.razor": {
       "category": "wrapper"
     },
