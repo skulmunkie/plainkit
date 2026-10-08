@@ -42,13 +42,13 @@
     "Components/PkFieldGroup.razor": {
       "category": "debt"
     },
-    "Components/PkFieldListRow.razor": {
-      "category": "debt"
-    },
     "Components/PkGallery.razor": {
       "category": "wrapper"
     },
     "Components/PkListPage.razor": {
+      "category": "typed-generics"
+    },
+    "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
     },
     "Components/PkLogs.razor": {

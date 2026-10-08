@@ -7,12 +7,32 @@ export function rowVisible(item, showEmpty) {
     return showEmpty || !empty;
 }
 
+// A slotted dt whose dd (every dd up to the next dt) has no element and no text is an empty pair (issue 801: an optional row that hides itself). Pure over a list of elements.
+export function emptyPairs(children) {
+    const out = []; let dt = null, dds = [];
+    const close = () => { if (dt && dds.length && dds.every(d => !d.children.length && !d.textContent.trim())) out.push(dt, ...dds); };
+    for (const c of children) { if (c.localName === 'dt') { close(); dt = c; dds = []; } else if (c.localName === 'dd') dds.push(c); }
+    close();
+    return out;
+}
+
 export default Base => class extends Base {
-    connected() { this.watchSlot('heading', () => this.requestUpdate()); }
+    connected() {
+        this.watchSlot('heading', () => this.requestUpdate()); this.watchSlot('', () => this.requestUpdate());
+        this.$mo ??= new MutationObserver(() => this.requestUpdate());
+        this.$mo.observe(this, { childList: true, subtree: true, characterData: true });
+    }
+    disconnected() { this.$mo?.disconnect(); }
     changed(name) { if (name === 'items' || name === 'showEmpty') this.requestUpdate(); }
     updated() {
         this.part('heading').hidden = !this.heading && this.slotted('heading').length === 0;
         this.paint();
+        this.prune();
+    }
+    // Hides the slotted dt/dd pairs with nothing to show, unless showEmpty is set; only a hidden attribute this element set is ever taken off again.
+    prune() {
+        const empty = new Set(this.showEmpty ? [] : emptyPairs(this.slotted()));
+        for (const c of this.slotted()) { if (empty.has(c)) { if (!c.hidden) { c.hidden = true; (this.$hid ??= new Set()).add(c); } } else if (this.$hid?.delete(c)) c.hidden = false; }
     }
     // Renders items into the shadow dt/dd pairs alongside the slot; slotted dt/dd keep working unchanged. Text only: values are set with
     // textContent, never parsed as markup, so a strict module (no dt/dd it can write) still gets a real description list.

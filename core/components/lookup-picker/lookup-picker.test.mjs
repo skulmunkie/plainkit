@@ -2,7 +2,7 @@
 // is labelled from selectedLabels or resolve(keys) without a refetch, and open/close raise the toggle event once.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour, { labelOf, labelMap, rowStep } from './lookup-picker.js';
+import behaviour, { labelOf, labelMap, rowStep, limitSelection } from './lookup-picker.js';
 
 globalThis.document ??= undefined;
 
@@ -68,7 +68,7 @@ test('a rejected resolve warns once and can be asked again', async () => {
     const { el } = make({ resolve: async () => { throw new Error('nope'); } });
     el.labelFor('3');
     await new Promise(r => setTimeout(r, 5));
-    assert.match(el.warned, /nope/); assert.equal(el.$asked, null);
+    assert.match(el.warned, /nope/); assert.equal(el.$asked.size, 0, 'the key can be asked again');
 });
 
 test('mirror raises the toggle event only when the state changes, and a pick closes the popup and returns focus to the field', () => {
@@ -79,4 +79,18 @@ test('mirror raises the toggle event only when the state changes, and a pick clo
     assert.equal(events.filter(e => e.name === 'pk-lookup-toggle').length, 2);
     el.mirror(true); el.pick({ id: '1', row: { id: 1, name: 'A' } });
     assert.ok(parts.control.focused, 'focus returns to the field');
+});
+
+test('limitSelection keeps the previous selection when the next would pass max, and 0 means no limit', () => {
+    assert.deepEqual(limitSelection(['a'], ['a', 'b'], 2), { values: ['a', 'b'], refused: false });
+    assert.deepEqual(limitSelection(['a', 'b'], ['a', 'b', 'c'], 2), { values: ['a', 'b'], refused: true });
+    assert.deepEqual(limitSelection([], ['a', 'b', 'c'], 0), { values: ['a', 'b', 'c'], refused: false });
+});
+
+test('keys without a label go to one resolve call, each key asked once' , async () => {
+    const calls = [], { el } = make({ resolve: async keys => { calls.push(keys); return { a: 'A', b: 'B' }; } });
+    el.labelFor('a'); el.labelFor('b'); el.labelFor('a');
+    await new Promise(r => setTimeout(r, 5));
+    assert.deepEqual(calls, [['a', 'b']]);
+    assert.equal(el.labelFor('b'), 'B');
 });
