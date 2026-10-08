@@ -48,12 +48,12 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         // A config that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
-        if (name === 'config') { if (!this.$touched) this.$query = null; this.buildFilters(); this.refresh(); }
+        if (name === 'config') { const s = this.config?.search ?? ''; if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); this.refresh(); }
         else this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
-    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.config?.pageSize || 25, sort: this.config?.sort ?? null, sortDir: this.config?.sortDir ?? 'ascending', search: '', filters: {} }) }; }
+    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.config?.pageSize || 25, sort: this.config?.sort ?? null, sortDir: this.config?.sortDir ?? 'ascending', search: this.config?.search ?? '', filters: {} }) }; }
 
     announce() { this.emit('pk-select', { selected: [...(this.selected ?? [])], scope: this.selectScope, query: this.query }); }
 
@@ -79,6 +79,7 @@ export default Base => class extends Base {
         // The labels and inputs of the parts, from config (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
         filters.label = c.searchLabel ?? 'Search'; filters.debounce = c.searchDebounce ?? 250; filters.toggleAttribute('data-nosearch', c.searchable === false);
         pagination.sizes = c.pageSizeOptions ?? []; pagination.label = c.pagerLabel ?? 'Pagination';
+        if ((c.search ?? '') !== this.$seed) filters.value = this.$seed = c.search ?? '';
         table.label = c.label ?? ''; table.caption = c.caption ?? '';
         table.columns = this.config?.columns ?? [];
         table.rowKey = this.rowKey;
@@ -89,7 +90,7 @@ export default Base => class extends Base {
         table.selectable = this.selectable;
         table.selected = this.selected ?? [];
         table.selectScope = this.selectScope;
-        for (const k of ['cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
+        for (const k of ['selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
     // Zero rows: while a search or filter is active config.noResults (when set), else config.empty; with nothing active a host child in the `empty` slot replaces the built-in state.

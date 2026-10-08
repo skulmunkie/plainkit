@@ -9,12 +9,18 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Not a parameter of the component: PkDataTable<TItem> builds the config JSON ({ columns, pageSize, pageSizeOptions, sort, sortDir, searchable, searchLabel, searchDebounce, pagerLabel, label, caption, empty, noResults, loadError }) from its typed parameters (Columns, PageSize, SortKey, Descending, Searchable, SearchPlaceholder, SearchLabel, SearchDebounceMs, PagerLabel, Label, Caption, EmptyText, NoResultsText, LoadErrorText)."
+      "note": "Not a parameter of the component: PkDataTable<TItem> builds the config JSON ({ columns, pageSize, pageSizeOptions, sort, sortDir, searchable, search, searchLabel, searchDebounce, pagerLabel, label, caption, empty, noResults, loadError }) from its typed parameters (Columns, PageSize, SortKey, Descending, Searchable, Search, SearchPlaceholder, SearchLabel, SearchDebounceMs, PagerLabel, Label, Caption, EmptyText, NoResultsText, LoadErrorText)."
     },
     {
       "name": "Selectable",
       "prop": "selectable",
       "type": "bool"
+    },
+    {
+      "name": "SelectPageOnly",
+      "prop": "selectPageOnly",
+      "type": "bool",
+      "note": "Suppresses the Select all N rows offer; the header checkbox still selects the page and SelectScope stays page."
     },
     {
       "name": "RowKey",
