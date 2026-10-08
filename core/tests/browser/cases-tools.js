@@ -32,8 +32,9 @@ export const toolCases = [
         const hl = () => el.querySelector('pk-code-view')?.shadowRoot?.querySelector('.row.hl');
         await until(hl, 'the opened file');
         t.eq(hl().querySelector('.code').textContent.trim(), 'return 42;', 'the requested line is focused');
-        await until(() => el.querySelector('.csr-hit'), 'the search results');
-        t.eq(el.querySelectorAll('.csr-hit').length, 1);
+        const hits = () => el.querySelectorAll('pk-list-group > button[data-path]');
+        await until(() => hits().length, 'the search results');
+        t.eq(hits().length, 1);
         await handle.search('nothing-matches-this'); await t.settle();
         t.ok(/No matches/.test(el.textContent));
         handle.destroy(); t.ok(!host.contains(el));

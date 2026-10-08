@@ -242,7 +242,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: pages and searches through load(query), keeps the selection across pages, offers Select all N rows, and a new search narrows scope all back to page (#801)', async t => {
-        const el = await t.mount(`<pk-data-table selectable config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table selectable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [], events = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.addEventListener('pk-select', e => events.push(e.detail));
@@ -265,8 +265,8 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
-    ['data-table: config.search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5,"searchDebounce":20,"search":"SKU-3"}'></pk-data-table>`);
+    ['data-table: search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" search-debounce="20" search="SKU-3"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.refresh();
@@ -277,7 +277,7 @@ export const dataDisplayCases = [
         await until(() => queries.at(-1).page === 2, 'page two of the preset search'); t.eq(queries.at(-1).search, 'SKU-3', 'paging keeps the term');
         box().value = 'SKU-1'; box().dispatchEvent(new Event('input', { bubbles: true }));
         await until(() => queries.at(-1).search === 'SKU-1', 'typing replaces the preset'); t.eq(queries.at(-1).page, 1);
-        el.config = { ...el.config, search: 'SKU-2' };
+        el.search = 'SKU-2';
         await until(() => queries.at(-1).search === 'SKU-2' && box().value === 'SKU-2', 'the host changed the term: the query and the box follow'); t.eq(queries.at(-1).page, 1);
     }],
 
@@ -292,16 +292,16 @@ export const dataDisplayCases = [
         add.click(); await t.settle(); t.eq(added, 1, 'one pk-add per press');
     }],
 
-    ['data-table: plain props (no config) set the columns, page size, labels, search term and empty states, and win over config (#805)', async t => {
-        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}' config='{"pageSize":50,"label":"From config","caption":"From config"}'></pk-data-table>`);
+    ['data-table: plain props set the columns, page size, labels, search term and empty states (#805)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}'></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.refresh();
         const box = () => el.part('filters').shadowRoot.querySelector('[part="search"]'), rowsShown = () => el.part('table').shadowRoot.querySelectorAll('tbody tr').length;
         await until(() => rowsShown() === 5, 'the first page of five');
-        t.eq(queries[0].pageSize, 5, 'page-size beats config.pageSize'); t.eq(queries[0].search, 'SKU-3', 'the first load carries the term');
+        t.eq(queries[0].pageSize, 5, 'page-size sets the first page size'); t.eq(queries[0].search, 'SKU-3', 'the first load carries the term');
         t.eq(box().value, 'SKU-3'); t.eq(box().getAttribute('aria-label'), 'Find SKU', 'search-label names the box');
-        t.eq(el.part('table').label, 'SKUs', 'label beats config.label'); t.eq(el.part('table').caption, 'All SKUs');
+        t.eq(el.part('table').label, 'SKUs', 'label names the table'); t.eq(el.part('table').caption, 'All SKUs');
         t.eq(el.part('pagination').label, 'SKU pages'); t.eq(el.part('pagination').sizes.join(), '5,10');
         box().value = 'nothing-like-this'; box().dispatchEvent(new Event('input', { bubbles: true }));
         await until(() => queries.at(-1).search === 'nothing-like-this', 'a search that matches nothing');
@@ -317,7 +317,7 @@ export const dataDisplayCases = [
         r.querySelector('[data-select-all]').click(); await t.settle();
         t.eq(el.selected.length, 3, 'the page is selected'); t.ok(btn().hidden, 'no Select all offer although the query has more rows'); t.eq(el.selectScope, 'page');
         el.selectPageOnly = false; await t.settle(); t.ok(!btn().hidden, 'without it the offer shows (the default is unchanged)');
-        const dt = await t.mount(`<pk-data-table selectable select-page-only config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        const dt = await t.mount(`<pk-data-table selectable select-page-only columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         dt.load = async q => ({ rows: Array.from({ length: 5 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), total: 40 });
         dt.refresh();
         const table = dt.part('table');
@@ -328,7 +328,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: the search box keeps focus and its text across the debounce and the load, and a search with no results keeps the toolbar with a clearable search (#836)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"searchDebounce":20,"noResults":{"heading":"Nothing matches"}}'><pk-button slot="actions" id="add">Add</pk-button></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' search-debounce="20" no-results='{"heading":"Nothing matches"}'><pk-button slot="actions" id="add">Add</pk-button></pk-data-table>`);
         const all = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
         el.load = async q => { queries.push(q.search); await wait(120); const rows = all.filter(r => r.sku.includes(q.search)); return { rows, total: rows.length }; };
         el.refresh();
@@ -352,7 +352,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: a page past the last one (rows deleted) settles on the last page with one more load, and total 0 still shows the empty state (#829)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":5}'></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         let n = 12; const pages = [];
         el.load = async q => { pages.push(q.page); const rows = Array.from({ length: n }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })).slice((q.page - 1) * q.pageSize, q.page * q.pageSize); return { rows, total: n }; };
         el.refresh();
@@ -369,7 +369,7 @@ export const dataDisplayCases = [
         await until(() => table.hidden && el.part('state').children.length > 0, 'total 0 shows the empty state'); t.eq(pages.at(-1), 2, 'no further correction');
     }],
     ['data-table: cell-<id>-<key> slots reach the inner table cell (also one added later), and column align and hidePhone pass through (#817)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"},{"key":"note","label":"Note","hidePhone":true}]}'><b slot="cell-1-sku">Custom one</b></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"},{"key":"note","label":"Note","hidePhone":true}]'><b slot="cell-1-sku">Custom one</b></pk-data-table>`);
         el.load = async () => ({ rows: [{ id: 1, sku: 'A', qty: 3, note: 'n' }, { id: 2, sku: 'B', qty: 4, note: 'm' }], total: 2 });
         el.refresh();
         const root = el.part('table').shadowRoot, td = (id, key) => root.querySelector(`tbody tr[data-pk-context="${id}"] td[data-key="${key}"]`);
@@ -383,7 +383,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: clickable rows are tab stops, Enter or a click raises pk-row-click on the host with the row id, and currentRow marks the open row (#817)', async t => {
-        const el = await t.mount(`<pk-data-table clickable current-row="2" config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table clickable current-row="2" columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`);
         el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
         el.refresh();
         const root = el.part('table').shadowRoot, rows = () => [...root.querySelectorAll('tbody tr')];
@@ -396,9 +396,10 @@ export const dataDisplayCases = [
         el.currentRow = '1'; await until(() => rows()[0].hasAttribute('aria-current') && !rows()[1].hasAttribute('aria-current'), 'the mark to follow currentRow');
     }],
 
-    ['data-table: config sets the initial sort, page size options, pager/search/table labels and the caption, and searchable false hides the search box (#817)', async t => {
+    ['data-table: plain props set the initial sort, page size options, pager/search/table labels and the caption, and hide-search hides the search box (#817)', async t => {
         const cfg = { columns: [{ key: 'sku', label: 'SKU', sortable: true }], sort: 'sku', sortDir: 'descending', pageSizeOptions: [5, 10], pagerLabel: 'Order pages', searchLabel: 'Find orders', searchDebounce: 20, label: 'Orders', caption: 'All orders' };
-        const el = await t.mount(`<pk-data-table config='${JSON.stringify(cfg)}'></pk-data-table>`), queries = [];
+        const el = await t.mount(`<pk-data-table></pk-data-table>`), queries = [];
+        Object.assign(el, cfg);
         el.load = async q => { queries.push(q); return { rows: [{ id: 1, sku: 'A' }], total: 30 }; };
         el.refresh();
         const root = el.part('table').shadowRoot, pager = el.part('pagination').shadowRoot, search = () => el.part('filters').shadowRoot.querySelector('[part="search"]');
@@ -410,11 +411,11 @@ export const dataDisplayCases = [
         const sel = pager.querySelector('[part="size-select"]'); t.eq([...sel.options].map(o => o.value).join(), '5,10', 'the page size options');
         t.eq(search().getAttribute('aria-label'), 'Find orders'); t.eq(search().placeholder, 'Find orders');
         t.ok(search().getBoundingClientRect().width > 0, 'the search box shows');
-        el.config = { ...cfg, searchable: false }; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
+        el.hideSearch = true; await until(() => search().getBoundingClientRect().width === 0, 'the search box to hide');
     }],
 
     ['data-table: the empty slot replaces the built-in empty state (not while searching), loadError words the error and pk-load-error reaches the host (#817)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}],"noResults":{"heading":"Nothing matches"},"loadError":"Orders failed"}'><p slot="empty" id="mine">Add your first order</p></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' no-results='{"heading":"Nothing matches"}' load-error="Orders failed"><p slot="empty" id="mine">Add your first order</p></pk-data-table>`);
         let mode = 'none'; const errs = [];
         el.load = async () => { if (mode === 'fail') throw new Error('Server said no'); return { rows: [], total: 0 }; };
         el.addEventListener('pk-load-error', e => errs.push(e.detail.error.message));
@@ -431,7 +432,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: bulk slot content shows in the selection bar beside the count, only while rows are selected (#817)', async t => {
-        const el = await t.mount(`<pk-data-table selectable config='{"columns":[{"key":"sku","label":"SKU"}]}'><button slot="bulk" id="del">Delete</button></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table selectable columns='[{"key":"sku","label":"SKU"}]'><button slot="bulk" id="del">Delete</button></pk-data-table>`);
         el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
         el.refresh();
         const root = el.part('table').shadowRoot, bar = () => root.querySelector('[part="bulk"]'), btn = el.querySelector('#del');
@@ -444,7 +445,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: load receives an AbortSignal, a newer query aborts the request in flight, and the aborted one draws no error (#817)', async t => {
-        const el = await t.mount(`<pk-data-table config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-data-table>`), signals = [], errs = [];
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`), signals = [], errs = [];
         el.addEventListener('pk-load-error', () => errs.push(1));
         el.load = (q, { signal }) => new Promise((ok, no) => { signals.push(signal); signal.addEventListener('abort', () => no(signal.reason)); if (q.search) ok({ rows: [{ id: 1, sku: 'A' }], total: 1 }); });
         el.refresh();
@@ -456,7 +457,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: striped, density, cards, maxHeight and stickyHeader reach the table; maxHeight makes the rows scroll inside it and the header sticks (#817)', async t => {
-        const el = await t.mount(`<pk-data-table striped cards density="compact" max-height="8rem" sticky-header config='{"columns":[{"key":"sku","label":"SKU"}],"pageSize":20}'></pk-data-table>`);
+        const el = await t.mount(`<pk-data-table striped cards density="compact" max-height="8rem" sticky-header columns='[{"key":"sku","label":"SKU"}]' page-size="20"></pk-data-table>`);
         el.load = async () => ({ rows: Array.from({ length: 20 }, (_, i) => ({ id: i + 1, sku: `S${i}` })), total: 20 });
         el.refresh();
         const tb = el.part('table'), scroll = () => tb.shadowRoot.querySelector('[part="scroll"]');
@@ -471,7 +472,7 @@ export const dataDisplayCases = [
     ['data-table: an error shows pk-alert with Retry, which loads again; zero rows show the configured empty state (#801)', async t => {
         const el = await t.mount('<pk-data-table></pk-data-table>');
         let n = 0;
-        el.config = { columns: JSON.parse(cols), empty: { heading: 'Nothing here' } };
+        el.columns = JSON.parse(cols); el.empty = { heading: 'Nothing here' };
         el.load = async () => { if (++n === 1) throw new Error('Server said no'); return n === 2 ? { rows: [], total: 0 } : { rows: [{ id: 1, sku: 'A' }], total: 1 }; };
         el.refresh();
         const alert = await until(() => el.part('state').querySelector('pk-alert'), 'the error alert');
@@ -692,6 +693,25 @@ export const dataDisplayCases = [
     ['list-group: rows become list items and an actionable row marks the current one', async t => {
         const el = await t.mount('<pk-list-group variant="action" label="Go"><a href="#a">A</a><a href="#b" aria-current="page">B</a></pk-list-group>');
         t.eq(el.internals.role, 'list'); t.ok([...el.children].every(c => c.getAttribute('role') === 'listitem'));
+    }],
+
+    ['list-group dense: rows sit at text height with their children inline from the start and an indent step per depth, and a 375px phone still gets the touch target', async t => {
+        const markup = '<pk-list-group variant="action" dense label="Outline"><button type="button"><span>a</span><span>1</span></button><button type="button" data-depth="1">b</button><button type="button" data-depth="3">c</button></pk-list-group>';
+        const el = await t.mount(markup);
+        const rows = [...el.children], rect = n => n.getBoundingClientRect();
+        t.ok(rows.every(r => rect(r).height < 44), `dense rows are under the 44px touch target on desktop (${rect(rows[0]).height}px)`);
+        const kids = [...rows[0].children];
+        t.ok(rect(kids[1]).left - rect(kids[0]).right < 40, 'the children sit together from the start, not pushed apart');
+        const pad = r => parseFloat(getComputedStyle(r).paddingInlineStart);
+        t.ok(pad(rows[1]) > pad(rows[0]) && pad(rows[2]) > pad(rows[1]), 'data-depth indents each step further');
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '240px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc(markup); await loaded;
+        const lg = await until(() => { const g = f.contentDocument.querySelector('pk-list-group'); return g?.shadowRoot && f.contentWindow.customElements.get('pk-list-group') && g; }, 'the list group');
+        await wait(100);
+        t.ok([...lg.children].every(r => r.getBoundingClientRect().height >= 44), 'on a phone every dense actionable row keeps the 44px touch target');
     }],
 
     ['accordion-item: an actions button is outside the summary and does not toggle', async t => {

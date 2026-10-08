@@ -48,32 +48,60 @@
       "description": "The key (rowKey field) of the chosen row; what the form submits. A form reset sets it back to its initial value silently, as a native control does."
     },
     {
-      "name": "config",
-      "type": "json",
-      "default": {},
-      "reflect": false,
-      "description": "The older way to set the popup table in one JSON object (plain props columns, pageSize and searchLabel win over their keys once set). As pk-data-table's: { columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel? }. columns is required for the table to show anything."
-    },
-    {
       "name": "columns",
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The popup table's column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). Empty uses config.columns; one of them is required for the table to show anything."
+      "description": "The popup table's column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). Required for the table to show anything."
     },
     {
       "name": "pageSize",
       "type": "number",
       "default": 25,
       "reflect": false,
-      "description": "The popup table's page size (initial only). A plain prop wins over the same key of config once it differs from its default; config stays as the fallback."
+      "description": "The popup table's page size (initial only)."
     },
     {
       "name": "searchLabel",
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The placeholder and accessible name of the popup's search box (default \"Search <label>\"). A plain prop wins over the same key of config once it differs from its default; config stays as the fallback."
+      "description": "The placeholder and accessible name of the popup's search box (default \"Search <label>\")."
+    },
+    {
+      "name": "searchDebounce",
+      "type": "number",
+      "default": 250,
+      "reflect": false,
+      "description": "Milliseconds the popup's search box waits after the last keystroke before searching."
+    },
+    {
+      "name": "filters",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The popup table's filter fields, as pk-data-table's `filters`: [{ key, label, type?, options? }]."
+    },
+    {
+      "name": "empty",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "{ heading?, description? } the popup shows when a page has zero rows and nothing is searched (pk-data-table's `empty`)."
+    },
+    {
+      "name": "noResults",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "{ heading?, description? } shown instead while a search or filter is active (pk-data-table's `noResults`)."
+    },
+    {
+      "name": "loadError",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The heading of the popup's failed-load message (pk-data-table's `loadError`)."
     },
     {
       "name": "rowKey",
@@ -270,11 +298,11 @@
   "examples": [
     {
       "title": "Customer lookup (set load from script: an inline script cannot run under this site's CSP)",
-      "html": "<pk-lookup-picker label=\"Customer\" placeholder=\"Choose a customer\" label-key=\"name\" config='{\"columns\":[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"city\",\"label\":\"City\"}],\"pageSize\":8}'></pk-lookup-picker>"
+      "html": "<pk-lookup-picker label=\"Customer\" placeholder=\"Choose a customer\" label-key=\"name\" columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"city\",\"label\":\"City\"}]' page-size=\"8\"></pk-lookup-picker>"
     },
     {
       "title": "Several customers (chips; labels for keys that are not on a loaded page come from selected-labels)",
-      "html": "<pk-lookup-picker multiple label=\"Customers\" placeholder=\"Choose customers\" values='[\"C1\",\"C2\",\"C3\"]' selected-labels='{\"C1\":\"Acme Hardware\",\"C2\":\"Globex\",\"C3\":\"Initech\"}' config='{\"columns\":[{\"key\":\"name\",\"label\":\"Name\"}]}'></pk-lookup-picker>"
+      "html": "<pk-lookup-picker multiple label=\"Customers\" placeholder=\"Choose customers\" values='[\"C1\",\"C2\",\"C3\"]' selected-labels='{\"C1\":\"Acme Hardware\",\"C2\":\"Globex\",\"C3\":\"Initech\"}' columns='[{\"key\":\"name\",\"label\":\"Name\"}]'></pk-lookup-picker>"
     }
   ],
   "writes": [
@@ -284,7 +312,7 @@
         "clickable",
         "selected"
       ],
-      "why": "The picker creates the table in its own shadow tree on the first open and drives it (rows clickable or, for multiple, selectable with page-only selection; keyed; its config and a wrapped load). Only clickable and selected are writes the check can see; selected follows values."
+      "why": "The picker creates the table in its own shadow tree on the first open and drives it (rows clickable or, for multiple, selectable with page-only selection; keyed; its columns, page size and a wrapped load). Only clickable and selected are writes the check can see; selected follows values."
     },
     {
       "target": "the text span of the field",

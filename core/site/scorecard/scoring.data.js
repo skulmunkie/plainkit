@@ -126,7 +126,7 @@ export const META_TEXT = [
     [':not(pre) > code', 'inline code is 0.92em of its context'],
     ['th, kbd, time', 'column headers, key caps and timestamps are captions'],
     ['.u-text-xs, .u-text-sm', 'the utilities that set the meta size'],
-    ['.cv-meta, .cv-meta *, .cv-notice, .csr-text, .csr-text *, .csr-no, .co-kind, .co-line', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
+    ['.cv-meta, .cv-meta *, .cv-notice', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
     ['.gx-icon, .gx-icon *, .gx-box *, .gx-z *', 'gallery demo swatches: an icon grid, a box-model and a z-index sample, where the text is a caption for the thing shown'],
 ];
 export const TEXT_TIERS = {

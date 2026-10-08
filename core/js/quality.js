@@ -17,7 +17,7 @@ export const DEFAULTS = Object.freeze({
     minGapPx: 4,                // controls closer than this fail (the --gap-min token wins)
     minPaddingPx: 4,            // text closer than this to the edge of a bordered or filled box fails
     gapTolerancepx: 6,          // gaps within one stack may differ by at most this
-    flush: '.cv-scroll, .cv-row, .input-group, .btn-group, .ft-list, .co, .csr-group, .tabs, .pagination, .list-group, .gal-item, .dg-body, .flyout-panel--docked, .stat-card-value-row, .workspace, .workspace-main, .ft-row, .combo-popup, .tag-input, pk-tree, pk-side-nav, pk-list-group, pk-timeline, pk-stepper, pk-field-list',
+    flush: '.cv-scroll, .cv-row, .input-group, .btn-group, .ft-list,  .tabs, .pagination, .list-group, .gal-item, .dg-body, .flyout-panel--docked, .stat-card-value-row, .workspace, .workspace-main, .ft-row, .combo-popup, .tag-input, pk-tree, pk-side-nav, pk-list-group, pk-timeline, pk-stepper, pk-field-list',
 });
 
 const cssPath = el => {

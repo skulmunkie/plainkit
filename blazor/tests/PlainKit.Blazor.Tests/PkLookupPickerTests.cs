@@ -43,14 +43,15 @@ public sealed class PkLookupPickerTests : BunitContext, IAsyncLifetime
     private object CallbackRef(string name) => _bridge.Invocations["setCallback"].Single(i => (string)i.Arguments[1]! == name).Arguments[2]!;
 
     [Fact]
-    public void It_renders_pk_lookup_picker_with_columns_as_config_and_the_options_as_attributes()
+    public void It_renders_pk_lookup_picker_with_columns_page_size_and_search_label_and_the_options_as_attributes()
     {
         var cut = Render(p => p.Add(x => x.Value, "2").Add(x => x.Name, "customer").Add(x => x.Placeholder, "Choose").Add(x => x.AriaLabel, "Customer").Add(x => x.Required, true)
             .Add(x => x.SelectedLabels, new Dictionary<string, string> { ["2"] = "Globex" }));
         var el = cut.Find("pk-lookup-picker");
-        using var config = JsonDocument.Parse(el.GetAttribute("config")!);
-        Assert.Equal(["Name", "city"], config.RootElement.GetProperty("columns").EnumerateArray().Select(x => x.GetProperty("key").GetString()));
-        Assert.Equal("Search Customer", config.RootElement.GetProperty("searchLabel").GetString());
+        using var columns = JsonDocument.Parse(el.GetAttribute("columns")!);
+        Assert.Equal(["Name", "city"], columns.RootElement.EnumerateArray().Select(x => x.GetProperty("key").GetString()));
+        Assert.Equal("Search Customer", el.GetAttribute("search-label"));
+        Assert.Null(el.GetAttribute("config"));
         Assert.Equal(("2", "customer", "Choose", "Customer", "id", "pkLabel"), (el.GetAttribute("value"), el.GetAttribute("name"), el.GetAttribute("placeholder"), el.GetAttribute("label"), el.GetAttribute("row-key"), el.GetAttribute("label-key")));
         Assert.True(el.HasAttribute("required")); Assert.False(el.HasAttribute("multiple"));
         Assert.Equal("{\"2\":\"Globex\"}", el.GetAttribute("selected-labels"));
