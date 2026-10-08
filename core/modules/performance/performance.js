@@ -12,7 +12,7 @@
 // expose (INP and heap outside Chromium, for one) show a dash rather than a guess.
 
 import { rate, rateFps, fpsFrom, pushSample, clsFrom, inpFrom, longTaskStats, summarizeResources, formatBytes, formatMs, shortName } from '../../js/perf-logic.js';
-import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on, every } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -106,7 +106,7 @@ export async function mountPerformance(container, options = {}) {
     loadElements(root);
 
     const c = collect(win, watched, { history });
-    let timer = 0;
+    let stopTimer = () => {};
     let last = null;
     let rowsKey = '';
 
@@ -138,8 +138,8 @@ export async function mountPerformance(container, options = {}) {
 
     const tick = () => draw(c.sample());
     const paintButton = () => { const on = c.running(); toggle.textContent = on ? 'Pause' : 'Resume'; status.textContent = on ? `Updating every ${interval / 1000} s` : 'Paused'; };
-    function start() { c.start(); win.clearInterval(timer); timer = win.setInterval(tick, interval); paintButton(); }
-    function stop() { c.stop(); win.clearInterval(timer); timer = 0; paintButton(); if (last) draw(last); }
+    function start() { c.start(); stopTimer(); stopTimer = every(win, tick, interval); paintButton(); }
+    function stop() { c.stop(); stopTimer(); stopTimer = () => {}; paintButton(); if (last) draw(last); }
     on(toggle, 'click', () => (c.running() ? stop() : start()));
 
     draw(c.snapshot());
@@ -147,6 +147,6 @@ export async function mountPerformance(container, options = {}) {
     if (autostart) start();
     return {
         start, stop, running: c.running, snapshot: () => c.sample(),
-        destroy() { win.clearInterval(timer); c.destroy(); root.remove(); },
+        destroy() { stopTimer(); c.destroy(); root.remove(); },
     };
 }

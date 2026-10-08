@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h, on as listen } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
@@ -67,7 +67,7 @@ const cap = s => s[0].toUpperCase() + s.slice(1);
 function readStored(key, win) {
     if (!key) return emptyOverrides();
     try {
-        const raw = win.localStorage.getItem(key) ?? '{}';
+        const raw = storedText(win, key) ?? '{}';
         return raw.length > MAX_STORED ? emptyOverrides() : sanitizeOverrides(JSON.parse(raw));
     } catch (error) { log.warn(`the saved theme edits under "${key}" could not be read: starting with none`, error); return emptyOverrides(); }
 }
@@ -95,13 +95,13 @@ export async function mountThemeEditor(container, options = {}) {
     function readSavedThemes() {
         if (!savedKey) return [];
         try {
-            const raw = win.localStorage.getItem(savedKey);
+            const raw = storedText(win, savedKey);
             return raw && raw.length <= MAX_STORED ? readSaved(raw) : [];
         } catch (error) { savedBlocked = true; log.warn(`saved themes could not be read from "${savedKey}" (storage is blocked): starting with none`, error); return []; }
     }
     function writeSavedThemes(list) {
         if (!savedKey) return;
-        try { win.localStorage.setItem(savedKey, serializeSaved(list)); savedBlocked = false; } catch (error) { savedBlocked = true; log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, error); }
+        const failed = storeText(win, savedKey, serializeSaved(list)); savedBlocked = failed !== null; if (failed) { log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, failed); }
     }
 
     // Presets the app supplies, after the built-in ones; a bad one is left out and logged.
@@ -415,7 +415,7 @@ export async function mountThemeEditor(container, options = {}) {
         const { css, rejected } = outputCss();
         applyToTarget(css);
         applyToPreview(css);
-        if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch (error) { log.debug('storage blocked: the edit applies but is not saved', error); }
+        const failed = storageKey ? storeText(win, storageKey, JSON.stringify(state.overrides)) : null; if (failed) log.debug('storage blocked: the edit applies but is not saved', failed);
         paintPairs();
         paintChanges();
         paintExport(css, rejected);
@@ -526,7 +526,7 @@ export async function mountThemeEditor(container, options = {}) {
     async function makeLink() {
         const r = await encodeShare(state.overrides);
         if (r.error) { log.warn(`share refused: ${r.error}`); shareNote('error', r.error); return r; }
-        const url = `${win.location.href.split('#')[0]}#${r.hash}`;
+        const url = `${addressOf(win).href.split('#')[0]}#${r.hash}`;
         linkBox.value = url; linkBox.setAttribute('value', url);
         shareNote('success', `Link ready (${r.hash.length} of 4096 characters${r.compressed ? ', compressed' : ''}).`);
         return { url, hash: r.hash };
@@ -602,7 +602,7 @@ export async function mountThemeEditor(container, options = {}) {
         },
     };
     apply(); paintList(); paintPalette(); paintSaved();
-    if (options.readHash && win.location.hash.includes(`${SHARE_KEY}=`)) await importLink(win.location.hash, true);
+    if (options.readHash && addressOf(win).hash.includes(`${SHARE_KEY}=`)) await importLink(addressOf(win).hash, true);
     return api;
 }
 

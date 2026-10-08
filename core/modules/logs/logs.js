@@ -15,7 +15,7 @@
 
 import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer, createLogger } from '../../js/log.js';
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
-import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on, later, every } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
@@ -118,8 +118,8 @@ export async function mountLogs(container, options = {}) {
         drawScopes();
         if (selected !== null) drawDetail();
     }
-    let queued = 0;
-    const schedule = () => { if (!queued) queued = win.setTimeout(() => { queued = 0; render(); }, 100); };
+    let queued = null;
+    const schedule = () => { if (!queued) queued = later(win, () => { queued = null; render(); }, 100); };
 
     // ---- the feed: the buffer first, then the live sink --------------------------------------------------------------------------
     const add = entry => { entries = pushLog(entries, { ...entry, id: nextId++ }, max); schedule(); };
@@ -145,7 +145,7 @@ export async function mountLogs(container, options = {}) {
         const url = win.URL.createObjectURL(new win.Blob([serializeEntries(shown())], { type: 'application/json' }));
         const a = h(doc, 'a', { href: url, download: `plainkit-log-${new Date().toISOString().replace(/[:.]/g, '-')}.json` });
         doc.body.append(a); a.click(); a.remove();
-        win.setTimeout(() => win.URL.revokeObjectURL(url), 1000);
+        later(win, () => win.URL.revokeObjectURL(url), 1000);
     });
     on(importBtn, 'click', () => file.click());
     on(file, 'change', async () => {
@@ -162,7 +162,7 @@ export async function mountLogs(container, options = {}) {
         render();
     });
     // The console level can change in the Logging panel or in code: the Output column follows within a moment.
-    const timer = win.setInterval(() => { if (!paused && entries.length) render(); }, 3000);
+    const stopTimer = every(win, () => { if (!paused && entries.length) render(); }, 3000);
 
     render();
     const api = {
@@ -178,7 +178,7 @@ export async function mountLogs(container, options = {}) {
             if (typeof next.text === 'string') { text = next.text; search.setAttribute('value', text); }
             render();
         },
-        destroy() { unsink(); win.clearInterval(timer); win.clearTimeout(queued); root.remove(); },
+        destroy() { unsink(); stopTimer(); queued?.(); root.remove(); },
     };
     return api;
 }
