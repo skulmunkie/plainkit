@@ -110,6 +110,9 @@
     "DevTools/PkSnapshot.cs": {
       "category": "devtools"
     },
+    "DevTools/PkSnapshotReader.cs": {
+      "category": "devtools"
+    },
     "DevTools/PkSourceProvider.cs": {
       "category": "devtools"
     },
