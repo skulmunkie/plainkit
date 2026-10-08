@@ -324,6 +324,7 @@ import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
+import { galleryCases } from './cases-gallery.js'; cases.push(...galleryCases);
 import { appShellCases } from './cases-app-shell.js'; cases.push(...appShellCases);
 
 // A property set on an element before its class is defined (the upgrade) is adopted, and reflects to its attribute like an assignment (#325).
