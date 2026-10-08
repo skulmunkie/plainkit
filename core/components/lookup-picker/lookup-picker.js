@@ -33,6 +33,7 @@ const rowsOf =dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody t
 
 export default Base => class extends Base {
     connected() {
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$init) return;
         this.$init = true; this.$initial = this.value; this.$initialValues = [...(this.values ?? [])];
         // The popover and the button of the field (the table waits for the first open). Props are written to the popover only once it is defined:

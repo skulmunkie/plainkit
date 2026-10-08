@@ -26,6 +26,8 @@ const make = () => {
     const events = [];
     const el = new (behaviour(class {
         children = [];
+        hasAttribute() { return false; }
+        warnOnce(key) { (this.warned ??= []).push(key); }
         querySelector(sel) { return this.slotted?.some(s => sel.includes(`"${s}"`)) ? {} : null; }
         part(n) { return parts[n]; }
         get ownerDocument() { return { createElement: fakeEl }; }
@@ -400,6 +402,8 @@ test('an unset prop reads its default; a set one wins (#805)', () => {
 test('there is no config prop: a config set on the element is ignored', () => {
     const { el } = make();
     el.config = { pageSize: 5, columns: [{ key: 'a' }], search: 'x' };
+    el.connected();
+    assert.deepEqual(el.warned, ['config'], 'a leftover config is named once in the console');
     assert.deepEqual(el.query, { page: 1, pageSize: 25, sort: null, sortDir: 'ascending', search: '', filters: {} });
 });
 
