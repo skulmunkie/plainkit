@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="../site.css">
 </head>
 <body>
-<div class="site-body"><div class="site-scroll"><pk-stack id="settings-root">
+<pk-stack fill gap="none"><pk-container fill scroll="y" label="Settings" size="full" padding="md"><pk-container size="lg" padding="none"><pk-stack id="settings-root">
     <pk-page-header heading="Settings" level="1"><pk-text inline tone="muted" slot="meta">Preferences for this browser. They are kept in local storage and apply to every page of the site and to the gallery.</pk-text></pk-page-header>
     <pk-card heading="Theme">
         <pk-button-group label="Theme" mode="single"><pk-button toggle variant="ghost" value="dark">Dark</pk-button><pk-button toggle variant="ghost" value="light">Light</pk-button></pk-button-group>
@@ -25,7 +25,7 @@
             <div id="set-logging"></div>
         </pk-stack>
     </pk-card>
-</pk-stack></div></div>
+</pk-stack></pk-container></pk-container></pk-stack>
 <script type="module" src="page.js"></script>
 </body>
 </html>
