@@ -5,13 +5,13 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 228: HeadContent/ChildContent/FootContent composed into pk-table's raw (slotted) default slot. No element of its own.
-public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
+// Issue 228 and 801: PkTable raw mode (ChildContent set): HeadContent/ChildContent/FootContent composed into pk-table's raw (slotted) default slot (PkRawTable folded into PkTable).
+public sealed class PkTableRawModeTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
     async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
 
-    public PkRawTableTests()
+    public PkTableRawModeTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddPlainKit();
@@ -20,7 +20,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void HeadContent_ChildContent_and_FootContent_compose_into_one_table_inside_pk_table()
     {
-        var cut = Render<PkRawTable>(p => p
+        var cut = Render<PkTable<object>>(p => p
             .Add(x => x.Label, "Orders")
             .Add(x => x.HeadContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><th>Number</th></tr>")))
             .Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><td>PO 1042</td></tr>")))
@@ -38,7 +38,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void HeadContent_and_FootContent_are_optional_thead_and_tfoot_are_left_out_when_unset()
     {
-        var cut = Render<PkRawTable>(p => p.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><td>x</td></tr>"))));
+        var cut = Render<PkTable<object>>(p => p.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><td>x</td></tr>"))));
         var raw = cut.Find("table");
         Assert.Null(raw.QuerySelector("thead"));
         Assert.Null(raw.QuerySelector("tfoot"));
@@ -48,7 +48,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Caption_and_Flow_are_sent_straight_through_to_the_element()
     {
-        var cut = Render<PkRawTable>(p => p
+        var cut = Render<PkTable<object>>(p => p
             .Add(x => x.Caption, "Recent orders")
             .Add(x => x.Flow, true)
             .Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><td>x</td></tr>"))));
@@ -60,7 +60,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Chrome_parameters_shared_with_PkTable_are_sent_straight_through_to_the_element()
     {
-        var cut = Render<PkRawTable>(p => p
+        var cut = Render<PkTable<object>>(p => p
             .Add(x => x.Striped, true)
             .Add(x => x.Hover, true)
             .Add(x => x.Bordered, true)
@@ -80,7 +80,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void ToolbarContent_CaptionContent_and_FooterContent_are_wrapped_in_their_named_slots()
     {
-        var cut = Render<PkRawTable>(p => p
+        var cut = Render<PkTable<object>>(p => p
             .Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<tr><td>x</td></tr>")))
             .Add(x => x.ToolbarContent, (RenderFragment)(b => b.AddMarkupContent(0, "<button>Add</button>")))
             .Add(x => x.CaptionContent, (RenderFragment)(b => b.AddMarkupContent(0, "<strong>Orders</strong>")))
@@ -99,7 +99,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Class_and_attributes_reach_the_frame_and_TableClass_reaches_the_inner_table()
     {
-        var cut = Render<PkRawTable>(p => p
+        var cut = Render<PkTable<object>>(p => p
             .Add(x => x.ChildContent, Row)
             .Add(x => x.TableClass, "moves")
             .AddUnmatched("class", "mt-4")
@@ -113,10 +113,10 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void IsEmpty_shows_EmptyText_or_EmptyContent_instead_of_the_table()
     {
-        var text = Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "No rows"));
+        var text = Render<PkTable<object>>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "No rows"));
         Assert.Empty(text.FindAll("pk-table"));
         Assert.Contains("No rows", text.Markup);
-        var content = Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "no")
+        var content = Render<PkTable<object>>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true).Add(x => x.EmptyText, "no")
             .Add(x => x.EmptyContent, (RenderFragment)(b => b.AddMarkupContent(0, "<em>Custom</em>"))));
         Assert.NotNull(content.Find("em"));
         Assert.DoesNotContain(">no<", content.Markup);
@@ -125,7 +125,7 @@ public sealed class PkRawTableTests : BunitContext, IAsyncLifetime
     [Fact]
     public void IsEmpty_without_empty_content_still_renders_the_table_and_not_empty_renders_it_too()
     {
-        Assert.NotNull(Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true)).Find("pk-table"));
-        Assert.NotNull(Render<PkRawTable>(p => p.Add(x => x.ChildContent, Row).Add(x => x.EmptyText, "No rows")).Find("pk-table"));
+        Assert.NotNull(Render<PkTable<object>>(p => p.Add(x => x.ChildContent, Row).Add(x => x.IsEmpty, true)).Find("pk-table"));
+        Assert.NotNull(Render<PkTable<object>>(p => p.Add(x => x.ChildContent, Row).Add(x => x.EmptyText, "No rows")).Find("pk-table"));
     }
 }

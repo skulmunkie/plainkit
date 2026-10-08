@@ -5,14 +5,15 @@
 @using System.Text.Json.Nodes
 @inherits PkTableBase
 
-@* Hand-written (blazor/mappings/table.json marks it "existing"): a typed data table over <pk-table>.
-   Attributes down: the columns and the rows are JSON attributes (camelCase), rebuilt when the parameters are set, never per render and never
-   through JavaScript. They are rebuilt only when Items (reference or count), Columns or IdOf changed (or Refresh() is called). Events up: pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand reach the callbacks (registered for Blazor by
-   PlainKit.Blazor.lib.module.js). Cell templates, the detail template and the slots are ordinary Blazor children of the element (the element
-   reads them, it never rewrites them): a cell template is a <span slot="cell-<id>-<key>"> per row, so a change of rows re-renders them together
-   with the rows attribute. Windowing (issue 131): at 500 rows or more, a non-expandable table draws only the rows near the scroll frame's
-   viewport (core/js/table-vw.js); the threshold is a fixed constant, not a parameter, to keep the element's own module inside its
-   gzip budget. Sort, filter and selection still act on every row. *@
+@* Hand-written (blazor/mappings/table.json marks it "existing"): a typed data table over <pk-table>. Columns and rows go down as JSON attributes, rebuilt only when Items, Columns or IdOf changed
+   (or Refresh() is called); pk-sort, pk-filter, pk-select, pk-row-click and pk-row-expand come up as callbacks; cell and detail templates are ordinary children the element reads. Windowing
+   (500 rows or more) is the element's (core/js/table-vw.js). With ChildContent set it is the element's raw mode instead: HeadContent, ChildContent and FootContent compose one table. *@
+@if (ChildContent is not null && IsEmpty && (EmptyContent is not null || EmptyText is not null))
+{
+    <div class="u-contents">@if (EmptyContent is not null) { @EmptyContent } else { @EmptyText }</div>
+}
+else
+{
 <pk-table data-pk-ranges columns="@_columns"
           rows="@_rows"
           row-key="id"
@@ -45,7 +46,11 @@
           label="@Label"
           flow="@Flow"
           class="@Css()"
-          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@foreach (var row in _items)
+          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@if (ChildContent is not null)
+{
+    <table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>
+}
+else foreach (var row in _items)
 {
     @foreach (var column in _cells)
     {
@@ -56,6 +61,7 @@
         <div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>
     }
 }</pk-table>
+}
 
 @code {
     private sealed record Row(string Id, TItem Item);
@@ -75,21 +81,27 @@
 
     [Inject] private IPkLog Log { get; set; } = default!;
 
+    /// <summary>Raw mode: the table's tbody rows (typically a @foreach over your own collection). Set, the table is not data-driven: Columns and Items are ignored, and use <c>TItem="object"</c>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Raw mode: the thead, e.g. one tr of th cells. Left off, no header row.</summary>
+    [Parameter] public RenderFragment? HeadContent { get; set; }
+    /// <summary>Raw mode: the tfoot (not <see cref="PkTableBase.FooterContent"/>, the slot below the table).</summary>
+    [Parameter] public RenderFragment? FootContent { get; set; }
+    /// <summary>Raw mode: a class for the inner table (the frame takes <c>class</c> and other attributes).</summary>
+    [Parameter] public string? TableClass { get; set; }
+    /// <summary>Raw mode: no rows. With EmptyContent or EmptyText set, that is shown instead of the table.</summary>
+    [Parameter] public bool IsEmpty { get; set; }
+
     /// <summary>The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a <c>Text</c> or a <c>Cell</c>) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (<c>Sort</c>, <c>OnSort</c>, <c>Filters</c>).</summary>
     [Parameter] public IReadOnlyList<PkTableColumn<TItem>>? Columns { get; set; }
-
     /// <summary>The rows, one item each. In manual mode these are the rows the server returned for the current page. They are sent to the element as JSON (camelCase), so a row holds the item's public properties; a cell template can use the whole item.</summary>
     [Parameter] public IReadOnlyList<TItem>? Items { get; set; }
-
     /// <summary>The id of an item: the row key the element reports (<c>pk-row-click</c>, selection, expansion) and the name of the row's slots. Without it the row's index is the id, which is only stable while the list keeps its order. Ids must not contain a double quote.</summary>
     [Parameter] public Func<TItem, string>? IdOf { get; set; }
-
     /// <summary>The host sorts, filters and pages: the element shows <see cref="Items"/> exactly as given and only reports the user's sort and filter (<see cref="OnSort"/>, <see cref="OnFilter"/>). Set it whenever you load one page at a time.</summary>
     [Parameter] public bool Manual { get; set; }
-
     /// <summary>The key of the column the table is sorted by (two-way: <c>@bind-Sort</c>). Null or empty means no column.</summary>
     [Parameter] public string? Sort { get; set; }
-
     /// <summary>The sort direction; null leaves the element's default (ascending).</summary>
     [Parameter] public PkSortDirection? SortDirection { get; set; }
 
@@ -149,37 +161,27 @@
 
     /// <summary>The user chose a sortable header: <c>Key</c> and <c>Direction</c> (<c>ascending</c> or <c>descending</c>). <see cref="Sort"/> and <see cref="SortDirection"/> already follow it. In manual mode, load the rows in that order.</summary>
     [Parameter] public EventCallback<PkSortEventArgs> OnSort { get; set; }
-
     /// <summary>A filter input changed (debounced by the element): <c>Filters</c> holds the text per column key.</summary>
     [Parameter] public EventCallback<PkFilterEventArgs> OnFilter { get; set; }
 
     /// <summary>The selection changed: <c>Selected</c> holds the ids.</summary>
     [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
-
     /// <summary>The user selected every loaded row (<c>Scope</c> "page", <c>Count</c> the rows on the page) or chose "Select all N rows" (<c>Scope</c> "all", <c>Count</c> the total; no ids are sent: run the action from your query). Needs <see cref="SelectAllTotal"/>.</summary>
     [Parameter] public EventCallback<PkSelectAllEventArgs> OnSelectAll { get; set; }
-
     /// <summary>A row of a <see cref="Clickable"/> table was activated: its id and item.</summary>
     [Parameter] public EventCallback<PkTableRowClickArgs<TItem>> OnRowClick { get; set; }
-
     /// <summary>The user expanded or collapsed a row: its id, item and the new state. <see cref="Expanded"/> already follows it.</summary>
     [Parameter] public EventCallback<PkTableRowExpandArgs<TItem>> OnRowExpand { get; set; }
-
     /// <summary>The user edited a cell of an <see cref="Editable"/> table: the row's id and item, the column key, and the new and previous values. The event cannot be cancelled from Blazor (the browser does not wait); to refuse a value, set <see cref="CellErrors"/> and reset your item.</summary>
     [Parameter] public EventCallback<PkTableCellEditArgs<TItem>> OnCellEdit { get; set; }
-
     /// <summary>Raised with the new value of Sort (two-way: Sort follows it).</summary>
     [Parameter] public EventCallback<string?> SortChanged { get; set; }
-
     /// <summary>Raised with the new value of SortDirection (two-way: SortDirection follows it).</summary>
     [Parameter] public EventCallback<PkSortDirection?> SortDirectionChanged { get; set; }
-
     /// <summary>Raised with the new value of Filters (two-way: Filters follows it).</summary>
     [Parameter] public EventCallback<Dictionary<string, string>?> FiltersChanged { get; set; }
-
     /// <summary>Raised with the new value of Selected (two-way: Selected follows it).</summary>
     [Parameter] public EventCallback<IReadOnlyList<string>?> SelectedChanged { get; set; }
-
     /// <summary>Raised with the new value of Expanded (two-way: Expanded follows it).</summary>
     [Parameter] public EventCallback<IReadOnlyList<string>?> ExpandedChanged { get; set; }
 
@@ -187,9 +189,7 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        // The columns and the rows are serialised only when what they are made of changed: the Items list (its reference and its count), the Columns (compared by value, so a
-        // new array with the same columns is no change), IdOf. A parent that re-renders for another reason costs nothing here (5,000 rows: 8.9 MB allocated per parameter set before).
-        // An item changed inside the same list is not seen: pass a new list, or call Refresh().
+        // The columns and rows are serialised only when Items (reference or count), Columns (by value) or IdOf changed; an item changed inside the same list needs a new list or Refresh().
         var columns = Columns ?? [];
         var items = Items ?? [];
         if (_built && ReferenceEquals(_builtItems, items) && _builtCount == items.Count && _builtIdOf == IdOf && SameColumns(columns)) return;

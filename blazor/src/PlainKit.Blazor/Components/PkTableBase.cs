@@ -3,7 +3,7 @@ namespace PlainKit.Blazor;
 using Microsoft.AspNetCore.Components;
 
 /// <summary>
-/// The pk-table "chrome" both <see cref="PkTable{TItem}"/> (data-driven) and <c>PkRawTable</c> (raw/slotted, issue 228) share: appearance,
+/// The pk-table "chrome" <see cref="PkTable{TItem}"/> binds in its data-driven and its raw/slotted mode (issue 228): appearance,
 /// the scroll frame and the named slots that are not tied to typed rows. Kept as one plain class, not a .razor file, since it has no markup
 /// of its own -- each derived component still owns its own &lt;pk-table&gt; markup and binds these inherited properties itself.
 /// </summary>

@@ -1,0 +1,3 @@
+/* pk-card-menu: one icon button in a card header; the card lays out its actions slot, so the host is only an inline box that does not shrink. */
+:host { display: inline-block; flex: none; }
+[part="menu"] { display: block; }

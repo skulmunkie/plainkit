@@ -3,7 +3,6 @@
   "budgets": {
     "Components/_Imports.razor": 4,
     "Components/PkAppBarSearch.razor": 82,
-    "Components/PkCardMenu.razor": 37,
     "Components/PkCodeExplorer.razor": 77,
     "Components/PkConsole.razor": 55,
     "Components/PkDataTable.razor": 240,
@@ -17,10 +16,9 @@
     "Components/PkLookupPicker.razor": 163,
     "Components/PkLogs.razor": 64,
     "Components/PkLogSettings.razor": 52,
-    "Components/PkPageHeader.razor": 147,
+    "Components/PkPageHeader.razor": 76,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
-    "Components/PkRawTable.razor": 59,
     "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
     "Components/PkSettingsPage.razor": 40,
@@ -76,16 +74,6 @@
   },
   "debt": [
     {
-      "rule": "name-parity",
-      "file": "Components/PkCardMenu.razor",
-      "reason": "Blazor-only component: a card menu (PkDropdown plus PkButton) with no element; to be moved into core as an element, then generated"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkCardMenu.razor",
-      "reason": "same: the PkDropdown and PkButton composition belongs in a core element"
-    },
-    {
       "rule": "state-machine",
       "file": "Components/PkDataTable.razor",
       "reason": "stale-load guard (_sequence) around Load; goes when the element sends an abort signal through the bridge (#801 step 5 remainder)"
@@ -104,16 +92,6 @@
       "rule": "name-parity",
       "file": "Components/PkFieldListRow.razor",
       "reason": "Blazor-only skip-empty wrapper around a dt/dd pair; removed when pk-field-list hides empty slotted pairs (#801 name map)"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkPageHeader.razor",
-      "reason": "builds breadcrumb, home crumb and back link; becomes a crumbs prop on pk-page-header (#801 section 2.3)"
-    },
-    {
-      "rule": "name-parity",
-      "file": "Components/PkRawTable.razor",
-      "reason": "old name of the raw-slot mode of PkTable; folds into PkTable with an [Obsolete] alias (#801 name map)"
     },
     {
       "rule": "name-parity",
