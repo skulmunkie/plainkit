@@ -4,9 +4,11 @@
     "label"
   ],
   "title": "Field group",
+  "delegatesFocus": false,
+  "formAssociated": true,
   "group": "Form layout",
   "tier": "component",
-  "summary": "A form drawn from a list of field specs: each entry becomes a pk-field with the right control (pk-input of every scalar type, pk-textarea, pk-select, pk-checkbox, pk-switch, pk-range, pk-combobox). Set fields (label, kind, hint, required, constraints, options, when) and values ({ key: value }); a committed change updates values and raises pk-change. A field with when (data: { field, equals | in | not }) or a visible(spec, values) callback property is not rendered at all while it is hidden, so a hidden required field can never block a submit; its value stays in values. The controls live in this element's shadow tree.",
+  "summary": "A form drawn from a list of field specs: each entry becomes a pk-field with the right control (pk-input of every scalar type, pk-textarea, pk-select, pk-checkbox, pk-switch, pk-range, pk-combobox). Set fields (label, kind, hint, required, constraints, options, when) and values ({ key: value }); a committed change updates values and raises pk-change. A field with when (data: { field, equals | in | not }) or a visible(spec, values) callback property is not rendered at all while it is hidden, so a hidden required field can never block a submit; its value stays in values. The controls live in this element's shadow tree. The element is form-associated: a surrounding form gets one FormData entry per shown field (a checkbox or switch only when checked; a hidden or disabled field none) and the first invalid field's message as its validity, anchored on that field, which is focused when a submit or reportValidity() fails; pk-form lists every problem through problems(), report() and checkField(). A form reset puts the values back to the ones last assigned.",
   "props": [
     {
       "name": "fields",
@@ -88,6 +90,9 @@
     }
   ],
   "cssProperties": [],
+  "writes": [
+    { "target": "the pk-field elements it builds in its own shadow tree", "attributes": ["error"], "why": "report(), checkField() and a form reset show or clear each field's message on the pk-field this element created and owns in its own shadow tree (never a host-given node); the fields are rebuilt from fields and values and removed with the element." }
+  ],
   "a11y": "The host is role=group with the label as its name. Each field is a pk-field: a visible label, the hint under it and the error in its own region; the label, description and invalid state reach the control as properties, so nothing depends on an id crossing a shadow root. A field whose label is hidden (hideLabel) keeps it as the control's aria-label. A hidden field is removed from the tree, not just visually hidden.",
   "examples": [
     {
@@ -95,5 +100,12 @@
       "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"min\":\"1\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[{\"value\":\"open\",\"label\":\"Open\"},{\"value\":\"closed\",\"label\":\"Closed\"}]},{\"key\":\"note\",\"label\":\"Closing note\",\"kind\":\"textarea\",\"required\":true,\"when\":{\"field\":\"status\",\"equals\":\"closed\"}}]' values='{\"status\":\"open\"}'></pk-field-group>"
     }
   ],
-  "methods": []
+  "methods": [
+    { "name": "problems()", "description": "Every invalid shown field, in order: [{ key, label, message, control, focus() }]. pk-form lists these in its summary and focuses the first." },
+    { "name": "report(on = true)", "description": "Shows each invalid field's message in its pk-field (on), or clears every message (off)." },
+    { "name": "checkField(keyOrNode)", "description": "Re-checks one field, showing or clearing its message; returns whether it is valid. pk-form uses it for live checks." },
+    { "name": "focusField(key)", "description": "Focuses one field's control." },
+    { "name": "focus()", "description": "Focuses the first invalid field, else the first field." },
+    { "name": "refresh()", "description": "Draws the fields again; call it after changing the visible(spec, values) callback property." }
+  ]
 }

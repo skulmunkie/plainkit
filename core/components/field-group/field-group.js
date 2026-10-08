@@ -1,8 +1,11 @@
 // pk-field-group behaviour (see meta.json): draws a pk-field + control per field spec in this element's own shadow tree, keeps the values, raises pk-change, and
 // shows or hides conditional fields. A field that is not shown is not in the tree at all, so it takes no part in validation (#226). The kind table, the commit
-// events and the `when` rules are js/field-kinds.js, shared with js/page-fields.js.
+// events, the `when` rules and the form entries are js/field-kinds.js, shared with js/page-fields.js.
+// The element is form-associated: its form value is a FormData with one entry per shown field, its validity is the first invalid control's (anchored on it, so
+// the browser focuses the right field), and it answers the small protocol pk-form uses to look through it: problems(), report(on), checkField(key), focus().
 import { loadElements } from '../../js/loader.js';
-import { controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked } from '../../js/field-kinds.js';
+import { controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
+import { messageFor } from '../../js/validation.js';
 
 // The same value, as the text the controls show.
 const same = (a, b) => String(a ?? '') === String(b ?? '');
@@ -12,14 +15,19 @@ export default Base => class extends Base {
         if (this.$w) return;
         this.$w = true;
         this.$rows = new Map();
-        this.$vals = { ...(this.values ?? {}) };
+        this.$base = { ...(this.values ?? {}) }; // what a form reset goes back to: the values the host last gave
+        this.$vals = { ...this.$base };
+        const group = this.part('group');
+        for (const type of ['input', 'change']) group.addEventListener(type, () => this.sync());
+        // A failed submit or reportValidity() raises `invalid` on this element, which is not itself focusable: focus goes to the first invalid control.
+        this.addEventListener('invalid', () => this.focus());
         this.reconcile();
     }
     changed(name) {
         if (!this.$w) return;
-        if (name === 'values') { if (!this.$own) { this.$vals = { ...(this.values ?? {}) }; this.reconcile(); } }
+        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); } }
         else if (name === 'fields') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
-        else if (name === 'disabled' || name === 'readonly') this.syncState();
+        else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
     }
     updated() { this.aria({ role: 'group', ariaLabel: this.label || null }); }
@@ -40,7 +48,8 @@ export default Base => class extends Base {
         }
         group.append(...shown); // append moves an attached node, so this also keeps the order
         this.syncState();
-        if (built) loadElements(this.shadowRoot);
+        if (built) loadElements(this.shadowRoot).then(() => this.sync());
+        this.sync();
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
@@ -77,5 +86,48 @@ export default Base => class extends Base {
             control.toggleAttribute('disabled', Boolean(this.disabled || spec.disabled));
             control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly));
         }
+    }
+
+    // ---- form association --------------------------------------------------------------------------------------------------------------------
+    // The form value is a FormData with one entry per shown field (js/field-kinds.js formEntries); the validity is the first invalid control's message, anchored on it.
+    sync() {
+        if (!this.$w) return;
+        const rows = [...this.$rows.values()];
+        const fd = new FormData();
+        for (const [name, v] of formEntries(rows.map(r => ({ key: r.spec.key, kind: r.kind, value: readValue(r.control, r.kind), disabled: this.disabled || r.spec.disabled })), this.prefix ? this.name : '')) fd.append(name, v);
+        this.setFormValue(fd, fd);
+        const bad = this.invalidRows()[0];
+        if (bad) this.setValidity({ customError: true }, messageFor(bad.control), bad.control); else this.setValidity({});
+    }
+    invalidRows() { return [...this.$rows.values()].filter(r => r.control.validity && r.control.validity.valid === false && r.control.willValidate !== false); }
+    // pk-form's protocol: every problem in order, show or clear the messages in the fields, re-check one field, and focus the first problem.
+    problems() { return this.invalidRows().map(r => ({ key: r.spec.key, label: r.spec.label ?? r.spec.key, message: messageFor(r.control), control: r.control, focus: () => r.control.focus() })); }
+    report(on = true) {
+        const bad = this.invalidRows();
+        for (const r of this.$rows.values()) r.field.error = on && bad.includes(r) ? messageFor(r.control) : '';
+    }
+    checkField(which) {
+        const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
+        if (!r) return true;
+        const message = r.control.validity?.valid === false ? messageFor(r.control) : '';
+        r.field.error = message;
+        return message === '';
+    }
+    focusField(key) { this.$rows.get(key)?.control.focus(); }
+    focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()][0])?.control.focus(options); }
+    onReset() {
+        this.$vals = { ...this.$base };
+        this.$own = true; this.values = { ...this.$base }; this.$own = false;
+        this.reconcile();
+        this.report(false);
+    }
+    onRestore(state) {
+        if (!(state instanceof FormData)) return;
+        const saved = valuesFromEntries([...state.entries()], this.prefix ? this.name : '');
+        const next = { ...this.$vals };
+        for (const spec of Array.isArray(this.fields) ? this.fields : []) if (spec?.key) next[spec.key] = isChecked(spec.kind) ? spec.key in saved : saved[spec.key] ?? next[spec.key];
+        this.$vals = next;
+        this.$own = true; this.values = next; this.$own = false;
+        this.reconcile();
     }
 };
