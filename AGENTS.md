@@ -32,7 +32,7 @@ node scripts/generated.mjs check
 ```
 
 On a fresh clone, after switching branches and after editing any source, run `node scripts/bootstrap.mjs` first (about 4 seconds). `dotnet build` refuses to run without it,
-and a test that reads a generated file says so. **Never commit generated files**: they are gitignored, and `node scripts/generated.mjs check` fails if one is tracked.
+and a test that reads a generated file says so. **Never commit generated files**: they are gitignored, and `node scripts/generated.mjs check` fails if one is tracked. Locally the bootstrap returns at once when no source changed since the last full run and the generated files exist (a hash stamp in `node_modules/.cache`; `--force` or `PK_BOOTSTRAP_FORCE=1` runs it anyway; CI always runs it in full).
 
 Also part of done, in the same pull request (owner directive): the **agent skills and documentation** describe the change (a new prop, element,
 option or workflow appears in the docs, the gallery samples and the skills' workflows in `scripts/skills/`), the SDK and Blazor change together

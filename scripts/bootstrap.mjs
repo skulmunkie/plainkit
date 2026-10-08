@@ -10,13 +10,15 @@
 //   7. node scripts/publish-dist.mjs       the copy of core/dist inside the Blazor package (wwwroot/plainkit)
 //
 //   --quiet        print only failures and the final line (what CI uses)
+//   --force        run every step even when no source changed since the last run (the local short-circuit, #713; CI never short-circuits; PK_BOOTSTRAP_FORCE=1 does the same)
 //   --if-missing   do nothing when the generated files exist and are newer than their sources (cheap enough for a tool to call every time)
 //
 // Deterministic: running it twice changes nothing. Run it after cloning, after switching branches and after editing any source.
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generatedCurrent } from './generated.mjs';
+import { generatedCurrent, missingGenerated } from './generated.mjs';
+import { sourceHash, readStamp, writeStamp, clearStamp } from './bootstrap-stamp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const STEPS = [
@@ -29,9 +31,22 @@ export const STEPS = [
     ['scripts/publish-dist.mjs', 'scripts/publish-dist.mjs'],
 ];
 
-export function bootstrap({ quiet = false, ifMissing = false, log = console.log } = {}) {
+/**
+ * The local short-circuit (#713): { skip, hash }. skip is true only when nothing the bootstrap reads changed since the last full run (hash equals the stamp) AND every generated
+ * sentinel exists. Never in CI, with force or PK_BOOTSTRAP_FORCE=1, or outside a git checkout (hash null).
+ */
+export function shortCircuit(rootDir, { force = false, env = process.env } = {}) {
+    if (force || env.CI || env.PK_BOOTSTRAP_FORCE) return { skip: false, hash: null };
+    const hash = sourceHash(rootDir);
+    return { skip: hash !== null && hash === readStamp(rootDir) && missingGenerated(rootDir).length === 0, hash };
+}
+
+export function bootstrap({ quiet = false, ifMissing = false, force = false, env = process.env, log = console.log } = {}) {
     const t0 = performance.now();
     if (ifMissing && generatedCurrent(root)) { if (!quiet) log('bootstrap: generated files are present and current, nothing to do'); return { ok: true, skipped: true, ms: performance.now() - t0 }; }
+    const sc = shortCircuit(root, { force, env });
+    if (sc.skip) { if (!quiet) log('bootstrap: no source changed since the last run and the generated files exist, nothing to do (--force or PK_BOOTSTRAP_FORCE=1 runs it anyway)'); return { ok: true, skipped: true, ms: performance.now() - t0 }; }
+    clearStamp(root);
     for (const [file] of STEPS) {
         const t = performance.now();
         const r = spawnSync(process.execPath, [path.join(root, file)], { cwd: root, encoding: 'utf8' });
@@ -42,14 +57,15 @@ export function bootstrap({ quiet = false, ifMissing = false, log = console.log 
         }
         if (!quiet) log(`  node ${file.padEnd(30)} ${String(ms).padStart(6)} ms`);
     }
+    if (!env.CI) { const h = sc.hash ?? sourceHash(root); if (h) writeStamp(root, h); }
     return { ok: true, skipped: false, ms: performance.now() - t0 };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const flags = new Set(process.argv.slice(2));
-    const bad = [...flags].filter(f => f !== '--quiet' && f !== '--if-missing');
-    if (bad.length) { console.error(`bootstrap: unknown argument ${bad[0]} (flags: --quiet, --if-missing)`); process.exit(2); }
-    const r = bootstrap({ quiet: flags.has('--quiet'), ifMissing: flags.has('--if-missing') });
+    const bad = [...flags].filter(f => f !== '--quiet' && f !== '--if-missing' && f !== '--force');
+    if (bad.length) { console.error(`bootstrap: unknown argument ${bad[0]} (flags: --quiet, --if-missing, --force)`); process.exit(2); }
+    const r = bootstrap({ quiet: flags.has('--quiet'), ifMissing: flags.has('--if-missing'), force: flags.has('--force') });
     if (!r.ok) process.exit(1);
     if (!r.skipped) console.log(`bootstrap: ${STEPS.length} steps ok in ${(r.ms / 1000).toFixed(1)} s`);
 }
