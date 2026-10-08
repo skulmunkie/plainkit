@@ -111,10 +111,10 @@ export class CodeExplorerElement extends Base {
     </pk-cluster>
     <div data-ce-tree></div>
   </pk-stack></pk-container>
-  <div class="ce-main">
+  <pk-stack gap="none" fill>
     <pk-tabs overflow="scroll" none-active data-ce-tabs></pk-tabs>
-    <div class="ce-pane" data-ce-pane></div>
-  </div>
+    <pk-container fill size="full" padding="sm" data-ce-pane></pk-container>
+  </pk-stack>
   <pk-container slot="aside" size="full" padding="sm" data-ce-inspector><pk-stack gap="sm">
     <pk-cluster justify="between" nowrap><pk-heading level="2" variant="h6" data-ce-inspector-title>Outline</pk-heading><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></pk-cluster>
     <div data-ce-inspector-body></div>
