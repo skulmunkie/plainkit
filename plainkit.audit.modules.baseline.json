@@ -902,6 +902,11 @@
       "fingerprint": "b64c4ab3869a414a"
     },
     {
+      "rule": "S3",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "b64c4ab3869a414a"
+    },
+    {
       "rule": "S5",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "379a4ef36f53d9a5"
