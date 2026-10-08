@@ -288,86 +288,6 @@
     },
     {
       "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "7e55ab5e28ff1f12"
-    },
-    {
-      "rule": "S7",
       "file": "core/modules/code-explorer/providers.js",
       "fingerprint": "13f8f7a1649e11e1"
     },
@@ -414,67 +334,12 @@
     {
       "rule": "S7",
       "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
-      "fingerprint": "471cf3eab6f53906"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/console/console.js",
       "fingerprint": "cb7e1a8e143ab68b"
     },
     {
       "rule": "S7",
       "file": "core/modules/devtools/panels.js",
       "fingerprint": "75d7f82f63300227"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "06ef265948f183d3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/devtools/panels.js",
-      "fingerprint": "06ef265948f183d3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/field-group/field-group.js",
-      "fingerprint": "d564586648e7cd55"
     },
     {
       "rule": "S1",
@@ -507,76 +372,6 @@
       "fingerprint": "ee1a503dd3c512e1"
     },
     {
-      "rule": "S7",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "38347b77a9576165"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "38347b77a9576165"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "38347b77a9576165"
-    },
-    {
-      "rule": "S1",
-      "file": "core/modules/log-settings/log-settings.css",
-      "fingerprint": "4241844d84ed89b6"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/log-settings/log-settings.css",
-      "fingerprint": "8817e551ac352185"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/log-settings/log-settings.js",
-      "fingerprint": "6fc0b75f798eee11"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/logs/logs.css",
       "fingerprint": "d52af45425aa4745"
@@ -589,72 +384,12 @@
     {
       "rule": "S7",
       "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
       "fingerprint": "6a042bb3774f91d7"
     },
     {
       "rule": "S7",
       "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
       "fingerprint": "6a042bb3774f91d7"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/logs/logs.js",
-      "fingerprint": "ebd9453ea2474084"
     },
     {
       "rule": "S7",
@@ -675,16 +410,6 @@
       "rule": "S7",
       "file": "core/modules/performance/performance.js",
       "fingerprint": "2de96503cfe4cd66"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/performance/performance.js",
-      "fingerprint": "e306dbde4c22fddb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/quality/quality.js",
-      "fingerprint": "3907e34ca69ffd83"
     },
     {
       "rule": "S3",
@@ -819,19 +544,9 @@
     {
       "rule": "S7",
       "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "9921a52caa13b85f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
       "fingerprint": "54dfc1b2c29e5fba"
     },
     {
-      "rule": "S7",
-      "file": "core/modules/scorecard/scorecard.js",
-      "fingerprint": "9921a52caa13b85f"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/scorecard/sections.js",
       "fingerprint": "fc94288deb9c287f"
@@ -840,21 +555,6 @@
       "rule": "S3",
       "file": "core/modules/scorecard/sections.js",
       "fingerprint": "fc94288deb9c287f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/sections.js",
-      "fingerprint": "12edd3b00ea24d4f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/scorecard/sections.js",
-      "fingerprint": "12edd3b00ea24d4f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/sdk-tab.js",
-      "fingerprint": "f838a5aeaa37df39"
     },
     {
       "rule": "S7",
@@ -969,17 +669,7 @@
     {
       "rule": "S7",
       "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "24028f1913e5b474"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
       "fingerprint": "058d5ed965df6e8d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/theme-editor/theme-editor.js",
-      "fingerprint": "24028f1913e5b474"
     },
     {
       "rule": "S7",
@@ -1005,31 +695,6 @@
       "rule": "S10",
       "file": "core/modules/tool-dock/tool-dock.css",
       "fingerprint": "34350429c4ab6cc0"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "34d2c015e300cc87"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "34d2c015e300cc87"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "34d2c015e300cc87"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "34d2c015e300cc87"
-    },
-    {
-      "rule": "S7",
-      "file": "core/modules/tool-dock/tool-dock.js",
-      "fingerprint": "34d2c015e300cc87"
     },
     {
       "rule": "S1",

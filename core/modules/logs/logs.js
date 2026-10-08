@@ -15,7 +15,7 @@
 
 import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer, createLogger } from '../../js/log.js';
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
@@ -94,7 +94,7 @@ export async function mountLogs(container, options = {}) {
         const d = describeDetail(entry.detail);
         const route = routeOf(entry, getLoggingConfig());
         const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', slot: 'actions' }, 'Close');
-        close.addEventListener('click', () => api.select(null));
+        on(close, 'click', () => api.select(null));
         const facts = `${formatTime(entry.at)}, scope ${entry.scope}${route.below ? `, below the ${route.needed} level so not sent to any output` : ''}${entry.imported ? ', imported' : ''}`;
         const card = h(doc, 'pk-card', { heading: `${LEVEL_LABEL[entry.level]}: ${entry.scope}`, level: 4 }, close,
             h(doc, 'pk-stack', { gap: 'xs' },
@@ -127,28 +127,28 @@ export async function mountLogs(container, options = {}) {
     const unsink = addLogSink(add);
 
     // ---- controls -------------------------------------------------------------------------------------------------------------
-    search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
-    levels.addEventListener('pk-toggle', e => {
+    on(search, 'pk-search', e => { text = e.detail.value ?? ''; render(); });
+    on(levels, 'pk-toggle', e => {
         const b = e.target.closest('pk-button');
         if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { minLevel = b.getAttribute('value'); render(); }
     });
-    scopeSelect.addEventListener('pk-value-change', e => { scopes = String(e.detail.value ?? '').split(',').filter(Boolean); drawnScopes = ''; render(); });
-    pause.addEventListener('pk-toggle', e => (e.detail?.pressed ? api.pause() : api.resume()));
-    order.addEventListener('pk-toggle', e => { newestFirst = Boolean(e.detail?.pressed); render(); });
-    clear.addEventListener('click', () => api.clear());
-    table.addEventListener('pk-row-click', e => api.select(Number(e.detail?.id)));
-    copy.addEventListener('click', async () => {
+    on(scopeSelect, 'pk-value-change', e => { scopes = String(e.detail.value ?? '').split(',').filter(Boolean); drawnScopes = ''; render(); });
+    on(pause, 'pk-toggle', e => (e.detail?.pressed ? api.pause() : api.resume()));
+    on(order, 'pk-toggle', e => { newestFirst = Boolean(e.detail?.pressed); render(); });
+    on(clear, 'click', () => api.clear());
+    on(table, 'pk-row-click', e => api.select(Number(e.detail?.id)));
+    on(copy, 'click', async () => {
         try { await win.navigator.clipboard.writeText(serializeEntries(shown())); note = 'Copied as JSON'; } catch { note = 'Copy was blocked by the browser'; }
         render();
     });
-    exportBtn.addEventListener('click', () => {
+    on(exportBtn, 'click', () => {
         const url = win.URL.createObjectURL(new win.Blob([serializeEntries(shown())], { type: 'application/json' }));
         const a = h(doc, 'a', { href: url, download: `plainkit-log-${new Date().toISOString().replace(/[:.]/g, '-')}.json` });
         doc.body.append(a); a.click(); a.remove();
         win.setTimeout(() => win.URL.revokeObjectURL(url), 1000);
     });
-    importBtn.addEventListener('click', () => file.click());
-    file.addEventListener('change', async () => {
+    on(importBtn, 'click', () => file.click());
+    on(file, 'change', async () => {
         const chosen = file.files?.[0];
         file.value = '';
         if (!chosen) return;

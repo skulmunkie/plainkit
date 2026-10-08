@@ -2,7 +2,7 @@
 // pk-table, pk-tabs, pk-badge, pk-button, pk-cluster, pk-empty-state). No markup strings: every node is built with the DOM, every text is set as text.
 
 import { band, metricRows, budgetRows, budgetSummary, apiDiff, securitySummary, sweepSummary, historyCategories, historyRows, severityVariant, kb, signed } from '../../js/framework-checks.js';
-import { h } from '../../js/mount-support.js';
+import { h, on } from '../../js/mount-support.js';
 export { h };
 
 const STAT_TONE = { ok: 'positive', warn: 'warning', danger: 'critical', '': 'neutral' };
@@ -189,8 +189,8 @@ export function paintHistory(doc, host, { history, scoring, actions }) {
     const parts = [];
     if (actions) {
         const file = h(doc, 'input', { type: 'file', accept: 'application/json', hidden: true, 'aria-label': 'Import history file' });
-        file.addEventListener('change', () => { const f = file.files?.[0]; if (f) actions.onImport(f); file.value = ''; });
-        const button = (label, variant, fn) => { const b = h(doc, 'pk-button', { variant, size: 'mini' }, label); b.addEventListener('click', fn); return b; };
+        on(file, 'change', () => { const f = file.files?.[0]; if (f) actions.onImport(f); file.value = ''; });
+        const button = (label, variant, fn) => { const b = h(doc, 'pk-button', { variant, size: 'mini' }, label); on(b, 'click', fn); return b; };
         parts.push(row(doc, button('Export history', 'ghost', actions.onExport), button('Import history', 'ghost', () => file.click()), button('Clear history', 'warn', actions.onClear), file));
     }
     if (!history.length) {

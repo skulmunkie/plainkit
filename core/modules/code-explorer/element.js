@@ -17,7 +17,7 @@
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
 import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -121,24 +121,24 @@ export class CodeExplorerElement extends Base {
   </div>
 </pk-workspace>`);
         const $ = s => this.querySelector(s);
-        $('[data-ce-filter]').addEventListener('input', e => { this.#filter = e.target.value; this.#renderTree(); });
+        on($('[data-ce-filter]'), 'input', e => { this.#filter = e.target.value; this.#renderTree(); });
         const runSearch = () => this.#runSearch($('[data-ce-query]').value);
-        $('[data-ce-query]').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
-        $('[data-ce-search]').addEventListener('click', runSearch);
-        $('[data-ce-reports]').addEventListener('click', () => this.#toggleReports());
-        $('[data-ce-clear]').addEventListener('click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
-        $('[data-ce-inspector-close]').addEventListener('click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
+        on($('[data-ce-query]'), 'keydown', e => { if (e.key === 'Enter') runSearch(); });
+        on($('[data-ce-search]'), 'click', runSearch);
+        on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
+        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
+        on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
-        tree.addEventListener('click', e => this.#onHitClick(e));
-        tree.addEventListener('pk-select', e => this.#onTreeSelect(e));
-        tree.addEventListener('pk-toggle', e => this.#onTreeToggle(e));
+        on(tree, 'click', e => this.#onHitClick(e));
+        on(tree, 'pk-select', e => this.#onTreeSelect(e));
+        on(tree, 'pk-toggle', e => this.#onTreeToggle(e));
         const tabs = $('[data-ce-tabs]');
-        tabs.addEventListener('pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
-        tabs.addEventListener('pk-tab-close', e => this.#closeTab(e.detail.value));
-        tabs.addEventListener('keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
-        $('[data-ce-pane]').addEventListener('click', e => this.#onPaneClick(e));
-        $('[data-ce-inspector-body]').addEventListener('click', e => this.#onInspectorClick(e));
-        this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
+        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
+        on(tabs, 'pk-tab-close', e => this.#closeTab(e.detail.value));
+        on(tabs, 'keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
+        on($('[data-ce-pane]'), 'click', e => this.#onPaneClick(e));
+        on($('[data-ce-inspector-body]'), 'click', e => this.#onInspectorClick(e));
+        on(this, 'keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
         // Load every element the explorer writes before the first tree is drawn: a pk-tree that defines before its items would
         // update against items that are not upgraded yet.
         const scratch = this.ownerDocument.createElement('div');
@@ -397,7 +397,7 @@ export class CodeExplorerElement extends Base {
         fill(pane, `<div class="cv cv--fill"><div class="cv-title"><span class="cv-name">${esc(doc.path)}</span><span class="cv-meta"><span class="cv-lang">${esc(doc.language)}</span><span class="cv-count">${total.toLocaleString()} lines</span></span>${caps.outline ? '<pk-button size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : ''}${caps.references && this.#word ? `<pk-button size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : ''}</div>${start > 1 || end < total ? `<div class="cv-notice">Showing lines ${start}-${end} of ${total}.</div>` : ''}<pk-code-view class="cv-scroll" label="${esc(doc.path)}"></pk-code-view></div>`);
         const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
         Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
-        view.addEventListener('pk-line-click', e => this.#onLineClick(e.detail));
+        on(view, 'pk-line-click', e => this.#onLineClick(e.detail));
         this.#upgrade();
         this.#renderInspector();
     }

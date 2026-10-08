@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h, on as listen } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
@@ -245,7 +245,7 @@ export async function mountThemeEditor(container, options = {}) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
         previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
-        previewFrame.addEventListener('load', () => applyToPreview(outputCss().css));
+        on(previewFrame, 'load', () => applyToPreview(outputCss().css));
         ui.previewHost.append(previewFrame);
     }
 
@@ -443,7 +443,7 @@ export async function mountThemeEditor(container, options = {}) {
 
     // ---- events
     const listeners = [];
-    const on = (el, type, fn) => { el.addEventListener(type, fn); listeners.push(() => el.removeEventListener(type, fn)); };
+    const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const tokenOf = e => e.target.closest?.('[data-token]')?.dataset.token;
 
     on(find, 'input', e => { state.filter = e.target.value ?? ''; paintList(); });
