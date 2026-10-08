@@ -9,8 +9,8 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize? }."
+      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, selectable?, rowKey?, bulkActions?: [{ id, label, variant? }] }."
     }
   ],
-  "notes": "Hand-written (issue #366): load(query) is a callback property, set from script, so the component (PkListPage<TItem>) hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Load parameter, Func<PkListRequest, Task<PkListResult<TItem>>>. Not a mapped param: the generator only maps props, slots and events. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler (later step)."
+  "notes": "Hand-written (issue #366): load(query) is a callback property, set from script, so the component (PkListPage<TItem>) hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Load parameter, Func<PkListRequest, Task<PkListResult<TItem>>>. Not a mapped param: the generator only maps props, slots and events. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler (later step). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks passed to the element as handlers. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable."
 }

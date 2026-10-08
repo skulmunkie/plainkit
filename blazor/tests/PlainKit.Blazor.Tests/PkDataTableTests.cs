@@ -312,21 +312,4 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-data-table").TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Value = "edit" });
         Assert.Equal(0, changed);
     }
-
-#pragma warning disable CS0618 // the obsolete alias is the thing under test
-    [Fact]
-    public async Task The_obsolete_PkDataList_alias_is_a_PkDataTable_with_CurrentId_and_a_silent_LoadAllIds()
-    {
-        var cut = Render<PkDataList<Customer>>(p => p
-            .Add(x => x.Load, Immediate(_ => Page(2, "Ada", "Grace"))).Add(x => x.Columns, Columns).Add(x => x.IdOf, c => c.Id.ToString())
-            .Add(x => x.CurrentId, "2").Add(x => x.LoadAllIds, _ => Task.FromResult<IReadOnlyList<string>>(["1"])).Add(x => x.Selectable, true));
-
-        var el = cut.Find("pk-data-table");
-        Assert.Equal("2", el.GetAttribute("current-row"));
-        Assert.True(el.HasAttribute("selectable"));
-        var json = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => Host().Invoke(new PkListPageQuery())));
-        Assert.Equal(2, json.GetProperty("total").GetInt32());
-        Assert.Equal("cell:Ada", cut.Find("[slot=cell-1-Name]").TextContent);
-    }
-#pragma warning restore CS0618
 }

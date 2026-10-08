@@ -318,6 +318,7 @@ import { headerCases } from './cases-headers.js'; cases.push(...headerCases);
 import { layoutCases } from './cases-layout.js'; cases.push(...layoutCases);
 import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCases);
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
+import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);

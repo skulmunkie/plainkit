@@ -54,3 +54,17 @@ test('without an explicit heading the single-row collapse is the default for eve
     // Never gated by variant any more: the old record-only selector must be gone.
     assert.doesNotMatch(css, /:host\(\[variant="record"\]:not\(\[heading\]\)\)/);
 });
+
+test('crumbs, home crumb and back link are the element\'s own (issue 801): props, a trail part and a back part, drawn from JSON in the shadow tree', () => {
+    const p = Object.fromEntries(meta.props.map(x => [x.name, x]));
+    assert.equal(p.crumbs.type, 'string');
+    assert.equal(p.breadcrumbLabel.default, 'Breadcrumb');
+    assert.equal(p.homeLabel.default, 'Home');
+    assert.equal(p.homeIcon.default, 'dashboard');
+    assert.equal(p.backLink.type, 'boolean');
+    assert.match(html, /<pk-breadcrumb part="trail"[^>]*label="\{\{breadcrumbLabel\}\}"/);
+    assert.match(html, /<pk-button part="back"[^>]*icon-name="chevron-left"/);
+    const js = read('./page-header.js');
+    assert.match(js, /safeHref/);
+    assert.doesNotMatch(js, /innerHTML/);
+});

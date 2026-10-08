@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 728: a card header's own menu of secondary actions: a PkDropdown opened by an icon-only button, hand-assembled by every consumer until now.
+// Issue 728: the card header menu is generated from the pk-card-menu element (it was hand-written until then).
 public sealed class PkCardMenuTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -26,28 +26,16 @@ public sealed class PkCardMenuTests : BunitContext, IAsyncLifetime
     };
 
     [Fact]
-    public void It_is_a_dropdown_at_the_end_opened_by_a_named_icon_only_button()
+    public void It_is_the_pk_card_menu_element_with_the_old_parameter_names()
     {
-        var cut = Render<PkCardMenu>(p => p.Add(x => x.ChildContent, Items));
+        var cut = Render<PkCardMenu>(p => p.Add(x => x.Label, "Panel settings").Add(x => x.IconName, "settings").Add(x => x.Placement, "bottom-start").AddUnmatched("data-test", "m").Add(x => x.ChildContent, Items));
 
-        var dropdown = cut.Find("pk-dropdown");
-        Assert.Equal("bottom-end", dropdown.GetAttribute("placement"));
-        var trigger = dropdown.QuerySelector("[slot=trigger] pk-button")!;
-        Assert.True(trigger.HasAttribute("icon"));
-        Assert.Equal("more", trigger.GetAttribute("icon-name"));
-        Assert.Equal("Card actions", trigger.GetAttribute("label"));
-        Assert.Equal("Rename", dropdown.QuerySelector("pk-menu-item")!.TextContent);
-    }
-
-    [Fact]
-    public void The_label_and_the_icon_can_be_set_and_attributes_reach_the_dropdown()
-    {
-        var cut = Render<PkCardMenu>(p => p.Add(x => x.Label, "Panel settings").Add(x => x.IconName, "settings").AddUnmatched("data-test", "m").Add(x => x.ChildContent, Items));
-
-        var trigger = cut.Find("pk-dropdown [slot=trigger] pk-button");
-        Assert.Equal("Panel settings", trigger.GetAttribute("label"));
-        Assert.Equal("settings", trigger.GetAttribute("icon-name"));
-        Assert.Equal("m", cut.Find("pk-dropdown").GetAttribute("data-test"));
+        var el = cut.Find("pk-card-menu");
+        Assert.Equal("Panel settings", el.GetAttribute("label"));
+        Assert.Equal("settings", el.GetAttribute("icon-name"));
+        Assert.Equal("bottom-start", el.GetAttribute("placement"));
+        Assert.Equal("m", el.GetAttribute("data-test"));
+        Assert.Equal("Rename", el.QuerySelector("pk-menu-item")!.TextContent);
     }
 
     [Fact]
@@ -56,9 +44,21 @@ public sealed class PkCardMenuTests : BunitContext, IAsyncLifetime
         string? value = null;
         var cut = Render<PkCardMenu>(p => p.Add(x => x.ChildContent, Items).Add(x => x.OnSelect, EventCallback.Factory.Create<PkSelectEventArgs>(this, e => value = e.Value)));
 
-        await cut.Find("pk-dropdown").TriggerEventAsync("onpk-select", new PkSelectEventArgs { Value = "rename" });
+        await cut.Find("pk-card-menu").TriggerEventAsync("onpk-select", new PkSelectEventArgs { Value = "rename" });
 
         Assert.Equal("rename", value);
+    }
+
+    [Fact]
+    public async Task Open_follows_the_menu_both_ways()
+    {
+        var open = false;
+        var cut = Render<PkCardMenu>(p => p.Add(x => x.Open, true).Add(x => x.OpenChanged, EventCallback.Factory.Create<bool>(this, v => open = v)).Add(x => x.ChildContent, Items));
+        Assert.True(cut.Find("pk-card-menu").HasAttribute("open"));
+
+        await cut.Find("pk-card-menu").TriggerEventAsync("onpk-close", new PkCloseEventArgs { Reason = "escape" });
+
+        Assert.False(open);
     }
 
     [Fact]
@@ -71,6 +71,6 @@ public sealed class PkCardMenuTests : BunitContext, IAsyncLifetime
             b.CloseComponent();
         }));
 
-        Assert.NotNull(cut.Find("pk-card [slot=actions] pk-dropdown"));
+        Assert.NotNull(cut.Find("pk-card [slot=actions] pk-card-menu"));
     }
 }

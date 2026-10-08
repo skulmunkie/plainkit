@@ -19,9 +19,6 @@
     "Components/PkAppBarSearch.razor": {
       "category": "router"
     },
-    "Components/PkCardMenu.razor": {
-      "category": "debt"
-    },
     "Components/PkCodeExplorer.razor": {
       "category": "mount"
     },
@@ -61,16 +58,13 @@
       "category": "mount"
     },
     "Components/PkPageHeader.razor": {
-      "category": "debt"
+      "category": "wrapper"
     },
     "Components/PkPerformance.razor": {
       "category": "mount"
     },
     "Components/PkQuality.razor": {
       "category": "mount"
-    },
-    "Components/PkRawTable.razor": {
-      "category": "debt"
     },
     "Components/PkRecordForm.razor": {
       "category": "debt"
@@ -157,9 +151,6 @@
     },
     "PkCrumb.cs": {
       "category": "dto"
-    },
-    "PkDataList.cs": {
-      "category": "typed-generics"
     },
     "PkDockTypes.cs": {
       "category": "dto"

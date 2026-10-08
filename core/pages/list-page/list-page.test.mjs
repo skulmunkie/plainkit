@@ -9,13 +9,13 @@ const fakeEl = tag => ({
     setAttribute(k, v) { this.attrs[k] = String(v); },
     append(...k) { this.children.push(...k); },
     replaceChildren(...k) { this.children = k; },
-    addEventListener() {},
+    addEventListener(n, fn) { if (n === 'click') this.click = fn; },
     ownerDocument: { createElement: fakeEl },
     set textContent(v) { this._t = v; }, get textContent() { return this._t; },
 });
 
 const make = () => {
-    const parts = { header: fakeEl('div'), table: fakeEl('pk-data-table'), actions: fakeEl('div') };
+    const parts = { header: fakeEl('div'), table: fakeEl('pk-data-table'), actions: fakeEl('div'), bulk: fakeEl('div') };
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }
@@ -59,4 +59,25 @@ test('load is handed down as it is now (an empty page without one) and rowHref o
     assert.deepEqual(await parts.table.load({ page: 2 }), { rows: [{ id: 1 }], total: 1 });
     parts.table.rowHref({ id: 1 });
     assert.deepEqual(seen, [{ page: 2 }, { id: 1 }]);
+});
+
+test('selectable and rowKey are handed to the data table, and a bulk action raises pk-bulk with the table\'s selection', () => {
+    const { el, parts } = make();
+    const raised = [];
+    el.emit = (name, detail) => raised.push([name, detail]);
+    el.config = { selectable: true, rowKey: 'sku', bulkActions: [{ id: 'archive', label: 'Archive', variant: 'danger' }] };
+    el.connected();
+    assert.equal(parts.table.selectable, true); assert.equal(parts.table.rowKey, 'sku');
+    assert.equal(parts.bulk.children.length, 1);
+    Object.assign(parts.table, { selected: ['a', 'b'], selectScope: 'all', query: { page: 2 } });
+    parts.bulk.children[0].click();
+    assert.deepEqual(raised, [['pk-bulk', { action: 'archive', selected: ['a', 'b'], scope: 'all', query: { page: 2 } }]]);
+});
+
+test('without selectable there is no selection and no bulk bar', () => {
+    const { el, parts } = make();
+    el.config = { bulkActions: [{ id: 'x', label: 'X' }] };
+    el.connected();
+    assert.equal(parts.table.selectable, false);
+    assert.equal(parts.bulk.children.length, 0);
 });
