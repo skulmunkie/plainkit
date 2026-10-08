@@ -159,6 +159,12 @@ export function createExpectations(env, context = {}) {
             const v = env.viewport;
             return (a.x >= -tol && a.y >= -tol && a.right <= v.width + tol && a.bottom <= v.height + tol) || fail(`${sel} [${r1(a.x)},${r1(a.y)} to ${r1(a.right)},${r1(a.bottom)}] is cut off by the ${v.width}x${v.height} viewport`);
         },
+        /** The element fits the viewport's width (nothing cut off or sideways). Its height may exceed the viewport: a page scrolls vertically, so tall content on a phone is not cut off. */
+        fitsWidth: (sel, tol = 1) => {
+            const a = box(sel); if (!a) return false;
+            const v = env.viewport;
+            return (a.x >= -tol && a.right <= v.width + tol) || fail(`${sel} [${r1(a.x)} to ${r1(a.right)}] does not fit the ${v.width}px viewport width`);
+        },
         noOverlap: (a, b, tol = 1) => {
             const p = box(a), q = box(b); if (!p || !q) return false;
             const w = Math.min(p.right, q.right) - Math.max(p.x, q.x), h = Math.min(p.bottom, q.bottom) - Math.max(p.y, q.y);

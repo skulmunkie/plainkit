@@ -182,3 +182,9 @@ test('every scenario file in core/tests/review/scenarios is valid and about a re
         assert.doesNotMatch(source, /_ISSUE = 0|known\(0,/, `${s.name} has a t.known with no issue number`);
     }
 });
+
+test('fitsWidth: a tall element is fine, one wider than the viewport is not', () => {
+    assert.deepEqual(run({ '#a': { x: 0, y: 200, width: 360, height: 1200 } }, t => t.fitsWidth('#a')), []);
+    const msgs = run({ '#a': { x: 20, y: 10, width: 1100, height: 20 } }, t => t.fitsWidth('#a'));
+    assert.equal(msgs.length, 1); assert.match(msgs[0], /does not fit/);
+});
