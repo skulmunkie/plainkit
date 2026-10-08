@@ -42,9 +42,6 @@
     "Components/PkGallery.razor": {
       "category": "wrapper"
     },
-    "Components/PkListPage.razor": {
-      "category": "typed-generics"
-    },
     "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
     },

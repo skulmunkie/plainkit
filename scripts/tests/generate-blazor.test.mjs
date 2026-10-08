@@ -427,7 +427,7 @@ test('tier namespaces: every mapped element has one, base elements stay in the r
             continue;
         }
         assert.match(fs.readFileSync(file, 'utf8'), new RegExp(`@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
-        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element', `${comp} alias`);
+        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element' && !mapping.typeparam, `${comp} alias (a generic component cannot be aliased)`);
     }
     assert.throws(() => tierNamespace({ tag: 'pk-x', tier: 'module' }), /no Blazor namespace/);
 });
