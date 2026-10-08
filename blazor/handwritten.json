@@ -122,6 +122,9 @@
     "PageBase.cs": {
       "category": "runtime"
     },
+    "PageBase.Toasts.cs": {
+      "category": "runtime"
+    },
     "PkAppBarSearchTypes.cs": {
       "category": "dto"
     },
@@ -180,6 +183,9 @@
       "category": "runtime"
     },
     "PkRecordEditor.cs": {
+      "category": "editcontext"
+    },
+    "PkRecordEditor.Toasts.cs": {
       "category": "editcontext"
     },
     "PkRuntime.cs": {
