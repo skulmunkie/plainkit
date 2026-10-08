@@ -4,6 +4,8 @@
     { "name": "Value", "prop": "value", "type": "string" },
     { "name": "Name", "prop": "name", "type": "string" },
     { "name": "Config", "prop": "config", "type": "string", "default": "{}", "note": "The popup table's config as JSON, as PkDataTable's: columns, pageSize, empty and the rest." },
+    { "name": "Multiple", "prop": "multiple", "type": "bool" },
+    { "name": "Max", "prop": "max", "type": "int" },
     { "name": "RowKey", "prop": "rowKey", "type": "string" },
     { "name": "LabelKey", "prop": "labelKey", "type": "string" },
     { "name": "Placeholder", "prop": "placeholder", "type": "string" },
