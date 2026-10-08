@@ -49,12 +49,12 @@ export default Base => class extends Base {
         if (!this.open) { unplace(list); trig.removeAttribute('aria-activedescendant'); return; }
         list.style.minWidth = `${trig.getBoundingClientRect().width}px`;
         place(trig, list, { placement: 'bottom-start', offset: 4 });
-        this.$u = autoUpdate(trig, list, { placement: 'bottom-start', offset: 4 });
+        this.$au = autoUpdate(trig, list, { placement: 'bottom-start', offset: 4 });
         this.$o = onOutside([this], e => this.close(e.type === 'keydown' ? 'escape' : 'outside'));
         this.active(Math.max(0, this.$opts.findIndex(o => o.value === this.value)));
         this.emit('pk-open', null);
     }
-    stop() { this.$u?.(); this.$o?.(); this.$u = this.$o = null; }
+    stop() { this.$au?.(); this.$o?.(); this.$au = this.$o = null; }
     close(reason) { if (this.emit('pk-close', { reason })) { this.open = false; if (reason !== 'outside') this.part('trigger').focus({ preventScroll: true }); } }
     active(i) {
         this.$a = i;
