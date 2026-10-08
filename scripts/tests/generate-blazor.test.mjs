@@ -443,7 +443,7 @@ test('the package targets file lists each tier namespace and the old name of eac
     assert.ok(fromCs.length > 20);
     assert.deepEqual(fromTargets, fromCs, 'the targets file aliases are the C# aliases of the library');
     for (const c of ['PkTabs', 'PkAppShell', 'PkPageHeader', 'PkDock', 'PkAppBarSearch', 'PkSettingsPage', 'PkToolPage']) assert.ok(fromCs.some(([n]) => n === c), c);
-    assert.deepEqual(manifest.movedGeneric, ['PlainKit.Blazor.Components.PkDataTable', 'PlainKit.Blazor.Pages.PkListPage', 'PlainKit.Blazor.Components.PkLookupPicker'], 'a generic type cannot be aliased: it needs the namespace using');
+    assert.deepEqual(manifest.movedGeneric, ['PlainKit.Blazor.Components.PkDataTable', 'PlainKit.Blazor.Components.PkFieldGroup', 'PlainKit.Blazor.Pages.PkListPage', 'PlainKit.Blazor.Components.PkLookupPicker'], 'a generic type cannot be aliased: it needs the namespace using');
     assert.ok(!fromCs.some(([n]) => n === 'PkDataTable' || n === 'PkListPage'));
 });
 

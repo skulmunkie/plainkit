@@ -36,7 +36,7 @@ public enum PkFieldKind
 public sealed record PkFieldOption(string Value, string Label);
 
 /// <summary>
-/// One field of a <see cref="PkFieldGroup{TItem}"/>: everything a plain field needs to render itself and read/write one property of
+/// One field of a <see cref="Components.PkFieldGroup{TItem}"/>: everything a plain field needs to render itself and read/write one property of
 /// <typeparamref name="TItem"/> through <see cref="Get"/>/<see cref="Set"/> — the string form of the value, the same shape every
 /// control's own <c>Value</c> parameter already takes (<c>PkInput.Min</c>/<c>Max</c>/<c>Step</c>/<c>MaxLength</c> are strings for the
 /// same reason: the element does its own coercion). A field can gate its own rendering with <see cref="When"/> (issue 226); a field
