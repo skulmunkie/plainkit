@@ -47,11 +47,11 @@ export default Base => class extends Base {
     // The list is position:fixed and placed from the box, so no overflow-hidden card, form or table cell can clip it.
     float() {
         const pop = this.part('popup'), box = this.part('box');
-        if (!this.open) { this.$u?.(); this.$u = null; return; }
+        if (!this.open) { this.$au?.(); this.$au = null; return; }
         const o = { placement: 'bottom-start', offset: 0 };
         pop.style.minWidth = `${box.getBoundingClientRect().width}px`;
         place(box, pop, o);
-        this.$u ??= autoUpdate(box, pop, o);
+        this.$au ??= autoUpdate(box, pop, o);
     }
     pick(op) {
         this.$typing = false; this.value = op.dataset.value;
@@ -111,6 +111,6 @@ export default Base => class extends Base {
     }
     onReset() { this.value = this.$initial ?? ''; this.$typing = false; }
     onRestore(state) { this.value = state ?? ''; }
-    disconnected() { this.$u?.(); this.$u = null; }
+    disconnected() { this.$au?.(); this.$au = null; }
     focus(o) { this.ctl().focus(o); }
 };
