@@ -367,19 +367,14 @@
       "fingerprint": "17092d7a55931de3"
     },
     {
-      "rule": "S3",
-      "file": "core/site/files/index.html",
-      "fingerprint": "b0ca37f40af77f5e"
-    },
-    {
-      "rule": "S3",
+      "rule": "S7",
       "file": "core/site/files/page.js",
-      "fingerprint": "8f92b7d2187e034f"
+      "fingerprint": "1abdc410f76e75f5"
     },
     {
       "rule": "S7",
       "file": "core/site/files/page.js",
-      "fingerprint": "1abdc410f76e75f5"
+      "fingerprint": "a7b1618782f9d82f"
     },
     {
       "rule": "S7",
