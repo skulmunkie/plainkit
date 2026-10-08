@@ -18,7 +18,6 @@
     "Components/PkPageHeader.razor": 76,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
-    "Components/PkRawTable.razor": 59,
     "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
     "Components/PkSettingsPage.razor": 40,
@@ -92,11 +91,6 @@
       "rule": "name-parity",
       "file": "Components/PkFieldListRow.razor",
       "reason": "Blazor-only skip-empty wrapper around a dt/dd pair; removed when pk-field-list hides empty slotted pairs (#801 name map)"
-    },
-    {
-      "rule": "name-parity",
-      "file": "Components/PkRawTable.razor",
-      "reason": "old name of the raw-slot mode of PkTable; folds into PkTable with an [Obsolete] alias (#801 name map)"
     },
     {
       "rule": "name-parity",
