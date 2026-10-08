@@ -4,18 +4,18 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "doc",
-  "summary": "A page of long-form documents: a filterable side nav of items, an article with a title, summary and body, a table of contents and a previous/next pager. Mounted by the app framework as the `doc` page type (route param `id`, query `anchor`; pk-navigate goes through the router). Set loadItem(id) and href(id, anchor?) as properties (business logic, never config data); a same-page link inside the article scrolls it and fires pk-navigate instead of touching history itself.",
+  "summary": "A page of long-form documents: a filterable side nav of items, an article with a title, summary and body, a table of contents and a previous/next pager. Mounted by the app framework as the `doc` page type (route param `id`, query `anchor`; pk-navigate goes through the router). Set loadItem(id), href(id, anchor?) and, for a search of your own, searchItems(query) as properties (business logic, never config data); a same-page link inside the article scrolls it and fires pk-navigate instead of touching history itself.",
   "props": [
     {
       "name": "config",
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home?: { title, summary }, level?: 1|2|3 }. level is the article title's heading level (default 1 for a page of its own; use 2 when the doc page sits inside a page that already has an h1), read once when the element is built. id null shows the home list (every item, linked); id set loads and shows that item through loadItem(id). anchor scrolls the article to that heading once the item is shown, retried once on the very first load (the elements around the article are still upgrading)."
+      "description": "{ items: [{ id, title, summary }], id: currentId|null, anchor: headingId|null, search: true, home?: { title, summary, cards?: true }, level?: 1|2|3, navLabel?, pagerLabel?, searchLabel?, breadcrumb?: true, scroller?: selector }. scroller names the host's own scrolling box (a selector) that the table of contents follows instead of the whole page. home.cards shows the home list as a grid of pk-cards (title, summary, link) instead of a plain list; breadcrumb: true draws a pk-breadcrumb above the title (the home title as a link, then the current page); navLabel (default Contents), pagerLabel (default Page navigation) and searchLabel (default Search) name the nav, the pager and the host search box. level is the article title's heading level (default 1 for a page of its own; use 2 when the doc page sits inside a page that already has an h1), read once when the element is built. id null shows the home list (every item, linked); id set loads and shows that item through loadItem(id). anchor scrolls the article to that heading once the item is shown, retried once on the very first load (the elements around the article are still upgrading)."
     }
   ],
   "slots": [
-    { "name": "nav", "description": "The item nav (a real pk-side-nav the element builds and owns itself, with a pk-nav-item per config.items entry)." },
+    { "name": "nav", "description": "The item nav (a real pk-side-nav the element builds and owns itself, with a pk-nav-item per config.items entry). With searchItems set it also holds a search box (pk-input) and a polite status line (pk-text) above the items; the host's search names which items stay (an item whose id is not in ids gets hidden, shown again when the box is empty)." },
     { "name": "bar", "description": "The under-1024px bar: the drawer toggle button the element builds itself." },
     { "name": "aside", "description": "The table of contents (a real pk-toc the element builds itself, bound to the article body)." },
     { "name": "", "description": "The article's own content: title, summary, body and pager, all built and owned by the element itself." }
@@ -37,13 +37,17 @@
   ],
   "cssProperties": [],
   "writes": [
-    { "target": "the nav, toggle button and table of contents (pk-side-nav, pk-button, pk-toc)", "attributes": ["open", "pressed", "filterable", "hidden"], "why": "Light-DOM elements this element creates and owns itself (never host-given nodes): its own drawer toggle opens/closes the nav (open, pressed), its own config.search turns the nav's built-in filter on (filterable), and the table of contents is hidden while the shown page has no headings to list (hidden)." }
+    { "target": "the nav, toggle button and table of contents (pk-side-nav, pk-button, pk-toc)", "attributes": ["open", "pressed", "filterable", "hidden", "label", "placeholder", "aria-label", "scroller"], "why": "Light-DOM elements this element creates and owns itself (never host-given nodes): its own drawer toggle opens/closes the nav (open, pressed), its own config.search turns the nav's built-in filter on (filterable), and the table of contents is hidden while the shown page has no headings to list (hidden)." }
   ],
-  "a11y": "The nav is a real pk-side-nav (its own filter box, arrow-key tree navigation, phone drawer); the article's h1 gets focus (tabindex=\"-1\", preventScroll) after a navigation so keyboard and screen reader users start there; the table of contents is a real pk-toc bound to the article body by id.",
+  "a11y": "The host search box is named by searchLabel and its status line is aria-live=polite, so a screen reader hears how many items matched and where. The breadcrumb is a real pk-breadcrumb (a labelled navigation landmark) whose last crumb is aria-current=page. The nav is a real pk-side-nav (its own filter box, arrow-key tree navigation, phone drawer); the article's h1 gets focus (tabindex=\"-1\", preventScroll) after a navigation so keyboard and screen reader users start there; the table of contents is a real pk-toc bound to the article body by id.",
   "examples": [
     {
       "title": "A small set of documents (set loadItem/href from script: an inline script cannot run under this site's CSP)",
       "html": "<pk-doc-page id=\"docs-example\" config='{\"level\":2}'></pk-doc-page>"
+    },
+    {
+      "title": "Home as cards, with a breadcrumb",
+      "html": "<pk-doc-page config='{\"level\":2,\"breadcrumb\":true,\"home\":{\"title\":\"Guides\",\"summary\":\"Pick a guide.\",\"cards\":true},\"items\":[{\"id\":\"start\",\"title\":\"Getting started\",\"summary\":\"Get the files and build a first page.\"},{\"id\":\"theme\",\"title\":\"Theming\",\"summary\":\"Tokens and themes.\"},{\"id\":\"logs\",\"title\":\"Logging\",\"summary\":\"Levels, scopes and routes.\"}]}'></pk-doc-page>"
     }
   ],
   "methods": []

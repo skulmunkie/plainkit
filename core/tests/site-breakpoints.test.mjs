@@ -23,7 +23,6 @@ const BEFORE = {
     'modules/layout-builder/layout-builder.css': ['(max-width: 640px)'],
     'modules/theme-editor/theme-editor.css': ['(max-width: 640px)'],
     'site/gallery/gallery.css': ['(max-width: 1024px)', '(max-width: 1280px)', '(max-width: 1024px)', '(max-width: 1024px)', '(max-width: 640px)'],
-    'site/guides/guides.css': ['(max-width: 1280px)', '(max-width: 1024px)', '(max-width: 640px)'],
     'site/layout-builder/layout-builder.css': ['(max-width: 640px)'],
     'site/site.css': ['(max-width: 1024px)', '(max-width: 640px)'],
 };

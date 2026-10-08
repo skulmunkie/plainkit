@@ -10,7 +10,7 @@
 </head>
 <body>
 <pk-workspace id="content" fill main-label="Things" aside-label="Thing">
-  <pk-data-table id="things" clickable sticky-header row-key="id" config='{"label":"Things","searchLabel":"Search things","pageSize":25,"sort":"name","columns":[{"key":"name","label":"Name","sortable":true},{"key":"status","label":"Status","sortable":true},{"key":"updated","label":"Updated","sortable":true,"hidePhone":true}],"filters":[{"key":"status","type":"select","label":"Status","options":["Active","Draft","Archived"]}]}'></pk-data-table>
+  <pk-data-table id="things" clickable sticky-header row-key="id" label="Things" search-label="Search things" page-size="25" sort="name" columns='[{"key":"name","label":"Name","sortable":true},{"key":"status","label":"Status","sortable":true},{"key":"updated","label":"Updated","sortable":true,"hidePhone":true}]' filters='[{"key":"status","type":"select","label":"Status","options":["Active","Draft","Archived"]}]'></pk-data-table>
   <pk-stack slot="aside" id="detail" gap="sm">
     <pk-page-header id="detail-head" variant="section" heading="Thing">
       <pk-button slot="actions" id="detail-back" size="mini" variant="ghost">&larr; Things</pk-button>

@@ -24,10 +24,10 @@ export default {
 <pk-lookup-picker id="off" disabled label="Disabled" placeholder="Not available"></pk-lookup-picker>
 </pk-stack></div>`,
     setup(frame) {
-        const config = { ...CONFIG, empty: { heading: 'No customers' }, loadError: 'Customers failed' };
+        const config = { ...CONFIG, empty: { heading: 'No customers' }, loadError: 'Customers failed' }; // plain props of the picker
         const paged = async q => { const rs = ALL.filter(r => r.name.toLowerCase().includes((q.search ?? '').toLowerCase())); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         const loads = { single: paged, stored: paged, multi: paged, bad: paged, off: paged, loading: () => new Promise(() => {}), fail: () => Promise.reject(new Error('The customers could not be loaded.')), none: async () => ({ rows: [], total: 0 }) };
-        for (const [id, load] of Object.entries(loads)) { const el = frame.querySelector(P(id)); el.config = config; el.load = load; }
+        for (const [id, load] of Object.entries(loads)) { const el = frame.querySelector(P(id)); Object.assign(el, config); el.load = load; }
     },
     steps: [
         { shot: 'closed' },

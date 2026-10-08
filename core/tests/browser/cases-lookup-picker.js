@@ -2,9 +2,9 @@
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 const ALL = Array.from({ length: 40 }, (_, i) => ({ id: `C${i + 1}`, name: `Customer ${i + 1}`, city: i % 2 ? 'Oslo' : 'Lima' }));
-const CONFIG = JSON.stringify({ columns: [{ key: 'name', label: 'Name' }, { key: 'city', label: 'City' }], pageSize: 5, searchDebounce: 20 });
+const CFG = `columns='${JSON.stringify([{ key: 'name', label: 'Name' }, { key: 'city', label: 'City' }])}' page-size="5" search-debounce="20"`;
 const mount = async (t, attrs = '', extra = '') => {
-    const el = await t.mount(`<pk-lookup-picker label="Customer" placeholder="Choose" label-key="name" config='${CONFIG}' ${attrs}>${extra}</pk-lookup-picker>`);
+    const el = await t.mount(`<pk-lookup-picker label="Customer" placeholder="Choose" label-key="name" ${CFG} ${attrs}>${extra}</pk-lookup-picker>`);
     await t.load(el.shadowRoot); el.queries = [];
     el.load = async (q) => { el.queries.push(q); const rs = ALL.filter(r => r.name.toLowerCase().includes(q.search.toLowerCase())); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
     return el;
@@ -18,14 +18,14 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
-    ['lookup-picker: plain props (no config) give the popup its columns, page size and search label, and win over config (#805)', async t => {
-        const el = await t.mount(`<pk-lookup-picker label="Customer" label-key="name" columns='[{"key":"name","label":"Name"}]' page-size="3" search-label="Find a customer" config='{"pageSize":8,"columns":[{"key":"city","label":"City"}]}'></pk-lookup-picker>`);
+    ['lookup-picker: plain props give the popup its columns, page size, search label, empty state and load error (#805)', async t => {
+        const el = await t.mount(`<pk-lookup-picker label="Customer" label-key="name" columns='[{"key":"name","label":"Name"}]' page-size="3" search-label="Find a customer"></pk-lookup-picker>`);
         await t.load(el.shadowRoot); const queries = [];
         el.load = async q => { queries.push(q); return { rows: ALL.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: ALL.length }; };
         el.open = true;
         await until(() => rowEls(el).length === 3, 'a first page of three rows');
-        t.eq(queries.at(-1).pageSize, 3, 'page-size beats config.pageSize');
-        t.eq(tbl(el).shadowRoot.querySelectorAll('thead th').length, 1, 'columns beats config.columns: one column'); t.eq(tbl(el).shadowRoot.querySelector('thead th').textContent.trim(), 'Name');
+        t.eq(queries.at(-1).pageSize, 3, 'page-size sets the popup page size');
+        t.eq(tbl(el).shadowRoot.querySelectorAll('thead th').length, 1, 'columns sets the popup columns: one column'); t.eq(tbl(el).shadowRoot.querySelector('thead th').textContent.trim(), 'Name');
         t.eq(search(el).getAttribute('aria-label'), 'Find a customer', 'search-label names the search box');
     }],
 
@@ -50,7 +50,7 @@ export const lookupPickerCases = [
     }],
 
     ['lookup-picker: Down enters the rows, the arrows and Home/End walk them, Enter picks: the popup closes, focus returns to the field, the label shows and the form value is the key', async t => {
-        const host = t.stage(`<form><pk-lookup-picker name="customer" label="Customer" label-key="name" config='${CONFIG}'></pk-lookup-picker></form>`);
+        const host = t.stage(`<form><pk-lookup-picker name="customer" label="Customer" label-key="name" ${CFG}></pk-lookup-picker></form>`);
         await t.load(host);
         const el = host.querySelector('pk-lookup-picker'); await t.load(el.shadowRoot); el.load = async q => ({ rows: ALL.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: ALL.length });
         const events = []; for (const n of ['input', 'change', 'pk-lookup-select']) el.addEventListener(n, e => events.push(n));
@@ -92,12 +92,12 @@ export const lookupPickerCases = [
         a.selectedLabels = { C33: 'Customer 33' }; await t.settle();
         t.eq(a.part('text').textContent, 'Customer 33', 'selectedLabels');
         const asked = [];
-        const b = await t.mount(`<pk-lookup-picker label="Customer" value="C35" config='${CONFIG}'></pk-lookup-picker>`);
+        const b = await t.mount(`<pk-lookup-picker label="Customer" value="C35" ${CFG}></pk-lookup-picker>`);
         await t.load(b.shadowRoot);
         b.resolve = async keys => { asked.push(keys); return [{ key: 'C35', label: 'Customer 35' }]; };
         b.requestUpdate(); await until(() => b.part('text').textContent === 'Customer 35', 'resolve to fill the label');
         t.eq(JSON.stringify(asked), '[["C35"]]', 'resolve asked once, with the key');
-        const c = await t.mount(`<pk-lookup-picker label="Customer" required config='${CONFIG}'></pk-lookup-picker>`);
+        const c = await t.mount(`<pk-lookup-picker label="Customer" required ${CFG}></pk-lookup-picker>`);
         t.ok(!c.checkValidity(), 'required and empty: invalid');
         c.value = 'C1'; await t.settle(); t.ok(c.checkValidity(), 'valid with a value');
     }],
@@ -116,7 +116,7 @@ export const lookupPickerCases = [
     }],
 
     ['lookup-picker multiple: ticking rows keeps the popup open and makes chips, the selection survives paging and has no select-all across pages, max undoes a tick, a chip removes itself, and the form gets one entry per key', async t => {
-        const host = t.stage(`<form><pk-lookup-picker multiple max="3" name="customers" label="Customers" placeholder="Choose" label-key="name" config='${CONFIG}'></pk-lookup-picker></form>`);
+        const host = t.stage(`<form><pk-lookup-picker multiple max="3" name="customers" label="Customers" placeholder="Choose" label-key="name" ${CFG}></pk-lookup-picker></form>`);
         await t.load(host);
         const el = host.querySelector('pk-lookup-picker'); await t.load(el.shadowRoot);
         el.load = async q => ({ rows: ALL.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: ALL.length });
@@ -142,7 +142,7 @@ export const lookupPickerCases = [
     }],
 
     ['lookup-picker multiple: values set by the host show chips from selectedLabels or one batched resolve(keys), required is invalid while empty, a reset restores the initial values', async t => {
-        const host = t.stage(`<form><pk-lookup-picker multiple required name="c" label="Customers" config='${CONFIG}'></pk-lookup-picker></form>`);
+        const host = t.stage(`<form><pk-lookup-picker multiple required name="c" label="Customers" ${CFG}></pk-lookup-picker></form>`);
         await t.load(host);
         const el = host.querySelector('pk-lookup-picker'); await t.load(el.shadowRoot);
         t.ok(!el.checkValidity(), 'required and empty: invalid');
