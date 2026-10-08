@@ -10,7 +10,112 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, search?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows; noResults is the same shape, shown instead while a search or filter is active (default: empty); loadError is the heading of the error state shown when load() rejects (default 'Something went wrong'; the error's message is its description). pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); search is the initial search term (for example from a URL): it fills the search box and is the first query's search, and a reader's typing replaces it; a later change of config.search by the host replaces the term and loads page 1; searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
+      "description": "The older way to set everything below in one JSON object; each plain prop of the same name (columns, pageSize, sort, label ...) wins over its config key once it is set, and config stays as the fallback (filters has no plain prop yet). { columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, search?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows; noResults is the same shape, shown instead while a search or filter is active (default: empty); loadError is the heading of the error state shown when load() rejects (default 'Something went wrong'; the error's message is its description). pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); search is the initial search term (for example from a URL): it fills the search box and is the first query's search, and a reader's typing replaces it; a later change of config.search by the host replaces the term and loads page 1; searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
+    },
+    {
+      "name": "columns",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "pk-table's column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). Empty uses config.columns."
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": 25,
+      "reflect": false,
+      "description": "The page size to start with (initial only; the user changes it in the pager). Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "pageSizeOptions",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "The page sizes the pager offers, a number array; null uses config.pageSizeOptions, and with neither the pager has no size choice."
+    },
+    {
+      "name": "sort",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The key of the column to sort by first (initial only; empty loads the default order). Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "sortDir",
+      "type": "string",
+      "default": "ascending",
+      "reflect": false,
+      "description": "ascending or descending, for sort. Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "hideSearch",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Hides the search box (config.searchable false hides it too)."
+    },
+    {
+      "name": "search",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The search term to start with, for example from a query string: it fills the search box and the first load, and typing replaces it. Changing it later replaces the term and loads page 1. Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "searchLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The placeholder and accessible name of the search box (default \"Search\"). Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "searchDebounce",
+      "type": "number",
+      "default": 250,
+      "reflect": false,
+      "description": "Milliseconds to wait after the last keystroke before searching. Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "pagerLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name of the pager (default \"Pagination\"). Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name of the table. Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "caption",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The table caption, as text. Plain props win over the same key in config; config stays as the fallback."
+    },
+    {
+      "name": "empty",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "{ heading?, description? } shown when a page has zero rows and nothing is searched; null uses config.empty."
+    },
+    {
+      "name": "noResults",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "{ heading?, description? } shown instead while a search or filter is active; null uses config.noResults."
+    },
+    {
+      "name": "loadError",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The heading of the failed-load message (with Retry). Plain props win over the same key in config; config stays as the fallback."
     },
     {
       "name": "selectable",
@@ -152,6 +257,10 @@
     {
       "title": "Preset search (from a link) and no Select all offer",
       "html": "<pk-data-table selectable select-page-only config='{\"columns\":[{\"key\":\"sku\",\"label\":\"SKU\"}],\"search\":\"acme\",\"noResults\":{\"heading\":\"Nothing matches acme\"}}'></pk-data-table>"
+    },
+    {
+      "title": "Plain props instead of config (set load from script)",
+      "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' page-size=\"10\" search-label=\"Find a product\" label=\"Products\" empty='{\"heading\":\"No products yet\"}' no-results='{\"heading\":\"No product matches\"}'></pk-data-table>"
     }
   ]
 }
