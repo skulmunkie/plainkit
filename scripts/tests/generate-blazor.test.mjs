@@ -483,3 +483,29 @@ test('typeparam: a generic component declares @typeparam, is left out of the usi
     assert.ok(!/@typeparam/.test(run().files.get('PkDemo.razor')), 'no typeparam, no @typeparam');
     assert.ok(!(r.files.get('PkGeneratedAliases.cs') ?? '').includes('PkDemo'), 'a generic component cannot be aliased');
 });
+
+test('slotted: a prop is also a light-DOM child of its own (a title that is the heading attribute and a focusable pk-heading), written first, only when set', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'Label').slotted = { tag: 'pk-heading', slot: 'title', attrs: { level: '@PkAttr.Num(Count)', weight: 'semibold', tabindex: '-1' } };
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /label="@Label"/, 'it is still the attribute');
+    assert.match(razor, />@if \(!string\.IsNullOrEmpty\(Label\)\) \{<pk-heading slot="title" level="@PkAttr\.Num\(Count\)" weight="semibold" tabindex="-1">@Label<\/pk-heading>\}@ChildContent/, 'and the child comes before the slots, level an expression, the others literals');
+    assert.ok(!/pk-heading/.test(run().files.get('PkDemo.razor')), 'a mapping without it draws no child');
+});
+
+test('json: true lets a string element prop that holds JSON take a typed record list (PkPageHeader.Crumbs), sent through PkAttr.Json', () => {
+    const m = structuredClone(mapping);
+    const p = m.params.find(x => x.name === 'Label');
+    p.type = 'IReadOnlyList<DemoRow>?'; p.json = true;
+    const razor = generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public IReadOnlyList<DemoRow>\? Label/);
+    assert.match(razor, /label="@PkAttr\.Json\(Label\)"/);
+    delete p.json;
+    assert.match(generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /public object\? Label/, 'without json: true a string prop does not take a record list');
+});
+
+test('unless: a slot is dropped once another list parameter has items', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'AsideContent').unless = 'Rows';
+    assert.match(run(m).files.get('PkDemo.razor'), /@if \(AsideContent is not null && Rows is not \{ Count: > 0 \}\) \{<span slot="aside"/);
+});
