@@ -341,6 +341,9 @@ async function runJobs(o, argv) {
     return Math.max(...codes);
 }
 
+// What a run has to stop when it is interrupted: the browser and the server (set once they are started).
+let stopChildren = () => {};
+
 async function main() {
     let o;
     try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(e.message); return 2; }
@@ -375,8 +378,11 @@ async function main() {
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
+    // A process ended from outside (a task killed, a window closed) cannot say so on Windows: this marker, removed when the run finishes, tells the next reader the folder is a partial run.
+    const incomplete = path.join(out, 'INCOMPLETE.txt');
+    fs.writeFileSync(incomplete, `ui-review started ${new Date().toISOString()} and has not finished: the shots here are a partial run (the process was ended from outside).\n`);
     const manifest = { generated: new Date().toISOString(), why, shard: o.shard ? `${o.shard.k}/${o.shard.n}` : null, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, phases: {}, summary: null };
-    if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); return 0; }
+    if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); fs.rmSync(incomplete, { force: true }); return 0; }
 
     let chrome;
     try { chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) }); } catch (e) { console.error(e.message); return 2; }
@@ -395,6 +401,7 @@ async function main() {
             setTimeout(() => reject(new Error('the server did not start within 10 s')), 10000);
         });
         server.removeAllListeners('exit');
+        stopChildren = () => { killTree(browser); killTree(server); };
         browser = spawn(chrome, [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore', detached: process.platform !== 'win32' });
         const portFile = path.join(profile, 'DevToolsActivePort');
         for (let i = 0; i < 100 && !fs.existsSync(portFile); i++) await sleep(150);
@@ -436,6 +443,7 @@ async function main() {
         manifest.findings = grouped;
         manifest.summary = summarize(grouped, { strict: o.strict });
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
+        fs.rmSync(incomplete, { force: true });
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
         for (const n of manifest.notSeen) console.log(`NOT SEEN ${n.tag} ${n.viewport}/${n.theme}: ${n.reason}`);
         console.log(`time (s): ${Object.entries(manifest.timings).map(([k, v]) => `${k} ${v}`).join(', ')}`);
@@ -455,4 +463,13 @@ async function main() {
     return code;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(await main());
+// A run never ends silently (an exit code of 255 told nothing): a crash, an interruption and an exit before main finished each say what happened and exit with a code of their own.
+let finished = false;
+function loud() {
+    const crash = e => { console.error(`ui-review crashed: ${e?.stack ?? e}`); stopChildren(); process.exit(2); };
+    process.on('uncaughtException', crash);
+    process.on('unhandledRejection', crash);
+    for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) { try { process.on(sig, () => { console.error(`ui-review interrupted by ${sig}`); stopChildren(); process.exit(130); }); } catch (e) { /* a signal this platform has no name for */ void e; } }
+    process.on('exit', code => { if (!finished) console.error(`ui-review stopped with exit code ${code} before it finished (a promise never settled, or the process was ended from outside)`); });
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) { loud(); const code = await main(); finished = true; process.exit(code); }

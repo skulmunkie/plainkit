@@ -52,7 +52,28 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "The popup table's config, as pk-data-table's: { columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel? }. columns is required for the table to show anything."
+      "description": "The older way to set the popup table in one JSON object (plain props columns, pageSize and searchLabel win over their keys once set). As pk-data-table's: { columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel? }. columns is required for the table to show anything."
+    },
+    {
+      "name": "columns",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The popup table's column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). Empty uses config.columns; one of them is required for the table to show anything."
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": 25,
+      "reflect": false,
+      "description": "The popup table's page size (initial only). A plain prop wins over the same key of config once it differs from its default; config stays as the fallback."
+    },
+    {
+      "name": "searchLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The placeholder and accessible name of the popup's search box (default \"Search <label>\"). A plain prop wins over the same key of config once it differs from its default; config stays as the fallback."
     },
     {
       "name": "rowKey",

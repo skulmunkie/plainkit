@@ -22,6 +22,14 @@ export function rowStep(at, count, key) {
 }
 // A multiple selection under a limit: `next` replaces `prev` unless it would hold more than max (0 or less: no limit), then `prev` stays and `refused` says so.
 export const limitSelection = (prev, next, max) => (max > 0 && next.length > max ? { values: prev, refused: true } : { values: next, refused: false });
+// The popup table's config: the defaults, then config, then the plain props that differ from their default (#805).
+export function tableConfig(el) {
+    const cfg = { searchLabel: `Search ${el.label || 'options'}`, label: el.label, ...el.config };
+    if (el.columns?.length) cfg.columns = el.columns;
+    if (el.pageSize !== undefined && el.pageSize !== 25) cfg.pageSize = el.pageSize;
+    if (el.searchLabel) cfg.searchLabel = el.searchLabel;
+    return cfg;
+}
 const rowsOf =dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [])];
 
 export default Base => class extends Base {
@@ -141,7 +149,7 @@ export default Base => class extends Base {
             dt.rowKey = this.rowKey;
             if (this.multiple) { if (JSON.stringify(dt.selected) !== JSON.stringify(keys)) dt.selected = [...keys]; } else dt.currentRow = this.value;
             // config is handed over only when it changed: setting it makes the table load again.
-            const cfg = { searchLabel: `Search ${this.label || 'options'}`, label: this.label, ...this.config }, key = JSON.stringify(cfg);
+            const cfg = tableConfig(this), key = JSON.stringify(cfg);
             if (key !== this.$cfg) { this.$cfg = key; dt.config = cfg; }
         } else this.$wantFocus = false;
         const empty = this.multiple ? keys.length === 0 : this.value === '';
