@@ -20,12 +20,14 @@ export function rowStep(at, count, key) {
     if (key === 'ArrowUp') return Math.max(at - 1, 0);
     return key === 'Home' ? 0 : key === 'End' ? count - 1 : null;
 }
-const rowsOf = dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [])];
+// A multiple selection under a limit: `next` replaces `prev` unless it would hold more than max (0 or less: no limit), then `prev` stays and `refused` says so.
+export const limitSelection = (prev, next, max) => (max > 0 && next.length > max ? { values: prev, refused: true } : { values: next, refused: false });
+const rowsOf =dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [])];
 
 export default Base => class extends Base {
     connected() {
         if (this.$init) return;
-        this.$init = true; this.$initial = this.value;
+        this.$init = true; this.$initial = this.value; this.$initialValues = [...(this.values ?? [])];
         // The popover and the button of the field (the table waits for the first open). Props are written to the popover only once it is defined:
         // pk-popover keeps its auto-update stop in this.$u, which the base class also uses for props set before an upgrade, so a pre-upgrade write breaks it (reported on #801).
         loadElements(this.shadowRoot).then(() => this.requestUpdate());
@@ -40,6 +42,7 @@ export default Base => class extends Base {
             if (e.detail?.reason !== 'outside' && e.detail?.reason !== 'blur') focusTrigger(this.part('control'));
         });
         pop.addEventListener('click', e => { if (this.readonly) e.stopPropagation(); }, true); // a read-only field shows its value and never opens
+        this.part('chips').addEventListener('pk-remove', e => { e.stopPropagation(); this.removeKey(e.detail.value); focusTrigger(this.part('control')); });
         this.part('control').addEventListener('keydown', e => { if (!this.open && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && !this.readonly && !this.disabled) { e.preventDefault(); this.mirror(true); } });
         pop.addEventListener('keydown', e => this.rowKeys(e));
     }
@@ -60,11 +63,15 @@ export default Base => class extends Base {
     ensureTable() {
         if (this.$dt) return this.$dt;
         const dt = this.$dt = this.shadowRoot.querySelector('template').content.firstElementChild.cloneNode(true);
-        dt.clickable = true;
+        // Single: a row click picks. Multiple: a checkbox column (selection survives paging and search; no select-all across pages) and the popup stays open.
+        if (this.multiple) { dt.selectable = true; dt.selectPageOnly = true; dt.clickable = false; dt.addEventListener('pk-select', e => { e.stopPropagation(); this.choose(e.detail.selected.map(String)); }); }
+        else dt.clickable = true;
         dt.load = async (q, o) => {
             this.say('Loading');
             try {
                 const r = await this.load?.(q, o);
+                // Every row seen names its key, so a chip of a row from another page keeps its label without a refetch.
+                for (const row of r?.rows ?? []) this.labels.set(String(row[this.rowKey]), labelOf(row, this.labelKey, this.rowKey));
                 this.say(`${r?.total ?? r?.rows?.length ?? 0} results`);
                 return r;
             } finally { queueMicrotask(() => this.tryFocus()); }
@@ -84,40 +91,62 @@ export default Base => class extends Base {
         for (const t of ['input', 'change']) this.dispatchEvent(new Event(t, { bubbles: true, composed: true }));
         this.emit('pk-lookup-select', { value: id, label: this.labels.get(id), row });
     }
+    // The multiple selection changed (a row ticked or unticked, a chip removed): keep it within max, raise the events, say what happened.
+    choose(next) {
+        const { values, refused } = limitSelection(this.values ?? [], next, this.max);
+        if (refused) { this.say(`Limit of ${this.max} reached`); if (this.$dt) this.$dt.selected = [...values]; this.requestUpdate(); return; }
+        this.values = values;
+        for (const t of ['input', 'change']) this.dispatchEvent(new Event(t, { bubbles: true, composed: true }));
+        this.emit('pk-values-change', { values: [...values], labels: values.map(v => this.labelFor(v)) });
+    }
+    removeKey(key) { const was = this.values ?? []; this.choose(was.filter(v => v !== key)); this.say(`Removed ${this.labelFor(key)}`); }
+    // The chips of a multiple picker, one pk-tag per key, in a labelled list beside the field.
+    drawChips() {
+        const box = this.part('chips'), keys = this.multiple ? this.values ?? [] : [];
+        box.hidden = keys.length === 0;
+        const sig = keys.map(k => `${k}\u0000${this.labelFor(k)}`).join('\u0001') + this.disabled;
+        if (sig === this.$chips) return;
+        this.$chips = sig;
+        box.replaceChildren(...keys.map(k => { const t = this.ownerDocument.createElement('pk-tag'); t.setAttribute('role', 'listitem'); t.toggleAttribute('controlled', true); t.toggleAttribute('removable', !this.disabled && !this.readonly); t.setAttribute('value', k); t.textContent = this.labelFor(k); return t; }));
+        if (keys.length) loadElements(this.shadowRoot);
+    }
     // The label for the current value: one picked in this session, one the host supplied, else what resolve(keys) answers (the key meanwhile is not shown).
     labelFor(value) {
         if (value === '') return '';
         const label = this.labels.get(value) ?? this.selectedLabels?.[value];
         if (label !== undefined) return label;
         if (typeof this.resolve !== 'function') return value;
-        if (this.$asked !== value) {
-            this.$asked = value;
-            const token = this.$token = {};
-            Promise.resolve().then(() => this.resolve([value])).then(r => {
-                if (this.$token !== token) return;
-                for (const [k, v] of Object.entries(labelMap(r))) this.labels.set(k, v);
-                this.requestUpdate();
-            }, error => { this.$asked = null; this.warnOnce(`resolve() rejected: ${error?.message ?? error}`); });
+        // Keys seen in one update go to one resolve([...]) call, each key asked once.
+        if (!(this.$asked ??= new Set()).has(value)) {
+            this.$asked.add(value);
+            if (!(this.$batch ??= []).length) Promise.resolve().then(() => {
+                const keys = this.$batch.splice(0);
+                return Promise.resolve().then(() => this.resolve(keys)).then(r => { for (const [k, v] of Object.entries(labelMap(r))) this.labels.set(k, v); this.requestUpdate(); }, error => { for (const k of keys) this.$asked.delete(k); this.warnOnce(`resolve() rejected: ${error?.message ?? error}`); });
+            });
+            this.$batch.push(value);
         }
         return '';
     }
     updated() {
         const pop = this.part('popover'), btn = this.part('control'), text = this.part('text');
-        const shown = this.labelFor(this.value);
+        const keys = this.multiple ? this.values ?? [] : [], shown = this.multiple ? (keys.length ? `${keys.length} selected` : '') : this.labelFor(this.value);
         text.textContent = shown || this.placeholder;
         text.toggleAttribute('data-placeholder', !shown);
         btn.label = [this.label, shown || this.placeholder].filter(Boolean).join(': ');
+        this.drawChips();
         btn.toggleAttribute('aria-invalid', !!this.invalid);
         if (pop.open !== undefined && pop.open !== !!this.open) pop.open = !!this.open;
         if (this.open) {
             const dt = this.ensureTable();
-            dt.rowKey = this.rowKey; dt.currentRow = this.value;
+            dt.rowKey = this.rowKey;
+            if (this.multiple) { if (JSON.stringify(dt.selected) !== JSON.stringify(keys)) dt.selected = [...keys]; } else dt.currentRow = this.value;
             // config is handed over only when it changed: setting it makes the table load again.
             const cfg = { searchLabel: `Search ${this.label || 'options'}`, label: this.label, ...this.config }, key = JSON.stringify(cfg);
             if (key !== this.$cfg) { this.$cfg = key; dt.config = cfg; }
         } else this.$wantFocus = false;
-        this.setValidity(this.required && this.value === '' ? { valueMissing: true } : {}, 'Choose an option.', btn);
-        this.setFormValue(this.value);
+        const empty = this.multiple ? keys.length === 0 : this.value === '';
+        this.setValidity(this.required && empty ? { valueMissing: true } : {}, this.multiple ? 'Choose at least one option.' : 'Choose an option.', btn);
+        if (this.multiple) { const fd = new FormData(); for (const k of keys) fd.append(this.name, k); this.setFormValue(fd); } else this.setFormValue(this.value);
     }
     // Focus enters the popup on open: the search box, as soon as the table has drawn it. Tried when the popup opens, when the table's elements
     // are defined and after each load, until it lands.
@@ -128,7 +157,7 @@ export default Base => class extends Base {
         if (!box || box.getBoundingClientRect().width === 0) return;
         this.$wantFocus = false; box.focus();
     }
-    onReset() { this.value = this.$initial ?? ''; this.$asked = null; }
+    onReset() { this.value = this.$initial ?? ''; this.values = [...(this.$initialValues ?? [])]; this.$asked = null; }
     onRestore(state) { this.value = state ?? ''; }
     focus(o) { this.part('control').focus(o); }
 };

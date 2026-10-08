@@ -18,6 +18,10 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
+    ['lookup-picker: the invalid field draws the error colour on its border', async t => {
+        const a = await mount(t), b = await mount(t, 'invalid'), edge = el => getComputedStyle(el.part('control').shadowRoot.querySelector('button')).borderTopColor;
+        t.ok(edge(b) !== edge(a), 'invalid changes the border colour');
+    }],
     ['lookup-picker: a closed picker builds no table and loads nothing; opening it builds the popup, loads page one and moves focus into the search box', async t => {
         const el = await mount(t);
         const ctl = el.part('control');
@@ -98,5 +102,46 @@ export const lookupPickerCases = [
         t.eq(el.queries.filter(q => q.search === 'Customer 3').length, 1, 'one load per search, not one per update');
         dt(el).part('pagination').shadowRoot.querySelector('[part~="next"]')?.click(); await until(() => el.queries.at(-1).page === 2, 'page two');
         t.ok(el.open, 'paging does not close the popup');
+    }],
+
+    ['lookup-picker multiple: ticking rows keeps the popup open and makes chips, the selection survives paging and has no select-all across pages, max undoes a tick, a chip removes itself, and the form gets one entry per key', async t => {
+        const host = t.stage(`<form><pk-lookup-picker multiple max="3" name="customers" label="Customers" placeholder="Choose" label-key="name" config='${CONFIG}'></pk-lookup-picker></form>`);
+        await t.load(host);
+        const el = host.querySelector('pk-lookup-picker'); await t.load(el.shadowRoot);
+        el.load = async q => ({ rows: ALL.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: ALL.length });
+        const events = []; el.addEventListener('pk-values-change', e => events.push(e.detail.values.join()));
+        el.part('control').click(); await until(() => rowEls(el).length === 5, 'rows');
+        const box = n => tbl(el).shadowRoot.querySelector(`[data-select="${n}"]`);
+        box('C1').click(); await t.settle(); box('C2').click(); await t.settle();
+        t.eq(el.values.join(), 'C1,C2'); t.ok(el.open, 'the popup stays open while ticking');
+        t.eq(events.join('|'), 'C1|C1,C2');
+        const chips = () => [...el.part('chips').querySelectorAll('pk-tag')];
+        t.eq(chips().map(c => c.textContent).join(), 'Customer 1,Customer 2', 'one chip per key, with its label'); t.ok(!el.part('chips').hidden);
+        t.eq(el.part('text').textContent, '2 selected');
+        dt(el).part('pagination').shadowRoot.querySelector('[part~="next"]').click(); await until(() => box('C6'), 'page two');
+        box('C6').click(); await t.settle();
+        t.eq(el.values.join(), 'C1,C2,C6', 'the selection survives paging');
+        box('C7').click(); await t.settle();
+        t.eq(el.values.join(), 'C1,C2,C6', 'a fourth tick past max is undone'); t.eq(el.part('status').textContent, 'Limit of 3 reached');
+        t.ok(!tbl(el).shadowRoot.querySelector('[part=bulk-all]') || tbl(el).shadowRoot.querySelector('[part=bulk-all]').hidden, 'no select-all across pages');
+        t.eq(JSON.stringify(new FormData(host.querySelector('form')).getAll('customers')), '["C1","C2","C6"]', 'one form entry per key');
+        await until(() => chips()[0].shadowRoot?.querySelector('[part=remove]'), 'the chip remove button');
+        chips()[0].shadowRoot.querySelector('[part=remove]').click(); await t.settle();
+        t.eq(el.values.join(), 'C2,C6'); t.eq(chips().length, 2); t.eq(el.shadowRoot.activeElement, el.part('control'), 'focus returns to the field after a chip is removed');
+    }],
+
+    ['lookup-picker multiple: values set by the host show chips from selectedLabels or one batched resolve(keys), required is invalid while empty, a reset restores the initial values', async t => {
+        const host = t.stage(`<form><pk-lookup-picker multiple required name="c" label="Customers" config='${CONFIG}'></pk-lookup-picker></form>`);
+        await t.load(host);
+        const el = host.querySelector('pk-lookup-picker'); await t.load(el.shadowRoot);
+        t.ok(!el.checkValidity(), 'required and empty: invalid');
+        const asked = []; el.resolve = async keys => { asked.push(keys); return Object.fromEntries(keys.map(k => [k, `Name ${k}`])); };
+        el.selectedLabels = { C9: 'Nine' }; el.values = ['C9', 'C30', 'C31']; await t.settle();
+        const chips = () => [...el.part('chips').querySelectorAll('pk-tag')].map(c => c.textContent).join();
+        await until(() => chips() === 'Nine,Name C30,Name C31', 'chip labels');
+        t.eq(JSON.stringify(asked), '[["C30","C31"]]', 'one resolve call for the keys without a label');
+        t.ok(el.checkValidity(), 'valid with values');
+        host.querySelector('form').reset(); await t.settle();
+        t.eq(el.values.length, 0, 'a reset restores the initial (empty) values');
     }],
 ];

@@ -1,0 +1,163 @@
+@namespace PlainKit.Blazor.Components
+@typeparam TItem
+@using System.Linq.Expressions
+@inherits PkFormControlBase<string?>
+@implements IDisposable
+
+@* Hand-written (mapping "existing"): a typed wrapper over pk-lookup-picker, which owns the popup table, the query, the states and the selection (issue 801). It only turns
+   .NET into what the element takes (columns into config, Load into load(query), Resolve into resolve(keys)) and its events back into the bound Value or Values. *@
+<pk-lookup-picker data-pk-ranges
+                  config="@_config"
+                  @ref="Element"
+                  value="@Value"
+                  values="@PkAttr.Json(Values)"
+                  selected-labels="@PkAttr.Json(SelectedLabels)"
+                  name="@Name"
+                  row-key="id"
+                  label-key="pkLabel"
+                  multiple="@Multiple"
+                  max="@PkAttr.Num(Max)"
+                  placeholder="@Placeholder"
+                  disabled="@Disabled"
+                  readonly="@Readonly"
+                  required="@Required"
+                  invalid="@(IsInvalid || FieldInvalid)"
+                  label="@AriaLabel"
+                  open="@Open"
+                  class="@Css()"
+                  @attributes="Splat"></pk-lookup-picker>
+
+@code {
+    [Inject] private PkRuntime Runtime { get; set; } = default!;
+
+    private readonly PkCallbackSlot _load = new("load");
+    private readonly PkCallbackSlot _resolve = new("resolve");
+    private string _config = "{}";
+
+    /// <summary>Loads one page of the popup table: the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) in, the items of that page and the total of the searched list out. A request a newer one replaces has its <c>CancellationToken</c> cancelled.</summary>
+    [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
+
+    /// <summary>The columns of the popup table.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PkTableColumn<TItem>> Columns { get; set; } = [];
+
+    /// <summary>The key of an item: what <see cref="Value"/> and <see cref="Values"/> hold.</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> IdOf { get; set; } = default!;
+
+    /// <summary>The text the field and the chips show for an item; default its key.</summary>
+    [Parameter] public Func<TItem, string>? LabelOf { get; set; }
+
+    /// <summary>The key of the chosen item when not <see cref="Multiple"/> (two-way: <c>@bind-Value</c>).</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Raised with the new <see cref="Value"/>.</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>Names the bound <see cref="Value"/> for an <c>EditForm</c>.</summary>
+    [Parameter] public Expression<Func<string?>>? ValueExpression { get; set; }
+
+    /// <summary>The keys of the chosen items when <see cref="Multiple"/> (two-way: <c>@bind-Values</c>).</summary>
+    [Parameter] public IReadOnlyList<string>? Values { get; set; }
+
+    /// <summary>Raised with the new <see cref="Values"/>.</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>?> ValuesChanged { get; set; }
+
+    /// <summary>Names the bound <see cref="Values"/> for an <c>EditForm</c>.</summary>
+    [Parameter] public Expression<Func<IReadOnlyList<string>?>>? ValuesExpression { get; set; }
+
+    /// <summary>Several items can be chosen: a checkbox column, chips and <see cref="Values"/>.</summary>
+    [Parameter] public bool Multiple { get; set; }
+
+    /// <summary>The most items a multiple picker accepts; 0 is no limit.</summary>
+    [Parameter] public int Max { get; set; }
+
+    /// <summary>Labels for keys whose row is on no loaded page, so a stored value shows its name without a round trip.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? SelectedLabels { get; set; }
+
+    /// <summary>Asked once, with every key that has no label yet, to name stored keys (the element calls it, not you); returns key to label.</summary>
+    [Parameter] public Func<IReadOnlyList<string>, Task<IReadOnlyDictionary<string, string>>>? Resolve { get; set; }
+
+    /// <summary>The page size of the popup table (initial). Default 10.</summary>
+    [Parameter] public int PageSize { get; set; } = 10;
+
+    /// <summary>The form field name.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>Hint shown while nothing is chosen.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Blocks interaction.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>Shows the value but cannot open.</summary>
+    [Parameter] public bool Readonly { get; set; }
+
+    /// <summary>The form cannot be submitted while nothing is chosen.</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>Shows the invalid state.</summary>
+    [Parameter] public bool IsInvalid { get; set; }
+
+    /// <summary>The accessible name of the field and the popup.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Whether the popup is open (two-way: <c>@bind-Open</c>).</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Raised when <see cref="Open"/> changes.</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <inheritdoc />
+    protected override Expression<Func<string?>>? FieldExpression => ValueExpression;
+
+    /// <inheritdoc />
+    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ValuesExpression;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _config = PkAttr.Json(new
+        {
+            columns = Columns.Select(c => c.ToColumn()),
+            pageSize = PageSize,
+            searchLabel = AriaLabel is { Length: > 0 } ? $"Search {AriaLabel}" : "Search",
+        })!;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        var bridge = await Runtime.BridgeAsync(Assets);
+        await _load.SyncAsync<PkListPageQuery>(bridge, Element, Load is not null, LoadPageAsync);
+        await _resolve.SyncAsync<string[]>(bridge, Element, Resolve is not null, ResolveAsync);
+    }
+
+    /// <inheritdoc />
+    protected override void AddEventHandlers(Dictionary<string, object> handlers)
+    {
+        handlers["onpk-lookup-select"] = EventCallback.Factory.Create<PkLookupSelectEventArgs>(this, async e => { Value = e.Value; await ValueChanged.InvokeAsync(Value); NotifyFieldChanged(); });
+        handlers["onpk-values-change"] = EventCallback.Factory.Create<PkValuesChangeEventArgs>(this, async e => { Values = e.Values ?? []; await ValuesChanged.InvokeAsync(Values); NotifyFieldChanged(); });
+        handlers["onpk-lookup-toggle"] = EventCallback.Factory.Create<PkLookupToggleEventArgs>(this, async e => { Open = e.Open == true; await OpenChanged.InvokeAsync(Open); });
+    }
+
+    // Each row is the item's columns plus its key (id) and label (pkLabel); the element drops the answer of a request a newer one replaced.
+    private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)
+    {
+        var result = await Load(query.ToRequest() with { CancellationToken = cancel });
+        var rows = new System.Text.Json.Nodes.JsonArray();
+        foreach (var item in result.Items)
+        {
+            var node = PkTableRows.Serialize(item, Columns);
+            node["id"] = IdOf(item);
+            node["pkLabel"] = (LabelOf ?? IdOf)(item);
+            rows.Add(node);
+        }
+        return new { rows, total = result.Total };
+    }
+
+    private async Task<object?> ResolveAsync(string[] keys) => await Resolve!(keys);
+
+    /// <inheritdoc />
+    public new void Dispose() { _load.Dispose(); _resolve.Dispose(); base.Dispose(); }
+}
