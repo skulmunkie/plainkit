@@ -33,6 +33,7 @@
 
 import { createLogger } from '../../js/log.js';
 import { symbolsOf } from './symbols.js';
+import { loadJson, loadText, every } from '../../js/mount-support.js';
 
 const log = createLogger('code-explorer');
 
@@ -144,9 +145,7 @@ export class LazyProvider {
     // own core/ copy, resolved from the caller's own module URL; see site/files/page.js).
     static async connect(list, raw, options = {}) {
         const fetchFn = options.fetch ?? globalThis.fetch;
-        const res = await fetchFn(list);
-        if (!res.ok) throw new Error(`file list ${list}: ${res.status}`);
-        const { files } = await res.json();
+        const { files } = await loadJson(list, fetchFn); // a not-ok response rejects with the url and status
         return new LazyProvider(files ?? [], raw, options);
     }
 
@@ -156,9 +155,7 @@ export class LazyProvider {
         const f = this.files.get(path);
         if (!f) throw new Error(`no such file: ${path}`);
         if (f.lines === null) {
-            const res = await this.fetch(`${this.raw}/${path}`);
-            if (!res.ok) throw new Error(`${path}: ${res.status}`);
-            f.lines = toLines(await res.text());
+            f.lines = toLines(await loadText(`${this.raw}/${path}`, this.fetch));
         }
         return f;
     }
@@ -195,9 +192,7 @@ export class ApiProvider {
 
     async #get(path, query = {}) {
         const qs = new URLSearchParams(query).toString();
-        const res = await this.fetch(`${this.base}/${path}${qs ? '?' + qs : ''}`);
-        if (!res.ok) throw new Error(`${path}: ${res.status}`);
-        return res.json();
+        return loadJson(`${this.base}/${path}${qs ? '?' + qs : ''}`, this.fetch);
     }
 
     listFiles() { return this.#get('files'); }
@@ -227,13 +222,12 @@ export class FeedProvider {
     subscribe(cb) {
         if (this.interval > 0) {
             let last = '';
-            const timer = setInterval(async () => {
+            return every(globalThis, async () => {
                 try {
-                    const text = JSON.stringify(await (await this.fetch(this.feedUrl)).json());
+                    const text = JSON.stringify(await loadJson(this.feedUrl, this.fetch));
                     if (text !== last) { if (last) cb({ type: 'changed' }); last = text; }
                 } catch (error) { log.debug('the change feed could not be read: trying again next tick', error); }
             }, this.interval);
-            return () => clearInterval(timer);
         }
         const es = new this.ES(this.feedUrl);
         es.onmessage = e => { try { cb(JSON.parse(e.data)); } catch (error) { log.debug('a change event was not JSON: treating it as a change', error); cb({ type: 'changed' }); } };
