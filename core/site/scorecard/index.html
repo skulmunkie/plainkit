@@ -9,11 +9,11 @@
 </head>
 <body class="site">
 <div class="site-boot-bar" aria-hidden="true"></div>
-<div class="site-body"><div class="site-scroll" id="sc-root">
+<pk-stack fill gap="none"><pk-container fill scroll="y" label="Scorecard" size="full" padding="md"><pk-container size="lg" padding="none" id="sc-root">
     <pk-alert kind="warning" id="boot-notice" role="status">
         Loading the scorecard. If this message stays, serve the <code>core</code> folder with a static server (browsers block modules on <code>file://</code>).
     </pk-alert>
-</div></div>
+</pk-container></pk-container></pk-stack>
 <script type="module" src="scorecard.js"></script>
 </body>
 </html>
