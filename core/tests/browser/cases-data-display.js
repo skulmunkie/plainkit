@@ -292,6 +292,27 @@ export const dataDisplayCases = [
         add.click(); await t.settle(); t.eq(added, 1, 'one pk-add per press');
     }],
 
+    ['data-table: focus() puts focus in the search box (the first row when the search is hidden), and focus(\'next\' | \'previous\' | \'first\' | \'last\') walks the rows from the host (#885)', async t => {
+        const el = await t.mount(`<pk-data-table clickable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
+        const all = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` }));
+        el.load = async q => ({ rows: all.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: all.length });
+        el.refresh();
+        const rows = () => [...el.part('table').shadowRoot.querySelectorAll('tbody tr[data-pk-context]')];
+        const deep = () => { let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement; return a; };
+        await until(() => rows().length === 5 && rows().every(r => r.hasAttribute('tabindex')) && el.part('filters').shadowRoot?.querySelector('[part="search"]')?.getBoundingClientRect().width > 0, 'five focusable rows and the search box');
+        t.ok(el.focus() === true, 'focus() says it moved focus'); t.eq(deep(), el.part('filters').shadowRoot.querySelector('[part="search"]'), 'the search box has focus');
+        t.ok(el.focus('previous') === false && el.focus('first') === false && el.focus('last') === false, 'previous, first and last leave the search box alone (Home and the arrows are the caret\'s there)');
+        t.eq(deep(), el.part('filters').shadowRoot.querySelector('[part="search"]'), 'and focus stayed');
+        t.ok(el.focus('next'), 'next enters the rows'); t.eq(deep(), rows()[0], 'the first row has focus');
+        el.focus('next'); t.eq(deep(), rows()[1], 'next again: the second');
+        el.focus('previous'); t.eq(deep(), rows()[0], 'previous: back to the first'); el.focus('previous'); t.eq(deep(), rows()[0], 'and it stops at the first');
+        el.focus('last'); t.eq(deep(), rows()[4], 'last'); el.focus('next'); t.eq(deep(), rows()[4], 'and next stops at the last');
+        el.focus('first'); t.eq(deep(), rows()[0], 'first');
+        el.hideSearch = true; await t.settle(); await wait(100);
+        el.focus('next'); el.focus('next'); t.ok(el.focus(), 'with the search hidden focus() lands on the first row'); t.eq(deep(), rows()[0]);
+        t.ok(el.focus({ preventScroll: true }) === true, 'the standard options argument still means focus()');
+    }],
+
     ['data-table: plain props set the columns, page size, labels, search term and empty states (#805)', async t => {
         const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}'></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];

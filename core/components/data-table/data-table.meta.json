@@ -258,6 +258,7 @@
   ],
   "cssProperties": [],
   "methods": [
+    { "name": "focus(where?)", "description": "Moves focus from the host. No argument (or \"search\"): the search box, or the first row when the search is hidden. \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrow keys stay the search box's own). Returns whether focus moved." },
     { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },
     { "name": "query", "description": "A getter: a copy of the current query { page, pageSize, sort, sortDir, search, filters }." }
   ],
