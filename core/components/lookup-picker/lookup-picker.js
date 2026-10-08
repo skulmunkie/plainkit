@@ -13,13 +13,6 @@ export function labelMap(result) {
     if (Array.isArray(result)) return Object.fromEntries(result.map(r => [String(r.key ?? r.value ?? r.id), String(r.label ?? '')]));
     return result && typeof result === 'object' ? Object.fromEntries(Object.entries(result).map(([k, v]) => [k, String(v)])) : {};
 }
-// The row to focus from `at` (an index, -1 for none) for an arrow, Home or End key; null for any other key.
-export function rowStep(at, count, key) {
-    if (!count) return null;
-    if (key === 'ArrowDown') return Math.min(at + 1, count - 1);
-    if (key === 'ArrowUp') return Math.max(at - 1, 0);
-    return key === 'Home' ? 0 : key === 'End' ? count - 1 : null;
-}
 // A multiple selection under a limit: `next` replaces `prev` unless it would hold more than max (0 or less: no limit), then `prev` stays and `refused` says so.
 export const limitSelection = (prev, next, max) => (max > 0 && next.length > max ? { values: prev, refused: true } : { values: next, refused: false });
 // The popup table's props, from the picker's own: label, search label (default "Search <label>"), columns, page size, and the filters and states when set.
@@ -29,14 +22,13 @@ export function tableProps(el) {
     for (const k of ['empty', 'noResults', 'loadError']) if (el[k]) p[k] = el[k];
     return p;
 }
-const rowsOf =dt => [...(dt.part('table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [])];
 
 export default Base => class extends Base {
     connected() {
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$init) return;
         this.$init = true; this.$initial = this.value; this.$initialValues = [...(this.values ?? [])];
-        // The popover and the button of the field (the table waits for the first open). Props are written to the popover only once it is defined:
-        // pk-popover keeps its auto-update stop in this.$u, which the base class also uses for props set before an upgrade, so a pre-upgrade write breaks it (reported on #801).
+        // The popover and the button of the field (the table waits for the first open).
         loadElements(this.shadowRoot).then(() => this.requestUpdate());
         const pop = this.part('popover');
         // The popover opens and closes itself (a click, Escape, an outside press, focus leaving): mirror that into `open`.
@@ -58,12 +50,10 @@ export default Base => class extends Base {
     hide() { this.open = false; }
     // A change the popover made: say so once, so a host that mirrors `open` hears it.
     mirror(open) { if (this.open !== open) this.emit('pk-lookup-toggle', { open: this.open = open }, { cancelable: false }); }
-    // From the search box Down enters the rows; on a row the arrows, Home and End walk them (pk-table gives each clickable row a tab stop).
+    // From the search box Down enters the rows; on a row the arrows, Home and End walk them (the table's own focus(), which does nothing for Up, Home and End while the focus is not on a row).
     rowKeys(e) {
-        const src = e.composedPath()[0], rows = this.$dt ? rowsOf(this.$dt) : [];
-        const at = rows.indexOf(src), next = rowStep(at, rows.length, e.key);
-        if (next === null || (at < 0 && e.key !== 'ArrowDown')) return;
-        e.preventDefault(); rows[at < 0 ? 0 : next]?.focus();
+        const to = { ArrowDown: 'next', ArrowUp: 'previous', Home: 'first', End: 'last' }[e.key];
+        if (to && this.$dt?.focus(to)) e.preventDefault();
     }
     say(text) { this.part('status').textContent = text; }
     // The popup's table, built on the first open: the element loader fetches pk-data-table only now.
@@ -145,7 +135,7 @@ export default Base => class extends Base {
         btn.label = [this.label, shown || this.placeholder].filter(Boolean).join(': ');
         this.drawChips();
         btn.toggleAttribute('aria-invalid', !!this.invalid);
-        if (pop.open !== undefined && pop.open !== !!this.open) pop.open = !!this.open;
+        if (pop.open !== !!this.open) pop.open = !!this.open;
         if (this.open) {
             const dt = this.ensureTable();
             dt.rowKey = this.rowKey;
@@ -163,9 +153,7 @@ export default Base => class extends Base {
     focusIn() { this.$wantFocus = true; this.tryFocus(); }
     tryFocus() {
         if (!this.$wantFocus || !this.open || !this.$dt) return;
-        const box = typeof this.$dt.part === 'function' ? this.$dt.part('filters')?.shadowRoot?.querySelector('[part="search"]') : null;
-        if (!box || box.getBoundingClientRect().width === 0) return;
-        this.$wantFocus = false; box.focus();
+        if (this.$dt.focus('search') === true) this.$wantFocus = false; // false until the table has drawn its search box (an element not upgraded yet answers nothing)
     }
     onReset() { this.value = this.$initial ?? ''; this.values = [...(this.$initialValues ?? [])]; this.$asked = null; }
     onRestore(state) { this.value = state ?? ''; }

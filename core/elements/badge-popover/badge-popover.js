@@ -40,11 +40,11 @@ export default Base => class extends Base {
         const anchor = phone ? { getBoundingClientRect: () => { const r = pill.getBoundingClientRect(), w = document.documentElement.clientWidth; return { left: 0, right: w, top: r.top, bottom: r.bottom, width: w, height: r.height }; } } : pill;
         const options = { placement: phone ? 'bottom' : this.placement, offset: 6 };
         place(anchor, panel, options);
-        this.$u = autoUpdate(anchor, panel, options);
+        this.$au = autoUpdate(anchor, panel, options);
         this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside'));
         if (this.$kb) (this.querySelector('[slot="actions"], [slot="details"] a[href], [slot="details"] button') ?? panel).focus({ preventScroll: true });
         this.$kb = false;
         this.emit('pk-open', null);
     }
-    stop() { this.$u?.(); this.$o?.(); this.$u = this.$o = null; }
+    stop() { this.$au?.(); this.$o?.(); this.$au = this.$o = null; }
 };

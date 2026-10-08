@@ -42,18 +42,17 @@
         var key = JsonSerializer.Serialize(new { SnapshotUrl, Snapshot?.Generated, Files = Snapshot?.Files.Count, File, Line, Search, Theme, Height, Patterns });
         if (key == _mounted) return;
         _mounted = key;
-        object snapshot = Snapshot is not null ? Snapshot : SnapshotUrl!;
+        // An in-memory snapshot goes as a lean list and a reader, never as file contents (#959).
+        _reader?.Dispose();
+        _reader = Snapshot is null ? null : new PkSnapshotReader(Snapshot);
         await _bridge.InvokeVoidAsync("mountCodeExplorer", _host, new
         {
-            snapshot,
-            file = File,
-            line = Line > 0 ? Line : (int?)null,
-            search = Search,
-            theme = Theme.Attr(),
-            height = Height,
+            snapshot = Snapshot is null ? SnapshotUrl : null, lazy = _reader?.Lazy, file = File, line = Line > 0 ? Line : (int?)null, search = Search, theme = Theme.Attr(), height = Height,
             patterns = Patterns.Count > 0 ? Patterns.Select(p => new { name = p.Name, pattern = p.Pattern, label = p.Label }) : null,
         });
     }
+
+    private PkSnapshotReader? _reader;
 
     /// <summary>Opens a file (and focuses a line) in the mounted explorer.</summary>
     public async Task OpenFileAsync(string path, int? line = null)
@@ -70,6 +69,7 @@
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        _reader?.Dispose();
         if (_bridge is null) return;
         try { await _bridge.InvokeVoidAsync("destroy", _host); }
         catch (JSDisconnectedException) { /* the circuit is gone */ }

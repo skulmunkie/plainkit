@@ -32,6 +32,7 @@
     "DevTools/PkInteropLog.cs": 80,
     "DevTools/PkMappingInfo.cs": 188,
     "DevTools/PkSnapshot.cs": 132,
+    "DevTools/PkSnapshotReader.cs": 29,
     "DevTools/PkSourceProvider.cs": 16,
     "EndpointExtensions.cs": 14,
     "PageBase.cs": 149,
