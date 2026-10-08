@@ -337,16 +337,6 @@
       "fingerprint": "ee1a503dd3c512e1"
     },
     {
-      "rule": "S1",
-      "file": "core/modules/logs/logs.css",
-      "fingerprint": "d52af45425aa4745"
-    },
-    {
-      "rule": "S10",
-      "file": "core/modules/logs/logs.css",
-      "fingerprint": "dd5f24c09c429726"
-    },
-    {
       "rule": "S3",
       "file": "core/modules/scorecard/measure.js",
       "fingerprint": "9faae848bad66f0b"

@@ -36,7 +36,7 @@ test('copy the Plainkit folder outside the repository', { skip }, () => {
 
 test('the copy rebuilds dist/, plainkit.css and the gallery data byte-for-byte', { skip }, () => {
     const r = spawnSync(process.execPath, ['tools/build.mjs'], { cwd: copy, encoding: 'utf8' });
-    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.status, 0, /esbuild/.test(r.stderr) && /Cannot find (package|module)|ERR_MODULE_NOT_FOUND/.test(r.stderr) ? 'esbuild cannot be resolved from the copy: this checkout has no node_modules, run `npm ci`' : r.stderr);
     const files = [...walk(path.join(source, 'dist')).map(f => rel(source, f)), 'plainkit.css', 'site/gallery/gallery.data.js'];
     const different = files.filter(f => !fs.readFileSync(path.join(source, f)).equals(fs.readFileSync(path.join(copy, f))));
     assert.deepEqual(different, [], 'a rebuild in the copy differs from the bootstrap output: run node scripts/bootstrap.mjs');

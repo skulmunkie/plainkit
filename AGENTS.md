@@ -43,7 +43,7 @@ option or workflow appears in the docs, the gallery samples and the skills' work
 Green CI does not say a layout looks right (the record header in #311 and a chevron inside a breadcrumb link merged green and were wrong on screen). A change to how an element **looks**
 (`core/{elements,components,pages,shells}/**/*.css`, `*.html`, the layout or tokens, Blazor razor markup) therefore also needs:
 
-- **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
+- **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`; `--jobs N` runs N shards in parallel and merges them, about N times faster on N cores) renders their gallery examples at desktop 1280 and phone 375, light and dark,
   into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).
   Attach the shots to the pull request (CI also keeps them as the `ui-review-1` to `ui-review-4` artifacts), fix every error, and say why a warning is fine.
 - **Scenarios for states a still example cannot show.** A gallery example is a resting element; the states issues describe (a menu open, a page scrolled 800px, a collapsed rail with a flyout,
