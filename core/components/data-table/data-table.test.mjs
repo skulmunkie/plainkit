@@ -356,3 +356,30 @@ test('the search, filters and actions are outside the pk-table, so hiding the ta
     }
     assert.ok(!table.includes('slot="toolbar"'));
 });
+
+test('config.search presets the box and the first query (#865); typing replaces it; a later change by the host replaces it again; other config changes leave the typed text', async () => {
+    const { el, parts } = make();
+    const queries = [];
+    el.load = async q => { queries.push(q); return rowsOf(1); };
+    el.config = { search: 'acme' };
+    el.connected();
+    await el.refresh();
+    assert.deepEqual([queries[0].search, parts.filters.value], ['acme', 'acme'], 'the first load gets the term and the box shows it');
+    parts.filters.fire('pk-search', { detail: { query: 'beta' } });
+    assert.equal(queries.at(-1).search, 'beta', 'typing replaces it');
+    el.config = { ...el.config, pageSize: 10 };
+    el.changed('config');
+    assert.equal(queries.at(-1).search, 'beta', 'a config change that keeps the term does not undo the typing');
+    el.config = { search: 'gamma' };
+    el.changed('config');
+    await el.refresh();
+    assert.deepEqual([queries.at(-1).search, queries.at(-1).page, parts.filters.value], ['gamma', 1, 'gamma']);
+});
+
+test('selectPageOnly passes to the inner table (#865)', async () => {
+    const { el, parts } = make();
+    el.selectable = true; el.selectPageOnly = true;
+    el.connected();
+    await el.refresh();
+    assert.equal(parts.table.selectPageOnly, true);
+});

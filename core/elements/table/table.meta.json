@@ -150,6 +150,13 @@
       "description": "How many rows match the current query across all pages (a manual table shows one page of them). With a total larger than the loaded rows, once every loaded row is selected the bulk bar offers a \"Select all N rows\" button, which raises pk-select-all with scope \"all\". 0 means unknown or not paged: no button. The selection survives the host replacing the rows (paging, search, sort): ids are kept, not matched against the loaded rows, so clear selected when the query changes if the selection should not outlive it."
     },
     {
+      "name": "selectPageOnly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Never offer \"Select all N rows\" (it needs total): the header checkbox selects the loaded page and the scope stays \"page\". For a list whose bulk action works only on explicit ids."
+    },
+    {
       "name": "selectScope",
       "type": "enum",
       "default": "page",
@@ -411,6 +418,10 @@
     {
       "title": "Select all rows of a paged list",
       "html": "<pk-table label=\"Orders\" manual selectable total=\"112\" selected='[\"1\",\"2\"]' columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Export</pk-button>\n</pk-table>"
+    },
+    {
+      "title": "Page selection only (no Select all offer)",
+      "html": "<pk-table label=\"Approvals\" manual selectable select-page-only total=\"112\" selected='[\"1\",\"2\"]' columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Approve</pk-button>\n</pk-table>"
     },
     {
       "title": "Empty and loading",

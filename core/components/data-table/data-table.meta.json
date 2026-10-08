@@ -10,7 +10,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows; noResults is the same shape, shown instead while a search or filter is active (default: empty); loadError is the heading of the error state shown when load() rejects (default 'Something went wrong'; the error's message is its description). pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
+      "description": "{ columns, filters?, empty?, noResults?, loadError?, pageSize?, pageSizeOptions?, sort?, sortDir?, searchable?, search?, searchLabel?, searchDebounce?, pagerLabel?, label?, caption? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. empty is { heading?, description? } shown when a page has zero rows; noResults is the same shape, shown instead while a search or filter is active (default: empty); loadError is the heading of the error state shown when load() rejects (default 'Something went wrong'; the error's message is its description). pageSize is the initial page size (default 25) and pageSizeOptions (for example [10, 25, 50]) the sizes the reader can choose from (none: no size select). sort (a column key) and sortDir ('ascending' or 'descending') are the initial sort, sent to load(query) and shown on the header; they apply until the reader changes the query. searchable: false hides the search box (default true); search is the initial search term (for example from a URL): it fills the search box and is the first query's search, and a reader's typing replaces it; a later change of config.search by the host replaces the term and loads page 1; searchLabel is the search box's placeholder and accessible name (default 'Search'); searchDebounce the milliseconds after the last keystroke before the query changes (default 250); pagerLabel the pager's accessible name (default 'Pagination'); label the table's accessible name and caption its visible caption. Other keys are ignored, so a page can hand its whole config over."
     },
     {
       "name": "selectable",
@@ -85,6 +85,13 @@
       "description": "The ids of the selected rows, as strings, across every page and search the reader has visited. Set it to preselect; read it (or the pk-select event) to act on the selection. For selectScope 'all' it is only the loaded page: expand the scope with the query."
     },
     {
+      "name": "selectPageOnly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "With selectable: never offer 'Select all N rows'. The header checkbox selects the loaded page and selectScope stays 'page'; for a bulk action that works only on explicit ids."
+    },
+    {
       "name": "selectScope",
       "type": "enum",
       "default": "page",
@@ -141,6 +148,10 @@
     {
       "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",
       "html": "<pk-data-table selectable config='{\"columns\":[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}],\"empty\":{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}}'></pk-data-table>"
+    },
+    {
+      "title": "Preset search (from a link) and no Select all offer",
+      "html": "<pk-data-table selectable select-page-only config='{\"columns\":[{\"key\":\"sku\",\"label\":\"SKU\"}],\"search\":\"acme\",\"noResults\":{\"heading\":\"Nothing matches acme\"}}'></pk-data-table>"
     }
   ]
 }
