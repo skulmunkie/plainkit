@@ -28,8 +28,7 @@ export default Base => class extends Base {
         if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$init) return;
         this.$init = true; this.$initial = this.value; this.$initialValues = [...(this.values ?? [])];
-        // The popover and the button of the field (the table waits for the first open). Props are written to the popover only once it is defined:
-        // pk-popover keeps its auto-update stop in this.$u, which the base class also uses for props set before an upgrade, so a pre-upgrade write breaks it (reported on #801).
+        // The popover and the button of the field (the table waits for the first open).
         loadElements(this.shadowRoot).then(() => this.requestUpdate());
         const pop = this.part('popover');
         // The popover opens and closes itself (a click, Escape, an outside press, focus leaving): mirror that into `open`.
@@ -136,7 +135,7 @@ export default Base => class extends Base {
         btn.label = [this.label, shown || this.placeholder].filter(Boolean).join(': ');
         this.drawChips();
         btn.toggleAttribute('aria-invalid', !!this.invalid);
-        if (pop.open !== undefined && pop.open !== !!this.open) pop.open = !!this.open;
+        if (pop.open !== !!this.open) pop.open = !!this.open;
         if (this.open) {
             const dt = this.ensureTable();
             dt.rowKey = this.rowKey;

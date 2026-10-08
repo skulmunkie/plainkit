@@ -345,6 +345,24 @@ cases.push(['a property set before the element upgrades is reflected to its attr
     a.rail = false; t.eq(a.hasAttribute('rail'), false, 'later assignments still reflect');
 }]);
 
+// An element's own bookkeeping must not collide with the base class's: a prop written before the element is defined must not break the auto-update stop on disconnect (#884).
+cases.push(['elements that auto-update their panel survive a prop written before they were defined: connect and disconnect do not throw', async t => {
+    const errors = [], onError = e => { errors.push(e.message); e.preventDefault(); };
+    window.addEventListener('error', onError);
+    try {
+        for (const tag of ['pk-popover', 'pk-combobox', 'pk-dropdown', 'pk-select-menu', 'pk-badge-popover']) {
+            // A document with no custom element registry keeps the element un-upgraded while its property is written, like a host page that sets props before the SDK loads.
+            const el = document.implementation.createHTMLDocument('').createElement(tag);
+            el.open = false;
+            const host = t.stage('');
+            host.append(document.adoptNode(el));
+            await t.load(host); await t.settle();
+            el.remove(); await t.settle();
+        }
+    } finally { window.removeEventListener('error', onError); }
+    t.eq(errors.join('; '), '', 'no error was thrown');
+}]);
+
 // The invalid state does not depend on the definition order: a field wired before its control is defined applies it when the control upgrades (#341).
 cases.push(['pk-field marks a control invalid when the control is defined after the field', async t => {
     const { PkElement, define } = await import('../../js/element.js');
