@@ -18,6 +18,17 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
+    ['lookup-picker: plain props (no config) give the popup its columns, page size and search label, and win over config (#805)', async t => {
+        const el = await t.mount(`<pk-lookup-picker label="Customer" label-key="name" columns='[{"key":"name","label":"Name"}]' page-size="3" search-label="Find a customer" config='{"pageSize":8,"columns":[{"key":"city","label":"City"}]}'></pk-lookup-picker>`);
+        await t.load(el.shadowRoot); const queries = [];
+        el.load = async q => { queries.push(q); return { rows: ALL.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: ALL.length }; };
+        el.open = true;
+        await until(() => rowEls(el).length === 3, 'a first page of three rows');
+        t.eq(queries.at(-1).pageSize, 3, 'page-size beats config.pageSize');
+        t.eq(tbl(el).shadowRoot.querySelectorAll('thead th').length, 1, 'columns beats config.columns: one column'); t.eq(tbl(el).shadowRoot.querySelector('thead th').textContent.trim(), 'Name');
+        t.eq(search(el).getAttribute('aria-label'), 'Find a customer', 'search-label names the search box');
+    }],
+
     ['lookup-picker: the invalid field draws the error colour on its border', async t => {
         const a = await mount(t), b = await mount(t, 'invalid'), edge = el => getComputedStyle(el.part('control').shadowRoot.querySelector('button')).borderTopColor;
         t.ok(edge(b) !== edge(a), 'invalid changes the border colour');

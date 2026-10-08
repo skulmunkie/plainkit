@@ -101,24 +101,24 @@ export class CodeExplorerElement extends Base {
     #build() {
         fill(this, `
 <pk-workspace fill active-pane="nav" nav-label="Files" main-label="Code" aside-label="Inspector" data-ce-root>
-  <div slot="nav" class="ce-nav">
+  <pk-container slot="nav" size="full" padding="sm"><pk-stack gap="sm">
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
-    <div class="ce-actions">
+    <pk-cluster gap="sm">
       <pk-button size="mini" data-ce-search hidden>Search</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-reports>Reports</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-clear hidden>Back to files</pk-button>
-    </div>
+    </pk-cluster>
     <div data-ce-tree></div>
-  </div>
-  <div class="ce-main">
+  </pk-stack></pk-container>
+  <pk-stack gap="none" fill>
     <pk-tabs overflow="scroll" none-active data-ce-tabs></pk-tabs>
-    <div class="ce-pane" data-ce-pane></div>
-  </div>
-  <div slot="aside" class="ce-aside" data-ce-inspector>
-    <div class="ce-aside-head"><h2 data-ce-inspector-title>Outline</h2><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></div>
+    <pk-container fill size="full" padding="sm" data-ce-pane></pk-container>
+  </pk-stack>
+  <pk-container slot="aside" size="full" padding="sm" data-ce-inspector><pk-stack gap="sm">
+    <pk-cluster justify="between" nowrap><pk-heading level="2" variant="h6" data-ce-inspector-title>Outline</pk-heading><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></pk-cluster>
     <div data-ce-inspector-body></div>
-  </div>
+  </pk-stack></pk-container>
 </pk-workspace>`);
         const $ = s => this.querySelector(s);
         on($('[data-ce-filter]'), 'input', e => { this.#filter = e.target.value; this.#renderTree(); });
@@ -164,7 +164,7 @@ export class CodeExplorerElement extends Base {
             if (query) await this.search(query);
         } catch (error) {
             log.error('the code explorer could not start', error);
-            fill(this.querySelector('[data-ce-tree]'), `<p class="ce-error" role="alert">${esc(error.message)}</p>`);
+            fill(this.querySelector('[data-ce-tree]'), `<pk-alert kind="danger">${esc(error.message)}</pk-alert>`);
             this.dispatchEvent(new CustomEvent('pk-code-explorer-error', { detail: { error } }));
         }
     }
@@ -192,7 +192,7 @@ export class CodeExplorerElement extends Base {
         const root = buildTree(this.#files, this.#filter);
         this.#nodes = new Map();
         const filtering = this.#filter.trim() !== '';
-        if (!root.children.size) { fill(host, '<p class="ce-muted ce-empty">No files.</p>'); return; }
+        if (!root.children.size) { fill(host, '<pk-text tone="muted">No files.</pk-text>'); return; }
         // The tree is connected empty and its items added after: a pk-tree that connects with items not yet upgraded updates against them too early.
         fill(host, `<pk-tree label="Files" value="${esc(this.#activeFile())}"></pk-tree>`);
         host.firstElementChild.append(this.#fragment(this.#treeHtml(root, filtering)));
@@ -205,11 +205,11 @@ export class CodeExplorerElement extends Base {
         const sorted = [...node.children.values()].sort((a, b) => (!!a.file - !!b.file) || a.name.localeCompare(b.name));
         return sorted.map(n => {
             if (n.file && !n.children.size) {
-                return `<pk-tree-item data-file value="${esc(n.path)}" label="${esc(n.name)}"><span slot="label" class="ce-row"><span class="ce-name">${esc(n.name)}</span>${n.file.lines != null ? `<pk-badge variant="muted" max="999999" count="${n.file.lines}"></pk-badge>` : ''}</span></pk-tree-item>`;
+                return `<pk-tree-item data-file value="${esc(n.path)}" label="${esc(n.name)}"><pk-cluster slot="label" justify="between" nowrap><pk-text inline>${esc(n.name)}</pk-text>${n.file.lines != null ? `<pk-badge variant="muted" max="999999" count="${n.file.lines}"></pk-badge>` : ''}</pk-cluster></pk-tree-item>`;
             }
             this.#nodes.set(n.path, n);
             const open = filtering || this.#folders.has(n.path);
-            return `<pk-tree-item value="${esc(n.path)}" label="${esc(n.name)}"${open ? ' expanded' : ''}><span slot="label" class="ce-row"><span class="ce-name ce-folder">${esc(n.name)}</span><pk-badge variant="muted" max="999999" count="${n.count}"></pk-badge></span>${open ? this.#treeHtml(n, filtering) : '<pk-tree-item data-ce-stub hidden label="."></pk-tree-item>'}</pk-tree-item>`;
+            return `<pk-tree-item value="${esc(n.path)}" label="${esc(n.name)}"${open ? ' expanded' : ''}><pk-cluster slot="label" justify="between" nowrap><pk-text inline weight="semibold">${esc(n.name)}</pk-text><pk-badge variant="muted" max="999999" count="${n.count}"></pk-badge></pk-cluster>${open ? this.#treeHtml(n, filtering) : '<pk-tree-item data-ce-stub hidden label="."></pk-tree-item>'}</pk-tree-item>`;
         }).join('');
     }
 
@@ -304,14 +304,14 @@ export class CodeExplorerElement extends Base {
 
     #reportsHtml() {
         const r = this.#reports;
-        if (r.error) return `<p class="ce-error" role="alert">${esc(r.error)}</p>`;
+        if (r.error) return `<pk-alert kind="danger">${esc(r.error)}</pk-alert>`;
         const kinds = this.#reportKinds();
-        const picker = `<div class="csr-kinds">${kinds.map(k => `<button type="button" class="csr-kind${k.key === r.kind ? ' csr-kind--active' : ''}" data-kind="${k.key}" aria-pressed="${k.key === r.kind}">${k.label}</button>`).join('')}</div>`;
-        return picker + this.#reportRowsHtml(r.kind, r[r.kind] ?? []);
+        const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
+        return `<pk-stack gap="sm">${picker}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
-        if (!rows.length) return '<p class="ce-muted">No matches.</p>';
+        if (!rows.length) return '<pk-text tone="muted">No matches.</pk-text>';
         if (kind === 'duplicates') {
             return `<div class="csr">${rows.map(d => `<div class="csr-group"><div class="csr-title">${d.length} lines duplicated in ${d.locations.length} places</div>${d.locations.map(l => `<button type="button" class="csr-hit" data-path="${esc(l.path)}" data-line="${l.line}"><span class="csr-no">${l.line}</span><span class="csr-text">${esc(l.path)}</span></button>`).join('')}</div>`).join('')}</div>`;
         }
@@ -325,10 +325,10 @@ export class CodeExplorerElement extends Base {
 
     #searchHtml() {
         const s = this.#search;
-        if (s.error) return `<p class="ce-error" role="alert">${esc(s.error)}</p>`;
-        if (!s.groups.length) return '<p class="ce-muted">No matches.</p>';
+        if (s.error) return `<pk-alert kind="danger">${esc(s.error)}</pk-alert>`;
+        if (!s.groups.length) return '<pk-text tone="muted">No matches.</pk-text>';
         const match = matcherFor(s.query);
-        return `<div class="csr">${s.groups.map(g => `<div class="csr-group"><div class="csr-title">${esc(g.path)} <span class="ce-muted">(${g.hits.length})</span></div>${g.hits.map(h => {
+        return `<div class="csr">${s.groups.map(g => `<div class="csr-group"><div class="csr-title">${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text></div>${g.hits.map(h => {
             const t = h.text.trim(); const shift = h.text.length - h.text.trimStart().length;
             const spans = (h.spans ?? match(h.text)).map(x => ({ start: x.start - shift, length: x.length }));
             return `<button type="button" class="csr-hit" data-path="${esc(g.path)}" data-line="${h.line}"><span class="csr-no">${h.line}</span><span class="csr-text">${buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join('')}</span></button>`;
@@ -337,7 +337,7 @@ export class CodeExplorerElement extends Base {
 
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
-        const kindBtn = e.target.closest?.('.csr-kind');
+        const kindBtn = e.target.closest?.('[data-kind]');
         if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
         const hit = e.target.closest?.('.csr-hit');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
@@ -432,8 +432,8 @@ export class CodeExplorerElement extends Base {
         if (!shown) return;
         this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : `Usages of ${i.word}`;
         const body = this.querySelector('[data-ce-inspector-body]');
-        if (i.error) { fill(body, `<p class="ce-error" role="alert">${esc(i.error)}</p>`); return; }
-        if (!i.items.length) { fill(body, `<p class="ce-muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</p>`); return; }
+        if (i.error) { fill(body, `<pk-alert kind="danger">${esc(i.error)}</pk-alert>`); return; }
+        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</pk-text>`); return; }
         fill(body, i.kind === 'outline'
             ? `<ul class="co">${i.items.map(x => `<li><button type="button" class="co-item co-d${Math.min(Math.max(x.depth ?? 0, 0), 3)}" data-line="${x.line}"><span class="co-kind">${esc(x.kind)}</span><span class="co-name">${esc(x.name)}</span><span class="co-line">${x.line}</span></button></li>`).join('')}</ul>`
             : `<div class="csr">${i.items.map(x => `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line}"><span class="csr-no">${x.line}</span><span class="csr-text">${esc(x.path)}: ${esc(x.text.trim())}</span></button>`).join('')}</div>`);

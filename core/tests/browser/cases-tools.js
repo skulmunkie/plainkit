@@ -63,13 +63,13 @@ export const toolCases = [
         const card = await mountScorecard(host, { targets, themes: ['dark'], widths: [375, 1024], theme: 'light' });
         t.eq(card.results().length, 0, 'nothing runs until asked');
         host.querySelector('[data-sc-run]').click();
-        await until(() => host.querySelector('.sc-table'), 'the ranked table');
-        const rows = [...host.querySelectorAll('.sc-table tbody tr')].map(r => r.cells[0].textContent.trim());
+        await until(() => host.querySelector('pk-table[label="Target ranking"]'), 'the ranked table');
+        const rows = JSON.parse(host.querySelector('pk-table[label="Target ranking"]').getAttribute('rows')).map(r => r.name);
         t.eq(rows.join(), 'Bad,Good', 'worst first');
         const [bad, good] = card.results().sort((a, b) => a.score - b.score);
         t.ok(bad.score < 100 && good.score === 100, 'the unnamed button and the image without alt cost points');
         t.ok(bad.findings.some(f => f.check === 'unnamed-input') && bad.findings.some(f => f.check === 'image-alt'));
-        t.eq(host.querySelectorAll('.sc-frames iframe').length, 0, 'the measuring frames are removed');
+        t.eq(host.querySelectorAll('[data-sc-frames] iframe').length, 0, 'the measuring frames are removed');
         const only = await (await mountScorecard(t.stage(''), { targets, themes: ['dark'], widths: [375], checks: ['image-alt'] })).run();
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();
@@ -104,6 +104,17 @@ export const toolCases = [
         t.ok(tables.every(x => x.getBoundingClientRect().width > 0 && x.getBoundingClientRect().height > 0), 'both tables are drawn');
         card.destroy();
     }],
+    ['theme editor module: with its preview on it mounts (a regression: the preview frame handler was used before it was defined) and the preview frame holds the sample the module writes', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: host });
+        const frame = host.querySelector('iframe[title="Theme preview"]');
+        t.ok(frame, 'the preview frame is drawn');
+        await until(() => frame.contentDocument?.querySelector('pk-card'), 'the sample in the preview frame');
+        t.ok(frame.contentDocument.querySelector('pk-table[columns]') && !frame.contentDocument.querySelector('[class]:not(html):not(body)'), 'the sample table is data-driven and the sample has no class attributes');
+        editor.destroy();
+    }],
+
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
