@@ -58,7 +58,7 @@
 
 .gd-body pk-code-block { display: block; }
 
-@media (max-width: 1280px) {
+@media (--wide) {
     .gd-page { grid-template-columns: minmax(0, var(--gd-article-max-w)); }
 
     .gd-aside { grid-column: 1; grid-row: 1; }
@@ -67,11 +67,11 @@
 }
 
 /* The nav is an off-canvas drawer (the element's own breakpoint): the Guides button in the bar opens it. */
-@media (max-width: 1024px) {
+@media (--tablet) {
     .gd-contents { display: inline-block; }
 }
 
-@media (max-width: 640px) {
+@media (--phone) {
     .gd-bar { padding-inline: var(--space-3); }
 
     .gd-page { padding-inline: var(--space-3); gap: var(--space-4); }

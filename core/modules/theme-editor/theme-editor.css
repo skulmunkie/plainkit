@@ -56,7 +56,7 @@
 
 .te-preview-body { padding: var(--space-4); }
 
-@media (max-width: 640px) {
+@media (--phone) {
     /* The search and the scope select ("The current theme") need the full width; the short Kind and Theme selects share a row. */
     .te-toolbar > :first-child, .te-toolbar > :last-child { grid-column: 1 / -1; }
     .te-row { grid-template-columns: minmax(0, 1fr) auto auto; padding-inline: var(--space-2); }

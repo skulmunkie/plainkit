@@ -1,7 +1,7 @@
 {
   "component": "PkAppBarSearch",
   "existing": true,
-  "existingReason": "router: closes on NavigationManager.LocationChanged, and typed Items JSON",
+  "existingReason": "router: closes on NavigationManager.LocationChanged, and typed Items JSON Missing generator feature: a hook that runs component code on NavigationManager.LocationChanged (navigation is a Blazor concern, not an element event), and a typed Items list serialised to a JSON prop.",
   "notes": "Hand-written (issue 213): Items is a typed JSON attribute (like PkTable's Columns/Items), and closing on navigation needs NavigationManager (the second component built this way, after PkSideNav, issue 210).",
   "params": [
     {

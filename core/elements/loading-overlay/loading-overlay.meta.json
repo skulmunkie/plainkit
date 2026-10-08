@@ -1,7 +1,7 @@
 {
   "tag": "pk-loading-overlay",
   "title": "Loading overlay",
-  "summary": "Covers a region (or the whole viewport with fullscreen) with a spinner and a label while busy, and makes what it covers inert so it cannot be clicked or tabbed into.",
+  "summary": "Covers a region (or the whole viewport with fullscreen) with a spinner and a label while busy, and makes what it covers inert so it cannot be clicked or tabbed into. With delay and min-time it owns the one busy timing rule (pk-page and Blazor's PageBase use it); both default to 0.",
   "group": "Feedback & status",
   "tier": "element",
   "props": [
@@ -10,7 +10,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "The busy setting"
+      "description": "Show the overlay and make the content inert (after delay, for at least min-time). aria-busy follows it at once."
     },
     {
       "name": "label",
@@ -18,6 +18,20 @@
       "default": "",
       "reflect": true,
       "description": "Announced and shown."
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Milliseconds busy must last before the overlay appears, so a fast action never flashes it (about 150 for a page). 0 shows it at once."
+    },
+    {
+      "name": "minTime",
+      "type": "number",
+      "default": 0,
+      "reflect": true,
+      "description": "Milliseconds the overlay stays once shown, so it never flickers (about 300 for a page). 0 hides it as soon as busy ends."
     },
     {
       "name": "fullscreen",

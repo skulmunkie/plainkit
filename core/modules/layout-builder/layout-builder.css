@@ -53,7 +53,7 @@
 /* A container hit-tested under an external (palette) drag: the drop would land inside it, slot-aware. */
 .lb-page [data-lb-drop-target] { outline: var(--lb-mark-w) dashed var(--color-accent); outline-offset: var(--lb-mark-offset); }
 
-@media (max-width: 640px) {
+@media (--phone) {
     .lb { height: 75vh; }
     .lb-hint { display: none; }
 }

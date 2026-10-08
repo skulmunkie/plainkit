@@ -8,6 +8,7 @@
 // Pure: the build passes in a reader.
 import path from 'node:path';
 import { transformSync } from 'esbuild';
+import { resolveSiteCss } from './breakpoints.mjs';
 
 const minifyJs = code => transformSync(code, { loader: 'js', minify: true }).code;
 
@@ -36,7 +37,7 @@ export function modulesDist(read, root) {
         if (tokens) out.set(`${MODULES_DIR}/${name}/tokens.css`, read(path.join(root, 'tokens', 'tokens.css')));
         for (const f of files) {
             const text = read(path.join(root, 'modules', name, f));
-            if (!/\.js$/.test(f)) { out.set(`${MODULES_DIR}/${name}/${f}`, text); continue; }
+            if (!/\.js$/.test(f)) { out.set(`${MODULES_DIR}/${name}/${f}`, f.endsWith('.css') ? resolveSiteCss(text, `modules/${name}/${f}`) : text); continue; }
             const dist = text.replaceAll("'../../dist/", "'../../").replace("'../../tokens/tokens.css'", "'./tokens.css'");
             if (/'\.\.\/\.\.\/dist\//.test(dist)) throw new Error(`${name}/${f}: a ../../dist/ path is left in the modules unit`);
             if (/const STYLES = /.test(text) && !dist.includes("const STYLES = ['../../plainkit.css']")) throw new Error(`${name}/${f}: STYLES must be the runtime's plainkit.css, two folders up`);

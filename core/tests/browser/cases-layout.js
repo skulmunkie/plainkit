@@ -405,3 +405,28 @@ layoutCases.push(
         }
     }],
 );
+
+// Issue 889: on a phone the table's search box, the rows of a clickable table and the row checkboxes are at least the touch target (44px). The fixture page opens in an iframe of the width under test, so the phone media query answers to it.
+layoutCases.push(
+    ['data-table on a phone: the search box, clickable rows and row checkboxes are 44px tall at least (and the checkboxes 44px wide); on desktop the rows stay compact (issue 889)', async t => {
+        for (const width of [375, 1280]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `data table at ${width}px`; fr.style.cssText = `width:${width}px;height:600px;border:0;display:block`;
+            fr.src = new URL('./table-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-data-table', 'pk-table', 'pk-table-filters'].map(tag => win.customElements.whenDefined(tag)));
+            const dt = d.querySelector('pk-data-table');
+            for (let i = 0; i < 100 && !dt.part('table')?.shadowRoot?.querySelector('tr[data-clickable]'); i++) await wait(40);
+            const inner = dt.part('table').shadowRoot, h = el => el.getBoundingClientRect(), at = `${width}px`;
+            const search = dt.part('filters').shadowRoot.querySelector('[part="search"]'), rows = [...inner.querySelectorAll('tr[data-clickable]')], boxes = [...inner.querySelectorAll('[data-select], [data-select-all]')];
+            t.ok(search && rows.length === 3 && boxes.length === 4, `${at}: the search box, three rows and four checkboxes are there`);
+            const phone = width < 600, min = phone ? 43.5 : 0;
+            t.ok(h(search).height >= min && h(search).height > 0, `${at}: the search box is ${Math.round(h(search).height)}px tall`);
+            for (const r of rows) t.ok(h(r).height >= min, `${at}: a clickable row is ${Math.round(h(r).height)}px tall`);
+            for (const b of boxes) t.ok(h(b).height >= min && h(b).width >= min, `${at}: a checkbox is ${Math.round(h(b).width)}x${Math.round(h(b).height)}px`);
+            if (!phone) t.ok(h(rows[0]).height < 44, `${at}: desktop rows stay compact (${Math.round(h(rows[0]).height)}px)`);
+            fr.remove();
+        }
+    }],
+);

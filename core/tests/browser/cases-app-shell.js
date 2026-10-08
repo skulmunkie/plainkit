@@ -42,7 +42,7 @@ export const appShellCases = [
         for (const id of MODULES) t.ok(s.d.querySelector(`pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
         await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
-        await wait(300);
+       
         t.ok(!s.nav().open, 'choosing a module closes the drawer');
         t.ok(s.win.location.hash.startsWith('#/reports'), 'the address changed');
         t.eq(s.d.title, 'Reports - Demo app', 'the document title follows');
@@ -131,7 +131,7 @@ export const appShellCases = [
         po.observe({ type: 'layout-shift', buffered: true });
         await wait(600);
         for (const to of ['#/reports', '#/overview', '#/orders/7', '#/reports/exports', '#/orders']) await s.go(to);
-        await wait(300);
+       
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.
         const probe = s.d.createElement('div'); probe.textContent = 'x'; s.main().prepend(probe); probe.style.height = '120px';
@@ -337,15 +337,14 @@ export const appShellCases = [
             const input = rec.controls()[0]; input.value = 'Unsaved name'; input.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }));
             await until(() => rec.dirty, 'the dirty flag'); return { rec, input };
         };
-        await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), 'the list'); await wait(300);
-        win.location.hash = '#/things/3'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('3'), 'the record page'); await wait(300);
+        await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), 'the list');
+        win.location.hash = '#/things/3'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('3'), 'the record page');
         let { rec, input } = await edit();
         const link = () => deep(d, 'a[href="#/things"]');
         t.ok(link(), 'the list is linked from the page');
-        // The dialog is answered once it has opened and settled (a click in its first frames can orphan it, #876), and is done when its element is gone.
         const answer = async (trigger, label, what) => {
-            trigger(); await until(dialog, `the leave dialog (${what})`); await wait(300);
-            (await until(() => button(label), `the ${label} button`)).click(); await until(() => !d.querySelector('pk-dialog'), `the dialog to close (${what})`); await wait(50);
+            trigger(); await until(dialog, `the leave dialog (${what})`);
+            (await until(() => button(label), `the ${label} button`)).click(); await until(() => !d.querySelector('pk-dialog'), `the dialog to close (${what})`); await wait(0); // one task: the answer's promise chain (the guard's) settles
         };
         await answer(() => link().click(), 'Stay', 'link');
         t.eq(win.location.hash, '#/things/3', 'Stay keeps the address'); t.ok(deep(d, 'pk-record-page') === rec && rec.controls()[0] === input && input.value === 'Unsaved name', 'Stay keeps the page and the edits'); t.ok(rec.dirty);
@@ -356,7 +355,7 @@ export const appShellCases = [
         await answer(() => link().click(), 'Leave', 'leave');
         await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Leave to go to the list'); await until(() => h1()?.textContent.trim() === 'Things', 'the list heading');
         await wait(300); t.eq(d.activeElement, h1(), 'focus is on the list heading after leaving');
-        win.location.hash = '#/things/4'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('4'), 'record 4'); await wait(300);
+        win.location.hash = '#/things/4'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('4'), 'record 4');
         ({ rec } = await edit()); rec.part('save').click();
         await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Save to navigate back'); t.ok(!dialog(), 'no question after Save');
     }],

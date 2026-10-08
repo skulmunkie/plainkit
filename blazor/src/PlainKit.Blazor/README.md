@@ -407,7 +407,7 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 {
     <PkAlert Kind="@StatusKind" Heading="@StatusHeading">@StatusMessage</PkAlert>
 }
-<PkLoadingOverlay Busy="@ShowBusyOverlay" Label="@BusyLabel">
+<PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel">
     @* orders list *@
 </PkLoadingOverlay>
 

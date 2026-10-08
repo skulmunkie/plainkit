@@ -8,7 +8,6 @@
     "Components/PkDataTable.razor": 238,
     "Components/PkDevTools.razor": 109,
     "Components/PkDevToolsPage.razor": 89,
-    "Components/PkDock.razor": 79,
     "Components/PkFieldGroup.razor": 134,
     "Components/PkGallery.razor": 63,
     "Components/PkListPage.razor": 43,
@@ -20,7 +19,6 @@
     "Components/PkQuality.razor": 47,
     "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
-    "Components/PkSettingsPage.razor": 40,
     "Components/PkSideNav.razor": 108,
     "Components/PkStyles.razor": 55,
     "Components/PkTable.razor": 317,
@@ -28,7 +26,6 @@
     "Components/PkThemeEditor.razor": 77,
     "Components/PkToolDock.razor": 120,
     "Components/PkToolDockPanel.razor": 38,
-    "Components/PkToolPage.razor": 43,
     "DevTools/PkCircuitHandler.cs": 34,
     "DevTools/PkCircuitState.cs": 68,
     "DevTools/PkCodePattern.cs": 18,
@@ -39,7 +36,7 @@
     "DevTools/PkSnapshot.cs": 132,
     "DevTools/PkSourceProvider.cs": 16,
     "EndpointExtensions.cs": 14,
-    "PageBase.cs": 215,
+    "PageBase.cs": 149,
     "PkAppBarSearchTypes.cs": 19,
     "PkAssets.cs": 114,
     "PkCallbackSlot.cs": 77,
@@ -91,11 +88,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkRecordForm.razor",
       "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
-    },
-    {
-      "rule": "state-machine",
-      "file": "PageBase.cs",
-      "reason": "busy delay and minimum time duplicate the rule in js/page.js; one rule in core (#801 section 2.3)"
     }
   ]
 }

@@ -59,7 +59,7 @@ export default {
             t.visible(panel, 'the popup'); t.inViewport(panel); t.ok(t.metric(panel, 'width') <= t.viewport.width - 8, 'the popup is narrower than the viewport (phone width check)'); t.visible(ROWS(id), 'the rows');
             t.visible(`${TABLE(id)} >>> [part=filters] >>> [part=search]`, 'the search box'); t.visible(`${TABLE(id)} >>> [part=pagination]`, 'the pager');
             t.noOverlap(CTL(id), panel, 'the popup over its own field');
-            t.known(889, t.viewport.name !== 'phone' || t.metric(`${TABLE(id)} >>> [part=filters] >>> [part=search]`, 'height') >= 44, 'the popup search box is under 44px on a phone');
+            t.ok(t.viewport.name !== 'phone' || (t.rect(`${TABLE(id)} >>> [part=filters] >>> [part=search]`)?.height ?? 0) >= 44, 'the popup search box is at least 44px tall on a phone', 'the table-filters search box needs min-block-size: var(--touch-target) in its phone rule (#889)');
         }
         if (t.shot === 'picked') { t.hidden(PANEL('single'), 'the popup after a pick'); t.hasText(`${P('single')} >>> [part=text]`, 'Customer 2'); }
         if (t.shot === 'loading') { t.visible(`${TABLE('loading')} >>> [part=state] pk-skeleton`, 'the loading skeleton'); t.inViewport(PANEL('loading')); }

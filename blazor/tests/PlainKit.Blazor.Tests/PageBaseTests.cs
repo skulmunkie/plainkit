@@ -168,80 +168,20 @@ public sealed class PageBaseTests : BunitContext
         Assert.False(cut.Instance.IsBusy);
     }
 
-    // A controllable clock: time moves only through Advance, which fires the timers that come due. No real waiting.
-    private sealed class ManualTime : TimeProvider
-    {
-        private DateTimeOffset _now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        private readonly List<ManualTimer> _timers = [];
-        public override DateTimeOffset GetUtcNow() => _now;
-        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
-        {
-            var t = new ManualTimer(this, callback, state, _now + dueTime);
-            if (dueTime != Timeout.InfiniteTimeSpan) _timers.Add(t);
-            return t;
-        }
-        public void Advance(TimeSpan by)
-        {
-            var target = _now + by;
-            while (_timers.Where(t => t.Due <= target).OrderBy(t => t.Due).FirstOrDefault() is { } next)
-            {
-                _timers.Remove(next);
-                _now = next.Due;
-                next.Fire();
-            }
-            _now = target;
-        }
-        private sealed class ManualTimer(ManualTime owner, TimerCallback callback, object? state, DateTimeOffset due) : ITimer
-        {
-            public DateTimeOffset Due { get; } = due;
-            public void Fire() => callback(state);
-            public bool Change(TimeSpan dueTime, TimeSpan period) => false;
-            public void Dispose() => owner._timers.Remove(this);
-            public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
-        }
-    }
-
     [Fact]
-    public async Task The_overlay_shows_only_after_the_delay_and_stays_for_the_minimum_time()
-    {
-        var time = new ManualTime();
-        var cut = Render<PageBaseHost>();
-        cut.Instance.DelayMs = 100;
-        cut.Instance.MinMs = 300;
-        cut.Instance.Time = time;
-
-        async Task Tick(int ms) { time.Advance(TimeSpan.FromMilliseconds(ms)); await cut.InvokeAsync(() => { }); }
-
-        var fast = Begin(cut, "Fast");
-        await Tick(99);
-        End(cut, fast);
-        await Tick(1000);
-        Assert.False(cut.Instance.ShowBusyOverlay, "an action shorter than the delay never shows the overlay");
-
-        var slow = Begin(cut, "Slow");
-        Assert.False(cut.Instance.ShowBusyOverlay);
-        await Tick(99);
-        Assert.False(cut.Instance.ShowBusyOverlay, "not before the delay");
-        await Tick(1);
-        Assert.True(cut.Instance.ShowBusyOverlay, "shown once the delay has passed");
-        await Tick(50);
-        End(cut, slow);
-        Assert.True(cut.Instance.ShowBusyOverlay, "kept for the minimum time");
-        await Tick(249);
-        Assert.True(cut.Instance.ShowBusyOverlay, "still held one tick before the minimum time is up");
-        await Tick(1);
-        Assert.False(cut.Instance.ShowBusyOverlay, "hidden once the minimum time is up");
-    }
-
-    [Fact]
-    public async Task Disposing_the_page_releases_every_token_and_cancels_the_timers()
+    public async Task Disposing_the_page_releases_every_token()
     {
         var cut = Render<PageBaseHost>();
-        cut.Instance.DelayMs = 30;
         Begin(cut, "A");
         await cut.InvokeAsync(() => ((IDisposable)cut.Instance).Dispose());
         Assert.False(cut.Instance.IsBusy);
-        await Task.Delay(100);
-        Assert.False(cut.Instance.ShowBusyOverlay);
+    }
+
+    [Fact]
+    public void PageBase_keeps_only_the_busy_count_and_label_the_overlay_element_owns_the_delay()
+    {
+        // The delay and minimum time are pk-loading-overlay's (Delay, MinTime): PageBase has no clock, timer or ShowBusyOverlay of its own.
+        var members = typeof(PageBase).GetMembers(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public).Select(m => m.Name).ToList();
+        Assert.DoesNotContain("ShowBusyOverlay", members); Assert.DoesNotContain("BusyDelay", members); Assert.DoesNotContain("BusyMinTime", members); Assert.DoesNotContain("Clock", members);
     }
 }
