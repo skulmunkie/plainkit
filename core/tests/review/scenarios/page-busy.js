@@ -52,7 +52,8 @@ export default {
         on('finish-second', () => gates.second?.());
         on('fail', () => run(async () => { await sleep(50); throw new Error('The export failed.'); }, 'Exporting…'));
         frame.__toggles = 0; frame.__cls = 0;
-        new MutationObserver(list => { for (const m of list) if (m.attributeName === 'busy') frame.__toggles++; }).observe(frame.querySelector(OV), { attributes: true });
+        const watch = () => new MutationObserver(list => { for (const m of list) if (m.attributeName === 'data-on') frame.__toggles++; }).observe(frame.querySelector(OV).shadowRoot.querySelector('[part=overlay]'), { attributes: true }); // the overlay element shows itself (data-on on its overlay part) after its own delay
+        (frame.defaultView ?? window).customElements.whenDefined('pk-loading-overlay').then(() => setTimeout(watch, 0));
         new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) frame.__cls += e.value; }).observe({ type: 'layout-shift', buffered: false });
     },
     steps: [
