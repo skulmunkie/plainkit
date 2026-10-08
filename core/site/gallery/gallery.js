@@ -26,6 +26,7 @@ import { createElementInspector, sectionFromData } from '../../js/element-inspec
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
+import { on } from '../../js/mount-support.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -224,7 +225,7 @@ function fullView(fp) {
     const frame = document.createElement('iframe');
     frame.className = 'gx-page-frame';
     frame.title = `${fp.title} as a full page`;
-    frame.addEventListener('load', () => applyToPage(frame, state));
+    on(frame, 'load', () => applyToPage(frame, state));
     frame.src = pageUrl(fp);
     applyToPage(frame, { width: state.width });
     stage = frame;
@@ -497,13 +498,13 @@ function initResize() {
     const width = () => parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0;
     const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.dataset.dyn = `--inspector-w:${w}px`; applyDynamic(shell); return w; };
     const saved = Number(readSetting('pk-gallery-inspector-w')); if (saved) apply(saved);
-    handle.addEventListener('pointerdown', e => {
+    on(handle, 'pointerdown', e => {
         e.preventDefault(); handle.setPointerCapture(e.pointerId);
         const move = ev => { const box = body.getBoundingClientRect(); apply(pointerSize(ev.clientX, 0, box.left, box.width, 0, true, 'px')); };
         const up = () => { handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); writeSetting('pk-gallery-inspector-w', String(width())); };
-        handle.addEventListener('pointermove', move); handle.addEventListener('pointerup', up);
+        on(handle, 'pointermove', move); on(handle, 'pointerup', up);
     });
-    handle.addEventListener('keydown', e => {
+    on(handle, 'keydown', e => {
         const { min, max } = bounds();
         const next = keySize(e.key, width(), { min, max, step: 24, horizontal: true, rtl: true });
         if (next === null) return;
@@ -592,15 +593,15 @@ export async function mountGallery(container, options = {}) {
         initResize();
         // The nav's filter box lives in the element: a filter given by the mount waits for the element to exist.
         customElements.whenDefined('pk-side-nav').then(() => { if (state.filter) setFilter(state.filter); });
-        navEl().addEventListener('input', e => { const t = e.composedPath()[0]; if (t?.matches?.('[part="filter-input"]')) { state.filter = t.value; if (!t.value) syncNav(); } });
+        on(navEl(), 'input', e => { const t = e.composedPath()[0]; if (t?.matches?.('[part="filter-input"]')) { state.filter = t.value; if (!t.value) syncNav(); } });
         // A branch the reader opens or folds is remembered (the element also opens matches while a filter is typed: that does not emit).
-        navEl().addEventListener('pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); });
+        on(navEl(), 'pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); });
         // Escape or a tap on the backdrop closes the phone Contents drawer; the element hands focus back to its button.
-        navEl().addEventListener('pk-close', () => { const btn = $('[data-gx-contents]'); if (btn) setAttr(btn, 'pressed', false); });
-        $('#gx-inspector').addEventListener('pk-close', () => setInspector(false));
+        on(navEl(), 'pk-close', () => { const btn = $('[data-gx-contents]'); if (btn) setAttr(btn, 'pressed', false); });
+        on($('#gx-inspector'), 'pk-close', () => setInspector(false));
     }
     window.addEventListener('hashchange', render);
-    $('#gx-shell').addEventListener('click', e => {
+    on($('#gx-shell'), 'click', e => {
         const contents = e.target.closest('[data-gx-contents]');
         if (contents) { const on = !navEl().hasAttribute('open'); setAttr(navEl(), 'open', on); setAttr(contents, 'pressed', on); }
         if (e.target.closest('#gx-inspect')) setInspector(!$('#gx-inspector').hasAttribute('open'));
@@ -615,16 +616,16 @@ export async function mountGallery(container, options = {}) {
         const sc = e.target.closest('pk-menu-item[data-scale]');
         if (sc) setScale(Number(sc.dataset.scale));
     });
-    $('#gx-shell').addEventListener('change', e => { const s = e.target.closest?.('pk-select.gx-scale'); if (s) setScale(Number(s.value)); });
-    document.addEventListener('site-search', e => setFilter(e.detail));
-    document.addEventListener('site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); });
+    on($('#gx-shell'), 'change', e => { const s = e.target.closest?.('pk-select.gx-scale'); if (s) setScale(Number(s.value)); });
+    on(document, 'site-search', e => setFilter(e.detail));
+    on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); });
     const view = $('#gx-view');
-    view.addEventListener('submit', e => { e.preventDefault(); });
-    view.addEventListener('pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
-    view.addEventListener('input', e => {
+    on(view, 'submit', e => { e.preventDefault(); });
+    on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
+    on(view, 'input', e => {
         const form = e.target.closest('.gx-find'); if (!form) return;
         clearTimeout(form._t);
         form._t = setTimeout(() => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; setTimeout(() => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
-    view.addEventListener('change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
+    on(view, 'change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
 }

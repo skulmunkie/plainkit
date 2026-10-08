@@ -7,6 +7,7 @@ import { setTheme } from '../../js/theme.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
 import { mountPattern } from './pattern-mount.js';
+import { on } from '../../js/mount-support.js';
 
 const q = new URLSearchParams(location.search);
 const kind = q.get('kind');
@@ -78,7 +79,7 @@ if (!entry) {
         host.replaceChildren(page);
         page.innerHTML = entry.html;
         // The demos are not wired to a server: forms do not submit.
-        document.addEventListener('submit', e => e.preventDefault());
+        on(document, 'submit', e => e.preventDefault());
         initPlainkit(document);
         if (entry.script) await runScript(entry, page);
     }

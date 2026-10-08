@@ -6,6 +6,7 @@
 import { initPlainkit } from '../js/plainkit.js';
 import { toggleTheme, setTheme, currentTheme } from '../js/theme.js';
 import { readSetting as read, writeSetting as write } from './gallery/settings.js';
+import { on } from '../js/mount-support.js';
 
 const PK_ROOT = new URL('../', import.meta.url).href;
 export const PAGES = [
@@ -32,7 +33,7 @@ function h(tag, props = {}, ...children) {
 // filters its own page, so the results panel is hidden (site.css).
 function searchField(placeholder) {
     const field = h('pk-app-bar-search', { label: placeholder, placeholder, debounce: '0' });
-    field.addEventListener('pk-query', e => document.dispatchEvent(new CustomEvent('site-search', { detail: e.detail.query })));
+    on(field, 'pk-query', e => document.dispatchEvent(new CustomEvent('site-search', { detail: e.detail.query })));
     return field;
 }
 // The theme switch lives in the settings (profile) menu at the end of the bar, next to a link to the Settings page.
@@ -62,7 +63,7 @@ export function mountShell({ page, title, search = null }) {
     const paintTheme = () => { const label = currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme'; if (themeItem.textContent !== label) themeItem.textContent = label; };
     const themeWatch = new MutationObserver(paintTheme);
     themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-    themeItem.addEventListener('pk-select', () => {
+    on(themeItem, 'pk-select', () => {
         write(THEME_KEY, toggleTheme(root));
         document.dispatchEvent(new CustomEvent('site-theme', { detail: currentTheme(root) }));
     });
