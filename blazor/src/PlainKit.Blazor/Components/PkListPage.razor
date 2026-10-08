@@ -1,30 +1,30 @@
 @namespace PlainKit.Blazor.Pages
 @typeparam TItem
-@using System.Text.Json
 @inherits PkElementBase
 @implements IDisposable
-
 @* Hand-written (blazor/mappings/list-page.json marks it "existing"): the element's load(query) is a callback property, set from script, so this
    component hands it a .NET reference (PkCallbackSlot) that calls Load with the page, sort, search and filters the element holds. A Load that
    throws rejects the JavaScript promise, which the element shows as its own error state with Retry. *@
-<pk-list-page config="@Config"
-              @ref="Element"
-              class="@Css()"
-              @attributes="Splat"></pk-list-page>
+<pk-list-page config="@Config" @ref="Element" class="@Css()" @attributes="Splat"></pk-list-page>
 
 @code {
     [Inject] private PkRuntime Runtime { get; set; } = default!;
-
     private readonly PkCallbackSlot _load = new("load");
 
-    /// <summary>{ columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, heading?, breadcrumb? }, sent as a JSON attribute. A column <c>key</c> names a property of <typeparamref name="TItem"/> in camel case (<c>orderNo</c> for <c>OrderNo</c>).</summary>
+    /// <summary>{ columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, heading?, breadcrumb?, selectable?, rowKey?, bulkActions?: [{ id, label, variant? }] }, sent as a JSON attribute. A column <c>key</c> names a property of <typeparamref name="TItem"/> in camel case (<c>orderNo</c> for <c>OrderNo</c>).</summary>
     [Parameter] public string? Config { get; set; } = "{}";
 
-    /// <summary>
-    /// Loads one page of the list for the request's page, sort, search and filters, and returns its items and the total count of the whole (searched) list.
-    /// Throwing shows the element's error state with Retry; zero items show the configured empty state. Called again on every sort, search, filter or page change.
-    /// </summary>
+    /// <summary>Loads one page for the request's page, sort, search and filters and returns its items and the total of the whole (searched) list. Throwing shows the element's error state with Retry; zero items show the empty state.</summary>
     [Parameter] public Func<PkListRequest, Task<PkListResult<TItem>>>? Load { get; set; }
+
+    /// <summary>The selection changed (Config <c>selectable</c>): <c>Selected</c> holds the ids (the <c>rowKey</c> property, default <c>id</c>), <c>Scope</c> is <c>page</c> or <c>all</c>, <c>Query</c> the search and sort (<see cref="PkSelectQuery.ToRequest"/>). For scope <c>all</c> run the bulk action against it on the server.</summary>
+    [Parameter] public EventCallback<PkSelectEventArgs> OnSelect { get; set; }
+
+    /// <summary>A button of Config <c>bulkActions</c> was pressed: <c>Action</c> is its <c>id</c>, and <c>Selected</c>, <c>Scope</c> and <c>Query</c> are the selection as <see cref="OnSelect"/> carries it.</summary>
+    [Parameter] public EventCallback<PkBulkEventArgs> OnBulk { get; set; }
+
+    /// <inheritdoc />
+    protected override void AddEventHandlers(Dictionary<string, object> handlers) { handlers["onpk-select"] = OnSelect; handlers["onpk-bulk"] = OnBulk; }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)

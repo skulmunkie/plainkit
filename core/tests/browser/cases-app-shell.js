@@ -319,4 +319,25 @@ export const appShellCases = [
         t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
         t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
     }],
+    // #873: selection on a routed list page: the pk-select detail reaches the page, a bulk action gets the selection, and the list reloads with the result.
+    ['routed-pair template (#873): selecting rows on the routed list raises pk-select on the page, the Archive bulk action runs with the ids and the list reloads with them archived and the selection cleared', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair template'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const d = f.contentWindow.document;
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const page = await until(() => deep(d, 'pk-list-page'), 'the list page'), events = [];
+        page.addEventListener('pk-select', e => events.push(e.detail));
+        const table = () => deep(d, 'pk-table'), bar = () => table().shadowRoot.querySelector('[part="bulk"]');
+        await until(() => table()?.shadowRoot?.querySelector('[data-select="1"]'), 'the selectable rows');
+        t.ok(bar().hidden, 'no bulk bar before a selection');
+        table().shadowRoot.querySelector('[data-select="1"]').click(); await t.settle();
+        table().shadowRoot.querySelector('[data-select="2"]').click(); await t.settle();
+        t.eq(events.at(-1).selected.join(), '1,2', 'the page hears the selected ids'); t.eq(events.at(-1).scope, 'page'); t.eq(events.at(-1).query.pageSize, 10, 'with the query');
+        t.ok(!bar().hidden, 'the bulk bar shows');
+        const archive = page.part('bulk').querySelector('pk-button'); t.eq(archive.textContent, 'Archive');
+        archive.click();
+        await until(() => [...table().shadowRoot.querySelectorAll('tbody tr')].slice(0, 2).every(r => r.textContent.includes('Archived')) && bar().hidden, 'the reloaded list: rows 1 and 2 archived, selection cleared');
+    }],
 ];
