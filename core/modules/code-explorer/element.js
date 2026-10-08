@@ -28,6 +28,10 @@ const NAV = '::nav';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // The one place markup is written into the document: every value in it went through esc(), tokens are wrapped in fixed spans.
 const fill = (el, markup) => { el.innerHTML = markup; };
+// Search hits, usages and report rows: a dense list of native buttons (pk-list-group dense), a muted line number or count, then the text.
+const hitRow = (path, line, no, textHtml) => `<button type="button" data-path="${esc(path)}" data-line="${line ?? ''}"><pk-text inline tone="muted" font="mono" size="meta">${no}</pk-text><pk-text inline font="mono" size="meta">${textHtml}</pk-text></button>`;
+const hitList = (rows, label) => `<pk-list-group variant="action" dense label="${esc(label)}">${rows}</pk-list-group>`;
+const hitGroup = (titleHtml, rows, label) => `<pk-stack gap="xs"><pk-text inline font="mono" size="read">${titleHtml}</pk-text>${hitList(rows, label)}</pk-stack>`;
 
 // Folder tree from flat paths: { name, path, children: Map, file? }.
 export function buildTree(files, filter = '') {
@@ -313,14 +317,14 @@ export class CodeExplorerElement extends Base {
     #reportRowsHtml(kind, rows) {
         if (!rows.length) return '<pk-text tone="muted">No matches.</pk-text>';
         if (kind === 'duplicates') {
-            return `<div class="csr">${rows.map(d => `<div class="csr-group"><div class="csr-title">${d.length} lines duplicated in ${d.locations.length} places</div>${d.locations.map(l => `<button type="button" class="csr-hit" data-path="${esc(l.path)}" data-line="${l.line}"><span class="csr-no">${l.line}</span><span class="csr-text">${esc(l.path)}</span></button>`).join('')}</div>`).join('')}</div>`;
+            return `<pk-stack gap="sm">${rows.map(d => hitGroup(`${d.length} lines duplicated in ${d.locations.length} places`, d.locations.map(l => hitRow(l.path, l.line, l.line, esc(l.path))).join(''), 'Duplicated in')).join('')}</pk-stack>`;
         }
-        return `<div class="csr">${rows.map(x => {
+        return hitList(rows.map(x => {
             const label = kind === 'pattern' ? `${esc(x.name)}${x.label ? ` — ${esc(x.label)}` : ''}: ${esc(x.path)}`
                 : kind === 'methods' ? `${esc(x.name)} — ${esc(x.path)}`
                     : esc(x.path);
-            return `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line ?? ''}"><span class="csr-no">${x.count}</span><span class="csr-text">${label}</span></button>`;
-        }).join('')}</div>`;
+            return hitRow(x.path, x.line, x.count, label);
+        }).join(''), 'Report');
     }
 
     #searchHtml() {
@@ -328,18 +332,18 @@ export class CodeExplorerElement extends Base {
         if (s.error) return `<pk-alert kind="danger">${esc(s.error)}</pk-alert>`;
         if (!s.groups.length) return '<pk-text tone="muted">No matches.</pk-text>';
         const match = matcherFor(s.query);
-        return `<div class="csr">${s.groups.map(g => `<div class="csr-group"><div class="csr-title">${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text></div>${g.hits.map(h => {
+        return `<pk-stack gap="sm">${s.groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
             const t = h.text.trim(); const shift = h.text.length - h.text.trimStart().length;
             const spans = (h.spans ?? match(h.text)).map(x => ({ start: x.start - shift, length: x.length }));
-            return `<button type="button" class="csr-hit" data-path="${esc(g.path)}" data-line="${h.line}"><span class="csr-no">${h.line}</span><span class="csr-text">${buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join('')}</span></button>`;
-        }).join('')}</div>`).join('')}</div>`;
+            return hitRow(g.path, h.line, h.line, buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join(''));
+        }).join(''), `Matches in ${g.path}`)).join('')}</pk-stack>`;
     }
 
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
         const kindBtn = e.target.closest?.('[data-kind]');
         if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
-        const hit = e.target.closest?.('.csr-hit');
+        const hit = e.target.closest?.('pk-list-group > button[data-path]');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
     }
 
@@ -435,8 +439,8 @@ export class CodeExplorerElement extends Base {
         if (i.error) { fill(body, `<pk-alert kind="danger">${esc(i.error)}</pk-alert>`); return; }
         if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</pk-text>`); return; }
         fill(body, i.kind === 'outline'
-            ? `<ul class="co">${i.items.map(x => `<li><button type="button" class="co-item co-d${Math.min(Math.max(x.depth ?? 0, 0), 3)}" data-line="${x.line}"><span class="co-kind">${esc(x.kind)}</span><span class="co-name">${esc(x.name)}</span><span class="co-line">${x.line}</span></button></li>`).join('')}</ul>`
-            : `<div class="csr">${i.items.map(x => `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line}"><span class="csr-no">${x.line}</span><span class="csr-text">${esc(x.path)}: ${esc(x.text.trim())}</span></button>`).join('')}</div>`);
+            ? hitList(i.items.map(x => { const d = Math.min(Math.max(x.depth ?? 0, 0), 3); return `<button type="button"${d ? ` data-depth="${d}"` : ''} data-line="${x.line}"><pk-text inline size="meta" weight="semibold">${esc(x.kind)}</pk-text><pk-text inline font="mono" size="read">${esc(x.name)}</pk-text><pk-text inline font="mono" size="meta">${x.line}</pk-text></button>`; }).join(''), 'Outline')
+            : hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.text.trim())}`)).join(''), 'Usages'));
     }
 
     #onInspectorClick(e) {

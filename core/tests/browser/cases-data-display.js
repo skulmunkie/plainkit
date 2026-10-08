@@ -694,6 +694,25 @@ export const dataDisplayCases = [
         t.eq(el.internals.role, 'list'); t.ok([...el.children].every(c => c.getAttribute('role') === 'listitem'));
     }],
 
+    ['list-group dense: rows sit at text height with their children inline from the start and an indent step per depth, and a 375px phone still gets the touch target', async t => {
+        const markup = '<pk-list-group variant="action" dense label="Outline"><button type="button"><span>a</span><span>1</span></button><button type="button" data-depth="1">b</button><button type="button" data-depth="3">c</button></pk-list-group>';
+        const el = await t.mount(markup);
+        const rows = [...el.children], rect = n => n.getBoundingClientRect();
+        t.ok(rows.every(r => rect(r).height < 44), `dense rows are under the 44px touch target on desktop (${rect(rows[0]).height}px)`);
+        const kids = [...rows[0].children];
+        t.ok(rect(kids[1]).left - rect(kids[0]).right < 40, 'the children sit together from the start, not pushed apart');
+        const pad = r => parseFloat(getComputedStyle(r).paddingInlineStart);
+        t.ok(pad(rows[1]) > pad(rows[0]) && pad(rows[2]) > pad(rows[1]), 'data-depth indents each step further');
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '240px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc(markup); await loaded;
+        const lg = await until(() => { const g = f.contentDocument.querySelector('pk-list-group'); return g?.shadowRoot && f.contentWindow.customElements.get('pk-list-group') && g; }, 'the list group');
+        await wait(100);
+        t.ok([...lg.children].every(r => r.getBoundingClientRect().height >= 44), 'on a phone every dense actionable row keeps the 44px touch target');
+    }],
+
     ['accordion-item: an actions button is outside the summary and does not toggle', async t => {
         const el = await t.mount('<pk-accordion-item heading="A"><button slot="actions">Go</button>a</pk-accordion-item>');
         const btn = el.querySelector('button'); btn.click();
