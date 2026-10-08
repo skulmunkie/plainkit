@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h, loadText, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
@@ -56,11 +56,11 @@ export { DEFAULT_PAIRS };
 // What the Preview tab shows: SDK elements that read tokens only.
 const PREVIEW = `
 <pk-toolbar heading="Preview" note="every control reads tokens only"><pk-button slot="actions" size="mini" variant="ghost">Ghost</pk-button><pk-button slot="actions" size="mini">Primary</pk-button></pk-toolbar>
-<pk-card heading="Card title"><span slot="actions" class="muted">muted text</span><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
-<pk-input label="Field" value="Input value"></pk-input>
-<pk-cluster class="u-mt-3"><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-card>
+<pk-card heading="Card title"><pk-text slot="actions" inline tone="muted">muted text</pk-text><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
+<pk-stack gap="sm"><pk-input label="Field" value="Input value"></pk-input>
+<pk-cluster><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-stack></pk-card>
 <pk-alert kind="warning">A warning notice.</pk-alert><pk-alert kind="success">A success notice.</pk-alert>
-<pk-table density="compact"><table><thead><tr><th>SKU</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>AC-001</code></td><td class="num">$4.99</td></tr></tbody></table></pk-table>`;
+<pk-table density="compact" label="Products" columns='[{"key":"sku","label":"SKU"},{"key":"price","label":"Price","align":"end"}]' rows='[{"id":"1","sku":"AC-001","price":"$4.99"}]'></pk-table>`;
 
 const cap = s => s[0].toUpperCase() + s.slice(1);
 
@@ -86,9 +86,7 @@ export async function mountThemeEditor(container, options = {}) {
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
 
     const tokensUrl = runtimeUrl(options.tokens ?? TOKENS, import.meta.url);
-    const res = await fetch(tokensUrl);
-    if (!res.ok) throw new Error(`${tokensUrl}: ${res.status}`);
-    const tokens = parseTokenBlocks(await res.text());
+    const tokens = parseTokenBlocks(await loadText(tokensUrl, win.fetch.bind(win)));
 
     // Saved themes are a per-viewer convenience: read and written best effort. When storage is blocked they still work until the page closes.
     let savedBlocked = false;
@@ -245,7 +243,7 @@ export async function mountThemeEditor(container, options = {}) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
         previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
-        on(previewFrame, 'load', () => applyToPreview(outputCss().css));
+        listen(previewFrame, 'load', () => applyToPreview(outputCss().css));
         ui.previewHost.append(previewFrame);
     }
 

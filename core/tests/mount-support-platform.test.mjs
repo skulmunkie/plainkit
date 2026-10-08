@@ -1,7 +1,7 @@
 // The platform access the tool modules share (js/mount-support.js): timers that return their cancel, saved state, and the page address (#682 S7).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { later, every, storedText, storeText, addressOf } from '../js/mount-support.js';
+import { later, every, storedText, storeText, addressOf, loadText } from '../js/mount-support.js';
 
 const fakeWin = () => {
     const timers = new Map(); let next = 1; const store = new Map();
@@ -47,4 +47,10 @@ test('addressOf gives the href and the hash as they are now', () => {
     const win = fakeWin();
     assert.deepEqual(addressOf(win), { href: 'https://x.test/p?q=1#a=2', hash: '#a=2' });
     win.location.hash = '#b'; assert.equal(addressOf(win).hash, '#b');
+});
+
+test('loadText returns the text of an ok response and throws with the url and status otherwise', async () => {
+    const ok = async () => ({ ok: true, text: async () => 'body' });
+    assert.equal(await loadText('/a.css', ok), 'body');
+    await assert.rejects(loadText('/missing.css', async () => ({ ok: false, status: 404 })), /\/missing.css: 404/);
 });
