@@ -68,6 +68,12 @@
       "note": "page or all: all after the user chose Select all N rows (every row of the query counts as selected; Selected holds only the loaded ids). It follows the element and returns to page when the selection changes."
     },
     {
+      "name": "SelectPageOnly",
+      "prop": "selectPageOnly",
+      "type": "bool",
+      "note": "Never offer Select all N rows (it needs SelectAllTotal): the header checkbox selects the loaded page and SelectScope stays page."
+    },
+    {
       "name": "Clickable",
       "prop": "clickable",
       "type": "bool"
