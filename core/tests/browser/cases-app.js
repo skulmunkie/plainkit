@@ -635,4 +635,18 @@ export const appCases = [
             page.destroy();
         }
     }],
+    // #897: a confirm answered the moment it opens must settle (resolve, element removed) and never block the next ask.
+    ['dialogs (#897): a confirm answered immediately on open settles and the next one opens, 40 times', async t => {
+        const { createDialogs } = await dist('js/dialogs.js');
+        const box = t.stage(''), dialogs = createDialogs({ container: box, load: el => t.load(el) });
+        for (let i = 0; i < 40; i++) {
+            const p = dialogs.confirm({ heading: `Leave ${i}?`, message: 'x', confirmLabel: 'Leave', cancelLabel: 'Stay', danger: true });
+            const dlg = await until(() => box.querySelector('pk-dialog'), `dialog ${i} to open`);
+            const stay = [...dlg.querySelectorAll('pk-button')].find(b => b.textContent === 'Stay');
+            stay.click();
+            t.eq(await Promise.race([p, wait(2000).then(() => 'stuck')]), false, `dialog ${i} resolves false at once`);
+            t.eq(box.querySelectorAll('pk-dialog').length, 0, `dialog ${i} is removed`);
+        }
+        dialogs.destroy();
+    }],
 ];
