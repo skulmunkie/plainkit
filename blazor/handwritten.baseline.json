@@ -18,7 +18,6 @@
     "Components/PkPageHeader.razor": 147,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
-    "Components/PkRawTable.razor": 59,
     "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
     "Components/PkSettingsPage.razor": 40,
@@ -97,11 +96,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkPageHeader.razor",
       "reason": "builds breadcrumb, home crumb and back link; becomes a crumbs prop on pk-page-header (#801 section 2.3)"
-    },
-    {
-      "rule": "name-parity",
-      "file": "Components/PkRawTable.razor",
-      "reason": "old name of the raw-slot mode of PkTable; folds into PkTable with an [Obsolete] alias (#801 name map)"
     },
     {
       "rule": "name-parity",
