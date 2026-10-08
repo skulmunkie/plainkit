@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases, mergeManifests, jobArgs } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -131,4 +131,28 @@ test('findings seen in several combinations are one line', () => {
     const g = groupFindings(['dark', 'light'].map(theme => ({ tag: 'pk-x', example: 1, title: 't', viewport: 'phone', theme, findings: [f] })));
     assert.equal(g.length, 1);
     assert.deepEqual(g[0].seen, ['phone/dark', 'phone/light']);
+});
+
+test('--jobs N: parsed, bounded, and each job gets its own shard and folder without the run\'s --jobs and --out', () => {
+    assert.equal(parseArgs([]).jobs, 1);
+    assert.equal(parseArgs(['--jobs', '4']).jobs, 4);
+    for (const bad of ['0', '17', 'x', '1.5']) assert.throws(() => parseArgs(['--jobs', bad]), /--jobs needs a whole number/);
+    assert.deepEqual(jobArgs(['--all', '--jobs', '3', '--out', 'x', '--strict'], 2, 3, '/tmp/j2'), ['--all', '--strict', '--shard', '2/3', '--out', '/tmp/j2']);
+});
+
+test('mergeManifests joins the shards of a run: every shot and not-seen entry once, findings grouped across shards, summary recomputed, timings and phases kept per name', () => {
+    const f = (rule, severity) => ({ rule, severity, path: 'p', message: 'm', fix: 'f' });
+    const a = { generated: 'g', shard: '1/2', reasons: { a: 'r' }, elements: ['a'], scenarios: ['s1'], shots: [{ tag: 'pk-a', example: 1, title: 't', viewport: 'phone', theme: 'light', file: 'a.png', findings: [f('overflow', 'error')] }], notSeen: [], timings: { s1: 1.5 }, phases: { s1: { wait: 1 } } };
+    const b = { generated: 'g', shard: '2/2', reasons: { b: 'r' }, elements: ['b'], scenarios: ['s2'], shots: [{ tag: 'pk-a', example: 1, title: 't', viewport: 'desktop', theme: 'light', file: 'b.png', findings: [f('overflow', 'error')] }, { tag: 'pk-b', example: 1, title: 't', viewport: 'phone', theme: 'dark', file: 'c.png', findings: [] }], notSeen: [{ tag: 'pk-b', reason: 'x' }], timings: { s2: 2 }, phases: { s2: { wait: 2 } } };
+    const m = mergeManifests([a, b]);
+    assert.equal(m.shots.length, 3);
+    assert.equal(m.shard, null);
+    assert.deepEqual(m.elements, ['a', 'b']);
+    assert.deepEqual(m.timings, { s1: 1.5, s2: 2 });
+    assert.deepEqual(Object.keys(m.phases), ['s1', 's2']);
+    assert.equal(m.findings.length, 1, 'the same finding seen in two shards is one line');
+    assert.deepEqual(m.findings[0].seen.sort(), ['desktop/light', 'phone/light']);
+    assert.equal(m.summary.errors, 1);
+    assert.equal(m.summary.ok, false);
+    assert.equal(m.notSeen.length, 1);
 });
