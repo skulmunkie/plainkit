@@ -7,3 +7,10 @@
 :host([variant="action"]) ::slotted([aria-current]), :host([variant="action"]) ::slotted(.active) { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
 :host([variant="action"]) ::slotted([disabled]) { opacity: 0.55; pointer-events: none; }
 :host([checklist]) ::slotted(label) { justify-content: flex-start; min-block-size: var(--touch-target); cursor: pointer; }
+:host([dense]) ::slotted(*) { justify-content: flex-start; align-items: baseline; overflow-wrap: anywhere; gap: var(--space-2); padding-block: var(--space-1); padding-inline: var(--space-2); }
+:host([dense][variant="action"]) ::slotted(a), :host([dense][variant="action"]) ::slotted(button) { min-block-size: 0; }
+:host([dense]) ::slotted(:focus-visible) { outline: var(--focus-ring); outline-offset: -2px; }
+:host([dense]) ::slotted([data-depth="1"]) { padding-inline-start: calc(var(--space-2) + var(--space-4)); }
+:host([dense]) ::slotted([data-depth="2"]) { padding-inline-start: calc(var(--space-2) + 2 * var(--space-4)); }
+:host([dense]) ::slotted([data-depth="3"]) { padding-inline-start: calc(var(--space-2) + 3 * var(--space-4)); }
+@media (--phone) { :host([dense][variant="action"]) ::slotted(a), :host([dense][variant="action"]) ::slotted(button) { min-block-size: var(--touch-target); align-items: center; } }

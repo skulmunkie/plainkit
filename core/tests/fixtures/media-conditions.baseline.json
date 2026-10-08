@@ -98,6 +98,9 @@
  "lightbox": [
   "(max-width: 640px)"
  ],
+ "list-group": [
+  "(max-width: 640px)"
+ ],
  "loading-overlay": [
   "(prefers-reduced-motion: reduce)"
  ],
