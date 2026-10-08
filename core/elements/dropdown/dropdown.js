@@ -33,13 +33,13 @@ export default Base => class extends Base {
         this.stop(); this.aria2();
         if (!this.open) { unplace(menu); return; }
         const t = this.trigger; const options = { placement: this.placement, offset: 4 };
-        if (t) { place(t, menu, options); this.$u = autoUpdate(t, menu, options); }
+        if (t) { place(t, menu, options); this.$au = autoUpdate(t, menu, options); }
         this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside'));
         if (this.$kb) rows(this)[0]?.focus({ preventScroll: true });
         this.$kb = false;
         this.emit('pk-open', {});
     }
-    stop() { this.$u?.(); this.$o?.(); this.$u = this.$o = null; }
+    stop() { this.$au?.(); this.$o?.(); this.$au = this.$o = null; }
     key(e) {
         const t = this.trigger;
         if (t && t.contains(e.target)) {

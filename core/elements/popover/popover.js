@@ -55,11 +55,11 @@ export default Base => class extends Base {
         if (!this.open) return;
         const options = { placement: this.placement, offset: 6 };
         place(this.triggerEl ?? this, panel, options);
-        this.$u = autoUpdate(this.triggerEl ?? this, panel, options);
+        this.$au = autoUpdate(this.triggerEl ?? this, panel, options);
         this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside'));
         if (this.$kb || this.variant === 'confirm') (panel.querySelector('[part="cancel"], button, input') ?? panel).focus({ preventScroll: true });
         this.$kb = false;
         this.emit('pk-open', null);
     }
-    stop() { this.$u?.(); this.$o?.(); this.$u = this.$o = null; }
+    stop() { this.$au?.(); this.$o?.(); this.$au = this.$o = null; }
 };

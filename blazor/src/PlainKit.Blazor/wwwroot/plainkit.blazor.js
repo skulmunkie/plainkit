@@ -29,7 +29,19 @@ export async function init() {
     initPlainkit();
 }
 
-export const mountCodeExplorer = (container, options) => mountTool(container, () => import('./plainkit/modules/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
+// `lazy` ({ files, reader }, from PkCodeExplorer with an in-memory snapshot): the explorer's LazyProvider over a lean file list, each file's text read through the .NET reader
+// on first use. The provider's fetch is told to ask the reader instead of the network (the URLs it builds are 'pk-source/<path>').
+export const mountCodeExplorer = async (container, { lazy, ...options }) => {
+    if (lazy) {
+        const { LazyProvider } = await import('./plainkit/modules/code-explorer/providers.js');
+        const read = async url => {
+            const text = await lazy.reader.invokeMethodAsync('Read', decodeURIComponent(url.slice('pk-source/'.length)));
+            return text === null ? { ok: false, status: 404, text: async () => '' } : { ok: true, status: 200, text: async () => text };
+        };
+        options = { ...options, provider: new LazyProvider(lazy.files, 'pk-source', { fetch: read }) };
+    }
+    return mountTool(container, () => import('./plainkit/modules/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
+};
 
 export const mountScorecard = (container, options) => mountTool(container, () => import('./plainkit/modules/scorecard/scorecard.js'), 'mountScorecard', options);
 
