@@ -43,7 +43,6 @@ import { matchRoute, buildCrumbs, fillPath, labelOf, parseHash, buildHash, mapAl
 export { flattenRoutes, matchRoute, buildCrumbs, fillPath, navRoutes, buildNavCrumbs, parseHash, buildHash, mapAlias, safeRoute } from './route-tree.js';
 
 const log = createLogger('router');
-const HOPS = 5; // alias and guard redirects followed for one address before it is given up
 
 // Options: routes (the tree), intercept (path mode only, default false), base (path prefix the app is served under, default ''),
 // mode ('path' | 'hash', default 'path'), guard, aliases, notFound (see the header).
@@ -77,7 +76,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
         const alias = aliases ? mapAlias(aliases, path, query) : null;
         if (alias != null) {
             const to = safeRoute(alias);
-            if (to && hops < HOPS) { write(to, true); return evaluate(hops + 1); }
+            if (to && hops < 5) { write(to, true); return evaluate(hops + 1); }
             log.warn(`alias for "${path}" ignored: ${to ? 'redirect loop' : 'not app-relative'}`);
         }
         const m = matchRoute(routes, path) ?? (nf && { node: nf, chain: [nf], params: {}, notFound: true });
@@ -86,7 +85,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
             const v = verdict(route);
             if (v !== true) {
                 const to = safeRoute(v.redirect);
-                if (to && hops < HOPS) { write(to, true); return evaluate(hops + 1); }
+                if (to && hops < 5) { write(to, true); return evaluate(hops + 1); }
                 if (v.redirect != null) log.warn(`guard redirect for "${path}" ignored: ${to ? 'redirect loop' : 'not app-relative'}`);
                 return { route, match: null, status: 403 };
             }
@@ -95,10 +94,9 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
     }
 
     let state = evaluate();
-    if (!state.match && state.status !== 403) log.debug(`no route for "${state.route.path}"`);
 
-    function sync() {
-        state = evaluate();
+    function sync(next = evaluate()) {
+        state = next;
         if (!state.match && state.status !== 403) log.warn(`no route for "${state.route.path}", the trail is empty`);
         for (const fn of [...listeners]) fn(handle);
     }
@@ -112,7 +110,8 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
     }
 
     const event = hash ? 'hashchange' : 'popstate';
-    const onPop = () => sync();
+    // A popstate or hashchange to the address already shown is not a change: a leave guard (js/app/pages/svc-leave-guard.js, #872) undoes a back or forward by restoring the address, and the router must not remount the page for it.
+    const key = s => s.status + s.route.path + JSON.stringify(s.route.query), onPop = () => { const next = evaluate(); if (key(next) !== key(state)) sync(next); };
     const onClick = e => {
         const a = e.target?.closest?.('a[href]');
         if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target || a.hasAttribute('download')) return;

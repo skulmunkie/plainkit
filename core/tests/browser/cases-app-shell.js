@@ -319,4 +319,42 @@ export const appShellCases = [
         t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
         t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
     }],
+    // #872: the record page asks before an in-app leave with unsaved edits. A link and back are asked; Stay keeps the edits, the address and the page; Leave goes; Save then navigating is not asked.
+    ['routed-pair template (#872): unsaved edits ask before an in-app link or back; Stay keeps the edits and the address, Leave goes, Save does not ask', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair leave guard'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        const h1 = () => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])');
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const dialog = () => [...d.querySelectorAll('pk-dialog')].find(x => x.open);
+        const button = label => [...(dialog()?.querySelectorAll('pk-button') ?? [])].find(b => b.textContent.trim() === label);
+        const edit = async () => {
+            const rec = await until(() => deep(d, 'pk-record-page'), 'the record page'); await until(() => rec.part('edit') && !rec.part('edit').hidden, 'the Edit button');
+            rec.part('edit').click(); await until(() => rec.controls().length, 'the form'); await wait(400);
+            const input = rec.controls()[0]; input.value = 'Unsaved name'; input.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }));
+            await until(() => rec.dirty, 'the dirty flag'); return { rec, input };
+        };
+        await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), 'the list'); await wait(300);
+        win.location.hash = '#/things/3'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('3'), 'the record page'); await wait(300);
+        let { rec, input } = await edit();
+        const link = () => deep(d, 'a[href="#/things"]');
+        t.ok(link(), 'the list is linked from the page');
+        link().click(); await until(dialog, 'the leave dialog');
+        t.eq(win.location.hash, '#/things/3', 'the address has not moved while asking');
+        (await until(() => button('Stay'), 'the Stay button ')).click(); await until(() => !dialog(), 'the dialog to close'); await wait(200);
+        t.eq(win.location.hash, '#/things/3', 'Stay keeps the address'); t.ok(deep(d, 'pk-record-page') === rec && rec.controls()[0] === input && input.value === 'Unsaved name', 'Stay keeps the page and the edits'); t.ok(rec.dirty); t.ok(d.activeElement && d.activeElement !== d.body, 'focus went back into the page after Stay');
+        // Back/forward: a script cannot traverse history without a user gesture (Chrome skips entries made without one), so the browser's own two events are replayed after moving the address.
+        win.history.replaceState(null, '', '#/things'); for (const type of ['popstate', 'hashchange']) win.dispatchEvent(new win.Event(type));
+        await until(dialog, 'the leave dialog for back', 200); t.eq(win.location.hash, '#/things/3', 'the address is restored while asking');
+        (await until(() => button('Stay'), 'the Stay button ')).click(); await until(() => !dialog(), 'the dialog to close'); await wait(200);
+        t.ok(deep(d, 'pk-record-page') === rec && input.value === 'Unsaved name', 'Stay after back keeps the edits'); t.eq(win.location.hash, '#/things/3');
+        link().click(); await until(dialog, 'the leave dialog again'); (await until(() => button('Leave'), 'the Leave button')).click();
+        await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Leave to go to the list'); await until(() => h1()?.textContent.trim() === 'Things', 'the list heading');
+        await wait(300); t.eq(d.activeElement, h1(), 'focus is on the list heading after leaving');
+        win.location.hash = '#/things/4'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('4'), 'record 4'); await wait(300);
+        ({ rec } = await edit()); rec.part('save').click();
+        await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Save to navigate back'); t.ok(!dialog(), 'no question after Save');
+    }],
 ];
