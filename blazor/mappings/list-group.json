@@ -12,6 +12,11 @@
       "type": "bool"
     },
     {
+      "name": "Dense",
+      "prop": "dense",
+      "type": "bool"
+    },
+    {
       "name": "Label",
       "prop": "label",
       "type": "string"
