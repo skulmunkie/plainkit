@@ -73,11 +73,11 @@ function siteViolations(site, { pub, htmlAllowed }) {
 
 // The site as it is today. Each entry is a step of the migration still to land; remove an entry when its violation is gone.
 const KNOWN = new Set([
-    'site/devtools/index.html::extra-html-page', 'site/files/index.html::extra-html-page', 'site/gallery/index.html::extra-html-page', 'site/guides/index.html::extra-html-page',
-    'site/layout-builder/index.html::extra-html-page', 'site/scorecard/index.html::extra-html-page', 'site/settings/index.html::extra-html-page',
+    'site/files/index.html::extra-html-page', 'site/gallery/index.html::extra-html-page', 'site/guides/index.html::extra-html-page',
+    'site/layout-builder/index.html::extra-html-page', 'site/scorecard/index.html::extra-html-page',
     'site/spacing/index.html::extra-html-page', 'site/theme/index.html::extra-html-page',
-    'site/devtools/page.js::mount-shell', 'site/files/page.js::mount-shell', 'site/gallery/standalone.js::mount-shell', 'site/guides/page.js::mount-shell',
-    'site/layout-builder/layout-builder.js::mount-shell', 'site/scorecard/scorecard.js::mount-shell', 'site/settings/page.js::mount-shell', 'site/theme/theme.js::mount-shell',
+    'site/files/page.js::mount-shell', 'site/gallery/standalone.js::mount-shell', 'site/guides/page.js::mount-shell',
+    'site/layout-builder/layout-builder.js::mount-shell', 'site/scorecard/scorecard.js::mount-shell', 'site/theme/theme.js::mount-shell',
     'site/shell.js::mount-shell', 'site/shell.js::pages-array', 'site/shell.js::theme-observer', 'site/theme/theme.js::theme-observer',
     'site/guides/page.js::navigation-listener', 'site/guides/page.js::history-push',
 ]);
