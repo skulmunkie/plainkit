@@ -18,6 +18,13 @@ Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and re
 
 ## Definition of done
 
+**Two tiers, so a small change reaches a pull request fast.** While you work, and before you open the pull request, run only the **targeted** checks: `node scripts/verify.mjs --changed`
+(files changed versus `origin/next-0.13`, else `origin/main`, or `--base <ref>`; it prints what it chose and why). It maps docs-only to the changelog checks, a test file to just that test, an element folder to its
+tests plus the tests that mention it plus the element guards, a Blazor mapping or component to a filtered `dotnet test` plus the generator tests, and `core/js`, base or tokens to the broader set; **a file it does not know falls back to the
+full node job**, so it never skips when unsure. Add `--browser` for the element's browser cases (`node scripts/attest-browser.mjs --elements a,b`, or `--filter <substring,...>`: it reports "N of M cases selected" and exits 1 if
+nothing matches) and its UI review (`node scripts/ui-review.mjs --elements a,b`, scenarios included). The **full** `node scripts/verify.mjs --pack`, the whole browser suite, the full UI review and the Node 22 job run
+once per integration batch and in CI before a release. A failing check is never ignored, weakened or allow-listed in either tier. The rest of this section is the full definition.
+
 **One command runs everything CI runs, in the same groups: `node scripts/verify.mjs`** (`--fast` = bootstrap + changelog + node tests for the inner loop, `--no-dotnet` skips the .NET build,
 `--pack` adds the package check; about a minute in full). Before you finish it must pass. The commands it runs, from the repository root, in this
 order (the first produces every generated file, which are not in source control):

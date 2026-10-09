@@ -3,7 +3,9 @@
 // installed, waits for the page to post its report (core/tests/browser/report.json, local scratch output, not committed), prints the passed and failed
 // counts, then stops the server and the browser and deletes the temporary profile.
 //
-//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900]
+//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900] [--filter a,b] [--elements x,y]
+//   --filter / --elements: a targeted run (the inner loop). Only the cases whose name contains a --filter substring or names an --elements element run (core/tests/browser/case-filter.js);
+//   the output says "N of M cases selected", and a filter that matches nothing exits 1. The full suite stays the integration-batch and release check.
 //
 // Browser: PK_CHROME (a path to chrome, chromium or msedge), else the usual install paths and PATH names for the platform. PK_CHROME_FLAGS adds
 // extra flags (space separated; a CI container may need --no-sandbox).
@@ -17,6 +19,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { parseList } from '../core/tests/browser/case-filter.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reportFile = path.join(root, 'core', 'tests', 'browser', 'report.json');
@@ -58,6 +61,13 @@ export function summarizeReport(report) {
     return { passed: report.passed, failed: report.failed, total: report.results.length, ran: report.ran ?? null, ok: report.failed === 0 && report.results.length === report.passed + report.failed && report.passed > 0 };
 }
 
+// ", N of M cases selected (filter ...)" for a targeted run, "" for the full suite.
+export function selectionNote(report) {
+    if (!report?.filter) return '';
+    const f = [...report.filter.filter.map(s => `filter ${s}`), ...report.filter.elements.map(s => `element ${s}`)].join(', ');
+    return `; targeted: ${report.selected} of ${report.totalCases} cases selected (${f})`;
+}
+
 // True when `current` is a report from a run other than the one recorded before this script started.
 export function isNewRun(previousRan, current) {
     return Boolean(current) && typeof current.ran === 'string' && current.ran !== previousRan;
@@ -65,12 +75,16 @@ export function isNewRun(previousRan, current) {
 
 // Command line -> options; an unknown flag or a too-small window is an error message (the second value), not a silent default.
 export function parseArgs(argv) {
-    const o = { port: 5341, timeout: 420, width: 1280, height: 900 };
+    const o = { port: 5341, timeout: 420, width: 1280, height: 900, filter: [], elements: [] };
     const num = (flag, v) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`${flag} needs a positive whole number`); return n; };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (['--port', '--timeout', '--width', '--height'].includes(a)) o[a.slice(2)] = num(a, argv[++i]);
-        else throw new Error(`unknown argument ${a}`);
+        else if (a === '--filter' || a === '--elements') {
+            const v = argv[++i];
+            if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`);
+            o[a.slice(2)].push(...parseList(v));
+        } else throw new Error(`unknown argument ${a}`);
     }
     if (o.width < MIN_WIDTH || o.height < MIN_HEIGHT) throw new Error(`the window must be at least ${MIN_WIDTH}x${MIN_HEIGHT} (a small viewport made the suite flaky); got ${o.width}x${o.height}`);
     return o;
@@ -103,7 +117,10 @@ async function main() {
     ensureGenerated(); // the suite loads the generated element modules; a fresh clone has none (node scripts/bootstrap.mjs)
     const before = readReport();
     const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-attest-'));
-    const url = `http://localhost:${options.port}/tests/browser/`;
+    const query = new URLSearchParams();
+    if (options.filter.length) query.set('filter', options.filter.join(','));
+    if (options.elements.length) query.set('elements', options.elements.join(','));
+    const url = `http://localhost:${options.port}/tests/browser/${query.size ? `?${query}` : ''}`;
     let server = null, browser = null, code = 2;
     try {
         server = spawn(process.execPath, [path.join(root, 'core', 'tools', 'serve.mjs'), String(options.port), '--write-reports'], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -128,7 +145,8 @@ async function main() {
         if (!current) { console.error(`No report within ${options.timeout} s (the suite needs about 170 s): raise --timeout, and check the browser can open ${url}`); return 2; }
 
         const sum = summarizeReport(current);
-        console.log(`browser run ${sum.ran}: ${sum.passed} passed, ${sum.failed} failed, ${sum.total} cases`);
+        console.log(`browser run ${sum.ran}: ${sum.passed} passed, ${sum.failed} failed, ${sum.total} cases${selectionNote(current)}`);
+        if (current.filter && sum.total === 0) { console.error('The filter matched no case: check --filter / --elements against the case names in core/tests/browser/cases*.js.'); return 1; }
         for (const r of current.results.filter(r => !r.ok)) console.log(`  FAIL ${r.name}: ${r.error ?? ''}`);
         code = sum.ok ? 0 : 1;
     } catch (e) {
