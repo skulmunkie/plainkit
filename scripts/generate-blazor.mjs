@@ -55,11 +55,15 @@ export function isJsonType(t, known = new Set()) {
     return ids.every(i => SIMPLE.has(i) || known.has(i) || COLLECTION.test(i + '<') || i === 'IDictionary');
 }
 
-/** The public types (record, class, struct, enum) declared in the .cs files directly in `dir`: what a mapping type may name for a JSON parameter. */
+/** The public types (record, class, struct, enum) declared in the .cs files directly in `dir` (and in its DevTools/ folder): what a mapping type may name for a JSON parameter. */
 export function knownTypes(dir) {
     const found = new Set();
-    for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.cs')))
-        for (const m of fs.readFileSync(path.join(dir, f), 'utf8').matchAll(/^public\s+(?:(?:sealed|static|abstract|readonly|partial)\s+)*(?:record\s+struct|record|class|struct|enum)\s+(\w+)/gm)) found.add(m[1]);
+    const files = fs.readdirSync(dir).filter(x => x.endsWith('.cs')).map(x => path.join(dir, x));
+    // DevTools/ holds public data types too (PkGallerySection), in the same namespace.
+    const dev = path.join(dir, 'DevTools');
+    if (fs.existsSync(dev)) files.push(...fs.readdirSync(dev).filter(x => x.endsWith('.cs')).map(x => path.join(dev, x)));
+    for (const f of files)
+        for (const m of fs.readFileSync(f, 'utf8').matchAll(/^public\s+(?:(?:sealed|static|abstract|readonly|partial)\s+)*(?:record\s+struct|record|class|struct|enum)\s+(\w+)/gm)) found.add(m[1]);
     return found;
 }
 
@@ -350,7 +354,10 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
     const enumValues = () => p.enum ? Object.entries(p.enum).map(([n, v]) => [n, v]) : (api.type === 'enum' ? api.values.map(v => [memberName(v), v]) : null);
     let cs, attr, init, note;
 
-    if (p.enum || (api.type === 'enum' && t === undefined)) {
+    if (p.existingEnum && t) {
+        // An enum the package already defines by hand (PkTheme, PkChrome...): not generated again; the hand-written Attr() gives its attribute value.
+        cs = stripNull(t); attr = 'enum'; r.expr = `@(${p.name}.Attr())`;
+    } else if (p.enum || (api.type === 'enum' && t === undefined)) {
         const typeName = t && !SIMPLE.has(stripNull(t)) ? stripNull(t) : `${comp}${pascal(p.name)}`;
         enumType(typeName, enumValues(), comp);
         const members = enumValues();
