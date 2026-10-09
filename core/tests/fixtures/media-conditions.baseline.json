@@ -29,6 +29,9 @@
   "(min-width: 641px)",
   "(max-width: 640px)"
  ],
+ "canvas": [
+  "(max-width: 640px)"
+ ],
  "chart": [
   "(max-width: 640px)"
  ],
