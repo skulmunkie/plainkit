@@ -20,7 +20,7 @@ namespace PlainKit.Blazor;
 ///       private Task LoadAsync() => BusyAsync(async () => Orders = await Client.GetOrdersAsync(), "Loading orders…");
 ///   }
 /// </summary>
-public abstract class PageBase : ComponentBase, IDisposable
+public abstract partial class PageBase : ComponentBase, IDisposable
 {
     /// <summary>Writes an error into the SDK log through <see cref="IPkLog"/> (used by <see cref="SetErrorAsync"/>).</summary>
     [Inject] protected IPkLog Log { get; set; } = default!;

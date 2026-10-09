@@ -14,6 +14,7 @@ export default Base => class extends Base {
             this.part('edit').addEventListener('click', () => { this.mode = 'edit'; });
             this.part('cancel').addEventListener('click', () => { this.setDirty(false); this.mode = 'view'; });
             this.part('save').addEventListener('click', () => this.part('main').querySelector('form')?.requestSubmit());
+            this.part('delete').addEventListener('click', () => this.emit('pk-record-delete', { id: this.$id }));
             const main = this.part('main');
             main.addEventListener('submit', e => e.preventDefault());
             main.addEventListener('pk-valid', () => this.submit());
@@ -37,7 +38,7 @@ export default Base => class extends Base {
         this.$id = id;
         this.bar();
         this.part('layout').hidden = true;
-        for (const p of ['edit', 'cancel', 'save']) this.part(p).hidden = true;
+        for (const p of ['edit', 'cancel', 'save', 'delete']) this.part(p).hidden = true;
         if (id == null || typeof this.load !== 'function') { this.$values = {}; this.done(); return; }
         showState(box, 'loading', { label: this.config?.label });
         try {
@@ -73,6 +74,7 @@ export default Base => class extends Base {
         this.part('edit').hidden = editing || !canEdit;
         this.part('cancel').hidden = !editing || this.$id == null;
         this.part('save').hidden = !editing || !this.fields.length;
+        this.part('delete').hidden = editing || this.$id == null || !this.config?.deletable;
         this.part('save').textContent = this.config?.saveLabel || 'Save';
         this.part('layout').hidden = false;
         loadElements(this.shadowRoot);
