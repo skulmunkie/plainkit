@@ -99,6 +99,21 @@ export function shardOf(list, k, n) {
     return list.filter((_, i) => i % n === k - 1);
 }
 
+/**
+ * Shard k of n of a list balanced by cost (--jobs, #712): greedy longest-first into the lightest shard, ties to the lower index, so the slowest job is near the mean instead of
+ * whoever got the slow scenarios. `weights` maps nameOf(item) to seconds (the previous run's manifest timings); an item without one weighs the mean of the known ones. Without any
+ * weights it is shardOf's every-n-th split. Deterministic, disjoint, the union is the list, each shard keeps the list's order. Pure.
+ */
+export function balancedShardOf(list, k, n, weights, nameOf = x => x.name ?? x) {
+    const known = list.map(x => weights?.[nameOf(x)]).filter(Number.isFinite);
+    if (!known.length) return shardOf(list, k, n);
+    const mean = known.reduce((a, b) => a + b, 0) / known.length;
+    const cost = list.map(x => weights[nameOf(x)] ?? mean);
+    const load = Array(n).fill(0), owner = [];
+    [...list.keys()].sort((a, b) => cost[b] - cost[a] || a - b).forEach(i => { const j = load.indexOf(Math.min(...load)); load[j] += cost[i]; owner[i] = j; });
+    return list.filter((_, i) => owner[i] === k - 1);
+}
+
 /** One scenario's phase times (ms, measured) and its total (ms) as seconds, the unmeasured remainder named `steps`, so the phases add up to the total (within rounding of 0.1 s per phase). Pure. */
 export function phasesOf(phases, totalMs) {
     const measured = Object.values(phases).reduce((a, b) => a + b, 0);
@@ -136,6 +151,7 @@ export function parseArgs(argv) {
             o.shard = { k: Number(m[1]), n: Number(m[2]) };
         }
         else if (a === '--jobs') { const n = Number(value()); if (!Number.isInteger(n) || n < 1 || n > 16) throw new Error('--jobs needs a whole number from 1 to 16'); o.jobs = n; }
+        else if (a === '--weights') o.weights = value();
         else if (a === '--base') o.base = value();
         else if (a === '--out') o.out = value();
         else if (a === '--port' || a === '--timeout') { const n = Number(value()); if (!Number.isInteger(n) || n < 0) throw new Error(`${a} needs a whole number`); o[a.slice(2)] = n; }
@@ -306,30 +322,37 @@ export function mergeManifests(parts, { strict = false } = {}) {
 }
 
 /** The arguments of job i of n: the run's own arguments without --jobs and --out, plus its shard and its own output folder. Pure. */
-export function jobArgs(argv, i, n, out) {
+export function jobArgs(argv, i, n, out, weights = null) {
     const rest = [];
     for (let k = 0; k < argv.length; k++) {
-        if (argv[k] === '--jobs' || argv[k] === '--out') { k++; continue; }
+        if (argv[k] === '--jobs' || argv[k] === '--out' || argv[k] === '--weights') { k++; continue; }
         rest.push(argv[k]);
     }
-    return [...rest, '--shard', `${i}/${n}`, '--out', out];
+    return [...rest, '--shard', `${i}/${n}`, '--out', out, ...(weights ? ['--weights', weights] : [])];
 }
 
 // --jobs N: N shards of the same run in N processes (each with its own server, browser and profile), then one manifest. Same disjoint shards CI uses (#741); the screenshots and every
 // audit are the same as a serial run, only the elapsed time differs.
 async function runJobs(o, argv) {
     const out = path.resolve(root, o.out);
+    // The seconds each scenario took last time (the folder's old manifest) balance the shards; none, or a manifest that does not parse, is the every-n-th split.
+    const old = path.join(out, 'manifest.json');
+    let weights = null;
+    if (fs.existsSync(old)) { try { weights = JSON.parse(fs.readFileSync(old, 'utf8')).timings ?? null; } catch (e) { console.warn(`ignoring the previous manifest's timings (${e.message}): shards are split evenly by count`); } }
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
+    let weightsFile = null;
+    if (weights) { weightsFile = path.join(out, '.weights.json'); fs.writeFileSync(weightsFile, JSON.stringify(weights)); }
     const t0 = Date.now();
     const dirs = Array.from({ length: o.jobs }, (_, k) => path.join(out, `.job-${k + 1}`));
     const codes = await Promise.all(dirs.map((dir, k) => new Promise(resolve => {
-        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...jobArgs(argv, k + 1, o.jobs, dir)], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...jobArgs(argv, k + 1, o.jobs, dir, weightsFile)], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
         let buf = '';
         const flush = final => { const lines = buf.split('\n'); buf = final ? '' : lines.pop(); for (const l of lines) if (l.trim()) console.log(`[${k + 1}/${o.jobs}] ${l}`); };
         for (const s of [child.stdout, child.stderr]) s.on('data', d => { buf += d; flush(false); });
         child.on('close', code => { flush(true); resolve(code ?? 2); });
     })));
+    if (weightsFile) fs.rmSync(weightsFile, { force: true });
     const parts = [];
     for (const dir of dirs) {
         const file = path.join(dir, 'manifest.json');
@@ -378,7 +401,7 @@ async function main() {
     }
     let scenarios;
     try { scenarios = selectScenarios(all, { names: named, elements: names, every: o.scenarios === 'all' || (o.all && o.scenarios === 'auto') }); } catch (e) { console.error(e.message); return 2; }
-    if (o.shard) { names = shardOf(names, o.shard.k, o.shard.n); scenarios = shardOf(scenarios, o.shard.k, o.shard.n); }
+    if (o.shard) { names = shardOf(names, o.shard.k, o.shard.n); scenarios = balancedShardOf(scenarios, o.shard.k, o.shard.n, o.weights ? JSON.parse(fs.readFileSync(o.weights, 'utf8')) : null); }
     const examples = o.scenariosOnly ? [] : names;
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });

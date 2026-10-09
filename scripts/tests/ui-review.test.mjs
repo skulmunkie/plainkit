@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases, phasesOf, mergeManifests, jobArgs } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, balancedShardOf, shotName, groupFindings, sumPhases, phasesOf, mergeManifests, jobArgs } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -43,6 +43,26 @@ test('arguments: names or tags, --all excludes --elements, unknown flags are ref
     assert.throws(() => parseArgs(['--all', '--elements', 'x']), /either/);
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
     assert.throws(() => parseArgs(['--out']), /needs a value/);
+});
+
+test('balanced shards (--jobs): disjoint, cover the list, deterministic, near the mean cost, every-nth without weights', () => {
+    const list = Array.from({ length: 20 }, (_, i) => ({ name: `s${i}` }));
+    const weights = Object.fromEntries(list.map((s, i) => [s.name, i === 0 ? 50 : (i * 7) % 13 + 1]));
+    const parts = n => Array.from({ length: n }, (_, i) => balancedShardOf(list, i + 1, n, weights));
+    for (const n of [1, 3, 4]) {
+        const p = parts(n);
+        assert.deepEqual(p.flat().map(s => s.name).sort(), list.map(s => s.name).sort());
+        assert.deepEqual(p, parts(n));
+        const load = p.map(x => x.reduce((a, s) => a + weights[s.name], 0));
+        assert.ok(Math.max(...load) <= load.reduce((a, b) => a + b, 0) / n + 50, `heaviest shard ${Math.max(...load)} exceeds mean + largest item`);
+        p.forEach(x => assert.deepEqual(x, list.filter(s => x.includes(s))));
+    }
+    const even = shardOf(list, 1, 4).map(s => s.name).join();
+    assert.equal(balancedShardOf(list, 1, 4, null).map(s => s.name).join(), even);
+    assert.equal(balancedShardOf(list, 1, 4, {}).map(s => s.name).join(), even);
+    assert.equal(balancedShardOf(list, 1, 4, { s3: 5 }, s => s.name).length > 0, true); // unknown items weigh the mean
+    assert.deepEqual(jobArgs(['--jobs', '2'], 1, 2, '/o', '/w.json'), ['--shard', '1/2', '--out', '/o', '--weights', '/w.json']);
+    assert.equal(parseArgs(['--weights', 'w.json']).weights, 'w.json');
 });
 
 test('shards are disjoint, cover the selection, and 1/1 is the whole run', () => {
