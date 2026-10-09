@@ -1,0 +1,7 @@
+{
+  "component": "PkRecordForm",
+  "existing": true,
+  "existingReason": "behaviour: the hand-written PkRecordForm still draws the layout in Razor until the Blazor step of the record-form spec replaces it with the generated component (the core element lands first, in steps). Missing generator feature: none; this is only ordering.",
+  "params": [],
+  "notes": "The element's Blazor component is generated in the next step; this entry only keeps the generator's inventory complete while the hand-written PkRecordForm still exists."
+}
