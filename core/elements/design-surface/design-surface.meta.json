@@ -1,0 +1,70 @@
+{
+  "tag": "pk-design-surface",
+  "title": "Design surface",
+  "summary": "A scrolling ground that frames a page being edited at full, tablet or phone width, draws selection, drop-target, hidden and empty marks around the page's nodes, and places an action chip beside a node.",
+  "group": "Layout",
+  "tier": "element",
+  "props": [
+    { "name": "width", "type": "enum", "default": "full", "values": ["full", "tablet", "phone"], "reflect": true, "description": "The page's width frame: full fills the surface, tablet and phone cap it (768px and 375px, from --pk-design-surface-tablet-w and --pk-design-surface-phone-w) and centre it." },
+    { "name": "label", "type": "string", "default": "", "reflect": false, "description": "The surface's accessible name (it is a focusable role=group); warns once when empty." },
+    { "name": "selected", "type": "json", "default": null, "reflect": false, "commit": "pk-surface-pick", "description": "Property only: the page node to frame as selected (a solid accent box). The host sets it; the surface never changes it." },
+    { "name": "dropTarget", "type": "json", "default": null, "reflect": false, "description": "Property only: the container an external drag would drop into (a dashed accent box)." },
+    { "name": "chipFor", "type": "json", "default": null, "reflect": false, "description": "Property only: the node the action chip (slot chip) follows. null hides the chip." },
+    { "name": "dragging", "type": "boolean", "default": false, "reflect": true, "description": "An external drag is in progress: the chip is hidden." },
+    { "name": "interactive", "type": "boolean", "default": false, "reflect": true, "description": "Lets the page be used: links and controls inside it work. By default the page wrapper is inert (a click selects, it follows nothing). Not named inert because inert on the host would make the whole surface and its chip inert, and a boolean attribute defaults to off." }
+  ],
+  "slots": [
+    { "name": "", "description": "The page being edited. Nodes at any depth may carry data-surface-hidden (drawn veiled with a dotted frame) or data-surface-empty (a dashed placeholder frame); the host owns those attributes." },
+    { "name": "chip", "description": "The action chip: real buttons the host owns (Edit, Delete). Placed at the top-right of the chipFor node, above it, inside its top edge when there is no room above, or below it when inside would cover its top-left; clamped to the surface." },
+    { "name": "empty", "description": "Shown while the default slot is empty (for example the text of a drag-an-element-here hint)." }
+  ],
+  "events": [
+    { "name": "pk-surface-pick", "detail": "{ target, additive }", "description": "A click or tap on the page, hit-tested to the deepest page node under it (null for bare ground); additive is Shift, Ctrl or Cmd. Selecting is the host's: the surface never changes selected." },
+    { "name": "pk-surface-hover", "detail": "{ target }", "description": "The pointer moved to another page node (null when it left). At most once per animation frame." },
+    { "name": "pk-surface-key", "detail": "{ key, shiftKey, altKey, ctrlKey }", "description": "An arrow key, Delete or Escape on the focused surface. Cancelable: a host that handles the key calls preventDefault, which also stops the native scroll." }
+  ],
+  "parts": [
+    { "name": "frame", "description": "The scrolling ground (the focus stop)." },
+    { "name": "page", "description": "The framed width box around the default slot." },
+    { "name": "empty", "description": "Wraps the empty slot." },
+    { "name": "overlay", "description": "The marks layer (pointer-events none, aria-hidden)." },
+    { "name": "mark-selected", "description": "The selection box." },
+    { "name": "mark-drop", "description": "The drop-target box." },
+    { "name": "mark-hidden", "description": "The veil over a node flagged data-surface-hidden." },
+    { "name": "mark-empty", "description": "The dashed frame on a node flagged data-surface-empty." },
+    { "name": "chip", "description": "Wraps the chip slot." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-design-surface-bg", "description": "The ground behind the page.", "default": "color-mix(in srgb, var(--color-bg) 70%, var(--color-text) 30%)" },
+    { "name": "--pk-design-surface-pad", "description": "Padding between the ground's edge and the page.", "default": "var(--space-4)" },
+    { "name": "--pk-design-surface-phone-w", "description": "Width of the phone frame.", "default": "var(--surface-phone-w)" },
+    { "name": "--pk-design-surface-tablet-w", "description": "Width of the tablet frame.", "default": "var(--surface-tablet-w)" },
+    { "name": "--pk-design-surface-min-h", "description": "Minimum height of the element.", "default": "16rem" },
+    { "name": "--pk-design-surface-chip-z", "description": "Stacking order of the chip.", "default": "2" }
+  ],
+  "methods": [
+    { "name": "reveal(node)", "description": "Scrolls the ground so a page node shows, with a margin." },
+    { "name": "nodeAt(x, y)", "description": "The deepest page node under a viewport point, or null." },
+    { "name": "rectOf(node)", "description": "A node's { left, top, width, height } relative to the page box, scroll included." },
+    { "name": "relRect(rect, origin)", "description": "A rectangle relative to an origin rectangle; pure." },
+    { "name": "deepestAt(items, x, y)", "description": "The index of the deepest { depth, rect } containing a point, or -1; pure." },
+    { "name": "placeChip(node, chip, bounds, gap)", "description": "Where the chip goes, clamped into the bounds; null when the node is outside them; pure." },
+    { "name": "revealDelta(node, view, pad)", "description": "How far to scroll so a node shows; pure." }
+  ],
+  "a11y": "The surface is a role=group with the label as its name and one tab stop (tabindex 0); arrow keys, Delete and Escape on it are reported as pk-surface-key so a host can give an accessible way to select. The marks are decoration (aria-hidden); the host announces the selection itself. The inert page is not a keyboard trap: Tab leaves the surface, and the chip's buttons are real, focusable buttons the host owns. The focus ring is the shared ring, drawn inside the ground so it is never clipped.",
+  "mobile": "The chip's slotted buttons are at least 44px (--touch-target) on a phone; use pk-button collapse=phone for icon-only chips. A tap picks like a click. The phone width frame is capped by the surface's own width, so it never overflows.",
+  "examples": [
+    {
+      "title": "Tablet frame (selected and chipFor are set from script)",
+      "html": "<pk-design-surface label=\"Page canvas\" width=\"tablet\">\n  <pk-stack gap=\"3\">\n    <pk-heading level=\"3\">Order summary</pk-heading>\n    <pk-text>Two items, free shipping.</pk-text>\n    <pk-button>Place order</pk-button>\n  </pk-stack>\n  <pk-button slot=\"chip\" size=\"sm\" collapse=\"phone\" icon-name=\"edit\">Edit</pk-button>\n  <pk-button slot=\"chip\" size=\"sm\" collapse=\"phone\" icon-name=\"trash\">Delete</pk-button>\n</pk-design-surface>"
+    },
+    {
+      "title": "Hidden and empty nodes on a phone frame",
+      "html": "<pk-design-surface label=\"Phone canvas\" width=\"phone\">\n  <pk-stack gap=\"3\">\n    <pk-text>A visible paragraph.</pk-text>\n    <pk-text data-surface-hidden>A hidden paragraph.</pk-text>\n    <pk-stack data-surface-empty></pk-stack>\n  </pk-stack>\n</pk-design-surface>"
+    },
+    {
+      "title": "Empty page",
+      "html": "<pk-design-surface label=\"Blank canvas\">\n  <span slot=\"empty\">Drag an element here.</span>\n</pk-design-surface>"
+    }
+  ]
+}
