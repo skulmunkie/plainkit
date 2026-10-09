@@ -27,6 +27,8 @@
 //   the module   defineModule({ pageTypes: { kanban }, layouts: { split } }): only that module's routes can name them;
 //   the app      registerPageType('kanban', factory), registerLayout('split', factory): every module can;
 //   a route      { path, page: { type: 'kanban', config }, layout: 'split' }.
+// A route with `persist: true` keeps its page when the next address matches the same route (a record id, a query change): a page type that returns
+// { update(route), destroy() } is told the new { path, params, query } instead of being dropped and built again; a failing update builds the page again.
 // A layout is (host, ctx) => element: it may build chrome around `host`, returning the element the page type mounts into (host itself if none).
 // Lookup is module, then app, then built-in; a built-in id can never be shadowed or registered, and a name is only a key into these tables.
 //

@@ -24,7 +24,7 @@
 // show(id, { path, query }) / open(address, query) resolve to 'ok' | 'forbidden' | 'not-found' | 'error' | 'superseded'.
 //
 // ctx (what a module and its pages receive) is documented in js/app/module.js.
-import { createLogger, isLogEnabled } from '../log.js';
+import { createLogger } from '../log.js';
 import { createPage, BUSY_DELAY } from '../page.js';
 import { createStore } from '../store.js';
 import { matchRoute } from '../route-tree.js';
@@ -176,11 +176,14 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     }
 
     async function showPage(a, r, t) {
+        const m = matchRoute(a.def.routes ?? [], r.path), route = { path: norm(r.path), params: { ...m?.params }, query: { ...r.query } };
+        // persist: the same route keeps its page, update(route) follows the address
+        a.state.route = route;
+        if (m && a.page?.node === m.node) {
+            try { await a.page.update(route); return 'ok'; } catch (e) { a.lg.error(`the page for ${route.path} could not follow`, e); }
+        }
         await dropPage(a);
         if (!alive(t) || a !== active) return 'superseded';
-        const route = a.state.route = { path: norm(r.path), params: {}, query: { ...r.query } };
-        const m = matchRoute(a.def.routes ?? [], r.path);
-        if (m) route.params = { ...m.params };
         const spec = m && (typeof m.node.page === 'string' ? { type: m.node.page, config: m.node.config } : { config: m.node.config, ...m.node.page });
         if (!spec || spec.type === 'not-found') { box.notFound(`There is nothing at ${a.entry.title} ${route.path}.`); return 'not-found'; }
         if (verdict(a.entry.id, route, m.node.can) !== true) { box.forbidden(a.entry.title); return 'forbidden'; }
@@ -194,10 +197,10 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             box.body.replaceChildren(host);
             const into = (layout && (await layout(host, sc.ctx))) || host;
             const cfg = typeof spec.config === 'function' ? spec.config(route, sc.ctx) : spec.config;
-            const cleanup = cleanupOf(await factory(into, cfg, sc.ctx));
+            const out = await factory(into, cfg, sc.ctx), cleanup = cleanupOf(out);
             load();
             if (!alive(t) || a !== active) { await safe(cleanup, 'page cleanup', a.lg); await sc.end(); host.remove(); return 'superseded'; }
-            a.page = { page: cleanup, end: sc.end };
+            a.page = { page: cleanup, end: sc.end, node: m.node.persist && out?.update ? m.node : null, update: out?.update?.bind(out) };
             return 'ok';
         } catch (e) {
             a.lg.error(`the page for ${route.path} failed`, e);
@@ -227,13 +230,13 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             if (alive(t)) box.fail(`Could not start ${entry.title}`, e, () => show(entry.id, r));
             return alive(t) ? 'error' : 'superseded';
         }
-        if (!alive(t)) { await safe(() => def.unmount?.(ctx), 'unmount', lg); await safe(a.cleanup, 'mount cleanup', lg); await dispose(); return 'superseded'; }
         active = a;
+        if (!alive(t)) { await leave(); return 'superseded'; }
         return showPage(a, r, t);
     }
 
     async function run(id, r, t) {
-        const entry = typeof id === 'string' && MODULE_ID.test(id) ? allow.get(id) : undefined;
+        const entry = allow.get(id);
         if (!entry) return exclusive(async () => { if (!alive(t)) return 'superseded'; await leave(); box.notFound('There is no such page.'); return 'not-found'; });
         let def = defs.get(id);
         if (!def && access(entry, null, r) === true) {
@@ -263,10 +266,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         last = [id, r];
         const t0 = globalThis.performance?.now() ?? 0;
         const status = await run(id, r, t);
-        if (alive(t)) {
-            globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
-            if (isLogEnabled('debug', 'app')) log.debug(`${id}${norm(r.path)}: ${status} in ${Math.round((globalThis.performance?.now() ?? 0) - t0)} ms`);
-        }
+        if (alive(t)) globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
         return status;
     }
 

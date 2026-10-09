@@ -35,6 +35,30 @@ export function instrument() {
 }
 
 export const appCases = [
+    ['app host: a persist route keeps its page across addresses of the same route (the page factory runs once, update(route) follows the address) and an ordinary route is still rebuilt', async t => {
+        const { createModuleHost, defineModule } = await dist('js/app.js');
+        const { createStore } = await dist('js/store.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const log = [];
+        const keep = defineModule({
+            id: 'keep', title: 'Keep',
+            pageTypes: { keep: (host, config, ctx) => { log.push('make'); host.textContent = 'kept'; return { update(route) { log.push(`update ${route.path} ${route.params.x ?? ''} ${route.query.q ?? ''}`); }, destroy() { log.push('destroy'); } }; }, plain: (host, config, ctx) => { log.push('plain'); return () => log.push('plain gone'); } },
+            routes: [{ path: '/', page: 'keep', persist: true }, { path: '/page/:x', page: 'keep', persist: true }, { path: '/other', page: 'plain' }],
+        });
+        const host = createModuleHost(el, { modules: [{ id: 'keep', title: 'Keep', load: async () => keep }, { id: 'idle', title: 'Idle', load: async () => defineModule({ id: 'idle', routes: [{ path: '*', page: 'custom', config: { mount: () => {} } }] }) }], store: createStore({ storage: { getItem: () => null, setItem() {} } }), ...fast, timeout: 10000 });
+        t.eq(await host.show('keep', { path: '/page/a' }), 'ok'); const first = el.querySelector('[data-pk-page]');
+        t.eq(await host.show('keep', { path: '/page/b', query: { q: 'z' } }), 'ok');
+        t.eq(await host.show('keep', { path: '/page/c' }), 'ok');
+        t.ok(el.querySelector('[data-pk-page]') === first, 'the same page element is still on show');
+        t.eq(log.join('|'), 'make|update /page/b b z|update /page/c c ', 'made once, then told each address');
+        t.eq(await host.show('keep', { path: '/other' }), 'ok');
+        t.eq(log.slice(3).join('|'), 'destroy|plain', 'an ordinary route drops the persisted page and builds its own');
+        t.eq(await host.show('keep', { path: '/other' }), 'ok');
+        t.eq(log.slice(5).join('|'), 'plain gone|plain', 'a route without persist is rebuilt for the same address');
+        t.eq(await host.show('keep', { path: '/page/c' }), 'ok'); t.eq(await host.show('idle'), 'ok');
+        t.eq(log.slice(7).join('|'), 'plain gone|make|destroy', 'leaving the module destroys the persisted page once');
+    }],
+
     ['app host: a module and two adapted tool modules mounted and unmounted 100 times leave no listener, observer or timer behind, and each route change stays fast', async t => {
         const { createModuleHost, defineModule, moduleFromMount } = await dist('js/app.js');
         const { mountLogSettings } = await dist('modules/log-settings/log-settings.js');
