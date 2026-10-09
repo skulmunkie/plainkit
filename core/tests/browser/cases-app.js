@@ -476,7 +476,14 @@ export const appCases = [
             const gaps = [];
             const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(), p = win.getComputedStyle(k).position; return r.width > 0 && r.height > 0 && p !== 'absolute' && p !== 'fixed'; });
             for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
-            t.ok(gaps.length >= 2 && Math.max(...gaps) - Math.min(...gaps) <= 6, `${width}px ${query || 'guide'}: the vertical gaps between the article's children differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
+            if (!query) {
+                // The horizontal layout is untouched by the gap fix: the columns (article, then the contents when side by side) are centred in the page with the --space-8 column gap.
+                const page = el.shadowRoot.querySelector('[part="page"]'), art = el.shadowRoot.querySelector('[part="article"]'), cs = win.getComputedStyle(page);
+                const tracks = cs.gridTemplateColumns.split(' ').map(parseFloat), colGap = parseFloat(cs.columnGap), pr = page.getBoundingClientRect();
+                const expected = pr.left + (pr.width - tracks.reduce((a, b) => a + b, 0) - colGap * (tracks.length - 1)) / 2;
+                t.ok(Math.abs(art.getBoundingClientRect().left - expected) <= 1, `${width}px: the article's left edge is where the centred columns put it (${art.getBoundingClientRect().left} vs ${expected}; tracks ${cs.gridTemplateColumns}, column gap ${cs.columnGap})`);
+                t.eq(tracks.length === 2 ? colGap : 0, tracks.length === 2 ? parseFloat(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8')) * (/rem$/.test(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8').trim()) ? parseFloat(win.getComputedStyle(d.documentElement).fontSize) : 1) : 0, `${width}px: the column gap is --space-8`);
+            }            t.ok(gaps.length >= 2 && Math.max(...gaps) - Math.min(...gaps) <= 6, `${width}px ${query || 'guide'}: the vertical gaps between the article's children differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
         }
     }],
 
