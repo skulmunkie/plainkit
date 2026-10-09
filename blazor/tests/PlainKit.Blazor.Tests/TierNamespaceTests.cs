@@ -20,7 +20,7 @@ public sealed class TierNamespaceTests
     [Fact]
     public void Hand_written_components_live_in_the_namespace_of_their_tier()
     {
-        foreach (var t in new[] { typeof(PkAppBarSearch), typeof(PkDock), typeof(PkPageHeader), typeof(PkDataTable<>) })
+        foreach (var t in new[] { typeof(PkAppBarSearch), typeof(PkDock), typeof(PkPageHeader), typeof(PkDataTable<>), typeof(PkRecordForm) })
             Assert.Equal("PlainKit.Blazor.Components", t.Namespace);
         foreach (var t in new[] { typeof(PkSettingsPage), typeof(PkToolPage), typeof(PkListPage<>) })
             Assert.Equal("PlainKit.Blazor.Pages", t.Namespace);
@@ -29,7 +29,7 @@ public sealed class TierNamespaceTests
     [Fact]
     public void Hand_written_elements_and_Blazor_only_helpers_stay_in_the_root_namespace()
     {
-        foreach (var t in new[] { typeof(PkTable<>), typeof(PkSideNav), typeof(PkGallery), typeof(PkRecordForm), typeof(PkElementBase), typeof(PageBase) })
+        foreach (var t in new[] { typeof(PkTable<>), typeof(PkSideNav), typeof(PkGallery), typeof(PkElementBase), typeof(PageBase) })
             Assert.Equal("PlainKit.Blazor", t.Namespace);
     }
 
