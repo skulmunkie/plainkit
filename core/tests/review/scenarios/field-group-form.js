@@ -18,11 +18,11 @@ export default {
         frame.querySelector('#form').addEventListener('submit', e => e.preventDefault());
     },
     steps: [
-        { wait: 600 }, { shot: 'resting' },
-        { click: '#sub' }, { wait: 500 }, { shot: 'errors' },
-        { set: '#g', prop: 'values', value: { qty: '1', status: 'closed' } }, { wait: 400 }, { click: '#sub' }, { wait: 500 }, { shot: 'conditional-errors' },
-        { set: '#g', prop: 'values', value: { name: 'Acme', qty: '9', status: 'closed', note: 'Paid.' } }, { wait: 900 }, { click: '#sub' }, { wait: 900 }, { shot: 'valid' },
-        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 300 }, { shot: 'rtl' },
+        { wait: 'settle' }, { shot: 'resting' },
+        { click: '#sub' }, { wait: 'settle' }, { shot: 'errors' },
+        { set: '#g', prop: 'values', value: { qty: '1', status: 'closed' } }, { wait: 'settle' }, { click: '#sub' }, { wait: 'settle' }, { shot: 'conditional-errors' },
+        { set: '#g', prop: 'values', value: { name: 'Acme', qty: '9', status: 'closed', note: 'Paid.' } }, { wait: 'settle' }, { click: '#sub' }, { wait: 'settle' }, { shot: 'valid' },
+        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 'settle' }, { shot: 'rtl' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
