@@ -463,6 +463,30 @@ export const appCases = [
         host.replaceChildren();
     }],
 
+    ['pk-doc-page: the stack of breadcrumb, title, summary, body and pager has even gaps (the scorecard inconsistent-gaps measure, 6px) on a phone, a tablet and a desktop, as a guide and as the home list (#402)', async t => {
+        for (const [width, query] of [[375, ''], [1024, ''], [1280, ''], [375, '?cards'], [1024, '?cards']]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `doc page at ${width}px`; fr.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+            fr.src = new URL(`./doc-page-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document;
+            const el = d.querySelector('pk-doc-page'); await until(() => win.customElements.get('pk-doc-page'), 'the doc page to upgrade');
+            await until(() => el.querySelector('.doc-page-title')?.textContent && (query ? el.querySelector('pk-grid pk-card') : el.querySelector('h2#one') && el.querySelector('pk-pager')), 'the page to draw', 150);
+            await new Promise(r => setTimeout(r, 200));
+            const gaps = [];
+            const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(), p = win.getComputedStyle(k).position; return r.width > 0 && r.height > 0 && p !== 'absolute' && p !== 'fixed'; });
+            for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
+            if (!query) {
+                // The horizontal layout is untouched by the gap fix: the columns (article, then the contents when side by side) are centred in the page with the --space-8 column gap.
+                const page = el.shadowRoot.querySelector('[part="page"]'), art = el.shadowRoot.querySelector('[part="article"]'), cs = win.getComputedStyle(page);
+                const tracks = cs.gridTemplateColumns.split(' ').map(parseFloat), colGap = parseFloat(cs.columnGap), pr = page.getBoundingClientRect();
+                const expected = pr.left + (pr.width - tracks.reduce((a, b) => a + b, 0) - colGap * (tracks.length - 1)) / 2;
+                t.ok(Math.abs(art.getBoundingClientRect().left - expected) <= 1, `${width}px: the article's left edge is where the centred columns put it (${art.getBoundingClientRect().left} vs ${expected}; tracks ${cs.gridTemplateColumns}, column gap ${cs.columnGap})`);
+                t.eq(tracks.length === 2 ? colGap : 0, tracks.length === 2 ? parseFloat(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8')) * (/rem$/.test(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8').trim()) ? parseFloat(win.getComputedStyle(d.documentElement).fontSize) : 1) : 0, `${width}px: the column gap is --space-8`);
+            }            t.ok(gaps.length >= 2 && Math.max(...gaps) - Math.min(...gaps) <= 6, `${width}px ${query || 'guide'}: the vertical gaps between the article's children differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
+        }
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
