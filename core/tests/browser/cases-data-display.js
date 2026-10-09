@@ -378,6 +378,27 @@ export const dataDisplayCases = [
         t.ok(focused() === box(), 'still focused after clearing');
     }],
 
+    ['data-table: in a container of fixed height it fills it, the header row stays pinned and the footer (pager) stays in view while only the rows scroll (#1006)', async t => {
+        const box = await t.mount(`<div style="display:flex;flex-direction:column;block-size:400px;inline-size:100%"><pk-data-table sticky-header selectable columns='[{"key":"sku","label":"SKU"}]' page-size="100" page-size-options="[25,100]"></pk-data-table></div>`);
+        const el = box.firstElementChild;
+        await Promise.all(['pk-table', 'pk-pagination', 'pk-table-filters'].map(n => customElements.whenDefined(n)));
+        el.load = async () => ({ rows: Array.from({ length: 100 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), total: 100 });
+        el.refresh();
+        const table = el.part('table'), sr = table.shadowRoot;
+        await until(() => sr.querySelectorAll('tbody tr').length > 5, 'the rows');
+        await t.settle();
+        const scroll = sr.querySelector('[part="scroll"]'), pager = el.part('pagination'), head = () => sr.querySelector('thead th').getBoundingClientRect();
+        const within = () => { const b = box.getBoundingClientRect(), p = pager.getBoundingClientRect(); return p.bottom <= b.bottom + 1 && p.top >= b.top; };
+        t.ok(el.getBoundingClientRect().height <= 401, 'the data table fits its container instead of growing with 100 rows');
+        t.ok(scroll.scrollHeight > scroll.clientHeight + 100, 'the rows overflow the scroll region');
+        t.ok(within(), 'the pager is inside the container before scrolling');
+        const h0 = head().top, p0 = pager.getBoundingClientRect().top;
+        scroll.scrollTop = 600; await wait(50);
+        t.ok(scroll.scrollTop > 0, 'the rows scrolled');
+        t.ok(Math.abs(head().top - h0) <= 1, 'the header row stays where it was');
+        t.ok(Math.abs(pager.getBoundingClientRect().top - p0) <= 1 && within(), 'the pager stays where it was, in view');
+        t.ok(pager.getBoundingClientRect().top >= scroll.getBoundingClientRect().bottom - 1, 'the pager sits below the scrolling rows, not over them');
+    }],
     ['data-table: a page past the last one (rows deleted) settles on the last page with one more load, and total 0 still shows the empty state (#829)', async t => {
         const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         let n = 12; const pages = [];
