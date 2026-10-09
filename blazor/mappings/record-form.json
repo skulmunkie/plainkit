@@ -1,0 +1,7 @@
+{
+  "component": "PkRecordForm",
+  "existing": true,
+  "existingReason": "behaviour: the hand-written PkRecordForm (OnValid, OnCancel and OnDelete callbacks whose presence shows the buttons, HeaderActions as a render fragment) is a different public API from the element's (cancellable, deletable, pk-record-save, submit()); replacing it is a breaking Blazor change that lands in the next step of issue 801. Missing generator feature: none.",
+  "params": [],
+  "notes": "The generated PkRecordForm replaces the hand-written one in the next step; this entry keeps the generator's inventory complete while it exists."
+}

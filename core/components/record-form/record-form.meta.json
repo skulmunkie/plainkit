@@ -1,0 +1,155 @@
+{
+  "tag": "pk-record-form",
+  "title": "Record form",
+  "group": "Form layout",
+  "tier": "component",
+  "summary": "The page layout of a create-or-edit record around your own form: a toolbar (Cancel, your actions, Delete, Save), optional tabs, an error alert, the form in a pk-form (a summary of the problems, focus on the first, live checks), and an optional sidebar of status cards beside it (pk-detail-layout, one column on a phone). It owns no values, no load and no save: put your own <form> (and its fields) in the default slot, listen for pk-record-save when it validates, and keep the state yourself. Save submits your form, so pk-form checks it first. With actions-in-header the toolbar row is left out and a Save button in the page header calls submit() instead. On a phone the toolbar buttons fold to their icons (the words stay their names).",
+  "props": [
+    {
+      "name": "saveLabel",
+      "type": "string",
+      "default": "Save",
+      "reflect": true,
+      "description": "The Save button's text. Change it only for a page whose submit is an action (\"Record payout\")."
+    },
+    {
+      "name": "deleteLabel",
+      "type": "string",
+      "default": "Delete",
+      "reflect": true,
+      "description": "The Delete button's text."
+    },
+    {
+      "name": "busyText",
+      "type": "string",
+      "default": "Saving…",
+      "reflect": true,
+      "description": "The Save button's text while busy."
+    },
+    {
+      "name": "saveDisabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Disables Save (a locked record, or nothing to save yet). Independent of busy."
+    },
+    {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Save shows its busy state and Delete is disabled while the page saves or deletes."
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A message shown in an error alert above the form; empty shows none."
+    },
+    {
+      "name": "cancellable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a Cancel button first in the toolbar (pk-record-cancel)."
+    },
+    {
+      "name": "deletable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a Delete button (warn variant, disabled while busy) before Save (pk-record-delete)."
+    },
+    {
+      "name": "actionsInHeader",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Leaves the toolbar row out so the buttons can sit in the page's own header and stay visible in its sticky title bar. Put your own Save button in the header and have it call submit() (a form attribute cannot cross this element's shadow root)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Your own form element, with its fields. pk-form wraps it."
+    },
+    {
+      "name": "sidebar",
+      "description": "Status and flag cards beside the form (pk-detail-layout). Left empty, the form takes the whole width."
+    },
+    {
+      "name": "actions",
+      "description": "Extra toolbar buttons, between Cancel and Delete."
+    },
+    {
+      "name": "tabs",
+      "description": "A pk-tabs strip for a record with more than one job, under the toolbar. Render the chosen tab's content into the default slot yourself."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-record-save",
+      "detail": null,
+      "description": "Save was pressed (or submit() called, or the form submitted) and pk-form found the form valid: save the record. An invalid form raises no event; pk-form shows the problems."
+    },
+    {
+      "name": "pk-record-cancel",
+      "detail": null,
+      "description": "Cancel was pressed."
+    },
+    {
+      "name": "pk-record-delete",
+      "detail": null,
+      "description": "Delete was pressed."
+    }
+  ],
+  "parts": [
+    {
+      "name": "shell",
+      "description": "The column: toolbar, tabs, error, then the layout."
+    },
+    {
+      "name": "toolbar",
+      "description": "The row of buttons (left out with actions-in-header)."
+    },
+    {
+      "name": "cancel",
+      "description": "The Cancel button."
+    },
+    {
+      "name": "delete",
+      "description": "The Delete button."
+    },
+    {
+      "name": "save",
+      "description": "The Save button."
+    },
+    {
+      "name": "error",
+      "description": "The error alert."
+    },
+    {
+      "name": "layout",
+      "description": "The pk-detail-layout holding the form and the sidebar."
+    },
+    {
+      "name": "form",
+      "description": "The pk-form around your form."
+    }
+  ],
+  "cssProperties": [],
+  "a11y": "The buttons are real pk-buttons with their own names; Save is the form's submit, so Enter in a field submits as usual. pk-form's summary (role=alert) lists every problem with links that focus the field, and focuses the first invalid control. The error alert uses pk-alert's own role. Without a sidebar the page is one column; the sidebar follows the form in reading order.",
+  "examples": [
+    {
+      "title": "A record with a sidebar, Cancel and Delete (your own form in the default slot)",
+      "html": "<pk-record-form cancellable deletable>\n  <form>\n    <pk-stack>\n      <pk-field label=\"Name\" required><pk-input name=\"name\" required></pk-input></pk-field>\n      <pk-field label=\"Notes\"><pk-textarea name=\"notes\"></pk-textarea></pk-field>\n    </pk-stack>\n  </form>\n  <pk-card slot=\"sidebar\" heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card>\n</pk-record-form>"
+    }
+  ],
+  "methods": [
+    {
+      "name": "submit()",
+      "description": "Submits your form as its own submit button would: pk-form checks it, and a valid one raises pk-record-save. Call it from a button outside this element."
+    }
+  ]
+}
