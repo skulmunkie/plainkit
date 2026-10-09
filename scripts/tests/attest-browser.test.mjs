@@ -47,11 +47,36 @@ test('isNewRun tells the report of this run from the one that was there before',
 });
 
 test('parseArgs has desktop defaults, takes numbers, and refuses a small window or an unknown flag', () => {
-    assert.deepEqual(parseArgs([]), { port: 5341, timeout: 420, width: 1280, height: 900 });
-    assert.deepEqual(parseArgs(['--port', '5400', '--timeout', '60']), { port: 5400, timeout: 60, width: 1280, height: 900 });
+    assert.deepEqual(parseArgs([]), { port: 5341, timeout: 420, width: 1280, height: 900, filter: [], elements: [] });
+    assert.deepEqual(parseArgs(['--port', '5400', '--timeout', '60']), { port: 5400, timeout: 60, width: 1280, height: 900, filter: [], elements: [] });
     assert.throws(() => parseArgs(['--width', '486', '--height', '425']), /at least/);
     assert.throws(() => parseArgs(['--width', String(MIN_WIDTH - 1)]), /at least/);
     assert.throws(() => parseArgs(['--port', 'abc']), /positive whole number/);
     assert.throws(() => parseArgs(['--port']), /positive whole number/);
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
+});
+
+test('--filter and --elements narrow the run; a missing value is an error', async () => {
+    const { selectionNote } = await import('../attest-browser.mjs');
+    const o = parseArgs(['--filter', 'Tabs, focus', '--elements', 'pk-button,card']);
+    assert.deepEqual(o.filter, ['tabs', 'focus']);
+    assert.deepEqual(o.elements, ['pk-button', 'card']);
+    assert.deepEqual(parseArgs([]).filter, []);
+    assert.throws(() => parseArgs(['--filter']), /needs a value/);
+    assert.throws(() => parseArgs(['--elements', '--port']), /needs a value/);
+    assert.equal(selectionNote({ passed: 1 }), '');
+    assert.match(selectionNote({ selected: 3, totalCases: 426, filter: { filter: ['x'], elements: ['button'] } }), /3 of 426 cases selected \(filter x, element button\)/);
+});
+
+test('case-filter keeps cases by substring or by whole-word element name', async () => {
+    const { selectCases, namesElement, parseList } = await import('../../core/tests/browser/case-filter.js');
+    const cases = [['button: defaults', 1], ['data-table: sorts', 2], ['the pk-button focus ring', 3], ['tabs: arrow keys', 4], ['buttons are many', 5]];
+    assert.equal(selectCases(cases).length, 5);
+    assert.deepEqual(selectCases(cases, { elements: ['button'] }).map(c => c[1]), [1, 3]);
+    assert.deepEqual(selectCases(cases, { elements: ['table'] }), [], 'data-table does not name table');
+    assert.deepEqual(selectCases(cases, { elements: ['data-table'] }).map(c => c[1]), [2]);
+    assert.deepEqual(selectCases(cases, { filter: ['arrow'] }).map(c => c[1]), [4]);
+    assert.deepEqual(selectCases(cases, { filter: ['nope'], elements: ['nothing'] }), [], 'a filter that matches nothing selects nothing');
+    assert.equal(namesElement('pk-tabs: x', 'pk-tabs'), true);
+    assert.deepEqual(parseList(' A, ,b '), ['a', 'b']);
 });

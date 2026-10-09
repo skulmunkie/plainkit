@@ -24,6 +24,11 @@ Agents follow [AGENTS.md](AGENTS.md), which has the same flow as commands and ru
 
 ## Definition of done
 
+Checks come in two tiers, so a small change reaches a pull request quickly. During development run the **targeted** ones: `node scripts/verify.mjs --changed` runs only the checks that cover the files
+you changed versus `origin/next-0.13` (else `origin/main`; `--base <ref>`) and prints what it chose and why; a file it cannot map falls back to the full node job, never to a skip. `--changed --browser` adds the element's
+browser cases (`node scripts/attest-browser.mjs --elements a,b` or `--filter text`, "N of M cases selected", exit 1 when nothing matches) and its UI review. The **full** `node scripts/verify.mjs --pack`, the whole browser suite,
+the full UI review and the Node 22 job run once per integration batch and in CI before a release. A failing check is never ignored or weakened in either tier.
+
 A change is done when, on its pull request:
 
 - `node scripts/verify.mjs` passes: one command that runs what CI runs, in the same groups (bootstrap, changelog, generated-tree, node tests, the .NET build and tests; `--fast` for the inner loop, `--no-dotnet`, `--browser`, `--pack`; when CI fails see "When CI fails" in `AGENTS.md`). That is the same as: `node scripts/bootstrap.mjs` has been run (generated files are not in git; see below), and `node --test "core/tests/*.test.mjs" "core/elements/*/*.test.mjs" "core/components/*/*.test.mjs" "core/pages/*/*.test.mjs" "core/shells/*/*.test.mjs" "core/modules/*/*.test.mjs" "scripts/tests/*.test.mjs"` passes (the last glob checks `blazor/mappings` against the element metas), and `dotnet test PlainKit.slnx` passes.
