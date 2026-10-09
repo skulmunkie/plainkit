@@ -28,7 +28,7 @@ public interface IPkUserFacingException;
 /// <param name="toForm">Makes the form: from the record, or from null for a new one.</param>
 /// <param name="save">Stores the form; the record is null for a new one.</param>
 /// <param name="delete">Deletes a record; without it the page cannot delete (<see cref="CanDelete"/> stays false).</param>
-public sealed class PkRecordEditor<TRecord, TForm, TKey>(
+public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     ILogger logger,
     string noun,
     Func<TKey, Task<TRecord?>> load,
@@ -107,7 +107,7 @@ public sealed class PkRecordEditor<TRecord, TForm, TKey>(
             return false;
         }
 
-        return await RunAsync(() => save(Form, Record), "saving");
+        return await ToastAsync(await RunAsync(() => save(Form, Record), "saving"), saving: true);
     }
 
     /// <summary>Deletes the record being edited. True when deleted.</summary>
@@ -115,7 +115,7 @@ public sealed class PkRecordEditor<TRecord, TForm, TKey>(
     {
         if (delete is null || Record is not { } record || Busy) return false;
         Error = null;
-        return await RunAsync(() => delete(record), "deleting");
+        return await ToastAsync(await RunAsync(() => delete(record), "deleting"), saving: false);
     }
 
     /// <summary>Clears <see cref="Error"/>.</summary>

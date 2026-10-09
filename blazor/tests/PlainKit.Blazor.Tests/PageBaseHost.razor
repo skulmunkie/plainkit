@@ -20,4 +20,8 @@
     public Task CallSetErrorAsync(Exception exception, string? message = null) => SetErrorAsync(exception, message);
     public Task CallBusyAsync(Func<Task> action, string? label = null) => BusyAsync(action, label);
     public Task<T> CallBusyAsync<T>(Func<Task<T>> action, string? label = null) => BusyAsync(action, label);
+    public ValueTask CallShowSuccess(string title, string? details = null) => ShowSuccess(title, details);
+    public ValueTask CallShowWarning(string title, string? details = null) => ShowWarning(title, details);
+    public ValueTask CallShowError(string title, string? details = null) => ShowError(title, details);
+    public ValueTask CallShowError(Exception exception, string? title = null) => ShowError(exception, title);
 }
