@@ -1,0 +1,17 @@
+{
+  "component": "PkFieldGroup",
+  "existing": true,
+  "existingReason": "typed-generics: the hand-written PkFieldGroup<TItem> still owns the name until the Blazor step of the field-group spec replaces it with the generated component plus a typed adapter. Missing generator feature: none; this is only ordering (the core element lands first, in steps).",
+  "params": [
+    { "name": "Fields", "type": "string", "default": "[]", "map": "prop", "prop": "fields", "note": "The field specs as a JSON array: { key, label, kind?, hint?, help?, required?, options?, when?, ... } (see the element's fields description)." },
+    { "name": "Values", "type": "string", "default": "{}", "map": "prop", "prop": "values", "note": "The current values as a JSON object, { key: value }." },
+    { "name": "OnChange", "event": "pk-change", "type": "{ key: string, values: object }" },
+    { "name": "Name", "prop": "name", "type": "string" },
+    { "name": "Prefix", "prop": "prefix", "type": "bool" },
+    { "name": "Label", "prop": "label", "type": "string" },
+    { "name": "Columns", "prop": "columns", "type": "int" },
+    { "name": "Disabled", "prop": "disabled", "type": "bool" },
+    { "name": "Readonly", "prop": "readonly", "type": "bool" }
+  ],
+  "notes": "Generated 1:1 from pk-field-group (steps of the field-group spec, #222/#226). The existing hand-written PkFieldGroup<TItem> is a different generic type and keeps working until it becomes the thin typed adapter over this component."
+}

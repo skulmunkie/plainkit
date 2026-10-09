@@ -1,7 +1,7 @@
 // The field builder tool-page and settings-page share (#423): one config field ({ key, type, label, options, ... }) becomes the pk-* control
 // that edits it. Only existing components (STANDARDS.md): pk-input carries every scalar type through its `type`; pk-switch (checked) and
 // pk-range (wrapped in a pk-field, it has no label of its own) differ, so read/write hide that.
-const CONTROL = { text: 'pk-input', email: 'pk-input', number: 'pk-input', date: 'pk-input', textarea: 'pk-textarea', select: 'pk-select', switch: 'pk-switch', range: 'pk-range' };
+import { controlTag } from './field-kinds.js';
 
 /** The control's current value. */
 export const read = (el, type) => (type === 'switch' ? el.checked : el.value);
@@ -37,7 +37,7 @@ export function buildField(doc, f) {
 }
 
 function buildBase(doc, f) {
-    const tag = CONTROL[f.type] ?? 'pk-input';
+    const tag = controlTag(f.type);
     const el = doc.createElement(tag);
     if (tag === 'pk-switch') { el.textContent = f.label ?? f.key; return { el, row: el }; }
     if (tag === 'pk-range') {
