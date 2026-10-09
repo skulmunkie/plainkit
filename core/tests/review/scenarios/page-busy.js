@@ -55,7 +55,12 @@ export default {
         const watch = () => new MutationObserver(list => { for (const m of list) if (m.attributeName === 'data-on') frame.__toggles++; }).observe(frame.querySelector(OV).shadowRoot.querySelector('[part=overlay]'), { attributes: true }); // the overlay element shows itself (data-on on its overlay part) after its own delay
         (frame.defaultView ?? window).customElements.whenDefined('pk-loading-overlay').then(() => setTimeout(watch, 0));
         frame.__shifts = [];
-        new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) { frame.__cls += e.value; frame.__shifts.push(`${e.value.toFixed(4)} at ${Math.round(e.startTime)}ms: ${(e.sources ?? []).map(s => `${s.node?.nodeName?.toLowerCase()}${s.node?.id ? `#${s.node.id}` : ''} ${JSON.stringify(s.previousRect)} -> ${JSON.stringify(s.currentRect)}`).join('; ')}`); } }).observe({ type: 'layout-shift', buffered: false });
+        // Count from the moment the page is ready (issue 1039): every pk-* element of the markup defined (they load lazily and upgrade the region's height, a 0.003 shift at 300 to 500 ms
+        // that is the first layout, not the overlay), then two frames. A shift after that, during the idle or busy phases, still counts.
+        const tags = [...new Set([...frame.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))];
+        const win = frame.ownerDocument.defaultView;
+        const frames = () => new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+        Promise.all(tags.map(n => win.customElements.whenDefined(n))).then(frames).then(() => new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) { frame.__cls += e.value; frame.__shifts.push(`${e.value.toFixed(4)} at ${Math.round(e.startTime)}ms: ${(e.sources ?? []).map(s => `${s.node?.nodeName?.toLowerCase()}${s.node?.id ? `#${s.node.id}` : ''} ${JSON.stringify(s.previousRect)} -> ${JSON.stringify(s.currentRect)}`).join('; ')}`); } }).observe({ type: 'layout-shift', buffered: false }));
     },
     steps: [
         { shot: 'idle' },
@@ -80,8 +85,6 @@ export default {
             idleRect = t.rect(BODY);
             t.hidden(SHADE, 'the overlay'); t.ok(t.attr(BODY, 'aria-busy') === null, 'no aria-busy while idle'); t.exists(OV);
             t.ok(t.attr(OV, 'busy') === null, 'the overlay is idle');
-            // The shifts of the page's own first layout (elements upgrading, fonts, issue 1039) are not the overlay's: the score below counts what happens after the idle shot.
-            frame.__cls = 0; frame.__shifts.length = 0;
         }
         if (t.shot === 'fast-never-shown') { t.hidden(SHADE, 'the overlay'); t.ok(frame.__toggles === 0, `the overlay flashed ${frame.__toggles} time(s) for an action shorter than the delay`); t.ok(t.attr(BODY, 'aria-busy') === null, 'aria-busy cleared'); same(); }
         if (t.shot === 'inside-the-delay') { t.hidden(SHADE, 'the overlay (inside the delay)'); t.ok(t.attr(BODY, 'aria-busy') === 'true', 'the region is aria-busy at once'); same(); }
