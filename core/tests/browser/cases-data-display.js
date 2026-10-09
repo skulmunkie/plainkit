@@ -5,6 +5,8 @@ const cols = '[{"key":"sku","label":"SKU","sortable":true},{"key":"price","label
 const rows = '[{"id":1,"sku":"B","price":"$10"},{"id":2,"sku":"A","price":"$2"},{"id":3,"sku":"C","price":"$5"}]';
 const bodyIds = el => [...el.shadowRoot.querySelectorAll('tbody tr')].map(r => r.dataset.pkContext);
 
+// A pk-data-table draws pk-table, pk-pagination and pk-table-filters, which it loads on demand: wait for them, so a case also passes on its own (--filter / --elements), not only after earlier cases loaded them.
+const mountDataTable = async (t, html) => { const el = await t.mount(html); await Promise.all(['pk-table', 'pk-pagination', 'pk-table-filters'].map(n => customElements.whenDefined(n))); await t.settle(); return el; };
 const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 const key = (el, k) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
@@ -242,7 +244,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: pages and searches through load(query), keeps the selection across pages, offers Select all N rows, and a new search narrows scope all back to page (#801)', async t => {
-        const el = await t.mount(`<pk-data-table selectable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
+        const el = await mountDataTable(t, `<pk-data-table selectable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [], events = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.addEventListener('pk-select', e => events.push(e.detail));
@@ -266,7 +268,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
-        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" search-debounce="20" search="SKU-3"></pk-data-table>`);
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" search-debounce="20" search="SKU-3"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.refresh();
@@ -295,7 +297,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: focus() puts focus in the search box (the first row when the search is hidden), and focus(\'next\' | \'previous\' | \'first\' | \'last\') walks the rows from the host (#885)', async t => {
-        const el = await t.mount(`<pk-data-table clickable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
+        const el = await mountDataTable(t, `<pk-data-table clickable columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         const all = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` }));
         el.load = async q => ({ rows: all.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: all.length });
         el.refresh();
@@ -318,7 +320,7 @@ export const dataDisplayCases = [
     }],
 
     ['data-table: plain props set the columns, page size, labels, search term and empty states (#805)', async t => {
-        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}'></pk-data-table>`);
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" page-size-options="[5,10]" search="SKU-3" search-label="Find SKU" search-debounce="20" pager-label="SKU pages" label="SKUs" caption="All SKUs" no-results='{"heading":"No SKU matches"}' empty='{"heading":"No SKUs yet"}'></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
         el.load = async q => { queries.push(q); const rs = all.filter(r => r.sku.includes(q.search)); return { rows: rs.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: rs.length }; };
         el.refresh();
