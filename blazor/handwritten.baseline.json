@@ -76,11 +76,6 @@
       "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
     },
     {
-      "rule": "name-parity",
-      "file": "Components/PkRecordForm.razor",
-      "reason": "old name of PkRecordPage; renamed once pk-record-page has slots for actions, sidebar and tabs (#801 name map)"
-    },
-    {
       "rule": "layout-recipe",
       "file": "Components/PkRecordForm.razor",
       "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
