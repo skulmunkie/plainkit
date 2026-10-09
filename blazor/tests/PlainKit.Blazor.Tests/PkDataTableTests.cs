@@ -71,26 +71,41 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
     private static PkListRequest Plain(PkListRequest r) => r with { CancellationToken = default };
 
     [Fact]
-    public void It_renders_pk_data_table_with_the_options_as_config_and_hands_it_the_load_callback()
+    public void It_renders_pk_data_table_with_the_options_as_attributes_and_hands_it_the_load_callback()
     {
         var cut = Render(Immediate(_ => Page(0)), p => p.Add(x => x.Label, "Customers").Add(x => x.PagerLabel, "Customer pages").Add(x => x.SearchPlaceholder, "Search customers")
             .Add(x => x.PageSize, 50).Add(x => x.SortKey, "city").Add(x => x.Descending, true).Add(x => x.SearchDebounceMs, 450));
 
         var el = cut.Find("pk-data-table");
-        using var config = JsonDocument.Parse(el.GetAttribute("config")!);
-        var c = config.RootElement;
-        Assert.Equal(["Name", "city"], c.GetProperty("columns").EnumerateArray().Select(x => x.GetProperty("key").GetString()));
-        Assert.Equal(50, c.GetProperty("pageSize").GetInt32());
-        Assert.Equal([10, 25, 50, 100], c.GetProperty("pageSizeOptions").EnumerateArray().Select(x => x.GetInt32()));
-        Assert.Equal(("city", "descending"), (c.GetProperty("sort").GetString(), c.GetProperty("sortDir").GetString()));
-        Assert.Equal(("Customers", "Customer pages", "Search customers", 450), (c.GetProperty("label").GetString(), c.GetProperty("pagerLabel").GetString(), c.GetProperty("searchLabel").GetString(), c.GetProperty("searchDebounce").GetInt32()));
-        Assert.Equal("Nothing to show.", c.GetProperty("empty").GetProperty("heading").GetString());
-        Assert.Equal("Nothing matches your search.", c.GetProperty("noResults").GetProperty("heading").GetString());
+        Assert.False(el.HasAttribute("config"));
+        using var columns = JsonDocument.Parse(el.GetAttribute("columns")!);
+        Assert.Equal(["Name", "city"], columns.RootElement.EnumerateArray().Select(x => x.GetProperty("key").GetString()));
+        Assert.Equal("50", el.GetAttribute("page-size"));
+        using var sizes = JsonDocument.Parse(el.GetAttribute("page-size-options")!);
+        Assert.Equal([10, 25, 50, 100], sizes.RootElement.EnumerateArray().Select(x => x.GetInt32()));
+        Assert.Equal(("city", "descending"), (el.GetAttribute("sort"), el.GetAttribute("sort-dir")));
+        Assert.Equal(("Customers", "Customer pages", "Search customers", "450"), (el.GetAttribute("label"), el.GetAttribute("pager-label"), el.GetAttribute("search-label"), el.GetAttribute("search-debounce")));
+        Assert.False(el.HasAttribute("hide-search"));
+        using var empty = JsonDocument.Parse(el.GetAttribute("empty")!);
+        Assert.Equal("Nothing to show.", empty.RootElement.GetProperty("heading").GetString());
+        using var none = JsonDocument.Parse(el.GetAttribute("no-results")!);
+        Assert.Equal("Nothing matches your search.", none.RootElement.GetProperty("heading").GetString());
+        Assert.Equal("The list could not be loaded.", el.GetAttribute("load-error"));
         Assert.True(el.HasAttribute("cards"));
         Assert.False(el.HasAttribute("clickable"));
         var call = Assert.Single(_bridge.Invocations["setCallback"]);
         Assert.Equal("load", call.Arguments[1]);
         Assert.Equal(true, call.Arguments[3]);   // an element that drew its empty state before the callback existed redraws
+    }
+
+    [Fact]
+    public void Search_and_SelectPageOnly_pass_through_to_the_element()
+    {
+        var cut = Render(Immediate(_ => Page(0)), p => p.Add(x => x.Search, "acme").Add(x => x.Selectable, true).Add(x => x.SelectPageOnly, true));
+        var el = cut.Find("pk-data-table");
+        Assert.Equal("acme", el.GetAttribute("search"));
+        Assert.True(el.HasAttribute("select-page-only"));
+        Assert.False(Render(Immediate(_ => Page(0)), p => p.Add(x => x.Selectable, true)).Find("pk-data-table").HasAttribute("select-page-only"));
     }
 
     [Fact]
@@ -215,7 +230,7 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void The_toolbar_add_button_empty_and_bulk_content_go_into_the_elements_slots()
+    public async Task The_add_label_and_pk_add_and_the_toolbar_empty_and_bulk_content_go_to_the_element()
     {
         var added = 0;
         var cut = Render(Immediate(_ => Page(0)), p => p
@@ -226,8 +241,8 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
             .Add(x => x.BulkContent, b => b.AddMarkupContent(0, "<u id=bulk></u>")));
 
         Assert.NotNull(cut.Find("[slot=actions] #extra"));
-        Assert.Equal("+ Add customer", cut.Find("[slot=actions] pk-button").TextContent);
-        cut.Find("[slot=actions] pk-button").Click();
+        Assert.Equal("+ Add customer", cut.Find("pk-data-table").GetAttribute("add-label"));
+        await cut.Find("pk-data-table").TriggerEventAsync("onpk-add", new PkAddEventArgs());
         Assert.Equal(1, added);
         Assert.NotNull(cut.Find("[slot=empty] #none"));
         Assert.NotNull(cut.Find("[slot=bulk] #bulk"));
@@ -301,21 +316,4 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-data-table").TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Value = "edit" });
         Assert.Equal(0, changed);
     }
-
-#pragma warning disable CS0618 // the obsolete alias is the thing under test
-    [Fact]
-    public async Task The_obsolete_PkDataList_alias_is_a_PkDataTable_with_CurrentId_and_a_silent_LoadAllIds()
-    {
-        var cut = Render<PkDataList<Customer>>(p => p
-            .Add(x => x.Load, Immediate(_ => Page(2, "Ada", "Grace"))).Add(x => x.Columns, Columns).Add(x => x.IdOf, c => c.Id.ToString())
-            .Add(x => x.CurrentId, "2").Add(x => x.LoadAllIds, _ => Task.FromResult<IReadOnlyList<string>>(["1"])).Add(x => x.Selectable, true));
-
-        var el = cut.Find("pk-data-table");
-        Assert.Equal("2", el.GetAttribute("current-row"));
-        Assert.True(el.HasAttribute("selectable"));
-        var json = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => Host().Invoke(new PkListPageQuery())));
-        Assert.Equal(2, json.GetProperty("total").GetInt32());
-        Assert.Equal("cell:Ada", cut.Find("[slot=cell-1-Name]").TextContent);
-    }
-#pragma warning restore CS0618
 }

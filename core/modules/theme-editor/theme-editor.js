@@ -39,7 +39,7 @@ import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, h, loadText, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { createSdkTab } from './sdk-tab.js';
@@ -56,18 +56,18 @@ export { DEFAULT_PAIRS };
 // What the Preview tab shows: SDK elements that read tokens only.
 const PREVIEW = `
 <pk-toolbar heading="Preview" note="every control reads tokens only"><pk-button slot="actions" size="mini" variant="ghost">Ghost</pk-button><pk-button slot="actions" size="mini">Primary</pk-button></pk-toolbar>
-<pk-card heading="Card title"><span slot="actions" class="muted">muted text</span><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
-<pk-input label="Field" value="Input value"></pk-input>
-<pk-cluster class="u-mt-3"><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-card>
+<pk-card heading="Card title"><pk-text slot="actions" inline tone="muted">muted text</pk-text><p>Body text with <a href="#">a link</a> and <code>code</code>.</p>
+<pk-stack gap="sm"><pk-input label="Field" value="Input value"></pk-input>
+<pk-cluster><pk-badge variant="muted">Default</pk-badge><pk-badge variant="ok">Registered</pk-badge><pk-badge variant="warn">Warn</pk-badge><pk-badge variant="danger">Danger</pk-badge></pk-cluster></pk-stack></pk-card>
 <pk-alert kind="warning">A warning notice.</pk-alert><pk-alert kind="success">A success notice.</pk-alert>
-<pk-table density="compact"><table><thead><tr><th>SKU</th><th class="num">Price</th></tr></thead><tbody><tr><td><code>AC-001</code></td><td class="num">$4.99</td></tr></tbody></table></pk-table>`;
+<pk-table density="compact" label="Products" columns='[{"key":"sku","label":"SKU"},{"key":"price","label":"Price","align":"end"}]' rows='[{"id":"1","sku":"AC-001","price":"$4.99"}]'></pk-table>`;
 
 const cap = s => s[0].toUpperCase() + s.slice(1);
 
 function readStored(key, win) {
     if (!key) return emptyOverrides();
     try {
-        const raw = win.localStorage.getItem(key) ?? '{}';
+        const raw = storedText(win, key) ?? '{}';
         return raw.length > MAX_STORED ? emptyOverrides() : sanitizeOverrides(JSON.parse(raw));
     } catch (error) { log.warn(`the saved theme edits under "${key}" could not be read: starting with none`, error); return emptyOverrides(); }
 }
@@ -86,22 +86,20 @@ export async function mountThemeEditor(container, options = {}) {
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
 
     const tokensUrl = runtimeUrl(options.tokens ?? TOKENS, import.meta.url);
-    const res = await fetch(tokensUrl);
-    if (!res.ok) throw new Error(`${tokensUrl}: ${res.status}`);
-    const tokens = parseTokenBlocks(await res.text());
+    const tokens = parseTokenBlocks(await loadText(tokensUrl, win.fetch.bind(win)));
 
     // Saved themes are a per-viewer convenience: read and written best effort. When storage is blocked they still work until the page closes.
     let savedBlocked = false;
     function readSavedThemes() {
         if (!savedKey) return [];
         try {
-            const raw = win.localStorage.getItem(savedKey);
+            const raw = storedText(win, savedKey);
             return raw && raw.length <= MAX_STORED ? readSaved(raw) : [];
         } catch (error) { savedBlocked = true; log.warn(`saved themes could not be read from "${savedKey}" (storage is blocked): starting with none`, error); return []; }
     }
     function writeSavedThemes(list) {
         if (!savedKey) return;
-        try { win.localStorage.setItem(savedKey, serializeSaved(list)); savedBlocked = false; } catch (error) { savedBlocked = true; log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, error); }
+        const failed = storeText(win, savedKey, serializeSaved(list)); savedBlocked = failed !== null; if (failed) { log.warn(`saved themes could not be stored under "${savedKey}" (storage is blocked): they last until this page closes`, failed); }
     }
 
     // Presets the app supplies, after the built-in ones; a bad one is left out and logged.
@@ -245,7 +243,7 @@ export async function mountThemeEditor(container, options = {}) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
         previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
-        previewFrame.addEventListener('load', () => applyToPreview(outputCss().css));
+        listen(previewFrame, 'load', () => applyToPreview(outputCss().css));
         ui.previewHost.append(previewFrame);
     }
 
@@ -415,7 +413,7 @@ export async function mountThemeEditor(container, options = {}) {
         const { css, rejected } = outputCss();
         applyToTarget(css);
         applyToPreview(css);
-        if (storageKey) try { win.localStorage.setItem(storageKey, JSON.stringify(state.overrides)); } catch (error) { log.debug('storage blocked: the edit applies but is not saved', error); }
+        const failed = storageKey ? storeText(win, storageKey, JSON.stringify(state.overrides)) : null; if (failed) log.debug('storage blocked: the edit applies but is not saved', failed);
         paintPairs();
         paintChanges();
         paintExport(css, rejected);
@@ -443,7 +441,7 @@ export async function mountThemeEditor(container, options = {}) {
 
     // ---- events
     const listeners = [];
-    const on = (el, type, fn) => { el.addEventListener(type, fn); listeners.push(() => el.removeEventListener(type, fn)); };
+    const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const tokenOf = e => e.target.closest?.('[data-token]')?.dataset.token;
 
     on(find, 'input', e => { state.filter = e.target.value ?? ''; paintList(); });
@@ -526,7 +524,7 @@ export async function mountThemeEditor(container, options = {}) {
     async function makeLink() {
         const r = await encodeShare(state.overrides);
         if (r.error) { log.warn(`share refused: ${r.error}`); shareNote('error', r.error); return r; }
-        const url = `${win.location.href.split('#')[0]}#${r.hash}`;
+        const url = `${addressOf(win).href.split('#')[0]}#${r.hash}`;
         linkBox.value = url; linkBox.setAttribute('value', url);
         shareNote('success', `Link ready (${r.hash.length} of 4096 characters${r.compressed ? ', compressed' : ''}).`);
         return { url, hash: r.hash };
@@ -602,7 +600,7 @@ export async function mountThemeEditor(container, options = {}) {
         },
     };
     apply(); paintList(); paintPalette(); paintSaved();
-    if (options.readHash && win.location.hash.includes(`${SHARE_KEY}=`)) await importLink(win.location.hash, true);
+    if (options.readHash && addressOf(win).hash.includes(`${SHARE_KEY}=`)) await importLink(addressOf(win).hash, true);
     return api;
 }
 

@@ -1,16 +1,30 @@
-@namespace PlainKit.Blazor
+@namespace PlainKit.Blazor.Components
 @typeparam TItem
 @inherits PkElementBase
 @implements IDisposable
 
-@* Hand-written (blazor/mappings/data-table.json marks it "existing"): a typed wrapper over pk-data-table, which owns the query, the load, the
-   states, the paging and the selection (issue 801). This component only turns .NET into what the element takes: the columns and the options into
-   its config, Load into the element's load(query) callback (PkCallbackSlot, as PkListPage), the loaded items into rows and cell slots, and the
-   element's events back into callbacks. The element never sends the ids of a whole query: a selection of scope "all" is the query. *@
+@* Hand-written (mapping "existing"): a typed wrapper over pk-data-table, which owns the query, load, states, paging, the add button and selection (issue 801). It only
+   turns .NET into what the element takes (typed columns and options into its props, Load into load(query), items into rows and cell slots) and its events back into callbacks. *@
 <pk-data-table data-pk-ranges
-               config="@_config"
+               columns="@PkAttr.Json(Columns.Select(c => c.ToColumn()))"
+               page-size="@PageSize"
+               page-size-options="@PkAttr.Json(PageSizeOptions)"
+               sort="@SortKey"
+               sort-dir="@(Descending ? "descending" : "ascending")"
+               hide-search="@(!Searchable)"
+               search="@Search"
+               search-label="@(SearchLabel ?? SearchPlaceholder ?? "Search")"
+               search-debounce="@SearchDebounceMs"
+               pager-label="@(PagerLabel ?? "List pages")"
+               label="@(Label ?? "List")"
+               caption="@Caption"
+               empty="@PkAttr.Json(new { heading = EmptyText })"
+               no-results="@PkAttr.Json(new { heading = NoResultsText })"
+               load-error="@LoadErrorText"
+               add-label="@AddLabel"
                @ref="Element"
                selectable="@Selectable"
+               select-page-only="@SelectPageOnly"
                selected="@PkAttr.Json(Selected)"
                select-scope="@SelectScope"
                clickable="@OnRowClick.HasDelegate"
@@ -21,7 +35,7 @@
                max-height="@MaxHeight"
                sticky-header="@StickyHeader"
                class="@Css()"
-               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null || !string.IsNullOrEmpty(AddLabel)) {<span slot="actions" class="u-contents">@ToolbarContent@if (!string.IsNullOrEmpty(AddLabel)) {<PkButton Variant="ButtonVariant.Primary" OnClick="OnAdd">@AddLabel</PkButton>}</span>}@foreach (var row in _rows)
+               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null) {<span slot="actions" class="u-contents">@ToolbarContent</span>}@foreach (var row in _rows)
 {
     @foreach (var column in Columns.Where(c => c.Cell is not null))
     {
@@ -35,9 +49,7 @@
     [Inject] private PkRuntime Runtime { get; set; } = default!;
 
     private readonly PkCallbackSlot _load = new("load");
-    private string _config = "{}";
     private List<Row> _rows = [];
-    private int _sequence;
 
     /// <summary>Loads one page. It gets the search, the sort, the 1-based page and the page size (<see cref="PkListRequest"/>) and returns the items of that page and the total of the whole searched list (<see cref="PkListResult{T}"/>). Called for the first page, and again for every search, sort, page or page-size change and for <see cref="ReloadAsync"/>; a request that a newer one replaces has its <c>CancellationToken</c> cancelled and its result ignored.</summary>
     [Parameter, EditorRequired] public Func<PkListRequest, Task<PkListResult<TItem>>> Load { get; set; } = default!;
@@ -59,6 +71,9 @@
 
     /// <summary>Sort <see cref="SortKey"/> descending first (initial only).</summary>
     [Parameter] public bool Descending { get; set; }
+
+    /// <summary>The search term to start with, for example from a query string: it fills the search box and the first <c>Load</c> request, and typing replaces it. Changing it later replaces the term and loads page 1.</summary>
+    [Parameter] public string? Search { get; set; }
 
     /// <summary>Show the search box. Default true.</summary>
     [Parameter] public bool Searchable { get; set; } = true;
@@ -101,6 +116,9 @@
 
     /// <summary>A checkbox column with select-all for the page, and "Select all N rows" when the searched list has more. The selection is kept by id across pages and searches (see <see cref="Selected"/>).</summary>
     [Parameter] public bool Selectable { get; set; }
+
+    /// <summary>Never offer "Select all N rows": the header checkbox selects the loaded page and <see cref="SelectScope"/> stays <c>page</c>. For a list whose bulk action works only on explicit ids. Default false.</summary>
+    [Parameter] public bool SelectPageOnly { get; set; }
 
     /// <summary>The ids (<see cref="IdOf"/>) of the selected rows, across every page and search the user visited (two-way: <c>@bind-Selected</c>). The order carries no meaning. After "Select all N rows" (<see cref="SelectScope"/> <c>all</c>) it holds only the loaded page: the rest is the query.</summary>
     [Parameter] public IReadOnlyList<string>? Selected { get; set; }
@@ -148,30 +166,6 @@
     public async Task ReloadAsync() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("refresh", Element);
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        // The element compares the config text, so a parameter set that changes nothing costs it nothing.
-        _config = PkAttr.Json(new
-        {
-            columns = Columns.Select(c => c.ToColumn()),
-            pageSize = PageSize,
-            pageSizeOptions = PageSizeOptions,
-            sort = SortKey,
-            sortDir = Descending ? "descending" : "ascending",
-            searchable = Searchable,
-            searchLabel = SearchLabel ?? SearchPlaceholder ?? "Search",
-            searchDebounce = SearchDebounceMs,
-            pagerLabel = PagerLabel ?? "List pages",
-            label = Label ?? "List",
-            caption = Caption,
-            empty = new { heading = EmptyText },
-            noResults = new { heading = NoResultsText },
-            loadError = LoadErrorText,
-        })!;
-    }
-
-    /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -182,6 +176,7 @@
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers)
     {
+        handlers["onpk-add"] = EventCallback.Factory.Create<PkAddEventArgs>(this, () => OnAdd.InvokeAsync());
         handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);
         handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);
     }
@@ -190,7 +185,6 @@
     // cancels its token (PkCallbackSlot), and a superseded answer is not drawn: its cell slots would show stale rows.
     private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)
     {
-        var sequence = ++_sequence;
         PkListResult<TItem> result;
         try
         {
@@ -201,7 +195,7 @@
             await InvokeAsync(() => OnLoadError.InvokeAsync(ex));
             throw; // the rejection is the element's error state with Retry
         }
-        if (sequence != _sequence) return new { rows = Array.Empty<object>(), total = 0 };
+        if (cancel.IsCancellationRequested) return new { rows = Array.Empty<object>(), total = 0 };
         var rows = new System.Text.Json.Nodes.JsonArray();
         var shown = new List<Row>(result.Items.Count);
         foreach (var item in result.Items)
@@ -227,15 +221,8 @@
         await OnSelect.InvokeAsync(e);
     }
 
-    private async Task HandleRowClickAsync(PkRowClickEventArgs e)
-    {
-        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowClick.InvokeAsync(row.Item);
-    }
+    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-        _sequence++;
-        _load.Dispose();
-    }
+    public void Dispose() => _load.Dispose();
 }

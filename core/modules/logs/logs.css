@@ -1,5 +1,0 @@
-/* Logs viewer chrome. Everything inside is SDK components; this only paints a mounted viewer that carries its own theme and keeps the message readable. */
-
-.lg-module[data-theme] { color: var(--color-text); background: var(--color-bg); padding: var(--space-3); }
-
-.lg-message { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }

@@ -65,12 +65,12 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 
 | Family | Page type | Config (data) | Your callbacks |
 |---|---|---|---|
-| Data | `list` | `heading`, `breadcrumb`, `columns`, `filters`, `actions`, `empty`, `pageSize` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)` |
+| Data | `list` | `heading`, `breadcrumb`, `columns`, `filters`, `actions`, `empty`, `pageSize`, `selectable`, `rowKey`, `bulkActions` | `load(query, ctx)` returns `{ rows, total }`; `rowHref(row)`; `onSelect(detail, ctx)`; `onBulk({ action, selected, scope, query }, ctx)` |
 | Data | `dashboard` | `widgets`, `tabs`, `sections`, `filters`, `empty` | `load(key, ctx)` returns what the widget shows |
 | Data | `master-detail` | `list`, `backLabel`, `none`, `param` | `load(query, ctx)`, `rowHref(row)`, `listHref`, `mountDetail(pane, id, ctx)` |
 | Forms | `record` | `fields`, `sidebar`, `heading`, `editable` | `load(id, ctx)`, `save(values, ctx)` |
 | Forms | `settings` | `sections`, `values` | `save(values, ctx)` |
-| Forms | `tool` | `input`, `outcome`, `runLabel` | `run(values, ctx)` |
+| Forms | `tool` | `heading`, `input`, `outcome`, `runLabel` | `run(values, ctx)` |
 | Forms | `wizard` | `steps`, `review`, `submitLabel` | `validate(stepId, values, ctx)`, `submit(values, ctx)`, `load(ctx)` |
 | Content | `doc` | `items`, `search`, `home` | `loadItem(id, ctx)`, `href(id, anchor, ctx)` |
 | Content | `workspace` | `panes`, `labels`, `fill` | `mount(panes, ctx)` |
@@ -112,14 +112,14 @@ The dashboard is configured explicitly: you list the widgets and write `load`.
 
 ### Form pages
 
-A record page loads one record by the route's `id` (no `id` is a new record), tracks unsaved changes, validates inline and saves. Report the outcome with `ctx.notify`, which is the app's one toast stack:
+A record page loads one record by the route's `id` (no `id` is a new record), tracks unsaved changes (leaving by a link, a breadcrumb or back/forward asks first through `ctx.dialogs.confirm`; closing the tab asks too; a Save that navigates itself is not asked), validates inline and saves. The outcome is toasted for you through `ctx.notify`, the app's one toast stack: "Saved" after `save`, "Could not save" (sticky, with the error text) when it rejects with anything but field errors, and, when you give a `delete(id, ctx)` callback, a Delete button that asks first and toasts "Deleted" or "Could not delete". A list page toasts "Done" or "Could not complete" after a bulk action. Word them with `toasts: { saved: 'Order saved', failed: err => err.message, deleted: false }` or switch them all off with `toasts: false`; a page that raised its own toast before should drop it (an identical title within 2 seconds is merged, a different one is a second toast):
 
 ```text
 const recordConfig = {
     heading: 'Order',
     fields: [{ name: 'customer', label: 'Customer', required: true }, { name: 'status', label: 'Status', type: 'select', options: ['Open', 'Shipped'] }, { name: 'total', label: 'Total', type: 'number' }],
     load: async id => ORDERS.find(o => o.id === id) ?? null,
-    save: async (values, ctx) => { ctx.notify?.success('Order saved'); return values; },
+    save: async values => values, // the page type toasts "Saved" itself (config.toasts words or silences it)
 };
 ```
 
@@ -127,6 +127,7 @@ A tool page is one input and one outcome; a settings page is sections of fields 
 
 ```text
         { path: '/tool', label: 'Tool', page: 'tool', config: {
+            heading: 'Tax calculator',
             input: [{ key: 'amount', type: 'number', label: 'Amount', required: true }],
             outcome: 'stat',
             runLabel: 'Add tax',

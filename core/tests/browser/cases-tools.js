@@ -32,8 +32,9 @@ export const toolCases = [
         const hl = () => el.querySelector('pk-code-view')?.shadowRoot?.querySelector('.row.hl');
         await until(hl, 'the opened file');
         t.eq(hl().querySelector('.code').textContent.trim(), 'return 42;', 'the requested line is focused');
-        await until(() => el.querySelector('.csr-hit'), 'the search results');
-        t.eq(el.querySelectorAll('.csr-hit').length, 1);
+        const hits = () => el.querySelectorAll('pk-list-group > button[data-path]');
+        await until(() => hits().length, 'the search results');
+        t.eq(hits().length, 1);
         await handle.search('nothing-matches-this'); await t.settle();
         t.ok(/No matches/.test(el.textContent));
         handle.destroy(); t.ok(!host.contains(el));
@@ -56,6 +57,31 @@ export const toolCases = [
         handle.destroy();
     }],
 
+    ['code explorer module: the reports work over a lazy provider, read one file at a time through an injected reader, and one unreadable file does not sink them (the reports could not be computed)', async t => {
+        const { LazyProvider } = await import(new URL('../../dist/modules/code-explorer/providers.js', import.meta.url).href);
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const body = n => Array.from({ length: n }, (_, i) => `line ${i}`).join('\n');
+        const texts = { 'src/big.js': `function big() {\n${body(30)}\n}\n`, 'src/small.js': 'function small() {\n  return 1;\n}\n', 'notes/100%.md': body(5), 'src/a#b.js': body(8) };
+        // Like the Blazor bridge: the url is 'pk-source/<encoded path>', decoded, then answered from memory; 'src/gone.js' is a 404.
+        const reads = [];
+        const reader = async url => {
+            const path = decodeURIComponent(url.slice('pk-source/'.length)); reads.push(path);
+            return path in texts ? { ok: true, status: 200, text: async () => texts[path] } : { ok: false, status: 404, text: async () => '' };
+        };
+        const files = [...Object.keys(texts), 'src/gone.js'].map(path => ({ path, language: 'js', lines: 1 }));
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { provider: new LazyProvider(files, 'pk-source', { fetch: reader }), height: '30rem' });
+        const el = handle.element;
+        await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
+        el.querySelector('[data-ce-reports]').click();
+        await until(() => el.querySelector('[data-kind="files"]'), 'the reports picker');
+        const rows = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path);
+        t.eq(rows().join(), 'src/big.js,src/a#b.js,notes/100%.md,src/small.js', 'the largest files, from the files that could be read');
+        t.ok(/src\/gone\.js/.test(el.querySelector('[data-ce-tree]').textContent), 'the report says which file could not be read');
+        t.eq(reads.filter(p => p === 'src/big.js').length, 1, 'each file is read once');
+        handle.destroy();
+    }],
+
     ['scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter', async t => {
         const { mountScorecard } = await dist('scorecard');
         const host = t.stage('');
@@ -63,13 +89,13 @@ export const toolCases = [
         const card = await mountScorecard(host, { targets, themes: ['dark'], widths: [375, 1024], theme: 'light' });
         t.eq(card.results().length, 0, 'nothing runs until asked');
         host.querySelector('[data-sc-run]').click();
-        await until(() => host.querySelector('.sc-table'), 'the ranked table');
-        const rows = [...host.querySelectorAll('.sc-table tbody tr')].map(r => r.cells[0].textContent.trim());
+        await until(() => host.querySelector('pk-table[label="Target ranking"]'), 'the ranked table');
+        const rows = JSON.parse(host.querySelector('pk-table[label="Target ranking"]').getAttribute('rows')).map(r => r.name);
         t.eq(rows.join(), 'Bad,Good', 'worst first');
         const [bad, good] = card.results().sort((a, b) => a.score - b.score);
         t.ok(bad.score < 100 && good.score === 100, 'the unnamed button and the image without alt cost points');
         t.ok(bad.findings.some(f => f.check === 'unnamed-input') && bad.findings.some(f => f.check === 'image-alt'));
-        t.eq(host.querySelectorAll('.sc-frames iframe').length, 0, 'the measuring frames are removed');
+        t.eq(host.querySelectorAll('[data-sc-frames] iframe').length, 0, 'the measuring frames are removed');
         const only = await (await mountScorecard(t.stage(''), { targets, themes: ['dark'], widths: [375], checks: ['image-alt'] })).run();
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();
@@ -92,17 +118,29 @@ export const toolCases = [
         const card = await mountScorecard(host, { sections: ['tiers'], data: { tiers: new URL('../../site/scorecard/tiers.current.json', import.meta.url).href } });
         await card.ready; await t.load(host); await t.settle();
         const tables = [...host.querySelectorAll('pk-table')];
-        t.eq(tables.length, 2, 'the tier table and the rule table');
+        t.eq(tables.length, report.modules ? 3 : 2, 'the tier table, the module table (when the build had the module baseline) and the rule table');
         const rows = table => JSON.parse(table.getAttribute('rows'));
-        const [byTier, byRule] = tables.map(rows);
+        const [byTier, ...rest] = tables.map(rows), byRule = rest.at(-1), byModule = report.modules ? rest[0] : null;
         t.eq(byTier.map(r => r.tier.toLowerCase()).join(), report.tiers.join(), 'one row per tier');
         t.eq(byTier.map(r => r.elements).join(), report.tiers.map(x => report.counts[x]).join(), 'element counts match the report');
         t.eq(byTier.reduce((n, r) => n + r.elements, 0), report.total, 'the counts sum to the element count');
         t.eq(byRule.map(r => r.rule).join(), report.rules.join(), 'one row per rule');
         t.eq(byRule.reduce((n, r) => n + r.total, 0), report.debtTotal, 'the debt per rule sums to the baseline total');
+        if (byModule) { t.eq(byModule.map(r => r.rule).join(), Object.keys(report.modules.rules).join(), 'one row per module rule'); t.eq(byModule.reduce((n, r) => n + r.count, 0), report.modules.total, 'the module rows sum to the module baseline'); }
         t.ok(tables.every(x => x.getBoundingClientRect().width > 0 && x.getBoundingClientRect().height > 0), 'both tables are drawn');
         card.destroy();
     }],
+    ['theme editor module: with its preview on it mounts (a regression: the preview frame handler was used before it was defined) and the preview frame holds the sample the module writes', async t => {
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: host });
+        const frame = host.querySelector('iframe[title="Theme preview"]');
+        t.ok(frame, 'the preview frame is drawn');
+        await until(() => frame.contentDocument?.querySelector('pk-card'), 'the sample in the preview frame');
+        t.ok(frame.contentDocument.querySelector('pk-table[columns]') && !frame.contentDocument.querySelector('[class]:not(html):not(body)'), 'the sample table is data-driven and the sample has no class attributes');
+        editor.destroy();
+    }],
+
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;

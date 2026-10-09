@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build, loadElementSources } from '../tools/build.mjs';
+import { loadElementSources } from '../tools/build.mjs';
 import { tierReport, DEBT_RULES } from '../tools/tier-report.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -13,7 +13,8 @@ const json = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
 const tiers = json('tools/tiers.baseline.json');
 const tags = json('tools/tier-tags.baseline.json');
 const elements = loadElementSources();
-const report = tierReport(elements, tiers, tags);
+const modulesBaseline = JSON.parse(fs.readFileSync(path.join(root, '..', 'plainkit.audit.modules.baseline.json'), 'utf8'));
+const report = tierReport(elements, tiers, tags, modulesBaseline);
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 test('the tier counts add up to the element count and match each meta tier', () => {
@@ -29,13 +30,18 @@ test('the debt per rule adds up to the baseline totals', () => {
     assert.deepEqual(Object.keys(report.debt), DEBT_RULES);
 });
 
+test('the module baseline is one separate group: debt per module rule, summing to the baseline, and no tier gains debt from it', () => {
+    assert.equal(report.modules.total, modulesBaseline.entries.length);
+    assert.equal(sum(report.modules.rules), modulesBaseline.entries.length);
+    assert.deepEqual(Object.keys(report.modules.rules), [...new Set(modulesBaseline.entries.map(e => e.rule))].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })));
+    assert.equal(report.debtTotal, tiers.entries.length + tags.entries.reduce((n, e) => n + e.count, 0), 'the module debt is not added to the tier debt');
+    assert.equal(tierReport(elements, tiers, tags).modules, undefined, 'without the module baseline (a core/ built on its own) the group is absent');
+});
+
 test('a baseline entry for something that is not an element is an error, not silently dropped', () => {
     assert.throws(() => tierReport(elements, { entries: [{ rule: 'C1', element: 'nope', ref: 'pk-x' }] }, { entries: [] }), /not an element/);
 });
 
-test('tiers.current.json is what the build produces (run node scripts/bootstrap.mjs when it fails)', () => {
-    const built = build({ write: false }).out.get('site/scorecard/tiers.current.json');
-    assert.ok(built, 'the build does not write tiers.current.json');
-    assert.equal(fs.readFileSync(path.join(root, 'site/scorecard/tiers.current.json'), 'utf8').replace(/\r\n/g, '\n'), built.replace(/\r\n/g, '\n'));
-    assert.deepEqual(JSON.parse(built), report);
+test('tiers.current.json holds the report derived from the sources and baselines (that the file is what the build produces is generated-current.test.mjs)', () => {
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'site/scorecard/tiers.current.json'), 'utf8')), report);
 });

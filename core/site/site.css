@@ -14,6 +14,34 @@
 
 .site-scroll > * { max-width: var(--site-scroll-max-w); margin-inline: auto; }
 
+/* The Guides page: one pk-doc-page in a scrolling box (its table of contents follows this box, config.scroller), and the converted Markdown of its article. */
+.site-docs { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+.site-docs pk-side-nav { --shell-nav-w: var(--site-docs-nav-w); }
+
+.site-docs .prose > :is(h2, h3, h4) { scroll-margin-top: var(--space-4); }
+
+/* The permalink after a heading: empty in the markup, drawn here, shown when the heading is hovered or the link has focus. */
+.site-docs .prose .anchor { margin-inline-start: var(--space-2); color: var(--color-muted); text-decoration: none; opacity: 0; }
+
+.site-docs .prose .anchor::after { content: "#"; }
+
+.site-docs .prose :is(h2, h3, h4):hover .anchor, .site-docs .prose .anchor:focus-visible { opacity: 1; }
+
+.site-docs .prose .anchor:focus-visible, .site-docs .prose .table-wrap:focus-visible { outline: var(--focus-ring); outline-offset: var(--site-focus-offset); }
+
+.site-docs .prose .table-wrap { overflow-x: auto; }
+
+.site-docs .prose :is(th, td) { vertical-align: top; }
+
+.site-docs .prose th { font-weight: 600; }
+
+.site-docs .prose td code { overflow-wrap: anywhere; }
+
+.site-docs .prose img { border: var(--site-border-w) solid var(--color-border); border-radius: var(--radius-md); }
+
+.site-docs .prose pk-code-block { display: block; }
+
 .site-actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
 
 .gx-notice-file { margin: var(--space-4); }
@@ -34,7 +62,7 @@
 
 .site-actions pk-app-bar-search::part(popup) { display: none; }
 
-@media (max-width: 1024px) {
+@media (--tablet) {
     .site pk-navbar::part(nav) { position: relative; flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-3); }
 
     .site pk-navbar::part(actions) { order: 2; margin-inline-start: auto; gap: var(--space-1); }
@@ -46,7 +74,7 @@
     .site pk-navbar[open]::part(links) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); }
 }
 
-@media (max-width: 640px) {
+@media (--phone) {
     .site-scroll { padding: var(--space-3); }
 
     .site-actions pk-app-bar-search { flex: none; }

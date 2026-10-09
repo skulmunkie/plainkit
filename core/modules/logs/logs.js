@@ -15,14 +15,13 @@
 
 import { addLogSink, getLogBuffer, getLoggingConfig, clearLogBuffer, createLogger } from '../../js/log.js';
 import { VIEW_LEVELS, filterLogEntries, scopesOf, countLevels, rowFor, describeDetail, pushLog, serializeEntries, parseImport, mergeEntries, formatTime, routeOf } from '../../js/log-view-logic.js';
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on, later, every } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
 const modLog = createLogger('logs');
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./logs.css'];
 
 export const DEFAULTS = Object.freeze({ max: 1000, level: 'debug', order: 'newest' });
 const LEVEL_LABEL = { debug: 'Debug', info: 'Info', warn: 'Warn', error: 'Error' };
@@ -33,7 +32,7 @@ export async function mountLogs(container, options = {}) {
     const { theme, height, max = DEFAULTS.max } = options;
     const doc = container.ownerDocument;
     const win = doc.defaultView;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     let entries = [];
     let nextId = 1;
@@ -62,14 +61,14 @@ export async function mountLogs(container, options = {}) {
     const file = h(doc, 'input', { type: 'file', accept: '.json,application/json', hidden: true, 'aria-label': 'Import a log file' });
     const table = h(doc, 'pk-table', { label: 'Log entries', density: 'compact', stickyHeader: true, clickable: true, manual: true, cards: true, maxHeight: '18rem', columns: JSON.stringify(COLUMNS) },
         h(doc, 'pk-empty-state', { slot: 'empty', heading: 'No log entries', tone: 'compact', description: 'Entries appear here as the SDK or your code logs them.' }));
-    const detail = h(doc, 'div', { class: 'lg-detail', hidden: true });
+    const detail = h(doc, 'div', { hidden: true });
 
-    const root = h(doc, 'section', { class: 'lg-module', 'aria-label': 'Logs' },
+    const root = h(doc, 'section', { 'aria-label': 'Logs' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' },
         h(doc, 'pk-stack', { gap: 'sm' },
             h(doc, 'pk-cluster', {}, search, levels, scopeSelect),
             h(doc, 'pk-cluster', {}, ...VIEW_LEVELS.map(v => badges[v]), status),
             h(doc, 'pk-cluster', {}, pause, order, clear, copy, exportBtn, importBtn, file),
-            table, detail));
+            table, detail)));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
@@ -94,12 +93,12 @@ export async function mountLogs(container, options = {}) {
         const d = describeDetail(entry.detail);
         const route = routeOf(entry, getLoggingConfig());
         const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', slot: 'actions' }, 'Close');
-        close.addEventListener('click', () => api.select(null));
+        on(close, 'click', () => api.select(null));
         const facts = `${formatTime(entry.at)}, scope ${entry.scope}${route.below ? `, below the ${route.needed} level so not sent to any output` : ''}${entry.imported ? ', imported' : ''}`;
         const card = h(doc, 'pk-card', { heading: `${LEVEL_LABEL[entry.level]}: ${entry.scope}`, level: 4 }, close,
             h(doc, 'pk-stack', { gap: 'xs' },
                 h(doc, 'span', { class: 'muted' }, facts),
-                h(doc, 'p', { class: 'lg-message' }, entry.message),
+                h(doc, 'pk-code-block', { label: 'Message', wrap: true, 'no-copy': true }, entry.message),
                 d.kind === 'none' ? null : h(doc, 'pk-code-block', { label: d.kind === 'error' ? 'Error stack' : d.kind === 'text' ? 'Detail' : 'Detail (JSON)', wrap: true, maxHeight: '14rem' }, d.text)));
         detail.replaceChildren(card);
         detail.hidden = false;
@@ -118,8 +117,8 @@ export async function mountLogs(container, options = {}) {
         drawScopes();
         if (selected !== null) drawDetail();
     }
-    let queued = 0;
-    const schedule = () => { if (!queued) queued = win.setTimeout(() => { queued = 0; render(); }, 100); };
+    let queued = null;
+    const schedule = () => { if (!queued) queued = later(win, () => { queued = null; render(); }, 100); };
 
     // ---- the feed: the buffer first, then the live sink --------------------------------------------------------------------------
     const add = entry => { entries = pushLog(entries, { ...entry, id: nextId++ }, max); schedule(); };
@@ -127,28 +126,28 @@ export async function mountLogs(container, options = {}) {
     const unsink = addLogSink(add);
 
     // ---- controls -------------------------------------------------------------------------------------------------------------
-    search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
-    levels.addEventListener('pk-toggle', e => {
+    on(search, 'pk-search', e => { text = e.detail.value ?? ''; render(); });
+    on(levels, 'pk-toggle', e => {
         const b = e.target.closest('pk-button');
         if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { minLevel = b.getAttribute('value'); render(); }
     });
-    scopeSelect.addEventListener('pk-value-change', e => { scopes = String(e.detail.value ?? '').split(',').filter(Boolean); drawnScopes = ''; render(); });
-    pause.addEventListener('pk-toggle', e => (e.detail?.pressed ? api.pause() : api.resume()));
-    order.addEventListener('pk-toggle', e => { newestFirst = Boolean(e.detail?.pressed); render(); });
-    clear.addEventListener('click', () => api.clear());
-    table.addEventListener('pk-row-click', e => api.select(Number(e.detail?.id)));
-    copy.addEventListener('click', async () => {
+    on(scopeSelect, 'pk-value-change', e => { scopes = String(e.detail.value ?? '').split(',').filter(Boolean); drawnScopes = ''; render(); });
+    on(pause, 'pk-toggle', e => (e.detail?.pressed ? api.pause() : api.resume()));
+    on(order, 'pk-toggle', e => { newestFirst = Boolean(e.detail?.pressed); render(); });
+    on(clear, 'click', () => api.clear());
+    on(table, 'pk-row-click', e => api.select(Number(e.detail?.id)));
+    on(copy, 'click', async () => {
         try { await win.navigator.clipboard.writeText(serializeEntries(shown())); note = 'Copied as JSON'; } catch { note = 'Copy was blocked by the browser'; }
         render();
     });
-    exportBtn.addEventListener('click', () => {
+    on(exportBtn, 'click', () => {
         const url = win.URL.createObjectURL(new win.Blob([serializeEntries(shown())], { type: 'application/json' }));
         const a = h(doc, 'a', { href: url, download: `plainkit-log-${new Date().toISOString().replace(/[:.]/g, '-')}.json` });
         doc.body.append(a); a.click(); a.remove();
-        win.setTimeout(() => win.URL.revokeObjectURL(url), 1000);
+        later(win, () => win.URL.revokeObjectURL(url), 1000);
     });
-    importBtn.addEventListener('click', () => file.click());
-    file.addEventListener('change', async () => {
+    on(importBtn, 'click', () => file.click());
+    on(file, 'change', async () => {
         const chosen = file.files?.[0];
         file.value = '';
         if (!chosen) return;
@@ -162,7 +161,7 @@ export async function mountLogs(container, options = {}) {
         render();
     });
     // The console level can change in the Logging panel or in code: the Output column follows within a moment.
-    const timer = win.setInterval(() => { if (!paused && entries.length) render(); }, 3000);
+    const stopTimer = every(win, () => { if (!paused && entries.length) render(); }, 3000);
 
     render();
     const api = {
@@ -178,7 +177,7 @@ export async function mountLogs(container, options = {}) {
             if (typeof next.text === 'string') { text = next.text; search.setAttribute('value', text); }
             render();
         },
-        destroy() { unsink(); win.clearInterval(timer); win.clearTimeout(queued); root.remove(); },
+        destroy() { unsink(); stopTimer(); queued?.(); root.remove(); },
     };
     return api;
 }

@@ -17,7 +17,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows items rows whose value is empty instead of hiding them (issue #207)."
+      "description": "Shows rows whose value is empty instead of hiding them: items rows with no value, and slotted dt/dd pairs whose dd has no element and no text (issue 801)."
     },
     {
       "name": "heading",
@@ -62,7 +62,7 @@
   "slots": [
     {
       "name": "",
-      "description": "dt and dd pairs; a dd may hold chips, links or code. Renders alongside any items rows."
+      "description": "dt and dd pairs; a dd may hold chips, links or code. Renders alongside any items rows. A pair whose dd is empty (no element, no text) hides itself unless showEmpty is set, so an optional value needs no wrapper."
     },
     {
       "name": "heading",
@@ -138,5 +138,14 @@
     }
   ],
   "contentStyles": [],
-  "contentStylesNote": "Slotted dt and dd are styled from the shadow root with ::slotted (they are direct children). Anything inside them (a code element, an info tip) is light DOM and takes the page styles. Rows from items are shadow-tree dt/dd the element owns and styles directly (parts term/value/value-link); their value is set as text, never parsed as markup."
+  "contentStylesNote": "Slotted dt and dd are styled from the shadow root with ::slotted (they are direct children). Anything inside them (a code element, an info tip) is light DOM and takes the page styles. Rows from items are shadow-tree dt/dd the element owns and styles directly (parts term/value/value-link); their value is set as text, never parsed as markup.",
+  "writes": [
+    {
+      "target": "the slotted dt and dd of an empty pair",
+      "attributes": [
+        "hidden"
+      ],
+      "why": "A dt with only empty dd siblings is hidden together with them, and shown again when a value appears; a hidden attribute the author set is never removed."
+    }
+  ]
 }

@@ -140,11 +140,13 @@ export function mountApp(container, config) {
         page.setBreadcrumbs(crumbs);
         page.setTitle(crumbs.length > 1 ? `${label} - ${cfg.title}` : cfg.title);
         if (first) { first = false; return; }
-        if (result === 'error') return; // the boundary's alert announces itself
-        ui.live.textContent = `${label}, page loaded`;
-        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main;
+        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main, own = target.closest('pk-empty-state'), go = () => target.focus({ preventScroll: true });
+        // The boundary's alert announces itself; only its own placeholder title takes focus.
+        if (result === 'error' && !own) return;
+        if (result !== 'error') ui.live.textContent = `${label}, page loaded`;
         target.tabIndex = -1;
-        target.focus({ preventScroll: true });
+        // A boundary title's elements may be undefined yet: focus given before they upgrade is lost.
+        own ? loadElements(ui.main).then(go) : go();
         ui.main.scrollIntoView?.({ block: 'nearest' });
     }
 
@@ -181,10 +183,8 @@ export function mountApp(container, config) {
     const idOf = e => e.target?.closest?.('[data-module]')?.getAttribute('data-module');
     const warm = new Set();
     for (const el of [ui.navbar, ui.sideNav]) {
-        el.addEventListener('pointerover', e => intent(idOf(e)));
-        el.addEventListener('focusin', e => intent(idOf(e)));
-        el.addEventListener('pointerout', () => clearTimeout(timer));
-        el.addEventListener('focusout', () => clearTimeout(timer));
+        for (const ev of ['pointerover', 'focusin']) el.addEventListener(ev, e => intent(idOf(e)));
+        for (const ev of ['pointerout', 'focusout']) el.addEventListener(ev, () => clearTimeout(timer));
     }
     function intent(id) {
         clearTimeout(timer);

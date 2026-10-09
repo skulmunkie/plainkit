@@ -6,6 +6,7 @@
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
 import { applyDynamic } from '../../js/dynamic.js';
+import { on, later } from '../../js/mount-support.js';
 
 const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -47,22 +48,22 @@ export function renderElement(meta, options = {}) {
         const input = d.type === 'boolean' ? h('pk-checkbox', { id, class: 'gx-el-check', title: d.description, checked: Boolean(start) }, d.name)
             : d.type === 'enum' ? h('pk-select', { id, value: start }, ...d.values.map(v => h('option', { value: v }, v)))
             : h('pk-input', { id, type: d.type === 'number' ? 'number' : 'text', value: start });
-        input.addEventListener(d.type === 'boolean' || d.type === 'enum' ? 'change' : 'input', () => { live[d.name] = d.type === 'boolean' ? input.checked : input.value; refresh(); });
+        on(input, d.type === 'boolean' || d.type === 'enum' ? 'change' : 'input', () => { live[d.name] = d.type === 'boolean' ? input.checked : input.value; refresh(); });
         controls.append(d.type === 'boolean' ? input : h('pk-field', { label: d.name, title: d.description }, input));
     }
     const content = h('pk-textarea', { rows: 4, id: `pg-${meta.tag}-content` }); content.setAttribute('value', live.innerHTML.trim());
-    content.addEventListener('input', () => { live.innerHTML = content.value; refresh(); });
+    on(content, 'input', () => { live.innerHTML = content.value; refresh(); });
     const slotField = disclose('Content and slots (markup)', h('pk-field', { label: 'Content and slots (markup)' }, content));
 
     const log = h('ol', { class: 'gx-el-log', 'aria-live': 'polite' });
     const logBox = h('div', { class: 'gx-el-events', hidden: true }, h('h3', {}, 'Events'), log);
-    for (const ev of meta.events) live.addEventListener(ev.name, e => {
+    for (const ev of meta.events) on(live, ev.name, e => {
         logBox.hidden = false;
         log.prepend(h('li', {}, code(ev.name), e.detail === null || e.detail === undefined ? '' : ' ' + JSON.stringify(e.detail)));
         while (log.children.length > 12) log.lastChild.remove();
         refresh();
         // An element that hides itself (an alert's dismiss) would leave an empty stage: bring it back so the playground stays usable.
-        setTimeout(() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
+        later(window, () => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
     });
     const theming = h('pk-stack', { gap: 'sm' });
     // Custom-property overrides go through data-dyn + applyDynamic() (core/js/dynamic.js), never .style directly;
@@ -70,7 +71,7 @@ export function renderElement(meta, options = {}) {
     const dyn = {};
     for (const c of meta.cssProperties) {
         const input = h('pk-input', { placeholder: c.default ?? '' });
-        input.addEventListener('input', () => {
+        on(input, 'input', () => {
             dyn[c.name] = input.value;
             live.setAttribute('data-dyn', Object.entries(dyn).map(([k, v]) => `${k}:${v}`).join('; '));
             applyDynamic(live);

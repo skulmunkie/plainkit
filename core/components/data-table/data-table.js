@@ -3,13 +3,21 @@ import { loadElements } from '../../js/loader.js';
 import { filterControl } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
+// The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
+export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', searchLabel: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
+const SETTINGS = Object.keys(DEFAULTS);
+
 export default Base => class extends Base {
+    opt(name) { return this[name] ?? DEFAULTS[name]; }
     connected() {
         // Cell content (#817): the host's `cell-<id>-<key>` children are re-slotted into the inner pk-table, which finds them as its own children.
         (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
+        // The inner pk-table loads on demand: props set on it before it is defined (clickable above all) are applied again once it is.
+        this.ownerDocument.defaultView?.customElements.whenDefined('pk-table').then(() => this.sync());
         const table = this.part('table'), filters = this.part('filters'), pagination = this.part('pagination');
         // `narrows`: a search or filter changes WHICH rows the query means, so a selection of "all rows" no longer holds (the ids stay selected).
         const go = (patch, narrows) => {
@@ -30,6 +38,7 @@ export default Base => class extends Base {
             this.updateFilterCount();
         });
         filters.addEventListener('pk-clear-filters', () => { for (const el of Object.values(this.$controls ?? {})) el.value = ''; go({ filters: {}, page: 1 }, true); this.updateFilterCount(); });
+        this.part('add').addEventListener('click', () => this.emit('pk-add', null));
         pagination.addEventListener('pk-page', e => go({ page: e.detail.page }));
         pagination.addEventListener('pk-page-size', e => go({ pageSize: e.detail.pageSize, page: 1 }));
         this.buildFilters();
@@ -45,26 +54,41 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
-        // A config that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
-        if (name === 'config') { if (!this.$touched) this.$query = null; this.buildFilters(); this.refresh(); }
+        // A setting that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
+        if (SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); this.refresh(); }
         else this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
-    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.config?.pageSize || 25, sort: this.config?.sort ?? null, sortDir: this.config?.sortDir ?? 'ascending', search: '', filters: {} }) }; }
+    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: {} }) }; }
+
+    // Focus from the host (#885), so a host never reaches into the search box or the rows. focus(): the search box, the first row when the search is hidden; 'search': the search box only;
+    // 'next': the row after the focused one (the first when no row has focus); 'previous', 'first', 'last': only while a row has focus, so Home and the arrows stay the
+    // search box's own. Returns whether focus moved. (focus({ preventScroll }), the standard call, means focus().)
+    focus(where) {
+        const tbl = this.part('table').shadowRoot, rows = [...(tbl?.querySelectorAll('tbody tr[data-pk-context]') ?? [])], at = rows.indexOf(tbl?.activeElement);
+        const found = this.part('filters').shadowRoot?.querySelector('[part="search"]'), box = found?.getBoundingClientRect().width ? found : null; // drawn and shown
+        let to;
+        if (where === 'next') to = rows[Math.min(at + 1, rows.length - 1)];
+        else if (where === 'search') to = box;
+        else if (typeof where === 'string') to = at < 0 ? undefined : rows[where === 'previous' ? Math.max(at - 1, 0) : where === 'first' ? 0 : where === 'last' ? rows.length - 1 : at];
+        else to = box ?? rows[0];
+        to?.focus();
+        return Boolean(to);
+    }
 
     announce() { this.emit('pk-select', { selected: [...(this.selected ?? [])], scope: this.selectScope, query: this.query }); }
 
-    // Rebuilt only when config.filters itself changes (a JSON prop, so a cheap string compare is the dirty check): every other prop change
+    // Rebuilt only when `filters` itself changes (a JSON prop, so a cheap string compare is the dirty check): every other prop change
     // must never wipe what the reader already typed into a filter.
     buildFilters() {
-        const key = JSON.stringify(this.config?.filters ?? []);
+        const key = JSON.stringify(this.opt('filters'));
         if (key === this.$filtersFor) return;
         this.$filtersFor = key;
         const box = this.part('filters');
         box.replaceChildren();
         this.$controls = {};
-        for (const f of this.config?.filters ?? []) box.append(this.$controls[f.key] = filterControl(this.ownerDocument, f));
+        for (const f of this.opt('filters')) box.append(this.$controls[f.key] = filterControl(this.ownerDocument, f));
         loadElements(box);
         this.updateFilterCount();
     }
@@ -72,13 +96,15 @@ export default Base => class extends Base {
 
     // The table's own props follow the query and the selection state.
     sync() {
-        const table = this.part('table'), q = this.query, c = this.config ?? {}, filters = this.part('filters'), pagination = this.part('pagination');
+        this.part('add').hidden = !this.addLabel; this.part('add').textContent = this.addLabel;
+        const table = this.part('table'), q = this.query, filters = this.part('filters'), pagination = this.part('pagination');
         this.forwardSlots();
-        // The labels and inputs of the parts, from config (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
-        filters.label = c.searchLabel ?? 'Search'; filters.debounce = c.searchDebounce ?? 250; filters.toggleAttribute('data-nosearch', c.searchable === false);
-        pagination.sizes = c.pageSizeOptions ?? []; pagination.label = c.pagerLabel ?? 'Pagination';
-        table.label = c.label ?? ''; table.caption = c.caption ?? '';
-        table.columns = this.config?.columns ?? [];
+        // The labels and inputs of the parts (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
+        filters.label = this.opt('searchLabel') || 'Search'; filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
+        pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
+        if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
+        table.label = this.opt('label'); table.caption = this.opt('caption');
+        table.columns = this.opt('columns');
         table.rowKey = this.rowKey;
         table.clickable = this.clickable || typeof this.rowHref === 'function';
         table.currentRow = this.currentRow;
@@ -87,14 +113,14 @@ export default Base => class extends Base {
         table.selectable = this.selectable;
         table.selected = this.selected ?? [];
         table.selectScope = this.selectScope;
-        for (const k of ['cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
+        for (const k of ['selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
-    // Zero rows: while a search or filter is active config.noResults (when set), else config.empty; with nothing active a host child in the `empty` slot replaces the built-in state.
+    // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot replaces the built-in state.
     showEmpty(q) {
-        const c = this.config ?? {}, state = this.part('state'), searching = q.search || Object.values(q.filters).some(v => String(v ?? '').trim() !== '');
+        const state = this.part('state'), noResults = this.opt('noResults'), searching = q.search || Object.values(q.filters).some(v => String(v ?? '').trim() !== '');
         if (!searching && this.querySelector(':scope > [slot="empty"]')) { showState(state, 'ready'); this.part('empty').hidden = false; }
-        else showState(state, 'empty', searching && c.noResults ? c.noResults : c.empty);
+        else showState(state, 'empty', searching && noResults ? noResults : this.opt('empty') ?? undefined);
     }
 
     // Runs load(query) for the current page/sort/filter/search and draws the result: a loading state while it is in flight, an error state
@@ -115,7 +141,7 @@ export default Base => class extends Base {
             result = await this.load(q, { signal });
         } catch (err) {
             if (this.$token !== token) return;
-            showState(state, 'error', { heading: this.config?.loadError, error: err, retry: () => this.refresh() });
+            showState(state, 'error', { heading: this.opt('loadError') || undefined, error: err, retry: () => this.refresh() });
             this.emit('pk-load-error', { error: err });
             return;
         }

@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
@@ -36,13 +36,19 @@
       "name": "pk-record-dirty",
       "detail": "{ dirty }",
       "detailProps": { "dirty": "boolean" },
-      "description": "The unsaved-changes state changed. An app that owns its router uses it to confirm before leaving."
+      "description": "The unsaved-changes state changed. The app framework's record page type uses it to confirm before an in-app leave (link, breadcrumb, back/forward)."
     },
     {
       "name": "pk-record-save",
       "detail": "{ values }",
       "detailProps": {},
       "description": "save() resolved; values are the saved record."
+    },
+    {
+      "name": "pk-record-delete",
+      "detail": "{ id }",
+      "detailProps": {},
+      "description": "The Delete button (shown in view mode of an existing record when config.deletable is set) was pressed. The app framework's record page type asks first, calls its delete(id, ctx) and toasts; a host that uses the element alone handles the event."
     }
   ],
   "parts": [
@@ -54,6 +60,7 @@
     { "name": "edit", "description": "The Edit button (view mode)." },
     { "name": "cancel", "description": "The Cancel button (edit mode of an existing record)." },
     { "name": "save", "description": "The Save button (edit mode); busy while save() is in flight." },
+    { "name": "delete", "description": "The Delete button (view mode of an existing record, when config.deletable is true); raises pk-record-delete." },
     { "name": "notice", "description": "The save error, above the form." },
     { "name": "state", "description": "The loading, not-found or load error state, in place of the record." }
   ],

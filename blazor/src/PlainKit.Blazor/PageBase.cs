@@ -14,19 +14,16 @@ namespace PlainKit.Blazor;
 ///   @inherits PageBase
 ///   &lt;PkPageHeader Title="@Title" Crumbs="@Crumbs" /&gt;
 ///   @if (StatusMessage is not null) { &lt;PkAlert Kind="@StatusKind" Heading="@StatusHeading"&gt;@StatusMessage&lt;/PkAlert&gt; }
-///   &lt;PkLoadingOverlay Busy="@ShowBusyOverlay" Label="@BusyLabel"&gt;...&lt;/PkLoadingOverlay&gt;
+///   &lt;PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel"&gt;...&lt;/PkLoadingOverlay&gt;
 ///   @code {
 ///       protected override void OnInitialized() { Title = "Orders"; Crumbs = [new("Home", "/"), new("Orders")]; }
 ///       private Task LoadAsync() => BusyAsync(async () => Orders = await Client.GetOrdersAsync(), "Loading orders…");
 ///   }
 /// </summary>
-public abstract class PageBase : ComponentBase, IDisposable
+public abstract partial class PageBase : ComponentBase, IDisposable
 {
     /// <summary>Writes an error into the SDK log through <see cref="IPkLog"/> (used by <see cref="SetErrorAsync"/>).</summary>
     [Inject] protected IPkLog Log { get; set; } = default!;
-
-    /// <summary>The clock behind the busy overlay's delay and minimum time. <see cref="TimeProvider.System"/> by default; a test overrides it with a fake so the timing is deterministic.</summary>
-    protected virtual TimeProvider Clock => TimeProvider.System;
 
     /// <summary>The page's title; bind into <see cref="PkPageHeader.Title"/> or the document title.</summary>
     protected string? Title { get; set; }
@@ -48,18 +45,6 @@ public abstract class PageBase : ComponentBase, IDisposable
 
     /// <summary>The label of the most recent busy action still running; once idle, the label of the last one (so a fading overlay keeps its text).</summary>
     protected string? BusyLabel => _busy.Count > 0 ? _busy[^1].Label : _lastLabel;
-
-    /// <summary>
-    /// Whether the loading overlay should be showing: bind this, not <see cref="IsBusy"/>, into <c>PkLoadingOverlay Busy</c>. It turns true only when busy lasts longer than
-    /// <see cref="BusyDelay"/> (so a fast action never flashes it) and stays true for at least <see cref="BusyMinTime"/> once shown (so it never flickers).
-    /// </summary>
-    protected bool ShowBusyOverlay { get; private set; }
-
-    /// <summary>How long busy must last before the overlay appears (about 150 ms). Override to change; zero shows it at once.</summary>
-    protected virtual TimeSpan BusyDelay => TimeSpan.FromMilliseconds(150);
-
-    /// <summary>How long the overlay stays once shown (about 300 ms). Override to change; zero hides it as soon as busy ends.</summary>
-    protected virtual TimeSpan BusyMinTime => TimeSpan.FromMilliseconds(300);
 
     /// <summary>The scope this page logs under: the SDK scope on the JavaScript side and the <c>PlainKit.&lt;scope&gt;</c> ILogger category. Override to name it; defaults to the page's own type name.</summary>
     protected virtual string LogScope => GetType().Name;
@@ -98,7 +83,7 @@ public abstract class PageBase : ComponentBase, IDisposable
         var token = new BusyToken(label, this);
         _busy.Add(token);
         _lastLabel = label;
-        BusyChanged();
+        StateHasChanged();
         return token;
     }
 
@@ -136,21 +121,16 @@ public abstract class PageBase : ComponentBase, IDisposable
         }
     }
 
-    /// <summary>Releases every busy token and cancels the overlay timers. Blazor does this when it disposes the page; a page that implements its own <c>Dispose</c> calls this from it.</summary>
+    /// <summary>Releases every busy token. Blazor does this when it disposes the page; a page that implements its own <c>Dispose</c> calls this from it.</summary>
     protected void ReleaseBusy()
     {
         _busy.Clear();
-        _showCts?.Cancel(); _showCts = null;
-        _hideCts?.Cancel(); _hideCts = null;
-        ShowBusyOverlay = false;
     }
 
     void IDisposable.Dispose() => ReleaseBusy();
 
     private readonly List<BusyToken> _busy = [];
     private string? _lastLabel;
-    private CancellationTokenSource? _showCts, _hideCts;
-    private DateTimeOffset _shownAt;
 
     private sealed class BusyToken(string? label, PageBase page) : IDisposable
     {
@@ -163,53 +143,7 @@ public abstract class PageBase : ComponentBase, IDisposable
             _page = null;
             if (owner is null) return;
             if (owner._busy.Remove(this) && owner._busy.Count > 0) owner._lastLabel = owner._busy[^1].Label;
-            owner.BusyChanged();
-        }
-    }
-
-    // Brings ShowBusyOverlay in line with the tokens. No polling: at most one delay task (show) or one hold task (hide) at a time.
-    private void BusyChanged()
-    {
-        _hideCts?.Cancel(); _hideCts = null;
-        if (_busy.Count > 0)
-        {
-            if (!ShowBusyOverlay && _showCts is null)
-            {
-                if (BusyDelay <= TimeSpan.Zero) SetOverlay(true);
-                else Later(BusyDelay, () => { _showCts = null; SetOverlay(true); }, cts => _showCts = cts);
-            }
-        }
-        else
-        {
-            _showCts?.Cancel(); _showCts = null;
-            if (ShowBusyOverlay)
-            {
-                var left = BusyMinTime - (Clock.GetUtcNow() - _shownAt);
-                if (left > TimeSpan.Zero) Later(left, () => { _hideCts = null; SetOverlay(false); }, cts => _hideCts = cts);
-                else SetOverlay(false);
-            }
-        }
-        StateHasChanged();
-    }
-
-    private void SetOverlay(bool on)
-    {
-        ShowBusyOverlay = on;
-        if (on) _shownAt = Clock.GetUtcNow();
-        StateHasChanged();
-    }
-
-    private void Later(TimeSpan delay, Action then, Action<CancellationTokenSource> keep)
-    {
-        var cts = new CancellationTokenSource();
-        keep(cts);
-        _ = Run();
-
-        async Task Run()
-        {
-            try { await Task.Delay(delay, Clock, cts.Token); }
-            catch (OperationCanceledException) { return; }
-            await InvokeAsync(() => { if (!cts.IsCancellationRequested) then(); });
+            owner.StateHasChanged();
         }
     }
 }

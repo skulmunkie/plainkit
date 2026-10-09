@@ -26,7 +26,7 @@ const recordConfig = {
     heading: 'Order',
     fields: [{ name: 'customer', label: 'Customer', required: true }, { name: 'status', label: 'Status', type: 'select', options: ['Open', 'Shipped'] }, { name: 'total', label: 'Total', type: 'number' }],
     load: async id => ORDERS.find(o => o.id === id) ?? null,
-    save: async (values, ctx) => { ctx.notify?.success('Order saved'); return values; },
+    save: async values => values, // the page type toasts "Saved" itself (config.toasts words or silences it)
 };
 
 // Content pages: a document with a table of contents, and a workspace of panes your callback draws into.
@@ -58,6 +58,7 @@ export default defineModule({
             load: async key => ({ value: key === 'open' ? String(ORDERS.filter(o => o.status === 'Open').length) : `$${ORDERS.reduce((sum, o) => sum + o.total, 0)}` }),
         } },
         { path: '/tool', label: 'Tool', page: 'tool', config: {
+            heading: 'Tax calculator',
             input: [{ key: 'amount', type: 'number', label: 'Amount', required: true }],
             outcome: 'stat',
             runLabel: 'Add tax',

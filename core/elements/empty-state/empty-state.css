@@ -6,4 +6,4 @@
 [part="icon"] { opacity: 0.6; }
 [part="heading"] { margin: 0; font-size: var(--text-lg); font-weight: 600; color: var(--color-text); }
 [part="description"] { margin: 0; max-inline-size: 40rem; line-height: 1.5; }
-[part="actions"] { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-block-start: var(--space-2); }
+[part="actions"] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); margin-block-start: var(--space-2); }

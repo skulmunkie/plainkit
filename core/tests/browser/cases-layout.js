@@ -377,3 +377,56 @@ layoutCases.push(
         }
     }],
 );
+
+// Issue 728: pk-card-menu in the actions slot of a pk-card header. Same expectations as the hand-assembled dropdown above, and the open menu stays inside the viewport.
+layoutCases.push(
+    ['card-menu: in the card actions slot with a long heading, the button stays on the first row at the inline end, and the open menu is inside the viewport (LTR and RTL, desktop and phone widths)', async t => {
+        for (const dir of ['ltr', 'rtl']) for (const width of [600, 375]) {
+            const host = t.stage(`<div dir="${dir}"><pk-card heading="${LONG}"><pk-card-menu slot="actions" label="Orders actions"><pk-menu-item value="export">Export</pk-menu-item><pk-menu-item value="archive">Archive</pk-menu-item></pk-card-menu><p>Body</p></pk-card></div>`);
+            host.style.inlineSize = `${width}px`; await t.load(host);
+            const card = host.querySelector('pk-card'), cm = host.querySelector('pk-card-menu'); const title = card.part('title').getBoundingClientRect(); const header = card.part('header').getBoundingClientRect();
+            const btn = cm.part('button').getBoundingClientRect(); const c = card.getBoundingClientRect(); const at = `${dir} ${width}px`;
+            t.ok(title.height > btn.height * 1.5, `${at}: the heading wraps onto several lines (${Math.round(title.height)}px tall)`);
+            t.ok(btn.top < title.top + title.height / 2 && btn.bottom > title.top, `${at}: the button shares the heading's first row (button ${Math.round(btn.top)}-${Math.round(btn.bottom)}, heading ${Math.round(title.top)}-${Math.round(title.bottom)})`);
+            t.ok(btn.bottom <= header.bottom, `${at}: the button is inside the header`);
+            const dist = dir === 'ltr' ? c.right - btn.right : btn.left - c.left;
+            const pad = parseFloat(getComputedStyle(card.part('content')).paddingInlineEnd);
+            t.ok(Math.abs(dist - pad - 1) <= 2, `${at}: the button sits at the inline end, ${Math.round(dist)}px from the card edge (padding ${Math.round(pad)}px)`);
+            t.ok(dir === 'ltr' ? title.right <= btn.left + 1 : title.left >= btn.right - 1, `${at}: the heading does not run under the button`);
+            // The stage sits at left -10000px and a menu is kept inside the viewport: bring it on screen so the menu is placed against its button, not clamped.
+            const stage = document.getElementById('stage'), was = stage.style.left; stage.style.left = '0';
+            try {
+            cm.open = true; await new Promise(r => setTimeout(r, 150));
+            const menu = cm.part('menu').part('menu').getBoundingClientRect(), b2 = cm.part('button').getBoundingClientRect();
+            t.ok(menu.width > 0 && menu.left >= -1 && menu.right <= innerWidth + 1 && menu.top >= -1 && menu.bottom <= innerHeight + 1, `${at}: the open menu is inside the viewport (${Math.round(menu.left)}-${Math.round(menu.right)} of ${innerWidth})`);
+            t.ok(dir === 'ltr' ? Math.abs(menu.right - b2.right) <= 2 : Math.abs(menu.left - b2.left) <= 2, `${at}: the menu is aligned to the button's inline end (menu ${Math.round(menu.left)}-${Math.round(menu.right)}, button ${Math.round(b2.left)}-${Math.round(b2.right)})`);
+            cm.open = false;
+            } finally { stage.style.left = was; }
+        }
+    }],
+);
+
+// Issue 889: on a phone the table's search box, the rows of a clickable table and the row checkboxes are at least the touch target (44px). The fixture page opens in an iframe of the width under test, so the phone media query answers to it.
+layoutCases.push(
+    ['data-table on a phone: the search box, clickable rows and row checkboxes are 44px tall at least (and the checkboxes 44px wide); on desktop the rows stay compact (issue 889)', async t => {
+        for (const width of [375, 1280]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `data table at ${width}px`; fr.style.cssText = `width:${width}px;height:600px;border:0;display:block`;
+            fr.src = new URL('./table-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-data-table', 'pk-table', 'pk-table-filters'].map(tag => win.customElements.whenDefined(tag)));
+            const dt = d.querySelector('pk-data-table');
+            for (let i = 0; i < 100 && !dt.part('table')?.shadowRoot?.querySelector('tr[data-clickable]'); i++) await wait(40);
+            const inner = dt.part('table').shadowRoot, h = el => el.getBoundingClientRect(), at = `${width}px`;
+            const search = dt.part('filters').shadowRoot.querySelector('[part="search"]'), rows = [...inner.querySelectorAll('tr[data-clickable]')], boxes = [...inner.querySelectorAll('[data-select], [data-select-all]')];
+            t.ok(search && rows.length === 3 && boxes.length === 4, `${at}: the search box, three rows and four checkboxes are there`);
+            const phone = width < 600, min = phone ? 43.5 : 0;
+            t.ok(h(search).height >= min && h(search).height > 0, `${at}: the search box is ${Math.round(h(search).height)}px tall`);
+            for (const r of rows) t.ok(h(r).height >= min, `${at}: a clickable row is ${Math.round(h(r).height)}px tall`);
+            for (const b of boxes) t.ok(h(b).height >= min && h(b).width >= min, `${at}: a checkbox is ${Math.round(h(b).width)}x${Math.round(h(b).height)}px`);
+            if (!phone) t.ok(h(rows[0]).height < 44, `${at}: desktop rows stay compact (${Math.round(h(rows[0]).height)}px)`);
+            fr.remove();
+        }
+    }],
+);

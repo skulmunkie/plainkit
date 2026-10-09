@@ -1,0 +1,225 @@
+{
+  "categories": {
+    "typed-generics": "a typed (TItem) component or type that shapes rows, columns or results for the element",
+    "callback-slot": "runs a .NET callback for an element callback property (PkCallbackSlot) or is the slot itself",
+    "router": "needs NavigationManager or the Blazor router, which core cannot have",
+    "editcontext": "EditContext, DataAnnotations, ValueExpression or two-way binding for form controls",
+    "mount": "a marker element plus a mount bridge call; JavaScript (a core module) owns the content",
+    "wrapper": "a pass-through of an element (parameters, slots, events) the generator cannot express yet",
+    "base": "a base class or shared parameter set for generated or hand-written components",
+    "runtime": "server concern: JS loading, assets, DI, hosting, logging, time zone, page state, typed stores",
+    "dto": "a type for JSON, events or enums: no behaviour",
+    "devtools": "the inspector, snapshot and circuit state of the dev tools host",
+    "debt": "behaviour that belongs in core; listed in the baseline with its reason and the lift-out it waits for"
+  },
+  "files": {
+    "Components/_Imports.razor": {
+      "category": "wrapper"
+    },
+    "Components/PkAppBarSearch.razor": {
+      "category": "router"
+    },
+    "Components/PkCodeExplorer.razor": {
+      "category": "mount"
+    },
+    "Components/PkConsole.razor": {
+      "category": "mount"
+    },
+    "Components/PkDataTable.razor": {
+      "category": "typed-generics"
+    },
+    "Components/PkDevTools.razor": {
+      "category": "mount",
+      "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash"
+    },
+    "Components/PkDevToolsPage.razor": {
+      "category": "wrapper",
+      "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
+    },
+    "Components/PkFieldGroup.razor": {
+      "category": "debt"
+    },
+    "Components/PkGallery.razor": {
+      "category": "wrapper"
+    },
+    "Components/PkLookupPicker.razor": {
+      "category": "typed-generics"
+    },
+    "Components/PkLogs.razor": {
+      "category": "mount"
+    },
+    "Components/PkLogSettings.razor": {
+      "category": "mount"
+    },
+    "Components/PkPerformance.razor": {
+      "category": "mount"
+    },
+    "Components/PkQuality.razor": {
+      "category": "mount"
+    },
+    "Components/PkRecordForm.razor": {
+      "category": "debt"
+    },
+    "Components/PkScorecard.razor": {
+      "category": "mount"
+    },
+    "Components/PkSideNav.razor": {
+      "category": "router"
+    },
+    "Components/PkStyles.razor": {
+      "category": "wrapper",
+      "blazorOnly": "writes the stylesheet link; there is no element"
+    },
+    "Components/PkTable.razor": {
+      "category": "typed-generics"
+    },
+    "Components/PkTableBase.cs": {
+      "category": "base"
+    },
+    "Components/PkThemeEditor.razor": {
+      "category": "mount"
+    },
+    "Components/PkToolDock.razor": {
+      "category": "mount"
+    },
+    "Components/PkToolDockPanel.razor": {
+      "category": "mount",
+      "blazorOnly": "a tab of PkToolDock rendered by Razor; the dock mounts its host div"
+    },
+    "DevTools/PkCircuitHandler.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkCircuitState.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkCodePattern.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkDevToolsHost.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkGallerySection.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkInteropLog.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkMappingInfo.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkSnapshot.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkSnapshotReader.cs": {
+      "category": "devtools"
+    },
+    "DevTools/PkSourceProvider.cs": {
+      "category": "devtools"
+    },
+    "EndpointExtensions.cs": {
+      "category": "runtime"
+    },
+    "PageBase.cs": {
+      "category": "runtime"
+    },
+    "PageBase.Toasts.cs": {
+      "category": "runtime"
+    },
+    "PkAppBarSearchTypes.cs": {
+      "category": "dto"
+    },
+    "PkAssets.cs": {
+      "category": "runtime"
+    },
+    "PkCallbackSlot.cs": {
+      "category": "callback-slot",
+      "allows": [
+        "cancellation"
+      ]
+    },
+    "PkChartData.cs": {
+      "category": "dto"
+    },
+    "PkCrumb.cs": {
+      "category": "dto"
+    },
+    "PkDockTypes.cs": {
+      "category": "dto"
+    },
+    "PkElementBase.cs": {
+      "category": "base"
+    },
+    "PkEnums.cs": {
+      "category": "dto"
+    },
+    "PkFieldGroupTypes.cs": {
+      "category": "typed-generics"
+    },
+    "PkFieldListTypes.cs": {
+      "category": "typed-generics"
+    },
+    "PkFormControlBase.cs": {
+      "category": "editcontext"
+    },
+    "PkGalleryImage.cs": {
+      "category": "dto"
+    },
+    "PkHostEnvironment.cs": {
+      "category": "runtime"
+    },
+    "PkInputFormat.cs": {
+      "category": "typed-generics"
+    },
+    "PkListTypes.cs": {
+      "category": "typed-generics"
+    },
+    "PkLogging.cs": {
+      "category": "runtime"
+    },
+    "PkNotifications.cs": {
+      "category": "runtime"
+    },
+    "PkOptions.cs": {
+      "category": "runtime"
+    },
+    "PkRecordEditor.cs": {
+      "category": "editcontext"
+    },
+    "PkRecordEditor.Toasts.cs": {
+      "category": "editcontext"
+    },
+    "PkRuntime.cs": {
+      "category": "runtime"
+    },
+    "PkScoreTarget.cs": {
+      "category": "dto"
+    },
+    "PkSelectOption.cs": {
+      "category": "dto"
+    },
+    "PkSharedState.cs": {
+      "category": "typed-generics"
+    },
+    "PkStore.cs": {
+      "category": "typed-generics"
+    },
+    "PkTableColumn.cs": {
+      "category": "typed-generics"
+    },
+    "PkTableTypes.cs": {
+      "category": "typed-generics"
+    },
+    "PkThemePreset.cs": {
+      "category": "dto"
+    },
+    "PkTimeZone.cs": {
+      "category": "runtime"
+    },
+    "ServiceCollectionExtensions.cs": {
+      "category": "runtime"
+    },
+    "Testing/PkDataTableTesting.cs": {
+      "category": "callback-slot"
+    }
+  }
+}

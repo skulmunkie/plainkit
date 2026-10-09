@@ -1,8 +1,8 @@
 // Unit tests for pk-data-table: the query/load/state machine (stale-response guard, loading, error with Retry, empty), the filters built from
-// config, and selection that survives paging and search (scope page or all; for all the host gets the current query). Stub base, no DOM.
+// the plain props, and selection that survives paging and search (scope page or all; for all the host gets the current query). Stub base, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour from './data-table.js';
+import behaviour, { DEFAULTS } from './data-table.js';
 import { readFileSync } from 'node:fs';
 
 globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
@@ -22,17 +22,18 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty'].map(n => [n, fakeEl(n)]));
+    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty', 'add'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
         children = [];
+        hasAttribute() { return false; }
+        warnOnce(key) { (this.warned ??= []).push(key); }
         querySelector(sel) { return this.slotted?.some(s => sel.includes(`"${s}"`)) ? {} : null; }
         part(n) { return parts[n]; }
         get ownerDocument() { return { createElement: fakeEl }; }
         get shadowRoot() { return { querySelectorAll: () => [], matches: () => false }; }
         emit(name, detail) { events.push({ name, detail }); }
     }))();
-    el.config = {};
     return { el, parts, events };
 };
 const rowsOf = n => ({ rows: Array.from({ length: n }, (_, i) => ({ id: i + 1 })), total: n });
@@ -58,9 +59,9 @@ test('the host\'s cell-<id>-<key> slots are re-slotted into the inner pk-table (
     assert.equal(parts.table.updates, updates + 1, 'the table is asked to redraw so it finds them');
 });
 
-test('filters map field types to controls, add an Any option to a select, and rebuild only when config.filters changes', () => {
+test('filters map field types to controls, add an Any option to a select, and rebuild only when filters changes', () => {
     const { el, parts } = make();
-    el.config = { filters: [{ key: 'q', type: 'text', label: 'Query' }, { key: 'n', type: 'number', label: 'Count' }, { key: 'status', type: 'select', label: 'Status', options: ['Active', { value: 'archived', label: 'Archived' }] }] };
+    el.filters = [{ key: 'q', type: 'text', label: 'Query' }, { key: 'n', type: 'number', label: 'Count' }, { key: 'status', type: 'select', label: 'Status', options: ['Active', { value: 'archived', label: 'Archived' }] }];
     el.buildFilters();
     const [q, n, status] = parts.filters.children;
     assert.equal(q.localName, 'pk-input'); assert.equal(q.type, 'text'); assert.equal(q.showLabel, true); assert.equal(q.dataset.key, 'q');
@@ -74,7 +75,7 @@ test('filters map field types to controls, add an Any option to a select, and re
 
 test('refresh shows the empty state without a load callback and never shows the table', async () => {
     const { el, parts } = make();
-    el.config = { empty: { heading: 'No orders yet' } };
+    el.empty = { heading: 'No orders yet' };
     await el.refresh();
     assert.equal(parts.table.hidden, true);
     assert.equal(parts.state.children[0].localName, 'pk-empty-state');
@@ -83,7 +84,7 @@ test('refresh shows the empty state without a load callback and never shows the 
 
 test('refresh runs load(query), shows the table on rows and feeds the pager; the table is hidden and a loading state shown while in flight', async () => {
     const { el, parts } = make();
-    el.config = { columns: [{ key: 'sku', label: 'SKU' }] };
+    el.columns = [{ key: 'sku', label: 'SKU' }];
     const seen = [];
     let release;
     el.load = q => { seen.push(q); return new Promise(r => { release = r; }); };
@@ -102,7 +103,7 @@ test('refresh runs load(query), shows the table on rows and feeds the pager; the
 
 test('zero rows show the configured empty state', async () => {
     const { el, parts } = make();
-    el.config = { empty: { heading: 'Nothing found', description: 'Try another filter.' } };
+    el.empty = { heading: 'Nothing found', description: 'Try another filter.' };
     el.load = async () => ({ rows: [], total: 0 });
     await el.refresh();
     assert.equal(parts.table.hidden, true);
@@ -158,7 +159,7 @@ test('a page past the last one (rows deleted) settles on the last page with one 
 });
 test('sort, search, filter, page and page-size events narrow the query, reset the page, and re-run load', async () => {
     const { el, parts } = make();
-    el.config = { filters: [{ key: 'status', type: 'text', label: 'Status' }] };
+    el.filters = [{ key: 'status', type: 'text', label: 'Status' }];
     const queries = [];
     el.load = async q => { queries.push(q); return rowsOf(1); };
     el.connected();
@@ -197,6 +198,18 @@ test('rowHref makes the table clickable and is called on pk-row-click; without i
     assert.deepEqual(seen, [{ id: 1 }]);
 });
 
+test('props handed to the inner pk-table before it is defined are applied again once it is (#699: rows of a list page were not clickable)', async () => {
+    const { el, parts } = make();
+    let define;
+    Object.defineProperty(el, 'ownerDocument', { value: { createElement: fakeEl, defaultView: { customElements: { whenDefined: () => new Promise(r => { define = r; }) } } } });
+    el.rowHref = () => {};
+    el.connected();
+    parts.table.clickable = false; // what a not-yet-defined pk-table keeps
+    define();
+    await new Promise(r => setImmediate(r));
+    assert.equal(parts.table.clickable, true);
+});
+
 test('clickable (no rowHref) makes rows clickable and currentRow reaches the table (#817)', async () => {
     const { el, parts } = make();
     el.load = async () => rowsOf(2);
@@ -208,7 +221,7 @@ test('clickable (no rowHref) makes rows clickable and currentRow reaches the tab
     assert.deepEqual([parts.table.clickable, parts.table.currentRow], [false, '']);
 });
 
-test('config feeds the pager, search, table labels and the initial sort and page size; a config that arrives late still counts until the reader changes the query (#817)', async () => {
+test('the props feed the pager, search, table labels and the initial sort and page size; settings that arrive late still count until the reader changes the query (#817)', async () => {
     const { el, parts } = make();
     const queries = [];
     el.load = async q => { queries.push(q); return rowsOf(1); };
@@ -216,22 +229,22 @@ test('config feeds the pager, search, table labels and the initial sort and page
     await el.refresh();
     assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Search', 250, [], 'Pagination', '', '']);
     assert.equal(parts.filters.attrs['data-nosearch'], false);
-    el.config = { searchLabel: 'Find orders', searchDebounce: 400, searchable: false, pageSizeOptions: [10, 50], pagerLabel: 'Order pages', label: 'Orders', caption: 'All orders', sort: 'name', sortDir: 'descending', pageSize: 10 };
-    el.changed('config');
+    Object.assign(el, { searchLabel: 'Find orders', searchDebounce: 400, hideSearch: true, pageSizeOptions: [10, 50], pagerLabel: 'Order pages', label: 'Orders', caption: 'All orders', sort: 'name', sortDir: 'descending', pageSize: 10 });
+    el.changed('searchLabel');
     await el.refresh();
     assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Find orders', 400, [10, 50], 'Order pages', 'Orders', 'All orders']);
     assert.equal(parts.filters.attrs['data-nosearch'], true);
     assert.deepEqual([queries.at(-1).sort, queries.at(-1).sortDir, queries.at(-1).pageSize], ['name', 'descending', 10]);
     assert.deepEqual([parts.table.sort, parts.table.sortDir], ['name', 'descending'], 'the header shows the initial sort');
     parts.pagination.fire('pk-page', { detail: { page: 2 } });
-    el.config = { ...el.config, sort: 'other' };
-    el.changed('config');
-    assert.equal(queries.at(-1).sort, 'name', 'once the reader has moved, the config no longer resets the query');
+    el.sort = 'other';
+    el.changed('sort');
+    assert.equal(queries.at(-1).sort, 'name', 'once the reader has moved, a setting no longer resets the query');
 });
 
 test('no results, the empty slot and the load error text and event (#817)', async () => {
     const { el, parts, events } = make();
-    el.config = { empty: { heading: 'No orders' }, noResults: { heading: 'Nothing matches' }, loadError: 'Orders failed' };
+    Object.assign(el, { empty: { heading: 'No orders' }, noResults: { heading: 'Nothing matches' }, loadError: 'Orders failed' });
     el.load = async () => ({ rows: [], total: 0 });
     await el.refresh();
     assert.equal(parts.state.children[0].attrs.heading, 'No orders');
@@ -243,10 +256,10 @@ test('no results, the empty slot and the load error text and event (#817)', asyn
     await el.refresh();
     assert.equal(parts.empty.hidden, true);
     assert.equal(parts.state.children[0].attrs.heading, 'Nothing matches', 'a search shows the no-results state, not the slot');
-    el.config = { empty: { heading: 'No orders' } };
+    el.empty = { heading: 'No orders' }; el.noResults = null;
     await el.refresh();
     assert.equal(parts.state.children[0].attrs.heading, 'No orders', 'no noResults: the empty wording');
-    el.config = { loadError: 'Orders failed' };
+    el.loadError = 'Orders failed';
     el.load = async () => { throw new Error('boom'); };
     await el.refresh();
     assert.equal(parts.state.children[0].attrs.heading, 'Orders failed');
@@ -343,4 +356,68 @@ test('the search, filters and actions are outside the pk-table, so hiding the ta
         assert.ok(!table.includes(`part="${part}"`), `${part} is not inside the pk-table`);
     }
     assert.ok(!table.includes('slot="toolbar"'));
+});
+
+test('search presets the box and the first query (#865); typing replaces it; a later change by the host replaces it again; other changes leave the typed text', async () => {
+    const { el, parts } = make();
+    const queries = [];
+    el.load = async q => { queries.push(q); return rowsOf(1); };
+    el.search = 'acme';
+    el.connected();
+    await el.refresh();
+    assert.deepEqual([queries[0].search, parts.filters.value], ['acme', 'acme'], 'the first load gets the term and the box shows it');
+    parts.filters.fire('pk-search', { detail: { query: 'beta' } });
+    assert.equal(queries.at(-1).search, 'beta', 'typing replaces it');
+    el.pageSize = 10;
+    el.changed('pageSize');
+    assert.equal(queries.at(-1).search, 'beta', 'a change that keeps the term does not undo the typing');
+    el.search = 'gamma';
+    el.changed('search');
+    await el.refresh();
+    assert.deepEqual([queries.at(-1).search, queries.at(-1).page, parts.filters.value], ['gamma', 1, 'gamma']);
+});
+
+test('selectPageOnly passes to the inner table (#865)', async () => {
+    const { el, parts } = make();
+    el.selectable = true; el.selectPageOnly = true;
+    el.connected();
+    await el.refresh();
+    assert.equal(parts.table.selectPageOnly, true);
+});
+
+test('an unset prop reads its default; a set one wins (#805)', () => {
+    const { el, parts } = make();
+    assert.deepEqual(el.query, { page: 1, pageSize: 25, sort: null, sortDir: 'ascending', search: '', filters: {} }, 'nothing set: the defaults');
+    el.pageSize = 10; el.sort = 'name'; el.sortDir = 'descending'; el.search = 'y'; el.label = 'Plain'; el.caption = 'Cap'; el.pagerLabel = 'Pages'; el.searchLabel = 'Find'; el.columns = [{ key: 'b' }]; el.pageSizeOptions = [10, 20]; el.searchDebounce = 100; el.hideSearch = true;
+    el.$query = null;
+    assert.deepEqual(el.query, { page: 1, pageSize: 10, sort: 'name', sortDir: 'descending', search: 'y', filters: {} });
+    el.sync();
+    assert.equal(parts.table.label, 'Plain'); assert.equal(parts.table.caption, 'Cap');
+    assert.deepEqual(parts.table.columns, [{ key: 'b' }]);
+    assert.deepEqual(parts.pagination.sizes, [10, 20]); assert.equal(parts.pagination.label, 'Pages'); assert.equal(parts.filters.debounce, 100); assert.equal(parts.filters.label, 'Find');
+    assert.equal(parts.filters.attrs['data-nosearch'], true);
+    el.hideSearch = false; el.sync(); assert.equal(parts.filters.attrs['data-nosearch'], false);
+});
+
+test('there is no config prop: a config set on the element is ignored', () => {
+    const { el } = make();
+    el.config = { pageSize: 5, columns: [{ key: 'a' }], search: 'x' };
+    el.connected();
+    assert.deepEqual(el.warned, ['config'], 'a leftover config is named once in the console');
+    assert.deepEqual(el.query, { page: 1, pageSize: 25, sort: null, sortDir: 'ascending', search: '', filters: {} });
+});
+
+test('DEFAULTS are the defaults of the element meta', () => {
+    const meta = JSON.parse(readFileSync(new URL('./data-table.meta.json', import.meta.url), 'utf8'));
+    for (const [name, d] of Object.entries(DEFAULTS)) assert.deepEqual(meta.props.find(p => p.name === name)?.default, d, name);
+});
+
+test('addLabel shows the add button with that text, and a click raises pk-add (#805)', () => {
+    const { el, parts, events } = make();
+    el.sync();
+    assert.equal(parts.add.hidden, true, 'no label, no button');
+    el.addLabel = '+ Add customer'; el.sync();
+    assert.equal(parts.add.hidden, false); assert.equal(parts.add.textContent, '+ Add customer');
+    el.connected(); parts.add.fire('click');
+    assert.deepEqual(events.filter(e => e.name === 'pk-add'), [{ name: 'pk-add', detail: null }]);
 });

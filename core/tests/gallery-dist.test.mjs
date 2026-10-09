@@ -18,7 +18,7 @@ test('relocate drops one level from specifiers that climb out of the gallery fol
 });
 
 test('dist/gallery holds the modules, data, styles and templates the embed page needs', () => {
-    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/crud/crud.html', 'templates/chrome.js', 'preview.html', 'preview.js', 'pattern-mount.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
+    for (const f of ['embed.html', 'embed.js', 'gallery.js', 'gallery.data.js', 'paths.js', 'frame.js', 'frame-boot.js', 'tokens.css', 'site.css', 'gallery.css', 'templates/routed-pair/routed-pair.html', 'templates/chrome.js', 'preview.html', 'preview.js', 'pattern-mount.js']) assert.ok(out.has(`dist/gallery/${f}`), f);
     assert.ok(out.has('dist/js/gallery-options.js'));
     for (const f of ['standalone.js', 'index.html']) assert.ok(!out.has(`dist/gallery/${f}`), `${f} is the SDK site's own host page`);
 });
@@ -42,7 +42,7 @@ test('the paths module points every stylesheet, the sprite and the templates at 
     const source = out.get('dist/gallery/paths.js').replace(/export const ROOT.*\r?\n/, '');
     const { PAGE_CSS, TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, HAS_SITE } = await import(`data:text/javascript,${encodeURIComponent(source)}`);
     for (const p of [...PAGE_CSS, TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS]) assert.ok(out.has(resolve('dist/gallery/x', p)), p);
-    assert.ok(out.has(`dist/gallery/${TEMPLATES_DIR}crud/crud.html`));
+    assert.ok(out.has(`dist/gallery/${TEMPLATES_DIR}routed-pair/routed-pair.html`));
     assert.equal(HAS_SITE, false);
 });
 
@@ -70,7 +70,7 @@ test('the preview host ships in dist/gallery with its paths relocated, and the t
 });
 
 test('nothing in dist/gallery names the source tree', () => {
-    for (const f of gallery.filter(g => /\.(js|html)$/.test(g) && !/gallery(\.data)?\.js$/.test(g))) assert.ok(!/site\/gallery|samples\/templates|\/tokens\/tokens\.css/.test(out.get(f).replace(/\/\/ .*$/gm, '')), f);
+    for (const f of gallery.filter(g => /\.(js|html)$/.test(g) && !/gallery(-views|\.data)?\.js$/.test(g))) assert.ok(!/site\/gallery|samples\/templates|\/tokens\/tokens\.css/.test(out.get(f).replace(/\/\/ .*$/gm, '')), f);
     assert.ok(!out.get('dist/js/gallery-options.js').includes('../site/gallery/'), 'the dist copy of the options module points at dist/gallery');
 });
 

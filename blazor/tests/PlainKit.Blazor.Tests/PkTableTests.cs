@@ -167,6 +167,13 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SelectPageOnly_reaches_the_element_and_is_off_by_default()
+    {
+        Assert.False(Render(p => p.Add(x => x.Selectable, true)).Find("pk-table").HasAttribute("select-page-only"));
+        Assert.True(Render(p => p.Add(x => x.Selectable, true).Add(x => x.SelectPageOnly, true)).Find("pk-table").HasAttribute("select-page-only"));
+    }
+
+    [Fact]
     public async Task SelectAllTotal_and_SelectScope_pass_through_and_pk_select_all_reaches_OnSelectAll()
     {
         PkSelectAllEventArgs? got = null;

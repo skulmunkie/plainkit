@@ -9,11 +9,12 @@ export const PAGE_TYPE = {
     states: ['not-found'],
     useWhen: 'A route or resource that does not exist.',
 };
+import { mountTitled } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-not-found-page');
     for (const k of ['heading', 'description', 'label']) if (config[k] !== undefined) el[k] = config[k];
     const onAction = () => config.action?.(ctx);
     if (config.action) el.addEventListener('pk-action', onAction);
-    host.append(el);
-    return () => { if (config.action) el.removeEventListener('pk-action', onAction); el.remove(); };
+    const done = mountTitled(host, el, config.heading || 'Page not found');
+    return Object.assign(() => { if (config.action) el.removeEventListener('pk-action', onAction); done(); }, { then: done.then });
 };

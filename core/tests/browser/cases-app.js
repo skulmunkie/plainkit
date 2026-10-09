@@ -430,6 +430,37 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['pk-doc-page: a host search (searchItems) draws a search box with a status line and shows only the named items; breadcrumb draws the trail above the title; home.cards draws the home list as cards (#336)', async t => {
+        const el = document.createElement('pk-doc-page');
+        const items = [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B', summary: 'About B' }, { id: 'c', title: 'Guide C', summary: 'About C' }];
+        el.config = { items, id: null, search: true, breadcrumb: true, navLabel: 'Guides', pagerLabel: 'Guide navigation', searchLabel: 'Search guides', home: { title: 'All guides', summary: 'Pick one.', cards: true } };
+        el.loadItem = async id => ({ title: `Guide ${id.toUpperCase()}`, summary: 'A summary', html: '<h2 id="one">One</h2><p>text about wombats</p>' });
+        el.href = id => `#/${id ?? ''}`;
+        const asked = []; el.searchItems = q => { asked.push(q); return q === 'wombat' ? { ids: ['b', 'c'], status: 'mentioned in Guide B, Guide C' } : { ids: [], status: `No guides match “${q}”.` }; };
+        const host = t.stage(''); host.append(el);
+        await t.load(host);
+        const nav = el.querySelector('pk-side-nav'), input = () => el.querySelector('pk-side-nav pk-input'), status = () => el.querySelector('pk-side-nav pk-text');
+        await until(() => input() && nav.querySelectorAll('pk-nav-item').length === 3, 'the nav and its search box');
+        t.ok(!nav.hasAttribute('filterable'), 'the host search replaces the nav\'s own title filter'); t.eq(nav.getAttribute('label'), 'Guides');
+        t.eq(input().getAttribute('aria-label'), 'Search guides', 'the box is named');
+        const items3 = () => [...nav.querySelectorAll('pk-nav-item')].filter(n => !n.hidden).map(n => n.dataset.docId).join();
+        input().value = 'wombat'; input().dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await until(() => items3() === 'b,c', 'only the named items'); t.eq(asked.at(-1), 'wombat'); t.eq(status().textContent, 'mentioned in Guide B, Guide C', 'the status line says why');
+        input().value = ''; input().dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await until(() => items3() === 'a,b,c', 'every item again'); t.eq(status().textContent, '', 'an empty box clears the status');
+        const crumbs = () => el.querySelector('pk-breadcrumb'), cards = el.querySelectorAll('pk-grid pk-card');
+        t.eq(cards.length, 3, 'the home list is three cards'); t.eq(cards[1].getAttribute('heading'), 'Guide B'); t.eq(cards[1].getAttribute('href'), '#/b');
+        t.eq(crumbs().textContent.trim(), 'All guides', 'the home crumb is the current page');
+        el.config = { ...el.config, id: 'a' };
+        await until(() => el.querySelector('h2#one'), 'a guide to load');
+        t.eq([...crumbs().children].map(c => c.localName).join(), 'a,span', 'a link home, then the current page'); t.eq(crumbs().children[0].getAttribute('href'), '#/'); t.eq(crumbs().children[1].textContent, 'Guide A');
+        t.eq(el.querySelector('pk-pager').getAttribute('label'), 'Guide navigation');
+        const t1 = el.querySelector('.doc-page-title').getBoundingClientRect(), c1 = crumbs().getBoundingClientRect();
+        t.ok(c1.bottom <= t1.top + 1, 'the trail sits above the title');
+        t.ok(t1.top - c1.bottom >= 4, `the trail and the title have a space between them (${t1.top - c1.bottom}px)`);
+        host.replaceChildren();
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
@@ -608,5 +639,45 @@ export const appCases = [
         host.removeEventListener('pk-navigate', stillCancels);
         t.eq(afterDestroy, false, 'the event reaches the host uncancelled: the router stopped listening once destroyed');
         host.replaceChildren();
+    }],
+    // #807: app.js focuses `h1,pk-heading[level="1"]` under main after a route change, so every built-in page type must hand it exactly one, through mountTitled.
+    ['built-in page types states, not-found, doc and tool (#807): each gives post-navigation focus exactly one light-DOM h1 or level 1 pk-heading, focusable, and no second level 1 heading', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const cases = [
+            ['states', { state: 'empty', heading: 'No orders', description: 'Nothing yet' }, 'No orders'],
+            ['states', { state: 'error', description: 'It broke' }, 'Something went wrong'],
+            ['not-found', {}, 'Page not found'],
+            ['not-found', { heading: 'Gone' }, 'Gone'],
+            ['tool', { heading: 'Word count', input: [{ key: 'text', label: 'Text', type: 'text' }] }, 'Word count'],
+            ['doc', { items: [{ id: 'a', title: 'Alpha', summary: 'First' }], id: 'a', loadItem: async () => ({ title: 'Alpha', summary: 'First', html: '<p>x</p>' }), href: id => `/${id}` }, null],
+        ];
+        for (const [type, config, text] of cases) {
+            const box = document.createElement('main'); t.stage('').append(box);
+            const page = await mountPage(box, { type, config });
+            await t.load(box);
+            await wait(100);
+            const found = box.querySelectorAll('h1,pk-heading[level="1"]');
+            t.eq(found.length, 1, `${type} ${JSON.stringify(config).slice(0, 30)}: exactly one h1`);
+            const h = found[0];
+            if (text) t.eq(h.textContent.trim(), text, `${type}: the heading text`);
+            h.tabIndex = -1; h.focus({ preventScroll: true });
+            t.eq(document.activeElement, h, `${type}: focus lands on the heading`);
+            t.eq(box.querySelectorAll('[role="heading"][aria-level="1"]').length, 0, `${type}: no second level 1 heading in the light DOM`);
+            page.destroy();
+        }
+    }],
+    // #897: a confirm answered the moment it opens must settle (resolve, element removed) and never block the next ask.
+    ['dialogs (#897): a confirm answered immediately on open settles and the next one opens, 40 times', async t => {
+        const { createDialogs } = await dist('js/dialogs.js');
+        const box = t.stage(''), dialogs = createDialogs({ container: box, load: el => t.load(el) });
+        for (let i = 0; i < 40; i++) {
+            const p = dialogs.confirm({ heading: `Leave ${i}?`, message: 'x', confirmLabel: 'Leave', cancelLabel: 'Stay', danger: true });
+            const dlg = await until(() => box.querySelector('pk-dialog'), `dialog ${i} to open`);
+            const stay = [...dlg.querySelectorAll('pk-button')].find(b => b.textContent === 'Stay');
+            stay.click();
+            t.eq(await Promise.race([p, wait(2000).then(() => 'stuck')]), false, `dialog ${i} resolves false at once`);
+            t.eq(box.querySelectorAll('pk-dialog').length, 0, `dialog ${i} is removed`);
+        }
+        dialogs.destroy();
     }],
 ];

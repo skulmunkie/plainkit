@@ -73,7 +73,7 @@ public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
             .Add(x => x.IconContent, "i")
             .Add(x => x.TitleContent, "Rich title")
             .Add(x => x.ActionContent, "Add")
-            .Add(x => x.DescriptionContent, "Body"));
+            .Add(x => x.ChildContent, "Body"));
         var el = cut.Find("pk-empty-state");
 
         Assert.Equal("No rows", el.GetAttribute("heading"));

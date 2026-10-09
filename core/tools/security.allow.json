@@ -17,14 +17,6 @@
       "count": 1,
       "source": "One helper (fill) writes every piece of the explorer's markup: provider data (file paths, code lines, search hits) is escaped with esc() before interpolation and tokens are wrapped in fixed spans."
     },
-    "modules/scorecard/scorecard.js": {
-      "count": 1,
-      "source": "One helper (fromHtml) parses the module's own fixed markup and the ranked table built from finding text and scores, every dynamic value passed through esc(). The framework sections build nodes with the DOM and use no markup strings."
-    },
-    "modules/scorecard/measure.js": {
-      "count": 1,
-      "source": "The scale test renders a generated table of fixed sample rows (numbers only) to time layout; nothing from outside reaches it."
-    },
     "site/gallery/elements-view.js": {
       "count": 4,
       "source": "The element's own example markup from its meta file, and markup the reader types into the playground (their own page, their own input)."

@@ -34,7 +34,7 @@ export default Base => class extends Base {
     }
     // Back to the list: the row just left gets focus (the detail's own controls are gone on a phone), else the table.
     focusRow(id) {
-        const table = this.part('list').part?.('table')?.part?.('table');
+        const sub = (el, n) => (typeof el?.part === 'function' ? el.part(n) : null), table = sub(sub(this.part('list'), 'table'), 'table'); // an element not upgraded yet has Element.part (a token list), not the method
         const row = table?.shadowRoot?.querySelector(`tbody tr[data-pk-context="${id.replace(/["\\]/g, '\\$&')}"]`);
         (row ?? table)?.focus?.();
     }

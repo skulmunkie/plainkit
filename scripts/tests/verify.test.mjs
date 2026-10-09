@@ -5,7 +5,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHECKS, GROUPS, parseArgs, selectChecks, fixTable, withFixTable, TABLE_START, TABLE_END, usefulLines, formatResult, failuresOf, resolveBase, runChecks } from '../verify.mjs';
+import { CHECKS, GROUPS, parseArgs, selectChecks, fixTable, withFixTable, TABLE_START, TABLE_END, usefulLines, failedTests, failureSummary, formatResult, failuresOf, resolveBase, runChecks } from '../verify.mjs';
+import os from 'node:os';
+import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ids = list => list.map(c => c.id);
@@ -114,4 +116,51 @@ test('a check that runs "after" another waits for it even when it failed, but on
     assert.deepEqual(results.map(r => r.status), ['FAIL', 'ok']);
     assert.deepEqual((await runChecks([second], {})).map(r => r.status), ['ok'], 'not selected: no wait');
     assert.deepEqual(CHECKS.find(c => c.id === 'pack').after, ['dotnet']);
+});
+
+// #780: a failing test is never hidden. A fixture of real runner output: several failures in several files, stderr noise from passing tests, and a missing esbuild.
+function runFixture() {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-fixture-'));
+    fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('passes but is noisy', () => { console.error('[pk:app] page threw Error: boom'); });\ntest('first real failure', () => assert.equal(1, 2));\ntest('second real failure', () => { throw new Error('nope'); });\n");
+    fs.writeFileSync(path.join(dir, 'b.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a failure in another file', () => assert.ok(false, 'esbuild cannot be resolved'));\ntest('fine', () => {});\n");
+    const r = spawnSync(process.execPath, ['--test', '--test-reporter=spec', path.join(dir, 'a.test.mjs'), path.join(dir, 'b.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
+    return { dir, out: r.stdout + r.stderr, status: r.status };
+}
+
+test('failedTests lists every failing test by file and name, from a real runner output with noise', () => {
+    const { out, status } = runFixture();
+    assert.equal(status, 1);
+    const names = failedTests(out).map(t => `${path.basename(t.file)}: ${t.name}`);
+    assert.deepEqual(names.sort(), ['a.test.mjs: first real failure', 'a.test.mjs: second real failure', 'b.test.mjs: a failure in another file']);
+    assert.ok(out.includes('[pk:app] page threw Error: boom'), 'the fixture really printed the noise');
+});
+
+test('failureSummary shows all failing tests, no noise from passing ones, and one esbuild hint line; formatResult prints it and the FIX line', () => {
+    const { out } = runFixture();
+    const s = failureSummary(out);
+    assert.match(s, /^3 failing tests in 2 files/);
+    for (const n of ['first real failure', 'second real failure', 'a failure in another file']) assert.ok(s.includes(n), n);
+    assert.ok(!s.includes('page threw Error: boom') && !s.includes('passes but is noisy'), 'noise and passing tests are not in the summary');
+    assert.ok(s.includes('run `npm ci`'), 'the esbuild hint');
+    const text = formatResult(CHECKS.find(c => c.id === 'node-tests'), { status: 'FAIL', ms: 1000, out });
+    assert.ok(text.includes('3 failing tests') && text.includes('FIX: '));
+    const f = failuresOf([{ status: 'FAIL', check: CHECKS.find(c => c.id === 'node-tests'), out }])[0];
+    assert.ok(f.excerpt.includes('second real failure') && f.excerpt.includes('b.test.mjs'), 'the sticky comment excerpt carries the same list');
+});
+
+test('failedTests also reads TAP output (Node 22 default reporter), leaf failures only, no noise', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-tap-'));
+    fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('noisy pass', () => { console.error('[pk:app] threw Error: boom'); });\ntest('suite', async t => { await t.test('inner fail', () => assert.equal(1, 2)); });\ntest('top fail', () => { throw new Error('x'); });\n");
+    const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', path.join(dir, 'a.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
+    const got = failedTests(r.stdout + r.stderr).map(t => `${path.basename(t.file)}: ${t.name}`).sort();
+    assert.deepEqual(got, ['a.test.mjs: inner fail', 'a.test.mjs: top fail']);
+});
+
+test('failureSummary does not cut a long list of failures (60 failing tests, all named) and falls back to the excerpt without a failing-tests block', () => {
+    const many = ['✖ failing tests:', ...Array.from({ length: 60 }, (_, i) => `\ntest at core\\tests\\f${i % 7}.test.mjs:1:1\n✖ case number ${i} (1.5ms)\n  AssertionError: x`)].join('\n');
+    assert.equal(failedTests(many).length, 60);
+    const s = failureSummary(many, { maxLines: 60, maxChars: 99999 });
+    assert.ok(s.includes('case number 59') && s.includes('60 failing tests in 7 files'));
+    assert.equal(failureSummary('error: boom'), usefulLines('error: boom'));
+    assert.deepEqual(failedTests('all fine'), []);
 });

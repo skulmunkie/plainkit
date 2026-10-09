@@ -111,7 +111,7 @@ export function convert(expr, from, to) {
 
 // ---------------------------------------------------------------- modelling one element
 
-const inferMap = p => p.map ?? (p.prop !== undefined ? 'prop' : p.slot !== undefined ? 'slot' : p.event !== undefined ? 'event' : p.cssProperty !== undefined ? 'cssProperty' : p.text !== undefined ? 'text' : 'wrapper');
+const inferMap = p => p.map ?? (p.prop !== undefined ? 'prop' : p.slot !== undefined ? 'slot' : p.event !== undefined ? 'event' : p.callback !== undefined ? 'callback' : p.cssProperty !== undefined ? 'cssProperty' : p.text !== undefined ? 'text' : 'wrapper');
 
 function enumFrom(name, pairs, owner) { return { name, members: pairs.map(([n, v]) => ({ name: n, value: v })), owners: [owner] }; }
 
@@ -147,7 +147,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], typeparam: mapping.typeparam, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -192,6 +192,9 @@ export function modelElement(el, mapping, reg) {
             declare({ name: p.name, kind: 'param', cs: r.cs, init: r.init, doc: api.description, note: p.note });
             out.attrs.push({ attr: kebab(p.prop), expr: r.expr, boolean: r.attr === 'bool' });
             if (r.todo) todo(p.name, r.todo);
+            // `slotted`: the value is also a light-DOM child of its own, { tag, slot, attrs } (an attribute value starting with @ is a Razor expression, else a literal):
+            // a title that is both the element's heading attribute and a real <pk-heading slot="title"> a router can focus (FocusOnNavigate cannot reach into a shadow tree, #773).
+            if (p.slotted) out.children.push({ slotted: p.slotted, name: p.name });
             // `bind` is one event or a list of them (PkCommandPalette.Open follows pk-open and pk-close).
             for (const b of [p.bind].flat().filter(Boolean)) addBind(r, { event: b.event, literal: typeof b.value !== 'string' && b.field === undefined ? b.value : undefined, path: typeof b.value === 'string' ? b.value.replace(/^detail\./, '') : b.field });
         } else if (map === 'slot' || map === 'text') {
@@ -202,7 +205,7 @@ export function modelElement(el, mapping, reg) {
             const text = t === 'string' || t === 'string?';
             const api = el.slots.find(s => s.name === slot);
             declare({ name: p.name, kind: 'param', cs: text ? 'string?' : 'RenderFragment?', doc: api?.description ?? (slot === '' ? 'The content.' : `The ${slot} slot.`), note: p.note });
-            out.children.push({ slot, name: p.name, text });
+            out.children.push({ slot, name: p.name, text, unless: p.unless }); // unless: another (list) parameter that, once it has items, replaces this slot (a custom trail only when no Crumbs)
         } else if (map === 'event') {
             const ev = eventInfo(p.event);
             if (!ev) { skip(p.name, `the element has no event ${p.event}`); continue; }
@@ -229,6 +232,14 @@ export function modelElement(el, mapping, reg) {
             } else if (!ev.fields.length) { cs = 'EventCallback'; call = 'none'; }
             else { cs = `EventCallback<${ev.args}>`; call = 'args'; }
             if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) handler(ev).callbacks.push({ name: p.name, call });
+        } else if (map === 'callback') {
+            // A callback property of the element (set from script, not an attribute): the component hands it a .NET reference (PkCallbackSlot) that calls the delegate parameter.
+            // callback: the element property; type: the delegate; arg: what JavaScript passes (deserialised); args: the delegate's arguments, from a (default a); result: false for a Task with
+            // no result; returns: a C# expression over r (the delegate's result) for what JavaScript gets back; refresh: ask the element to redraw once the callback is set; abort: the element's abort
+            // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose).
+            if (!p.type || !p.arg || !p.doc) { skip(p.name, 'a callback needs type, arg and doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
+            out.callbacks.push({ name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true });
         } else if (map === 'cssProperty') {
             skip(p.name, `sets the ${p.cssProperty} custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper`);
         } else if (map === 'wrapper') {
@@ -276,6 +287,25 @@ export function modelElement(el, mapping, reg) {
             out.field = { param: r.name, expr: `${r.name}Expression`, cs: r.cs };
             const inv = out.attrs.find(a => a.attr === 'invalid');
             if (inv) inv.expr = '@(IsInvalid || FieldInvalid)';
+        }
+        // `model.multi`: the element has a `values` array prop and an event field `values` next to the comma-joined string model prop (core owns the
+        // encoding, #850). Values / ValuesChanged (and ValuesExpression on a form control) are the typed form, sent as the element's JSON `values` attribute.
+        // Values wins while it is set (the string attribute is then left off) and is written back only when the host bound ValuesChanged.
+        if (r && mapping.model.multi) {
+            const h = [...out.handlers.values()].find(x => x.name === mapping.model.event);
+            if (!h || r.cs.replace('?', '') !== 'string') throw new Error(`${comp}: model.multi needs a string model prop driven by ${mapping.model.event}`);
+            const vf = eventInfo(mapping.model.event).fields.find(f => f.key === 'values');
+            if (!vf || !el.props.some(x => x.name === 'values')) throw new Error(`${comp}: model.multi needs a values prop and a values event field`);
+            const list = 'IReadOnlyList<string>?';
+            declare({ name: 'Values', kind: 'param', cs: list, doc: `${r.name} as a list (typed: no comma-joining or escaping in the host); when set it is used instead of ${r.name}.` });
+            declare({ name: 'ValuesChanged', kind: 'param', cs: `EventCallback<${list}>`, doc: 'Raised when the list changes (two-way binding: <c>@bind-Values</c>).' });
+            const a = out.attrs.find(x => x.attr === kebab(mapping.model.prop));
+            if (a) { a.expr = `@(Values is null ? ${r.name} : null)`; out.attrs.push({ attr: 'values', expr: '@PkAttr.Json(Values)' }); }
+            h.multi = { value: `e.${vf.prop}` };
+            if (out.field) {
+                declare({ name: 'ValuesExpression', kind: 'param', cs: `Expression<Func<${list}>>?`, doc: 'The expression that names the bound list (<c>@bind-Values</c> sets it); it names the EditContext field in place of ValueExpression.' });
+                out.field.values = 'ValuesExpression';
+            }
         }
     }
     return out;
@@ -352,7 +382,7 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
             attr = 'num';
         }
         else if (base === 'DateOnly') { cs = 'DateOnly?'; attr = 'date'; }
-        else if (isJsonType(t, api.type === 'json' ? types : undefined)) { cs = base + '?'; attr = 'json'; }
+        else if (isJsonType(t, api.type === 'json' || p.json === true ? types : undefined)) { cs = base + '?'; attr = 'json'; }
         else if (api.type === 'enum' && /^[A-Z][A-Za-z0-9]*$/.test(base)) {
             enumType(base, api.values.map(v => [memberName(v), v]), comp);
             const def = hasDefault ? api.values.find(v => v.toLowerCase() === String(p.default).toLowerCase() || memberName(v).toLowerCase() === String(p.default).toLowerCase()) : null;
@@ -375,10 +405,41 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
 
 const doc = (text, indent = '    ') => `${indent}/// <summary>${esc(text) || '&#160;'}</summary>`;
 
-export function renderComponent(m, mappingName) {
+/** The C# namespace a generated component lives in: its tier (from the element's meta.json, via api.json) decides. Base elements stay in the root (#768). */
+export const TIER_NAMESPACES = { element: 'PlainKit.Blazor', component: 'PlainKit.Blazor.Components', page: 'PlainKit.Blazor.Pages', shell: 'PlainKit.Blazor.Shells' };
+export function tierNamespace(el) {
+    const ns = TIER_NAMESPACES[el.tier];
+    if (!ns) throw new Error(`${el.tag}: tier "${el.tier}" has no Blazor namespace (expected ${Object.keys(TIER_NAMESPACES).join(', ')})`);
+    return ns;
+}
+
+/** Global using aliases so C# code written against the old root names (typeof, @ref types, OpenComponent) still compiles for one minor version. Razor markup needs the @using. */
+export function renderAliases(moved) {
+    const L = ['// Generated by ' + GENERATOR + ' from the element tiers. Do not edit.', '// Deprecated (#768): a component of a higher tier moved from PlainKit.Blazor to its tier namespace. These aliases keep C# code on the old names compiling',
+        '// for one minor version; they do not help Razor markup, which needs one @using PlainKit.Blazor.<Tier> per tier in _Imports.razor. Use the tier namespace.', ''];
+    for (const { component, ns } of moved) L.push(`global using ${component} = ${ns}.${component};`);
+    return L.join('\n') + '\n';
+}
+
+/**
+ * The NuGet package's buildTransitive/PlainKit.Blazor.targets (#768): the tier namespaces as <Using> items and, for one minor version, the old root names as aliases, so a consumer's C#
+ * resolves the moved types without edits (a namespace using alone already resolves every short name; the aliases are the owner's explicit old-name list). A .targets, not a .props: the SDK's static
+ * web assets pack already writes buildTransitive/PlainKit.Blazor.props. Razor tags do not resolve through <Using> (RZ10012): _Imports.razor needs one @using per tier. Only the C# SDK targets
+ * (GenerateGlobalUsings, .NET 6 SDK and later) read <Using> items; an older SDK and other languages ignore them.
+ */
+export function renderTargets(moved) {
+    const L = ['<!-- Generated by ' + GENERATOR + ' from the element tiers. Do not edit. Shipped as buildTransitive/PlainKit.Blazor.targets (#768). -->', '<Project>', '  <ItemGroup>'];
+    for (const ns of Object.values(TIER_NAMESPACES).filter(n => n !== TIER_NAMESPACES.element)) L.push(`    <Using Include="${ns}" />`);
+    L.push('  </ItemGroup>', '  <!-- Deprecated: the old root names of the components that moved, for one minor version. -->', '  <ItemGroup>');
+    for (const { component, ns } of moved) L.push(`    <Using Include="${ns}.${component}" Alias="${component}" />`);
+    L.push('  </ItemGroup>', '</Project>');
+    return L.join('\n') + '\n';
+}
+
+export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const L = [];
     L.push(`@* Generated by ${GENERATOR} from core/dist/elements/api.json and blazor/mappings/${mappingName}.json. Do not edit: change the mapping or the SDK and run it again. *@`);
-    L.push('@namespace PlainKit.Blazor', '@using Microsoft.AspNetCore.Components.Web', ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, '');
+    L.push(`@namespace ${ns}`, ...(m.typeparam ? [`@typeparam ${m.typeparam}`] : []), ...(ns === 'PlainKit.Blazor' ? [] : ['@using PlainKit.Blazor']), '@using Microsoft.AspNetCore.Components.Web', ...(m.callbacks.length ? ['@using System.Text.Json'] : []), ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, ...(m.callbacks.length ? ['@implements IDisposable'] : []), '');
     // The element. Blazor's own `@onclick` syntax cannot name an event with a hyphen (`@onpk-close` is taken as a plain attribute), so the pk-* events
     // go in a dictionary that is splatted on the element; the value is an EventCallback and the name is the on-prefixed event (registered in
     // PkGeneratedEvents.cs). Native events (click) use the normal syntax.
@@ -396,7 +457,8 @@ export function renderComponent(m, mappingName) {
     // A named slot's wrapper span carries u-contents (core/base/utilities.css) so it never breaks the host element's own flex/grid layout of
     // its slotted content (issue 211): Razor cannot put a slot attribute on multiple root elements from one RenderFragment independently, so
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
-    const children = m.children.map(c => (c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
+    const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
+    const children = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);
@@ -404,6 +466,7 @@ export function renderComponent(m, mappingName) {
         for (let i = 1; i < attrs.length; i++) L.push(`${pad}${attrs[i]}${i === attrs.length - 1 ? `>${children}</${m.tag}>` : ''}`);
     }
     L.push('', '@code {');
+    if (m.callbacks.length) L.push('    [Inject] private PkRuntime Runtime { get; set; } = default!;', ...m.callbacks.map(c => `    private readonly PkCallbackSlot ${slotName(c)} = new(${lit(c.prop)});`), '');
     m.params.forEach((d, i) => {
         if (i) L.push('');
         L.push(doc(d.doc));
@@ -411,7 +474,17 @@ export function renderComponent(m, mappingName) {
         if (d.cancelable) L.push('    /// <remarks>The event can be cancelled in the browser (preventDefault); a callback cannot cancel it.</remarks>');
         L.push(`    [Parameter] public ${d.cs} ${d.name} { get; set; }${d.init ? ` = ${d.init};` : d.cs === 'string' ? ' = "";' : ''}`);
     });
+    if (m.callbacks.length) {
+        // Only set versus unset matters: the slot delegates to the current parameter, so a new delegate needs no new setup.
+        L.push('', '    /// <inheritdoc />', '    protected override async Task OnAfterRenderAsync(bool firstRender)', '    {', '        await base.OnAfterRenderAsync(firstRender);');
+        for (const c of m.callbacks) {
+            const call = `${c.name}!(${c.args}${c.abort ? ', ct' : ''})`;
+            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call}; return null; }`}${c.refresh ? ', refresh: true' : ''});`);
+        }
+        L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
+    }
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
+    if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
     if (custom.length) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
@@ -423,6 +496,7 @@ export function renderComponent(m, mappingName) {
         L.push(`    private async Task ${handlerName(h)}(${h.args} e)`, '    {');
         for (const u of h.updates) L.push(`        ${u.param} = ${u.assign};`);
         for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.param});`);
+        if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = ${h.multi.value};`, '            await ValuesChanged.InvokeAsync(Values);', '        }');
         if (m.field && h.updates.some(u => u.param === m.field.param)) L.push('        NotifyFieldChanged();');
         for (const c of h.callbacks) {
             if (c.call === 'args') L.push(`        await ${c.name}.InvokeAsync(e);`);
@@ -434,6 +508,7 @@ export function renderComponent(m, mappingName) {
     L.push('}');
     return L.join('\n') + '\n';
 }
+const slotName = c => '_' + c.prop;
 const handlerName = h => 'Handle' + pascal(h.attr.replace(/^on/, ''));
 
 export function renderEnums(enums) {
@@ -533,11 +608,11 @@ export function afterWebStarted(blazor) { register(blazor); }
  * Everything the generator writes: Map(relative path from the repository root -> LF text), plus the report.
  * `mappings` is { name: mapping }, `handWritten` the component names that already exist as .razor files by hand.
  */
-export function generate(api, mappings, handWritten = new Set(), types = new Set()) {
+export function generate(api, mappings, handWritten = new Set(), types = new Set(), handInfo = new Map()) {
     const byTag = new Map(api.map(e => [e.tag, e]));
     const reg = { enums: new Map(), events: new Map(), eventNames: new Set(), types };
     const files = new Map();
-    const generated = [], skipped = [], todo = [], notGenerated = [];
+    const moved = [], genericMoved = [], generated = [], skipped = [], todo = [], notGenerated = [];
     for (const name of Object.keys(mappings).sort()) {
         const mapping = mappings[name];
         const el = byTag.get('pk-' + name);
@@ -549,11 +624,19 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
             skipped.push({ component: mapping.component, tag: el.tag, reason: hand ? 'hand-written in Components/' : 'existing: true in the mapping (kept by hand, not in this package yet)', handWritten: hand });
             // A hand-written component listens for the element's pk-* events too: register them (and their args classes) so Blazor delivers them.
             // Only the event registry is shared; the model itself is thrown away.
+            if (hand) {
+                // It lives in its tier's namespace like a generated one (#768): the file's own @namespace must say so. A generic component cannot be aliased (a using alias names a closed type).
+                const ns = tierNamespace(el), info = handInfo.get(mapping.component);
+                if (info && info.namespace !== ns) throw new Error(`${mapping.component}: Components/${mapping.component}.razor says @namespace ${info.namespace} but its element is of the ${el.tier} tier: change it to @namespace ${ns}`);
+                if (ns !== TIER_NAMESPACES.element) (info?.generic ? genericMoved : moved).push({ component: mapping.component, ns });
+            }
             if (hand) modelElement(el, mapping, { enums: new Map(), events: reg.events, eventNames: reg.eventNames, types });
             continue;
         }
         const m = modelElement(el, mapping, reg);
-        files.set(`${mapping.component}.razor`, renderComponent(m, name));
+        const ns = tierNamespace(el);
+        files.set(`${mapping.component}.razor`, renderComponent(m, name, ns));
+        if (ns !== TIER_NAMESPACES.element) (mapping.typeparam ? genericMoved : moved).push({ component: mapping.component, ns });
         generated.push({ component: mapping.component, tag: el.tag, parameters: m.params.length });
         todo.push(...m.todo);
         notGenerated.push(...m.notGenerated);
@@ -563,12 +646,16 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     for (const el of api) for (const e of el.events ?? []) if (e.name.startsWith('pk-')) noteEventInto(reg, eventModel(e), pkName(el.tag));
     const extra = [...api].filter(e => !(e.tag.replace(/^pk-/, '') in mappings));
     if (extra.length) throw new Error(`elements without a mapping: ${extra.map(e => e.tag).join(', ')}`);
+    moved.sort((a, b) => a.component.localeCompare(b.component));
+    files.set('PkGeneratedAliases.cs', renderAliases(moved));
+    files.set('PlainKit.Blazor.targets', renderTargets(moved));
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));
     files.set('PkGeneratedEvents.cs', renderEvents(reg.events, reg.eventNames));
     const manifest = {
         generator: GENERATOR,
         note: 'Generated. Lists what was generated and what was not, so a change to either shows in review; node scripts/generate-blazor.mjs --check compares it.',
         generated: generated.map(g => g.component),
+        movedGeneric: genericMoved.map(g => `${g.ns}.${g.component}`),
         skipped,
         enums: [...reg.enums.values()].map(e => ({ name: e.name, members: e.members.map(x => x.name), usedBy: e.owners })).sort((a, b) => a.name.localeCompare(b.name)),
         events: [...reg.eventNames].sort(),
@@ -585,7 +672,11 @@ export function load() {
     const api = JSON.parse(fs.readFileSync(paths.api, 'utf8'));
     const mappings = Object.fromEntries(fs.readdirSync(paths.mappings).filter(f => f.endsWith('.json')).sort().map(f => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(paths.mappings, f), 'utf8'))]));
     const handWritten = new Set(fs.existsSync(paths.components) ? fs.readdirSync(paths.components).filter(f => f.endsWith('.razor') && !f.startsWith('_')).map(f => f.replace(/\.razor$/, '')) : []);
-    return generate(api, mappings, handWritten, knownTypes(paths.package));
+    const handInfo = new Map([...handWritten].map(n => {
+        const text = fs.readFileSync(path.join(paths.components, n + '.razor'), 'utf8');
+        return [n, { namespace: /^@namespace\s+(\S+)/m.exec(text)?.[1] ?? 'PlainKit.Blazor', generic: /^@typeparam\s/m.test(text) }];
+    }));
+    return generate(api, mappings, handWritten, knownTypes(paths.package), handInfo);
 }
 
 /** The files as they belong on disk: absolute path -> CRLF text. */

@@ -8,7 +8,8 @@ import zlib from 'node:zlib';
 import { checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
 
 const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
-    'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md'];
+    'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md', 'buildTransitive/PlainKit.Blazor.targets'];
+const TARGETS = '<Project><ItemGroup>' + ['Components', 'Pages', 'Shells'].map(t => `<Using Include="PlainKit.Blazor.${t}" />`).join('') + '</ItemGroup></Project>';
 const nuspec = v => `<package><metadata><id>PlainKit.Blazor</id><version>${v}</version></metadata></package>`;
 const input = (over = {}) => ({ entries: GOOD, nuspec: nuspec('1.2.3-alpha.1'), fileName: 'PlainKit.Blazor.1.2.3-alpha.1.nupkg', version: '1.2.3-alpha.1', ...over });
 
@@ -19,6 +20,15 @@ test('content/ and contentFiles/ entries are refused', () => {
     assert.equal(p.length, 2);
     assert.match(p[0], /must not contain content\/.*found content\/Generated/);
     assert.match(p[1], /contentFiles\//);
+});
+
+test('the buildTransitive targets file is required, must import every tier namespace, and must not be duplicated under build/ (#768)', () => {
+    assert.ok(checkPackage(input({ entries: GOOD.filter(e => !e.startsWith('buildTransitive/')) })).some(x => /missing buildTransitive\/PlainKit\.Blazor\.targets/.test(x)));
+    assert.deepEqual(checkPackage(input({ targets: TARGETS })), []);
+    const p = checkPackage(input({ targets: TARGETS.replace('<Using Include="PlainKit.Blazor.Pages" />', '') }));
+    assert.equal(p.length, 1);
+    assert.match(p[0], /no <Using Include="PlainKit\.Blazor\.Pages" \/>/);
+    assert.ok(checkPackage(input({ entries: [...GOOD, 'build/PlainKit.Blazor.targets'] })).some(x => /build\/PlainKit\.Blazor\.targets/.test(x)));
 });
 
 test('a frameworkReference in the nuspec is refused (a Blazor WebAssembly app cannot restore it)', () => {
@@ -96,7 +106,7 @@ test('a .nupkg in a folder is inspected end to end', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-check-package-'));
     try {
         const file = path.join(dir, 'PlainKit.Blazor.1.2.3-alpha.1.nupkg');
-        fs.writeFileSync(file, makeZip(GOOD.map(n => [n, n.endsWith('.nuspec') ? nuspec('1.2.3-alpha.1') : 'x', n.endsWith('.nuspec')])));
+        fs.writeFileSync(file, makeZip(GOOD.map(n => [n, n.endsWith('.nuspec') ? nuspec('1.2.3-alpha.1') : n.endsWith('.targets') ? TARGETS : 'x', n.endsWith('.nuspec')])));
         assert.equal(findNupkg(dir), file);
         assert.deepEqual(checkPackage(inspectNupkg(file, '1.2.3-alpha.1')), []);
         fs.writeFileSync(path.join(dir, 'other.nupkg'), 'x');

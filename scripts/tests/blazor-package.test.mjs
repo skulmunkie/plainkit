@@ -19,6 +19,15 @@ test('the generator manifest is not packed as content', () => {
     assert.ok(csproj.includes(`<None Include="${manifest}" Pack="false" />`), 'the manifest stays in the project as a non-packed None item');
 });
 
+// #768: the tier namespaces and old-name aliases ship as buildTransitive/PlainKit.Blazor.targets, generated into Generated/ (not in git). Not .props (the SDK writes that one for the static
+// web assets) and not also under build/ (two imports of the same aliases are an error).
+test('the generated tier targets file is packed under buildTransitive only', () => {
+    assert.ok(csproj.includes('<None Include="Generated\\PlainKit.Blazor.targets" Pack="true" PackagePath="buildTransitive\\PlainKit.Blazor.targets" />'));
+    assert.ok(!/PackagePath="build\\/.test(csproj));
+    const targets = fs.readFileSync(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated', 'PlainKit.Blazor.targets'), 'utf8');
+    for (const ns of ['Components', 'Pages', 'Shells']) assert.ok(targets.includes(`<Using Include="PlainKit.Blazor.${ns}" />`), ns);
+});
+
 test('nothing else in the project is packed as content', () => {
     assert.ok(!/<Content\s+Include=/.test(csproj), 'no explicit Content Include items');
     assert.ok(!/PackagePath="[^"]*(content|contentFiles)/i.test(csproj), 'no PackagePath under content/ or contentFiles/');

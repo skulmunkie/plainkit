@@ -10,7 +10,7 @@ import { createLogger } from '../../js/log.js';
 import { mountThemeEditor } from '../theme-editor/theme-editor.js';
 import { mountQuality } from '../quality/quality.js';
 import { mountLayoutBuilder } from '../layout-builder/layout-builder.js';
-import { h } from '../../js/mount-support.js';
+import { h, on, later } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 
 const log = createLogger('devtools');
@@ -64,11 +64,11 @@ export const inspectorPanel = {
                 applyDynamic(target);
                 if (before) target.dataset.dyn = before; else delete target.dataset.dyn;
             };
-            const timer = win.setTimeout(() => { restore(); outlined = null; }, 2000);
-            outlined = { restore: () => { win.clearTimeout(timer); restore(); } };
+            const cancel = later(win, () => { restore(); outlined = null; }, 2000);
+            outlined = { restore: () => { cancel(); restore(); } };
         }
-        refresh.addEventListener('click', list);
-        table.addEventListener('pk-row-click', highlight);
+        on(refresh, 'click', list);
+        on(table, 'pk-row-click', highlight);
         return {
             activate: list,
             destroy() { outlined?.restore(); refresh.removeEventListener('click', list); table.removeEventListener('pk-row-click', highlight); },

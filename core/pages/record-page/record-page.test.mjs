@@ -21,7 +21,7 @@ const fakeEl = (tag = 'div') => ({
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = Object.fromEntries(['header', 'state', 'bar', 'notice', 'layout', 'main', 'side', 'edit', 'cancel', 'save'].map(n => [n, fakeEl()]));
+    const parts = Object.fromEntries(['header', 'state', 'bar', 'notice', 'layout', 'main', 'side', 'edit', 'cancel', 'save', 'delete'].map(n => [n, fakeEl()]));
     const events = [], errors = [];
     const win = { added: [], removed: [], addEventListener(t, f) { this.added.push([t, f]); }, removeEventListener(t, f) { this.removed.push([t, f]); } };
     globalThis.window = win;
@@ -126,4 +126,24 @@ test('save: a rejection with errors marks the fields inline, another rejection i
     assert.equal(el.$values.rev, 2); assert.equal(el.mode, 'view');
     assert.ok(events.some(([n]) => n === 'pk-record-save'));
     assert.equal(parts.save.busy, false);
+});
+
+test('the page does not override the base class render hook: a prop change (dirty on the first keystroke) must not rebuild the form (#699)', () => {
+    assert.equal(Object.hasOwn(behaviour(class {}).prototype, 'render'), false);
+});
+
+test('delete: the Delete button shows in view mode of an existing record when config.deletable is set, and raises pk-record-delete with the id (#855)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.config = { ...el.config, deletable: true };
+    el.connected();
+    await tick();
+    assert.equal(parts.delete.hidden, false, 'view mode, existing record, deletable');
+    parts.delete.fire?.('click');
+    for (const fn of parts.delete.listeners?.click ?? []) fn();
+    assert.deepEqual(events.filter(e => e[0] === 'pk-record-delete'), [['pk-record-delete', { id: '7' }]]);
+    el.mode = 'edit'; el.draw();
+    assert.equal(parts.delete.hidden, true, 'not while editing');
+    el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
+    assert.equal(parts.delete.hidden, true, 'not without config.deletable');
 });

@@ -15,6 +15,7 @@ import { build, loadElementSources, elementModule } from '../tools/build.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
 const elements = loadElementSources();
+const built = () => (built.out ??= build({ write: false }).out); // one in-memory build for the file: the build is deterministic (generated-current.test.mjs asserts it), so a second one adds nothing
 
 test('kebab and camel are inverses for prop names', () => {
     assert.equal(kebab('tabIndexValue'), 'tab-index-value'); assert.equal(camel('tab-index-value'), 'tabIndexValue');
@@ -113,7 +114,7 @@ test('a tag is pk-<folder>, and the generated module inlines template, css and b
 });
 
 test('the build writes per-element modules, a registry, the FOUC guard and a page layer with no component rules', () => {
-    const { out } = build({ write: false });
+    const out = built();
     const registry = JSON.parse(out.get('dist/elements/registry.js').replace(/^[\s\S]*?export default /, '').replace(/;\s*$/, ''));
     assert.deepEqual(Object.keys(registry).sort(), elements.map(e => e.meta.tag).sort());
     for (const el of elements) { assert.ok(out.has(`dist/elements/${el.name}.js`)); assert.ok(out.has(`${el.folder}/${el.name}/${el.name}.element.js`)); }
@@ -123,13 +124,6 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
     assert.match(out.get('dist/plainkit.css'), /:not\(:defined\)/);
     assert.ok(out.has('dist/elements/api.json'));
     assert.ok(!out.has('dist/plainkit-compat.css') && ![...out.keys()].some(f => f.startsWith('dist/components/')), 'the class-based layer is gone');
-});
-
-test('generated element files on disk are the build output, and the build is deterministic (run node scripts/bootstrap.mjs)', () => {
-    const { out } = build({ write: false });
-    const again = build({ write: false }).out;
-    for (const el of elements) assert.equal(again.get(`${el.folder}/${el.name}/${el.name}.element.js`), out.get(`${el.folder}/${el.name}/${el.name}.element.js`), `${el.name}: two builds differ`);
-    for (const f of ['elements/registry.js', 'elements/elements.css', ...elements.map(e => `${e.folder}/${e.name}/${e.name}.element.js`), 'dist/elements/registry.js', 'dist/plainkit.css']) assert.equal(out.get(f), fs.readFileSync(path.join(root, f), 'utf8'), `${f} is stale`);
 });
 
 test('the element base stays small: element.js + element-core.js under 2.8 KB gzipped (comments and blank lines stripped)', () => {
@@ -154,7 +148,7 @@ test('generated editor artefacts (manifest, VS Code data, web-types, typings) ar
     const { allManifests } = await import('../tools/element-manifests.mjs');
     const metas = elements.map(e => e.meta);
     const made = allManifests(metas);
-    const { out } = build({ write: false });
+    const out = built();
     for (const [name, text] of Object.entries(made)) assert.equal(out.get(`dist/${name}`), text.replace(/\r?\n/g, '\r\n'), `dist/${name} is stale: run node scripts/bootstrap.mjs`);
     const cem = JSON.parse(made['custom-elements.json']);
     assert.deepEqual(cem.modules.map(m => m.declarations[0].tagName).sort(), metas.map(m => m.tag).sort());

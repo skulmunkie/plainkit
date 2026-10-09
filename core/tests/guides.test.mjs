@@ -149,6 +149,7 @@ test('the Guides page is real: no "coming soon" left in the page or the shell, a
     const page = read('site/guides/index.html');
     assert.doesNotMatch(page + read('site/guides/page.js') + read('site/shell.js'), /coming soon/i);
     assert.match(page, /<script type="module" src="page\.js">/);
-    assert.match(page, /href="guides\.css"/);
+    assert.match(page, /<pk-doc-page id="guides">/);
+    assert.doesNotMatch(page, /guides\.css/, 'the page has no stylesheet of its own: pk-doc-page draws it');
     assert.match(read('site/shell.js'), /key: 'guides', title: 'Guides', href: '\.\.\/guides\/index\.html'/);
 });

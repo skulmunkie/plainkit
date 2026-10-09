@@ -2,9 +2,10 @@
 // folder works wherever dist/ is copied or served from. Pure: the build passes in a reader and the generated data file's text.
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveSiteCss } from './breakpoints.mjs';
 
 // Files copied as they are, plus the rewritten ones. standalone.js and index.html are the SDK site's own host page and stay out.
-const COPY = ['gallery.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js', 'pattern-mount.js'];
+const COPY = ['gallery.js', 'gallery-views.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js', 'pattern-mount.js'];
 
 // The dist layout puts js/, plainkit.css and icons.svg one level above the gallery folder, not two: drop one "../" from a specifier that
 // climbs out of the folder. depth is how many folders deep the file sits inside the gallery folder.
@@ -38,7 +39,7 @@ export const PREVIEW = 'preview.html';
 export function galleryDist(read, root, dataText, chunks = []) {
     const dir = path.join(root, 'site', 'gallery');
     const files = new Map();
-    for (const f of COPY) files.set(f, relocate(read(path.join(dir, f))));
+    for (const f of COPY) files.set(f, f.endsWith('.css') ? resolveSiteCss(read(path.join(dir, f)), `site/gallery/${f}`) : relocate(read(path.join(dir, f))));
     files.set('gallery.data.js', dataText);
     for (const [f, text] of chunks) files.set(f, text); // the per-element data modules (elements/<name>.data.js), no imports to rewrite
     files.set('paths.js', paths);
@@ -58,7 +59,7 @@ export function galleryDist(read, root, dataText, chunks = []) {
     // A pattern's optional script (samples/patterns/<id>/<id>.js) is loaded by preview.js from patterns/<id>/<id>.js, at the same depth as the source.
     const pdir = path.join(root, 'samples', 'patterns');
     for (const f of fs.readdirSync(pdir, { recursive: true }).map(x => x.replaceAll('\\', '/')).filter(x => /\.js$/.test(x)).sort()) files.set(`patterns/${f}`, read(path.join(pdir, f)));
-    files.set('site.css', read(path.join(root, 'site', 'site.css')));
+    files.set('site.css', resolveSiteCss(read(path.join(root, 'site', 'site.css')), 'site/site.css'));
     files.set('tokens.css', read(path.join(root, 'tokens', 'tokens.css')));
     // The Foundations pages list the utility and spacing classes from their source files.
     for (const n of ['utilities', 'spacing']) files.set(`${n}.css`, read(path.join(root, 'base', `${n}.css`)));

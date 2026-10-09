@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, loadJson, h, on, later, every, addressOf } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -21,7 +21,6 @@ import { shortName, formatBytes, formatMs } from '../../js/perf-logic.js';
 import { PK_VERSION } from '../../js/version.js';
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./console.css'];
 
 export const DEFAULTS = Object.freeze({ max: 500, capture: ['console', 'errors', 'events', 'network'] });
 
@@ -37,8 +36,8 @@ const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([],
 async function eventNames(win, given) {
     if (given?.length) return given;
     try {
-        const res = await win.fetch(runtimeUrl('../../dist/elements/api.json', import.meta.url));
-        if (res.ok) return [...new Set((await res.json()).flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
+        const api = await loadJson(runtimeUrl('../../dist/elements/api.json', import.meta.url), win.fetch.bind(win)); // a missing file rejects and lands in the catch below
+        return [...new Set(api.flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
     } catch (err) { log.debug('no api.json next to this module: using the built-in event list', err); }
     return FALLBACK_EVENTS;
 }
@@ -48,7 +47,7 @@ export async function mountConsole(container, options = {}) {
     const capture = new Set(options.capture ?? DEFAULTS.capture);
     const doc = container.ownerDocument;
     const win = doc.defaultView;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
     let entries = [];
     let level = 'debug';
@@ -79,7 +78,7 @@ export async function mountConsole(container, options = {}) {
     panel('elements', table('elements', 'pk-* elements on this page', [{ key: 'tag', label: 'Element' }, { key: 'count', label: 'On page', align: 'end' }, { key: 'defined', label: 'Registered' }]));
     panel('environment', table('environment', 'Environment', [{ key: 'name', label: 'Setting' }, { key: 'value', label: 'Value' }]));
 
-    const root = h(doc, 'section', { 'aria-label': 'Dev console', class: 'dc-module' }, tabs);
+    const root = h(doc, 'section', { 'aria-label': 'Dev console' }, h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' }, tabs));
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height === 'fill' ? '100%' : height}; overflow:auto`; applyDynamic(root); }
     container.replaceChildren(root);
@@ -97,7 +96,7 @@ export async function mountConsole(container, options = {}) {
             ['Viewport', `${win.innerWidth} x ${win.innerHeight} at ${win.devicePixelRatio}x`], ['Prefers', `${media('(prefers-color-scheme: dark)') ? 'dark' : 'light'} colour, ${media('(prefers-reduced-motion: reduce)') ? 'reduced' : 'full'} motion`],
             ['Language', root.lang || 'not set'], ['Online', String(win.navigator.onLine)], ['Stylesheets', String(doc.styleSheets.length)],
             ['Custom elements', String(elementInventory([...doc.getElementsByTagName('*')].map(e => e.localName), () => true).length) + ' pk-* kinds'],
-            ['Blazor', win.Blazor ? 'present' : 'not on this page'], ['Address', win.location.href], ['Agent', win.navigator.userAgent],
+            ['Blazor', win.Blazor ? 'present' : 'not on this page'], ['Address', addressOf(win).href], ['Agent', win.navigator.userAgent],
         ].map(([name, value], id) => ({ id, name, value }));
     }
 
@@ -112,8 +111,8 @@ export async function mountConsole(container, options = {}) {
         if (active === 'elements') setRows('elements', elementInventory([...doc.getElementsByTagName('*')].map(e => e.localName), t => win.customElements.get(t)).map(x => ({ id: x.tag, tag: x.tag, count: x.count, defined: x.defined ? 'yes' : 'not loaded' })));
         if (active === 'environment') setRows('environment', environment());
     }
-    let queued = 0;
-    const schedule = () => { if (!queued) queued = win.setTimeout(() => { queued = 0; render(); }, 100); };
+    let queued = null;
+    const schedule = () => { if (!queued) queued = later(win, () => { queued = null; render(); }, 100); };
     const record = (lvl, message, meta) => { entries = pushEntry(entries, makeEntry(lvl, message, meta), max); schedule(); };
 
     // ---- capture, each part undone by destroy() ---------------------------------------------------------------------------
@@ -133,13 +132,13 @@ export async function mountConsole(container, options = {}) {
     if (capture.has('errors')) {
         const onError = e => record('error', `${e.message}${e.filename ? ` (${shortName(e.filename)}:${e.lineno})` : ''}`, { source: 'error' });
         const onReject = e => record('error', `Unhandled rejection: ${formatArg(e.reason)}`, { source: 'rejection' });
-        win.addEventListener('error', onError); win.addEventListener('unhandledrejection', onReject);
+        on(win, 'error', onError); on(win, 'unhandledrejection', onReject);
         undo.push(() => { win.removeEventListener('error', onError); win.removeEventListener('unhandledrejection', onReject); });
     }
     if (capture.has('events')) {
         const names = await eventNames(win, options.events);
         const onEvent = e => { const t = e.composedPath?.()[0] ?? e.target; record('info', `${e.type} on <${t?.localName ?? '?'}${t?.id ? `#${t.id}` : ''}> ${e.detail === undefined || e.detail === null ? '' : formatArg(e.detail)}`.trim(), { source: 'event' }); };
-        for (const n of names) doc.addEventListener(n, onEvent, true);
+        for (const n of names) on(doc, n, onEvent, true);
         undo.push(() => { for (const n of names) doc.removeEventListener(n, onEvent, true); });
     }
     if (capture.has('network') && typeof win.PerformanceObserver === 'function') {
@@ -151,12 +150,12 @@ export async function mountConsole(container, options = {}) {
     }
 
     // ---- controls ---------------------------------------------------------------------------------------------------------
-    tabs.addEventListener('pk-tab-change', e => { active = e.detail.value; render(); });
-    search.addEventListener('pk-search', e => { text = e.detail.value ?? ''; render(); });
-    levels.addEventListener('pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
-    clear.addEventListener('click', () => { entries = []; render(); });
-    copy.addEventListener('click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
-    const timer = win.setInterval(() => { if (active === 'elements' || active === 'environment') render(); }, 2000);
+    on(tabs, 'pk-tab-change', e => { active = e.detail.value; render(); });
+    on(search, 'pk-search', e => { text = e.detail.value ?? ''; render(); });
+    on(levels, 'pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
+    on(clear, 'click', () => { entries = []; render(); });
+    on(copy, 'click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
+    const stopTimer = every(win, () => { if (active === 'elements' || active === 'environment') render(); }, 2000);
 
     render();
     return {
@@ -164,6 +163,6 @@ export async function mountConsole(container, options = {}) {
         clear: () => { entries = []; render(); },
         entries: () => entries.slice(),
         select: key => { if (TABS.some(([k]) => k === key)) { active = key; tabs.setAttribute('value', key); render(); } },
-        destroy() { win.clearInterval(timer); win.clearTimeout(queued); for (const u of undo.reverse()) u(); root.remove(); },
+        destroy() { stopTimer(); queued?.(); for (const u of undo.reverse()) u(); root.remove(); },
     };
 }

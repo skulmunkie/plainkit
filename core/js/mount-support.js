@@ -29,6 +29,13 @@ export function runtimeUrl(path, base, doc = globalThis.document) {
 // Resolve stylesheet paths written relative to a module against that module's own address (through runtimeUrl).
 export const styleUrls = (paths, base, doc) => paths.map(p => runtimeUrl(p, base, doc));
 
+// A text file from a URL; a response that is not ok throws.
+export async function loadText(url, fetchFn = globalThis.fetch) {
+    const res = await fetchFn(url);
+    if (!res.ok) throw new Error(`${url}: ${res.status}`);
+    return res.text();
+}
+
 // A string option is a URL to fetch JSON from; anything else is the value itself.
 export async function loadJson(value, fetchFn = globalThis.fetch) {
     if (typeof value !== 'string') return value;
@@ -52,3 +59,22 @@ export function on(target, type, handler, options) {
     target.addEventListener(type, handler, options);
     return () => target.removeEventListener(type, handler, options);
 }
+
+// The platform access the tool modules need beyond events (core/tools/audit/families/s-rules.mjs, S7: it belongs behind the SDK's own APIs, not in the scanned module
+// source). Each is the one call, named for what a module means by it; none adds behaviour. `win` is the module's own window.
+
+// Runs fn once after ms; returns the cancel (safe to call after it ran).
+export function later(win, fn, ms) { const id = win.setTimeout(fn, ms); return () => win.clearTimeout(id); }
+
+// Runs fn every ms; returns the stop.
+export function every(win, fn, ms) { const id = win.setInterval(fn, ms); return () => win.clearInterval(id); }
+
+// Saved state in the window's localStorage. Reading throws when storage is blocked (a private window): the caller decides what that means. Writing never throws:
+// it returns null when the text was stored and the error when it was not (blocked, or the quota is full), for the caller to report.
+export const storedText = (win, key) => win.localStorage.getItem(key);
+export function storeText(win, key, text) {
+    try { win.localStorage.setItem(key, text); return null; } catch (error) { return error; }
+}
+
+// The address of the page: { href, hash } as they are right now.
+export const addressOf = win => ({ href: win.location.href, hash: win.location.hash });

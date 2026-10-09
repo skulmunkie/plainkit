@@ -53,3 +53,8 @@ test('the phone breakpoint is named, not a literal', () => {
     assert.match(css, /@media \(--phone\)/);
     assert.doesNotMatch(css, /@media \(max-width: \d+px\)/, 'a literal breakpoint would fail core/tests/breakpoints.test.mjs too');
 });
+
+test('value is a plain string the host sets to preset or replace the search text (#865)', () => {
+    assert.equal(prop('value').type, 'string');
+    assert.equal(prop('value').default, '');
+});

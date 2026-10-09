@@ -318,10 +318,15 @@ import { headerCases } from './cases-headers.js'; cases.push(...headerCases);
 import { layoutCases } from './cases-layout.js'; cases.push(...layoutCases);
 import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCases);
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
+import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
+import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
+import { moduleMountCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
+import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
+import { galleryCases } from './cases-gallery.js'; cases.push(...galleryCases);
 import { appShellCases } from './cases-app-shell.js'; cases.push(...appShellCases);
 
 // A property set on an element before its class is defined (the upgrade) is adopted, and reflects to its attribute like an assignment (#325).
@@ -340,6 +345,24 @@ cases.push(['a property set before the element upgrades is reflected to its attr
     t.eq(a.hasAttribute('rail'), true, 'boolean prop reflected'); t.eq(a.getAttribute('size'), 'lg', 'enum prop reflected');
     t.eq(a.rail, true); t.eq(changes, 0, 'adopting fires no change event');
     a.rail = false; t.eq(a.hasAttribute('rail'), false, 'later assignments still reflect');
+}]);
+
+// An element's own bookkeeping must not collide with the base class's: a prop written before the element is defined must not break the auto-update stop on disconnect (#884).
+cases.push(['elements that auto-update their panel survive a prop written before they were defined: connect and disconnect do not throw', async t => {
+    const errors = [], onError = e => { errors.push(e.message); e.preventDefault(); };
+    window.addEventListener('error', onError);
+    try {
+        for (const tag of ['pk-popover', 'pk-combobox', 'pk-dropdown', 'pk-select-menu', 'pk-badge-popover']) {
+            // A document with no custom element registry keeps the element un-upgraded while its property is written, like a host page that sets props before the SDK loads.
+            const el = document.implementation.createHTMLDocument('').createElement(tag);
+            el.open = false;
+            const host = t.stage('');
+            host.append(document.adoptNode(el));
+            await t.load(host); await t.settle();
+            el.remove(); await t.settle();
+        }
+    } finally { window.removeEventListener('error', onError); }
+    t.eq(errors.join('; '), '', 'no error was thrown');
 }]);
 
 // The invalid state does not depend on the definition order: a field wired before its control is defined applies it when the control upgrades (#341).

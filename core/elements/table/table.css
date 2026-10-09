@@ -40,16 +40,19 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
 @media (--phone) {
     [data-hide-phone] { display: none; }
     th button { display: inline-flex; align-items: center; min-block-size: var(--touch-target); min-inline-size: var(--touch-target); }
-    /* A row-select checkbox: the box is 24.5px and the whole cell (49px wide, at least 44px tall with its padding) is the tap area: table.js toggles the box on a cell click. */
-    [data-check] input { inline-size: 1.75rem; block-size: 1.75rem; }
-    tr[data-filters] input[type="search"] { min-block-size: var(--touch-target); box-sizing: border-box; font-size: 16px; }
+    /* A row-select checkbox is itself the touch target (the cell click toggles it too, table.js). */
+    [data-check] input { inline-size: var(--touch-target); block-size: var(--touch-target); }
+    tr[data-clickable] { block-size: var(--touch-target); }
+    tr[data-filters] input[type="search"] { min-block-size: var(--touch-target); font-size: 16px; }
     :host([cards]) thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
     :host([cards]) :is(tbody, tr, td) { display: block; }
     :host([cards]) th button { display: none; }
     :host([cards]) tr { margin-block-end: var(--gap-card); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
     :host([cards]) td { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-1) 0; border: 0; text-align: end; }
+    :host([cards]) tr[data-clickable] { block-size: auto; min-block-size: var(--touch-target); }
+    :host([cards]) td { overflow-wrap: anywhere; }
     :host([cards]) td[data-hide-phone] { display: none; }
-    :host([cards]) td[data-label]::before { content: attr(data-label); color: var(--color-muted); font-size: var(--text-meta); text-align: start; }
+    :host([cards]) td[data-label]::before { content: attr(data-label); flex: none; color: var(--color-muted); font-size: var(--text-meta); text-align: start; }
     /* A slotted link is a flex item in the card row and shrinks to its line height; give it a real tap target. */
     :host([cards]) ::slotted(a) { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
 }

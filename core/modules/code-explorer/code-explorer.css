@@ -16,67 +16,15 @@ pk-code-explorer {
 pk-code-explorer [hidden] { display: none !important; }
 pk-code-explorer pk-workspace { --pk-workspace-pad: 0; }
 
-/* Nav pane: two search boxes, their buttons and the file tree. */
-.ce-nav { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
-.ce-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.ce-name { min-inline-size: 0; overflow-wrap: anywhere; }
-.ce-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-inline-size: 0; }
-.ce-folder { font-weight: 600; }
 pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
-.ce-muted { color: var(--color-muted); }
-.ce-error { margin: var(--space-1); color: var(--field-error); }
 
 /* Main pane: the tab strip of open files over the viewer. */
-.ce-main { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; min-inline-size: 0; }
-.ce-main pk-tabs { flex: none; padding-inline: var(--space-2); border-bottom: var(--ce-border-w) solid var(--color-border); }
-.ce-main pk-tabs::part(list) { margin-bottom: 0; border-bottom: 0; }
-.ce-pane { display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; padding: var(--space-3); }
-.ce-pane pk-empty-state { margin: auto; }
+pk-code-explorer pk-tabs { flex: none; padding-inline: var(--space-2); border-bottom: var(--ce-border-w) solid var(--color-border); }
+pk-code-explorer pk-tabs::part(list) { margin-bottom: 0; border-bottom: 0; }
+pk-code-explorer pk-container pk-empty-state { margin: auto; }
 
-/* Aside pane: the outline or the usages of a word. */
-.ce-aside { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); min-inline-size: 0; }
-.ce-aside-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.ce-aside-head h2 { margin: 0; font-size: var(--text-read); }
 
-/* Outline. */
-.co { list-style: none; margin: 0; padding: 0; }
-.co-item {
-    display: flex; align-items: baseline; gap: var(--space-2); width: 100%; padding: var(--space-1) var(--space-2); border: 0; background: none;
-    color: inherit; font: inherit; font-size: var(--text-read); text-align: left; cursor: pointer; border-radius: var(--radius-sm);
-}
-.co-item:hover { background: var(--color-surface-alt); }
-.co-item:focus-visible { outline: var(--focus-ring); outline-offset: var(--ce-focus-offset); }
-.co-kind { flex: none; min-width: var(--ce-kind-w); font-size: var(--text-meta); text-transform: uppercase; letter-spacing: var(--ce-kind-tracking); color: var(--color-accent); }
-.co-name { font-family: var(--ce-mono); overflow-wrap: anywhere; }
-.co-line { margin-left: auto; font-size: var(--text-meta); color: var(--color-muted); }
-.co-d1 { padding-left: var(--space-5); }
-.co-d2 { padding-left: var(--space-8); }
-.co-d3 { padding-left: var(--space-12); }
-
-/* The reports picker (largest files, longest methods, duplicate blocks, and patterns when the host set any). */
-.csr-kinds { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-bottom: var(--space-2); }
-.csr-kind {
-    padding: var(--space-1) var(--space-2); border: var(--ce-border-w) solid var(--color-border); border-radius: var(--radius-sm);
-    background: none; color: inherit; font: inherit; font-size: var(--text-meta); cursor: pointer;
-}
-.csr-kind:hover { background: var(--color-surface-alt); }
-.csr-kind:focus-visible { outline: var(--focus-ring); outline-offset: var(--ce-focus-offset); }
-.csr-kind--active { background: var(--color-accent-fill); border-color: var(--color-accent-fill); color: var(--btn-primary-fg); }
-
-/* Search results, also used for usages and reports. */
-.csr { min-width: 0; }
-.csr-group { border: var(--ce-border-w) solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-2); overflow: hidden; }
-.csr-title { padding: var(--space-1) var(--space-2); font-family: var(--ce-mono); font-size: var(--text-read); background: var(--color-surface-alt); overflow-wrap: anywhere; }
-.csr-hit {
-    display: flex; gap: var(--space-2); width: 100%; text-align: left; cursor: pointer;
-    background: none; border: 0; border-top: var(--ce-border-w) solid var(--color-border);
-    padding: var(--space-1) var(--space-2); color: inherit; font: inherit;
-}
-.csr-hit:hover { background: var(--color-surface-alt); }
-.csr-hit:focus-visible { outline: var(--focus-ring); outline-offset: var(--ce-focus-offset); }
-.csr-no { flex: none; min-width: var(--ce-no-w); text-align: right; color: var(--color-muted); font-family: var(--ce-mono); font-size: var(--text-meta); }
-.csr-text { font-family: var(--ce-mono); font-size: var(--text-meta); white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
-.csr-text mark { background: var(--csr-mark-bg); color: inherit; padding: 0; }
+pk-code-explorer pk-list-group mark { background: var(--csr-mark-bg); color: inherit; padding: 0; }
 
 /* Code viewer: a code-editor pane. The palette is local to the viewer (dark by default, like the app; light when data-theme="light")
    so token colours keep their contrast on the editor background rather than on whatever surface the page uses. */
@@ -97,17 +45,15 @@ pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0;
 /* The listing is a <pk-code-view>: the box is the .cv frame, so it draws no border of its own. */
 .cv-scroll { border: 0; border-radius: 0; --pk-code-view-max-height: 70vh; }
 
-.cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; block-size: 100%; box-sizing: border-box; }
 .cv--fill .cv-scroll { flex: 1; min-height: 0; --pk-code-view-max-height: none; }
 
-@media (max-width: 640px) {
+@media (--phone) {
     .cv-scroll { --pk-code-view-max-height: 60vh; }
     .cv--fill .cv-scroll { --pk-code-view-max-height: none; }
 }
 
-/* Parts of the outline and the trail that the explorer itself does not draw but other pages still use. */
-.co-active { background: var(--color-surface-alt); box-shadow: inset var(--ce-active-bar-w) 0 0 var(--color-accent); }
-.co-detail { font-size: var(--text-meta); }
+/* The trail, which the explorer itself does not draw but other pages still use. */
 
 .cnb { display: flex; align-items: center; gap: var(--space-1); min-width: 0; margin-bottom: var(--space-1); }
 .cnb-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); list-style: none; margin: 0 0 0 var(--space-1); padding: 0; min-width: 0; font-size: var(--text-read); }

@@ -8,7 +8,8 @@
 //   node scripts/ui-review.mjs                       the elements changed versus origin/main (core/elements/<name>/, blazor/mappings/<name>.json), plus the elements composing them;
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
-//   [--base <ref>] [--out <dir>] [--shard i/n] [--skip-base] [--strict] [--port N] [--timeout <s>]
+//   [--base <ref>] [--out <dir>] [--shard i/n] [--jobs N] [--skip-base] [--strict] [--port N] [--timeout <s>]
+//   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
 // page scrolled, a collapsed rail with a flyout), each rendered to screenshots after its named `shot` steps in the same four combinations (or the subset
@@ -107,7 +108,7 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1 };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
@@ -127,6 +128,7 @@ export function parseArgs(argv) {
             if (!m || Number(m[1]) < 1 || Number(m[1]) > Number(m[2])) throw new Error('--shard needs i/n with 1 <= i <= n, for example 2/4');
             o.shard = { k: Number(m[1]), n: Number(m[2]) };
         }
+        else if (a === '--jobs') { const n = Number(value()); if (!Number.isInteger(n) || n < 1 || n > 16) throw new Error('--jobs needs a whole number from 1 to 16'); o.jobs = n; }
         else if (a === '--base') o.base = value();
         else if (a === '--out') o.out = value();
         else if (a === '--port' || a === '--timeout') { const n = Number(value()); if (!Number.isInteger(n) || n < 0) throw new Error(`${a} needs a whole number`); o[a.slice(2)] = n; }
@@ -276,9 +278,76 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
     }
 }
 
+/**
+ * The manifests of the shards of one run as the manifest of the whole run (--jobs, #712): shots, not-seen entries, timings, phases and reasons joined, the findings grouped again
+ * across all shards, the summary recomputed. `timings` keep the slowest job as `wall` is the caller's to add. Pure.
+ */
+export function mergeManifests(parts, { strict = false } = {}) {
+    const shots = parts.flatMap(p => p.shots ?? []);
+    const findings = groupFindings(shots);
+    return {
+        ...parts[0],
+        shard: null,
+        reasons: Object.assign({}, ...parts.map(p => p.reasons ?? {})),
+        elements: [...new Set(parts.flatMap(p => p.elements ?? []))].sort(),
+        scenarios: [...new Set(parts.flatMap(p => p.scenarios ?? []))].sort(),
+        shots,
+        notSeen: parts.flatMap(p => p.notSeen ?? []),
+        timings: Object.assign({}, ...parts.map(p => p.timings ?? {})),
+        phases: Object.assign({}, ...parts.map(p => p.phases ?? {})),
+        findings,
+        summary: summarize(findings, { strict }),
+    };
+}
+
+/** The arguments of job i of n: the run's own arguments without --jobs and --out, plus its shard and its own output folder. Pure. */
+export function jobArgs(argv, i, n, out) {
+    const rest = [];
+    for (let k = 0; k < argv.length; k++) {
+        if (argv[k] === '--jobs' || argv[k] === '--out') { k++; continue; }
+        rest.push(argv[k]);
+    }
+    return [...rest, '--shard', `${i}/${n}`, '--out', out];
+}
+
+// --jobs N: N shards of the same run in N processes (each with its own server, browser and profile), then one manifest. Same disjoint shards CI uses (#741); the screenshots and every
+// audit are the same as a serial run, only the elapsed time differs.
+async function runJobs(o, argv) {
+    const out = path.resolve(root, o.out);
+    fs.rmSync(out, { recursive: true, force: true });
+    fs.mkdirSync(out, { recursive: true });
+    const t0 = Date.now();
+    const dirs = Array.from({ length: o.jobs }, (_, k) => path.join(out, `.job-${k + 1}`));
+    const codes = await Promise.all(dirs.map((dir, k) => new Promise(resolve => {
+        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...jobArgs(argv, k + 1, o.jobs, dir)], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+        let buf = '';
+        const flush = final => { const lines = buf.split('\n'); buf = final ? '' : lines.pop(); for (const l of lines) if (l.trim()) console.log(`[${k + 1}/${o.jobs}] ${l}`); };
+        for (const s of [child.stdout, child.stderr]) s.on('data', d => { buf += d; flush(false); });
+        child.on('close', code => { flush(true); resolve(code ?? 2); });
+    })));
+    const parts = [];
+    for (const dir of dirs) {
+        const file = path.join(dir, 'manifest.json');
+        if (!fs.existsSync(file)) continue;
+        parts.push(JSON.parse(fs.readFileSync(file, 'utf8')));
+        for (const f of fs.readdirSync(dir)) if (f !== 'manifest.json') fs.renameSync(path.join(dir, f), path.join(out, f));
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+    if (parts.length !== o.jobs) { console.error(`only ${parts.length} of ${o.jobs} jobs wrote a manifest`); return 2; }
+    const manifest = mergeManifests(parts, { strict: o.strict });
+    manifest.timings.wall = Math.round((Date.now() - t0) / 100) / 10;
+    fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
+    console.log(`${o.jobs} jobs: ${manifest.shots.filter(s => s.file).length} screenshots in ${path.relative(root, out) || out}; ${manifest.summary.errors} error(s), ${manifest.summary.warnings} warning(s); wall time ${manifest.timings.wall} s`);
+    return Math.max(...codes);
+}
+
+// What a run has to stop when it is interrupted: the browser and the server (set once they are started).
+let stopChildren = () => {};
+
 async function main() {
     let o;
     try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(e.message); return 2; }
+    if (o.jobs > 1) { if (o.shard) { console.error('--jobs makes its own shards: do not combine it with --shard'); return 2; } ensureGenerated(); return runJobs(o, process.argv.slice(2)); }
     ensureGenerated();
     const registry = (await import(pathToFileURL(path.join(root, 'core', 'elements', 'registry.js')).href)).default;
     const known = new Set(Object.keys(registry).map(t => t.slice(3)));
@@ -309,8 +378,11 @@ async function main() {
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
+    // A process ended from outside (a task killed, a window closed) cannot say so on Windows: this marker, removed when the run finishes, tells the next reader the folder is a partial run.
+    const incomplete = path.join(out, 'INCOMPLETE.txt');
+    fs.writeFileSync(incomplete, `ui-review started ${new Date().toISOString()} and has not finished: the shots here are a partial run (the process was ended from outside).\n`);
     const manifest = { generated: new Date().toISOString(), why, shard: o.shard ? `${o.shard.k}/${o.shard.n}` : null, reasons: reasons ?? Object.fromEntries(names.map(n => [n, why])), elements: examples, scenarios: scenarios.map(s => s.name), viewports: VIEWPORTS, themes: THEMES, shots: [], notSeen: [], timings: {}, phases: {}, summary: null };
-    if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); return 0; }
+    if (!examples.length && !scenarios.length) { console.log(`no element changed versus ${o.base}: nothing to review`); manifest.summary = { errors: 0, warnings: 0, ok: true }; fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2)); fs.rmSync(incomplete, { force: true }); return 0; }
 
     let chrome;
     try { chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) }); } catch (e) { console.error(e.message); return 2; }
@@ -329,6 +401,7 @@ async function main() {
             setTimeout(() => reject(new Error('the server did not start within 10 s')), 10000);
         });
         server.removeAllListeners('exit');
+        stopChildren = () => { killTree(browser); killTree(server); };
         browser = spawn(chrome, [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore', detached: process.platform !== 'win32' });
         const portFile = path.join(profile, 'DevToolsActivePort');
         for (let i = 0; i < 100 && !fs.existsSync(portFile); i++) await sleep(150);
@@ -370,6 +443,7 @@ async function main() {
         manifest.findings = grouped;
         manifest.summary = summarize(grouped, { strict: o.strict });
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
+        fs.rmSync(incomplete, { force: true });
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
         for (const n of manifest.notSeen) console.log(`NOT SEEN ${n.tag} ${n.viewport}/${n.theme}: ${n.reason}`);
         console.log(`time (s): ${Object.entries(manifest.timings).map(([k, v]) => `${k} ${v}`).join(', ')}`);
@@ -389,4 +463,13 @@ async function main() {
     return code;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(await main());
+// A run never ends silently (an exit code of 255 told nothing): a crash, an interruption and an exit before main finished each say what happened and exit with a code of their own.
+let finished = false;
+function loud() {
+    const crash = e => { console.error(`ui-review crashed: ${e?.stack ?? e}`); stopChildren(); process.exit(2); };
+    process.on('uncaughtException', crash);
+    process.on('unhandledRejection', crash);
+    for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) { try { process.on(sig, () => { console.error(`ui-review interrupted by ${sig}`); stopChildren(); process.exit(130); }); } catch (e) { /* a signal this platform has no name for */ void e; } }
+    process.on('exit', code => { if (!finished) console.error(`ui-review stopped with exit code ${code} before it finished (a promise never settled, or the process was ended from outside)`); });
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) { loud(); const code = await main(); finished = true; process.exit(code); }

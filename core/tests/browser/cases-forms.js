@@ -199,6 +199,20 @@ export const formCases = [
         press(tr, 'm'); await t.settle(); t.eq(sel.value, 'e', 'a letter on the closed trigger picks the match');
     }],
 
+    ['select multiple and tag-input: the values array and the JSON attribute drive the selection and the joined value; the commit event carries the array (#850)', async t => {
+        const host = t.stage('<form><pk-select name="m" multiple values=\'["a,b","c"]\'><option value="a,b">AB</option><option value="c">C</option><option value="d">D</option></pk-select><pk-tag-input name="t"></pk-tag-input></form>'); await t.load(host); await t.settle();
+        const [m, ti] = [host.querySelector('pk-select'), host.querySelector('pk-tag-input')];
+        t.eq(m.value, 'a\\,b,c'); t.eq(m.values.join('|'), 'a,b|c'); t.eq([...m.part('control').selectedOptions].map(o => o.value).join('|'), 'a,b|c');
+        m.values = ['d']; await t.settle(); t.eq(m.value, 'd'); t.eq([...m.part('control').selectedOptions].map(o => o.value).join('|'), 'd');
+        const got = []; m.addEventListener('pk-value-change', e => got.push(e.detail)); ti.addEventListener('pk-tags-change', e => got.push(e.detail));
+        m.part('control').options[1].selected = true; m.part('control').dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(got[0].values.join('|'), 'c|d'); t.eq(got[0].value, 'c,d');
+        ti.values = ['x,y', 'z\\w']; await t.settle(); t.eq(ti.value, 'x\\,y,z\\w'); t.eq(ti.values.join('|'), 'x,y|z\\w');
+        ti.part('field').value = 'q'; ti.part('field').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await t.settle();
+        t.eq(got[1].values.join('|'), 'x,y|z\\w|q'); t.eq(ti.values.length, 3);
+        ti.setAttribute('values', '[]'); await t.settle(); t.eq(ti.value, '');
+    }],
+
     ['tag-input: Enter and separators add, duplicates and the limit are refused, Backspace and the cross remove, the form gets one entry per tag', async t => {
         const host = t.stage('<form><pk-tag-input name="t" label="Tags" value="dc" max="3"></pk-tag-input></form>'); await t.load(host); await t.settle();
         const el = host.querySelector('pk-tag-input'); const f = el.part('field'); const labels = () => [...el.part('box').querySelectorAll('.pl')].map(x => x.textContent);

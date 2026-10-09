@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { differences, publish } from '../publish-dist.mjs';
+import { differences, publish, KEEP_FROM_TOOLS } from '../publish-dist.mjs';
 
 function makeTree(dir, files) {
     for (const [rel, content] of files) {
@@ -50,4 +50,28 @@ test('differences() still flags a real gap (a tracked non-tools file missing fro
         makeTree(to, [['plainkit.js', 'x']]);
         assert.deepEqual(differences(from, to), ['missing: plainkit.css']);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('publish() keeps the one tools file the browser code imports, and every static import of the shipped JavaScript resolves inside the package', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-publish-dist-'));
+    try {
+        const from = path.join(dir, 'from'), to = path.join(dir, 'to');
+        makeTree(from, [['plainkit.js', 'x'], ['tools/audit/cli.mjs', 'x'], ['tools/audit/scanners/literals.mjs', 'x']]);
+        publish(from, to);
+        assert.ok(fs.existsSync(path.join(to, 'tools/audit/scanners/literals.mjs')) && !fs.existsSync(path.join(to, 'tools/audit/cli.mjs')));
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    // The real package copy: a relative static import that leaves the shipped files is a 404 at runtime (the dev tools page failed this way).
+    const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..', 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'plainkit');
+    const missing = [];
+    for (const e of fs.readdirSync(root, { recursive: true, withFileTypes: true })) {
+        if (!e.isFile() || !/\.(m?js)$/.test(e.name) || e.parentPath.includes('skills')) continue;
+        const file = path.join(e.parentPath, e.name);
+        // minified or not: import { a } from "./x.js", export * from '../y.js', import "./z.js"
+        for (const m of fs.readFileSync(file, 'utf8').matchAll(/\b(?:import|export)\s*(?:\{[^}]*\}|\*\s*(?:as\s+[\w$]+)?|[\w$]+)?\s*from\s*["'](\.{1,2}\/[^"']+)["']|\bimport\s*["'](\.{1,2}\/[^"']+)["']/g)) {
+            const target = path.resolve(path.dirname(file), m[1] ?? m[2]);
+            if (!fs.existsSync(target)) missing.push(`${path.relative(root, file)} imports ${m[1] ?? m[2]}`);
+        }
+    }
+    assert.deepEqual(missing, [], 'FIX: ship the file (scripts/publish-dist.mjs KEEP_FROM_TOOLS) or stop importing it from browser code');
+    assert.ok(KEEP_FROM_TOOLS.has('tools/audit/scanners/literals.mjs'));
 });

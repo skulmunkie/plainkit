@@ -13,13 +13,6 @@
     public new string? StatusHeading => base.StatusHeading;
     public new bool IsBusy => base.IsBusy;
     public new string? BusyLabel => base.BusyLabel;
-    public new bool ShowBusyOverlay => base.ShowBusyOverlay;
-    public int DelayMs { get; set; }
-    public int MinMs { get; set; }
-    public TimeProvider? Time { get; set; }
-    protected override TimeProvider Clock => Time ?? base.Clock;
-    protected override TimeSpan BusyDelay => TimeSpan.FromMilliseconds(DelayMs);
-    protected override TimeSpan BusyMinTime => TimeSpan.FromMilliseconds(MinMs);
     public IDisposable CallBeginBusy(string? label = null) => BeginBusy(label);
 
     public void CallSetStatus(string message, string kind = "info", string? heading = null) => SetStatus(message, kind, heading);
@@ -27,4 +20,8 @@
     public Task CallSetErrorAsync(Exception exception, string? message = null) => SetErrorAsync(exception, message);
     public Task CallBusyAsync(Func<Task> action, string? label = null) => BusyAsync(action, label);
     public Task<T> CallBusyAsync<T>(Func<Task<T>> action, string? label = null) => BusyAsync(action, label);
+    public ValueTask CallShowSuccess(string title, string? details = null) => ShowSuccess(title, details);
+    public ValueTask CallShowWarning(string title, string? details = null) => ShowWarning(title, details);
+    public ValueTask CallShowError(string title, string? details = null) => ShowError(title, details);
+    public ValueTask CallShowError(Exception exception, string? title = null) => ShowError(exception, title);
 }

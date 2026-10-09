@@ -1,20 +1,18 @@
 {
   "component": "PkDataTable",
   "existing": true,
-  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5)",
+  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5) Missing generator features: @typeparam generation (a typed component), a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate), and typed columns turned into the columns JSON with per-row cell slots.",
   "params": [
-    {
-      "name": "Config",
-      "type": "string",
-      "default": "{}",
-      "map": "prop",
-      "prop": "config",
-      "note": "Not a parameter of the component: PkDataTable<TItem> builds the config JSON ({ columns, pageSize, pageSizeOptions, sort, sortDir, searchable, searchLabel, searchDebounce, pagerLabel, label, caption, empty, noResults, loadError }) from its typed parameters (Columns, PageSize, SortKey, Descending, Searchable, SearchPlaceholder, SearchLabel, SearchDebounceMs, PagerLabel, Label, Caption, EmptyText, NoResultsText, LoadErrorText)."
-    },
     {
       "name": "Selectable",
       "prop": "selectable",
       "type": "bool"
+    },
+    {
+      "name": "SelectPageOnly",
+      "prop": "selectPageOnly",
+      "type": "bool",
+      "note": "Suppresses the Select all N rows offer; the header checkbox still selects the page and SelectScope stays page."
     },
     {
       "name": "RowKey",
@@ -34,5 +32,5 @@
       "note": "page or all: all after the user chose Select all N rows; OnSelect then carries the query (Scope, Query, read with PkSelectQuery.ToRequest) to run the bulk action against on the server. No ids of other pages are ever sent."
     }
   ],
-  "notes": "PkDataTable<TItem> (Components/PkDataTable.razor) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges). PkDataList<TItem> is an [Obsolete] subclass kept for one release."
+  "notes": "PkDataTable<TItem> (Components/PkDataTable.razor) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; AddLabel is the element's add-label and OnAdd its pk-add; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges)."
 }

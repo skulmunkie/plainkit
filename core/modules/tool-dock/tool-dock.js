@@ -15,10 +15,11 @@
 // deactivate are called as its tab is shown and hidden, so a panel can pause work while unseen. context is { doc, win, theme, whileHidden(fn), isTool(el) }.
 // Returns { open(), close(), toggle(), isOpen(), select(id), tabs(), destroy() }.
 
-import { ensureStyles, styleUrls, h } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
+import { matchesHotkey } from '../../js/hotkey.js';
 
 const log = createLogger('tool-dock');
 const STYLES = ['../../plainkit.css'];
@@ -26,16 +27,8 @@ const OWN_STYLES = ['./tool-dock.css'];
 
 export const SIZES = Object.freeze({ small: '25vh', medium: '40vh', large: '65vh' });
 
-// Does this key event match a chord like "Ctrl+`" or "Ctrl+Shift+D"?
-export function matchesHotkey(event, chord) {
-    if (!chord) return false;
-    const parts = chord.split('+').map(s => s.trim());
-    const key = parts.pop();
-    const want = new Set(parts.map(p => p.toLowerCase()));
-    const has = { ctrl: Boolean(event.ctrlKey || event.metaKey), shift: Boolean(event.shiftKey), alt: Boolean(event.altKey) };
-    return event.key.toLowerCase() === key.toLowerCase()
-        && want.has('ctrl') === has.ctrl && want.has('shift') === has.shift && want.has('alt') === has.alt;
-}
+// The chord matcher is shared with pk-tray (js/hotkey.js); it stays exported from here.
+export { matchesHotkey };
 
 export async function mountToolDock(container, options = {}) {
     const { mode = 'dock', hotkey = 'Ctrl+`', theme, panels = [], label, launcherLabel } = options;
@@ -74,10 +67,10 @@ export async function mountToolDock(container, options = {}) {
             ...Object.keys(SIZES).map(k => h(doc, 'pk-button', { toggle: true, variant: 'ghost', size: 'mini', value: k, pressed: k === (options.size ?? 'medium') }, k[0].toUpperCase() + k.slice(1))));
         const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', label: `Close ${label.toLowerCase()}`, slot: 'trailing' }, 'Close');
         tabs.append(sizes, close);
-        close.addEventListener('click', () => api.close());
-        sizes.addEventListener('pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
+        on(close, 'click', () => api.close());
+        on(sizes, 'pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
         toggleButton = h(doc, 'pk-button', { class: 'td-launcher', size: 'mini', variant: 'secondary' }, launcherLabel);
-        toggleButton.addEventListener('click', () => api.toggle());
+        on(toggleButton, 'click', () => api.toggle());
         doc.body.append(surface, toggleButton);
     } else {
         container.replaceChildren(surface);
@@ -95,10 +88,10 @@ export async function mountToolDock(container, options = {}) {
     const context = { doc, win, theme, whileHidden, isTool: e => surface.contains(e) || e === toggleButton };
     await Promise.all(panels.map(async p => { mounted.set(p.id, (await p.mount(bodies.get(p.id), context)) ?? {}); }));
     const sync = () => { for (const [id, m] of mounted) (opened && id === active ? m.activate : m.deactivate)?.(); };
-    tabs.addEventListener('pk-tab-change', e => { active = e.detail.value; sync(); });
+    on(tabs, 'pk-tab-change', e => { active = e.detail.value; sync(); });
 
     const onKey = e => { if (dock && matchesHotkey(e, hotkey)) { e.preventDefault(); api.toggle(); } };
-    if (dock) doc.addEventListener('keydown', onKey);
+    if (dock) on(doc, 'keydown', onKey);
     sync();
 
     const api = {

@@ -12,7 +12,6 @@ import { fileURLToPath } from 'node:url';
 import { build } from '../tools/build.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const norm = t => t.replace(/\r\n/g, '\n');
 const { out } = build({ write: false });
 
 test('the build is deterministic: a second run produces the same files with the same bytes', () => {
@@ -23,7 +22,8 @@ test('the build is deterministic: a second run produces the same files with the 
 });
 
 test('every generated file on disk is what the build produces (run node scripts/bootstrap.mjs when it fails)', () => {
-    const stale = [...out].filter(([f, text]) => !fs.existsSync(path.join(root, f)) || norm(fs.readFileSync(path.join(root, f), 'utf8')) !== norm(text)).map(([f]) => f);
+    for (const f of ['site/scorecard/api.current.json', 'site/scorecard/tiers.current.json']) assert.ok(out.get(f), `the build does not write ${f}`); // was api-current.test.mjs, whose determinism and disk checks are the two tests here
+    const stale = [...out].filter(([f, text]) => !fs.existsSync(path.join(root, f)) || fs.readFileSync(path.join(root, f), 'utf8') !== text).map(([f]) => f);
     assert.deepEqual(stale, [], 'stale or missing generated files: run node scripts/bootstrap.mjs');
 });
 

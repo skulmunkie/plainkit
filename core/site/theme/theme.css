@@ -1,7 +1,0 @@
-/* Theme editor page. The editor's own chrome is modules/theme-editor/theme-editor.css. Tokens only. */
-
-#te-host { padding: var(--space-4); }
-
-@media (max-width: 640px) {
-    #te-host { padding: var(--space-3); }
-}

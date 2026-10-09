@@ -9,8 +9,8 @@ The package carries the whole toolkit as static web assets (`_content/PlainKit.B
 This package is a pre-release. What it covers and what it does not:
 
 - **Verified:** Blazor Server, driven in a live host (the Playground app: the `/generated` page, the dev tools page, `IPkLog` and the `ILogger` forwarder).
-- **Verified:** standalone Blazor WebAssembly (.NET 10, a normal publish needs no wasm workload), driven in headless Chrome against the `PlainKit.WasmPlayground` sample (`blazor/samples/`): the assets, the `pk-*` events into `EventCallback`s, `@bind-Value`, `@bind-Checked` and `@bind-IsOpen`, `PkTable<TItem>` events, `PkDataList<TItem>`, `AddPlainKit` with the `ILogger` forwarder and `IPkLog`, and the dev tools page. See "Blazor WebAssembly" for the setup and the limits: the Files tool needs a server, and AOT and the `InteractiveWebAssembly` render mode of a Web App were not run.
-- **Every element has a component.** `PkCard`, `PkEmptyState`, `PkFieldList`, `PkStat` and `PkTable<TItem>` (the data table) are hand-written in `Components/`, and so are `PkDataTable<TItem>` (a searchable, sortable, server-paged table over `pk-data-table`: see "Tables and lists" below) and `PkCardMenu` (the "..." or settings button of a card header, a `PkDropdown` opened by an icon-only `PkButton`: put it in `PkCard` `ActionsContent` with `PkMenuItem` children; `Label`, `IconName`, `OnSelect`).
+- **Verified:** standalone Blazor WebAssembly (.NET 10, a normal publish needs no wasm workload), driven in headless Chrome against the `PlainKit.WasmPlayground` sample (`blazor/samples/`): the assets, the `pk-*` events into `EventCallback`s, `@bind-Value`, `@bind-Checked` and `@bind-IsOpen`, `PkTable<TItem>` events, `PkDataTable<TItem>`, `AddPlainKit` with the `ILogger` forwarder and `IPkLog`, and the dev tools page. See "Blazor WebAssembly" for the setup and the limits: the Files tool needs a server, and AOT and the `InteractiveWebAssembly` render mode of a Web App were not run.
+- **Every element has a component.** Most are generated from the element's API. A few are hand-written in `Components/` because they carry typed parameters or need the Blazor router or server: `PkTable<TItem>` (typed columns and rows, and its raw mode), `PkDataTable<TItem>` (a searchable, sortable, server-paged table over `pk-data-table`: see "Tables and lists" below), `PkLookupPicker<TItem>` (a select-style field for a long list, see below), `PkPageHeader`, `PkSideNav`, `PkGallery` and `PkAppBarSearch`. `PkCardMenu` (the "..." or settings button of a card header: put it in `PkCard` `ActionsContent` with `PkMenuItem` children; `Label`, `IconName`, `OnSelect`) is generated from `pk-card-menu`.
 - **Wrapper-only parameters not available (12):** behaviour of the old wrappers that is not a property of the element; the manifest gives the reason for each. `PkAppShell`: `ErrorOverlayMessage`, `ShowErrorOverlay` (keep the framework's `#blazor-error-ui` in your layout). `PkDialog`: `CloseButtonLabel`, `FooterAlignEnd`, `OverFlyout`. `PkDrawer`: `Backdrop` (use `Docked`), `IsLoading` (wrap the body in `PkLoadingOverlay`), `PhoneCards`. `PkTooltip`: `DocLink`, `ExternalLink` (use `LinksContent`), `LoadAsync`, `OnClick`. The other five of the original 17 exist now as plain attributes: `PkAlert.Boxed`, `Inline`, `Compact`, `PkDialog.ShowCloseButton` and `PkTooltip.Title`. `PkDialog.MaxWidthPx` works: it sets the element's `maxWidth` (pixels before the viewport clamp).
 - **Structured parameters:** `PkChart.Data`, `PkImageGallery.Images` and the table columns take the public types described under "Types for structured parameters" below.
 
@@ -87,7 +87,7 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 
 ## Tables and lists
 
-`PkTable<TItem>` is a typed table over `pk-table`; `PkDataTable<TItem>` is a searchable, sortable, server-paged table, a thin typed wrapper over the `pk-data-table` element (`PkDataList<TItem>` is its old name, an `[Obsolete]` alias for one release).
+`PkTable<TItem>` is a typed table over `pk-table`; `PkDataTable<TItem>` is a searchable, sortable, server-paged table, a thin typed wrapper over the `pk-data-table` element.
 
 ```razor
 <PkTable TItem="Order" Items="_orders" Columns="_columns" IdOf="o => o.Number.ToString()" Label="Orders" Manual Clickable
@@ -96,8 +96,8 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 </PkTable>
 ```
 
-- **Write `TItem` when a handler is a method group.** Razor infers `TItem` from `Items` and `Columns`, but not through an `EventCallback<PkTableRowClickArgs<TItem>>`: `OnRowClick="Open"` with `Open` a method fails to compile (CS1503, "cannot convert from method group") unless you write `TItem="Order"` on the component, as above. The same holds for `PkDataList` (`<PkDataList TItem="Customer" ... OnRowClick="Open">`).
-- **Columns** are `PkTableColumn<TItem>` records: `Key`, `Label`, `Type`, `Align`, `Sortable`, `HidePhone`, and what fills the cell: `Text` (a `Func<TItem, string?>`, sent in the row under `Key`) or `Cell` (a `RenderFragment<TItem>` rendered into the element's `cell-<id>-<key>` slot). The JSON is camelCase, as `PkTableColumn` shows. **A `Key` is used exactly as you give it**, in the column definition, in the row, in the `cell-<id>-<key>` slot and in the keys the table reports (`Sort`, `OnSort`, `Filters`, and `PkListRequest.SortKey` in `PkDataList`): nothing is renamed, so `Key = "Name"` and `Key = "name"` both work (a column with neither `Text` nor `Cell` finds the item property whatever the casing) and a host can map `SortKey` to a repository column as it is.
+- **Write `TItem` when a handler is a method group.** Razor infers `TItem` from `Items` and `Columns`, but not through an `EventCallback<PkTableRowClickArgs<TItem>>`: `OnRowClick="Open"` with `Open` a method fails to compile (CS1503, "cannot convert from method group") unless you write `TItem="Order"` on the component, as above. The same holds for `PkDataTable` (`<PkDataTable TItem="Customer" ... OnRowClick="Open">`).
+- **Columns** are `PkTableColumn<TItem>` records: `Key`, `Label`, `Type`, `Align`, `Sortable`, `HidePhone`, and what fills the cell: `Text` (a `Func<TItem, string?>`, sent in the row under `Key`) or `Cell` (a `RenderFragment<TItem>` rendered into the element's `cell-<id>-<key>` slot). The JSON is camelCase, as `PkTableColumn` shows. **A `Key` is used exactly as you give it**, in the column definition, in the row, in the `cell-<id>-<key>` slot and in the keys the table reports (`Sort`, `OnSort`, `Filters`, and `PkListRequest.SortKey` in `PkDataTable`): nothing is renamed, so `Key = "Name"` and `Key = "name"` both work (a column with neither `Text` nor `Cell` finds the item property whatever the casing) and a host can map `SortKey` to a repository column as it is.
 - **Rows** are `Items`, serialised camelCase, with the row key `id` from `IdOf` (the row index when there is none). Give `IdOf` whenever the order can change.
 - **Manual** (server-driven) mode: the table shows `Items` exactly as given and reports `OnSort` (`PkSortEventArgs`, `Key` and `Direction`), `OnFilter` and, from the footer, the pager's page events; you load the matching rows. `Sort`, `SortDirection`, `Filters`, `Selected` and `Expanded` are two-way (`@bind-Sort`): while the user interacts the element owns the value, after the event you own it. `OnRowClick` gives a `PkTableRowClickArgs<TItem>` (`Id`, `Item`); `OnRowExpand` and `DetailTemplate` (rendered into `detail-<id>` slots, with `Expandable`) follow the element.
 - **Ownership.** Rows and columns are JSON attributes rebuilt when the parameters are set: no JavaScript per render. Cell and detail templates are ordinary Blazor children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the `rows` attribute; change the rows by changing `Items`. A `pk-select` that bubbles up from a menu in a cell is ignored (only the table's carries `selected`).
@@ -114,6 +114,10 @@ Blazor delivers a custom DOM event only when two things are true: it is register
   ```
   The component never filters anything itself: read `OnSearch`/your own field bindings and reload, the same way `PkTable`'s own `OnFilter`/`OnSort` already work in `Manual` mode.
 
+**Raw mode: your own table markup.** Set `ChildContent` on `PkTable` (write `TItem="object"`; `Columns` and `Items` are then ignored) to compose the table yourself: `HeadContent`, `ChildContent` (the `tbody` rows, typically a `@foreach` over your own collection) and `FootContent`, with `TableClass` for the inner table and `IsEmpty` with `EmptyText` or `EmptyContent` to show something instead of a header over no rows. The chrome (`Label`, `Caption`, `Flow`, `Striped`, `ToolbarContent` ...) is the same as the typed mode's. `references/table-raw-mode.md` of the skill has an example.
+
+**Description lists.** `PkFieldList` takes plain `<dt>`/`<dd>` pairs in its content; a pair whose `dd` has no element and no text hides itself (an optional value needs no `@if`), and `ShowEmpty` keeps empty pairs. `Items` rows with an empty `Value` hide the same way.
+
 ```razor
 <PkDataTable TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id.ToString()" Label="Customers"
              SearchPlaceholder="Search customers" AddLabel="+ Add customer" OnAdd="Add" OnRowClick="Open" CurrentRow="@_openId" />
@@ -128,14 +132,16 @@ Blazor delivers a custom DOM event only when two things are true: it is register
 }
 ```
 
-**Selecting rows.** `Selectable`, `@bind-Selected` (the ids, `IdOf`) and `OnSelect` follow every change. The selection is kept by id across paging, sorting and searching, so `Selected` can hold ids that are not on the page. Selecting every row of a page offers "Select all 112" (the searched total): that is the **query**, not a list of ids. `OnSelect` then has `Scope == "all"`, `Selected` holds only the loaded page, and `args.ToRequest()` gives the search and sort the selection means; run the bulk action on the server against it, so nothing big crosses the browser. (`LoadAllIds` is gone; on `PkDataList` it is obsolete and ignored.)
+**Selecting rows.** `Selectable`, `@bind-Selected` (the ids, `IdOf`) and `OnSelect` follow every change. The selection is kept by id across paging, sorting and searching, so `Selected` can hold ids that are not on the page. Selecting every row of a page offers "Select all 112" (the searched total): that is the **query**, not a list of ids. `OnSelect` then has `Scope == "all"`, `Selected` holds only the loaded page, and `args.ToRequest()` gives the search and sort the selection means; run the bulk action on the server against it, so nothing big crosses the browser. (`LoadAllIds` is gone; on `PkDataTable` it is obsolete and ignored.)
 
 `Load` gets a `PkListRequest(Search, SortKey, Descending, Page /* 1-based */, PageSize)` and returns a `PkListResult<T>(Items, Total)`. The element owns the state and follows these rules: a new search, sort or page size returns to page 1; the search box debounces itself (`SearchDebounceMs`, the element's own timer, so the component runs no timer); a request replaced by a newer one has its `CancellationToken` cancelled and its result ignored, so no stale rows flash; the table shows a loading state while a request is in flight; the empty state has its own text (`EmptyText`, `NoResultsText` for a search, or `EmptyContent`); a throwing `Load` shows an error with Retry (`OnLoadError` reports it). `ReloadAsync()` loads the current page again after the host saved something. `OnRowClick` gives the item and makes the rows keyboard stops; `CurrentRow` marks the open row for a master and detail layout. A column's `Cell` template fills the element's cell slot, so a first-column link is a `Cell` you write. Search state lives only in the element; the initial `PageSize`, `SortKey` and `Descending` are parameters.
 
-The table marks the open record with `CurrentRow` (the id of the row: it is tinted, gets an accent bar and `aria-current`). You set it, for example from the route; the table never changes it and raises no event for it. `PkDataTable` passes it through (`CurrentRow`); the obsolete `PkDataList`'s `CurrentId` is the same parameter now. The routed list and detail page (list in the main pane, the record in the aside of a `PkWorkspace`) is the `routed-list-detail` template; the `plainkit-blazor` skill has the page skeleton.
+**Testing pages that use `PkDataTable<TItem>`.** Under bUnit there is no element, so nothing calls `Load`: no rows, no `Cell` output, no row click. `using PlainKit.Blazor.Testing;` (same package) gives two helpers on the component: `var items = await cut.Instance.LoadAsync();` runs your `Load` the way the element does (the first page with the table's own `PageSize`, `SortKey` and `Descending`; pass a `PkListRequest` for a search, sort or page) and renders the rows, so `cut.Find("[slot=cell-2-Name]")` shows the `Cell` output of the row with id `2`; `await cut.Instance.ClickRowAsync("2");` raises the row click so `OnRowClick` gets the item (an id that is not a loaded row does nothing). Do not reflect over internal types or the JS bridge.
+
+The table marks the open record with `CurrentRow` (the id of the row: it is tinted, gets an accent bar and `aria-current`). You set it, for example from the route; the table never changes it and raises no event for it. `PkDataTable` passes it through (`CurrentRow`). The routed list and detail page (list in the main pane, the record in the aside of a `PkWorkspace`) is the `routed-list-detail` template; the `plainkit-blazor` skill has the page skeleton.
 Rows are keyboard stops, a third click on a sortable header clears the sort, and a `HidePhone` column is hidden in the `cards` layout too.
 
-What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`: `PkCard`, `PkEmptyState`, `PkFieldList`, `PkGallery`, `PkPageHeader`, `PkStat`, `PkTable`; `PkStyles` and `PkDataList` have no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
+What is not generated is listed in `references/known-gaps.md` of the skill: components whose mapping says `existing` (hand-written in `Components/`, each mapping says why; `PkStyles` has no element), dynamic slots, wrapper-only behaviour and CSS-property parameters.
 
 ## Large tables and the circuit's message limit
 
@@ -173,7 +179,7 @@ Fields left at their default are left out of the JSON. Two former parameters bec
 
 This is the Blazor Server / Web App setup; for a standalone Blazor WebAssembly app see "Blazor WebAssembly" below.
 
-Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the components and `PkLogLevel`).
+Add the namespace to `Program.cs` (`using PlainKit.Blazor;`) and to `_Imports.razor` (`@using PlainKit.Blazor`, which brings `PkStyles`, `PkAssets`, the base elements such as `PkButton` and `PkLogLevel`). The components, pages and shells live in tier namespaces: add `@using PlainKit.Blazor.Components`, `@using PlainKit.Blazor.Pages` and `@using PlainKit.Blazor.Shells` to `_Imports.razor` too (Razor resolves a tag only from an `@using`). The package's `buildTransitive/PlainKit.Blazor.targets` adds the same three namespaces, and for one minor version the old root names, as C# global usings, so C# code needs no edit.
 
 ```csharp
 // Program.cs
@@ -220,7 +226,7 @@ The most-used parameters (the full lists are in the references):
 | Component | Parameters |
 |---|---|
 | `PkCard` | `Heading` (the title), `Level` (heading level), `Tone`, `Href`, `ChildContent`, `FooterContent` |
-| `PkEmptyState` | `Title`, `Description`, `ActionContent` |
+| `PkEmptyState` | `Title`, `Description`, `ChildContent` (a rich description), `ActionContent` (the next step: a link or a button) |
 | `PkStat` | `Label`, `Value`, `Delta`, `DeltaUnit`, `Subtext`, `Tone` |
 | `PkAlert` | `Kind` (`PkAlertKind`), `Title`, `Message`, `Dismissible`, `OnDismiss`, `Inline`, `Compact` |
 | `PkTooltip` | `Text`, `Placement` (`PkTooltipPlacement`), `Help`, `LinksContent`, `ChildContent` |
@@ -248,6 +254,17 @@ A standalone Blazor WebAssembly app needs no server and no extra package; the sa
 - **The dev tools page** (`/_plainkit`) is routable with `AdditionalAssemblies` on the router, as on Server (a standalone app has no `MapRazorComponents`, so no `AddPlainKitDevTools`). It serves in the `Development` environment (`dotnet run`, or a publish with `-p:WasmApplicationEnvironmentName=Development`) and otherwise says it is off: set `AddPlainKit(o => o.DevTools = true)`. The **Files** workspace reads a folder on the server, so in a browser-only app it shows "No source to browse" instead of failing.
 - **The package keeps the ASP.NET Core server framework a private compile-time reference** (`PrivateAssets="all"`), because a public framework reference cannot be restored by a WebAssembly app (NETSDK1082). A Blazor Server app has the framework from its own SDK; a plain class library that uses the package's server types needs its own `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
 - **Not verified:** AOT, the `InteractiveWebAssembly` render mode of a Blazor Web App (the same components, but no such host was run) and an ASP.NET Core hosted deployment.
+
+### Lookup picker
+
+`PkLookupPicker<TItem>` is a select-style field for a list too long for `PkSelect` or `PkCombobox`: the field opens a popup holding a searchable, pageable table fed by the same `Load` (`PkListRequest` in, `PkListResult<TItem>` out) and `Columns` as `PkDataTable`. `@bind-Value` holds the key of the chosen item (`IdOf`); with `Multiple`, `@bind-Values` holds the keys, the chosen items show as removable chips and `Max` limits them. Both work with `EditForm` (`ValueExpression`, `ValuesExpression`) and the form value. `LabelOf` names an item (default its key); `SelectedLabels` and the `Resolve` callback give stored keys their labels without loading their page; `@bind-Open`, `PageSize`, `Placeholder`, `Disabled`, `Readonly`, `Required`, `IsInvalid` and `AriaLabel` are the usual field parameters.
+
+```razor
+<PkLookupPicker TItem="Customer" Load="LoadAsync" Columns="_columns" IdOf="c => c.Id" LabelOf="c => c.Name"
+                AriaLabel="Customer" Placeholder="Choose a customer" @bind-Value="_order.CustomerId" />
+```
+
+It is not a combobox: the field is a button that opens a labelled dialog, so focus really moves into the popup. Down or Up on the field, Enter or Space open it with focus in the search box; Down there enters the rows, the arrow keys, Home and End walk them, Enter or Space picks the focused row and closes it; Escape closes and returns focus to the field.
 
 ### Page header
 
@@ -330,7 +347,7 @@ The page types of the app framework take their business logic as a callback the 
 
 - `PkToolPage`: `Run` gets the input values keyed by field key (`JsonElement`) and returns what the outcome shows.
 - `PkSettingsPage`: `Save` gets the values the same way.
-- `PkListPage<TItem>`: `Load` gets a `PkListRequest` (`Page`, `PageSize`, `SortKey`, `Descending`, `Search`, `Filters`, `Skip`) and returns a `PkListResult<TItem>` (`Items`, `Total`), the same types as `PkDataList`. Column keys in `Config` are the camel-case property names of `TItem`. It reloads on every sort, search, filter and page change. `rowHref` is not available yet (it is synchronous in the element and cannot cross interop).
+- `PkListPage<TItem>`: `Load` gets a `PkListRequest` (`Page`, `PageSize`, `SortKey`, `Descending`, `Search`, `Filters`, `Skip`) and returns a `PkListResult<TItem>` (`Items`, `Total`), the same types as `PkDataTable`. Column keys in `Config` are the camel-case property names of `TItem`. It reloads on every sort, search, filter and page change. `rowHref` is not available yet (it is synchronous in the element and cannot cross interop).
 
 ```razor
 <PkListPage TItem="Order" Config="@_config" Load="LoadAsync" />
@@ -405,7 +422,7 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 {
     <PkAlert Kind="@StatusKind" Heading="@StatusHeading">@StatusMessage</PkAlert>
 }
-<PkLoadingOverlay Busy="@ShowBusyOverlay" Label="@BusyLabel">
+<PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel">
     @* orders list *@
 </PkLoadingOverlay>
 

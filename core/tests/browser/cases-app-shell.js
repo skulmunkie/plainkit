@@ -42,7 +42,7 @@ export const appShellCases = [
         for (const id of MODULES) t.ok(s.d.querySelector(`pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
         await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
-        await wait(300);
+       
         t.ok(!s.nav().open, 'choosing a module closes the drawer');
         t.ok(s.win.location.hash.startsWith('#/reports'), 'the address changed');
         t.eq(s.d.title, 'Reports - Demo app', 'the document title follows');
@@ -131,11 +131,12 @@ export const appShellCases = [
         po.observe({ type: 'layout-shift', buffered: true });
         await wait(600);
         for (const to of ['#/reports', '#/overview', '#/orders/7', '#/reports/exports', '#/orders']) await s.go(to);
-        await wait(300);
+       
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.
         const probe = s.d.createElement('div'); probe.textContent = 'x'; s.main().prepend(probe); probe.style.height = '120px';
-        await wait(300);
+        // The entry arrives after the next frame: wait for it (a busy machine is late), not a fixed 300 ms.
+        await until(() => shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0) > cls, 'the layout-shift observer to report the deliberate shift', 200);
         const after = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         po.disconnect();
         t.ok(after > cls, 'the layout-shift observer sees a deliberate shift (the measurement works)');
@@ -201,6 +202,41 @@ export const appShellCases = [
         history.replaceState(null, '', location.pathname + location.search);
     }],
 
+    // #859: the boundary's own states (not found, forbidden, a module that fails to start) are a page the reader lands on, so focus after navigation must land on a heading, not <main>.
+    ['mountApp: the boundary states not found, forbidden and error each give exactly one focusable level 1 heading, focused after navigation and drawn once', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const page = defineModule({ id: 'ok', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'ok'; } } }] });
+        history.replaceState(null, '', '#/ok');
+        const app = mountApp(el, { modules: [
+            { id: 'ok', title: 'Fine', load: async () => page },
+            { id: 'payroll', title: 'Payroll', can: () => false, load: async () => page },
+            { id: 'throws', title: 'Throws', load: async () => defineModule({ id: 'throws', mount() { throw new Error('boom'); } }) },
+        ], home: 'ok' });
+        const main = () => el.querySelector('#pk-main');
+        await until(() => main()?.textContent.includes('ok'), 'the first page', 200);
+        const check = async (what, path, heading, ready) => {
+            app.navigate(path);
+            await until(ready, `the ${what} state`, 200);
+            await wait(150);
+            const found = main().querySelectorAll('h1,pk-heading[level="1"]');
+            t.eq(found.length, 1, `${what}: exactly one level 1 heading under main`);
+            const h = found[0], state = h.closest('pk-empty-state');
+            t.ok(state, `${what}: it is the state's own heading`); t.eq(h.textContent.trim(), heading, `${what}: the heading text`);
+            t.eq(h.getAttribute('tabindex'), '-1', `${what}: focusable by script`);
+            t.eq(document.activeElement, h, `${what}: focus is on the heading, not <main>`);
+            t.eq(h.getAttribute('slot'), 'heading', `${what}: it fills the state's heading slot, so the heading is drawn once`);
+            const mine = state.shadowRoot.querySelector('slot[name="heading"]').assignedElements({ flatten: true });
+            t.ok(mine.includes(h) && state.shadowRoot.querySelector('[part="heading"]').getBoundingClientRect().height > 0, `${what}: drawn in the heading position of the state`);
+        };
+        await check('forbidden', '/payroll', 'Not allowed', () => main()?.querySelector('pk-empty-state'));
+        await check('not found', '/ok/nothing-here', 'Not found', () => main()?.querySelector('pk-empty-state[heading="Not found"]'));
+        app.navigate('/ok'); await until(() => main()?.textContent.includes('ok') && !main().querySelector('pk-empty-state'), 'the module again', 200);
+        await check('error', '/throws', 'Nothing to show', () => main()?.querySelector('pk-empty-state[heading="Nothing to show"]'));
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+
     ['mountApp: the theme is kept in the store (?theme= wins and is not saved), the header search asks the active module, and a config typo is one warning', async t => {
         const a = await demo(t, 1280, { hash: '#/orders', search: '?theme=light' });
         t.eq(a.d.documentElement.getAttribute('data-theme'), 'light', '?theme=light wins');
@@ -253,6 +289,180 @@ export const appShellCases = [
         await until(() => el.querySelector('#pk-main')?.textContent.includes('b'), 'module b');
         await handle.promise;
         t.ok(aborted && handle.state === 'cancelled', 'leaving the module cancelled its cancellable task');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    // #699: the routed list-page + record-page template. Two routes, a row click navigates, Save navigates back, and focus follows to the new page's h1 each time.
+    ['routed-pair template (#699): list -> record -> save -> list is route changes only, focus lands on each page\'s h1, unsaved edits mark the record dirty and the saved change shows in the list', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair template'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        const h1 = () => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])');
+        const settle = async what => { await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), what); await wait(150); };
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const bodyRows = () => deep(d, 'pk-table')?.shadowRoot?.querySelectorAll('tbody tr[data-pk-context]') ?? [];
+        await settle('the list page'); await until(() => bodyRows().length > 1, 'the list rows');
+        t.eq(h1().textContent.trim(), 'Things', 'the list page has its h1'); t.eq(bodyRows().length, 10, 'the first page of ten rows');
+        // A row click is a route change to the record page: its own page, its own h1, focus on it.
+        bodyRows()[2].click();
+        await until(() => win.location.hash === '#/things/3', 'the record route'); await settle('the record page');
+        t.eq(d.activeElement, h1(), 'focus is on the record heading'); t.ok(!deep(d, 'pk-list-page'), 'the list page is not on screen beside the record');
+        const rec = await until(() => deep(d, 'pk-record-page'), 'the record page'); await until(() => rec.part('edit') && !rec.part('edit').hidden, 'the Edit button');
+        rec.part('edit').click(); await until(() => rec.controls().length, 'the form'); await wait(400);
+        const input = rec.controls()[0];
+        t.ok(!rec.dirty, 'nothing edited: not dirty'); input.value = 'Renamed thing'; input.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }));
+        await until(() => rec.dirty, 'the dirty flag');
+        await wait(150); t.ok(rec.controls()[0] === input && input.value === 'Renamed thing', 'the first edit does not rebuild the form under the reader');
+        rec.part('save').click();
+        await until(() => win.location.hash === '#/things', 'Save to navigate back to the list'); await settle('the list after Save');
+        t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
+        t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
+    }],
+    // #872: the record page asks before an in-app leave with unsaved edits. A link and back are asked; Stay keeps the edits, the address and the page; Leave goes; Save then navigating is not asked.
+    ['routed-pair template (#872): unsaved edits ask before an in-app link or back; Stay keeps the edits and the address, Leave goes, Save does not ask', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair leave guard'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        const h1 = () => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])');
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const dialog = () => [...d.querySelectorAll('pk-dialog')].find(x => x.open);
+        const button = label => [...(dialog()?.querySelectorAll('pk-button') ?? [])].find(b => b.textContent.trim() === label);
+        const edit = async () => {
+            const rec = await until(() => deep(d, 'pk-record-page'), 'the record page'); await until(() => rec.part('edit') && !rec.part('edit').hidden, 'the Edit button');
+            rec.part('edit').click(); await until(() => rec.controls().length, 'the form'); await wait(400);
+            const input = rec.controls()[0]; input.value = 'Unsaved name'; input.dispatchEvent(new win.Event('input', { bubbles: true, composed: true }));
+            await until(() => rec.dirty, 'the dirty flag'); return { rec, input };
+        };
+        await until(() => h1() && !d.querySelector('pk-loading-overlay[busy]'), 'the list');
+        win.location.hash = '#/things/3'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('3'), 'the record page');
+        let { rec, input } = await edit();
+        const link = () => deep(d, 'a[href="#/things"]');
+        t.ok(link(), 'the list is linked from the page');
+        const answer = async (trigger, label, what) => {
+            trigger(); await until(dialog, `the leave dialog (${what})`);
+            (await until(() => button(label), `the ${label} button`)).click(); await until(() => !d.querySelector('pk-dialog'), `the dialog to close (${what})`); await wait(0); // one task: the answer's promise chain (the guard's) settles
+        };
+        await answer(() => link().click(), 'Stay', 'link');
+        t.eq(win.location.hash, '#/things/3', 'Stay keeps the address'); t.ok(deep(d, 'pk-record-page') === rec && rec.controls()[0] === input && input.value === 'Unsaved name', 'Stay keeps the page and the edits'); t.ok(rec.dirty);
+        t.ok(d.activeElement && d.activeElement !== d.body, 'focus went back into the page after Stay');
+        // Back/forward: a script cannot traverse history without a user gesture (Chrome skips entries made without one), so the browser's own two events are replayed after moving the address.
+        await answer(() => { win.history.replaceState(null, '', '#/things'); for (const type of ['popstate', 'hashchange']) win.dispatchEvent(new win.Event(type)); t.eq(win.location.hash, '#/things/3', 'the address is restored while asking'); }, 'Stay', 'back');
+        t.ok(deep(d, 'pk-record-page') === rec && input.value === 'Unsaved name', 'Stay after back keeps the edits'); t.eq(win.location.hash, '#/things/3');
+        await answer(() => link().click(), 'Leave', 'leave');
+        await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Leave to go to the list'); await until(() => h1()?.textContent.trim() === 'Things', 'the list heading');
+        await wait(300); t.eq(d.activeElement, h1(), 'focus is on the list heading after leaving');
+        win.location.hash = '#/things/4'; await until(() => deep(d, 'pk-record-page') && h1()?.textContent.includes('4'), 'record 4');
+        ({ rec } = await edit()); rec.part('save').click();
+        await until(() => win.location.hash === '#/things' && !deep(d, 'pk-record-page'), 'Save to navigate back'); t.ok(!dialog(), 'no question after Save');
+    }],
+    // #873: selection on a routed list page: the pk-select detail reaches the page, a bulk action gets the selection, and the list reloads with the result.
+    ['routed-pair template (#873): selecting rows on the routed list raises pk-select on the page, the Archive bulk action runs with the ids and the list reloads with them archived and the selection cleared', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'routed pair template'; f.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+        f.src = new URL('../../samples/templates/routed-pair/routed-pair.html#/things', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const d = f.contentWindow.document;
+        const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+        const page = await until(() => deep(d, 'pk-list-page'), 'the list page'), events = [];
+        page.addEventListener('pk-select', e => events.push(e.detail));
+        const table = () => deep(d, 'pk-table'), bar = () => table().shadowRoot.querySelector('[part="bulk"]');
+        await until(() => table()?.shadowRoot?.querySelector('[data-select="1"]'), 'the selectable rows');
+        t.ok(bar().hidden, 'no bulk bar before a selection');
+        table().shadowRoot.querySelector('[data-select="1"]').click(); await t.settle();
+        table().shadowRoot.querySelector('[data-select="2"]').click(); await t.settle();
+        t.eq(events.at(-1).selected.join(), '1,2', 'the page hears the selected ids'); t.eq(events.at(-1).scope, 'page'); t.eq(events.at(-1).query.pageSize, 10, 'with the query');
+        t.ok(!bar().hidden, 'the bulk bar shows');
+        const archive = page.part('bulk').querySelector('pk-button'); t.eq(archive.textContent, 'Archive');
+        archive.click();
+        await until(() => [...table().shadowRoot.querySelectorAll('tbody tr')].slice(0, 2).every(r => r.textContent.includes('Archived')) && bar().hidden, 'the reloaded list: rows 1 and 2 archived, selection cleared');
+    }],
+
+    // #855: the record and list page types raise default toasts through ctx.notify (saved, failed, deleted, done), overridable and switchable off with config.toasts.
+    ['page toasts (#855): record Save toasts "Saved" (success, a status), a failing Save toasts "Could not save" (danger, an alert, sticky) with the error text, and a field error toasts nothing', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const saved = [];
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '1', mode: 'edit', title: 'Thing', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async v => { saved.push(v.name); if (v.name === 'bad') throw new Error('Server said no'); if (v.name === 'field') throw { errors: { name: 'Taken' } }; } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+        const stack = () => el.querySelector('pk-toast-stack[position="bottom-end"]');
+        const toasts = () => [...(stack()?.querySelectorAll('pk-toast') ?? [])];
+        const submit = async name => { rec.mode = 'edit'; await wait(100); await until(() => rec.controls().length, 'the form'); const c = rec.controls()[0]; c.value = name; c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); rec.part('save').click(); };
+        await submit('good');
+        await until(() => toasts().some(x => x.heading === 'Saved'), 'the Saved toast');
+        const ok = toasts().find(x => x.heading === 'Saved');
+        const { roleFor } = await src('elements/toast/toast.js');
+        t.eq(ok.kind, 'success'); t.eq(roleFor(ok.kind), 'status', 'a success is polite');
+        await submit('bad');
+        await until(() => toasts().some(x => x.heading === 'Could not save'), 'the failure toast');
+        const bad = toasts().find(x => x.heading === 'Could not save');
+        t.eq(bad.kind, 'danger'); t.eq(bad.message, 'Server said no'); t.eq(roleFor(bad.kind), 'alert', 'an error interrupts'); t.eq(bad.getAttribute('duration') ?? '0', '0', 'and stays until dismissed');
+        const before = toasts().length;
+        await submit('field'); await wait(500);
+        t.eq(toasts().length, before, 'a field error is on the field, not a toast');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    ['page toasts (#855): config.toasts false switches them off, a string or a function words one outcome, false in the object drops one, and a page without a notify service just works', async t => {
+        const { mountApp, defineModule, mountPage } = await src('js/app.js');
+        const run = async toasts => {
+            const el = document.createElement('div'); t.stage('').append(el);
+            const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '1', mode: 'edit', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async v => { if (v.name === 'bad') throw new Error('no'); }, toasts } }] });
+            history.replaceState(null, '', '#/a');
+            const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+            const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+            await until(() => rec.controls().length, 'the form');
+            const go = async name => { rec.mode = 'edit'; await wait(100); await until(() => rec.controls().length, 'the form'); const c = rec.controls()[0]; c.value = name; c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); rec.part('save').click(); await wait(500); };
+            const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => x.heading);
+            return { go, heads, done: async () => { await app.destroy(); history.replaceState(null, '', location.pathname + location.search); } };
+        };
+        let r = await run(false); await r.go('ok'); await r.go('bad'); t.eq(r.heads().join(), '', 'toasts: false'); await r.done();
+        r = await run({ saved: 'Order saved', failed: false }); await r.go('ok'); await r.go('bad'); t.eq(r.heads().join(), 'Order saved', 'a string words saved; failed: false drops it'); await r.done();
+        r = await run({ saved: (detail) => `Saved ${detail.name}`, failed: err => ({ title: 'Nope', details: err.message.toUpperCase() }) }); await r.go('ok'); await r.go('bad');
+        t.eq(r.heads().join(), 'Saved ok,Nope', 'functions get the values and the error'); await r.done();
+        const box = document.createElement('div'); t.stage('').append(box);
+        const page = await mountPage(box, { type: 'record', config: { id: '1', mode: 'edit', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async () => {} } });
+        const rec = await until(() => box.querySelector('pk-record-page'), 'the record page without a notify service'); await until(() => rec.controls().length, 'the form');
+        rec.part('save').click(); await wait(400); t.ok(rec.isConnected, 'saving with no notify service neither throws nor toasts'); page.destroy();
+    }],
+    ['page toasts (#855): a record page with delete(id, ctx) has a Delete button, asks first, calls delete with the id and toasts "Deleted"; a failing delete toasts "Could not delete"; Cancel calls nothing', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const calls = []; let fail = false;
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '7', title: 'Thing', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), delete: async (id) => { calls.push(id); if (fail) throw new Error('In use'); } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+        const del = await until(() => rec.part('delete') && !rec.part('delete').hidden && rec.part('delete'), 'the Delete button');
+        const dialog = () => [...el.ownerDocument.querySelectorAll('pk-dialog')].find(d => d.open);
+        const press = async label => (await until(() => [...dialog().querySelectorAll('pk-button')].find(b => b.textContent.trim() === label), `the ${label} button`)).click();
+        const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => `${x.heading}|${x.kind}`);
+        del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Cancel'); await wait(300);
+        t.eq(calls.length, 0, 'Cancel calls nothing'); t.eq(heads().length, 0);
+        del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Delete');
+        await until(() => heads().includes('Deleted|success'), 'the Deleted toast'); t.eq(calls.join(), '7', 'delete got the id');
+        fail = true; del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Delete');
+        await until(() => heads().includes('Could not delete|danger'), 'the failure toast');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    ['page toasts (#855): the list page toasts "Done" after a bulk action settles and "Could not complete" when it rejects', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        let reject = false;
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'list', config: { heading: 'Things', columns: [{ key: 'name', label: 'Name' }], selectable: true, bulkActions: [{ id: 'x', label: 'X' }], load: async () => ({ rows: [{ id: '1', name: 'A' }], total: 1 }), onBulk: async () => { if (reject) throw new Error('Nope'); } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const list = await until(() => el.querySelector('pk-list-page'), 'the list page');
+        const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => `${x.heading}|${x.kind}`);
+        const bulk = () => list.dispatchEvent(new CustomEvent('pk-bulk', { detail: { action: 'x', selected: ['1'], scope: 'page', query: {} }, bubbles: true, composed: true }));
+        bulk(); await until(() => heads().includes('Done|success'), 'the Done toast');
+        reject = true; bulk(); await until(() => heads().includes('Could not complete|danger'), 'the failure toast');
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],

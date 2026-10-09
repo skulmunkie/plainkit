@@ -32,7 +32,7 @@ node scripts/generated.mjs check
 ```
 
 On a fresh clone, after switching branches and after editing any source, run `node scripts/bootstrap.mjs` first (about 4 seconds). `dotnet build` refuses to run without it,
-and a test that reads a generated file says so. **Never commit generated files**: they are gitignored, and `node scripts/generated.mjs check` fails if one is tracked.
+and a test that reads a generated file says so. **Never commit generated files**: they are gitignored, and `node scripts/generated.mjs check` fails if one is tracked. Locally the bootstrap returns at once when no source changed since the last full run and the generated files exist (a hash stamp in `node_modules/.cache`; `--force` or `PK_BOOTSTRAP_FORCE=1` runs it anyway; CI always runs it in full).
 
 Also part of done, in the same pull request (owner directive): the **agent skills and documentation** describe the change (a new prop, element,
 option or workflow appears in the docs, the gallery samples and the skills' workflows in `scripts/skills/`), the SDK and Blazor change together
@@ -43,7 +43,7 @@ option or workflow appears in the docs, the gallery samples and the skills' work
 Green CI does not say a layout looks right (the record header in #311 and a chevron inside a breadcrumb link merged green and were wrong on screen). A change to how an element **looks**
 (`core/{elements,components,pages,shells}/**/*.css`, `*.html`, the layout or tokens, Blazor razor markup) therefore also needs:
 
-- **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`) renders their gallery examples at desktop 1280 and phone 375, light and dark,
+- **Screenshots.** `node scripts/ui-review.mjs` (the elements changed versus `origin/main`; `--elements a,b`, `--all`; `--jobs N` runs N shards in parallel and merges them, about N times faster on N cores) renders their gallery examples at desktop 1280 and phone 375, light and dark,
   into `review-output/` (git-ignored) with a `manifest.json` of audit findings (overflow, clipping, overlap, tap targets, contrast, names, decoration inside a link, zero-size media; errors exit 1, each with a `FIX:` line).
   Attach the shots to the pull request (CI also keeps them as the `ui-review-1` to `ui-review-4` artifacts), fix every error, and say why a warning is fine.
 - **Scenarios for states a still example cannot show.** A gallery example is a resting element; the states issues describe (a menu open, a page scrolled 800px, a collapsed rail with a flyout,
@@ -138,6 +138,7 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
   `this.log` and `this.warnOnce`). `core/tests/no-silent-catch.test.mjs` checks.
 - **Only existing components.** Use the `pk-*` elements that exist; a gap is recorded in the standing "Tracker: components the SDK lacks" issue (#336), not invented locally. Reuse them and hand-roll nothing: if no element does what you need, file the issue and park the work until it is resolved, do not build a local stand-in (tabular data is always `pk-table`). See `core/STANDARDS.md`, "Composition".
 - **Composition tiers.** Every element's `meta.json` declares a `tier` (`element`, `component`, `page`, `shell`; never `module`), and a `page` also names its `pageType`, the `core/js/app/pages` factory it belongs to. An element's own js/html/css may not name an element of a higher tier (C1), and a `tier: element` element renders no `pk-*` at all, being built from base HTML only (C4: name lookups and events from slotted children are fine; static helper functions do not count when listed in the reviewed `core/tools/tiers.helpers.json`, #766) (`core/tools/tiers.mjs`, `core/tests/tiers.test.mjs`). Findings that predate the rule are in `core/tools/tiers.baseline.json`: only new ones fail, the baseline only shrinks (fix the source and remove the entry; never add one). The design is `docs/superpowers/specs/2026-09-30-composition-tiers-design.md` (#736).
+- **Blazor stays a thin 1:1 wrapper.** `scripts/tests/blazor-wrapper.test.mjs` (#801): every hand-written file under `blazor/src/PlainKit.Blazor` is listed with a category in `blazor/handwritten.json`; component names are `Pk` + the tag; no timers, stale-load guards, retry loops or layout recipes in hand-written components; per-file line budgets and the known debt are in `blazor/handwritten.baseline.json`, which only shrinks (lower a budget when a file shrinks, delete debt you pay; never raise a budget or add an entry to hide a finding: put the behaviour in core or the generator). A mapping marked `"existing"` needs an `existingReason`.
 - **Privacy.** No personal paths, real email addresses or internal tracker references anywhere (`core/tests/privacy.test.mjs`).
 
 ## Commits, pull requests, issues

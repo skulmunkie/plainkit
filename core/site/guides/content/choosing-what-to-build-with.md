@@ -26,17 +26,16 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
 | A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
 | Static informational page: a heading and a block of prose, no data | Template `page`; elements `pk-heading`, `pk-card` | Page type `note` | `PkNotePage` |
-| List page (search, table, rows open a record) | Layout `list`; template `crud`; element `pk-table` | Page type `list` | `PkTable`, or `PkDataTable` when the server pages, searches and sorts |
-| List and detail on one page | Template `crud`; template `master-detail`; template `routed-list-detail` (the route drives it) | Page type `master-detail`, or `list` with a record route under it | `PkTable` beside a `PkCard`; routes and `NavigationManager` for the record |
+| List page (search, table, rows open a record) | Template `routed-pair`; layout `list`; element `pk-data-table` | Page type `list` | `PkTable`, or `PkDataTable` when the server pages, searches and sorts |
+| A list and its record | Template `routed-pair`: two routed pages, `/things` and `/things/{id}` (the default; see "Which list shape" below) | Page types `list` and `record`, the record route under the list | `PkDataTable` or `PkTable`; routes and `NavigationManager` for the record |
 | Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
 | Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` | `PkForm` with `PkFormSection` |
-| Long form built from a list of fields | Pattern `forms` for the controls | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
+| Long form built from a list of fields | Pattern `forms` for the controls, or `pk-field-group` to draw them from a list of field specs | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
-| Filtered table | Pattern `filter-table`; element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
+| Filtered table | Pattern `filter-table` (a `pk-data-table`); element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
 | Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | Page type `wizard` | `PkStepper` |
-| Master and detail with tabs | Template `master-detail`; pattern `master-detail-pattern` | Page type `master-detail` | `PkListGroup` beside `PkTabs` |
 | Tool page (one input, one outcome) | Layout `tool`; template `workspace` for a multi-pane tool | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace` |
 | Resizable side-by-side panels (Toolbox, Canvas, Properties; file tree, editor, log) | Element `pk-dock`: each panel is a child with `slot="<id>"`, `data-heading` and `data-group` (left, center, right, bottom; panels sharing a group become tabs); the arrangement is a JSON `layout` and a layout-change event reports each resize or tab change; `persist-key` saves and restores the layout across reloads; moving, floating and collapse are not built yet (issue 432) | None: compose the panels yourself | `PkDock` |
 | Sign in | Template `auth` | None: a plain page before the app mounts | `PkCard` with `PkField` and `PkInput` |
@@ -46,6 +45,20 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Onboarding checklist | Pattern `onboarding` | Page type `wizard` | `PkStepper`, `PkProgress` |
 | Short list of small records with an add form | Layout `setup` | Page type `list` with a `record` route under it | `PkTable` with `PkField` |
 | Marketing or landing page | None: compose from `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, and see "Ask for a missing component" | None | same |
+
+## Which list shape
+
+A list and its record are two routed pages. A single page that shows a list and its record together (the record stacked below the list or beside it) is not offered as an equal option: it scrolls three ways at once (the page, the list, the record), the record is off screen whenever the list is in view, and a row click gives no sense of having gone anywhere. It is the easiest shape to build, so it is the one that gets built by default. Do not build it.
+
+| You need | Use |
+|---|---|
+| Rows you draw yourself, no paging or search | `pk-table` |
+| One dataset with search, sort, paging and selection inside a page of your own layout | `pk-data-table` (pattern `filter-table`) |
+| A form field that picks one record from a long list (customers, products, users) in a popup table | `pk-lookup-picker` (the list is too long for `pk-combobox`) |
+| A whole route that lists a collection (title bar, filters, row links) | Page type `list` |
+| A list and its record | `list` and `record` as two routes (template `routed-pair`). The list fills the viewport and is the only thing that scrolls |
+| A peek at context that is not a record of its own | A flyout over the list (`pk-drawer`) |
+| A tool shell with panes (list in the main pane, record in the aside) | Template `routed-list-detail` ("Workspace list and record"), the workspace variant: not the default |
 
 ## Customize a template
 

@@ -30,6 +30,10 @@
   ],
   "slots": [
     {
+      "name": "title",
+      "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends, so the app can focus it after navigation. When present, the built-in state heading is not drawn a second time."
+    },
+    {
       "name": "drawn",
       "description": "Internal: the drawn pk-empty-state content and its action button. A light-DOM child this element creates and self-assigns here (never a shadow-root child), so the SDK's on-demand loader can see and upgrade it.",
       "selfAssigned": true

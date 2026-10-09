@@ -162,3 +162,38 @@ export const headerCases = [
         t.eq(page.shadowRoot.querySelectorAll('pk-input').length, 2);
     }],
 ];
+
+// Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.
+headerCases.push(
+    ['page-header: crumbs draws a pk-breadcrumb with the last crumb as aria-current (and the page title when no heading is set), above the title', async t => {
+        const trail = JSON.stringify([{ label: 'Stock', href: '/stock' }, { label: 'Section' }, { label: 'Purchase orders', href: '/stock/orders' }, { label: 'PO 1042' }]).replace(/"/g, '&quot;');
+        const h = await t.mount(`<pk-page-header level="1" crumbs="${trail}"></pk-page-header>`);
+        const nav = h.part('trail'), kids = [...nav.children];
+        t.eq(nav.localName, 'pk-breadcrumb'); t.ok(!nav.hidden && !h.part('crumbs').hidden, 'the trail is shown');
+        t.eq(kids.map(k => k.localName).join(), 'a,span,a,span', 'a link where there is an address, text where there is not');
+        t.eq(kids[0].getAttribute('href'), '/stock');
+        t.eq(kids[3].getAttribute('aria-current'), 'page'); t.eq(kids[3].getAttribute('role'), 'heading'); t.eq(kids[3].getAttribute('aria-level'), '1');
+        t.ok(!kids[2].hasAttribute('aria-current'), 'only the last is the current page');
+        h.heading = 'Acme order'; await t.settle();
+        t.ok(![...h.part('trail').children].pop().hasAttribute('role'), 'with a heading the last crumb is a plain current-page marker');
+        t.ok(rect(h.part('trail')).bottom <= rect(h.part('title')).top + 1, 'the trail is above the title');
+        h.breadcrumbLabel = 'Where you are'; await t.settle(); t.eq(h.part('trail').getAttribute('label'), 'Where you are');
+    }],
+    ['page-header: homeHref draws an icon-only home link first, backLink a Back to <parent> button above the header, and neither without crumbs', async t => {
+        const h = await t.mount('<pk-page-header heading="T" back-link home-href="#home" home-label="Dashboard" crumbs="[{&quot;label&quot;:&quot;Stock&quot;,&quot;href&quot;:&quot;/stock&quot;},{&quot;label&quot;:&quot;Hidden&quot;},{&quot;label&quot;:&quot;PO&quot;}]"></pk-page-header>');
+        const first = h.part('trail').firstElementChild;
+        t.eq(first.getAttribute('href'), '#home'); t.eq(first.getAttribute('aria-label'), 'Dashboard'); t.eq(first.querySelector('pk-icon')?.getAttribute('name'), 'dashboard');
+        const back = h.part('back');
+        t.ok(!back.hidden, 'the back link is shown'); t.eq(back.textContent, 'Back to Stock', 'it names the last crumb before the current one that links'); t.eq(back.href, '/stock');
+        t.ok(rect(back).bottom <= rect(h.part('header')).top + 1, 'it sits above the header');
+        h.backLink = false; await t.settle(); t.ok(h.part('back').hidden);
+        const none = await t.mount('<pk-page-header heading="T" back-link home-href="#home"></pk-page-header>');
+        t.ok(none.part('trail').hidden && none.part('back').hidden && none.part('crumbs').hidden, 'without crumbs there is no trail, home crumb or back link');
+    }],
+    ['page-header: an unsafe crumb address draws no link, and a crumbs value that is not JSON draws no trail', async t => {
+        const h = await t.mount('<pk-page-header heading="T" crumbs="[{&quot;label&quot;:&quot;Bad&quot;,&quot;href&quot;:&quot;javascript:alert(1)&quot;},{&quot;label&quot;:&quot;Now&quot;}]"></pk-page-header>');
+        t.eq([...h.part('trail').children].map(k => k.localName).join(), 'span,span', 'a script address is not a link');
+        const bad = await t.mount('<pk-page-header heading="T" crumbs="not json"></pk-page-header>');
+        t.ok(bad.part('trail').hidden, 'no trail');
+    }],
+);

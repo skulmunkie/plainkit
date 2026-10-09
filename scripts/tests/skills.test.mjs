@@ -186,7 +186,7 @@ test('the SDK skill covers templates, patterns, layouts, tools, logging, openers
     for (const t of src.samples.patterns) assert.ok(f('patterns').includes(`## ${t.id}: `), t.id);
     // A pattern can ship a script: the reference says so and shows its source, with the imports as an app has them.
     const scripted = src.samples.patterns.filter(t => t.script);
-    assert.ok(scripted.length >= 6, 'the patterns that need behaviour have scripts');
+    assert.ok(scripted.length >= 5, 'the patterns that need behaviour have scripts');
     assert.ok(f('patterns').includes('also ships a script'), 'the patterns reference says a pattern can have a script');
     for (const t of scripted) { assert.ok(t.scriptSource.includes('export default function mount(root)'), t.id); assert.ok(f('patterns').includes(t.scriptSource), `${t.id}: its script is shown`); assert.ok(!f('patterns').includes('../../../js/'), 'script imports are rewritten to ./plainkit/js/'); }
     for (const t of src.samples.layouts) assert.ok(f('layouts').includes(`## ${t.id}: `), t.id);
@@ -356,6 +356,15 @@ test('both skills have a "Choose before you build" workflow and a generated refe
     assert.match(gen.get('plainkit-blazor/references/choosing.md'), /## In Blazor/);
     assert.doesNotMatch(gen.get('plainkit-sdk/references/choosing.md'), /## In Blazor/);
     for (const s of SKILL_NAMES) assert.match(gen.get(`${s}/references/upgrading.md`) + gen.get(`${s}/SKILL.md`), /choosing\.md/);
+});
+
+test('the upgrading reference closes with how to report a problem upstream (#854)', () => {
+    for (const s of SKILL_NAMES) {
+        const text = gen.get(`${s}/references/upgrading.md`);
+        assert.match(text, /## 6. Report what you found back upstream/, s);
+        assert.match(text, /search the existing issues, open and closed/, s);
+        assert.match(text, /remove it in the pull request that bumps/, s);
+    }
 });
 
 test('a deprecated item in an element meta is listed in the element reference with what to use instead, and only then', () => {

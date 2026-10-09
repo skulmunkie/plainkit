@@ -17,6 +17,13 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void LoadingOverlay_passes_Delay_and_MinTime_to_the_element_which_owns_the_busy_timing()
+    {
+        var el = Render<PkLoadingOverlay>(p => p.Add(x => x.Busy, true).Add(x => x.Delay, 150).Add(x => x.MinTime, 300)).Find("pk-loading-overlay");
+        Assert.Equal(("150", "300"), (el.GetAttribute("delay"), el.GetAttribute("min-time")));
+    }
+
+    [Fact]
     public void Gallery_renders_the_pk_gallery_element_with_only_the_attributes_that_were_set()
     {
         var cut = Render<PkGallery>(p => p.Add(x => x.Kind, PkGalleryKind.Controls).Add(x => x.Theme, PkTheme.Light).Add(x => x.Height, 500));

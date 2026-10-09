@@ -1,7 +1,5 @@
 {
   "component": "PkToolPage",
-  "existing": true,
-  "existingReason": "callback: Run runs through PkCallbackSlot",
   "params": [
     {
       "name": "Config",
@@ -13,7 +11,14 @@
       "name": "RunLabel",
       "type": "string",
       "prop": "runLabel"
+    },
+    {
+      "name": "Run",
+      "callback": "run",
+      "type": "Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>>?",
+      "arg": "Dictionary<string, JsonElement>",
+      "doc": "Runs the action with the values of the input fields, keyed by field key (read text with GetString(), a number with GetDouble()). What it returns is drawn as the outcome: for text a string or an object with text, for stat an object with value and label, for table an object with columns and rows, for code a string or an object with code. Throwing shows the error state with Retry."
     }
   ],
-  "notes": "Hand-written (issue #366): run(values) is a callback property, set from script, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Run parameter, Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>>. Not a mapped param: the generator only maps props, slots and events."
+  "notes": "run(values) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Run parameter. A Run that throws rejects the JavaScript promise, which the element shows as its error state with Retry."
 }

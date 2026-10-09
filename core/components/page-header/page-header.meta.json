@@ -44,6 +44,48 @@
       "default": false,
       "reflect": true,
       "description": "Pins the header to the top of the scrolling page body while the content scrolls: in pk-app-shell flush under the app bar (the body is the scroller), in a plain page at the top of the viewport. It is its own stacking context one above in-body sticky strips, so a popover opened from the header draws over them."
+    },
+    {
+      "name": "crumbs",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The breadcrumb trail as a JSON array of { \"label\", \"href\" }, drawn in a pk-breadcrumb above the title (the last crumb is the current page: aria-current, and the page title when no heading is set). An href that is not a same-site path, http(s), mailto, tel or sms address draws a crumb without a link. Use it instead of the breadcrumb slot, not with it."
+    },
+    {
+      "name": "breadcrumbLabel",
+      "type": "string",
+      "default": "Breadcrumb",
+      "reflect": false,
+      "description": "The accessible name of the breadcrumb landmark drawn from crumbs."
+    },
+    {
+      "name": "homeHref",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "An address for a leading home crumb: an icon-only link (named by homeLabel) first in the trail crumbs draws. Empty draws none."
+    },
+    {
+      "name": "homeLabel",
+      "type": "string",
+      "default": "Home",
+      "reflect": false,
+      "description": "The accessible name of the home crumb."
+    },
+    {
+      "name": "homeIcon",
+      "type": "string",
+      "default": "dashboard",
+      "reflect": false,
+      "description": "The icon of the home crumb (a name of the icon sprite)."
+    },
+    {
+      "name": "backLink",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draws a back link above the header to the last crumb before the current one that has a usable href: a ghost icon-only button with a chevron, named \"Back to <label>\". Off by default because the app shell can draw its own."
     }
   ],
   "slots": [
@@ -77,6 +119,14 @@
     {
       "name": "header",
       "description": "The header element."
+    },
+    {
+      "name": "trail",
+      "description": "The pk-breadcrumb drawn from crumbs."
+    },
+    {
+      "name": "back",
+      "description": "The back link drawn when backLink is set."
     },
     {
       "name": "crumbs",
@@ -134,6 +184,10 @@
     {
       "title": "Page: crumbs, title and actions",
       "html": "<pk-page-header heading=\"PO 1042\" level=\"2\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
+    },
+    {
+      "title": "Crumbs from data, home crumb and back link",
+      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\" back-link home-href=\"#\" crumbs='[{\"label\":\"Stock\",\"href\":\"#\"},{\"label\":\"Purchase orders\",\"href\":\"#\"},{\"label\":\"PO 1042\"}]'>\n  <pk-button slot=\"actions\">Receive</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Section: title, action and note",

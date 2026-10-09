@@ -1,0 +1,21 @@
+{
+  "component": "PkLookupPicker",
+  "existing": true,
+  "existingReason": "typed-generics and callback: PkLookupPicker<TItem> is a thin typed wrapper; Load and Resolve run through PkCallbackSlot, columns come from typed columns, Value and Values bind typed (issue 801 step 8) Missing generator features: @typeparam generation (a typed component), a callback parameter kind (a typed delegate that the generator hands to the element as a PkCallbackSlot, with an adapter from the element's argument and result to the delegate) (Load and Resolve), and typed columns turned into the columns JSON, plus typed Value and Values binding for a keyed item.",
+  "params": [
+    { "name": "Value", "prop": "value", "type": "string", "note": "The key of the chosen item when not Multiple (two-way: @bind-Value; ValueExpression for an EditForm)." },
+    { "name": "Values", "prop": "values", "type": "IReadOnlyList<string>?", "note": "The keys of the chosen items when Multiple (two-way: @bind-Values; ValuesExpression for an EditForm)." },
+    { "name": "Name", "prop": "name", "type": "string" },
+    { "name": "Multiple", "prop": "multiple", "type": "bool" },
+    { "name": "Max", "prop": "max", "type": "int" },
+    { "name": "SelectedLabels", "prop": "selectedLabels", "type": "IReadOnlyDictionary<string, string>?" },
+    { "name": "Placeholder", "prop": "placeholder", "type": "string" },
+    { "name": "Disabled", "prop": "disabled", "type": "bool" },
+    { "name": "Readonly", "prop": "readonly", "type": "bool" },
+    { "name": "Required", "prop": "required", "type": "bool" },
+    { "name": "IsInvalid", "prop": "invalid", "type": "bool" },
+    { "name": "AriaLabel", "prop": "label", "type": "string" },
+    { "name": "Open", "prop": "open", "type": "bool", "note": "Two-way: @bind-Open." }
+  ],
+  "notes": "PkLookupPicker<TItem> (Components/PkLookupPicker.razor) wraps pk-lookup-picker 1:1: Load and Resolve are callback properties, so the component hands the element .NET references (PkCallbackSlot) exactly as PkDataTable does; pk-lookup-select, pk-values-change and pk-lookup-toggle come back as ValueChanged, ValuesChanged and OpenChanged. Keys are strings."
+}

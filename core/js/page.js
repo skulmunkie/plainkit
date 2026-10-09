@@ -62,8 +62,7 @@ export function createPage({ title = null, alert = null, overlay = null, breadcr
         else { body.replaceWith(overlay); overlay.append(body); }
     }
     const region = body ?? overlay; // where aria-busy goes
-    const wait = delay ?? (owned ? BUSY_DELAY : 0);
-    const hold = minTime ?? (owned ? BUSY_MIN_TIME : 0);
+    if (overlay) { overlay.delay = delay ?? (owned ? BUSY_DELAY : 0); overlay.minTime = minTime ?? (owned ? BUSY_MIN_TIME : 0); }
 
     function setTitle(text) {
         try { if (globalThis.document) globalThis.document.title = text; } catch (err) { log.debug('title not set', err); }
@@ -102,34 +101,17 @@ export function createPage({ title = null, alert = null, overlay = null, breadcr
 
     const tokens = []; // one entry per running busy action; the last is the most recent
     const listeners = new Set();
-    let destroyed = false, shown = false, shownAt = 0, showTimer = 0, hideTimer = 0, seen = { busy: false, label: '' };
+    let destroyed = false, seen = { busy: false, label: '' };
 
     const currentLabel = () => (tokens.length ? tokens[tokens.length - 1].label : '');
 
-    function paint(on) {
-        shown = on;
-        if (!overlay) return;
-        if (on) { shownAt = Date.now(); overlay.label = currentLabel(); }
-        overlay.busy = on;
-    }
-
-    // Brings the overlay and aria-busy in line with the tokens: shows after the delay, hides after the minimum time.
+    // The delay and minimum time are the overlay element's (pk-loading-overlay delay and min-time): this only tells it whether the page is busy and the label.
     function settle() {
-        clearTimeout(hideTimer); hideTimer = 0;
-        if (tokens.length) {
-            if (region?.setAttribute) region.setAttribute('aria-busy', 'true');
-            if (shown && overlay) overlay.label = currentLabel();
-            else if (!showTimer) {
-                if (wait > 0) showTimer = setTimeout(() => { showTimer = 0; paint(true); }, wait);
-                else paint(true);
-            }
-            return;
-        }
-        if (region?.removeAttribute) region.removeAttribute('aria-busy');
-        clearTimeout(showTimer); showTimer = 0;
-        const left = hold - (Date.now() - shownAt);
-        if (shown && left > 0 && !destroyed) hideTimer = setTimeout(() => { hideTimer = 0; paint(false); }, left);
-        else if (shown) paint(false);
+        const on = tokens.length > 0;
+        if (region?.setAttribute) { if (on) region.setAttribute('aria-busy', 'true'); else region.removeAttribute('aria-busy'); }
+        if (!overlay) return;
+        if (on) overlay.label = currentLabel();
+        overlay.busy = on;
     }
 
     function changed() {
@@ -189,8 +171,7 @@ export function createPage({ title = null, alert = null, overlay = null, breadcr
         destroyed = true;
         if (unfollow) unfollow();
         tokens.length = 0;
-        clearTimeout(showTimer); clearTimeout(hideTimer); showTimer = hideTimer = 0;
-        if (shown) paint(false);
+        if (overlay) { overlay.minTime = 0; overlay.busy = false; }
         if (region?.removeAttribute) region.removeAttribute('aria-busy');
         listeners.clear();
         if (owned) {

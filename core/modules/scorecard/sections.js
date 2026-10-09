@@ -2,12 +2,12 @@
 // pk-table, pk-tabs, pk-badge, pk-button, pk-cluster, pk-empty-state). No markup strings: every node is built with the DOM, every text is set as text.
 
 import { band, metricRows, budgetRows, budgetSummary, apiDiff, securitySummary, sweepSummary, historyCategories, historyRows, severityVariant, kb, signed } from '../../js/framework-checks.js';
-import { h } from '../../js/mount-support.js';
+import { h, on } from '../../js/mount-support.js';
 export { h };
 
 const STAT_TONE = { ok: 'positive', warn: 'warning', danger: 'critical', '': 'neutral' };
 
-export const card = (doc, heading, ...children) => h(doc, 'pk-card', { heading, class: 'sc-section' }, ...children);
+export const card = (doc, heading, ...children) => h(doc, 'pk-card', { heading }, ...children);
 export const note = (doc, text) => h(doc, 'p', { class: 'muted' }, text);
 export const badge = (doc, variant, text) => h(doc, 'pk-badge', { variant }, text);
 export const emptyState = (doc, heading, description) => h(doc, 'pk-empty-state', { heading, description, tone: 'compact' });
@@ -41,8 +41,7 @@ export function scoreTile(doc, label, score, delta, series = []) {
 
 export function scoreTiles(doc, scores, { deltas = { overall: null, categories: {} }, history = [] } = {}) {
     const overall = scoreTile(doc, 'Overall', scores.overall, deltas.overall, history.map(r => r.overall));
-    overall.classList.add('sc-tile-big');
-    return h(doc, 'div', { class: 'sc-scores' }, overall, ...Object.entries(scores.categories).map(([k, c]) => scoreTile(doc, c.label, c.score, deltas.categories?.[k], history.map(r => r.categories?.[k]))));
+    return h(doc, 'pk-stack', { gap: 'md' }, overall, h(doc, 'pk-grid', { min: '10rem' }, ...Object.entries(scores.categories).map(([k, c]) => scoreTile(doc, c.label, c.score, deltas.categories?.[k], history.map(r => r.categories?.[k])))));
 }
 
 // One tab per scored category (its metrics against good and poor), plus one for the stylesheets.
@@ -98,7 +97,7 @@ export function paintSize(doc, host, { sizes, budgets }) {
 export function paintApi(doc, host, { baseline, current }) {
     if (!baseline) return missing(doc, host, 'API baseline', 'Pass data.apiBaseline: the surface of the previous release (node tools/api-surface.mjs --write).');
     const d = apiDiff(baseline, current);
-    const tiles = h(doc, 'div', { class: 'sc-scores' }, ...Object.entries(d.counts).map(([k, c]) => h(doc, 'pk-stat', {
+    const tiles = h(doc, 'pk-grid', { min: '10rem' }, ...Object.entries(d.counts).map(([k, c]) => h(doc, 'pk-stat', {
         label: k, tile: true, value: String(c.current ?? c.baseline), tone: c.removed ? 'critical' : 'neutral',
         subtext: c.current === null ? 'in the baseline' : `baseline ${c.baseline}, ${c.removed} removed, ${c.added} added`,
     })));
@@ -132,6 +131,11 @@ export function paintTiers(doc, host, report) {
             columns: [text('tier', 'Tier'), num('elements', 'Elements'), num('debt', 'Baseline debt')],
             rows: tiers.map((t, i) => ({ id: i + 1, tier: cap(t), elements: counts[t], debt: debtOf(t) })),
         }),
+        ...(report.modules ? [note(doc, `Modules are not tiered. Their own ruleset (plainkit.audit.modules.baseline.json) holds ${report.modules.total} accepted findings; the rule names are the module ruleset's, not the tier rules above.`), table(doc, {
+            label: 'Module baseline debt per rule',
+            columns: [text('rule', 'Module rule'), num('count', 'Findings')],
+            rows: Object.entries(report.modules.rules).map(([r, n], i) => ({ id: i + 1, rule: r, count: n })),
+        })] : []),
         table(doc, {
             label: 'Baseline debt per rule and tier',
             columns: [text('rule', 'Rule'), text('what', 'What'), ...tiers.map(t => num(t, cap(t))), num('total', 'Total')],
@@ -189,8 +193,8 @@ export function paintHistory(doc, host, { history, scoring, actions }) {
     const parts = [];
     if (actions) {
         const file = h(doc, 'input', { type: 'file', accept: 'application/json', hidden: true, 'aria-label': 'Import history file' });
-        file.addEventListener('change', () => { const f = file.files?.[0]; if (f) actions.onImport(f); file.value = ''; });
-        const button = (label, variant, fn) => { const b = h(doc, 'pk-button', { variant, size: 'mini' }, label); b.addEventListener('click', fn); return b; };
+        on(file, 'change', () => { const f = file.files?.[0]; if (f) actions.onImport(f); file.value = ''; });
+        const button = (label, variant, fn) => { const b = h(doc, 'pk-button', { variant, size: 'mini' }, label); on(b, 'click', fn); return b; };
         parts.push(row(doc, button('Export history', 'ghost', actions.onExport), button('Import history', 'ghost', () => file.click()), button('Clear history', 'warn', actions.onClear), file));
     }
     if (!history.length) {

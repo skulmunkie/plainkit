@@ -86,7 +86,7 @@ test('bootPattern does nothing for a frame that names no script or one of a bad 
         assert.equal(loaded, 0);
         assert.equal(win.count('pagehide'), 0);
     }
-    assert.ok(SCRIPT_NAME.test('master-detail-pattern/master-detail-pattern.js'));
+    assert.ok(SCRIPT_NAME.test('filter-table/filter-table.js'));
 });
 
 test('a sample frame carries data-pattern only for a real script name; the data names one for every scripted pattern', () => {
@@ -182,7 +182,8 @@ test('two views of one pattern are independent: destroying one leaves the other 
 
 test('the gallery hands its inline pattern frames the script, makes them only when visible, and releases them on re-render', () => {
     const src = fs.readFileSync(path.join(root, 'site/gallery/gallery.js'), 'utf8').replace(/\r\n/g, '\n');
-    assert.match(src, /pattern: p\.script/, 'the pattern slots carry the script');
+    const views = fs.readFileSync(path.join(root, 'site/gallery/gallery-views.js'), 'utf8').replace(/\r\n/g, '\n'); // the views (and so the pattern slots) moved out of gallery.js (#401)
+    assert.match(views, /pattern: p\.script/, 'the pattern slots carry the script');
     assert.match(src, /function releaseFrames\(\) \{\s*for \(const f of frames\) destroyFrame\(f\);\s*frames\.clear\(\);/);
     assert.match(src, /function watchFrames\(\) \{[^}]*releaseFrames\(\)/, 'every re-render ends the scripts of the frames it replaces');
     const boot = fs.readFileSync(path.join(root, 'site/gallery/frame-boot.js'), 'utf8');

@@ -297,6 +297,14 @@ test('lazy provider lists from the lean list alone, fetches a file\'s real text 
     await assert.rejects(p.readFile('nope'));
 });
 
+test('lazy provider encodes each path segment in the file url, so a path with %, # or ? reaches the same file', async () => {
+    const calls = [];
+    const p = new LazyProvider([{ path: 'a b/100%.md', language: 'md', lines: 1 }, { path: 'x#y?.js', language: 'js', lines: 1 }], '/raw', { fetch: async url => { calls.push(url); return { ok: true, text: async () => 'x' }; } });
+    await p.readFile('a b/100%.md'); await p.readFile('x#y?.js');
+    assert.deepEqual(calls, ['/raw/a%20b/100%25.md', '/raw/x%23y%3F.js']);
+    assert.deepEqual(calls.map(u => decodeURIComponent(u.slice('/raw/'.length))), ['a b/100%.md', 'x#y?.js']);
+});
+
 test('lazy provider connects from a lean list URL', async () => {
     const list = { files: [{ path: 'a', language: 'js', lines: 1 }] };
     const fetch = async url => (url === '/index.json' ? { ok: true, json: async () => list } : { ok: true, text: async () => 'x' });

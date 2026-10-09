@@ -17,7 +17,7 @@
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
 import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
-import { ensureStyles, styleUrls } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -28,6 +28,10 @@ const NAV = '::nav';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // The one place markup is written into the document: every value in it went through esc(), tokens are wrapped in fixed spans.
 const fill = (el, markup) => { el.innerHTML = markup; };
+// Search hits, usages and report rows: a dense list of native buttons (pk-list-group dense), a muted line number or count, then the text.
+const hitRow = (path, line, no, textHtml) => `<button type="button" data-path="${esc(path)}" data-line="${line ?? ''}"><pk-text inline tone="muted" font="mono" size="meta">${no}</pk-text><pk-text inline font="mono" size="meta">${textHtml}</pk-text></button>`;
+const hitList = (rows, label) => `<pk-list-group variant="action" dense label="${esc(label)}">${rows}</pk-list-group>`;
+const hitGroup = (titleHtml, rows, label) => `<pk-stack gap="xs"><pk-text inline font="mono" size="read">${titleHtml}</pk-text>${hitList(rows, label)}</pk-stack>`;
 
 // Folder tree from flat paths: { name, path, children: Map, file? }.
 export function buildTree(files, filter = '') {
@@ -63,6 +67,7 @@ export class CodeExplorerElement extends Base {
     #search = null;
     #patterns = [];
     #reports = null;
+    #reading = false;
     #inspector = null;
     #folders = new Set();
     #nodes = new Map();
@@ -101,44 +106,44 @@ export class CodeExplorerElement extends Base {
     #build() {
         fill(this, `
 <pk-workspace fill active-pane="nav" nav-label="Files" main-label="Code" aside-label="Inspector" data-ce-root>
-  <div slot="nav" class="ce-nav">
+  <pk-container slot="nav" size="full" padding="sm"><pk-stack gap="sm">
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
-    <div class="ce-actions">
+    <pk-cluster gap="sm">
       <pk-button size="mini" data-ce-search hidden>Search</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-reports>Reports</pk-button>
       <pk-button size="mini" variant="ghost" data-ce-clear hidden>Back to files</pk-button>
-    </div>
+    </pk-cluster>
     <div data-ce-tree></div>
-  </div>
-  <div class="ce-main">
+  </pk-stack></pk-container>
+  <pk-stack gap="none" fill>
     <pk-tabs overflow="scroll" none-active data-ce-tabs></pk-tabs>
-    <div class="ce-pane" data-ce-pane></div>
-  </div>
-  <div slot="aside" class="ce-aside" data-ce-inspector>
-    <div class="ce-aside-head"><h2 data-ce-inspector-title>Outline</h2><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></div>
+    <pk-container fill size="full" padding="sm" data-ce-pane></pk-container>
+  </pk-stack>
+  <pk-container slot="aside" size="full" padding="sm" data-ce-inspector><pk-stack gap="sm">
+    <pk-cluster justify="between" nowrap><pk-heading level="2" variant="h6" data-ce-inspector-title>Outline</pk-heading><pk-button size="mini" variant="ghost" icon label="Close inspector" data-ce-inspector-close icon-name="x"></pk-button></pk-cluster>
     <div data-ce-inspector-body></div>
-  </div>
+  </pk-stack></pk-container>
 </pk-workspace>`);
         const $ = s => this.querySelector(s);
-        $('[data-ce-filter]').addEventListener('input', e => { this.#filter = e.target.value; this.#renderTree(); });
+        on($('[data-ce-filter]'), 'input', e => { this.#filter = e.target.value; this.#renderTree(); });
         const runSearch = () => this.#runSearch($('[data-ce-query]').value);
-        $('[data-ce-query]').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
-        $('[data-ce-search]').addEventListener('click', runSearch);
-        $('[data-ce-reports]').addEventListener('click', () => this.#toggleReports());
-        $('[data-ce-clear]').addEventListener('click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
-        $('[data-ce-inspector-close]').addEventListener('click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
+        on($('[data-ce-query]'), 'keydown', e => { if (e.key === 'Enter') runSearch(); });
+        on($('[data-ce-search]'), 'click', runSearch);
+        on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
+        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
+        on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
-        tree.addEventListener('click', e => this.#onHitClick(e));
-        tree.addEventListener('pk-select', e => this.#onTreeSelect(e));
-        tree.addEventListener('pk-toggle', e => this.#onTreeToggle(e));
+        on(tree, 'click', e => this.#onHitClick(e));
+        on(tree, 'pk-select', e => this.#onTreeSelect(e));
+        on(tree, 'pk-toggle', e => this.#onTreeToggle(e));
         const tabs = $('[data-ce-tabs]');
-        tabs.addEventListener('pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
-        tabs.addEventListener('pk-tab-close', e => this.#closeTab(e.detail.value));
-        tabs.addEventListener('keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
-        $('[data-ce-pane]').addEventListener('click', e => this.#onPaneClick(e));
-        $('[data-ce-inspector-body]').addEventListener('click', e => this.#onInspectorClick(e));
-        this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
+        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
+        on(tabs, 'pk-tab-close', e => this.#closeTab(e.detail.value));
+        on(tabs, 'keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
+        on($('[data-ce-pane]'), 'click', e => this.#onPaneClick(e));
+        on($('[data-ce-inspector-body]'), 'click', e => this.#onInspectorClick(e));
+        on(this, 'keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
         // Load every element the explorer writes before the first tree is drawn: a pk-tree that defines before its items would
         // update against items that are not upgraded yet.
         const scratch = this.ownerDocument.createElement('div');
@@ -164,7 +169,7 @@ export class CodeExplorerElement extends Base {
             if (query) await this.search(query);
         } catch (error) {
             log.error('the code explorer could not start', error);
-            fill(this.querySelector('[data-ce-tree]'), `<p class="ce-error" role="alert">${esc(error.message)}</p>`);
+            fill(this.querySelector('[data-ce-tree]'), `<pk-alert kind="danger">${esc(error.message)}</pk-alert>`);
             this.dispatchEvent(new CustomEvent('pk-code-explorer-error', { detail: { error } }));
         }
     }
@@ -192,7 +197,7 @@ export class CodeExplorerElement extends Base {
         const root = buildTree(this.#files, this.#filter);
         this.#nodes = new Map();
         const filtering = this.#filter.trim() !== '';
-        if (!root.children.size) { fill(host, '<p class="ce-muted ce-empty">No files.</p>'); return; }
+        if (!root.children.size) { fill(host, '<pk-text tone="muted">No files.</pk-text>'); return; }
         // The tree is connected empty and its items added after: a pk-tree that connects with items not yet upgraded updates against them too early.
         fill(host, `<pk-tree label="Files" value="${esc(this.#activeFile())}"></pk-tree>`);
         host.firstElementChild.append(this.#fragment(this.#treeHtml(root, filtering)));
@@ -205,11 +210,11 @@ export class CodeExplorerElement extends Base {
         const sorted = [...node.children.values()].sort((a, b) => (!!a.file - !!b.file) || a.name.localeCompare(b.name));
         return sorted.map(n => {
             if (n.file && !n.children.size) {
-                return `<pk-tree-item data-file value="${esc(n.path)}" label="${esc(n.name)}"><span slot="label" class="ce-row"><span class="ce-name">${esc(n.name)}</span>${n.file.lines != null ? `<pk-badge variant="muted" max="999999" count="${n.file.lines}"></pk-badge>` : ''}</span></pk-tree-item>`;
+                return `<pk-tree-item data-file value="${esc(n.path)}" label="${esc(n.name)}"><pk-cluster slot="label" justify="between" nowrap><pk-text inline>${esc(n.name)}</pk-text>${n.file.lines != null ? `<pk-badge variant="muted" max="999999" count="${n.file.lines}"></pk-badge>` : ''}</pk-cluster></pk-tree-item>`;
             }
             this.#nodes.set(n.path, n);
             const open = filtering || this.#folders.has(n.path);
-            return `<pk-tree-item value="${esc(n.path)}" label="${esc(n.name)}"${open ? ' expanded' : ''}><span slot="label" class="ce-row"><span class="ce-name ce-folder">${esc(n.name)}</span><pk-badge variant="muted" max="999999" count="${n.count}"></pk-badge></span>${open ? this.#treeHtml(n, filtering) : '<pk-tree-item data-ce-stub hidden label="."></pk-tree-item>'}</pk-tree-item>`;
+            return `<pk-tree-item value="${esc(n.path)}" label="${esc(n.name)}"${open ? ' expanded' : ''}><pk-cluster slot="label" justify="between" nowrap><pk-text inline weight="semibold">${esc(n.name)}</pk-text><pk-badge variant="muted" max="999999" count="${n.count}"></pk-badge></pk-cluster>${open ? this.#treeHtml(n, filtering) : '<pk-tree-item data-ce-stub hidden label="."></pk-tree-item>'}</pk-tree-item>`;
         }).join('');
     }
 
@@ -266,17 +271,31 @@ export class CodeExplorerElement extends Base {
     // available; the host-defined pattern report is a fourth choice when `patterns` was set.
     async #toggleReports() {
         if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
+        if (this.#reading) return; // a second click while the files are still being read
+        this.#reading = true;
+        const button = this.querySelector('[data-ce-reports]');
+        const skipped = [];
         try {
             const files = [];
-            for (const f of this.#files) {
+            for (const [i, f] of this.#files.entries()) {
                 if (!this.#docs.has(f.path)) {
-                    const doc = await this.#provider.readFile(f.path);
-                    const language = doc.language ?? languageOf(f.path);
-                    this.#docs.set(f.path, { ...doc, language, tokens: tokenize(doc.lines, language) });
+                    if (i % 50 === 0) button.textContent = `Reading ${i} of ${this.#files.length}`;
+                    // One file that cannot be read (gone, refused, a path the reader does not know) is left out and named, it does not sink the reports.
+                    try {
+                        const doc = await this.#provider.readFile(f.path);
+                        const language = doc.language ?? languageOf(f.path);
+                        this.#docs.set(f.path, { ...doc, language, tokens: tokenize(doc.lines, language) });
+                    } catch (error) {
+                        log.warn(`${f.path} could not be read for the reports`, error);
+                        skipped.push({ path: f.path, reason: error.message });
+                        continue;
+                    }
                 }
                 files.push(this.#docs.get(f.path));
             }
+            if (!files.length && skipped.length) throw new Error(`none of the ${skipped.length} files could be read (${skipped[0].path}: ${skipped[0].reason})`);
             this.#reports = {
+                skipped,
                 kind: this.#patterns.length ? 'pattern' : 'files',
                 pattern: this.#patterns.length ? patternReport(files, this.#patterns) : null,
                 files: largestFilesReport(files),
@@ -285,8 +304,10 @@ export class CodeExplorerElement extends Base {
             };
         } catch (error) {
             log.warn('the reports could not be computed', error);
-            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], error: error.message };
+            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
         }
+        this.#reading = false;
+        button.textContent = 'Reports';
         this.#search = null;
         this.#renderTree();
     }
@@ -304,42 +325,43 @@ export class CodeExplorerElement extends Base {
 
     #reportsHtml() {
         const r = this.#reports;
-        if (r.error) return `<p class="ce-error" role="alert">${esc(r.error)}</p>`;
+        if (r.error) return `<pk-alert kind="danger">${esc(r.error)}</pk-alert>`;
         const kinds = this.#reportKinds();
-        const picker = `<div class="csr-kinds">${kinds.map(k => `<button type="button" class="csr-kind${k.key === r.kind ? ' csr-kind--active' : ''}" data-kind="${k.key}" aria-pressed="${k.key === r.kind}">${k.label}</button>`).join('')}</div>`;
-        return picker + this.#reportRowsHtml(r.kind, r[r.kind] ?? []);
+        const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
+        const left = r.skipped?.length ? `<pk-alert kind="warning">${r.skipped.length} ${r.skipped.length === 1 ? 'file' : 'files'} could not be read and ${r.skipped.length === 1 ? 'is' : 'are'} left out: ${esc(r.skipped.slice(0, 3).map(s => s.path).join(', '))}${r.skipped.length > 3 ? ` and ${r.skipped.length - 3} more` : ''} (the logs say why).</pk-alert>` : '';
+        return `<pk-stack gap="sm">${picker}${left}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
-        if (!rows.length) return '<p class="ce-muted">No matches.</p>';
+        if (!rows.length) return '<pk-text tone="muted">No matches.</pk-text>';
         if (kind === 'duplicates') {
-            return `<div class="csr">${rows.map(d => `<div class="csr-group"><div class="csr-title">${d.length} lines duplicated in ${d.locations.length} places</div>${d.locations.map(l => `<button type="button" class="csr-hit" data-path="${esc(l.path)}" data-line="${l.line}"><span class="csr-no">${l.line}</span><span class="csr-text">${esc(l.path)}</span></button>`).join('')}</div>`).join('')}</div>`;
+            return `<pk-stack gap="sm">${rows.map(d => hitGroup(`${d.length} lines duplicated in ${d.locations.length} places`, d.locations.map(l => hitRow(l.path, l.line, l.line, esc(l.path))).join(''), 'Duplicated in')).join('')}</pk-stack>`;
         }
-        return `<div class="csr">${rows.map(x => {
+        return hitList(rows.map(x => {
             const label = kind === 'pattern' ? `${esc(x.name)}${x.label ? ` — ${esc(x.label)}` : ''}: ${esc(x.path)}`
                 : kind === 'methods' ? `${esc(x.name)} — ${esc(x.path)}`
                     : esc(x.path);
-            return `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line ?? ''}"><span class="csr-no">${x.count}</span><span class="csr-text">${label}</span></button>`;
-        }).join('')}</div>`;
+            return hitRow(x.path, x.line, x.count, label);
+        }).join(''), 'Report');
     }
 
     #searchHtml() {
         const s = this.#search;
-        if (s.error) return `<p class="ce-error" role="alert">${esc(s.error)}</p>`;
-        if (!s.groups.length) return '<p class="ce-muted">No matches.</p>';
+        if (s.error) return `<pk-alert kind="danger">${esc(s.error)}</pk-alert>`;
+        if (!s.groups.length) return '<pk-text tone="muted">No matches.</pk-text>';
         const match = matcherFor(s.query);
-        return `<div class="csr">${s.groups.map(g => `<div class="csr-group"><div class="csr-title">${esc(g.path)} <span class="ce-muted">(${g.hits.length})</span></div>${g.hits.map(h => {
+        return `<pk-stack gap="sm">${s.groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
             const t = h.text.trim(); const shift = h.text.length - h.text.trimStart().length;
             const spans = (h.spans ?? match(h.text)).map(x => ({ start: x.start - shift, length: x.length }));
-            return `<button type="button" class="csr-hit" data-path="${esc(g.path)}" data-line="${h.line}"><span class="csr-no">${h.line}</span><span class="csr-text">${buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join('')}</span></button>`;
-        }).join('')}</div>`).join('')}</div>`;
+            return hitRow(g.path, h.line, h.line, buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join(''));
+        }).join(''), `Matches in ${g.path}`)).join('')}</pk-stack>`;
     }
 
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
-        const kindBtn = e.target.closest?.('.csr-kind');
+        const kindBtn = e.target.closest?.('[data-kind]');
         if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
-        const hit = e.target.closest?.('.csr-hit');
+        const hit = e.target.closest?.('pk-list-group > button[data-path]');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
     }
 
@@ -397,7 +419,7 @@ export class CodeExplorerElement extends Base {
         fill(pane, `<div class="cv cv--fill"><div class="cv-title"><span class="cv-name">${esc(doc.path)}</span><span class="cv-meta"><span class="cv-lang">${esc(doc.language)}</span><span class="cv-count">${total.toLocaleString()} lines</span></span>${caps.outline ? '<pk-button size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : ''}${caps.references && this.#word ? `<pk-button size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : ''}</div>${start > 1 || end < total ? `<div class="cv-notice">Showing lines ${start}-${end} of ${total}.</div>` : ''}<pk-code-view class="cv-scroll" label="${esc(doc.path)}"></pk-code-view></div>`);
         const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
         Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
-        view.addEventListener('pk-line-click', e => this.#onLineClick(e.detail));
+        on(view, 'pk-line-click', e => this.#onLineClick(e.detail));
         this.#upgrade();
         this.#renderInspector();
     }
@@ -432,11 +454,11 @@ export class CodeExplorerElement extends Base {
         if (!shown) return;
         this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : `Usages of ${i.word}`;
         const body = this.querySelector('[data-ce-inspector-body]');
-        if (i.error) { fill(body, `<p class="ce-error" role="alert">${esc(i.error)}</p>`); return; }
-        if (!i.items.length) { fill(body, `<p class="ce-muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</p>`); return; }
+        if (i.error) { fill(body, `<pk-alert kind="danger">${esc(i.error)}</pk-alert>`); return; }
+        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</pk-text>`); return; }
         fill(body, i.kind === 'outline'
-            ? `<ul class="co">${i.items.map(x => `<li><button type="button" class="co-item co-d${Math.min(Math.max(x.depth ?? 0, 0), 3)}" data-line="${x.line}"><span class="co-kind">${esc(x.kind)}</span><span class="co-name">${esc(x.name)}</span><span class="co-line">${x.line}</span></button></li>`).join('')}</ul>`
-            : `<div class="csr">${i.items.map(x => `<button type="button" class="csr-hit" data-path="${esc(x.path)}" data-line="${x.line}"><span class="csr-no">${x.line}</span><span class="csr-text">${esc(x.path)}: ${esc(x.text.trim())}</span></button>`).join('')}</div>`);
+            ? hitList(i.items.map(x => { const d = Math.min(Math.max(x.depth ?? 0, 0), 3); return `<button type="button"${d ? ` data-depth="${d}"` : ''} data-line="${x.line}"><pk-text inline size="meta" weight="semibold">${esc(x.kind)}</pk-text><pk-text inline font="mono" size="read">${esc(x.name)}</pk-text><pk-text inline font="mono" size="meta">${x.line}</pk-text></button>`; }).join(''), 'Outline')
+            : hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.text.trim())}`)).join(''), 'Usages'));
     }
 
     #onInspectorClick(e) {

@@ -38,6 +38,11 @@ A change is done when, on its pull request:
 - It uses only components that exist in `core`; a missing component is recorded in the standing "Tracker: components the SDK lacks" issue (#336) instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 
+## Where things live
+
+- **Core is organised by composition tier.** An element's folder is its tier: `core/elements/<name>/` (base elements), `core/components/<name>/`, `core/pages/<name>/`, `core/shells/<name>/`, each with the same files (`<name>.meta.json`, `.js`, `.html`, `.css`, test). The `tier` in `meta.json` must equal the folder (rule C2, `core/tools/tiers.mjs`, enforced by the build). The shipped `dist/elements/<name>.js` does not depend on the folder. Details and the rules per tier: `core/STANDARDS.md` and `core/README.md`.
+- **Blazor mirrors it.** `blazor/mappings/<name>.json` maps one element; the generator derives the tier from the element's `meta.json`: base elements stay in `PlainKit.Blazor`, components, pages and shells go to `PlainKit.Blazor.Components`, `.Pages` and `.Shells` (the package's targets add the matching usings, and `PkGeneratedAliases.cs` keeps the old names resolving for one minor version). A hand-written component lives in its tier's namespace and is listed in `blazor/handwritten.json`.
+
 ## Reviewing what it looks like
 
 Numeric checks and green CI did not catch a wrong-looking record header or a breadcrumb chevron inside its link, so a change to how an element looks is also looked at.

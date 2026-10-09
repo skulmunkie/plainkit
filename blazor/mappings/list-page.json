@@ -1,7 +1,5 @@
 {
   "component": "PkListPage",
-  "existing": true,
-  "existingReason": "callback: Load runs through PkCallbackSlot with typed generics",
   "params": [
     {
       "name": "Config",
@@ -9,8 +7,29 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize? }."
+      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, selectable?, rowKey?, bulkActions?: [{ id, label, variant? }] }. A column key names a property of TItem in camel case (orderNo for OrderNo)."
+    },
+    {
+      "name": "Load",
+      "callback": "load",
+      "type": "Func<PkListRequest, Task<PkListResult<TItem>>>?",
+      "arg": "PkListPageQuery",
+      "args": "a.ToRequest()",
+      "returns": "new { rows = r.Items, total = r.Total }",
+      "refresh": true,
+      "doc": "Loads one page for the request's page, sort, search and filters and returns its items and the total of the whole (searched) list. Throwing shows the element's error state with Retry; zero items show the empty state."
+    },
+    {
+      "name": "OnSelect",
+      "event": "pk-select",
+      "type": "EventCallback<PkSelectEventArgs>"
+    },
+    {
+      "name": "OnBulk",
+      "event": "pk-bulk",
+      "type": "EventCallback<PkBulkEventArgs>"
     }
   ],
-  "notes": "Hand-written (issue #366): load(query) is a callback property, set from script, so the component (PkListPage<TItem>) hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Load parameter, Func<PkListRequest, Task<PkListResult<TItem>>>. Not a mapped param: the generator only maps props, slots and events. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler (later step)."
+  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler. Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "typeparam": "TItem"
 }

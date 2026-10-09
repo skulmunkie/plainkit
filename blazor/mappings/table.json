@@ -1,7 +1,7 @@
 {
   "component": "PkTable",
   "existing": true,
-  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON",
+  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON Missing generator features: @typeparam generation (a typed component), typed columns and typed rows turned into JSON props, and per-row cell and detail slot templates (RenderFragment<TItem>).",
   "params": [
     {
       "name": "Columns",
@@ -66,6 +66,12 @@
       "prop": "selectScope",
       "type": "string?",
       "note": "page or all: all after the user chose Select all N rows (every row of the query counts as selected; Selected holds only the loaded ids). It follows the element and returns to page when the selection changes."
+    },
+    {
+      "name": "SelectPageOnly",
+      "prop": "selectPageOnly",
+      "type": "bool",
+      "note": "Never offer Select all N rows (it needs SelectAllTotal): the header checkbox selects the loaded page and SelectScope stays page."
     },
     {
       "name": "Clickable",

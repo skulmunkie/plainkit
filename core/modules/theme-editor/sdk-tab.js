@@ -10,7 +10,7 @@ import { validateBreakpoints, deltaRows, readSettings, RANGE } from '../../js/cu
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
-import { runtimeUrl, h } from '../../js/mount-support.js';
+import { runtimeUrl, h, loadJson, on as listen } from '../../js/mount-support.js';
 const log = createLogger('theme-editor.sdk');
 
 /** The runtime dist folder (two levels above this module in the release layout, where the modules sit in dist/modules/); the source tree points at core/dist (the build rewrites this line). */
@@ -23,7 +23,7 @@ export const DIST = '../../dist/';
 export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(DIST, import.meta.url) }) {
     const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null };
     const listeners = [];
-    const on = (el, type, fn) => { el.addEventListener(type, fn); listeners.push(() => el.removeEventListener(type, fn)); };
+    const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const chkTheme = h(doc, 'pk-checkbox', { label: 'Theme (the token edits)', checked: true, 'data-sdk': 'include-theme' });
     const chkBp = h(doc, 'pk-checkbox', { label: 'Breakpoints', checked: true, 'data-sdk': 'include-breakpoints' });
     const inputsBox = h(doc, 'div', { class: 'te-palette-inputs' });
@@ -136,9 +136,7 @@ export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(D
     // The report gives the breakpoint names and the shipped widths, and the delta table its data.
     (async () => {
         try {
-            const res = await win.fetch(new URL('breakpoints.report.json', dist).href);
-            if (!res.ok) throw new Error(`breakpoints.report.json: ${res.status}`);
-            state.report = await res.json();
+            state.report = await loadJson(new URL('breakpoints.report.json', dist).href, win.fetch.bind(win));
             state.names = state.report.breakpoints.map(b => b.name);
             state.shipped = Object.fromEntries(state.report.breakpoints.map(b => [b.name, b.width]));
             for (const n of state.names) {

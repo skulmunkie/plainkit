@@ -7,33 +7,11 @@
 <title>Plainkit Guides</title>
 <link rel="stylesheet" href="../../plainkit.css">
 <link rel="stylesheet" href="../site.css">
-<link rel="stylesheet" href="guides.css">
 </head>
 <body>
 <div class="site-body">
-    <div class="gd-shell">
-        <pk-side-nav id="gd-nav" class="gd-nav" label="Guides">
-            <a slot="brand" href="#/">Guides</a>
-            <div class="gd-search">
-                <pk-input type="search" id="gd-search" placeholder="Search guides" aria-label="Search guides by title or text"></pk-input>
-                <p class="gd-search-status" id="gd-search-status" aria-live="polite"></p>
-            </div>
-        </pk-side-nav>
-        <div class="gd-scroll" id="gd-scroll">
-            <div class="gd-bar">
-                <pk-button variant="ghost" toggle class="gd-contents" id="gd-contents">Guides</pk-button>
-                <pk-breadcrumb id="gd-crumbs" label="Breadcrumb"></pk-breadcrumb>
-            </div>
-            <div class="gd-page">
-                <aside class="gd-aside" id="gd-aside" hidden><pk-toc id="gd-toc" for="#gd-body" levels="h2,h3" scroller="#gd-scroll" heading="On this page"></pk-toc></aside>
-                <article class="gd-article" aria-labelledby="gd-title">
-                    <h1 class="gd-title" id="gd-title" tabindex="-1"></h1>
-                    <p class="gd-summary" id="gd-summary"></p>
-                    <div class="gd-body prose" id="gd-body"></div>
-                    <pk-pager id="gd-pager" label="Guide navigation"></pk-pager>
-                </article>
-            </div>
-        </div>
+    <div class="site-docs" id="guides-scroll">
+        <pk-doc-page id="guides"></pk-doc-page>
     </div>
 </div>
 <noscript><p class="gx-notice-file"><strong>The guides need JavaScript.</strong></p></noscript>

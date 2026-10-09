@@ -53,3 +53,30 @@ test('multi values round trip through the comma-joined string, commas and backsl
     assert.deepEqual(splitValues('a,b'), ['a', 'b']);
     assert.deepEqual(splitValues('C:\\dir,x'), ['C:\\dir', 'x']);
 });
+
+const fake = (mixin, init) => {
+    class B { constructor() { this.$ = { value: '', values: [], multiple: false, ...init }; } }
+    for (const n of ['value', 'values', 'multiple']) Object.defineProperty(B.prototype, n, { get() { return this.$[n]; }, set(v) { if (v === this.$[n]) return; this.$[n] = v; this.changed?.(n, v); } });
+    return new (mixin(B))();
+};
+test('values is the selection array: multiple round-trips commas and backslashes, a single select has one entry, empty is empty, value stays in sync', async () => {
+    const mixin = (await import('./select.js')).default;
+    const make = multiple => fake(mixin, { multiple });
+    const m = make(true);
+    assert.deepEqual(m.values, []);
+    m.values = ['a,b', 'c\\d', 'S'];
+    assert.equal(m.value, 'a\\,b,c\\d,S');
+    assert.deepEqual(m.values, ['a,b', 'c\\d', 'S']);
+    m.values = ['x'];
+    assert.equal(m.value, 'x');
+    m.value = 'p\\,q,r';
+    assert.deepEqual(m.values, ['p,q', 'r']);
+    m.values = [];
+    assert.equal(m.value, '');
+    const s = make(false);
+    s.values = ['a,b', 'ignored'];
+    assert.equal(s.value, 'a,b');
+    assert.deepEqual(s.values, ['a,b']);
+    s.values = [];
+    assert.deepEqual(s.values, []);
+});

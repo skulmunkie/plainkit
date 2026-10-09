@@ -1,7 +1,5 @@
 {
   "component": "PkSettingsPage",
-  "existing": true,
-  "existingReason": "callback: Save runs through PkCallbackSlot",
   "params": [
     {
       "name": "Config",
@@ -14,7 +12,15 @@
       "type": "string",
       "prop": "values",
       "note": "Sent as a JSON attribute: the current values keyed by field key."
+    },
+    {
+      "name": "Save",
+      "callback": "save",
+      "type": "Func<IReadOnlyDictionary<string, JsonElement>, Task>?",
+      "arg": "Dictionary<string, JsonElement>",
+      "result": false,
+      "doc": "Saves the values of the fields, keyed by field key (read text with GetString(), a switch with GetBoolean()). Throwing keeps the unsaved changes and shows the exception message; returning marks them saved."
     }
   ],
-  "notes": "Hand-written (issue #366): save(values) is a callback property, set from script, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) that calls the Save parameter, Func<IReadOnlyDictionary<string, JsonElement>, Task>. Not a mapped param: the generator only maps props, slots and events."
+  "notes": "save(values) is a callback property, set from script (config is data, a callback is not): the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Save parameter."
 }

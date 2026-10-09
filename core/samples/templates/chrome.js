@@ -20,10 +20,10 @@ document.addEventListener('submit', e => e.preventDefault());
 const variant = params.get('nav') === 'top' ? 'top' : 'side';
 const q = variant === 'top' ? '?nav=top' : '?nav=side';
 
-// Each template lives in its own folder: crud.html is at ../crud/crud.html from a sibling template.
+// Each template lives in its own folder: page.html is at ../page/page.html from a sibling template.
 const href = file => `../${file.replace('.html', '')}/${file}`;
 
-const NAV = [['document', 'Page', 'page.html'], ['tools', 'Workspace', 'workspace.html'], ['products', 'List and detail', 'crud.html'], ['dashboard', 'Dashboard', 'dashboard.html'], ['settings', 'Form and settings', 'form.html'], ['plus', 'Wizard', 'wizard.html'], ['orders', 'Master and detail', 'master-detail.html'], ['audit', 'States', 'states.html'], ['customers', 'Auth', 'auth.html'], ['categories', 'Routed list and detail', 'routed-list-detail.html']];
+const NAV = [['document', 'Page', 'page.html'], ['tools', 'Workspace', 'workspace.html'], ['products', 'List and record', 'routed-pair.html'], ['dashboard', 'Dashboard', 'dashboard.html'], ['settings', 'Form and settings', 'form.html'], ['plus', 'Wizard', 'wizard.html'], ['audit', 'States', 'states.html'], ['customers', 'Auth', 'auth.html'], ['categories', 'Workspace list and record', 'routed-list-detail.html']];
 
 // `actions` is markup for the page header's action slot (pk-button elements); every top-level element in it is slotted there.
 export function mountChrome({ title, page, crumbs = [], actions = '', fill = false }) {

@@ -31,7 +31,7 @@
 import { collect, evaluate, focusProblems, unusedSelectors } from '../../js/quality.js';
 import { scoreFindings, rankWorstFirst, groupFindings, scoreAll, readHistory, pushRun, deltas, exportHistory, importHistory } from '../../js/scoring.js';
 import { staticMetrics } from '../../js/audit.js';
-import { ensureStyles, styleUrls, loadJson } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, loadJson, on, later } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
 import { readSetting, writeSetting } from '../../js/settings.js';
@@ -40,18 +40,22 @@ const log = createLogger('scorecard');
 import { sameOrigin } from '../../js/framework-checks.js';
 import { watchVitals, recalcMs } from '../../js/measure.js';
 import { timeRows, readTexts, measureSizes } from './measure.js';
-import { h, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintTiers, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
+import { h, table, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintTiers, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
 const STYLES = ['../../plainkit.css'];
-const OWN_STYLES = ['./scorecard.css'];
 
 export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120, defineMs: 3000 });
 export const SECTIONS = Object.freeze(['ranked', 'performance', 'size', 'api', 'tiers', 'sweep', 'security', 'history']);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const slug = s => String(s).replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-export const tone = s => (s === null || s === undefined ? '' : s >= 80 ? 'sc-good' : s >= 55 ? 'sc-warn' : 'sc-bad');
-export const fmtDelta = d => (d === null || d === undefined ? '' : d === 0 ? '<span class="muted">±0</span>' : `<span class="${d > 0 ? 'sc-good' : 'sc-bad'}">${d > 0 ? '+' : ''}${d}</span>`);
+// The pk-text tone of a score (80 and up good, 55 and up fair, below that poor); '' for no score.
+export const tone = s => (s === null || s === undefined ? '' : s >= 80 ? 'positive' : s >= 55 ? 'warning' : 'critical');
+// The change since the last run as a node: a plus in the good tone, a minus in the poor one, a muted zero; null when there is nothing to say.
+export function fmtDelta(doc, d) {
+    if (d === null || d === undefined) return null;
+    return h(doc, 'pk-text', { inline: true, tone: d === 0 ? 'muted' : d > 0 ? 'positive' : 'critical' }, d === 0 ? '±0' : `${d > 0 ? '+' : ''}${d}`);
+}
 
 // Targets in any of the accepted shapes become { id, name, kind, frames: [{ url } | { html } | { srcdoc }] }; entries with nothing to render are dropped.
 export function normalizeTargets(targets) {
@@ -99,7 +103,7 @@ export function whenDefined(frame, ms = DEFAULTS.defineMs) {
             await new Promise(r => (win.requestAnimationFrame ? win.requestAnimationFrame(() => r()) : r()));
         }
     };
-    return Promise.race([pass(), new Promise(r => setTimeout(r, ms))]);
+    return Promise.race([pass(), new Promise(r => later(globalThis, r, ms))]);
 }
 
 // A frame laid out off-screen at an exact width, resolved once loaded, its elements defined and settled; the caller measures it and removes it.
@@ -108,9 +112,9 @@ export function openFrame(host, frame, { theme = 'dark', width = 1280, settleMs 
         const f = host.ownerDocument.createElement('iframe');
         f.dataset.dyn = `position:absolute; left:0; top:0; width:${width}px; height:700px; border:0`;
         applyDynamic(f);
-        f.addEventListener('load', () => {
+        on(f, 'load', () => {
             if (frame.url) try { f.contentDocument.documentElement.setAttribute('data-theme', theme); } catch (error) { log.debug('could not set the theme in a frame from another origin', error); }
-            whenDefined(f).then(() => setTimeout(() => resolve(f), settleMs));
+            whenDefined(f).then(() => later(globalThis, () => resolve(f), settleMs));
         }, { once: true });
         if (frame.url) f.src = frame.url; else f.srcdoc = docFor(frame, { theme, width }, base);
         host.append(f);
@@ -147,26 +151,36 @@ export async function runTargets(targets, { host, themes = DEFAULTS.themes, widt
     });
 }
 
-const chips = findings => (findings.length
-    ? findings.slice(0, 6).map(f => `<pk-badge variant="${f.severity === 'error' ? 'danger' : 'warn'}" title="${esc(f.selector)}: ${esc(f.message)} (${esc(f.contexts.join(', '))})">${esc(f.check)}${f.count > 1 ? ` x${f.count}` : ''}</pk-badge>`).join(' ') + (findings.length > 6 ? ` <span class="muted">+${findings.length - 6} more</span>` : '')
-    : '<span class="muted">none</span>');
+// The first six distinct findings as badges (the full text in the title), then a count of the rest; "none" when there are none.
+const chips = (doc, findings) => {
+    if (!findings.length) return [h(doc, 'pk-text', { inline: true, tone: 'muted' }, 'none')];
+    return [
+        ...findings.slice(0, 6).map(f => h(doc, 'pk-badge', { variant: f.severity === 'error' ? 'danger' : 'warn', title: `${f.selector}: ${f.message} (${f.contexts.join(', ')})` }, `${f.check}${f.count > 1 ? ` x${f.count}` : ''}`)),
+        ...(findings.length > 6 ? [h(doc, 'pk-text', { inline: true, tone: 'muted' }, `+${findings.length - 6} more`)] : []),
+    ];
+};
 
-// The ranked table, worst first. changes: [{ name, delta }] from scoring.deltas; link(item) gives the name a link target (or nothing).
-export function rankedTable(items, { changes = [], link, label = 'Target' } = {}) {
-    const rows = rankWorstFirst(items).map(i => {
-        const href = link?.(i);
-        const name = href ? `<a href="${esc(href)}">${esc(i.name)}</a>` : esc(i.name);
-        return `<tr><td>${name}${i.kind ? ` <span class="muted u-text-xs">${esc(i.kind)}</span>` : ''}</td><td class="num ${tone(i.score)}">${i.score}</td><td class="num">${fmtDelta(changes.find(x => x.name === i.name)?.delta)}</td><td>${chips(i.findings)}</td></tr>`;
+// The ranked table (a pk-table), worst first. changes: [{ name, delta }] from scoring.deltas; link(item) gives the name a link target (or nothing). Every cell is built
+// with the DOM: names, links and finding text are set as text and attributes, never parsed.
+export function rankedTable(doc, items, { changes = [], link, label = 'Target' } = {}) {
+    const ranked = rankWorstFirst(items), byId = new Map(ranked.map(i => [i.id, i]));
+    const change = i => changes.find(x => x.name === i.name)?.delta;
+    return table(doc, {
+        label: `${label} ranking`,
+        columns: [{ key: 'name', label }, { key: 'score', label: 'Score', align: 'end' }, { key: 'change', label: 'Change', align: 'end' }, { key: 'failing', label: 'Failing items' }],
+        rows: ranked.map(i => ({ id: i.id, name: i.name, score: i.score, change: change(i) ?? '', failing: i.findings.length })),
+        cells: {
+            name: r => { const i = byId.get(r.id), href = link?.(i); return h(doc, 'span', {}, href ? h(doc, 'a', { href }, i.name) : i.name, ...(i.kind ? [' ', h(doc, 'pk-text', { inline: true, tone: 'muted', size: 'meta' }, i.kind)] : [])); },
+            score: r => h(doc, 'pk-text', { inline: true, tone: tone(r.score) || 'default' }, String(r.score)),
+            change: r => fmtDelta(doc, change(byId.get(r.id))),
+            failing: r => h(doc, 'span', {}, ...chips(doc, byId.get(r.id).findings).flatMap((n, k) => (k ? [' ', n] : [n]))),
+        },
     });
-    return `<pk-table label="${esc(label)} ranking" density="compact"><table class="sc-table"><thead><tr><th>${esc(label)}</th><th class="num">Score</th><th class="num">Change</th><th>Failing items</th></tr></thead><tbody>${rows.join('')}</tbody></table></pk-table>`;
 }
 
 // readHistory/pushRun (js/scoring.js) want a { getItem, setItem } storage; js/settings.js's readSetting/writeSetting already
 // log and swallow a blocked or full localStorage the same way this module's own wrapper used to.
 const storage = { getItem: readSetting, setItem: writeSetting };
-
-// Markup the module writes itself (fixed strings and the ranked table, every dynamic value escaped) becomes nodes here, the one sink.
-const fromHtml = (doc, markup) => { const t = doc.createElement('template'); t.innerHTML = markup; return t.content; };
 
 const NOT_YET = ['No run yet', 'Press Run scorecard: every target is rendered at each width and theme and checked.'];
 const meanScore = items => Math.round(items.reduce((n, i) => n + i.score, 0) / items.length);
@@ -180,16 +194,19 @@ export async function mountScorecard(container, options = {}) {
     const runs = sections.has('ranked') || sections.has('performance');
     if (runs && !normalizeTargets(targets).length) throw new Error('mountScorecard needs targets: URLs, { name, url }, { name, html } or { name, srcdoc }');
     const doc = container.ownerDocument;
-    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
-    const root = doc.createElement('div');
-    root.className = 'sc-module';
+    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
+    const root = h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' });
+    const stack = h(doc, 'pk-stack', { gap: 'md' });
+    root.append(stack);
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height}; overflow:auto`; applyDynamic(root); }
-    root.replaceChildren(...(runs ? [
+    stack.replaceChildren(...(runs ? [
         h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard')),
-        h(doc, 'div', { class: 'sc-progress muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
-        h(doc, 'div', { 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
-        h(doc, 'div', { class: 'sc-frames', 'aria-hidden': 'true', 'data-sc-frames': true }));
+        h(doc, 'pk-text', { tone: 'muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
+        h(doc, 'pk-stack', { gap: 'md', 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
+        // The measuring frames sit off-screen at full size (a hidden frame has no layout to measure).
+        h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--sc-frames-offscreen); top:0; width:var(--sc-frames-w); height:var(--sc-frames-h); overflow:hidden; visibility:hidden' }));
+    applyDynamic(root);
     container.replaceChildren(root);
     const $ = s => root.querySelector(s);
     let items = [];
@@ -244,7 +261,7 @@ export async function mountScorecard(container, options = {}) {
         cards.forEach(([name, , paint, hint], i) => {
             const r = results[i];
             if (r.ok) paint(r.v); else { log.warn(`the ${name} section could not be filled`, r.err); missing(doc, hosts[name], hint, `${r.err.message}`); }
-            root.insertBefore(card(doc, heading[name], hosts[name]), frames);
+            stack.insertBefore(card(doc, heading[name], hosts[name]), frames);
         });
     }).then(() => loadElements(root));
 
@@ -318,12 +335,12 @@ export async function mountScorecard(container, options = {}) {
             last = { items, overall, ...(report ?? {}) };
             const result = $('[data-sc-result]');
             if (!perf) {
-                result.replaceChildren(h(doc, 'div', { class: 'sc-scores' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', fromHtml(doc, rankedTable(items, { changes, link }))));
+                result.replaceChildren(h(doc, 'pk-grid', { min: '10rem' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', rankedTable(doc, items, { changes, link })));
                 loadElements(result);
             } else {
                 const parts = [scoreTiles(doc, report.scores, { deltas: d, history })];
                 if (sections.has('ranked')) {
-                    const table = fromHtml(doc, rankedTable(items, { changes, link, label: options.rankedLabel ?? 'Target' }));
+                    const table = rankedTable(doc, items, { changes, link, label: options.rankedLabel ?? 'Target' });
                     parts.push(card(doc, 'Ranked: worst first', note(doc, `Each target is rendered in ${scoring.themes.join(' and ')} at ${scoring.widths.join(', ')}px. A finding costs points (${Object.entries(scoring.findingPenalty).map(([k, v]) => `${k} ${v}`).join(', ')}); repeats across widths count once.`), table));
                 }
                 parts.push(card(doc, 'Scores in detail', categoryTabs(doc, scoring, report.scores, report.perFile)));
@@ -335,7 +352,7 @@ export async function mountScorecard(container, options = {}) {
         return items;
     }
 
-    $('[data-sc-run]')?.addEventListener('click', run);
+    const runButton = $('[data-sc-run]'); if (runButton) on(runButton, 'click', run);
     loadElements(root);
     if (autorun && runs) await run();
     return { run, results: () => items, report: () => last, ready, destroy: () => root.remove() };

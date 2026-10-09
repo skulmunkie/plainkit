@@ -22,12 +22,12 @@ const EVENTS = new Set(metas.flatMap(m => (m.events ?? []).map(e => e.name)));
 const NATIVE = new Set(['click', 'input', 'change', 'keydown', 'pagehide']);
 
 test('the patterns that need behaviour ship a script, and the data names it', () => {
-    for (const id of ['notifications', 'unsaved-settings', 'search-results', 'onboarding', 'master-detail-pattern', 'filter-table']) {
+    for (const id of ['notifications', 'unsaved-settings', 'search-results', 'onboarding', 'filter-table']) {
         const p = patterns.find(x => x.id === id);
         assert.equal(p?.script, `${id}/${id}.js`, `${id} has no script`);
     }
     for (const p of patterns) assert.equal(Boolean(p.script), fs.existsSync(path.join(root, 'samples/patterns', p.id, `${p.id}.js`)), `${p.id}: script field and file disagree`);
-    assert.ok(withScript.length >= 6);
+    assert.ok(withScript.length >= 5);
 });
 
 test('every pattern script loads and default-exports a mount function', async () => {
@@ -107,9 +107,7 @@ test('the samples that were static are live: the markup carries the hooks the sc
     assert.match(html('unsaved-settings'), /data-bar/);
     assert.match(html('search-results'), /data-query/);
     assert.match(html('onboarding'), /data-stepper/);
-    assert.match(html('master-detail-pattern'), /data-detail/);
-    assert.match(html('filter-table'), /data-field="status"/);
-    assert.ok(!/data-filter=/.test(html('filter-table')), 'data-filter on a toolbar control would also drive the table\'s own filter handler');
+    assert.match(html('filter-table'), /<pk-data-table selectable /);
     const record = loadSamples().layouts.find(l => l.id === 'record').html;
     assert.match(record, /<pk-timeline /);
     assert.ok(!record.includes('No changes yet'), 'the History tab is filled');

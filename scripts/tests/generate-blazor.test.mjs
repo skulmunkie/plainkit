@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, knownTypes, generate, load, outputs, differences } from '../generate-blazor.mjs';
+import { pascal, pkName, argsName, detailFields, fieldType, convert, isJsonType, knownTypes, generate, load, outputs, differences, tierNamespace, TIER_NAMESPACES } from '../generate-blazor.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const generatedDir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
@@ -46,6 +46,7 @@ test('field types and converters', () => {
 
 const el = {
     tag: 'pk-demo',
+    tier: 'element',
     props: [
         { name: 'label', type: 'string', description: 'The label.' },
         { name: 'open', type: 'boolean', description: 'Open.' },
@@ -404,4 +405,107 @@ test('a small selection, an unmarked table, another element and an id the table 
     assert.deepEqual(selectArgs(tableElement(100, false), { selected: ids(0, 99) }), { selected: ids(0, 99) });
     assert.deepEqual(selectArgs({}, { value: 'x' }), { value: 'x' });
     assert.deepEqual(selectArgs(tableElement(100), { selected: [...ids(0, 98), 'gone'] }), { selected: [...ids(0, 98), 'gone'] });
+});
+
+// ---- tier namespaces (#768): the tier comes from the element's meta.json (api.json), never from the mapping
+
+test('tier namespaces: every mapped element has one, base elements stay in the root, the old names are aliased', () => {
+    const api = JSON.parse(fs.readFileSync(path.join(root, 'core', 'dist', 'elements', 'api.json'), 'utf8'));
+    const mapped = fs.readdirSync(path.join(root, 'blazor', 'mappings')).filter(f => f.endsWith('.json')).map(f => f.replace(/\.json$/, ''));
+    const aliases = fs.readFileSync(path.join(generatedDir, 'PkGeneratedAliases.cs'), 'utf8');
+    for (const name of mapped) {
+        const el = api.find(e => e.tag === 'pk-' + name);
+        const ns = tierNamespace(el);
+        assert.ok(Object.values(TIER_NAMESPACES).includes(ns), `${name}: ${ns}`);
+        const comp = pkName(el.tag), file = path.join(generatedDir, `${comp}.razor`);
+        const mapping = JSON.parse(fs.readFileSync(path.join(root, 'blazor', 'mappings', `${name}.json`), 'utf8'));
+        assert.equal('tier' in mapping, false, `${name}: the tier is read from core, not from the mapping`);
+        if (!fs.existsSync(file)) { // hand-written: its own file says the tier namespace too (the generator refuses a mismatch)
+            if (el.tier === 'element') continue; // the root namespace comes from Components/_Imports.razor
+            const hand = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Components', `${comp}.razor`);
+            assert.match(fs.readFileSync(hand, 'utf8'), new RegExp(`^@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
+            continue;
+        }
+        assert.match(fs.readFileSync(file, 'utf8'), new RegExp(`@namespace ${ns.replaceAll('.', '\\.')}\\r?\\n`), comp);
+        assert.equal(aliases.includes(`global using ${comp} = ${ns}.${comp};`), el.tier !== 'element' && !mapping.typeparam, `${comp} alias (a generic component cannot be aliased)`);
+    }
+    assert.throws(() => tierNamespace({ tag: 'pk-x', tier: 'module' }), /no Blazor namespace/);
+});
+
+test('the package targets file lists each tier namespace and the old name of each moved component, generic hand-written ones apart (#768)', () => {
+    const targets = fs.readFileSync(path.join(generatedDir, 'PlainKit.Blazor.targets'), 'utf8');
+    const aliases = fs.readFileSync(path.join(generatedDir, 'PkGeneratedAliases.cs'), 'utf8');
+    const manifest = JSON.parse(fs.readFileSync(path.join(generatedDir, 'generated.manifest.json'), 'utf8'));
+    for (const ns of Object.values(TIER_NAMESPACES).filter(n => n !== 'PlainKit.Blazor')) assert.ok(targets.includes(`<Using Include="${ns}" />`), ns);
+    assert.ok(!targets.includes('<Using Include="PlainKit.Blazor" />'), 'the root namespace is the consumer\'s own business');
+    const fromCs = [...aliases.matchAll(/^global using (\w+) = ([\w.]+);$/gm)].map(m => [m[1], m[2]]);
+    const fromTargets = [...targets.matchAll(/<Using Include="([\w.]+)" Alias="(\w+)" \/>/g)].map(m => [m[2], m[1]]);
+    assert.ok(fromCs.length > 20);
+    assert.deepEqual(fromTargets, fromCs, 'the targets file aliases are the C# aliases of the library');
+    for (const c of ['PkTabs', 'PkAppShell', 'PkPageHeader', 'PkDock', 'PkAppBarSearch', 'PkSettingsPage', 'PkToolPage']) assert.ok(fromCs.some(([n]) => n === c), c);
+    assert.deepEqual(manifest.movedGeneric, ['PlainKit.Blazor.Components.PkDataTable', 'PlainKit.Blazor.Components.PkFieldGroup', 'PlainKit.Blazor.Pages.PkListPage', 'PlainKit.Blazor.Components.PkLookupPicker'], 'a generic type cannot be aliased: it needs the namespace using');
+    assert.ok(!fromCs.some(([n]) => n === 'PkDataTable' || n === 'PkListPage'));
+});
+
+test('a hand-written component must say the namespace of its element\'s tier; a generic one is listed, not aliased (#768)', () => {
+    const page = { ...el, tier: 'page' };
+    const m = { ...mapping, existing: true };
+    const hand = new Set(['PkDemo']);
+    assert.throws(() => generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor', generic: false }]])), /@namespace PlainKit\.Blazor\.Pages/);
+    const ok = generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor.Pages', generic: false }]]));
+    assert.match(ok.files.get('PkGeneratedAliases.cs'), /global using PkDemo = PlainKit\.Blazor\.Pages\.PkDemo;/);
+    assert.match(ok.files.get('PlainKit.Blazor.targets'), /<Using Include="PlainKit\.Blazor\.Pages\.PkDemo" Alias="PkDemo" \/>/);
+    const generic = generate([page], { demo: m }, hand, new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor.Pages', generic: true }]]));
+    assert.doesNotMatch(generic.files.get('PkGeneratedAliases.cs'), /PkDemo/);
+    assert.match(generic.files.get('generated.manifest.json'), /PlainKit\.Blazor\.Pages\.PkDemo/);
+});
+test('callback: a delegate parameter is wired to the element property through a PkCallbackSlot, with an optional result, adapter arguments and abort token', () => {
+    const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, doc: 'Saves.' },
+        { name: 'Load', callback: 'load', type: 'Func<string, CancellationToken, Task<string?>>?', arg: 'Req', args: 'a.Id', abort: true, doc: 'Loads.' }] };
+    const r = run(m), razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /@implements IDisposable/);
+    assert.match(razor, /@using System\.Text\.Json/);
+    assert.match(razor, /private readonly PkCallbackSlot _save = new\("save"\);/);
+    assert.match(razor, /\/\/\/ <summary>Saves\.<\/summary>\r?\n\s+\[Parameter\] public Func<IReadOnlyDictionary<string, JsonElement>, Task>\? Save/);
+    assert.match(razor, /_save\.SyncAsync<Dictionary<string, JsonElement>>\(await Runtime\.BridgeAsync\(Assets\), Element, Save is not null, async a => \{ await Save!\(a\); return null; \}\);/);
+    assert.match(razor, /_load\.SyncAsync<Req>\(await Runtime\.BridgeAsync\(Assets\), Element, Load is not null, async \(a, ct\) => \(object\?\)await Load!\(a\.Id, ct\)\);/);
+    assert.match(razor, /public void Dispose\(\) \{ _save\.Dispose\(\); _load\.Dispose\(\); \}/);
+    assert.ok(!/@implements IDisposable/.test(run().files.get('PkDemo.razor')), 'no callback, no IDisposable');
+    const bad = run({ ...mapping, params: [...mapping.params, { name: 'Oops', callback: 'oops', type: 'Func<Task>' }] });
+    assert.ok(bad.report.notGenerated.some(n => n.param === 'Oops'), 'a callback without arg and doc is reported, not guessed');
+});
+
+test('typeparam: a generic component declares @typeparam, is left out of the using aliases, and a callback can shape its result and ask for a refresh', () => {
+    const m = { ...mapping, typeparam: 'TItem', params: [...mapping.params, { name: 'Load', callback: 'load', type: 'Func<Req, Task<Page<TItem>>>?', arg: 'Query', args: 'a.ToRequest()', returns: 'new { rows = r.Items, total = r.Total }', refresh: true, doc: 'Loads.' }] };
+    const r = run(m), razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /^@namespace [^\n]*\n@typeparam TItem\n/m);
+    assert.match(razor, /_load\.SyncAsync<Query>\(await Runtime\.BridgeAsync\(Assets\), Element, Load is not null, async a => \{ var r = await Load!\(a\.ToRequest\(\)\); return new \{ rows = r\.Items, total = r\.Total \}; \}, refresh: true\);/);
+    assert.ok(!/@typeparam/.test(run().files.get('PkDemo.razor')), 'no typeparam, no @typeparam');
+    assert.ok(!(r.files.get('PkGeneratedAliases.cs') ?? '').includes('PkDemo'), 'a generic component cannot be aliased');
+});
+
+test('slotted: a prop is also a light-DOM child of its own (a title that is the heading attribute and a focusable pk-heading), written first, only when set', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'Label').slotted = { tag: 'pk-heading', slot: 'title', attrs: { level: '@PkAttr.Num(Count)', weight: 'semibold', tabindex: '-1' } };
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /label="@Label"/, 'it is still the attribute');
+    assert.match(razor, />@if \(!string\.IsNullOrEmpty\(Label\)\) \{<pk-heading slot="title" level="@PkAttr\.Num\(Count\)" weight="semibold" tabindex="-1">@Label<\/pk-heading>\}@ChildContent/, 'and the child comes before the slots, level an expression, the others literals');
+    assert.ok(!/pk-heading/.test(run().files.get('PkDemo.razor')), 'a mapping without it draws no child');
+});
+
+test('json: true lets a string element prop that holds JSON take a typed record list (PkPageHeader.Crumbs), sent through PkAttr.Json', () => {
+    const m = structuredClone(mapping);
+    const p = m.params.find(x => x.name === 'Label');
+    p.type = 'IReadOnlyList<DemoRow>?'; p.json = true;
+    const razor = generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public IReadOnlyList<DemoRow>\? Label/);
+    assert.match(razor, /label="@PkAttr\.Json\(Label\)"/);
+    delete p.json;
+    assert.match(generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /public object\? Label/, 'without json: true a string prop does not take a record list');
+});
+
+test('unless: a slot is dropped once another list parameter has items', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'AsideContent').unless = 'Rows';
+    assert.match(run(m).files.get('PkDemo.razor'), /@if \(AsideContent is not null && Rows is not \{ Count: > 0 \}\) \{<span slot="aside"/);
 });

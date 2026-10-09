@@ -11,7 +11,7 @@ export default Base => class extends Base {
     updated() {
         this.$s ??= (() => { const d = this.ownerDocument.createElement('div'); d.slot = 'drawn'; this.append(d); return d; })();
         showState(this.$s, 'empty', {
-            heading: this.heading || 'Page not found',
+            heading: [...(this.children ?? [])].some(c => c.getAttribute?.('slot') === 'title') ? null : this.heading || 'Page not found', // a factory-supplied title (slot "title") is the page's one heading
             description: this.description || "The page you're looking for doesn't exist or you don't have access to it.",
         });
         const drawn = this.$s.firstElementChild;

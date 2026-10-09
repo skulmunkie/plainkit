@@ -70,7 +70,7 @@ export function findings(file, source, kind) {
         const scope = kind === 'element' ? teardown : wholeFile;
         found.push({ category: 'listener', detail: `addEventListener('${m[3]}') on an outside target`, ok: hasTeardown && new RegExp(`removeEventListener\\(\\s*['"]${m[3]}['"]`).test(scope), need: `a removeEventListener('${m[3]}') reachable from ${teardownNames[0]}()` });
     }
-    if (/\b(autoUpdate|onOutside)\(/.test(text)) found.push({ category: 'positioning', detail: 'autoUpdate / onOutside (document and window listeners)', ok: hasTeardown && /\$[uo]\?\.\(\)/.test(teardown), need: `its cleanup function called from ${teardownNames[0]}()` });
+    if (/\b(autoUpdate|onOutside)\(/.test(text)) found.push({ category: 'positioning', detail: 'autoUpdate / onOutside (document and window listeners)', ok: hasTeardown && /\$(?:au|o)\?\.\(\)/.test(teardown), need: `its cleanup function called from ${teardownNames[0]}()` });
     if (/\bsetInterval\(/.test(text)) found.push({ category: 'interval', detail: 'setInterval', ok: /\bclearInterval\(/.test(kind === 'element' ? teardown : wholeFile) && (kind === 'module' || hasTeardown), need: `clearInterval reachable from ${teardownNames[0]}()` });
     for (const m of text.matchAll(/new\s+(?:\w+\.)?(ResizeObserver|IntersectionObserver|MutationObserver|PerformanceObserver)\b/g)) {
         found.push({ category: 'observer', detail: `new ${m[1]}`, ok: /\.disconnect\(\)/.test(kind === 'element' ? teardown : wholeFile), need: `.disconnect() reachable from ${teardownNames[0]}()` });
@@ -88,7 +88,6 @@ const ALLOWED = {
     'elements/radio-group/radio-group.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/combobox/combobox.js': { observer: 'a MutationObserver of the element\'s own children, made once per instance and kept for its life: it is freed with the element' },
     'elements/select-menu/select-menu.js': { observer: 'a MutationObserver of the element\'s own children, created once per instance: it is freed with the element' },
-    'modules/scorecard/scorecard.js': { timeout: 'a bounded settle delay before a measured frame resolves' },
 };
 
 function sources() {
