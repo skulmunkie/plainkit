@@ -319,6 +319,7 @@ import { layoutCases } from './cases-layout.js'; cases.push(...layoutCases);
 import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCases);
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
 import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
+import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
 import { moduleMountCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);

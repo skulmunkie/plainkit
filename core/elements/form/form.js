@@ -1,15 +1,8 @@
 // pk-form behaviour: constraint-validation UX for the slotted <form>. The browser decides what is invalid; this shows it in the fields (pk-field messages, aria-invalid),
 // lists it in a summary, moves focus to the first problem and re-checks as the user fixes things. Form controls (native or pk-*) are found through form.elements.
-const KEYS = [['valueMissing', 'required'], ['typeMismatch', 'type'], ['patternMismatch', 'pattern'], ['tooShort', 'minlength'], ['tooLong', 'maxlength'], ['rangeUnderflow', 'min'], ['rangeOverflow', 'max'], ['stepMismatch', 'step'], ['badInput', 'bad-input'], ['customError', 'custom']];
-
-// '' when the control is valid; otherwise its data-msg-<constraint>, else data-msg, else the browser's own text.
-export function messageFor(control) {
-    const v = control.validity;
-    if (!v || v.valid !== false) return '';
-    const fallback = control.getAttribute('data-msg') ?? control.validationMessage ?? 'Enter a valid value.';
-    for (const [flag, key] of KEYS) if (v[flag]) return control.getAttribute(`data-msg-${key}`) ?? fallback;
-    return fallback;
-}
+import { messageFor } from '../../js/validation.js';
+// '' when the control is valid; otherwise its data-msg-<constraint>, else data-msg, else the browser's own text (js/validation.js, shared with pk-field-group).
+export { messageFor };
 // The name a summary item starts with: the enclosing pk-field's label, else the control's label / aria-label / label attribute, else its name or id, else its tag and position (so two anonymous controls never read the same).
 export function nameFor(control, index = 0) {
     const text = v => (typeof v === 'string' ? v.trim() : '');

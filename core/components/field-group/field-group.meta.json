@@ -1,0 +1,111 @@
+{
+  "tag": "pk-field-group",
+  "a11yRequires": [
+    "label"
+  ],
+  "title": "Field group",
+  "delegatesFocus": false,
+  "formAssociated": true,
+  "group": "Form layout",
+  "tier": "component",
+  "summary": "A form drawn from a list of field specs: each entry becomes a pk-field with the right control (pk-input of every scalar type, pk-textarea, pk-select, pk-checkbox, pk-switch, pk-range, pk-combobox). Set fields (label, kind, hint, required, constraints, options, when) and values ({ key: value }); a committed change updates values and raises pk-change. A field with when (data: { field, equals | in | not }) or a visible(spec, values) callback property is not rendered at all while it is hidden, so a hidden required field can never block a submit; its value stays in values. The controls live in this element's shadow tree. The element is form-associated: a surrounding form gets one FormData entry per shown field (a checkbox or switch only when checked; a hidden or disabled field none) and the first invalid field's message as its validity, anchored on that field, which is focused when a submit or reportValidity() fails; pk-form lists every problem through problems(), report() and checkField(). A form reset puts the values back to the ones last assigned.",
+  "props": [
+    {
+      "name": "fields",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The field specs, in order: { key, label, kind?, hint?, help?, required?, readonly?, disabled?, hideLabel?, span?, placeholder?, min?, max?, step?, minlength?, maxlength?, pattern?, rows?, options?: [{ value, label }], free?, when?, msg? }. kind is text (default), number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox. hint is the line under the field, help a tooltip beside the label, span makes the field fill the row, msg is { constraint: text } for the form's validation messages."
+    },
+    {
+      "name": "values",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "The current values, { key: value }: a string, a boolean (checkbox, switch) or a number (range). The element keeps its own copy and replaces this property when the user commits a change (it never edits the object you gave it); pk-change carries the same values."
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name of the group. See prefix."
+    },
+    {
+      "name": "prefix",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Submit each field as name.key instead of key (a form with two groups that use the same keys)."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The group's accessible name."
+    },
+    {
+      "name": "columns",
+      "type": "number",
+      "default": 1,
+      "reflect": true,
+      "description": "How many columns the fields flow into; a field with span fills the row."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Disables every control; also set by a disabled fieldset."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Makes every control read-only."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-change",
+      "detail": {
+        "key": "string",
+        "value": "string | boolean | number",
+        "values": "object"
+      },
+      "detailProps": {
+        "key": "string",
+        "values": "object"
+      },
+      "description": "The user committed a change to one field: its key and value, and a fresh copy of every value. Fields whose when depends on it have already been shown or hidden."
+    }
+  ],
+  "parts": [
+    {
+      "name": "group",
+      "description": "The grid that holds the fields."
+    }
+  ],
+  "cssProperties": [],
+  "writes": [
+    { "target": "the pk-field elements it builds in its own shadow tree", "attributes": ["error"], "why": "report(), checkField() and a form reset show or clear each field's message on the pk-field this element created and owns in its own shadow tree (never a host-given node); the fields are rebuilt from fields and values and removed with the element." }
+  ],
+  "a11y": "The host is role=group with the label as its name. Each field is a pk-field: a visible label, the hint under it and the error in its own region; the label, description and invalid state reach the control as properties, so nothing depends on an id crossing a shadow root. A field whose label is hidden (hideLabel) keeps it as the control's aria-label. A hidden field is removed from the tree, not just visually hidden.",
+  "examples": [
+    {
+      "title": "Fields with a conditional one (set fields and values from script: an inline script cannot run under this site's CSP)",
+      "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"min\":\"1\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[{\"value\":\"open\",\"label\":\"Open\"},{\"value\":\"closed\",\"label\":\"Closed\"}]},{\"key\":\"note\",\"label\":\"Closing note\",\"kind\":\"textarea\",\"required\":true,\"when\":{\"field\":\"status\",\"equals\":\"closed\"}}]' values='{\"status\":\"open\"}'></pk-field-group>"
+    }
+  ],
+  "methods": [
+    { "name": "problems()", "description": "Every invalid shown field, in order: [{ key, label, message, control, focus() }]. pk-form lists these in its summary and focuses the first." },
+    { "name": "report(on = true)", "description": "Shows each invalid field's message in its pk-field (on), or clears every message (off)." },
+    { "name": "checkField(keyOrNode)", "description": "Re-checks one field, showing or clearing its message; returns whether it is valid. pk-form uses it for live checks." },
+    { "name": "focusField(key)", "description": "Focuses one field's control." },
+    { "name": "focus()", "description": "Focuses the first invalid field, else the first field." },
+    { "name": "refresh()", "description": "Draws the fields again; call it after changing the visible(spec, values) callback property." }
+  ]
+}
