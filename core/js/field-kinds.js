@@ -42,6 +42,32 @@ export function controlAttrs(spec) {
 export const messageAttrs = spec => Object.fromEntries(Object.entries(spec.msg ?? {}).map(([k, v]) => [`data-msg-${k}`, v]));
 
 /**
+ * The [name, text] entries a group puts in its form value: one per field that shows and is not disabled, under its key (or `prefix.key`); a checkbox or switch
+ * adds "on" only when checked (as a native one does); a list value adds one entry per item. `rows` is [{ key, kind, value, disabled }].
+ */
+export function formEntries(rows, prefix = '') {
+    const out = [];
+    for (const { key, kind, value, disabled } of rows) {
+        if (disabled) continue;
+        const name = prefix ? `${prefix}.${key}` : key;
+        if (isChecked(kind)) { if (value) out.push([name, 'on']); continue; }
+        for (const v of Array.isArray(value) ? value : [value]) out.push([name, v === undefined || v === null ? '' : String(v)]);
+    }
+    return out;
+}
+
+/** What a saved form state (a FormData) gives back to each field: { key: text } for the keys under `prefix`; a key that repeats becomes a list. */
+export function valuesFromEntries(entries, prefix = '') {
+    const out = {}, lead = prefix ? `${prefix}.` : '';
+    for (const [name, v] of entries) {
+        if (lead && !name.startsWith(lead)) continue;
+        const key = name.slice(lead.length);
+        out[key] = key in out ? [].concat(out[key], v) : v;
+    }
+    return out;
+}
+
+/**
  * Whether a field shows, given every value. `when` is data: { field, equals } | { field, in: [...] } | { field, not }. `visible` (optional) is a callback
  * property of the element, asked last, for what data cannot say. A field that does not show is not rendered at all, so it is not in any validation.
  */

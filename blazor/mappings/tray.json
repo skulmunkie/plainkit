@@ -1,0 +1,98 @@
+{
+  "component": "PkTray",
+  "params": [
+    {
+      "name": "Open",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "open",
+      "bind": [
+        {
+          "event": "pk-open",
+          "value": true
+        },
+        {
+          "event": "pk-close",
+          "value": false
+        }
+      ]
+    },
+    {
+      "name": "Size",
+      "type": "string",
+      "default": "medium",
+      "map": "prop",
+      "prop": "size",
+      "bind": {
+        "event": "pk-size-change",
+        "value": "detail.size"
+      }
+    },
+    {
+      "name": "Sizes",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "sizes"
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "label"
+    },
+    {
+      "name": "LauncherLabel",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "launcherLabel"
+    },
+    {
+      "name": "Hotkey",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "hotkey"
+    },
+    {
+      "name": "Edge",
+      "type": "string",
+      "default": "bottom",
+      "map": "prop",
+      "prop": "edge"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "TrailingContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "trailing"
+    },
+    {
+      "name": "LauncherContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "launcher"
+    },
+    {
+      "name": "OnOpen",
+      "event": "pk-open"
+    },
+    {
+      "name": "OnClose",
+      "event": "pk-close"
+    },
+    {
+      "name": "OnSizeChange",
+      "event": "pk-size-change"
+    }
+  ]
+}
