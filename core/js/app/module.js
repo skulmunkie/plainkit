@@ -9,7 +9,8 @@
 //           { path: '/', page: 'custom', config: { mount: (el, ctx) => mountOrders(el) } },   // config: data, or ({ path, params, query }, ctx) => data
 //           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
 //           { path: '*', page: 'not-found' },
-//       ],                                               // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
+//       ],                                               // `persist: true` on a route keeps its built page, hidden, while another route shows (freed with the module; rebuilt for other params), host.js
+//                                                        // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
 //       // a route may add `context: { ids?, crumbs?, title? }` (or ({ path, params, query }) => that): where the page is when its address cannot say (ids: nav ids top to current; crumbs: [{ label, href? }]; title), #670
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
 //       footer: { text: 'Run by Finance', links: [] },                // optional: replaces the app footer (config.footer) while this module is active; false draws none (#373)
