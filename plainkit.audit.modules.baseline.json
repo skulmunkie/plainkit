@@ -193,26 +193,6 @@
     },
     {
       "rule": "S1",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "a26ff5b3d3bd2a97"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "a26ff5b3d3bd2a97"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "6263ad578044a147"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/devtools/page.js",
-      "fingerprint": "3cb75da86a5084fd"
-    },
-    {
-      "rule": "S1",
       "file": "core/site/files/index.html",
       "fingerprint": "15a015bc43329c1d"
     },
@@ -1455,41 +1435,6 @@
       "rule": "S7",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "29690f4e49e928d8"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "fa91c610fc95d2d9"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "fa91c610fc95d2d9"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "6db933d6bc089fc5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
     },
     {
       "rule": "S3",
