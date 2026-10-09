@@ -80,7 +80,7 @@ The SDK itself makes no request to another origin, so anything you send is your 
 
 ## See the log
 
-The [Dev tools](../devtools/index.html) page has a Logs tab, and the same viewer is a module you can put in your own page:
+The [Dev tools](../../app.html#/devtools) page has a Logs tab, and the same viewer is a module you can put in your own page:
 
 ```js
 import { mountLogs } from './plainkit/modules/logs/logs.js';
