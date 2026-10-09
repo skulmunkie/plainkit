@@ -333,6 +333,15 @@
     --lb-node-controls-z: 2;
 }
 
+/* Design surface (core/elements/design-surface): the page frame widths and the mark outlines; schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --surface-phone-w: 375px;
+    --surface-tablet-w: 768px;
+    --surface-mark-w: 2px;
+    --surface-mark-offset: 2px;
+    --surface-empty-offset: -1px;
+}
+
 /* Site chrome (core/site/site.css): schematic-only sizes with no equivalent on the shared scale. */
 :root {
     --site-border-w: 1px;
