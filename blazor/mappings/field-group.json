@@ -1,17 +1,11 @@
 {
   "component": "PkFieldGroup",
   "existing": true,
-  "existingReason": "typed-generics: the hand-written PkFieldGroup<TItem> still owns the name until the Blazor step of the field-group spec replaces it with the generated component plus a typed adapter. Missing generator feature: none; this is only ordering (the core element lands first, in steps).",
+  "existingReason": "typed-generics and callback: PkFieldGroup<TItem> is the typed wrapper over pk-field-group (Razor cannot bind a markup tag when a generic and a non-generic component share a name, so the typed component is the only PkFieldGroup). PkFieldSpec<TItem> items and the model become the element's fields and values, Search runs through PkCallbackSlot, and committed changes go back through each spec's Set. Missing generator feature: @typeparam generation with a typed model adapter (and a callback parameter kind with an adapter for the element's argument and result), as for PkLookupPicker.",
   "params": [
-    { "name": "Fields", "type": "string", "default": "[]", "map": "prop", "prop": "fields", "note": "The field specs as a JSON array: { key, label, kind?, hint?, help?, required?, options?, when?, ... } (see the element's fields description)." },
-    { "name": "Values", "type": "string", "default": "{}", "map": "prop", "prop": "values", "note": "The current values as a JSON object, { key: value }." },
-    { "name": "OnChange", "event": "pk-change", "type": "{ key: string, values: object }" },
-    { "name": "Name", "prop": "name", "type": "string" },
-    { "name": "Prefix", "prop": "prefix", "type": "bool" },
-    { "name": "Label", "prop": "label", "type": "string" },
-    { "name": "Columns", "prop": "columns", "type": "int" },
-    { "name": "Disabled", "prop": "disabled", "type": "bool" },
-    { "name": "Readonly", "prop": "readonly", "type": "bool" }
+    { "name": "Fields", "prop": "fields", "type": "IReadOnlyList<PkFieldSpec<TItem>>", "note": "The typed specs; each becomes one entry of the element's fields (PkFieldDef)." },
+    { "name": "Model", "prop": "values", "type": "TItem", "note": "The bound record: each spec's Get gives the element's values, each pk-field-change calls Set." },
+    { "name": "ModelChanged", "event": "pk-field-change", "type": "EventCallback" }
   ],
-  "notes": "Generated 1:1 from pk-field-group (steps of the field-group spec, #222/#226). The existing hand-written PkFieldGroup<TItem> is a different generic type and keeps working until it becomes the thin typed adapter over this component."
+  "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
 }

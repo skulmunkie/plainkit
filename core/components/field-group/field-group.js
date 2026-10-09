@@ -1,4 +1,4 @@
-// pk-field-group behaviour (see meta.json): draws a pk-field + control per field spec in this element's own shadow tree, keeps the values, raises pk-change, and
+// pk-field-group behaviour (see meta.json): draws a pk-field + control per field spec in this element's own shadow tree, keeps the values, raises pk-field-change, and
 // shows or hides conditional fields. A field that is not shown is not in the tree at all, so it takes no part in validation (#226). The kind table, the commit
 // events, the `when` rules and the form entries are js/field-kinds.js, shared with js/page-fields.js.
 // The element is form-associated: its form value is a FormData with one entry per shown field, its validity is the first invalid control's (anchored on it, so
@@ -25,7 +25,7 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
-        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); } }
+        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); this.recheck(); } }
         else if (name === 'fields') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
         else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
@@ -46,7 +46,8 @@ export default Base => class extends Base {
             else if (!same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
             shown.push(row.field);
         }
-        group.append(...shown); // append moves an attached node, so this also keeps the order
+        // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
+        if (shown.length !== group.children.length || shown.some((f, i) => group.children[i] !== f)) group.append(...shown);
         this.syncState();
         if (built) loadElements(this.shadowRoot).then(() => this.sync());
         this.sync();
@@ -71,18 +72,31 @@ export default Base => class extends Base {
         const commit = commitOf(kind), row = { spec, kind, field, control };
         control.addEventListener(commit.event, e => {
             if (e.target !== control) return;
-            e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-change below leaves
+            e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-field-change below leaves
             this.$vals = { ...this.$vals, [spec.key]: commit.read(e) };
             this.$own = true; this.values = this.$vals; this.$own = false;
-            this.emit('pk-change', { key: spec.key, value: this.$vals[spec.key], values: { ...this.$vals } });
+            this.emit('pk-field-change', { key: spec.key, value: this.$vals[spec.key], values: { ...this.$vals } });
             this.reconcile();
         });
+        if (kind === 'combobox') control.addEventListener('pk-combo-query', e => this.onQuery(row, e));
         writeValue(control, kind, this.$vals[spec.key]); // before the control is upgraded this is its own property, adopted when it upgrades
         this.$rows.set(spec.key, row);
         return row;
     }
+    // A combobox field with a search({ key, query }) callback property takes its options from the answer (a promise of [{ value, label }]) instead of filtering its own;
+    // a newer query makes an older pending answer stale.
+    async onQuery(row, e) {
+        if (typeof this.search !== 'function') return;
+        e.stopPropagation();
+        const n = row.q = (row.q ?? 0) + 1, key = row.spec.key;
+        let options;
+        try { options = await this.search({ key, query: e.detail.query }); } catch (error) { this.log.warn(`search for "${key}" failed`, error); return; }
+        if (row.q !== n || this.$rows.get(key) !== row) return;
+        row.control.replaceChildren(...(options ?? []).map(o => { const opt = this.ownerDocument.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; return opt; }));
+    }
     syncState() {
-        for (const { spec, control } of this.$rows.values()) {
+        for (const { spec, kind, control } of this.$rows.values()) {
+            if (kind === 'combobox') { if (typeof this.search === 'function') control.setAttribute('filtering', 'off'); else control.removeAttribute('filtering'); }
             control.toggleAttribute('disabled', Boolean(this.disabled || spec.disabled));
             control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly));
         }
@@ -90,7 +104,9 @@ export default Base => class extends Base {
 
     // ---- form association --------------------------------------------------------------------------------------------------------------------
     // The form value is a FormData with one entry per shown field (js/field-kinds.js formEntries); the validity is the first invalid control's message, anchored on it.
-    sync() {
+    // A control validates in its own update (a microtask), so the aggregate is read again one microtask later.
+    sync() { this.syncNow(); queueMicrotask(() => this.syncNow()); }
+    syncNow() {
         if (!this.$w) return;
         const rows = [...this.$rows.values()];
         const fd = new FormData();
@@ -113,13 +129,20 @@ export default Base => class extends Base {
         r.field.error = message;
         return message === '';
     }
+    // New values from the host: a message already showing is checked again against them once the controls have validated (a loaded record clears what the last one left).
+    recheck() { queueMicrotask(() => queueMicrotask(() => { for (const [key, r] of this.$rows) if (r.field.error) this.checkField(key); })); }
+    // Whether the field (by key, or the control or a node inside it) is showing a message now; pk-form asks before it re-checks while typing.
+    showsError(which) {
+        const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
+        return Boolean(r?.field.error);
+    }
     focusField(key) { this.$rows.get(key)?.control.focus(); }
     focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()][0])?.control.focus(options); }
     onReset() {
+        this.report(false);
         this.$vals = { ...this.$base };
         this.$own = true; this.values = { ...this.$base }; this.$own = false;
         this.reconcile();
-        this.report(false);
     }
     onRestore(state) {
         if (!(state instanceof FormData)) return;
