@@ -260,7 +260,8 @@ export const appShellCases = [
         history.replaceState(null, '', '#/a');
         const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod('a') }, { id: 'b', title: 'B', load: async () => mod('b') }], search: { placeholder: 'Find' } });
         await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
-        const search = el.querySelector('pk-app-bar-search'), input = search.shadowRoot.querySelector('[part="control"]');
+        await until(() => el.querySelector('pk-app-bar-search'), 'the search'); await customElements.whenDefined('pk-app-bar-search'); // loaded on demand: wait, so the case also passes on its own (--elements)
+        const search = el.querySelector('pk-app-bar-search'), input = await until(() => search.shadowRoot?.querySelector('[part="control"]'), 'the search input');
         const type = async text => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400); };
         await type('one');
         t.eq(JSON.stringify(got.a), '["one"]', 'module a heard the query');
