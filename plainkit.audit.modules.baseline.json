@@ -602,91 +602,6 @@
       "fingerprint": "fa13a5225f183370"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/gallery-views.js",
       "fingerprint": "735a41dbe948439b"
@@ -740,11 +655,6 @@
       "rule": "S3",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "217f93327ca89a02"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
     },
     {
       "rule": "S3",
