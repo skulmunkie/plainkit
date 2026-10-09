@@ -70,7 +70,7 @@ test('the preview host ships in dist/gallery with its paths relocated, and the t
 });
 
 test('nothing in dist/gallery names the source tree', () => {
-    for (const f of gallery.filter(g => /\.(js|html)$/.test(g) && !/gallery(\.data)?\.js$/.test(g))) assert.ok(!/site\/gallery|samples\/templates|\/tokens\/tokens\.css/.test(out.get(f).replace(/\/\/ .*$/gm, '')), f);
+    for (const f of gallery.filter(g => /\.(js|html)$/.test(g) && !/gallery(-views|\.data)?\.js$/.test(g))) assert.ok(!/site\/gallery|samples\/templates|\/tokens\/tokens\.css/.test(out.get(f).replace(/\/\/ .*$/gm, '')), f);
     assert.ok(!out.get('dist/js/gallery-options.js').includes('../site/gallery/'), 'the dist copy of the options module points at dist/gallery');
 });
 
