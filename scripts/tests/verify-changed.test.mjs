@@ -9,7 +9,7 @@ const GUARD_TESTS = ELEMENT_GUARDS.map(p => ({ path: p, text: '' }));
 const ctxOf = ({ tests = [], csTests = [], extra = [] } = {}) => {
     const all = [...GUARD_TESTS, ...tests];
     const present = new Set([...all.map(t => t.path), ...csTests.map(t => t.path), ...extra,
-        'core/elements/button/meta.json', 'core/components/data-table/meta.json', 'core/modules/orders/module.js']);
+        'core/elements/button/button.meta.json', 'core/components/data-table/data-table.meta.json', 'core/modules/orders/module.js']);
     return { exists: p => present.has(p), tests: all, csTests };
 };
 const ids = (files, ctx = ctxOf(), opts) => planSteps(planChanged(files, ctx), opts).map(s => s.id);
@@ -62,7 +62,7 @@ test('an element meta.json also feeds the Blazor generator: generator tests and 
         tests: [{ path: 'scripts/tests/generate-blazor.test.mjs', text: '' }, { path: 'scripts/tests/blazor-wrapper.test.mjs', text: '' }],
         csTests: [{ path: 'blazor/tests/PlainKit.Blazor.Tests/PkDataTableTests.cs', text: 'PkDataTable' }, { path: 'blazor/tests/PlainKit.Blazor.Tests/GeneratedComponentTests.cs', text: '' }, { path: 'blazor/tests/PlainKit.Blazor.Tests/PkDockTests.cs', text: 'PkDock' }],
     });
-    const plan = planChanged(['core/components/data-table/meta.json'], ctx);
+    const plan = planChanged(['core/components/data-table/data-table.meta.json'], ctx);
     assert.ok(plan.nodeFiles.has('scripts/tests/generate-blazor.test.mjs'));
     assert.deepEqual([...plan.dotnet.classes].sort(), ['GeneratedComponentTests', 'PkDataTableTests']);
     assert.equal(dotnetFilter(plan.dotnet.classes), 'FullyQualifiedName~GeneratedComponentTests|FullyQualifiedName~PkDataTableTests');
@@ -165,7 +165,7 @@ test('generated files are ignored, and a mix is the union (one unknown file make
 
 test('buildChecks narrows node-tests, dotnet, browser and keeps the standard checks as they are', () => {
     const ctx = ctxOf({ tests: [{ path: 'scripts/tests/generate-blazor.test.mjs', text: '' }], csTests: [{ path: 'blazor/tests/PlainKit.Blazor.Tests/PkButtonTests.cs', text: 'PkButton' }] });
-    const plan = planChanged(['core/elements/button/meta.json'], ctx);
+    const plan = planChanged(['core/elements/button/button.meta.json'], ctx);
     const checks = buildChecks(plan, { CHECKS, NODE: 'node', browser: true });
     const by = id => checks.find(c => c.id === id);
     assert.equal(by('bootstrap'), CHECKS.find(c => c.id === 'bootstrap'));

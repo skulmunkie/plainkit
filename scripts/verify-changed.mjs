@@ -13,7 +13,8 @@ import { isGenerated } from './generated.mjs';
 
 const GEN_TESTS = ['scripts/tests/generate-blazor.test.mjs', 'scripts/tests/generate-blazor-events.test.mjs'];
 // The guards that read every element folder (ownership, tiers, budgets...), run for any change inside an element or module folder: a curated list, filtered to the files that exist.
-export const ELEMENT_GUARDS = ['elements', 'element-surface', 'ownership', 'tiers', 'no-silent-catch', 'privacy', 'budgets', 'slotted-hide', 'text-tiers', 'generated-current', 'samples', 'carveout', 'dist-elements', 'dist-minified-element', 'dist-units'].map(n => `core/tests/${n}.test.mjs`);
+// Left to the integration batch and CI because they test the whole SDK, not one element: carveout (copies the tree, rebuilds, reruns everything; 40 s) and generated-current (the bootstrap and generated-tree already cover a stale generated file).
+export const ELEMENT_GUARDS = ['elements', 'element-surface', 'ownership', 'tiers', 'no-silent-catch', 'privacy', 'budgets', 'slotted-hide', 'text-tiers', 'samples', 'dist-elements', 'dist-minified-element', 'dist-units'].map(n => `core/tests/${n}.test.mjs`);
 // dotnet test classes that cover every generated component; always part of a filtered dotnet run so the filter never selects nothing.
 export const DOTNET_GENERIC = ['GeneratedComponentTests', 'ComponentTests', 'AttributePassthroughTests'];
 const pascal = s => s.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
@@ -46,7 +47,7 @@ export function planChanged(files, ctx) {
         }
         return why;
     };
-    const isElementName = n => ['elements', 'components', 'pages', 'shells'].some(tier => ctx.exists(`core/${tier}/${n}/meta.json`));
+    const isElementName = n => ['elements', 'components', 'pages', 'shells'].some(tier => ctx.exists(`core/${tier}/${n}/${n}.meta.json`));
     const dotnetAll = () => { plan.dotnet = { all: true, classes: new Set() }; };
     const blazorNode = () => ctx.tests.filter(t => /^scripts\/tests\/(blazor-.*|generate-blazor.*)\.test\.mjs$/.test(t.path)).forEach(t => plan.nodeFiles.add(t.path));
     const guards = () => ELEMENT_GUARDS.filter(g => ctx.exists(g)).forEach(g => plan.nodeFiles.add(g));
@@ -62,7 +63,7 @@ export function planChanged(files, ctx) {
         }
         if (isDocsOnly(f, { forNode: true })) { rule(f, 'docs', 'changelog, .github or root markdown nothing reads'); continue; }
         if (f === 'core/VERSION') { plan.releasePr = true; full(f, 'the version is read by the version, API and stamped-file checks'); continue; }
-        if ((m = /^core\/(elements|components|pages|shells)\/([^/]+)\/(.+)$/.exec(f)) && ELEMENT_DIR.test(f) && ctx.exists(`core/${m[1]}/${m[2]}/meta.json`)) {
+        if ((m = /^core\/(elements|components|pages|shells)\/([^/]+)\/(.+)$/.exec(f)) && ELEMENT_DIR.test(f) && ctx.exists(`core/${m[1]}/${m[2]}/${m[2]}.meta.json`)) {
             const [, tier, name, rest] = m;
             ctx.tests.filter(t => t.path.startsWith(`core/${tier}/${name}/`)).forEach(t => plan.nodeFiles.add(t.path));
             testsMentioning([new RegExp(`/${esc(name)}/`), new RegExp(`pk-${esc(name)}(?![\\w-])`)]).forEach(p => plan.nodeFiles.add(p));
@@ -70,7 +71,7 @@ export function planChanged(files, ctx) {
             plan.browserElements.add(name);
             plan.uiElements.add(name);
             let why = `element folder ${tier}/${name}: its tests, the tests that mention it, the element guards; browser and UI review for ${name}`;
-            if (rest === 'meta.json') { addDotnet([name]); blazorNode(); why += '; meta.json feeds the Blazor generator: generator tests and the Blazor tests for the component'; }
+            if (rest === `${name}.meta.json`) { addDotnet([name]); blazorNode(); why += '; meta.json feeds the Blazor generator: generator tests and the Blazor tests for the component'; }
             rule(f, 'element', why);
             continue;
         }
