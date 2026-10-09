@@ -1,0 +1,130 @@
+{
+  "tag": "pk-tray",
+  "aliases": ["tool dock", "bottom panel", "dev tools", "console panel"],
+  "a11yRequires": ["label"],
+  "title": "Tray",
+  "summary": "A persistent, non-modal tool panel pinned to a viewport edge (bottom, top, start or end) with a floating launcher and a small, medium or large size choice. No backdrop, no focus trap: the page behind stays usable. Opens from its launcher or a keyboard chord (hotkey), closes from Close, Escape inside it or the chord. Choose pk-drawer for a modal panel, pk-dock for panels arranged inside a page, and pk-tray for a tool panel over a page.",
+  "group": "Overlays",
+  "tier": "component",
+  "props": [
+    {
+      "name": "open",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": ["pk-open", "pk-close"],
+      "description": "Whether the panel is shown. The element writes it when the user opens or closes it (launcher, Close, Escape inside the panel, the hotkey); show(), hide() and toggle() change it silently."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "medium",
+      "values": ["small", "medium", "large"],
+      "reflect": true,
+      "commit": "pk-size-change",
+      "description": "How much of the viewport the panel takes: its height at the bottom and top edges (25, 40 and 65 percent of the viewport height), its width at the start and end edges."
+    },
+    {
+      "name": "sizes",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draw the built-in size choice (Small, Medium, Large) in the header. Off lets the page provide its own and set size."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The panel's accessible name (a complementary landmark), also its header title. Required."
+    },
+    {
+      "name": "launcherLabel",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The floating launcher's text. Required unless the launcher slot supplies a name."
+    },
+    {
+      "name": "hotkey",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A chord that toggles the tray from anywhere on the page, such as Ctrl+` or Ctrl+Shift+D (Cmd counts as Ctrl). Empty turns it off. The launcher's title and aria-keyshortcuts name it."
+    },
+    {
+      "name": "edge",
+      "type": "enum",
+      "default": "bottom",
+      "values": ["bottom", "top", "start", "end"],
+      "reflect": true,
+      "description": "The viewport edge the panel is pinned to. start and end are the inline edges (left and right in a left-to-right page, swapped in a right-to-left one)."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The panel content. It scrolls inside the panel, and its last row stays clear of the launcher."
+    },
+    {
+      "name": "trailing",
+      "description": "Extra controls in the header, beside the size choice and Close."
+    },
+    {
+      "name": "launcher",
+      "description": "Replaces the launcher's text (an icon plus words, for example)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-open",
+      "detail": { "reason": "string" },
+      "description": "The user opened the tray: launcher or hotkey."
+    },
+    {
+      "name": "pk-close",
+      "detail": { "reason": "string" },
+      "description": "The user asked to close it: close, escape, launcher or hotkey. Cancelable: preventDefault keeps it open."
+    },
+    {
+      "name": "pk-size-change",
+      "detail": { "size": "string" },
+      "description": "The user picked another size in the built-in choice."
+    }
+  ],
+  "parts": [
+    { "name": "panel", "description": "The fixed panel (a complementary landmark)" },
+    { "name": "header", "description": "Header row: title, trailing slot, size choice, Close" },
+    { "name": "title", "description": "The label as a header title" },
+    { "name": "sizes", "description": "The built-in size choice (a pk-button-group)" },
+    { "name": "close", "description": "The Close button" },
+    { "name": "body", "description": "The scrolling content area" },
+    { "name": "launcher", "description": "The floating launcher button" }
+  ],
+  "cssProperties": [
+    { "name": "--pk-tray-height", "description": "The panel height at the bottom and top edges; overrides the size choice", "default": "set from size" },
+    { "name": "--pk-tray-width", "description": "The panel width at the start and end edges; overrides the size choice", "default": "set from size" },
+    { "name": "--pk-tray-small-h", "description": "Height of the small size", "default": "25vh" },
+    { "name": "--pk-tray-medium-h", "description": "Height of the medium size", "default": "40vh" },
+    { "name": "--pk-tray-large-h", "description": "Height of the large size", "default": "65vh" },
+    { "name": "--pk-tray-z", "description": "Stacking level of the panel", "default": "var(--z-flyout)" },
+    { "name": "--pk-tray-launcher-z", "description": "Stacking level of the launcher, above the open panel", "default": "var(--z-pop)" }
+  ],
+  "methods": [
+    { "name": "show()", "description": "Opens it (no event)" },
+    { "name": "hide()", "description": "Closes it (no event)" },
+    { "name": "toggle()", "description": "Opens it when closed, closes it when open (no event)" }
+  ],
+  "a11y": "The panel is a labelled complementary landmark; nothing else on the page is made inert and focus is never trapped. The launcher is a real toggle button (aria-pressed) that stays reachable above the open panel; opening it by the launcher moves focus to the first control in the panel, closing by the launcher, Close or Escape returns focus to the launcher, and closing by the hotkey leaves focus where it is unless it was inside the panel. Escape closes only while focus is inside the panel, so a page-level Escape is not taken. The size choice is a labelled single-select button group. The hotkey is named in the launcher's title and aria-keyshortcuts.",
+  "mobile": "On a phone the bottom and top panels take at most the viewport height minus the launcher, and the start and end panels fill the width and stop above the launcher, so the launcher always stays reachable.",
+  "examples": [
+    {
+      "title": "Tool tray at the bottom with a size choice",
+      "html": "<pk-button data-open=\"#tools-tray\" variant=\"secondary\">Open the tool tray</pk-button>\n<pk-tray id=\"tools-tray\" label=\"Tools\" launcher-label=\"Tools\" hotkey=\"Ctrl+`\" sizes><p>Tool content goes here.</p></pk-tray>"
+    },
+    {
+      "title": "Tray at the end edge",
+      "html": "<pk-button data-open=\"#inspector-tray\" variant=\"secondary\">Open the inspector</pk-button>\n<pk-tray id=\"inspector-tray\" label=\"Inspector\" launcher-label=\"Inspector\" edge=\"end\" size=\"small\"><p>Properties go here.</p></pk-tray>"
+    }
+  ]
+}
