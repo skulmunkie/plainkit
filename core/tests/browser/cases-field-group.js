@@ -69,4 +69,77 @@ export const fieldGroupCases = [
         t.ok(el.shadowRoot.querySelector('pk-field[data-span]'), 'span marks the field');
         const grid = el.part('group'); t.eq(grid.getAttribute('columns'), '2');
     }],
+
+    // ---- form association (step 2) -------------------------------------------------------------------------------------------------------
+    ['field-group: it is in form.elements and its FormData has one entry per shown field: a checkbox only when checked, a hidden field none, a disabled field none', async t => {
+        const { el, form } = await inForm(t, FIELDS, { name: 'Acme', qty: '3', status: 'open', rush: true, note: 'kept' });
+        t.ok([...form.elements].includes(el), 'form.elements lists the group');
+        t.eq(entries(form).join('&'), 'name=Acme&qty=3&status=open&rush=on', 'the closed-only note is not submitted');
+        el.values = { name: 'Acme', status: 'open', rush: false }; await t.settle();
+        t.eq(entries(form).join('&'), 'name=Acme&qty=&status=open', 'an unchecked box adds nothing; an empty field adds an empty entry');
+        el.fields = [...FIELDS.slice(0, 2), { ...FIELDS[2], disabled: true }]; await t.settle(); await t.settle();
+        t.eq(entries(form).join('&'), 'name=Acme&qty=', 'a disabled field adds nothing');
+        el.disabled = true; await t.settle();
+        t.eq(entries(form).join('&'), '', 'a disabled group adds nothing');
+    }],
+
+    ['field-group: prefix submits name.key; a committed edit changes the form value', async t => {
+        const { el, form } = await inForm(t, FIELDS.slice(0, 3), { name: 'Acme', status: 'open' }, 'prefix');
+        t.eq(entries(form).join('&'), 'order.name=Acme&order.qty=&order.status=open');
+        type(el.shadowRoot.querySelector('pk-field').firstElementChild, 'Globex'); await t.settle();
+        t.eq(entries(form).join('&'), 'order.name=Globex&order.qty=&order.status=open');
+    }],
+
+    ['field-group: validity is the first invalid field\'s message, anchored on it; form.checkValidity follows, and reportValidity focuses that field', async t => {
+        const { el, form } = await inForm(t, [{ key: 'name', label: 'Name', required: true, msg: { required: 'Enter a name.' } }, { key: 'qty', label: 'Quantity', kind: 'number', min: '5' }], { qty: '1' });
+        t.eq(form.checkValidity(), false, 'a required empty field blocks the form');
+        t.eq(el.validationMessage, 'Enter a name.', 'the message is the field\'s data-msg-required');
+        t.eq(el.problems().length, 2, 'problems lists every invalid field, in order'); t.eq(el.problems()[0].key, 'name');
+        form.reportValidity(); await t.settle();
+        { let a = document.activeElement; const p = []; while (a) { p.push(a.localName); a = a.shadowRoot?.activeElement; } t.ok(insideFirst(el), 'the browser focused the first invalid field; active: ' + p.join('>')); }
+        type(el.shadowRoot.querySelector('pk-input'), 'Acme'); await t.settle();
+        t.eq(el.problems().map(p => p.key).join(','), 'qty', 'only the quantity is left'); t.ok(el.validationMessage.length > 0);
+        type(el.shadowRoot.querySelectorAll('pk-input')[1], '9'); await t.settle();
+        t.eq(form.checkValidity(), true, 'valid again');
+    }],
+
+    ['field-group: a hidden required field does not block the form; showing it does', async t => {
+        const { el, form } = await inForm(t, FIELDS, { status: 'open', name: 'Acme' });
+        t.eq(form.checkValidity(), true, 'the note is required but hidden');
+        choose(el.shadowRoot.querySelectorAll('pk-field')[2].firstElementChild, 'closed'); await t.settle(); await t.settle();
+        t.eq(form.checkValidity(), false, 'the note shows and is empty');
+        t.eq(el.problems()[0].key, 'note');
+    }],
+
+    ['field-group: report shows each problem in its own field and clears them; checkField checks one; focus goes to the first problem; a form reset restores the values', async t => {
+        const { el, form } = await inForm(t, FIELDS, { status: 'open' });
+        el.report(true); await t.settle();
+        const err = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).error;
+        t.ok(err('Name').length > 0, 'the empty required name shows its message'); t.eq(err('Quantity'), '');
+        el.report(false); t.eq(err('Name'), '');
+        t.eq(el.checkField('name'), false); t.ok(err('Name').length > 0);
+        el.focus(); await t.settle();
+        t.ok(insideFirst(el), 'focus() goes to the first invalid field');
+        type(el.shadowRoot.querySelector('pk-input'), 'Typed'); await t.settle();
+        t.eq(entries(form)[0], 'name=Typed');
+        form.reset(); await t.settle(); await t.settle();
+        t.eq(entries(form).join('&'), 'name=&qty=&status=open', 'reset goes back to the values last assigned'); t.eq(err('Name'), '', 'and clears the messages');
+        t.eq(el.values.name, undefined);
+    }],
 ];
+
+// The group in a real form, as the app puts it.
+async function inForm(t, fields = FIELDS, values = { status: 'open' }, attrs = '') {
+    const host = t.stage(`<form><pk-field-group name="order" label="Order" ${attrs}></pk-field-group></form>`);
+    const el = host.querySelector('pk-field-group'), form = host.firstElementChild;
+    el.fields = fields; el.values = values;
+    await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+    return { el, form };
+}
+const entries = form => [...new FormData(form).entries()].map(([k, v]) => `${k}=${v}`);
+// Whether focus is inside the group's first field (through every shadow root).
+function insideFirst(el) {
+    let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
+    const first = el.shadowRoot.querySelector('pk-field')?.firstElementChild;
+    return Boolean(a && first && (first.contains(a) || first.shadowRoot?.contains(a)));
+}

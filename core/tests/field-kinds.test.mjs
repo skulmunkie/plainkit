@@ -1,7 +1,7 @@
 // js/field-kinds.js: the table of what a field spec becomes, and the rules of a conditional field (pk-field-group, js/page-fields.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue } from '../js/field-kinds.js';
+import { controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue, formEntries, valuesFromEntries } from '../js/field-kinds.js';
 
 test('every scalar kind is a pk-input; the others pick their own control', () => {
     for (const k of ['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel', 'unknown', undefined]) assert.equal(controlTag(k), 'pk-input');
@@ -41,6 +41,20 @@ test('when: equals, in and not compare as text; a missing field is empty; the ca
     assert.equal(isVisible({ when: { field: 'gone', equals: '' } }, v), true, 'a missing value is the empty text');
     assert.equal(isVisible({ when: { field: 'status', equals: 'closed' } }, v, () => false), false, 'the callback can still hide it');
     assert.equal(isVisible({}, v, (spec, values) => values.status === 'closed'), true);
+});
+
+test('form entries: one per shown, enabled field; a checkbox or switch only when checked; a list one entry per item; a prefix names the group', () => {
+    const rows = [
+        { key: 'a', kind: 'text', value: 'x' }, { key: 'b', kind: 'text', value: undefined }, { key: 'c', kind: 'checkbox', value: true }, { key: 'd', kind: 'switch', value: false },
+        { key: 'e', kind: 'text', value: 'no', disabled: true }, { key: 'f', kind: 'range', value: 4 }, { key: 'g', kind: 'text', value: ['p', 'q'] },
+    ];
+    assert.deepEqual(formEntries(rows), [['a', 'x'], ['b', ''], ['c', 'on'], ['f', '4'], ['g', 'p'], ['g', 'q']]);
+    assert.deepEqual(formEntries([{ key: 'a', kind: 'text', value: 'x' }], 'order'), [['order.a', 'x']]);
+});
+
+test('saved entries come back as values: the prefix is stripped, a repeated key becomes a list, other groups are ignored', () => {
+    assert.deepEqual(valuesFromEntries([['a', '1'], ['b', 'x'], ['b', 'y']]), { a: '1', b: ['x', 'y'] });
+    assert.deepEqual(valuesFromEntries([['o.a', '1'], ['other.a', '2']], 'o'), { a: '1' });
 });
 
 test('read and write: a switch or checkbox holds a boolean, the others text; "false" and empty uncheck', () => {
