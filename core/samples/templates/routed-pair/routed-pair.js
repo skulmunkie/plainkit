@@ -15,9 +15,10 @@ const record = (load, title, id) => ({
     fields: [{ name: 'name', label: 'Name', required: true }, { name: 'status', label: 'Status', type: 'select', options: STATUS }],
     save: async (values, ctx) => {
         things = id ? things.map(r => (r.id === id ? { ...r, ...values } : r)) : [...things, { ...values, id: String(things.length + 1) }];
-        ctx.notify?.success('Saved');
         ctx.navigate('/');
     },
+    // An existing record can be deleted: the page asks first, calls this, and toasts "Deleted" (config.toasts words or silences it); Save toasts "Saved" the same way.
+    ...(id ? { delete: async (_, ctx) => { things = things.filter(r => r.id !== id); ctx.navigate('/'); } } : {}),
 });
 
 const thingsModule = defineModule({
@@ -37,7 +38,6 @@ const thingsModule = defineModule({
             onBulk: async ({ selected, scope, query }, ctx) => {
                 const hit = scope === 'all' ? run(query, { page: 1, pageSize: things.length }).rows.map(r => r.id) : selected;
                 things = things.map(r => (hit.includes(r.id) ? { ...r, status: 'Archived' } : r));
-                ctx.notify?.success(`Archived ${hit.length}`);
             },
             load: async q => run(q),
             rowHref: row => `/${row.id}`,
