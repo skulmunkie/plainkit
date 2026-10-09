@@ -57,6 +57,31 @@ export const toolCases = [
         handle.destroy();
     }],
 
+    ['code explorer module: the reports work over a lazy provider, read one file at a time through an injected reader, and one unreadable file does not sink them (the reports could not be computed)', async t => {
+        const { LazyProvider } = await import(new URL('../../dist/modules/code-explorer/providers.js', import.meta.url).href);
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const body = n => Array.from({ length: n }, (_, i) => `line ${i}`).join('\n');
+        const texts = { 'src/big.js': `function big() {\n${body(30)}\n}\n`, 'src/small.js': 'function small() {\n  return 1;\n}\n', 'notes/100%.md': body(5), 'src/a#b.js': body(8) };
+        // Like the Blazor bridge: the url is 'pk-source/<encoded path>', decoded, then answered from memory; 'src/gone.js' is a 404.
+        const reads = [];
+        const reader = async url => {
+            const path = decodeURIComponent(url.slice('pk-source/'.length)); reads.push(path);
+            return path in texts ? { ok: true, status: 200, text: async () => texts[path] } : { ok: false, status: 404, text: async () => '' };
+        };
+        const files = [...Object.keys(texts), 'src/gone.js'].map(path => ({ path, language: 'js', lines: 1 }));
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { provider: new LazyProvider(files, 'pk-source', { fetch: reader }), height: '30rem' });
+        const el = handle.element;
+        await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
+        el.querySelector('[data-ce-reports]').click();
+        await until(() => el.querySelector('[data-kind="files"]'), 'the reports picker');
+        const rows = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path);
+        t.eq(rows().join(), 'src/big.js,src/a#b.js,notes/100%.md,src/small.js', 'the largest files, from the files that could be read');
+        t.ok(/src\/gone\.js/.test(el.querySelector('[data-ce-tree]').textContent), 'the report says which file could not be read');
+        t.eq(reads.filter(p => p === 'src/big.js').length, 1, 'each file is read once');
+        handle.destroy();
+    }],
+
     ['scorecard module: renders each target at every theme and width, scores the bad one lower, ranks worst first and honours the checks filter', async t => {
         const { mountScorecard } = await dist('scorecard');
         const host = t.stage('');
