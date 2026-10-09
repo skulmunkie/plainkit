@@ -75,9 +75,9 @@ export function isVisible(spec, values, visible) {
     const w = spec.when;
     if (w && typeof w === 'object') {
         const v = values?.[w.field], text = x => (x === undefined || x === null ? '' : String(x));
-        if ('equals' in w && text(v) !== text(w.equals)) return false;
+        if (w.equals != null && text(v) !== text(w.equals)) return false;
         if (Array.isArray(w.in) && !w.in.map(text).includes(text(v))) return false;
-        if ('not' in w && text(v) === text(w.not)) return false;
+        if (w.not != null && text(v) === text(w.not)) return false;
     }
     return typeof visible === 'function' ? Boolean(visible(spec, values)) : true;
 }
