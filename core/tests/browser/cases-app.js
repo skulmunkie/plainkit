@@ -457,6 +457,7 @@ export const appCases = [
         t.eq(el.querySelector('pk-pager').getAttribute('label'), 'Guide navigation');
         const t1 = el.querySelector('.doc-page-title').getBoundingClientRect(), c1 = crumbs().getBoundingClientRect();
         t.ok(c1.bottom <= t1.top + 1, 'the trail sits above the title');
+        t.ok(t1.top - c1.bottom >= 4, `the trail and the title have a space between them (${t1.top - c1.bottom}px)`);
         host.replaceChildren();
     }],
 
