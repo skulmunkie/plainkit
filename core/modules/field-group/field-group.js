@@ -37,7 +37,7 @@ export function mountFieldGroup(container, opts = {}) {
     el.fields = fields.map(({ when, ...spec }) => (typeof when === 'function' || when === undefined ? spec : { ...spec, when }));
     el.visible = (spec, values) => { const gate = gates.get(spec.key); return !gate || Boolean(gate(values)); };
     el.values = { ...data };
-    const stop = on(el, 'pk-change', e => {
+    const stop = on(el, 'pk-field-change', e => {
         data[e.detail.key] = e.detail.value;
         onChange?.(e.detail.key, e.detail.value, data);
     });

@@ -16,7 +16,7 @@ class El {
     querySelectorAll() { return []; } // enough for loader.js's tagsIn() to find nothing and return quietly
 }
 const doc = { createElement: t => new El(t) };
-const commit = (el, key, value) => el.dispatchEvent({ type: 'pk-change', detail: { key, value, values: {} } });
+const commit = (el, key, value) => el.dispatchEvent({ type: 'pk-field-change', detail: { key, value, values: {} } });
 
 test('it mounts one pk-field-group in the container with the specs and a copy of the data', () => {
     const c = new El('div'), data = { name: 'Ada' };

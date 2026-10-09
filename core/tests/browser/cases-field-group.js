@@ -1,4 +1,4 @@
-// Browser cases for pk-field-group (#222, #226): rendering from specs, values and pk-change, conditional fields. Same shape as cases.js.
+// Browser cases for pk-field-group (#222, #226): rendering from specs, values and pk-field-change, conditional fields. Same shape as cases.js.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what) => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
 
@@ -34,10 +34,10 @@ export const fieldGroupCases = [
         t.eq(el.internals.role, 'group'); t.eq(el.internals.ariaLabel, 'Order');
     }],
 
-    ['field-group: a committed edit updates values (a new object, the host\'s is never edited) and raises pk-change with the key, value and every value', async t => {
+    ['field-group: a committed edit updates values (a new object, the host\'s is never edited) and raises pk-field-change with the key, value and every value', async t => {
         const given = { status: 'open' };
         const el = await mountGroup(t, FIELDS, given);
-        const events = []; el.addEventListener('pk-change', e => events.push(e.detail));
+        const events = []; el.addEventListener('pk-field-change', e => events.push(e.detail));
         type(el.shadowRoot.querySelector('pk-field').firstElementChild, 'Acme'); await t.settle();
         t.eq(events.length, 1); t.eq(events[0].key, 'name'); t.eq(events[0].value, 'Acme'); t.eq(events[0].values.name, 'Acme'); t.eq(events[0].values.status, 'open');
         t.eq(el.values.name, 'Acme', 'values holds the commit'); t.ok(el.values !== given && given.name === undefined, 'the object the host gave is not edited');
@@ -176,6 +176,32 @@ export const fieldGroupCases = [
         let valid = 0, submitted = 0; sf.addEventListener('pk-valid', () => valid++); form.addEventListener('submit', e => { submitted++; e.preventDefault(); });
         form.requestSubmit(); await t.settle();
         t.eq(valid, 1); t.eq(submitted, 1);
+    }],
+
+    ['field-group: a combobox field takes its options from the search callback, does not filter them itself, and a stale answer is dropped; a label-action slot reaches the field\'s label', async t => {
+        const fields = [{ key: 'city', label: 'City', kind: 'combobox', options: [{ value: 'a', label: 'Static' }] }];
+        const host = t.stage('<pk-field-group label="Where"><button slot="label-action-city" type="button">Use home</button></pk-field-group>');
+        const el = host.firstElementChild; const pending = [];
+        el.search = ({ key, query }) => new Promise(r => pending.push({ key, query, r }));
+        el.fields = fields; el.values = {};
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const combo = el.shadowRoot.querySelector('pk-combobox');
+        t.eq(combo.getAttribute('filtering'), 'off', 'the element does not filter what a search answers');
+        t.eq(combo.querySelectorAll('option').length, 1, 'the static options show first');
+        const q = async text => { const i = combo.part('control'); i.value = text; i.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); }; await q('os'); await q('osl');
+        t.eq(pending.map(p => p.query).join(','), 'os,osl'); t.eq(pending[0].key, 'city');
+        pending[1].r([{ value: 'oslo', label: 'Oslo' }, { value: 'osaka', label: 'Osaka' }]); await t.settle();
+        pending[0].r([{ value: 'x', label: 'Stale' }]); await t.settle();
+        t.eq([...combo.querySelectorAll('option')].map(o => o.value).join(','), 'oslo,osaka', 'the newest answer replaces the options and the older one is dropped');
+        const slot = el.shadowRoot.querySelector('slot[name="label-action-city"]');
+        t.ok(slot && slot.assignedElements().some(b => b.textContent === 'Use home'), 'the host\'s button is assigned to the field\'s label-action slot');
+        const field = el.shadowRoot.querySelector('pk-field');
+        t.ok(field.shadowRoot.querySelector('slot[name="label-action"]').assignedElements({ flatten: true }).some(b => b.textContent === 'Use home'), 'and flattens into the pk-field label-action slot');
+        const changes = []; el.addEventListener('pk-field-change', e => changes.push(e.detail));
+        const inner = combo.part('control'); inner.value = 'oslo'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        t.eq(changes.at(-1)?.key, 'city', 'a committed combobox value is a field change'); t.eq(el.values.city, combo.value);
+        el.search = undefined; el.refresh(); await t.settle();
+        t.ok(!combo.hasAttribute('filtering'), 'without a callback the combobox filters its own options again');
     }],
 
     ['field-group in pk-form: assigning valid values after a stopped submit lets the next submit through and clears the summary and every message', async t => {
