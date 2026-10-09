@@ -23,7 +23,7 @@ export const formCases = [
             onChange: (key, value) => changes.push([key, value]),
         });
         await t.settle();
-        const el = host.querySelector('pk-field-group'); await t.load(el.shadowRoot); await t.settle();
+        await t.load(host); const el = host.querySelector('pk-field-group'); await t.load(el.shadowRoot); await t.settle();
         const [nameField, qtyField, activeField, statusField] = el.shadowRoot.querySelectorAll('pk-field');
         const nameInput = nameField.querySelector('pk-input'), qtyInput = qtyField.querySelector('pk-input');
         const activeBox = activeField.querySelector('pk-checkbox'), statusSelect = statusField.querySelector('pk-select');
@@ -466,7 +466,7 @@ export const formCases = [
         const g = host.querySelector('pk-property-grid');
         g.config = { groups: [{ heading: 'Size', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 0, max: 100 }] }] };
         g.values = { w: { value: 140, unit: '%' } };
-        await t.settle(); await t.settle();
+        await t.settle(); await t.load(g.shadowRoot); await t.settle(); await t.settle();
         const input = g.shadowRoot.querySelector('pk-input'), unit = input.querySelector('pk-select[slot="suffix"]');
         t.ok(unit, 'a pk-select sits in the suffix slot');
         const a = input.getBoundingClientRect(), b = unit.getBoundingClientRect();
@@ -483,7 +483,7 @@ export const formCases = [
             { heading: 'A', fields: [{ key: 'a', type: 'number', label: 'A' }, { key: 'off', type: 'text', label: 'Off', disabled: true }, { key: 'gone', type: 'text', label: 'Gone', hidden: true }, { key: 'sw', type: 'switch', label: 'S' }, { key: 'z', type: 'text', label: 'Z' }] },
             { heading: 'B', collapsed: true, fields: [{ key: 'b', type: 'text', label: 'B' }] },
         ] };
-        await t.settle(); await t.settle();
+        await t.settle(); await t.load(g.shadowRoot); await t.settle(); await t.settle();
         const rows = g.$rows, send = (el, key, ctrlKey) => { const e = new KeyboardEvent('keydown', { key, ctrlKey, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
         const inner = r => r.c.shadowRoot?.querySelector('input') ?? r.c;
         const focusedKey = () => Object.keys(rows).find(k => rows[k].c.matches(':focus-within') || rows[k].c.shadowRoot?.activeElement || g.shadowRoot.activeElement === rows[k].c);
