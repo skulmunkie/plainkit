@@ -15,43 +15,17 @@
 
 .lb-canvas-menu { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
 
+.lb-canvas-menu > pk-design-surface { flex: 1 1 auto; --pk-design-surface-min-h: var(--lb-canvas-min-h); }
+
 .lb-items { display: flex; flex-direction: column; gap: var(--space-1); }
 
 .lb-palette { margin-top: var(--space-3); }
 
 .lb-form h3 { margin: 0; font-size: var(--text-base); }
 
-/* The canvas needs to read apart both from the dock chrome (its groups use --color-surface) and from the
-   void/empty state inside it, in both themes. Tokens only, so it is mixed from the two that already move opposite ways between themes
-   (--color-bg and --color-text) rather than a new literal: a middle grey, clearly apart from bg, panel and border alike. */
-.lb-canvas { position: relative; flex: 1 1 auto; min-height: var(--lb-canvas-min-h); padding: var(--space-4); background: var(--pk-layout-builder-canvas-bg, color-mix(in srgb, var(--color-bg) 70%, var(--color-text) 30%)); border: var(--lb-border-w) solid var(--color-border); border-radius: var(--radius-md); contain: layout paint; overflow: auto; cursor: default; }
-
-.lb-canvas:focus-visible { outline: var(--focus-ring); outline-offset: var(--lb-focus-offset); }
-
-.lb-page[data-width="phone"] { max-width: var(--lb-phone-w); margin-inline: auto; }
-
-.lb-page[data-width="tablet"] { max-width: var(--lb-tablet-w); margin-inline: auto; }
-
-.lb-page [data-lb-empty]:not(pk-input):not(pk-icon):not(pk-spinner):not(pk-progress) { min-block-size: var(--space-6); outline: var(--lb-border-w) dashed var(--color-border); outline-offset: var(--lb-empty-offset); }
-
-.lb-page [data-lb-hidden] { opacity: 0.5; }
-
-.lb-page [data-lb-selected] { outline: var(--lb-mark-w) solid var(--color-accent); outline-offset: var(--lb-mark-offset); }
-
-/* The per-element Edit/Delete chip: absolutely positioned over whichever node is hovered or selected (js keeps top/left in step with the
-   node's rectangle). It sits outside the inert page, so its buttons stay real, clickable, focusable controls. */
-.lb-node-controls { position: absolute; z-index: var(--lb-node-controls-z); display: flex; gap: var(--space-1); padding: var(--space-1); background: var(--color-panel); border: var(--lb-border-w) solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); transform: translate(-100%, 0); }
-
-.lb-node-controls[hidden] { display: none; }
-
-.lb-canvas.lb-external-dragging .lb-node-controls { display: none; }
-
 /* The top-level canvas order, wired to pk-sortable (see paintCanvas): a plain flex column with no extra gap of its own, so wrapping the
    page's top-level nodes in pk-sortable-item does not add spacing the exported HTML never had. */
 .lb-canvas-sortable { --pk-sortable-gap: 0; }
-
-/* A container hit-tested under an external (palette) drag: the drop would land inside it, slot-aware. */
-.lb-page [data-lb-drop-target] { outline: var(--lb-mark-w) dashed var(--color-accent); outline-offset: var(--lb-mark-offset); }
 
 @media (--phone) {
     .lb { height: 75vh; }

@@ -323,14 +323,6 @@
 :root {
     --lb-canvas-h: 40rem;
     --lb-canvas-min-h: 12rem;
-    --lb-border-w: 1px;
-    --lb-focus-offset: -2px;
-    --lb-phone-w: 375px;
-    --lb-tablet-w: 768px;
-    --lb-empty-offset: -1px;
-    --lb-mark-w: 2px;
-    --lb-mark-offset: 2px;
-    --lb-node-controls-z: 2;
 }
 
 /* Design surface (core/elements/design-surface): the page frame widths and the mark outlines; schematic-only sizes with no equivalent on the shared scale. */
