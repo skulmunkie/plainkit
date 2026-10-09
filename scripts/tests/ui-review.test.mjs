@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases, mergeManifests, jobArgs } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases, phasesOf, mergeManifests, jobArgs } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -55,6 +55,14 @@ test('shards are disjoint, cover the selection, and 1/1 is the whole run', () =>
     assert.deepEqual(shardOf(list, 1, 1), list);
     assert.deepEqual(parseArgs(['--shard', '2/4']).shard, { k: 2, n: 4 });
     for (const bad of ['0/4', '5/4', 'a/b', '2']) assert.throws(() => parseArgs(['--shard', bad]), /--shard needs/);
+});
+
+test('a scenario\'s phases add up to its time within rounding, the unmeasured rest named steps', () => {
+    const p = phasesOf({ open: 1234, wait: 3050, settle: 2210, audit: 480, screenshot: 391 }, 9000);
+    assert.equal(p.steps, 1.6);
+    const sum = Object.values(p).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum - 9) <= 0.05 * Object.keys(p).length, `${sum} vs 9`);
+    assert.equal(phasesOf({ wait: 500 }, 400).steps, 0, 'never negative');
 });
 
 test('phase times add up across scenarios', () => {
