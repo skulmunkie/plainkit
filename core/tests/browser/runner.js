@@ -1,9 +1,11 @@
 // In-browser test runner for the SDK's custom elements. Open /tests/browser/ in a visible tab. With node tools/serve.mjs --write-reports it
 // also posts its report (tests/browser/report.json, local scratch output): the results plus a SHA-256 of every element source it covered, so a guard
 // (nothing checks it against the sources any more; it is a local manual safety net).
+// Targeted run: /tests/browser/?filter=a,b&elements=x,y keeps the cases whose name contains a filter substring or names an element (case-filter.js); the report is posted and says how many of the total were selected.
 // Filter: /tests/browser/?only=<text>[&times=N] runs only the cases whose name contains <text> (N times over, default 1) and posts no report, to hammer one intermittent case.
 import { loadElements } from '../../js/loader.js';
 import { cases } from './cases.js';
+import { parseList, selectCases } from './case-filter.js';
 
 const stageEl = document.getElementById('stage');
 const registryUrl = new URL('../../elements/registry.js', import.meta.url).href;
@@ -35,7 +37,7 @@ async function sources() {
     const registry = (await import(registryUrl)).default;
     // each element's folder as the registry names it: ./<name>/<name>.element.js, or ../<tier folder>/<name>/<name>.element.js (#767)
     const stems = Object.values(registry).map(mod => new URL(mod, 'http://x/elements/registry.js').pathname.slice(1).replace(/\.element\.js$/, ''));
-    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-lookup-picker.js', 'tests/browser/cases-field-group.js', 'tests/browser/cases-modules-mount.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-dock.js', 'tests/browser/cases-tray.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/cases-gallery.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/table-frame.html', 'tests/browser/table-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'samples/app/top.html', 'tests/browser/runner.js'];
+    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-lookup-picker.js', 'tests/browser/cases-field-group.js', 'tests/browser/cases-modules-mount.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-dock.js', 'tests/browser/cases-tray.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/cases-gallery.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/table-frame.html', 'tests/browser/table-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'samples/app/top.html', 'tests/browser/case-filter.js', 'tests/browser/runner.js'];
     for (const stem of stems) for (const ext of ['html', 'css', 'meta.json', 'js']) files.push(`${stem}.${ext}`);
     const out = {};
     for (const f of files.sort()) { const res = await fetch(new URL(`../../${f}`, import.meta.url)); if (res.ok) out[f] = await sha(await res.text()); }
@@ -46,7 +48,8 @@ const list = document.getElementById('results');
 const results = [];
 const CASE_TIMEOUT_MS = 60000;
 const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
-const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : cases;
+const filterList = parseList(params.get('filter')); const elementList = parseList(params.get('elements'));
+const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : selectCases(cases, { filter: filterList, elements: elementList });
 for (const [name, fn] of chosen) {
     const started = performance.now();
     const li = document.createElement('li');
@@ -65,7 +68,8 @@ summary.textContent = failed ? `${failed} of ${results.length} failed` : `All ${
 document.title = `${failed ? 'FAIL' : 'PASS'} - SDK element tests`;
 document.documentElement.dataset.done = failed ? 'fail' : 'pass';
 
-const report = { ran: new Date().toISOString(), browser: navigator.userAgent, passed, failed, results, sources: await sources() };
+const targeted = Boolean(filterList.length || elementList.length);
+const report = { ran: new Date().toISOString(), browser: navigator.userAgent, passed, failed, selected: results.length, totalCases: cases.length, filter: targeted ? { filter: filterList, elements: elementList } : null, results, sources: await sources() };
 window.__report = report;
 try {
     const res = await fetch('/__report?kind=browser', { method: 'POST', body: JSON.stringify(report) });

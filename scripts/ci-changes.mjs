@@ -30,7 +30,7 @@ export const isDocsOnly = (file, { forNode = false } = {}) => {
     return false;
 };
 
-const ELEMENT_DIR = /^core\/(elements|components|pages|shells)\//; // an element folder lives under its tier's folder (#767)
+export const ELEMENT_DIR = /^core\/(elements|components|pages|shells)\//; // an element folder lives under its tier's folder (#767)
 const BROWSER_PATHS = [ELEMENT_DIR, /^core\/modules\//, /^core\/js\//, /^core\/tests\/browser\//, /^scripts\/attest-browser\.mjs$/, /^core\/tools\/serve\.mjs$/];
 const PACK_PATHS = [/^blazor\/src\/PlainKit\.Blazor\//, /^blazor\/mappings\//, /^Directory\.(Build|Packages)\.props$/, /^global\.json$/, /^core\/VERSION$/,
     /^scripts\/(publish-dist|generate-blazor|check-package|verify)\.mjs$/, ELEMENT_DIR, /^core\/(js|modules|base|tokens)\//];
