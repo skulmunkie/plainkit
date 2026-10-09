@@ -325,6 +325,7 @@ import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFo
 import { moduleMountCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
+import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);

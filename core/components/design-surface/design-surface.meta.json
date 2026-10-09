@@ -1,0 +1,56 @@
+{
+  "tag": "pk-design-surface",
+  "aliases": ["canvas", "workspace canvas", "pan zoom", "artboard"],
+  "a11yRequires": ["label"],
+  "title": "Design surface",
+  "summary": "A pan and zoom ground for design tools: the slotted content (a page, a drawing, a diagram) sits in a world that you drag, scroll or pinch around and zoom with Ctrl and the wheel, the plus and minus buttons or the keyboard, over an optional grid. A coordinate API (pointToWorld, worldToPoint) converts between screen and world units and snaps to the grid, and nodes the page flags with data-surface-selected get a selection frame that follows the view. The surface reports what happened (pk-view-change, pk-surface-pick, pk-surface-key) and never changes your content: the page owns the selection.",
+  "group": "Layout & structure",
+  "tier": "component",
+  "props": [
+    { "name": "zoom", "type": "number", "default": 1, "reflect": true, "commit": "pk-view-change", "description": "The scale of the world: 1 is actual size. Clamped between minZoom and maxZoom by the user's gestures; setting it from the page is taken as is." },
+    { "name": "panX", "type": "number", "default": 0, "reflect": true, "commit": "pk-view-change", "description": "Where the world origin sits horizontally, in pixels from the left edge of the surface." },
+    { "name": "panY", "type": "number", "default": 0, "reflect": true, "commit": "pk-view-change", "description": "Where the world origin sits vertically, in pixels from the top edge of the surface." },
+    { "name": "grid", "type": "number", "default": 0, "reflect": true, "description": "The grid spacing in world units, drawn behind the content and scaled with the zoom; 0 draws none. pointToWorld snaps to it." },
+    { "name": "minZoom", "type": "number", "default": 0.25, "reflect": true, "description": "The smallest scale a gesture or button can reach." },
+    { "name": "maxZoom", "type": "number", "default": 4, "reflect": true, "description": "The largest scale a gesture or button can reach." },
+    { "name": "label", "type": "string", "default": "", "reflect": true, "description": "The surface's accessible name (it is a focusable group). Required." }
+  ],
+  "slots": [
+    { "name": "", "description": "The content being edited. It is placed at the world origin and takes the world's pan and zoom. Add data-surface-selected to a descendant to frame it as selected." }
+  ],
+  "events": [
+    { "name": "pk-view-change", "detail": { "x": "number", "y": "number", "zoom": "number" }, "description": "The user panned or zoomed (drag, wheel, pinch, keys, buttons)." },
+    { "name": "pk-surface-pick", "detail": { "target": "Element | null", "additive": "boolean" }, "description": "A press without movement: target is the deepest content node under it, or null on the bare ground; additive when Shift, Ctrl or Cmd was held. The page decides what to select." },
+    { "name": "pk-surface-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape or Shift with an arrow on the focused surface, for the page to act on (plain arrows pan, + and - zoom, 0 resets)." }
+  ],
+  "parts": [
+    { "name": "frame", "description": "The focusable ground that clips, pans and draws the grid" },
+    { "name": "world", "description": "The layer that carries the slotted content under the pan and zoom transform" },
+    { "name": "overlay", "description": "The marks layer (pointer-events none): one frame per node flagged data-surface-selected" },
+    { "name": "out", "description": "The zoom out button" },
+    { "name": "in", "description": "The zoom in button" },
+    { "name": "reset", "description": "The reset view button" },
+    { "name": "mark", "description": "The hidden template of the frame drawn around a flagged node; the surface clones it into the overlay" },
+    { "name": "toolbar", "description": "The zoom out, zoom in and reset buttons" },
+    { "name": "level", "description": "The zoom as a percentage" }
+  ],
+  "cssProperties": [
+    { "name": "--pk-design-surface-bg", "description": "The ground behind the content", "default": "a mix of the page background and text" },
+    { "name": "--pk-design-surface-grid", "description": "The grid line colour", "default": "a faint mix of the text colour" },
+    { "name": "--pk-design-surface-width", "description": "The width of the world the content is laid out in, at zoom 1", "default": "24rem" },
+    { "name": "--pk-design-surface-height", "description": "The height of the surface", "default": "24rem" }
+  ],
+  "methods": [
+    { "name": "pointToWorld(clientX, clientY)", "description": "Returns { x, y } in world units for a point on the screen, snapped to the grid when there is one" },
+    { "name": "worldToPoint(x, y)", "description": "Returns { x, y } in client pixels for a world point" },
+    { "name": "reset()", "description": "Back to zoom 1 at the origin (announces pk-view-change)" }
+  ],
+  "a11y": "The surface is a labelled group and a single tab stop. With focus on it the arrow keys pan, + and - zoom, 0 resets the view, and Delete, Escape and Shift with an arrow are reported as pk-surface-key so the page can offer an accessible way to select and edit. The toolbar buttons keep their names when they fold to icons. The selection frames are decoration (aria-hidden): the page announces the selection itself. The slotted content stays in the reading order and remains focusable.",
+  "mobile": "Touch: one finger drags the ground to pan, two fingers pinch to zoom around their midpoint, a tap picks. The page does not scroll under the gesture (touch-action none), and the toolbar buttons fold to icons at phone width with a 44px target.",
+  "examples": [
+    {
+      "title": "Pan and zoom surface with a grid",
+      "html": "<pk-design-surface label=\"Artboard\" grid=\"20\"><pk-card data-surface-selected><h3>Page</h3><p>Drag the ground, scroll, or use Ctrl and the wheel to zoom.</p></pk-card></pk-design-surface>"
+    }
+  ]
+}

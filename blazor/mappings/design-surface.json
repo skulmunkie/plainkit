@@ -1,0 +1,16 @@
+{
+  "component": "PkDesignSurface",
+  "params": [
+    { "name": "Zoom", "type": "double", "default": 1, "map": "prop", "prop": "zoom", "bind": { "event": "pk-view-change", "value": "detail.zoom" } },
+    { "name": "PanX", "type": "double", "default": 0, "map": "prop", "prop": "panX", "bind": { "event": "pk-view-change", "value": "detail.x" } },
+    { "name": "PanY", "type": "double", "default": 0, "map": "prop", "prop": "panY", "bind": { "event": "pk-view-change", "value": "detail.y" } },
+    { "name": "Grid", "type": "double", "default": 0, "map": "prop", "prop": "grid" },
+    { "name": "MinZoom", "type": "double", "default": 0.25, "map": "prop", "prop": "minZoom" },
+    { "name": "MaxZoom", "type": "double", "default": 4, "map": "prop", "prop": "maxZoom" },
+    { "name": "Label", "type": "string", "default": "", "map": "prop", "prop": "label" },
+    { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
+    { "name": "OnViewChange", "event": "pk-view-change" },
+    { "name": "OnPick", "event": "pk-surface-pick" },
+    { "name": "OnKey", "event": "pk-surface-key" }
+  ]
+}
