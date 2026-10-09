@@ -380,4 +380,90 @@ export const appShellCases = [
         archive.click();
         await until(() => [...table().shadowRoot.querySelectorAll('tbody tr')].slice(0, 2).every(r => r.textContent.includes('Archived')) && bar().hidden, 'the reloaded list: rows 1 and 2 archived, selection cleared');
     }],
+
+    // #855: the record and list page types raise default toasts through ctx.notify (saved, failed, deleted, done), overridable and switchable off with config.toasts.
+    ['page toasts (#855): record Save toasts "Saved" (success, a status), a failing Save toasts "Could not save" (danger, an alert, sticky) with the error text, and a field error toasts nothing', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const saved = [];
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '1', mode: 'edit', title: 'Thing', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async v => { saved.push(v.name); if (v.name === 'bad') throw new Error('Server said no'); if (v.name === 'field') throw { errors: { name: 'Taken' } }; } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+        const stack = () => el.querySelector('pk-toast-stack[position="bottom-end"]');
+        const toasts = () => [...(stack()?.querySelectorAll('pk-toast') ?? [])];
+        const submit = async name => { rec.mode = 'edit'; await wait(100); await until(() => rec.controls().length, 'the form'); const c = rec.controls()[0]; c.value = name; c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); rec.part('save').click(); };
+        await submit('good');
+        await until(() => toasts().some(x => x.heading === 'Saved'), 'the Saved toast');
+        const ok = toasts().find(x => x.heading === 'Saved');
+        const { roleFor } = await src('elements/toast/toast.js');
+        t.eq(ok.kind, 'success'); t.eq(roleFor(ok.kind), 'status', 'a success is polite');
+        await submit('bad');
+        await until(() => toasts().some(x => x.heading === 'Could not save'), 'the failure toast');
+        const bad = toasts().find(x => x.heading === 'Could not save');
+        t.eq(bad.kind, 'danger'); t.eq(bad.message, 'Server said no'); t.eq(roleFor(bad.kind), 'alert', 'an error interrupts'); t.eq(bad.getAttribute('duration') ?? '0', '0', 'and stays until dismissed');
+        const before = toasts().length;
+        await submit('field'); await wait(500);
+        t.eq(toasts().length, before, 'a field error is on the field, not a toast');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    ['page toasts (#855): config.toasts false switches them off, a string or a function words one outcome, false in the object drops one, and a page without a notify service just works', async t => {
+        const { mountApp, defineModule, mountPage } = await src('js/app.js');
+        const run = async toasts => {
+            const el = document.createElement('div'); t.stage('').append(el);
+            const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '1', mode: 'edit', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async v => { if (v.name === 'bad') throw new Error('no'); }, toasts } }] });
+            history.replaceState(null, '', '#/a');
+            const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+            const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+            await until(() => rec.controls().length, 'the form');
+            const go = async name => { rec.mode = 'edit'; await wait(100); await until(() => rec.controls().length, 'the form'); const c = rec.controls()[0]; c.value = name; c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); rec.part('save').click(); await wait(500); };
+            const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => x.heading);
+            return { go, heads, done: async () => { await app.destroy(); history.replaceState(null, '', location.pathname + location.search); } };
+        };
+        let r = await run(false); await r.go('ok'); await r.go('bad'); t.eq(r.heads().join(), '', 'toasts: false'); await r.done();
+        r = await run({ saved: 'Order saved', failed: false }); await r.go('ok'); await r.go('bad'); t.eq(r.heads().join(), 'Order saved', 'a string words saved; failed: false drops it'); await r.done();
+        r = await run({ saved: (detail) => `Saved ${detail.name}`, failed: err => ({ title: 'Nope', details: err.message.toUpperCase() }) }); await r.go('ok'); await r.go('bad');
+        t.eq(r.heads().join(), 'Saved ok,Nope', 'functions get the values and the error'); await r.done();
+        const box = document.createElement('div'); t.stage('').append(box);
+        const page = await mountPage(box, { type: 'record', config: { id: '1', mode: 'edit', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), save: async () => {} } });
+        const rec = await until(() => box.querySelector('pk-record-page'), 'the record page without a notify service'); await until(() => rec.controls().length, 'the form');
+        rec.part('save').click(); await wait(400); t.ok(rec.isConnected, 'saving with no notify service neither throws nor toasts'); page.destroy();
+    }],
+    ['page toasts (#855): a record page with delete(id, ctx) has a Delete button, asks first, calls delete with the id and toasts "Deleted"; a failing delete toasts "Could not delete"; Cancel calls nothing', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const calls = []; let fail = false;
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'record', config: { id: '7', title: 'Thing', fields: [{ name: 'name', label: 'Name' }], load: async () => ({ name: 'A' }), delete: async (id) => { calls.push(id); if (fail) throw new Error('In use'); } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const rec = await until(() => el.querySelector('pk-record-page'), 'the record page');
+        const del = await until(() => rec.part('delete') && !rec.part('delete').hidden && rec.part('delete'), 'the Delete button');
+        const dialog = () => [...el.ownerDocument.querySelectorAll('pk-dialog')].find(d => d.open);
+        const press = async label => (await until(() => [...dialog().querySelectorAll('pk-button')].find(b => b.textContent.trim() === label), `the ${label} button`)).click();
+        const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => `${x.heading}|${x.kind}`);
+        del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Cancel'); await wait(300);
+        t.eq(calls.length, 0, 'Cancel calls nothing'); t.eq(heads().length, 0);
+        del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Delete');
+        await until(() => heads().includes('Deleted|success'), 'the Deleted toast'); t.eq(calls.join(), '7', 'delete got the id');
+        fail = true; del.click(); await until(dialog, 'the confirm dialog'); await wait(300); await press('Delete');
+        await until(() => heads().includes('Could not delete|danger'), 'the failure toast');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    ['page toasts (#855): the list page toasts "Done" after a bulk action settles and "Could not complete" when it rejects', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        let reject = false;
+        const mod = defineModule({ id: 'a', routes: [{ path: '/', page: 'list', config: { heading: 'Things', columns: [{ key: 'name', label: 'Name' }], selectable: true, bulkActions: [{ id: 'x', label: 'X' }], load: async () => ({ rows: [{ id: '1', name: 'A' }], total: 1 }), onBulk: async () => { if (reject) throw new Error('Nope'); } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod }] });
+        const list = await until(() => el.querySelector('pk-list-page'), 'the list page');
+        const heads = () => [...el.querySelectorAll('pk-toast-stack pk-toast')].map(x => `${x.heading}|${x.kind}`);
+        const bulk = () => list.dispatchEvent(new CustomEvent('pk-bulk', { detail: { action: 'x', selected: ['1'], scope: 'page', query: {} }, bubbles: true, composed: true }));
+        bulk(); await until(() => heads().includes('Done|success'), 'the Done toast');
+        reject = true; bulk(); await until(() => heads().includes('Could not complete|danger'), 'the failure toast');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
 ];
