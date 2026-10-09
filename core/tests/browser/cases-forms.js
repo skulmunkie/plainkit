@@ -7,7 +7,7 @@ const type = async (t, inner, text) => { inner.value = text; inner.dispatchEvent
 const ready = async t => { for (const n of ['pk-popover', 'pk-button', 'pk-calendar']) await customElements.whenDefined(n); await t.settle(); await t.settle(); };
 
 export const formCases = [
-    ['field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
+    ['field-group module: a plain field spec renders pk-field + the right control (in the pk-field-group element), initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
         const { mountFieldGroup } = await import('../../modules/field-group/field-group.js');
         const host = t.stage('<pk-form><form><div id="fields"></div><pk-button type="submit">Save</pk-button></form></pk-form>'); await t.load(host);
         const data = { name: 'Ada', qty: 2, active: true, status: 'open' };
@@ -23,11 +23,12 @@ export const formCases = [
             onChange: (key, value) => changes.push([key, value]),
         });
         await t.settle();
-        const [nameField, qtyField, activeField, statusField] = host.querySelectorAll('pk-field');
+        const el = host.querySelector('pk-field-group'); await t.load(el.shadowRoot); await t.settle();
+        const [nameField, qtyField, activeField, statusField] = el.shadowRoot.querySelectorAll('pk-field');
         const nameInput = nameField.querySelector('pk-input'), qtyInput = qtyField.querySelector('pk-input');
         const activeBox = activeField.querySelector('pk-checkbox'), statusSelect = statusField.querySelector('pk-select');
         t.eq(nameInput.value, 'Ada'); t.eq(qtyInput.value, '2'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'open');
-        t.eq(statusSelect.querySelectorAll('option').length, 2);
+        t.eq(statusSelect.options.length, 2);
 
         await type(t, nameInput.part('control'), 'Grace');
         nameInput.part('control').dispatchEvent(ev('change')); await t.settle();
@@ -44,7 +45,7 @@ export const formCases = [
         t.eq(nameInput.value, 'Restored'); t.eq(qtyInput.value, '9'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'closed');
 
         group.destroy();
-        t.eq(host.querySelectorAll('pk-field').length, 0, 'destroy removes every field it built');
+        t.eq(host.querySelectorAll('pk-field-group').length, 0, 'destroy removes the group it built');
     }],
 
     ['input: typing updates value, reports input and change, and the form receives it', async t => {
