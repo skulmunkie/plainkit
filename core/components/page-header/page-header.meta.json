@@ -103,7 +103,7 @@
     },
     {
       "name": "actions",
-      "description": "Buttons at the right of the title bar; full width and touch-sized on a narrow container."
+      "description": "Buttons at the right of the title bar; full width and touch-sized on a narrow container. Give each an icon-name and collapse=\"phone\" so it folds to the icon alone on a phone (its text stays the accessible name)."
     },
     {
       "name": "meta",
@@ -183,27 +183,27 @@
   "examples": [
     {
       "title": "Page: crumbs, title and actions",
-      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\">Print</pk-button>\n</pk-page-header>"
+      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\">\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Stock</a>\n    <a href=\"#\">Purchase orders</a>\n    <span aria-current=\"page\">PO 1042</span>\n  </pk-breadcrumb>\n  <pk-button slot=\"actions\" icon-name=\"import\" collapse=\"phone\">Receive</pk-button>\n  <pk-button slot=\"actions\" variant=\"ghost\" icon-name=\"document\" collapse=\"phone\">Print</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Crumbs from data, home crumb and back link",
-      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\" back-link home-href=\"#\" crumbs='[{\"label\":\"Stock\",\"href\":\"#\"},{\"label\":\"Purchase orders\",\"href\":\"#\"},{\"label\":\"PO 1042\"}]'>\n  <pk-button slot=\"actions\">Receive</pk-button>\n</pk-page-header>"
+      "html": "<pk-page-header heading=\"PO 1042\" level=\"2\" back-link home-href=\"#\" crumbs='[{\"label\":\"Stock\",\"href\":\"#\"},{\"label\":\"Purchase orders\",\"href\":\"#\"},{\"label\":\"PO 1042\"}]'>\n  <pk-button slot=\"actions\" icon-name=\"import\" collapse=\"phone\">Receive</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Section: title, action and note",
-      "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
+      "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" icon-name=\"refresh\" collapse=\"phone\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
     },
     {
       "title": "Record: home crumb, chips, actions and docked tabs",
-      "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
+      "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\" icon-name=\"save\" collapse=\"phone\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
     },
     {
       "title": "Record: status chips and actions",
-      "html": "<pk-page-header variant=\"record\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Receive</pk-button>\n</pk-page-header>"
+      "html": "<pk-page-header variant=\"record\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" icon-name=\"document\" collapse=\"phone\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\" icon-name=\"import\" collapse=\"phone\">Receive</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Spacious: opt back into the multi-row breakdown",
-      "html": "<pk-page-header spacious>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">A very long product name that would crowd the actions off a single row</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-badge variant=\"warn\">Backordered</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\">Save</pk-button>\n  <span slot=\"meta\">Updated moments ago</span>\n</pk-page-header>"
+      "html": "<pk-page-header spacious>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">A very long product name that would crowd the actions off a single row</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-badge variant=\"warn\">Backordered</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" icon-name=\"document\" collapse=\"phone\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\" icon-name=\"save\" collapse=\"phone\">Save</pk-button>\n  <span slot=\"meta\">Updated moments ago</span>\n</pk-page-header>"
     }
   ]
 }
