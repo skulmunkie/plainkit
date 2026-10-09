@@ -39,9 +39,6 @@
     "Components/PkFieldGroup.razor": {
       "category": "typed-generics"
     },
-    "Components/PkGallery.razor": {
-      "category": "wrapper"
-    },
     "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
     },
