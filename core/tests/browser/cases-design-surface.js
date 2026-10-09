@@ -149,4 +149,14 @@ export const designSurfaceCases = [
         const f = s.part('frame');
         t.eq(f.getAttribute('role'), 'group'); t.eq(f.getAttribute('aria-label'), 'Canvas'); t.eq(f.tabIndex, 0);
     }],
+
+    ['design-surface: nodeAt finds a page node slotted into a container, not the surface own chip, and the page keeps room below its last node', async t => {
+        const s = await mount(t, '', '<pk-card id="card"><p id="inner">Body</p><div slot="footer" id="foot" style="height:40px">Footer</div></pk-card>');
+        const foot = s.querySelector('#foot'), r = rect(foot);
+        t.ok(r.height > 0, 'the slotted footer is laid out');
+        t.eq(s.nodeAt(r.left + r.width / 2, r.top + r.height / 2), foot, 'nodeAt returns the node inside the [slot] container');
+        t.ok(s.nodes().some(n => n.node === foot) && !s.nodes().some(n => n.node.id === 'chip'), 'nodes() lists it and not the chip');
+        const page = rect(s.part('page')), last = rect(s.querySelector('#card'));
+        t.ok(page.bottom - last.bottom >= 8, `the page panel ends below its last node (${Math.round(page.bottom - last.bottom)}px)`);
+    }],
 ];

@@ -3,7 +3,7 @@
 .ground { position: relative; display: flex; flex: 1 1 auto; min-block-size: 0; overflow: hidden; contain: layout paint; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--pk-design-surface-bg, color-mix(in srgb, var(--color-bg) 70%, var(--color-text) 30%)); }
 [part="frame"] { flex: 1 1 auto; min-inline-size: 0; overflow: auto; padding: var(--pk-design-surface-pad, var(--space-4)); cursor: default; }
 [part="frame"]:focus-visible { outline: var(--focus-ring); outline-offset: calc(-1 * var(--space-1)); }
-[part="page"] { box-sizing: border-box; margin-inline: auto; inline-size: 100%; background: var(--color-bg); color: var(--color-text); }
+[part="page"] { box-sizing: border-box; margin-inline: auto; inline-size: 100%; padding-block-end: var(--space-4); background: var(--color-bg); color: var(--color-text); }
 :host([width="tablet"]) [part="page"] { max-inline-size: var(--pk-design-surface-tablet-w, var(--surface-tablet-w)); }
 :host([width="phone"]) [part="page"] { max-inline-size: var(--pk-design-surface-phone-w, var(--surface-phone-w)); }
 [part="empty"] { padding: var(--space-4); text-align: center; color: var(--color-text); }
