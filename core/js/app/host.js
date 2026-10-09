@@ -24,7 +24,7 @@
 // show(id, { path, query }) / open(address, query) resolve to 'ok' | 'forbidden' | 'not-found' | 'error' | 'superseded'.
 //
 // ctx (what a module and its pages receive) is documented in js/app/module.js.
-import { createLogger, isLogEnabled } from '../log.js';
+import { createLogger } from '../log.js';
 import { createPage, BUSY_DELAY } from '../page.js';
 import { createStore } from '../store.js';
 import { matchRoute } from '../route-tree.js';
@@ -157,19 +157,14 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         };
     }
 
-    const dropPage = async a => {
-        const { page, end } = a.page ?? {};
-        a.page = null;
-        await safe(page, 'page cleanup', a.lg);
-        await safe(end, 'page cleanup', a.lg);
-        a.pageHost?.remove();
-        a.pageHost = null;
-    };
-    async function leave() {
-        const a = active;
-        if (!a) return;
-        active = null;
+    // A route with persist: true keeps its mounted page (a.kept, by route node) while another page shows: it is hidden, not torn down, and shown again on return; leaving the module frees it.
+    const free = async (a, e) => { await safe(e.page, 'page cleanup', a.lg); await safe(e.end, 'page cleanup', a.lg); e.host.remove(); };
+    const dropPage = async a => { const e = a.page; a.page = null; if (e) await (a.kept.get(e.node) === e ? (e.host.hidden = true) : free(a, e)); };
+    const leave = () => { const a = active; active = null; return a && end(a); };
+    async function end(a) {
         await dropPage(a);
+        for (const e of a.kept.values()) await free(a, e);
+        a.kept.clear();
         await safe(() => a.def.unmount?.(a.ctx), 'unmount', a.lg);
         await safe(a.cleanup, 'mount cleanup', a.lg);
         await a.dispose();
@@ -185,25 +180,29 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         if (!spec || spec.type === 'not-found') { box.notFound(`There is nothing at ${a.entry.title} ${route.path}.`); return 'not-found'; }
         if (verdict(a.entry.id, route, m.node.can) !== true) { box.forbidden(a.entry.title); return 'forbidden'; }
         const factory = pageTypeFor(a.def, spec.type), layout = m.node.layout && layoutFor(a.def, m.node.layout);
+        const keep = m.node.persist === true, key = JSON.stringify(route.params), old = a.kept.get(m.node);
+        // Only page hosts (kept ones, here) stay in the body; a skeleton or a state is replaced.
+        const place = host => { for (const c of [...box.body.children]) if (!c.hasAttribute('data-pk-page')) c.remove(); host.parentNode ?? box.body.append(host); };
+        if (old?.key === key) { box.ready(); place(old.host); old.host.hidden = false; a.page = old; return 'ok'; }
+        if (old) { a.kept.delete(m.node); await free(a, old); }
         const host = doc.createElement('div'), sc = a.pageScope();
         host.setAttribute('data-pk-page', spec.type);
-        a.pageHost = host;
         try {
             if (!factory || (m.node.layout && !layout)) throw new Error(!factory ? `the page type "${spec.type}" is not available` : `the layout "${m.node.layout}" is not available`);
             box.ready();
-            box.body.replaceChildren(host);
+            place(host);
             const into = (layout && (await layout(host, sc.ctx))) || host;
             const cfg = typeof spec.config === 'function' ? spec.config(route, sc.ctx) : spec.config;
             const cleanup = cleanupOf(await factory(into, cfg, sc.ctx));
             load();
             if (!alive(t) || a !== active) { await safe(cleanup, 'page cleanup', a.lg); await sc.end(); host.remove(); return 'superseded'; }
-            a.page = { page: cleanup, end: sc.end };
+            a.page = { page: cleanup, end: sc.end, host, node: m.node, key };
+            if (keep) a.kept.set(m.node, a.page);
             return 'ok';
         } catch (e) {
             a.lg.error(`the page for ${route.path} failed`, e);
             await sc.end();
             host.remove();
-            a.pageHost = null;
             if (alive(t) && a === active) box.fail(`Could not show ${a.entry.title}`, e, () => show(a.entry.id, r));
             return 'error';
         }
@@ -218,7 +217,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         if (!alive(t)) return 'superseded';
         const s = { route: { path: '/', params: {}, query: {} } };
         const { ctx, dispose, lg, pageScope } = makeCtx(entry, def, s);
-        const a = { entry, def, ctx, dispose, lg, pageScope, state: s, page: null, pageHost: null, cleanup: null };
+        const a = { entry, def, ctx, dispose, lg, pageScope, state: s, page: null, kept: new Map(), cleanup: null };
         try {
             a.cleanup = cleanupOf(await def.mount?.(ctx));
         } catch (e) {
@@ -227,7 +226,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             if (alive(t)) box.fail(`Could not start ${entry.title}`, e, () => show(entry.id, r));
             return alive(t) ? 'error' : 'superseded';
         }
-        if (!alive(t)) { await safe(() => def.unmount?.(ctx), 'unmount', lg); await safe(a.cleanup, 'mount cleanup', lg); await dispose(); return 'superseded'; }
+        if (!alive(t)) { await end(a); return 'superseded'; }
         active = a;
         return showPage(a, r, t);
     }
@@ -263,10 +262,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         last = [id, r];
         const t0 = globalThis.performance?.now() ?? 0;
         const status = await run(id, r, t);
-        if (alive(t)) {
-            globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
-            if (isLogEnabled('debug', 'app')) log.debug(`${id}${norm(r.path)}: ${status} in ${Math.round((globalThis.performance?.now() ?? 0) - t0)} ms`);
-        }
+        if (alive(t)) globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
         return status;
     }
 
