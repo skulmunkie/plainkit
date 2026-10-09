@@ -56,11 +56,11 @@
   "examples": [
     {
       "title": "Tablet frame (selected and chipFor are set from script)",
-      "html": "<pk-design-surface label=\"Page canvas\" width=\"tablet\">\n  <pk-stack gap=\"3\">\n    <pk-heading level=\"3\">Order summary</pk-heading>\n    <pk-text>Two items, free shipping.</pk-text>\n    <pk-button>Place order</pk-button>\n  </pk-stack>\n  <pk-button slot=\"chip\" size=\"sm\" collapse=\"phone\" icon-name=\"edit\">Edit</pk-button>\n  <pk-button slot=\"chip\" size=\"sm\" collapse=\"phone\" icon-name=\"trash\">Delete</pk-button>\n</pk-design-surface>"
+      "html": "<pk-design-surface label=\"Page canvas\" width=\"tablet\">\n  <pk-stack gap=\"md\">\n    <pk-heading level=\"3\">Order summary</pk-heading>\n    <pk-text>Two items, free shipping.</pk-text>\n    <pk-button>Place order</pk-button>\n  </pk-stack>\n  <pk-button slot=\"chip\" size=\"mini\" collapse=\"phone\" icon-name=\"edit\">Edit</pk-button>\n  <pk-button slot=\"chip\" size=\"mini\" collapse=\"phone\" icon-name=\"trash\">Delete</pk-button>\n</pk-design-surface>"
     },
     {
       "title": "Hidden and empty nodes on a phone frame",
-      "html": "<pk-design-surface label=\"Phone canvas\" width=\"phone\">\n  <pk-stack gap=\"3\">\n    <pk-text>A visible paragraph.</pk-text>\n    <pk-text data-surface-hidden>A hidden paragraph.</pk-text>\n    <pk-stack data-surface-empty></pk-stack>\n  </pk-stack>\n</pk-design-surface>"
+      "html": "<pk-design-surface label=\"Phone canvas\" width=\"phone\">\n  <pk-stack gap=\"md\">\n    <pk-text>A visible paragraph.</pk-text>\n    <pk-text data-surface-hidden>A hidden paragraph.</pk-text>\n    <pk-stack data-surface-empty></pk-stack>\n  </pk-stack>\n</pk-design-surface>"
     },
     {
       "title": "Empty page",
