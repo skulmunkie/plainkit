@@ -155,7 +155,8 @@ export class LazyProvider {
         const f = this.files.get(path);
         if (!f) throw new Error(`no such file: ${path}`);
         if (f.lines === null) {
-            f.lines = toLines(await loadText(`${this.raw}/${path}`, this.fetch));
+            // Each segment encoded: a path with "%", "#" or "?" in it is a different URL otherwise (and a reader that decodes the url fails on a lone "%").
+            f.lines = toLines(await loadText(`${this.raw}/${path.split('/').map(encodeURIComponent).join('/')}`, this.fetch));
         }
         return f;
     }

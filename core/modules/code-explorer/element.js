@@ -67,6 +67,7 @@ export class CodeExplorerElement extends Base {
     #search = null;
     #patterns = [];
     #reports = null;
+    #reading = false;
     #inspector = null;
     #folders = new Set();
     #nodes = new Map();
@@ -270,17 +271,31 @@ export class CodeExplorerElement extends Base {
     // available; the host-defined pattern report is a fourth choice when `patterns` was set.
     async #toggleReports() {
         if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
+        if (this.#reading) return; // a second click while the files are still being read
+        this.#reading = true;
+        const button = this.querySelector('[data-ce-reports]');
+        const skipped = [];
         try {
             const files = [];
-            for (const f of this.#files) {
+            for (const [i, f] of this.#files.entries()) {
                 if (!this.#docs.has(f.path)) {
-                    const doc = await this.#provider.readFile(f.path);
-                    const language = doc.language ?? languageOf(f.path);
-                    this.#docs.set(f.path, { ...doc, language, tokens: tokenize(doc.lines, language) });
+                    if (i % 50 === 0) button.textContent = `Reading ${i} of ${this.#files.length}`;
+                    // One file that cannot be read (gone, refused, a path the reader does not know) is left out and named, it does not sink the reports.
+                    try {
+                        const doc = await this.#provider.readFile(f.path);
+                        const language = doc.language ?? languageOf(f.path);
+                        this.#docs.set(f.path, { ...doc, language, tokens: tokenize(doc.lines, language) });
+                    } catch (error) {
+                        log.warn(`${f.path} could not be read for the reports`, error);
+                        skipped.push({ path: f.path, reason: error.message });
+                        continue;
+                    }
                 }
                 files.push(this.#docs.get(f.path));
             }
+            if (!files.length && skipped.length) throw new Error(`none of the ${skipped.length} files could be read (${skipped[0].path}: ${skipped[0].reason})`);
             this.#reports = {
+                skipped,
                 kind: this.#patterns.length ? 'pattern' : 'files',
                 pattern: this.#patterns.length ? patternReport(files, this.#patterns) : null,
                 files: largestFilesReport(files),
@@ -289,8 +304,10 @@ export class CodeExplorerElement extends Base {
             };
         } catch (error) {
             log.warn('the reports could not be computed', error);
-            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], error: error.message };
+            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
         }
+        this.#reading = false;
+        button.textContent = 'Reports';
         this.#search = null;
         this.#renderTree();
     }
@@ -311,7 +328,8 @@ export class CodeExplorerElement extends Base {
         if (r.error) return `<pk-alert kind="danger">${esc(r.error)}</pk-alert>`;
         const kinds = this.#reportKinds();
         const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
-        return `<pk-stack gap="sm">${picker}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
+        const left = r.skipped?.length ? `<pk-alert kind="warning">${r.skipped.length} ${r.skipped.length === 1 ? 'file' : 'files'} could not be read and ${r.skipped.length === 1 ? 'is' : 'are'} left out: ${esc(r.skipped.slice(0, 3).map(s => s.path).join(', '))}${r.skipped.length > 3 ? ` and ${r.skipped.length - 3} more` : ''} (the logs say why).</pk-alert>` : '';
+        return `<pk-stack gap="sm">${picker}${left}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
