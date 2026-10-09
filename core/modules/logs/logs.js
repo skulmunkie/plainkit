@@ -52,12 +52,12 @@ export async function mountLogs(container, options = {}) {
     const scopeSelect = h(doc, 'pk-select', { label: 'Scopes (none selected shows all)', multiple: true });
     const badges = Object.fromEntries(VIEW_LEVELS.map(v => [v, h(doc, 'pk-badge', { variant: LEVEL_TONE[v] })]));
     const status = h(doc, 'span', { class: 'muted', role: 'status' });
-    const pause = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', toggle: true }, 'Pause');
-    const order = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', toggle: true, pressed: newestFirst }, 'Newest first');
-    const clear = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Clear');
-    const copy = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Copy as JSON');
-    const exportBtn = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Export');
-    const importBtn = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Import');
+    const pause = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', toggle: true, 'icon-name': 'clock', collapse: 'phone' }, 'Pause');
+    const order = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', toggle: true, pressed: newestFirst, 'icon-name': 'sort', collapse: 'phone' }, 'Newest first');
+    const clear = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'trash', collapse: 'phone' }, 'Clear');
+    const copy = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'copy', collapse: 'phone' }, 'Copy as JSON');
+    const exportBtn = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'download', collapse: 'phone' }, 'Export');
+    const importBtn = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'upload', collapse: 'phone' }, 'Import');
     const file = h(doc, 'input', { type: 'file', accept: '.json,application/json', hidden: true, 'aria-label': 'Import a log file' });
     const table = h(doc, 'pk-table', { label: 'Log entries', density: 'compact', stickyHeader: true, clickable: true, manual: true, cards: true, maxHeight: '18rem', columns: JSON.stringify(COLUMNS) },
         h(doc, 'pk-empty-state', { slot: 'empty', heading: 'No log entries', tone: 'compact', description: 'Entries appear here as the SDK or your code logs them.' }));
