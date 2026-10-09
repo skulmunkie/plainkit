@@ -473,14 +473,14 @@ export const toolCases = [
         const builder = await mountLayoutBuilder(host, { html: start });
         const reasons = []; builder.on('change', e => reasons.push(e.reason));
         await t.load(host);
-        const canvas = host.querySelector('.lb-canvas'), page = host.querySelector('.lb-page');
-        t.ok(page.inert, 'the built page is inert: it cannot act on the builder');
+        const canvas = host.querySelector('pk-design-surface'), page = canvas;
+        t.ok(canvas.part('page').inert, 'the built page is inert: it cannot act on the builder');
         t.eq(page.querySelectorAll('[data-lb-id]').length, 5, 'every node is rendered as a real element');
         t.ok(customElements.get('pk-card') && page.querySelector('pk-card').shadowRoot, 'the elements are live');
         const key = (k, o = {}) => canvas.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...o }));
         const para = page.querySelector('p').getBoundingClientRect();
         canvas.dispatchEvent(new MouseEvent('click', { clientX: para.left + 4, clientY: para.top + para.height / 2, bubbles: true }));
-        const selected = () => builder.selection() && page.querySelector('[data-lb-selected]')?.localName;
+        const selected = () => builder.selection() && canvas.selected?.localName;
         t.eq(selected(), 'p', 'a click selects the smallest element under it');
         key('ArrowLeft'); t.eq(selected(), 'pk-card', 'Left selects the parent');
         key('ArrowDown'); t.eq(selected(), 'p', 'Down walks the page in order');
@@ -526,7 +526,7 @@ export const toolCases = [
         control('heading').value = 'Renamed'; fire(control('heading'), 'input'); await t.settle();
         t.eq(builder.getModel().nodes[0].props.heading, 'Renamed', 'a string prop edits the model');
         control('tone').value = 'error'; fire(control('tone'), 'change'); await t.settle();
-        t.eq(host.querySelector('.lb-page pk-card').getAttribute('tone'), 'error', 'an enum prop reaches the live element');
+        t.eq(host.querySelector('pk-design-surface pk-card').getAttribute('tone'), 'error', 'an enum prop reaches the live element');
         control('flush').checked = true; fire(control('flush'), 'change'); await t.settle();
         t.eq(builder.getModel().nodes[0].props.flush, true, 'a boolean prop is present or absent');
         control('level').value = 'abc'; fire(control('level'), 'input'); await t.settle();
@@ -595,11 +595,11 @@ export const toolCases = [
         const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p>' });
         await t.load(host);
         const menu = host.querySelector('pk-context-menu.lb-canvas-menu');
-        const p = host.querySelector('.lb-page p'), r = p.getBoundingClientRect();
-        host.querySelector('.lb-canvas').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + 4, clientY: r.top + 4, bubbles: true, composed: true, cancelable: true }));
+        const p = host.querySelector('pk-design-surface p'), r = p.getBoundingClientRect();
+        host.querySelector('pk-design-surface').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + 4, clientY: r.top + 4, bubbles: true, composed: true, cancelable: true }));
         await t.settle();
         t.ok(menu.open, 'the canvas context menu opened');
-        t.eq(host.querySelector('.lb-page [data-lb-selected]')?.localName, 'p', 'the element under the pointer is selected first');
+        t.eq(host.querySelector('pk-design-surface').selected?.localName, 'p', 'the element under the pointer is selected first');
         const m = menu.part('menu').getBoundingClientRect();
         t.ok(m.width > 0 && m.left >= 0 && m.top >= 0 && m.right <= innerWidth && m.bottom <= innerHeight, 'the menu shows inside the viewport (the stage itself is off screen: placement at the pointer is measured by the review scenario)');
         const rows = [...menu.querySelectorAll('pk-menu-item[slot=menu][data-action]')].map(i => i.dataset.action);
@@ -622,19 +622,20 @@ export const toolCases = [
         const host = t.stage('');
         const builder = await mountLayoutBuilder(host, { html: '<pk-stack gap="md"><h2>Title</h2><p>Body</p></pk-stack>' });
         await t.load(host);
-        const canvas = host.querySelector('.lb-canvas'), chip = host.querySelector('.lb-node-controls');
+        const canvas = host.querySelector('pk-design-surface'), chip = canvas.part('chip');
         t.ok(chip.hidden, 'hidden until something is hovered or selected');
-        const p = host.querySelector('.lb-page p'); const r = p.getBoundingClientRect();
+        const p = host.querySelector('pk-design-surface p'); const r = p.getBoundingClientRect();
         canvas.dispatchEvent(new PointerEvent('pointermove', { clientX: r.left + 4, clientY: r.top + 4, bubbles: true }));
         await t.settle();
         t.ok(!chip.hidden, 'hovering an element shows the chip');
-        t.ok(Math.abs(chip.getBoundingClientRect().top - r.top) < 4, 'the chip is positioned over the hovered element');
-        const edit = chip.querySelector('pk-button[data-node-action="edit"]'), trash = chip.querySelector('pk-button[data-node-action="trash"]');
+        const cr = chip.getBoundingClientRect();
+        t.ok(Math.abs(cr.right - r.right) < 4 && cr.bottom <= r.top + cr.height && cr.top >= r.top - cr.height - 8, 'the chip sits at the hovered element\'s top-right corner');
+        const edit = canvas.querySelector('pk-button[data-node-action="edit"]'), trash = canvas.querySelector('pk-button[data-node-action="trash"]');
         t.ok(edit.getAttribute('icon-name') === 'edit' && trash.getAttribute('icon-name') === 'trash', 'the chip draws edit and trash icons');
         trash.click(); await t.settle();
-        t.eq(host.querySelectorAll('.lb-page p').length, 0, 'the trash icon deletes the element it is pinned to');
+        t.eq(host.querySelectorAll('pk-design-surface p').length, 0, 'the trash icon deletes the element it is pinned to');
         // Touch has no hover: the chip is reached through selection instead (a tap already selects via the existing canvas click handler).
-        const h2 = host.querySelector('.lb-page h2'); const rh = h2.getBoundingClientRect();
+        const h2 = host.querySelector('pk-design-surface h2'); const rh = h2.getBoundingClientRect();
         canvas.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
         canvas.dispatchEvent(new MouseEvent('click', { clientX: rh.left + 4, clientY: rh.top + 4, bubbles: true }));
         await t.settle();
@@ -647,7 +648,7 @@ export const toolCases = [
         const host = t.stage('');
         const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p><pk-badge>Three</pk-badge>' });
         await t.load(host);
-        const page = host.querySelector('.lb-page');
+        const page = host.querySelector('pk-design-surface');
         const items = () => [...page.querySelectorAll(':scope > pk-sortable.lb-canvas-sortable > pk-sortable-item')];
         t.eq(items().length, 3, 'each top-level node is a draggable pk-sortable-item');
         const first = items()[0], last = items()[2];
@@ -666,7 +667,7 @@ export const toolCases = [
         const builder = await mountLayoutBuilder(host, { html: '<pk-card heading="Open"></pk-card>' });
         await t.load(host);
         const paletteBadge = () => host.querySelector('.lb-palette pk-button[data-tag="pk-badge"]');
-        const card = host.querySelector('.lb-page pk-card'); const rc = card.getBoundingClientRect();
+        const card = host.querySelector('pk-design-surface pk-card'); const rc = card.getBoundingClientRect();
         const before = builder.getModel().nodes.length;
         const b = paletteBadge(); const br = b.getBoundingClientRect();
         b.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 31, clientX: br.left + 4, clientY: br.top + 4, button: 0, bubbles: true, composed: true }));
@@ -677,17 +678,17 @@ export const toolCases = [
         t.eq(builder.getModel().nodes.length, before + 1, 'dropping outside any container adds a new top-level row');
         t.eq(builder.getModel().nodes.at(-1).tag, 'pk-badge', 'the dragged tag is what was inserted');
         // The first drop repainted the canvas (paintCanvas rebuilds every element): re-query the card, the old reference is detached.
-        const card2 = host.querySelector('.lb-page pk-card'); const rc2 = card2.getBoundingClientRect();
+        const card2 = host.querySelector('pk-design-surface pk-card'); const rc2 = card2.getBoundingClientRect();
         const b2 = paletteBadge(); const br2 = b2.getBoundingClientRect();
         b2.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 32, clientX: br2.left + 4, clientY: br2.top + 4, button: 0, bubbles: true, composed: true }));
         window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 32, clientX: rc2.left + rc2.width / 2, clientY: rc2.top + rc2.height / 2, bubbles: true, composed: true }));
         await t.settle();
-        t.ok(card2.hasAttribute('data-lb-drop-target'), 'hovering a container mid-drag marks it as the drop target');
+        t.ok(host.querySelector('pk-design-surface').dropTarget === card2, 'hovering a container mid-drag marks it as the drop target');
         window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 32, clientX: rc2.left + rc2.width / 2, clientY: rc2.top + rc2.height / 2, bubbles: true, composed: true }));
         await t.settle();
         // The drop committed the insert, which repainted the canvas again: check the outline on the live card, not the now-detached card2.
-        const card3 = host.querySelector('.lb-page pk-card');
-        t.ok(!card3.hasAttribute('data-lb-drop-target'), 'the drop-target outline clears once the drop lands');
+        const card3 = host.querySelector('pk-design-surface pk-card');
+        t.ok(!host.querySelector('pk-design-surface').dropTarget && card3, 'the drop-target outline clears once the drop lands');
         t.ok(builder.getModel().nodes.find(n => n.tag === 'pk-card').slots[''].some(c => c.tag === 'pk-badge'), 'dropping on the card inserted the badge inside it: the drop is slot-aware');
         builder.destroy();
     }],
