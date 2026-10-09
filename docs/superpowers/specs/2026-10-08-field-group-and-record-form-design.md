@@ -58,7 +58,7 @@ Callback properties (never JSON, per STANDARDS "business logic"): `visible(spec,
 
 Slots: `label-action-<key>` per field (replaces the Blazor `LabelAction` render fragment); `footer`.
 
-Events (bubble, composed, `pk-` prefix): `pk-change { key, value, values }` on every committed change (the control's own documented commit, not raw `input`); `pk-field-search { key, query }` is not needed when the `search` callback is set (the callback form is the one specified; the event form is the Blazor path, see 6.2).
+Events (bubble, composed, `pk-` prefix): `pk-field-change { key, value, values }` on every committed change (the control's own documented commit, not raw `input`); `pk-field-search { key, query }` is not needed when the `search` callback is set (the callback form is the one specified; the event form is the Blazor path, see 6.2).
 
 Methods: `problems()`, `report(show = true)`, `checkField(key)`, `focusField(key)`, `refresh()`.
 
@@ -129,7 +129,7 @@ Tokens only: `--pk-field-group-gap` (default `--space-4`), `--pk-field-group-col
 
 ### 2.7 What the existing module becomes
 
-`mountFieldGroup(container, { fields, data, onChange })` becomes a thin wrapper: it creates one `pk-field-group`, sets `fields`/`values`, maps `onChange` to `pk-change`, and `refresh(data)` to setting `values`. Its callers keep working; the module's logic (kind table, `when`, rebuild) leaves. The module's own light-DOM trick is no longer needed because pk-form now looks through the group.
+`mountFieldGroup(container, { fields, data, onChange })` becomes a thin wrapper: it creates one `pk-field-group`, sets `fields`/`values`, maps `onChange` to `pk-field-change`, and `refresh(data)` to setting `values`. Its callers keep working; the module's logic (kind table, `when`, rebuild) leaves. The module's own light-DOM trick is no longer needed because pk-form now looks through the group.
 
 ---
 

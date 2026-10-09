@@ -260,7 +260,8 @@ export const appShellCases = [
         history.replaceState(null, '', '#/a');
         const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod('a') }, { id: 'b', title: 'B', load: async () => mod('b') }], search: { placeholder: 'Find' } });
         await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
-        const search = el.querySelector('pk-app-bar-search'), input = search.shadowRoot.querySelector('[part="control"]');
+        await until(() => el.querySelector('pk-app-bar-search'), 'the search'); await customElements.whenDefined('pk-app-bar-search'); // loaded on demand: wait, so the case also passes on its own (--elements)
+        const search = el.querySelector('pk-app-bar-search'), input = await until(() => search.shadowRoot?.querySelector('[part="control"]'), 'the search input');
         const type = async text => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400); };
         await type('one');
         t.eq(JSON.stringify(got.a), '["one"]', 'module a heard the query');
@@ -283,12 +284,39 @@ export const appShellCases = [
         await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
         const handle = ctxA.tasks.run({ title: 'Importing', cancellable: true, run: ({ signal }) => new Promise(resolve => signal.addEventListener('abort', () => { aborted = true; resolve(); })) });
         const stack = el.querySelector('pk-toast-stack[position="bottom-end"]');
-        await until(() => stack.querySelector('pk-toast'), 'the task toast');
+        await until(() => stack.querySelector('pk-toast'), 'the task toast'); await t.load(stack); // loaded on demand: wait, so the case also passes on its own (--elements)
         t.ok(stack.querySelector('pk-toast').getAttribute('heading') === 'Importing', 'the toast carries the title, in the shell stack');
         app.navigate('/b');
         await until(() => el.querySelector('#pk-main')?.textContent.includes('b'), 'module b');
         await handle.promise;
         t.ok(aborted && handle.state === 'cancelled', 'leaving the module cancelled its cancellable task');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    // #346: a route with persist: true keeps its page element while another route shows, and the same element is shown again on return.
+    ['mountApp: a persist route keeps its page element across navigation (hidden while away, same element on return) and leaving the module frees it', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        let built = 0, freed = 0;
+        const a = defineModule({ id: 'a', routes: [
+            { path: '/', page: 'custom', persist: true, config: { mount: h => { built++; h.textContent = 'kept page'; return () => { freed++; }; } } },
+            { path: '/other', page: 'custom', config: { mount: h => { h.textContent = 'other page'; } } },
+        ] });
+        const b = defineModule({ id: 'b', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'b'; } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => a }, { id: 'b', title: 'B', load: async () => b }] });
+        const main = () => el.querySelector('#pk-main');
+        await until(() => main()?.textContent.includes('kept page'), 'the kept page');
+        const kept = main().querySelector('[data-pk-page]');
+        app.navigate('/a/other');
+        await until(() => main()?.textContent.includes('other page'), 'the other page');
+        t.ok(kept.isConnected && kept.hidden && freed === 0, 'the kept page stays in the page, hidden, and is not cleaned up');
+        app.navigate('/a');
+        await until(() => !kept.hidden && !main().textContent.includes('other page'), 'the kept page again');
+        t.ok(main().querySelector('[data-pk-page]') === kept && built === 1, 'the same element is shown again and was built once');
+        app.navigate('/b');
+        await until(() => main()?.textContent.includes('b') && !main().textContent.includes('kept'), 'module b');
+        t.ok(freed === 1 && !kept.isConnected, 'leaving the module cleans the kept page up and removes it');
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],

@@ -7,7 +7,7 @@ const type = async (t, inner, text) => { inner.value = text; inner.dispatchEvent
 const ready = async t => { for (const n of ['pk-popover', 'pk-button', 'pk-calendar']) await customElements.whenDefined(n); await t.settle(); await t.settle(); };
 
 export const formCases = [
-    ['field-group: a plain field spec renders pk-field + the right control, initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
+    ['field-group module: a plain field spec renders pk-field + the right control (in the pk-field-group element), initial values come from data, a commit updates data and calls onChange, and pk-form\'s own validation needs no wiring', async t => {
         const { mountFieldGroup } = await import('../../modules/field-group/field-group.js');
         const host = t.stage('<pk-form><form><div id="fields"></div><pk-button type="submit">Save</pk-button></form></pk-form>'); await t.load(host);
         const data = { name: 'Ada', qty: 2, active: true, status: 'open' };
@@ -23,11 +23,12 @@ export const formCases = [
             onChange: (key, value) => changes.push([key, value]),
         });
         await t.settle();
-        const [nameField, qtyField, activeField, statusField] = host.querySelectorAll('pk-field');
+        await t.load(host); const el = host.querySelector('pk-field-group'); await t.load(el.shadowRoot); await t.settle();
+        const [nameField, qtyField, activeField, statusField] = el.shadowRoot.querySelectorAll('pk-field');
         const nameInput = nameField.querySelector('pk-input'), qtyInput = qtyField.querySelector('pk-input');
         const activeBox = activeField.querySelector('pk-checkbox'), statusSelect = statusField.querySelector('pk-select');
         t.eq(nameInput.value, 'Ada'); t.eq(qtyInput.value, '2'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'open');
-        t.eq(statusSelect.querySelectorAll('option').length, 2);
+        t.eq(statusSelect.options.length, 2);
 
         await type(t, nameInput.part('control'), 'Grace');
         nameInput.part('control').dispatchEvent(ev('change')); await t.settle();
@@ -44,7 +45,7 @@ export const formCases = [
         t.eq(nameInput.value, 'Restored'); t.eq(qtyInput.value, '9'); t.ok(activeBox.checked); t.eq(statusSelect.value, 'closed');
 
         group.destroy();
-        t.eq(host.querySelectorAll('pk-field').length, 0, 'destroy removes every field it built');
+        t.eq(host.querySelectorAll('pk-field-group').length, 0, 'destroy removes the group it built');
     }],
 
     ['input: typing updates value, reports input and change, and the form receives it', async t => {
@@ -283,6 +284,17 @@ export const formCases = [
         t.eq(tg.part('control').getAttribute('aria-pressed'), 'false'); tg.click(); await t.settle(); t.ok(tg.pressed); t.eq(seen.value, 'bold'); t.eq(tg.part('control').getAttribute('aria-pressed'), 'true'); t.ok(tg.hasAttribute('pressed'));
     }],
 
+    ['button: collapse folds the label into the icon at and below its breakpoint (measured in this viewport), never without an icon, and the name stays', async t => {
+        const host = await t.mount('<div><pk-button collapse="phone" icon-name="plus">Add item</pk-button><pk-button collapse="tablet" icon-name="plus">Add item</pk-button><pk-button collapse="phone">Add item</pk-button><pk-button icon-name="plus">Add item</pk-button></div>'); await t.settle();
+        const [p, tb, none, plain] = host.children, w = b => b.part('control').getBoundingClientRect().width;
+        const { mediaBelow } = await import('../../js/breakpoints.js');
+        const phone = mediaBelow('phone').matches, tablet = mediaBelow('tablet').matches;
+        t.ok(p.hasAttribute('has-icon') && !none.hasAttribute('has-icon'), 'has-icon follows the icon');
+        t.eq(w(p) < w(plain) - 20, phone, `collapse=phone is icon-only exactly on a phone viewport`);
+        t.eq(w(tb) < w(plain) - 20, tablet, 'collapse=tablet is icon-only on a tablet or a phone');
+        t.ok(Math.abs(w(none) - w(plain)) < w(plain) * 0.6 && w(none) > 60, 'without an icon the label never collapses');
+        t.ok(p.textContent.includes('Add item') && !p.hasAttribute('hidden'), 'the words stay in the slot as the name');
+    }],
     ['button link: href renders an anchor that keeps its slots and takes target, rel and download; disabled and busy drop the href and swallow the click', async t => {
         const b = await t.mount('<pk-button href="#x" download="a.csv" variant="secondary" label="Go now">Go</pk-button>'); t.ok(!b.part('control').hasAttribute('rel')); b.target = '_blank'; await t.settle();
         let c = b.part('control'); t.eq(c.localName, 'a'); t.eq(c.getAttribute('href'), '#x'); t.eq(c.getAttribute('target'), '_blank'); t.eq(c.getAttribute('rel'), 'noopener', 'noopener is the default for _blank'); t.eq(c.getAttribute('download'), 'a.csv'); t.eq(c.getAttribute('role'), 'link'); t.eq(c.getAttribute('aria-label'), 'Go now');
@@ -454,7 +466,7 @@ export const formCases = [
         const g = host.querySelector('pk-property-grid');
         g.config = { groups: [{ heading: 'Size', fields: [{ key: 'w', type: 'unit', label: 'Width', units: ['px', '%'], min: 0, max: 100 }] }] };
         g.values = { w: { value: 140, unit: '%' } };
-        await t.settle(); await t.settle();
+        await t.settle(); await t.load(g.shadowRoot); await t.settle(); await t.settle();
         const input = g.shadowRoot.querySelector('pk-input'), unit = input.querySelector('pk-select[slot="suffix"]');
         t.ok(unit, 'a pk-select sits in the suffix slot');
         const a = input.getBoundingClientRect(), b = unit.getBoundingClientRect();
@@ -471,7 +483,7 @@ export const formCases = [
             { heading: 'A', fields: [{ key: 'a', type: 'number', label: 'A' }, { key: 'off', type: 'text', label: 'Off', disabled: true }, { key: 'gone', type: 'text', label: 'Gone', hidden: true }, { key: 'sw', type: 'switch', label: 'S' }, { key: 'z', type: 'text', label: 'Z' }] },
             { heading: 'B', collapsed: true, fields: [{ key: 'b', type: 'text', label: 'B' }] },
         ] };
-        await t.settle(); await t.settle();
+        await t.settle(); await t.load(g.shadowRoot); await t.settle(); await t.settle();
         const rows = g.$rows, send = (el, key, ctrlKey) => { const e = new KeyboardEvent('keydown', { key, ctrlKey, bubbles: true, composed: true, cancelable: true }); el.dispatchEvent(e); return e; };
         const inner = r => r.c.shadowRoot?.querySelector('input') ?? r.c;
         const focusedKey = () => Object.keys(rows).find(k => rows[k].c.matches(':focus-within') || rows[k].c.shadowRoot?.activeElement || g.shadowRoot.activeElement === rows[k].c);

@@ -18,6 +18,7 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 - Text is `pk-text`, not a `<p>` or `<span>` with a class: a paragraph (`<pk-text tone="muted">`), a run inside a line (`<pk-text inline weight="semibold">`), a lead or eyebrow (`variant="lead"`, `variant="eyebrow"`), a mono figure (`font="mono"`). Real headings stay native `<h1>` to `<h6>` (they carry the heading role, level and outline); `variant="h1"` to `"h6"` is only the look, for text that should resemble a heading without being one. Layout is `pk-stack`, `pk-cluster` and `pk-grid`, not a styled `<div>`. A bulleted or numbered prose list is `pk-list` (`ordered`, `marker`: `auto`/`disc`/`decimal`/`check`/`none`, `gap`, `dense`), items as plain elements (a `span`, an `a`, `pk-text inline`) never a raw `ul`, `ol` or `li`. A max-width, padded content region (a doc-like page, a gallery stage, a code view) is `pk-container` (`size` `sm`/`md`/`lg`/`full` on the `--content-*` tokens, `padding` on the space scale, `scroll` `y`/`both` for a region that scrolls on its own — it needs `label` and gets `tabindex=0`/`role=region`), not a hand-styled `<div>` with `max-width`, padding and `overflow`.
 - A built-in page type's `heading` (and `pk-page-header`'s `title` slot) is a light-DOM `<pk-heading level="1">`, a real heading in its own shadow tree: `querySelector('h1')` does not find it, so select `h1, pk-heading[level="1"]` (what `mountApp` focuses after navigation; the page shell gives it `tabindex="-1"`). Blazor's `PkPageHeader` draws the same slotted `pk-heading` for `Title`. The `record` page type asks before an in-app leave with unsaved edits (link, breadcrumb, back/forward: `ctx.dialogs.confirm`, Stay keeps the page, edits and address; a Save that navigates itself and `ctx.navigate` are not asked): nothing to configure.
 - Never use anything a reference marks **Deprecated**: it logs a warning once, and it is removed in the release named there; use what the table says.
+- A `mountApp` module route marked `persist: true` keeps its built page (hidden) while another route shows and is freed with the module; use it for list-like routes, not ones that depend on params (other params rebuild it).
 - Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it. An app is made of modules (`defineModule`, `createModuleHost`; `references/app.md`), long work is a task (never a hand-built toast or progress bar), and messages and questions go through `ctx.notify`/`ctx.dialogs` (never hand-built toast or dialog markup) — see `references/app.md`, "Tasks" and "Notifications and dialogs".
 
 ## References (open on demand)
@@ -91,6 +92,8 @@ document.getElementById('settings').addEventListener('submit', event => {
 
 `pk-form` shows the browser's validation messages in each field and a summary; the controls are form-associated, so `FormData` sees them by `name`. Field and control details: `references/elements-form-layout.md`, `references/elements-form-controls.md`.
 
+A create-or-edit record page (toolbar with Cancel, Delete and Save, tabs, an error alert, a sidebar) is `pk-record-form` around your own `<form>`: `<pk-record-form cancellable deletable error=""><form>...</form><pk-card slot="sidebar">...</pk-card></pk-record-form>`. Listen for `pk-record-save` (it fires only once `pk-form` found the form valid), `pk-record-cancel` and `pk-record-delete`; set `busy` and `error` while and after you save, and call its `submit()` from a Save button in the page header (`actions-in-header`). It owns no values or save logic; the toolbar buttons fold to icons on a phone.
+
 ### Link that looks like a button
 
 A control that navigates is a link, not a click handler: give `pk-button` an `href` and it renders a real anchor with the same variants, sizes and icons (middle and ctrl-click, the status-bar URL and Enter work natively; Space does not activate a link).
@@ -106,6 +109,8 @@ A control that navigates is a link, not a click handler: give `pk-button` an `hr
 ### Icon-only button
 
 Write an icon button like any other button, with its name as the text, and add `icon`: the text is hidden visually and stays the accessible name (and the hover tooltip); only the icon is drawn. `icon-name` draws a sprite symbol for you; a `pk-icon` or an svg in the button works too. `label` overrides the text. An icon button with no name at all fails the scorecard.
+
+To show icon and text on a large screen and only the icon on a small one, give a button with an icon `collapse="phone"` (icon only on a phone) or `collapse="tablet"` (icon only on a tablet and a phone). The text stays the accessible name; a button with no icon never collapses.
 
 ```html
 <pk-button icon variant="ghost" icon-name="plus">Add item</pk-button>
@@ -140,33 +145,19 @@ if (location.hostname === 'localhost') {
 
 Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
 
-`mountDevTools` is itself a thin consumer of `mountToolDock` (`./plainkit/modules/tool-dock/tool-dock.js`), the generic floating/docked tabbed panel underneath it — a single tool panel that docks to the bottom of the page or fills a container, toggled by a hotkey, resizable between named sizes, given its own `panels` (`{ id, title, mount(el, context) }`, same shape as `mountDevTools`'s). Point it at your own app content (`mountToolDock(null, { mode: 'dock', panels, label: 'My tools', launcherLabel: 'Tools' })`) when you want that pattern — a canvas/record/page as the main surface with tool-type panels (properties, history, an outline, a console, a chat) docked around it — for something other than the dev tools. It is not `pk-dock`: `pk-dock` is the multi-pane workspace element (Palette | Canvas | Properties, drag-to-dock, layout builder's own chrome above), while `mountToolDock` is one floating tabbed panel, not a workspace of panes. In your own markup the same job is the `pk-tray` element: `<pk-tray label="Tools" launcher-label="Open tools" hotkey="Ctrl+`" sizes>...</pk-tray>` pins a non-modal panel to a viewport edge (`edge`: bottom, top, start, end; `size`: small, medium, large) with a floating launcher and no focus trap, closes on Escape inside it, Close or the launcher, and reports `pk-open`, `pk-close` (cancelable) and `pk-size-change` (Blazor: `PkTray`, `@bind-Open`, `@bind-Size`); use `pk-drawer` instead when the panel should be modal.
+`mountDevTools` is a thin consumer of `mountToolDock`, the generic docked tabbed panel (`pk-tray` is the same job in your own markup); when to use each, how it differs from `pk-dock`, and the options: `references/tools.md`, "Tool dock and tray".
 
 ### Let people build pages with the layout builder
 
 Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
 
-```js
-import { mountLayoutBuilder } from './plainkit/modules/layout-builder/layout-builder.js';
-
-const builder = await mountLayoutBuilder(document.getElementById('editor'), {
-    html: startingMarkup,   // or model: a saved document
-    onchange: ({ model, reason }) => keepDraft(model),
-    onsave: ({ model, html }) => savePage(model, html),
-});
-```
+Call `mountLayoutBuilder(element, { html | model, onchange, onsave })` from `./plainkit/modules/layout-builder/layout-builder.js` (it returns a promise of the builder handle); the full example is in `references/tools.md`.
 
 The palette lists every element in `elements/api.json`, so a new element appears without a change. The chrome is a `pk-dock` (Palette, Structure and HTML tabs | canvas | Properties: resize, drag or use the Move menu to move a panel between groups, close and reopen panels) with File (Save, only when `onsave` is given) and Edit menus in its toolbar, each item showing its shortcut. Selection, moving (Alt+arrows or Edit > Move), duplicate, wrap, delete, undo and redo work by keyboard, menu and touch; right click (or Shift+F10, or a long press) on a canvas element opens its element menu, and on a palette button offers Add; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the dock becomes one tab strip and the File and Edit menus stay in its toolbar, so Save is reachable by touch. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
 
 ### Enable logging
 
-```js
-import { createLogger, configureLogging } from './plainkit/js/log.js';
-
-configureLogging({ level: 'info', scopes: { checkout: 'debug' }, routes: { error: ['console', 'toast'] } });
-const log = createLogger('checkout');
-log.info('order placed', { id: 42 });
-```
+In code: `configureLogging({ level, scopes, routes })` once at start, then `createLogger('checkout')` from `./plainkit/js/log.js` and `log.info(...)`; the worked example is in `references/logging.md`.
 
 Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs, the viewer and measuring a page's own load metrics (`measurePage`): `references/logging.md`.
 

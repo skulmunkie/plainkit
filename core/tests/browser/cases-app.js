@@ -308,6 +308,7 @@ export const appCases = [
 
     ['record page type (#353): mounted and destroyed 100 times leaves no listener (the leave guard included), observer, timer or element behind', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading>')); // mountPage waits for these, loaded on demand: define them first, so the case also passes on its own (--elements)
         const box = document.createElement('div'); t.stage('').append(box);
         const config = { fields: [{ name: 'name', label: 'Name', required: true }], sidebar: [{ heading: 'Summary', fields: ['name'] }], load: async () => ({ name: 'Widget' }), save: async () => {}, mode: 'edit' };
         const cycle = async () => {
@@ -334,6 +335,7 @@ export const appCases = [
 
     ['record page type (#353): loading while load() is pending, a rejection shows the danger alert with a working Retry, edit shows the form and a server error lands on its field', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading><pk-form></pk-form><pk-field-list></pk-field-list><pk-field></pk-field>')); // loaded on demand: define them first, so the case also passes on its own (--elements)
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'record', config: { id: '1', fields: [{ name: 'name', label: 'Name', required: true }], load: () => {
@@ -457,6 +459,7 @@ export const appCases = [
         t.eq(el.querySelector('pk-pager').getAttribute('label'), 'Guide navigation');
         const t1 = el.querySelector('.doc-page-title').getBoundingClientRect(), c1 = crumbs().getBoundingClientRect();
         t.ok(c1.bottom <= t1.top + 1, 'the trail sits above the title');
+        t.ok(t1.top - c1.bottom >= 4, `the trail and the title have a space between them (${t1.top - c1.bottom}px)`);
         host.replaceChildren();
     }],
 

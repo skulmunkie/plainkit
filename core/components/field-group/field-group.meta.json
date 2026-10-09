@@ -8,7 +8,7 @@
   "formAssociated": true,
   "group": "Form layout",
   "tier": "component",
-  "summary": "A form drawn from a list of field specs: each entry becomes a pk-field with the right control (pk-input of every scalar type, pk-textarea, pk-select, pk-checkbox, pk-switch, pk-range, pk-combobox). Set fields (label, kind, hint, required, constraints, options, when) and values ({ key: value }); a committed change updates values and raises pk-change. A field with when (data: { field, equals | in | not }) or a visible(spec, values) callback property is not rendered at all while it is hidden, so a hidden required field can never block a submit; its value stays in values. The controls live in this element's shadow tree. The element is form-associated: a surrounding form gets one FormData entry per shown field (a checkbox or switch only when checked; a hidden or disabled field none) and the first invalid field's message as its validity, anchored on that field, which is focused when a submit or reportValidity() fails; pk-form lists every problem through problems(), report() and checkField(). A form reset puts the values back to the ones last assigned.",
+  "summary": "A form drawn from a list of field specs: each entry becomes a pk-field with the right control (pk-input of every scalar type, pk-textarea, pk-select, pk-checkbox, pk-switch, pk-range, pk-combobox). Set fields (label, kind, hint, required, constraints, options, when) and values ({ key: value }); a committed change updates values and raises pk-field-change. A field with when (data: { field, equals | in | not }) or a visible(spec, values) callback property is not rendered at all while it is hidden, so a hidden required field can never block a submit; its value stays in values. A combobox field takes its options from the search({ key, query }) callback property when it is set (a promise of [{ value, label }], like pk-combobox's pk-combo-query): the combobox then does not filter them itself, and a newer query makes an older answer stale. The controls live in this element's shadow tree. The element is form-associated: a surrounding form gets one FormData entry per shown field (a checkbox or switch only when checked; a hidden or disabled field none) and the first invalid field's message as its validity, anchored on that field, which is focused when a submit or reportValidity() fails; pk-form lists every problem through problems(), report() and checkField(). A form reset puts the values back to the ones last assigned.",
   "props": [
     {
       "name": "fields",
@@ -22,7 +22,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "The current values, { key: value }: a string, a boolean (checkbox, switch) or a number (range). The element keeps its own copy and replaces this property when the user commits a change (it never edits the object you gave it); pk-change carries the same values."
+      "description": "The current values, { key: value }: a string, a boolean (checkbox, switch) or a number (range). The element keeps its own copy and replaces this property when the user commits a change (it never edits the object you gave it); pk-field-change carries the same values."
     },
     {
       "name": "name",
@@ -67,17 +67,20 @@
       "description": "Makes every control read-only."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "", "description": "Holds children whose slot is label-action- followed by a field key: each appears beside that field's label (a button, a badge). A child with no such slot name is not shown." }
+  ],
   "events": [
     {
-      "name": "pk-change",
+      "name": "pk-field-change",
       "detail": {
         "key": "string",
-        "value": "string | boolean | number",
+        "value": "object",
         "values": "object"
       },
       "detailProps": {
         "key": "string",
+        "value": "object",
         "values": "object"
       },
       "description": "The user committed a change to one field: its key and value, and a fresh copy of every value. Fields whose when depends on it have already been shown or hidden."

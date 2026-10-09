@@ -37,10 +37,7 @@
       "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
     },
     "Components/PkFieldGroup.razor": {
-      "category": "debt"
-    },
-    "Components/PkGallery.razor": {
-      "category": "wrapper"
+      "category": "typed-generics"
     },
     "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
@@ -56,9 +53,6 @@
     },
     "Components/PkQuality.razor": {
       "category": "mount"
-    },
-    "Components/PkRecordForm.razor": {
-      "category": "debt"
     },
     "Components/PkScorecard.razor": {
       "category": "mount"
@@ -150,6 +144,9 @@
       "category": "base"
     },
     "PkEnums.cs": {
+      "category": "dto"
+    },
+    "PkFieldDef.cs": {
       "category": "dto"
     },
     "PkFieldGroupTypes.cs": {

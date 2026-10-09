@@ -18,6 +18,13 @@ Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and re
 
 ## Definition of done
 
+**Two tiers, so a small change reaches a pull request fast.** While you work, and before you open the pull request, run only the **targeted** checks: `node scripts/verify.mjs --changed`
+(files changed versus `origin/next-0.13`, else `origin/main`, or `--base <ref>`; it prints what it chose and why). It maps docs-only to the changelog checks, a test file to just that test, an element folder to its
+tests plus the tests that mention it plus the element guards, a Blazor mapping or component to a filtered `dotnet test` plus the generator tests, and `core/js`, base or tokens to the broader set; **a file it does not know falls back to the
+full node job**, so it never skips when unsure. Add `--browser` for the element's browser cases (`node scripts/attest-browser.mjs --elements a,b`, or `--filter <substring,...>`: it reports "N of M cases selected" and exits 1 if
+nothing matches) and its UI review (`node scripts/ui-review.mjs --elements a,b`, scenarios included). The **full** `node scripts/verify.mjs --pack`, the whole browser suite, the full UI review and the Node 22 job run
+once per integration batch and in CI before a release. A failing check is never ignored, weakened or allow-listed in either tier. The rest of this section is the full definition.
+
 **One command runs everything CI runs, in the same groups: `node scripts/verify.mjs`** (`--fast` = bootstrap + changelog + node tests for the inner loop, `--no-dotnet` skips the .NET build,
 `--pack` adds the package check; about a minute in full). Before you finish it must pass. The commands it runs, from the repository root, in this
 order (the first produces every generated file, which are not in source control):
@@ -140,6 +147,12 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 - **Composition tiers.** Every element's `meta.json` declares a `tier` (`element`, `component`, `page`, `shell`; never `module`), and a `page` also names its `pageType`, the `core/js/app/pages` factory it belongs to. An element's own js/html/css may not name an element of a higher tier (C1), and a `tier: element` element renders no `pk-*` at all, being built from base HTML only (C4: name lookups and events from slotted children are fine; static helper functions do not count when listed in the reviewed `core/tools/tiers.helpers.json`, #766) (`core/tools/tiers.mjs`, `core/tests/tiers.test.mjs`). Findings that predate the rule are in `core/tools/tiers.baseline.json`: only new ones fail, the baseline only shrinks (fix the source and remove the entry; never add one). The design is `docs/superpowers/specs/2026-09-30-composition-tiers-design.md` (#736).
 - **Blazor stays a thin 1:1 wrapper.** `scripts/tests/blazor-wrapper.test.mjs` (#801): every hand-written file under `blazor/src/PlainKit.Blazor` is listed with a category in `blazor/handwritten.json`; component names are `Pk` + the tag; no timers, stale-load guards, retry loops or layout recipes in hand-written components; per-file line budgets and the known debt are in `blazor/handwritten.baseline.json`, which only shrinks (lower a budget when a file shrinks, delete debt you pay; never raise a budget or add an entry to hide a finding: put the behaviour in core or the generator). A mapping marked `"existing"` needs an `existingReason`.
 - **Privacy.** No personal paths, real email addresses or internal tracker references anywhere (`core/tests/privacy.test.mjs`).
+
+## Issues about how something looks
+
+An issue about a visual defect or a layout expectation carries pictures, not only words: a **found** image (what you saw) and, where one exists, an **expected** image or mockup, with the measurements
+(sizes, gaps, contrast) in the text next to them. GitHub has no upload API for issue attachments, so push each image with `node scripts/issue-image.mjs <issue> <file.png> --name found` (then `--name expected`): it
+stores it on the orphan branch `issue-images` (never merged into `main`, nothing but screenshots, 2 MB at most) and prints the markdown to paste into the issue (`--comment` posts it for you).
 
 ## Commits, pull requests, issues
 

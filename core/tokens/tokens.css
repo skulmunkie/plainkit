@@ -323,14 +323,15 @@
 :root {
     --lb-canvas-h: 40rem;
     --lb-canvas-min-h: 12rem;
-    --lb-border-w: 1px;
-    --lb-focus-offset: -2px;
-    --lb-phone-w: 375px;
-    --lb-tablet-w: 768px;
-    --lb-empty-offset: -1px;
-    --lb-mark-w: 2px;
-    --lb-mark-offset: 2px;
-    --lb-node-controls-z: 2;
+}
+
+/* Design surface (core/elements/design-surface): the page frame widths and the mark outlines; schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --surface-phone-w: 375px;
+    --surface-tablet-w: 768px;
+    --surface-mark-w: 2px;
+    --surface-mark-offset: 2px;
+    --surface-empty-offset: -1px;
 }
 
 /* Site chrome (core/site/site.css): schematic-only sizes with no equivalent on the shared scale. */
@@ -360,11 +361,6 @@
     --gx-title-min-w: 6rem;
     --gx-hidden-size: 1px;
     --gx-table-col1-min-w: 5rem;
-}
-
-/* Tool dock chrome (core/modules/tool-dock/tool-dock.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --td-border-w: 1px;
 }
 
 /* pk-tray: the panel's extent per size choice (height for the bottom and top edges, width for the start and end edges). */

@@ -55,11 +55,15 @@ export function isJsonType(t, known = new Set()) {
     return ids.every(i => SIMPLE.has(i) || known.has(i) || COLLECTION.test(i + '<') || i === 'IDictionary');
 }
 
-/** The public types (record, class, struct, enum) declared in the .cs files directly in `dir`: what a mapping type may name for a JSON parameter. */
+/** The public types (record, class, struct, enum) declared in the .cs files directly in `dir` (and in its DevTools/ folder): what a mapping type may name for a JSON parameter. */
 export function knownTypes(dir) {
     const found = new Set();
-    for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.cs')))
-        for (const m of fs.readFileSync(path.join(dir, f), 'utf8').matchAll(/^public\s+(?:(?:sealed|static|abstract|readonly|partial)\s+)*(?:record\s+struct|record|class|struct|enum)\s+(\w+)/gm)) found.add(m[1]);
+    const files = fs.readdirSync(dir).filter(x => x.endsWith('.cs')).map(x => path.join(dir, x));
+    // DevTools/ holds public data types too (PkGallerySection), in the same namespace.
+    const dev = path.join(dir, 'DevTools');
+    if (fs.existsSync(dev)) files.push(...fs.readdirSync(dev).filter(x => x.endsWith('.cs')).map(x => path.join(dev, x)));
+    for (const f of files)
+        for (const m of fs.readFileSync(f, 'utf8').matchAll(/^public\s+(?:(?:sealed|static|abstract|readonly|partial)\s+)*(?:record\s+struct|record|class|struct|enum)\s+(\w+)/gm)) found.add(m[1]);
     return found;
 }
 
@@ -147,7 +151,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], typeparam: mapping.typeparam, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], methods: [], typeparam: mapping.typeparam, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -232,6 +236,8 @@ export function modelElement(el, mapping, reg) {
             } else if (!ev.fields.length) { cs = 'EventCallback'; call = 'none'; }
             else { cs = `EventCallback<${ev.args}>`; call = 'args'; }
             if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) handler(ev).callbacks.push({ name: p.name, call });
+            // `shows`: a boolean prop of the element that is on exactly when the host listens (OnCancel set shows the Cancel button: cancellable).
+            if (p.shows) out.attrs.push({ attr: kebab(p.shows), expr: `@${p.name}.HasDelegate`, boolean: true });
         } else if (map === 'callback') {
             // A callback property of the element (set from script, not an attribute): the component hands it a .NET reference (PkCallbackSlot) that calls the delegate parameter.
             // callback: the element property; type: the delegate; arg: what JavaScript passes (deserialised); args: the delegate's arguments, from a (default a); result: false for a Task with
@@ -265,6 +271,13 @@ export function modelElement(el, mapping, reg) {
             const call = ev.fields.length ? 'args' : 'none';
             if (declare({ name: pname, kind: 'param', cs: ev.fields.length ? `EventCallback<${ev.args}>` : 'EventCallback', doc: ev.description, cancelable: ev.cancelable })) handler(ev).callbacks.push({ name: pname, call });
         }
+    }
+
+    // ---- 2c. `methods`: [{ name, method, doc }] an awaitable C# method that calls the element's own method (SubmitAsync -> submit()) through the bridge.
+    for (const x of mapping.methods ?? []) {
+        const api = el.methods?.find(e => e.name.replace(/\(.*$/, '') === x.method);
+        if (!api) throw new Error(`${comp}: "methods" lists ${x.method}, which the element does not have`);
+        out.methods.push({ name: x.name, method: x.method, doc: x.doc ?? api.description });
     }
 
     // ---- 3. the model block: the param whose prop is model.prop is two-way through model.event
@@ -350,7 +363,10 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
     const enumValues = () => p.enum ? Object.entries(p.enum).map(([n, v]) => [n, v]) : (api.type === 'enum' ? api.values.map(v => [memberName(v), v]) : null);
     let cs, attr, init, note;
 
-    if (p.enum || (api.type === 'enum' && t === undefined)) {
+    if (p.existingEnum && t) {
+        // An enum the package already defines by hand (PkTheme, PkChrome...): not generated again; the hand-written Attr() gives its attribute value.
+        cs = stripNull(t); attr = 'enum'; r.expr = `@(${p.name}.Attr())`;
+    } else if (p.enum || (api.type === 'enum' && t === undefined)) {
         const typeName = t && !SIMPLE.has(stripNull(t)) ? stripNull(t) : `${comp}${pascal(p.name)}`;
         enumType(typeName, enumValues(), comp);
         const members = enumValues();
@@ -439,7 +455,7 @@ export function renderTargets(moved) {
 export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const L = [];
     L.push(`@* Generated by ${GENERATOR} from core/dist/elements/api.json and blazor/mappings/${mappingName}.json. Do not edit: change the mapping or the SDK and run it again. *@`);
-    L.push(`@namespace ${ns}`, ...(m.typeparam ? [`@typeparam ${m.typeparam}`] : []), ...(ns === 'PlainKit.Blazor' ? [] : ['@using PlainKit.Blazor']), '@using Microsoft.AspNetCore.Components.Web', ...(m.callbacks.length ? ['@using System.Text.Json'] : []), ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, ...(m.callbacks.length ? ['@implements IDisposable'] : []), '');
+    L.push(`@namespace ${ns}`, ...(m.typeparam ? [`@typeparam ${m.typeparam}`] : []), ...(ns === 'PlainKit.Blazor' ? [] : ['@using PlainKit.Blazor']), '@using Microsoft.AspNetCore.Components.Web', ...(m.callbacks.length ? ['@using System.Text.Json'] : []), ...(m.methods.length ? ['@using Microsoft.JSInterop'] : []), ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, ...(m.callbacks.length ? ['@implements IDisposable'] : []), '');
     // The element. Blazor's own `@onclick` syntax cannot name an event with a hyphen (`@onpk-close` is taken as a plain attribute), so the pk-* events
     // go in a dictionary that is splatted on the element; the value is an EventCallback and the name is the on-prefixed event (registered in
     // PkGeneratedEvents.cs). Native events (click) use the normal syntax.
@@ -466,7 +482,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let i = 1; i < attrs.length; i++) L.push(`${pad}${attrs[i]}${i === attrs.length - 1 ? `>${children}</${m.tag}>` : ''}`);
     }
     L.push('', '@code {');
-    if (m.callbacks.length) L.push('    [Inject] private PkRuntime Runtime { get; set; } = default!;', ...m.callbacks.map(c => `    private readonly PkCallbackSlot ${slotName(c)} = new(${lit(c.prop)});`), '');
+    if (m.callbacks.length || m.methods.length) L.push('    [Inject] private PkRuntime Runtime { get; set; } = default!;', ...m.callbacks.map(c => `    private readonly PkCallbackSlot ${slotName(c)} = new(${lit(c.prop)});`), '');
     m.params.forEach((d, i) => {
         if (i) L.push('');
         L.push(doc(d.doc));
@@ -483,6 +499,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         }
         L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
     }
+    for (const x of m.methods) L.push('', doc(x.doc), `    public async Task ${x.name}() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("call", Element, ${lit(x.method)});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
     if (custom.length) {

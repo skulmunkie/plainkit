@@ -287,6 +287,7 @@ export const cases = [
         t.ok(getComputedStyle(trigger).display !== 'none', 'the overflow trigger is shown once tabs do not fit');
         const m0 = el.querySelector('pk-tab[value="m0"]');
         t.ok(getComputedStyle(m0).display !== 'none', 'the selected (first) tab stays visible even if it would otherwise overflow');
+        await Promise.all(['pk-dropdown', 'pk-button', 'pk-menu-item'].map(n => customElements.whenDefined(n))); await t.settle(); // the trigger is built from elements inside the tabs' shadow root: wait for them, so the case also passes on its own (--filter), not only after earlier cases loaded them
         trigger.focus(); trigger.click(); await t.settle();
         t.eq(trigger.getAttribute('aria-expanded'), 'true', 'opening the menu is announced');
         const item = el.shadowRoot.querySelector('[part="more"] pk-menu-item');
@@ -320,9 +321,11 @@ import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCase
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
 import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
 import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
+import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
 import { moduleMountCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
+import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);

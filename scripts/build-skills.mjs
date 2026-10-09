@@ -361,6 +361,8 @@ function toolsMd(src) {
     for (const m of src.modules) out.push(`## ${m.name}`, '', fence('text', m.header), '');
     out.push('## element inspector', '', 'File `dist/js/element-inspector.js`, entry point `createElementInspector(container)`.', '', fence('text', src.inspectorHeader), '');
     out.push('## The code explorer element', '', 'The code explorer is also a custom element, `<pk-code-explorer>`, defined by `dist/modules/code-explorer/element.js` (events `pk-code-explorer-open` and `pk-code-explorer-error`, height hook `--pk-code-explorer-height`). `mountCodeExplorer` creates it for you.', '');
+    out.push('## Tool dock and tray', '', '`mountDevTools` is itself a thin consumer of `mountToolDock` (`./plainkit/modules/tool-dock/tool-dock.js`), the generic floating/docked tabbed panel underneath it — a single tool panel that docks to the bottom of the page or fills a container, toggled by a hotkey, resizable between named sizes, given its own `panels` (`{ id, title, mount(el, context) }`, same shape as `mountDevTools`\'s). Point it at your own app content (`mountToolDock(null, { mode: \'dock\', panels, label: \'My tools\', launcherLabel: \'Tools\' })`) when you want that pattern — a canvas/record/page as the main surface with tool-type panels (properties, history, an outline, a console, a chat) docked around it — for something other than the dev tools. It is not `pk-dock`: `pk-dock` is the multi-pane workspace element (Palette | Canvas | Properties, drag-to-dock, layout builder\'s own chrome above), while `mountToolDock` is one floating tabbed panel, not a workspace of panes. In your own markup the same job is the `pk-tray` element: `<pk-tray label="Tools" launcher-label="Open tools" hotkey="Ctrl+`" sizes>...</pk-tray>` pins a non-modal panel to a viewport edge (`edge`: bottom, top, start, end; `size`: small, medium, large) with a floating launcher and no focus trap, closes on Escape inside it, Close or the launcher, and reports `pk-open`, `pk-close` (cancelable) and `pk-size-change` (Blazor: `PkTray`, `@bind-Open`, `@bind-Size`); use `pk-drawer` instead when the panel should be modal.', '', 'For the canvas of a page editor,`pk-design-surface` frames the page being edited: `<pk-design-surface label="Page canvas" width="tablet">...</pk-design-surface>` is a scrolling ground with full, tablet or phone width frames and an inert page (`interactive` lifts that). You set the properties `selected`, `dropTarget` and `chipFor` to page nodes, flag nodes `data-surface-hidden` or `data-surface-empty`, and the surface draws the marks as overlay boxes and places the action chip (slot `chip`, real buttons you own) beside `chipFor`; `dragging` hides the chip during an external drag. It reports `pk-surface-pick`, `pk-surface-hover` and `pk-surface-key` and never changes the selection itself; `reveal(node)` scrolls a node into view (Blazor: `PkDesignSurface`, with `Chip` and `Empty` fragments; the node properties are set by script).', '');
+    out.push('## Mounting the layout builder', '', 'Pages built by your users from the SDK\'s own elements, kept as JSON and exported as CSP-safe markup; the host stores the page, the builder stores nothing.', '', '```js', 'import { mountLayoutBuilder } from \'./plainkit/modules/layout-builder/layout-builder.js\';', '', 'const builder = await mountLayoutBuilder(document.getElementById(\'editor\'), {', '    html: startingMarkup,   // or model: a saved document', '    onchange: ({ model, reason }) => keepDraft(model),', '    onsave: ({ model, html }) => savePage(model, html),', '});', '```', '');
     return out.join('\n');
 }
 
@@ -792,11 +794,15 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
 
 <PkPageHeader Crumbs="_crumbs" Title="@_title" />
 <PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_busy" Error="@_error" SaveLabel="Save location">
-    <PkCard Heading="Details">
-        <PkField Label="Name" Required>
-            <PkInput @bind-Value="_form.Name" Name="name" Required />
-        </PkField>
-    </PkCard>
+    <form @onsubmit:preventDefault>
+        <PkStack>
+            <PkCard Heading="Details">
+                <PkField Label="Name" Required>
+                    <PkInput @bind-Value="_form.Name" Name="name" Required />
+                </PkField>
+            </PkCard>
+        </PkStack>
+    </form>
     <Sidebar>
         <PkCard Heading="Status"><PkBadge>@_status</PkBadge></PkCard>
     </Sidebar>
@@ -849,10 +855,10 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
     // the page template of a create-or-edit record page: no element of its own (issue 261)
     const rf = src.razor.PkRecordForm;
     if (rf) {
-        files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Components/PkRecordForm.razor'), '',
-            'A hand-written component with no element of its own, composed of existing components: a `PkForm` (`Summary`) around a native form, and in it a `PkStack` of the toolbar, your `Tabs`, the error alert and the body. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs. The body is your `PkCard`s in `ChildContent` and, when `Sidebar` is given, a `PkDetailLayout` with the status cards beside them; without `Sidebar` it is the main column alone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours, or `PkRecordEditor`\'s (`references/record-editor.md`): this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
+        files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Generated/PkRecordForm.razor and blazor/mappings/record-form.json'), '',
+            'A generated wrapper of the `pk-record-form` element (issue 999), which draws the page: a toolbar, your `Tabs`, the error alert and a `pk-form` (summary of the problems, focus on the first, live checks) around the `<form>` you put in `ChildContent`. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs; on a phone the buttons fold to their icons. `ChildContent` is your own `<form @onsubmit:preventDefault>` holding the fields (a `PkStack` of `PkCard`s); when `Sidebar` is given the status cards sit beside it, one column on a phone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours, or `PkRecordEditor`\'s (`references/record-editor.md`): this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
             '`OnDelete` is an `EventCallback`, and an unset one (`default`) hides Delete: to offer it only for an existing record keep a field, `private EventCallback _delete;`, assign `_delete = EventCallback.Factory.Create(this, DeleteAsync);` when the record is loaded, and pass `OnDelete="_delete"`.', '',
-            '`ActionsInHeader` (issue 324) drops the toolbar row and hands the same Cancel/Actions/Delete/Save buttons out through the `HeaderActions` property for the page\'s own `PkPageHeader` to draw in its `ActionsContent`, so they stay in the sticky title bar instead of scrolling away underneath it. Because Blazor only fills in a `@ref` after the referenced component has rendered once, and the header usually sits above `PkRecordForm` in the page\'s markup, the page needs one extra render before the header shows them: capture `PkRecordForm` with `@ref`, pass `_form?.HeaderActions` as the header\'s `ActionsContent`, and add `protected override void OnAfterRender(bool firstRender) { if (firstRender) StateHasChanged(); }`.', '',
+            '`ActionsInHeader` drops the toolbar row so the buttons can live in the page\'s own `PkPageHeader` (`ActionsContent`) and stay in the sticky title bar. Put your own Save button there and have it call `await _form!.SubmitAsync()` on an `@ref` to `PkRecordForm`: pk-form checks the form first and `OnValid` runs when it is valid (a `form` attribute cannot reach into the element). There is no `HeaderActions` property any more.', '',
             '## Routed list and record page', '',
             'A list page and a record page are two routes, and the route is the only state. The list navigates on a row click and on Add; the record page loads by the route parameter, draws itself with `PkRecordForm`, and navigates back to the list after Save, Cancel and Delete. This is a full page per record; the `routed-list-detail` template of the `plainkit-sdk` skill (`PkWorkspace`) is the list and record side by side.', '',
             '```razor', RECORD_LIST_SAMPLE, '```', '', '```razor', RECORD_PAGE_SAMPLE, '```', '',
@@ -932,9 +938,13 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
 {
     <PkPageHeader Crumbs="_crumbs" Title="@Title" />
     <PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_editor.Busy" Error="@_editor.Error">
-        <PkCard Heading="Details">
-            <PkField Label="Name" Required><PkInput @bind-Value="form.Name" Name="name" Required /></PkField>
-        </PkCard>
+        <form @onsubmit:preventDefault>
+            <PkStack>
+                <PkCard Heading="Details">
+                    <PkField Label="Name" Required><PkInput @bind-Value="form.Name" Name="name" Required /></PkField>
+                </PkCard>
+            </PkStack>
+        </form>
     </PkRecordForm>
 }
 

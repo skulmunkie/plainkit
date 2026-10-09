@@ -1,12 +1,12 @@
 // The layout builder on pk-dock (issue 432): the resting workspace (Palette, Structure and HTML tabs | canvas | Properties) under the dock toolbar holding the
 // builder's own File and Edit menus, the Edit menu open (accelerators as plain text), the canvas's right-click menu open at an element, and, in the phone
 // viewport, the dock's one tab strip with the menus still in its toolbar and the Canvas tab chosen.
-const PAGE = '<pk-stack gap="md"><h2>Welcome</h2><p>A short introduction.</p><pk-card heading="Next step"><p>Waiting for review.</p></pk-card></pk-stack>';
+const PAGE = '<pk-stack gap="md"><h2>Welcome</h2><p>A short introduction.</p><pk-card heading="Next step"><p>Waiting for review.</p></pk-card><p hidden>A hidden note.</p><pk-card heading="Empty card"></pk-card></pk-stack>';
 const DOCK = '#host pk-dock';
 
 export default {
     name: 'layout-builder',
-    elements: ['dock', 'dropdown', 'menu-item', 'context-menu'],
+    elements: ['dock', 'dropdown', 'menu-item', 'context-menu', 'design-surface'],
     issue: 432,
     html: '<div id="host"></div>',
     async setup(frame) {
@@ -16,8 +16,8 @@ export default {
         await mountLayoutBuilder(host, { html: PAGE, onsave: () => {} });
         // A right click has no declarative step: this setter dispatches one at the middle of the page's heading, as the browser would.
         Object.defineProperty(host, 'demoContext', { set() {
-            const h2 = host.querySelector('.lb-page h2'), r = h2.getBoundingClientRect();
-            host.querySelector('.lb-canvas').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true, composed: true, cancelable: true }));
+            const h2 = host.querySelector('pk-design-surface h2'), r = h2.getBoundingClientRect();
+            host.querySelector('pk-design-surface').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true, composed: true, cancelable: true }));
         } });
     },
     steps: [
@@ -30,6 +30,13 @@ export default {
         { shot: 'phone-canvas', on: ['phone'] },
         { set: '#host', prop: 'demoContext', value: true }, 
         { shot: 'context-menu' },
+        { key: 'Escape' },
+        { click: '#host pk-design-surface h2' },
+        { shot: 'selected-chip' },
+        { click: '#host pk-button[data-width="phone"]' },
+        { shot: 'width-phone' },
+        { click: '#host pk-button[data-width="tablet"]' },
+        { shot: 'width-tablet' },
     ],
     expect(t) {
         t.ok(t.metric(':root', 'scrollHeight') <= t.viewport.height + 1, 'the page does not scroll: the dock scrolls its panels inside itself');
@@ -61,11 +68,20 @@ export default {
             t.inViewport('#host pk-dropdown[data-menu="edit"] >>> [part=menu]');
             t.hasText('#host pk-dropdown[data-menu="edit"] pk-menu-item[data-action="undo"]', 'Ctrl+Z');
         }
-        if (t.shot === 'phone-canvas' || t.shot === 'context-menu') t.visible('#host .lb-canvas', 'the canvas shows');
+        if (t.shot === 'phone-canvas' || t.shot === 'context-menu') t.visible('#host pk-design-surface', 'the canvas shows');
+        if (t.shot === 'selected-chip') {
+            t.visible('#host pk-design-surface >>> [part=mark-selected]', 'the heading is framed as selected');
+            t.visible('#host pk-design-surface >>> [part=chip]', 'the Edit/Delete chip shows beside the selection');
+            t.inViewport('#host pk-design-surface >>> [part=chip]');
+            t.within('#host pk-design-surface >>> [part=chip]', '#host pk-design-surface');
+            t.visible('#host pk-design-surface >>> [part=mark-hidden]', 'the hidden note is veiled');
+            t.visible('#host pk-design-surface >>> [part=mark-empty]', 'the empty card has its placeholder frame');
+        }
+        if (t.shot === 'width-phone' || t.shot === 'width-tablet') t.within('#host pk-design-surface >>> [part=page]', '#host pk-design-surface >>> [part=frame]');
         if (t.shot === 'context-menu') {
             t.visible('#host pk-context-menu.lb-canvas-menu >>> [part=menu]', 'the canvas context menu opened');
             t.inViewport('#host pk-context-menu.lb-canvas-menu >>> [part=menu]');
-            t.exists('#host .lb-page h2[data-lb-selected]');
+            t.visible('#host pk-design-surface >>> [part=mark-selected]', 'the heading is framed as selected');
         }
     },
 };

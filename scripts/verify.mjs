@@ -7,6 +7,8 @@
 //   node scripts/verify.mjs --pack           also dotnet pack + node scripts/check-package.mjs
 //   node scripts/verify.mjs --scorecard      also the SDK Scorecard quality run (node scripts/scorecard-sweep.mjs --only quality, needs Chrome or Edge, under a minute)
 //   node scripts/verify.mjs --only node      one CI job: a group (lint, node, dotnet, browser, pack, scorecard) or a check id (see --list); what it needs runs too
+//   node scripts/verify.mjs --changed        the inner loop for a small change: only the checks that cover the files changed versus --base (default origin/next-0.13, else origin/main), with what was chosen and why;
+//                                            an unmapped file falls back to the full node job. With --browser also the element's browser cases and UI review. scripts/verify-changed.mjs has the mapping.
 //   node scripts/verify.mjs --list           the checks, their groups and what each fix is
 //   --base <ref>   the pull request's base (default: origin/main when it exists; CI passes GITHUB_BASE_REF). Without one the checks that compare
 //                  against the base (changelog-pr, release-*) are skipped, and the output says so.
@@ -26,6 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JOBS, budgetNote } from './ci-report.mjs';
 import { isGenerated } from './generated.mjs';
+import { planChanged, buildChecks, describePlan, defaultBase, changedSince, gatherContext } from './verify-changed.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NODE = process.execPath;
@@ -102,17 +105,18 @@ export const CHECKS = [
 ];
 for (const c of CHECKS) c.name = c.id;
 
-export const USAGE = `usage: node scripts/verify.mjs [--fast] [--no-dotnet] [--browser] [--pack] [--scorecard] [--only <group|check>[,...]] [--base <ref>] [--verbose] [--list]
+export const USAGE = `usage: node scripts/verify.mjs [--fast] [--changed] [--no-dotnet] [--browser] [--pack] [--scorecard] [--only <group|check>[,...]] [--base <ref>] [--verbose] [--list]
 groups: ${GROUPS.join(', ')}   (node scripts/verify.mjs --list shows the checks)`;
 
 /** Parses argv. Returns { opts, errors }. */
 export function parseArgs(argv) {
-    const opts = { fast: false, noDotnet: false, browser: false, pack: false, scorecard: false, only: [], base: null, verbose: false, list: false, budget: null, fixTable: false, updateDocs: false, help: false };
+    const opts = { changed: false, fast: false, noDotnet: false, browser: false, pack: false, scorecard: false, only: [], base: null, verbose: false, list: false, budget: null, fixTable: false, updateDocs: false, help: false };
     const errors = [];
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[i + 1]; if (v === undefined || v.startsWith('--')) { errors.push(`${a} needs a value`); return null; } i++; return v; };
         if (a === '--fast') opts.fast = true;
+        else if (a === '--changed') opts.changed = true;
         else if (a === '--no-dotnet') opts.noDotnet = true;
         else if (a === '--browser') opts.browser = true;
         else if (a === '--pack') opts.pack = true;
@@ -131,6 +135,7 @@ export function parseArgs(argv) {
     for (const o of opts.only) if (!known.has(o)) errors.push(`--only ${o}: not a group or check (groups: ${GROUPS.join(', ')}; checks: ${CHECKS.map(c => c.id).join(', ')})`);
     if (opts.budget && !JOBS[opts.budget]) errors.push(`--budget ${opts.budget}: not a group (${GROUPS.join(', ')})`);
     if (opts.fast && opts.only.length) errors.push('use either --fast or --only, not both');
+    if (opts.changed && (opts.fast || opts.only.length || opts.noDotnet || opts.pack || opts.scorecard)) errors.push('--changed chooses its own checks: combine it only with --browser, --base and --verbose');
     return { opts, errors };
 }
 
@@ -307,7 +312,9 @@ async function generatedTree(ctx) {
 async function packCheck(ctx) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-pack-'));
     try {
-        const p = await runCmd(['dotnet', 'pack', 'blazor/src/PlainKit.Blazor', '-c', 'Release', '-o', dir, '--nologo'], ctx.root);
+        // The dotnet check (ordered before this one) already built PlainKit.Blazor in Release; when it passed in this run, pack reuses that build (same output, no second compile).
+        const reuse = ctx.passed?.has('dotnet') ? ['--no-build'] : [];
+        const p = await runCmd(['dotnet', 'pack', 'blazor/src/PlainKit.Blazor', '-c', 'Release', '-o', dir, '--nologo', ...reuse], ctx.root);
         if (p.code !== 0) return { ok: false, output: p.out };
         const c = await runCmd([NODE, 'scripts/check-package.mjs', dir], ctx.root);
         return { ok: c.code === 0, output: c.out };
@@ -347,6 +354,7 @@ async function runOne(check, ctx) {
 /** Runs the selected checks in parallel, each after the checks it needs. `onDone(check, result)` is called as each finishes. Returns the results in table order. */
 export async function runChecks(selected, ctx, onDone = () => {}) {
     const started = new Map();
+    ctx.passed ??= new Set();
     const start = check => {
         if (started.has(check.id)) return started.get(check.id);
         const p = (async () => {
@@ -356,6 +364,7 @@ export async function runChecks(selected, ctx, onDone = () => {}) {
             const blocked = deps.find(d => d.status !== 'ok');
             const result = blocked ? { status: 'skip', ms: 0, reason: 'a check it needs failed', out: '' } : await runOne(check, ctx);
             result.check = check;
+            if (result.status === 'ok') ctx.passed.add(check.id);
             onDone(check, result);
             return result;
         })();
@@ -417,8 +426,18 @@ export async function main(argv, env = process.env) {
         return 0;
     }
 
-    const selected = selectChecks(opts);
-    const base = resolveBase({ opts, env });
+    let selected, base;
+    if (opts.changed) {
+        base = defaultBase(opts.base, root);
+        if (!base) { console.error('verify: --changed needs a base: neither origin/next-0.13 nor origin/main exists; pass --base <ref>'); return 2; }
+        const files = changedSince(base, root);
+        if (files === null) { console.log(`verify: could not list the files changed versus ${base}; running the default checks instead (never skipping when unsure)`); selected = selectChecks(opts); }
+        else {
+            const plan = planChanged(files, gatherContext(root));
+            console.log(describePlan(plan, { base, browser: opts.browser }));
+            selected = buildChecks(plan, { CHECKS, NODE, browser: opts.browser });
+        }
+    } else { selected = selectChecks(opts); base = resolveBase({ opts, env }); }
     const dirtyBefore = git(['status', '--porcelain', '--untracked-files=no']).stdout.split('\n').filter(Boolean);
     const ctx = { root, base, dirtyBefore };
     const ci = Boolean(env.GITHUB_ACTIONS);
@@ -428,7 +447,7 @@ export async function main(argv, env = process.env) {
     const total = performance.now() - t0;
     const count = s => results.filter(r => r.status === s).length;
     console.log(`\nverify: ${count('ok')} ok, ${count('FAIL')} failed, ${count('skip')} skipped in ${seconds(total)}`);
-    const label = opts.only.length ? `verify --only ${opts.only.join(',')}` : opts.fast ? 'verify --fast' : 'verify';
+    const label = opts.changed ? 'verify --changed' : opts.only.length ? `verify --only ${opts.only.join(',')}` : opts.fast ? 'verify --fast' : 'verify';
     writeCiFiles(results, total, label, env);
     if (count('FAIL')) {
         console.log(`Reproduce one check: node scripts/verify.mjs --only ${results.find(r => r.status === 'FAIL').check.id}`);
