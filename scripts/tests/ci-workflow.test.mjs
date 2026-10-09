@@ -53,7 +53,7 @@ test('concurrency cancels superseded runs; permissions are minimal and only the 
     assert.ok(job('ci-summary').includes('pull-requests: write'));
     assert.match(job('ci-summary'), /if: always\(\) && github\.event_name == 'pull_request'/);
     assert.match(job('ci-summary'), /needs: \[lint, node, dotnet, pack, scorecard\]/);
-    assert.match(job('ci-summary'), /actions\/github-script@[0-9a-f]{40} # v7\.\d+\.\d+/);
+    assert.match(job('ci-summary'), /actions\/github-script@[0-9a-f]{40} # v\d+\.\d+\.\d+/);
 });
 
 test('only first-party actions are used (actions/*), pinned to a commit SHA', () => {
