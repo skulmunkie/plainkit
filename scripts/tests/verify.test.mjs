@@ -123,7 +123,7 @@ function runFixture() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-fixture-'));
     fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('passes but is noisy', () => { console.error('[pk:app] page threw Error: boom'); });\ntest('first real failure', () => assert.equal(1, 2));\ntest('second real failure', () => { throw new Error('nope'); });\n");
     fs.writeFileSync(path.join(dir, 'b.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a failure in another file', () => assert.ok(false, 'esbuild cannot be resolved'));\ntest('fine', () => {});\n");
-    const r = spawnSync(process.execPath, ['--test', path.join(dir, 'a.test.mjs'), path.join(dir, 'b.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
+    const r = spawnSync(process.execPath, ['--test', '--test-reporter=spec', path.join(dir, 'a.test.mjs'), path.join(dir, 'b.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
     return { dir, out: r.stdout + r.stderr, status: r.status };
 }
 
@@ -146,6 +146,14 @@ test('failureSummary shows all failing tests, no noise from passing ones, and on
     assert.ok(text.includes('3 failing tests') && text.includes('FIX: '));
     const f = failuresOf([{ status: 'FAIL', check: CHECKS.find(c => c.id === 'node-tests'), out }])[0];
     assert.ok(f.excerpt.includes('second real failure') && f.excerpt.includes('b.test.mjs'), 'the sticky comment excerpt carries the same list');
+});
+
+test('failedTests also reads TAP output (Node 22 default reporter), leaf failures only, no noise', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-tap-'));
+    fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('noisy pass', () => { console.error('[pk:app] threw Error: boom'); });\ntest('suite', async t => { await t.test('inner fail', () => assert.equal(1, 2)); });\ntest('top fail', () => { throw new Error('x'); });\n");
+    const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', path.join(dir, 'a.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
+    const got = failedTests(r.stdout + r.stderr).map(t => `${path.basename(t.file)}: ${t.name}`).sort();
+    assert.deepEqual(got, ['a.test.mjs: inner fail', 'a.test.mjs: top fail']);
 });
 
 test('failureSummary does not cut a long list of failures (60 failing tests, all named) and falls back to the excerpt without a failing-tests block', () => {
