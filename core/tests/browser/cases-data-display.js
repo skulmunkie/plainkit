@@ -289,6 +289,8 @@ export const dataDisplayCases = [
         t.ok(!add.hidden && add.textContent === '+ Add SKU', 'the label shows the button');
         const own = el.querySelector('#own').getBoundingClientRect(), b = add.getBoundingClientRect();
         t.ok(b.left >= own.right - 1, `after the actions slot (add ${Math.round(b.left)}, own ${Math.round(own.right)})`); t.ok(Math.abs((b.top + b.height / 2) - (own.top + own.height / 2)) < b.height, 'on the same row');
+        t.eq(add.getAttribute('collapse'), 'phone', 'the add button folds to its icon on a phone (#993)'); t.ok(add.iconName === 'plus' || add.getAttribute('icon-name') === 'plus', 'the add button has a plus icon (#993)');
+        t.ok(b.width > 60, `icon and text at desktop width (${Math.round(b.width)}px, window ${innerWidth})`);
         add.click(); await t.settle(); t.eq(added, 1, 'one pk-add per press');
     }],
 
