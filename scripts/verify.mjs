@@ -312,7 +312,9 @@ async function generatedTree(ctx) {
 async function packCheck(ctx) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-pack-'));
     try {
-        const p = await runCmd(['dotnet', 'pack', 'blazor/src/PlainKit.Blazor', '-c', 'Release', '-o', dir, '--nologo'], ctx.root);
+        // The dotnet check (ordered before this one) already built PlainKit.Blazor in Release; when it passed in this run, pack reuses that build (same output, no second compile).
+        const reuse = ctx.passed?.has('dotnet') ? ['--no-build'] : [];
+        const p = await runCmd(['dotnet', 'pack', 'blazor/src/PlainKit.Blazor', '-c', 'Release', '-o', dir, '--nologo', ...reuse], ctx.root);
         if (p.code !== 0) return { ok: false, output: p.out };
         const c = await runCmd([NODE, 'scripts/check-package.mjs', dir], ctx.root);
         return { ok: c.code === 0, output: c.out };
@@ -352,6 +354,7 @@ async function runOne(check, ctx) {
 /** Runs the selected checks in parallel, each after the checks it needs. `onDone(check, result)` is called as each finishes. Returns the results in table order. */
 export async function runChecks(selected, ctx, onDone = () => {}) {
     const started = new Map();
+    ctx.passed ??= new Set();
     const start = check => {
         if (started.has(check.id)) return started.get(check.id);
         const p = (async () => {
@@ -361,6 +364,7 @@ export async function runChecks(selected, ctx, onDone = () => {}) {
             const blocked = deps.find(d => d.status !== 'ok');
             const result = blocked ? { status: 'skip', ms: 0, reason: 'a check it needs failed', out: '' } : await runOne(check, ctx);
             result.check = check;
+            if (result.status === 'ok') ctx.passed.add(check.id);
             onDone(check, result);
             return result;
         })();
