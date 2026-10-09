@@ -54,7 +54,8 @@ export default {
         frame.__toggles = 0; frame.__cls = 0;
         const watch = () => new MutationObserver(list => { for (const m of list) if (m.attributeName === 'data-on') frame.__toggles++; }).observe(frame.querySelector(OV).shadowRoot.querySelector('[part=overlay]'), { attributes: true }); // the overlay element shows itself (data-on on its overlay part) after its own delay
         (frame.defaultView ?? window).customElements.whenDefined('pk-loading-overlay').then(() => setTimeout(watch, 0));
-        new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) frame.__cls += e.value; }).observe({ type: 'layout-shift', buffered: false });
+        frame.__shifts = [];
+        new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) { frame.__cls += e.value; frame.__shifts.push(`${e.value.toFixed(4)} at ${Math.round(e.startTime)}ms: ${(e.sources ?? []).map(s => `${s.node?.nodeName?.toLowerCase()}${s.node?.id ? `#${s.node.id}` : ''} ${JSON.stringify(s.previousRect)} -> ${JSON.stringify(s.currentRect)}`).join('; ')}`); } }).observe({ type: 'layout-shift', buffered: false });
     },
     steps: [
         { shot: 'idle' },
@@ -79,6 +80,8 @@ export default {
             idleRect = t.rect(BODY);
             t.hidden(SHADE, 'the overlay'); t.ok(t.attr(BODY, 'aria-busy') === null, 'no aria-busy while idle'); t.exists(OV);
             t.ok(t.attr(OV, 'busy') === null, 'the overlay is idle');
+            // The shifts of the page's own first layout (elements upgrading, fonts, issue 1039) are not the overlay's: the score below counts what happens after the idle shot.
+            frame.__cls = 0; frame.__shifts.length = 0;
         }
         if (t.shot === 'fast-never-shown') { t.hidden(SHADE, 'the overlay'); t.ok(frame.__toggles === 0, `the overlay flashed ${frame.__toggles} time(s) for an action shorter than the delay`); t.ok(t.attr(BODY, 'aria-busy') === null, 'aria-busy cleared'); same(); }
         if (t.shot === 'inside-the-delay') { t.hidden(SHADE, 'the overlay (inside the delay)'); t.ok(t.attr(BODY, 'aria-busy') === 'true', 'the region is aria-busy at once'); same(); }
@@ -94,7 +97,7 @@ export default {
         if (t.shot === 'second-done-first-running') { shown(); t.hasText(LABEL, 'Loading orders'); t.ok(t.attr(BODY, 'aria-busy') === 'true', 'still aria-busy: the first action runs'); same(); }
         if (t.shot === 'idle-again') {
             t.hidden(SHADE, 'the overlay'); t.ok(t.attr(BODY, 'aria-busy') === null, 'aria-busy cleared after the last action');
-            t.ok(frame.__cls < 0.001, `layout shift score ${frame.__cls}`); same();
+            t.ok(frame.__cls < 0.001, `layout shift score ${frame.__cls}: ${frame.__shifts.join(' | ')}`); same();
         }
         if (t.shot === 'tall-top' || t.shot === 'tall-scrolled') {
             legible(t, '#tall', `the tall region (${t.shot})`);
