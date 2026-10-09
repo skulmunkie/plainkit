@@ -363,11 +363,6 @@
     --gx-table-col1-min-w: 5rem;
 }
 
-/* Tool dock chrome (core/modules/tool-dock/tool-dock.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --td-border-w: 1px;
-}
-
 /* pk-tray: the panel's extent per size choice (height for the bottom and top edges, width for the start and end edges). */
 :root {
     --tray-small-h: 25vh;
