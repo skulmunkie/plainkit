@@ -19,6 +19,21 @@ async function open(t, hash = '', search = '', width = 1280) {
 }
 
 export const galleryCases = [
+    ['gallery: every foundation, every overview and the sample lists draw a titled page, and none logs a problem or says "Not found" (the views are one module, #401)', async t => {
+        const p = await open(t, '#/overview');
+        const pages = { overview: '#/overview', foundations: '#/foundations', elements: '#/elements', samples: '#/samples', patterns: '#/samples/patterns', layouts: '#/samples/layouts', templates: '#/samples/templates' };
+        for (const id of ['colours', 'typography', 'spacing', 'radii-shadows', 'breakpoints', 'utilities', 'icons', 'tokens']) pages[id] = `#/foundations/${id}`;
+        for (const [name, hash] of Object.entries(pages)) {
+            await p.go(hash);
+            await until(() => p.heading() && p.heading() !== 'Not found' && (p.view().querySelector('pk-page-header, pk-card, pk-table, pk-grid')), `the ${name} page to draw`);
+            t.ok(p.heading() !== 'Not found', `${name}: a titled page, not "Not found" (${p.heading()})`);
+        }
+        await p.go('#/samples/patterns'); const first = await until(() => p.view().querySelector('pk-card[href^="#/samples/patterns/"]')?.getAttribute('href'), 'a pattern card');
+        await p.go(first); await until(() => p.view().querySelector('iframe.gx-page-frame'), 'the full-page frame of a pattern'); await until(() => p.doc.querySelector('#gx-title').textContent, 'the slim bar to carry the pattern title');
+        const log = p.win.PkLog?.getLogBuffer?.() ?? [];
+        t.eq(log.filter(e => e.level === 'warn' || e.level === 'error').map(e => `${e.scope}: ${e.message}`).join('; '), '', 'nothing was logged as a problem');
+    }],
+
     ['gallery: mounting again ends the gallery on show, and destroy() leaves no listener, observer or timer behind and empties its container (#401)', async t => {
         const { mountGallery } = await import(new URL('../../site/gallery/gallery.js', import.meta.url).href);
         const inst = instrument();
