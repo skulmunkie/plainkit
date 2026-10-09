@@ -131,6 +131,7 @@ export const toolCases = [
         card.destroy();
     }],
     ['theme editor module: with its preview on it mounts (a regression: the preview frame handler was used before it was defined) and the preview frame holds the sample the module writes', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
         const editor = await mountThemeEditor(host, { target: host });
@@ -142,6 +143,7 @@ export const toolCases = [
     }],
 
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -163,6 +165,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor module: a brand colour generates palette swatches at 4.5:1 or better, Apply writes ordinary edits, and a colour it cannot read disables Apply', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -191,6 +194,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor module: built-in presets replace the edits, and saved themes are applied, renamed and deleted by name and kept in localStorage', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const key = `pk-test-saved-${Math.random().toString(36).slice(2)}`;
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
@@ -225,6 +229,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor module: undo and redo walk every change, the Changes tab lists edits against the stylesheet, and resets work per edit and per group', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -262,6 +267,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor module: the export tab has a copy-paste snippet and a text-only theme link that another editor (or the page hash) applies as edits', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -292,6 +298,7 @@ export const toolCases = [
         other.destroy(); editor.destroy();
     }],
     ['theme editor module: the Contrast tab audits every pair in both themes under the edits, counts the failures and jumps to the token', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -320,6 +327,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor module: an app supplies the initial theme and its own presets (CSS, JSON or object), and reports each change with the exported CSS', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -344,6 +352,7 @@ export const toolCases = [
         stored.destroy();
     }],
     ['theme editor module: blocked storage is logged and saved themes still work until the page closes', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
         const host = t.stage('');
@@ -365,6 +374,7 @@ export const toolCases = [
     }],
 
     ['theme editor Custom SDK tab: theme only exports a small zip without touching the SDK; the widths are validated and the delta table follows them', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
         const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
@@ -406,6 +416,7 @@ export const toolCases = [
         editor.destroy();
     }],
     ['theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
         const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });

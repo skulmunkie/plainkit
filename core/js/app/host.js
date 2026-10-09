@@ -158,13 +158,12 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     }
 
     // A route with persist: true keeps its mounted page (a.kept, by route node) while another page shows: it is hidden, not torn down, and shown again on return; leaving the module frees it.
-    const free = async (a, e) => { await safe(e.page, 'page cleanup', a.lg); await safe(e.end, 'page cleanup', a.lg); e.host.remove(); };
+    const free = async (a, e) => { await safe(e.page, 'page cleanup', a.lg); await safe(e.end, 'page cleanup', a.lg); e.host.remove(); a.kept.delete(e.node); };
     const dropPage = async a => { const e = a.page; a.page = null; if (e) await (a.kept.get(e.node) === e ? (e.host.hidden = true) : free(a, e)); };
     const leave = () => { const a = active; active = null; return a && end(a); };
     async function end(a) {
         await dropPage(a);
         for (const e of a.kept.values()) await free(a, e);
-        a.kept.clear();
         await safe(() => a.def.unmount?.(a.ctx), 'unmount', a.lg);
         await safe(a.cleanup, 'mount cleanup', a.lg);
         await a.dispose();
@@ -184,7 +183,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         // Only page hosts (kept ones, here) stay in the body; a skeleton or a state is replaced.
         const place = host => { for (const c of [...box.body.children]) if (!c.hasAttribute('data-pk-page')) c.remove(); host.parentNode ?? box.body.append(host); };
         if (old?.key === key) { box.ready(); place(old.host); old.host.hidden = false; a.page = old; return 'ok'; }
-        if (old) { a.kept.delete(m.node); await free(a, old); }
+        if (old) await free(a, old);
         const host = doc.createElement('div'), sc = a.pageScope();
         host.setAttribute('data-pk-page', spec.type);
         try {
@@ -195,14 +194,13 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             const cfg = typeof spec.config === 'function' ? spec.config(route, sc.ctx) : spec.config;
             const cleanup = cleanupOf(await factory(into, cfg, sc.ctx));
             load();
-            if (!alive(t) || a !== active) { await safe(cleanup, 'page cleanup', a.lg); await sc.end(); host.remove(); return 'superseded'; }
+            if (!alive(t) || a !== active) { await free(a, { page: cleanup, end: sc.end, host }); return 'superseded'; }
             a.page = { page: cleanup, end: sc.end, host, node: m.node, key };
             if (keep) a.kept.set(m.node, a.page);
             return 'ok';
         } catch (e) {
             a.lg.error(`the page for ${route.path} failed`, e);
-            await sc.end();
-            host.remove();
+            await free(a, { end: sc.end, host });
             if (alive(t) && a === active) box.fail(`Could not show ${a.entry.title}`, e, () => show(a.entry.id, r));
             return 'error';
         }
