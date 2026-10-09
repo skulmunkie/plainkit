@@ -1,5 +1,0 @@
----
-type: breaking
-issue: 805
----
-`pk-data-table` and `pk-lookup-picker` lose their `config` property: the plain props are the only way. Migration, one key per prop (attribute in kebab-case, or set the property): `columns`, `filters` (new plain prop on `pk-data-table`), `pageSize` (`page-size`), `pageSizeOptions`, `sort`, `sortDir`, `search`, `searchLabel`, `searchDebounce`, `pagerLabel`, `label`, `caption`, `empty`, `noResults` (`no-results`), `loadError` (`load-error`); `searchable: false` is `hide-search`. `<pk-data-table config='{"columns":[...],"pageSize":10}'>` becomes `<pk-data-table columns='[...]' page-size="10">`, and `el.config = { ...cfg }` becomes `Object.assign(el, cfg)`. `pk-lookup-picker` keeps `columns`, `pageSize` and `searchLabel` and gains `filters`, `empty`, `noResults`, `loadError` and `searchDebounce`; its `config` keys map the same way. The `pk-list-page` and `list` page type `config` is unchanged (the page maps its table keys to the plain props itself). In Blazor, `PkLookupPicker` now sends `columns`, `page-size` and `search-label` instead of `config`; `PkDataTable` already sent plain props.
