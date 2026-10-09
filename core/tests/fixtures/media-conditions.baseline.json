@@ -216,6 +216,10 @@
  "tooltip": [
   "(max-width: 640px)"
  ],
+ "tray": [
+  "(max-width: 640px)",
+  "(prefers-reduced-motion: no-preference)"
+ ],
  "tree-item": [
   "(min-width: 641px)",
   "(prefers-reduced-motion: reduce)"

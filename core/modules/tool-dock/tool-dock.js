@@ -19,6 +19,7 @@ import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
 import { applyDynamic } from '../../js/dynamic.js';
+import { matchesHotkey } from '../../js/hotkey.js';
 
 const log = createLogger('tool-dock');
 const STYLES = ['../../plainkit.css'];
@@ -26,16 +27,8 @@ const OWN_STYLES = ['./tool-dock.css'];
 
 export const SIZES = Object.freeze({ small: '25vh', medium: '40vh', large: '65vh' });
 
-// Does this key event match a chord like "Ctrl+`" or "Ctrl+Shift+D"?
-export function matchesHotkey(event, chord) {
-    if (!chord) return false;
-    const parts = chord.split('+').map(s => s.trim());
-    const key = parts.pop();
-    const want = new Set(parts.map(p => p.toLowerCase()));
-    const has = { ctrl: Boolean(event.ctrlKey || event.metaKey), shift: Boolean(event.shiftKey), alt: Boolean(event.altKey) };
-    return event.key.toLowerCase() === key.toLowerCase()
-        && want.has('ctrl') === has.ctrl && want.has('shift') === has.shift && want.has('alt') === has.alt;
-}
+// The chord matcher is shared with pk-tray (js/hotkey.js); it stays exported from here.
+export { matchesHotkey };
 
 export async function mountToolDock(container, options = {}) {
     const { mode = 'dock', hotkey = 'Ctrl+`', theme, panels = [], label, launcherLabel } = options;

@@ -1,0 +1,66 @@
+/* pk-tray: a viewport-fixed, non-modal tool panel and its floating launcher. The host is display: contents, so the fixed boxes pin to the viewport wherever it sits. */
+:host { display: contents; --tray-from: translateY(100%); --tray-dir: 1; --tray-h: var(--pk-tray-medium-h, var(--tray-medium-h)); --tray-w: var(--tray-medium-w); }
+
+:host([size="small"]) { --tray-h: var(--pk-tray-small-h, var(--tray-small-h)); --tray-w: var(--tray-small-w); }
+
+:host([size="large"]) { --tray-h: var(--pk-tray-large-h, var(--tray-large-h)); --tray-w: var(--tray-large-w); }
+
+:host(:dir(rtl)) { --tray-dir: -1; }
+
+:host([edge="top"]) { --tray-from: translateY(-100%); }
+
+:host([edge="start"]) { --tray-from: translateX(calc(-100% * var(--tray-dir))); }
+
+:host([edge="end"]) { --tray-from: translateX(calc(100% * var(--tray-dir))); }
+
+[part="panel"] {
+    position: fixed;
+    z-index: var(--pk-tray-z, var(--z-flyout));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-flyout);
+    border: 0 solid var(--color-border);
+    inset-inline: 0;
+    inset-block-end: 0;
+    inline-size: auto;
+    block-size: var(--pk-tray-height, var(--tray-h));
+    max-block-size: calc(100dvh - var(--touch-target) - var(--space-3) * 2);
+    border-block-start-width: 1px;
+}
+
+:host(:not([open])) [part="panel"] { display: none; }
+
+:host([edge="top"]) [part="panel"] { inset-block: 0 auto; border-block-start-width: 0; border-block-end-width: 1px; }
+
+:host([edge="start"]) [part="panel"], :host([edge="end"]) [part="panel"] { inset-block: 0; max-block-size: none; block-size: auto; inline-size: min(var(--pk-tray-width, var(--tray-w)), 100vw); border-block-start-width: 0; }
+
+:host([edge="start"]) [part="panel"] { inset-inline: 0 auto; border-inline-end-width: 1px; }
+
+:host([edge="end"]) [part="panel"] { inset-inline: auto 0; border-inline-start-width: 1px; }
+
+[part="header"] { display: flex; flex: none; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-block-end: 1px solid var(--color-border); }
+
+[part="title"] { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); color: var(--color-muted); }
+
+/* Room under the last row for the launcher, which floats over the panel's bottom end. */
+[part="body"] { flex: 1; min-block-size: 0; overflow: auto; padding: var(--space-3); padding-block-end: calc(var(--touch-target) + var(--space-3) * 2); }
+
+:host([edge="top"]) [part="body"] { padding-block-end: var(--space-3); }
+
+[part="launcher"] { position: fixed; z-index: var(--pk-tray-launcher-z, var(--z-pop)); inset-block-end: var(--space-3); inset-inline-end: var(--space-3); }
+
+:host([edge="start"]) [part="launcher"] { inset-inline: var(--space-3) auto; }
+
+@media (--phone) {
+    :host([edge="start"]) [part="panel"], :host([edge="end"]) [part="panel"] { inset-block-end: calc(var(--touch-target) + var(--space-3) * 2); inline-size: 100vw; }
+    :host([edge="start"]) [part="body"], :host([edge="end"]) [part="body"] { padding-block-end: var(--space-3); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    :host([open]) [part="panel"] { animation: tray-in var(--duration-base) var(--ease); }
+}
+
+@keyframes tray-in { from { transform: var(--tray-from); } }

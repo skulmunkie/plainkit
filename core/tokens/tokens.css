@@ -367,6 +367,16 @@
     --td-border-w: 1px;
 }
 
+/* pk-tray: the panel's extent per size choice (height for the bottom and top edges, width for the start and end edges). */
+:root {
+    --tray-small-h: 25vh;
+    --tray-medium-h: 40vh;
+    --tray-large-h: 65vh;
+    --tray-small-w: 20rem;
+    --tray-medium-w: 28rem;
+    --tray-large-w: 40rem;
+}
+
 /* Floating layers (menus, popovers, tooltips, toasts) sit above modals and flyouts: they can open from inside either. */
 :root {
     --z-pop: 1700;
