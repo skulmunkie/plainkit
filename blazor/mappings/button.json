@@ -67,6 +67,11 @@
       "type": "bool"
     },
     {
+      "name": "Collapse",
+      "prop": "collapse",
+      "type": "ButtonCollapse"
+    },
+    {
       "name": "IconName",
       "prop": "iconName",
       "type": "string"

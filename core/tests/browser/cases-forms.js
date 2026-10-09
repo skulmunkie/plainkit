@@ -284,6 +284,16 @@ export const formCases = [
         t.eq(tg.part('control').getAttribute('aria-pressed'), 'false'); tg.click(); await t.settle(); t.ok(tg.pressed); t.eq(seen.value, 'bold'); t.eq(tg.part('control').getAttribute('aria-pressed'), 'true'); t.ok(tg.hasAttribute('pressed'));
     }],
 
+    ['button: collapse folds the label into the icon at and below its breakpoint (measured in this viewport), never without an icon, and the name stays', async t => {
+        const host = await t.mount('<div><pk-button collapse="phone" icon-name="plus">Add item</pk-button><pk-button collapse="tablet" icon-name="plus">Add item</pk-button><pk-button collapse="phone">Add item</pk-button><pk-button icon-name="plus">Add item</pk-button></div>'); await t.settle();
+        const [p, tb, none, plain] = host.children, w = b => b.part('control').getBoundingClientRect().width;
+        const phone = matchMedia('(max-width: 640px)').matches, tablet = matchMedia('(max-width: 1024px)').matches;
+        t.ok(p.hasAttribute('has-icon') && !none.hasAttribute('has-icon'), 'has-icon follows the icon');
+        t.eq(w(p) < w(plain) - 20, phone, `collapse=phone is icon-only exactly on a phone viewport`);
+        t.eq(w(tb) < w(plain) - 20, tablet, 'collapse=tablet is icon-only on a tablet or a phone');
+        t.ok(Math.abs(w(none) - w(plain)) < w(plain) * 0.6 && w(none) > 60, 'without an icon the label never collapses');
+        t.ok(p.textContent.includes('Add item') && !p.hasAttribute('hidden'), 'the words stay in the slot as the name');
+    }],
     ['button link: href renders an anchor that keeps its slots and takes target, rel and download; disabled and busy drop the href and swallow the click', async t => {
         const b = await t.mount('<pk-button href="#x" download="a.csv" variant="secondary" label="Go now">Go</pk-button>'); t.ok(!b.part('control').hasAttribute('rel')); b.target = '_blank'; await t.settle();
         let c = b.part('control'); t.eq(c.localName, 'a'); t.eq(c.getAttribute('href'), '#x'); t.eq(c.getAttribute('target'), '_blank'); t.eq(c.getAttribute('rel'), 'noopener', 'noopener is the default for _blank'); t.eq(c.getAttribute('download'), 'a.csv'); t.eq(c.getAttribute('role'), 'link'); t.eq(c.getAttribute('aria-label'), 'Go now');

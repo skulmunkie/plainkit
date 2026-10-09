@@ -43,6 +43,7 @@ export default Base => class extends Base {
         else { c.removeAttribute('aria-pressed'); c.removeAttribute('aria-expanded'); }
         // An icon button keeps its name while busy (the spinner replaces the icon, not the words), so busy-text does not swap it.
         this.toggleAttribute('has-busy-text', this.busy && this.busyText !== '' && !this.icon);
+        this.toggleAttribute('has-icon', Boolean(this.iconName || this.querySelector(':scope > [slot="start"], :scope > pk-icon')));
         const icon = this.part('icon');
         icon.toggleAttribute('hidden', !this.iconName); // an svg has no hidden property, so the template's data-if cannot do it
         drawIcon(icon.firstChild, this.iconName, (k, m, d) => this.warnOnce(k, m, d));
