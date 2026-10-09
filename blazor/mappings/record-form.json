@@ -1,7 +1,23 @@
 {
   "component": "PkRecordForm",
-  "existing": true,
-  "existingReason": "behaviour: the hand-written PkRecordForm (OnValid, OnCancel and OnDelete callbacks whose presence shows the buttons, HeaderActions as a render fragment) is a different public API from the element's (cancellable, deletable, pk-record-save, submit()); replacing it is a breaking Blazor change that lands in the next step of issue 801. Missing generator feature: none.",
-  "params": [],
-  "notes": "The generated PkRecordForm replaces the hand-written one in the next step; this entry keeps the generator's inventory complete while it exists."
+  "params": [
+    { "name": "SaveLabel", "prop": "saveLabel", "type": "string" },
+    { "name": "DeleteLabel", "prop": "deleteLabel", "type": "string" },
+    { "name": "BusyText", "prop": "busyText", "type": "string" },
+    { "name": "SaveDisabled", "prop": "saveDisabled", "type": "bool" },
+    { "name": "Busy", "prop": "busy", "type": "bool" },
+    { "name": "Error", "prop": "error", "type": "string" },
+    { "name": "ActionsInHeader", "prop": "actionsInHeader", "type": "bool" },
+    { "name": "OnValid", "event": "pk-record-save" },
+    { "name": "OnCancel", "event": "pk-record-cancel", "shows": "cancellable" },
+    { "name": "OnDelete", "event": "pk-record-delete", "shows": "deletable" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment" },
+    { "name": "Sidebar", "slot": "sidebar", "type": "RenderFragment?" },
+    { "name": "Actions", "slot": "actions", "type": "RenderFragment?" },
+    { "name": "Tabs", "slot": "tabs", "type": "RenderFragment?" }
+  ],
+  "methods": [
+    { "name": "SubmitAsync", "method": "submit" }
+  ],
+  "notes": "Generated (issue 999 step 2). OnValid is pk-record-save (raised once pk-form found the form valid); OnCancel and OnDelete are pk-record-cancel and pk-record-delete, and a callback that is set shows its button (the generator's shows option sets cancellable and deletable). ChildContent is your own <form> with its fields: the element no longer draws one. With ActionsInHeader put your own Save button in the page header and have it call SubmitAsync() on an @ref to the component (it replaces the old HeaderActions)."
 }

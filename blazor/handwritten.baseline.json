@@ -14,7 +14,6 @@
     "Components/PkLogSettings.razor": 52,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
-    "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
     "Components/PkSideNav.razor": 108,
     "Components/PkStyles.razor": 55,
@@ -74,11 +73,6 @@
       "rule": "layout-recipe",
       "file": "Components/PkDevToolsPage.razor",
       "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkRecordForm.razor",
-      "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
     }
   ]
 }
