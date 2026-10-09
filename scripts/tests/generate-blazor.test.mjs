@@ -509,3 +509,14 @@ test('unless: a slot is dropped once another list parameter has items', () => {
     m.params.find(p => p.name === 'AsideContent').unless = 'Rows';
     assert.match(run(m).files.get('PkDemo.razor'), /@if \(AsideContent is not null && Rows is not \{ Count: > 0 \}\) \{<span slot="aside"/);
 });
+
+test('shows: a callback that is set turns on a boolean prop; methods: an awaitable call of an element method through the bridge', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'OnDismiss').shows = 'open';
+    m.methods = [{ name: 'SubmitAsync', method: 'submit' }];
+    const e2 = structuredClone(el); e2.methods = [{ name: 'submit()', description: 'Submits.' }];
+    const razor = generate([e2], { demo: m }, new Set()).files.get('PkDemo.razor');
+    assert.match(razor, /open="@OnDismiss\.HasDelegate"/);
+    assert.match(razor, /public async Task SubmitAsync\(\) => await \(await Runtime\.BridgeAsync\(Assets\)\)\.InvokeVoidAsync\("call", Element, "submit"\);/);
+    assert.throws(() => generate([el], { demo: m }, new Set()), /does not have/);
+});

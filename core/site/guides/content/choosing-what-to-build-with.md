@@ -130,9 +130,13 @@ Write your own only when the SDK has nothing for the job and composing existing 
 
 ```razor
 <PkRecordForm OnValid="SaveAsync" Busy="_busy" Error="@_error">
-    <PkCard Heading="Details">
-        <PkFieldGroup TItem="Location" Fields="_fields" Model="_location" />
-    </PkCard>
+    <form @onsubmit:preventDefault>
+        <PkStack>
+            <PkCard Heading="Details">
+                <PkFieldGroup TItem="Location" Fields="_fields" Model="_location" />
+            </PkCard>
+        </PkStack>
+    </form>
 </PkRecordForm>
 
 @code {

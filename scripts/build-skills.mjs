@@ -792,11 +792,15 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
 
 <PkPageHeader Crumbs="_crumbs" Title="@_title" />
 <PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_busy" Error="@_error" SaveLabel="Save location">
-    <PkCard Heading="Details">
-        <PkField Label="Name" Required>
-            <PkInput @bind-Value="_form.Name" Name="name" Required />
-        </PkField>
-    </PkCard>
+    <form @onsubmit:preventDefault>
+        <PkStack>
+            <PkCard Heading="Details">
+                <PkField Label="Name" Required>
+                    <PkInput @bind-Value="_form.Name" Name="name" Required />
+                </PkField>
+            </PkCard>
+        </PkStack>
+    </form>
     <Sidebar>
         <PkCard Heading="Status"><PkBadge>@_status</PkBadge></PkCard>
     </Sidebar>
@@ -849,10 +853,10 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
     // the page template of a create-or-edit record page: no element of its own (issue 261)
     const rf = src.razor.PkRecordForm;
     if (rf) {
-        files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Components/PkRecordForm.razor'), '',
-            'A hand-written component with no element of its own, composed of existing components: a `PkForm` (`Summary`) around a native form, and in it a `PkStack` of the toolbar, your `Tabs`, the error alert and the body. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs. The body is your `PkCard`s in `ChildContent` and, when `Sidebar` is given, a `PkDetailLayout` with the status cards beside them; without `Sidebar` it is the main column alone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours, or `PkRecordEditor`\'s (`references/record-editor.md`): this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
+        files.set('references/record-form.md', ['# PkRecordForm: the page template of a create-or-edit record page', '', stamp(src, 'Generated/PkRecordForm.razor and blazor/mappings/record-form.json'), '',
+            'A generated wrapper of the `pk-record-form` element (issue 999), which draws the page: a toolbar, your `Tabs`, the error alert and a `pk-form` (summary of the problems, focus on the first, live checks) around the `<form>` you put in `ChildContent`. The toolbar (Cancel, your `Actions`, Delete, Save) is right-aligned under the page\'s breadcrumbs (your `PkPageHeader`) and above any tabs; on a phone the buttons fold to their icons. `ChildContent` is your own `<form @onsubmit:preventDefault>` holding the fields (a `PkStack` of `PkCard`s); when `Sidebar` is given the status cards sit beside it, one column on a phone. Cancel shows only with `OnCancel`, Delete only with `OnDelete` (warn variant, disabled while `Busy`). The load, validate and save state is yours, or `PkRecordEditor`\'s (`references/record-editor.md`): this draws the page, it does not own the record. Use it for every page that edits one record; for a settings form with no toolbar use `PkForm` and `PkFormActions`.', '',
             '`OnDelete` is an `EventCallback`, and an unset one (`default`) hides Delete: to offer it only for an existing record keep a field, `private EventCallback _delete;`, assign `_delete = EventCallback.Factory.Create(this, DeleteAsync);` when the record is loaded, and pass `OnDelete="_delete"`.', '',
-            '`ActionsInHeader` (issue 324) drops the toolbar row and hands the same Cancel/Actions/Delete/Save buttons out through the `HeaderActions` property for the page\'s own `PkPageHeader` to draw in its `ActionsContent`, so they stay in the sticky title bar instead of scrolling away underneath it. Because Blazor only fills in a `@ref` after the referenced component has rendered once, and the header usually sits above `PkRecordForm` in the page\'s markup, the page needs one extra render before the header shows them: capture `PkRecordForm` with `@ref`, pass `_form?.HeaderActions` as the header\'s `ActionsContent`, and add `protected override void OnAfterRender(bool firstRender) { if (firstRender) StateHasChanged(); }`.', '',
+            '`ActionsInHeader` drops the toolbar row so the buttons can live in the page\'s own `PkPageHeader` (`ActionsContent`) and stay in the sticky title bar. Put your own Save button there and have it call `await _form!.SubmitAsync()` on an `@ref` to `PkRecordForm`: pk-form checks the form first and `OnValid` runs when it is valid (a `form` attribute cannot reach into the element). There is no `HeaderActions` property any more.', '',
             '## Routed list and record page', '',
             'A list page and a record page are two routes, and the route is the only state. The list navigates on a row click and on Add; the record page loads by the route parameter, draws itself with `PkRecordForm`, and navigates back to the list after Save, Cancel and Delete. This is a full page per record; the `routed-list-detail` template of the `plainkit-sdk` skill (`PkWorkspace`) is the list and record side by side.', '',
             '```razor', RECORD_LIST_SAMPLE, '```', '', '```razor', RECORD_PAGE_SAMPLE, '```', '',
@@ -932,9 +936,13 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
 {
     <PkPageHeader Crumbs="_crumbs" Title="@Title" />
     <PkRecordForm OnValid="SaveAsync" OnCancel="Back" OnDelete="_delete" Busy="_editor.Busy" Error="@_editor.Error">
-        <PkCard Heading="Details">
-            <PkField Label="Name" Required><PkInput @bind-Value="form.Name" Name="name" Required /></PkField>
-        </PkCard>
+        <form @onsubmit:preventDefault>
+            <PkStack>
+                <PkCard Heading="Details">
+                    <PkField Label="Name" Required><PkInput @bind-Value="form.Name" Name="name" Required /></PkField>
+                </PkCard>
+            </PkStack>
+        </form>
     </PkRecordForm>
 }
 

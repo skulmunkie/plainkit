@@ -54,9 +54,6 @@
     "Components/PkQuality.razor": {
       "category": "mount"
     },
-    "Components/PkRecordForm.razor": {
-      "category": "debt"
-    },
     "Components/PkScorecard.razor": {
       "category": "mount"
     },
