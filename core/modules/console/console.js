@@ -68,8 +68,8 @@ export async function mountConsole(container, options = {}) {
     const search = h(doc, 'pk-input', { type: 'search', label: 'Filter the log', placeholder: 'Filter', clearable: true, debounce: 150, size: 'sm' });
     const levels = h(doc, 'pk-button-group', { label: 'Minimum level', mode: 'single' },
         ...[['debug', 'All'], ['warn', 'Warnings'], ['error', 'Errors']].map(([v, l]) => h(doc, 'pk-button', { toggle: true, variant: 'ghost', size: 'mini', value: v, pressed: v === 'debug' }, l)));
-    const clear = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Clear');
-    const copy = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Copy as JSON');
+    const clear = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'trash', collapse: 'phone' }, 'Clear');
+    const copy = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'copy', collapse: 'phone' }, 'Copy as JSON');
     const status = h(doc, 'span', { class: 'muted', role: 'status' });
     const panel = (key, ...body) => tabs.append(h(doc, 'pk-tab-panel', { value: key }, ...body));
     panel('console', h(doc, 'pk-cluster', {}, search, levels, clear, copy, status), table('console', 'Console', logColumns));

@@ -110,9 +110,9 @@ export class CodeExplorerElement extends Base {
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
     <pk-cluster gap="sm">
-      <pk-button size="mini" data-ce-search hidden>Search</pk-button>
-      <pk-button size="mini" variant="ghost" data-ce-reports>Reports</pk-button>
-      <pk-button size="mini" variant="ghost" data-ce-clear hidden>Back to files</pk-button>
+      <pk-button size="mini" icon-name="search" collapse="phone" data-ce-search hidden>Search</pk-button>
+      <pk-button size="mini" variant="ghost" icon-name="chart" collapse="phone" data-ce-reports>Reports</pk-button>
+      <pk-button size="mini" variant="ghost" icon-name="arrow-left" collapse="phone" data-ce-clear hidden>Back to files</pk-button>
     </pk-cluster>
     <div data-ce-tree></div>
   </pk-stack></pk-container>
