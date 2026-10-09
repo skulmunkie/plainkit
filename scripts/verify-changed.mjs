@@ -198,8 +198,8 @@ export function buildChecks(plan, { CHECKS, NODE, browser = false }) {
             return synth('browser', () => [NODE, 'scripts/attest-browser.mjs', ...args]);
         }
         if (id === 'ui-review') {
-            return synth('ui-review', () => [NODE, 'scripts/ui-review.mjs', '--elements', [...plan.uiElements].sort().join(','), '--out', path.join(os.tmpdir(), 'pk-ui-review-changed')], {
-                group: 'browser', cause: 'a UI review audit error on a gallery example or scenario of a changed element',
+            return synth('ui-review', () => [NODE, 'scripts/ui-review.mjs', '--elements', [...plan.uiElements].sort().join(','), '--jobs', '4', '--out', path.join(os.tmpdir(), 'pk-ui-review-changed')], {
+                group: 'browser', after: ['browser'], cause: 'a UI review audit error on a gallery example or scenario of a changed element',
                 fix: 'run `node scripts/ui-review.mjs --elements <name>`, open the shots in the output folder, and fix the element (each finding prints its own FIX line)',
             });
         }

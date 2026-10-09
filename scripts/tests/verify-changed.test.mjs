@@ -185,6 +185,24 @@ test('the full fallback and a broad change keep the original full node-tests che
     assert.equal(checks.find(c => c.id === 'audit'), CHECKS.find(c => c.id === 'audit'));
 });
 
+test('against the real repository: an element folder is recognised, its guards exist, and every mapping resolves without falling back to full', async () => {
+    const { gatherContext } = await import('../verify-changed.mjs');
+    const { fileURLToPath } = await import('node:url');
+    const root = fileURLToPath(new URL('../..', import.meta.url));
+    const ctx = gatherContext(root);
+    assert.ok(ctx.exists('core/elements/button/button.meta.json'));
+    for (const g of ELEMENT_GUARDS) assert.ok(ctx.exists(g), `${g} is a guard that no longer exists: update ELEMENT_GUARDS`);
+    const plan = planChanged(['core/elements/button/button.css'], ctx);
+    assert.equal(plan.nodeAll, false);
+    assert.ok(plan.nodeFiles.has('core/elements/button/button.test.mjs'));
+    const fs = await import('node:fs');
+    for (const f of fs.readdirSync(`${root}/blazor/mappings`).filter(n => n.endsWith('.json'))) {
+        const p = planChanged([`blazor/mappings/${f}`], ctx);
+        assert.equal(p.nodeAll, false, `${f} maps to a targeted set`);
+        assert.ok(p.dotnet && p.dotnet.classes.size > 0, `${f} selects dotnet test classes`);
+    }
+});
+
 test('describePlan says what was chosen and why, and where the full run stays', () => {
     const plan = planChanged(['core/elements/button/button.css'], ctxOf());
     const text = describePlan(plan, { base: 'origin/next-0.13', browser: false });
