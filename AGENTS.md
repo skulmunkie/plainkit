@@ -148,6 +148,12 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
 - **Blazor stays a thin 1:1 wrapper.** `scripts/tests/blazor-wrapper.test.mjs` (#801): every hand-written file under `blazor/src/PlainKit.Blazor` is listed with a category in `blazor/handwritten.json`; component names are `Pk` + the tag; no timers, stale-load guards, retry loops or layout recipes in hand-written components; per-file line budgets and the known debt are in `blazor/handwritten.baseline.json`, which only shrinks (lower a budget when a file shrinks, delete debt you pay; never raise a budget or add an entry to hide a finding: put the behaviour in core or the generator). A mapping marked `"existing"` needs an `existingReason`.
 - **Privacy.** No personal paths, real email addresses or internal tracker references anywhere (`core/tests/privacy.test.mjs`).
 
+## Issues about how something looks
+
+An issue about a visual defect or a layout expectation carries pictures, not only words: a **found** image (what you saw) and, where one exists, an **expected** image or mockup, with the measurements
+(sizes, gaps, contrast) in the text next to them. GitHub has no upload API for issue attachments, so push each image with `node scripts/issue-image.mjs <issue> <file.png> --name found` (then `--name expected`): it
+stores it on the orphan branch `issue-images` (never merged into `main`, nothing but screenshots, 2 MB at most) and prints the markdown to paste into the issue (`--comment` posts it for you).
+
 ## Commits, pull requests, issues
 
 - Commit messages: a short imperative subject and a body saying why. End with the attribution the tool gives you (the `Co-Authored-By` line); do the
