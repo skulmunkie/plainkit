@@ -99,6 +99,13 @@ export function shardOf(list, k, n) {
     return list.filter((_, i) => i % n === k - 1);
 }
 
+/** One scenario's phase times (ms, measured) and its total (ms) as seconds, the unmeasured remainder named `steps`, so the phases add up to the total (within rounding of 0.1 s per phase). Pure. */
+export function phasesOf(phases, totalMs) {
+    const measured = Object.values(phases).reduce((a, b) => a + b, 0);
+    const all = { ...phases, steps: Math.max(0, totalMs - measured) };
+    return Object.fromEntries(Object.entries(all).map(([k, v]) => [k, Math.round(v / 100) / 10]));
+}
+
 /** The per-scenario phase times added up across scenarios, one number per phase (seconds). Pure. */
 export function sumPhases(phases) {
     const total = {};
@@ -230,8 +237,9 @@ const WIDTH_FIX = 'the emulated viewport was not applied; re-run, and report it 
  */
 async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, phases }) {
     const tag = `scenario-${sc.name}`;
-    // Where the time goes (issue #750): open and ready, fixed waits, other steps (their settle included), measured audit, screenshot.
+    // Where the time goes (issue #750): open and ready, fixed waits, settles, measured audit, screenshot; the rest (input events, applying a step) is `steps`, see phasesOf.
     const timed = async (key, fn) => { const t = Date.now(); try { return await fn(); } finally { phases[key] = (phases[key] ?? 0) + Date.now() - t; } };
+    const settle = () => timed('settle', () => evaluate(cdp, 'window.__rv.settle()'));
     const state = await timed('open', async () => { await openReview(cdp, vp, `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}`); return waitReady(cdp, timeout); });
     if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${timeout} s` }); return; }
     if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
@@ -249,28 +257,25 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
             continue;
         }
         let r = {};
-        const t0 = Date.now();
-        const fixedWait = 'wait' in step && step.wait !== 'settle';
         if ('click' in step || 'hover' in step) {
             r = await evaluate(cdp, `window.__rv.target(${JSON.stringify(step)})`);
-            if (!r.error) { await mouse(mouseEvents('click' in step ? 'click' : 'hover', r.x, r.y)); await evaluate(cdp, 'window.__rv.settle()'); }
+            if (!r.error) { await mouse(mouseEvents('click' in step ? 'click' : 'hover', r.x, r.y)); await settle(); }
         } else if ('key' in step) {
             for (let n = 0; n < (step.times ?? 1); n++) await keys(keyEvents(step.key));
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
         } else if ('type' in step) {
             await cdp.send('Input.insertText', { text: step.type });
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
         } else if ('resize' in step) {
             // A real viewport width (the frame's media queries answer to it); the height stays that of the combination.
             await cdp.send('Emulation.setDeviceMetricsOverride', { width: step.resize, height: vp.height, deviceScaleFactor: 1, mobile: false });
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
         } else if ('wait' in step) {
-            if (step.wait === 'settle') await evaluate(cdp, 'window.__rv.settle()'); else await sleep(step.wait);
+            if (step.wait === 'settle') await settle(); else await timed('wait', () => sleep(step.wait));
         } else {
             if ('focus' in step) await keys(keyEvents('Shift')); // a key press first, so the focus that follows counts as keyboard focus (:focus-visible)
             r = await evaluate(cdp, `window.__rv.apply(${JSON.stringify(step)})`);
         }
-        phases[fixedWait ? 'wait' : 'step'] = (phases[fixedWait ? 'wait' : 'step'] ?? 0) + Date.now() - t0;
         if (r.error) {
             record(`step-${i + 1}`, [pageError('scenario-step', `step ${i + 1} ${JSON.stringify(step)}: ${r.error}`, `the step no longer matches the page: update the selector in core/tests/review/scenarios/${sc.name}.js, or fix the element if it lost that part`)], null);
             return;
@@ -437,7 +442,7 @@ async function main() {
             const phases = {};
             for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases });
             manifest.timings[sc.name] = Math.round((Date.now() - t0) / 100) / 10;
-            manifest.phases[sc.name] = Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, Math.round(v / 100) / 10]));
+            manifest.phases[sc.name] = phasesOf(phases, Date.now() - t0);
         }
         const grouped = groupFindings(manifest.shots);
         manifest.findings = grouped;
@@ -447,6 +452,7 @@ async function main() {
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
         for (const n of manifest.notSeen) console.log(`NOT SEEN ${n.tag} ${n.viewport}/${n.theme}: ${n.reason}`);
         console.log(`time (s): ${Object.entries(manifest.timings).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+        for (const [n, p] of Object.entries(manifest.phases)) console.log(`  ${n} by phase (s): ${Object.entries(p).map(([k, v]) => `${k} ${v}`).join(', ')}`);
         if (scenarios.length) console.log(`scenario time by phase (s): ${Object.entries(sumPhases(manifest.phases)).map(([k, v]) => `${k} ${v}`).join(', ')}`);
         console.log(`${manifest.shots.filter(s => s.file).length} screenshots in ${path.relative(root, out) || out}; ${manifest.summary.errors} error(s), ${manifest.summary.warnings} warning(s); manifest.json lists every finding.`);
         code = manifest.summary.ok && !manifest.notSeen.some(n => n.reason !== 'the element has no gallery examples') ? 0 : 1;
