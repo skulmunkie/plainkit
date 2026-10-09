@@ -231,6 +231,16 @@ export const layoutCases = [
         t.ok(el.part('main').getBoundingClientRect().top > el.part('sidebar').getBoundingClientRect().top, 'sidebarFirst: the sidebar sits above the main content once stacked');
         t.eq(getComputedStyle(el.part('sidebar')).gridTemplateColumns.trim().split(' ').length, 2, 'sidebarTwoUp: two columns of cards inside the collapsed sidebar');
     }],
+    ['detail-layout: stacked (collapsed), the vertical gaps between its children differ by no more than the scorecard\'s 6px, the main and the sidebar stacks alike (#402)', async t => {
+        const el = await t.mount('<pk-detail-layout><pk-page-header heading="Order 1042"></pk-page-header><p>Line items go here.</p><pk-card slot="sidebar"><h3>Status</h3><p>Shipped</p></pk-card><pk-card slot="sidebar"><h3>Customer</h3><p>Ada</p></pk-card></pk-detail-layout>');
+        for (const w of [30, 60]) {
+            size(el, rem(w)); await t.settle();
+            const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+            const gaps = [];
+            for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
+            t.ok(gaps.length < 3 || Math.max(...gaps) - Math.min(...gaps) <= 6, `${w}rem wide: gaps differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
+        }
+    }],
     ['text: a block paragraph by default, a run inside a line when inline, with the paragraph role only as a block', async t => {
         const host = t.stage('<pk-text>Para</pk-text><p>After</p><pk-text inline>Run</pk-text>');
         await t.load(host);
