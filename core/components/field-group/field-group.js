@@ -25,7 +25,7 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
-        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); } }
+        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); this.recheck(); } }
         else if (name === 'fields') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
         else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
@@ -46,7 +46,8 @@ export default Base => class extends Base {
             else if (!same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
             shown.push(row.field);
         }
-        group.append(...shown); // append moves an attached node, so this also keeps the order
+        // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
+        if (shown.length !== group.children.length || shown.some((f, i) => group.children[i] !== f)) group.append(...shown);
         this.syncState();
         if (built) loadElements(this.shadowRoot).then(() => this.sync());
         this.sync();
@@ -90,7 +91,9 @@ export default Base => class extends Base {
 
     // ---- form association --------------------------------------------------------------------------------------------------------------------
     // The form value is a FormData with one entry per shown field (js/field-kinds.js formEntries); the validity is the first invalid control's message, anchored on it.
-    sync() {
+    // A control validates in its own update (a microtask), so the aggregate is read again one microtask later.
+    sync() { this.syncNow(); queueMicrotask(() => this.syncNow()); }
+    syncNow() {
         if (!this.$w) return;
         const rows = [...this.$rows.values()];
         const fd = new FormData();
@@ -113,13 +116,20 @@ export default Base => class extends Base {
         r.field.error = message;
         return message === '';
     }
+    // New values from the host: a message already showing is checked again against them once the controls have validated (a loaded record clears what the last one left).
+    recheck() { queueMicrotask(() => queueMicrotask(() => { for (const [key, r] of this.$rows) if (r.field.error) this.checkField(key); })); }
+    // Whether the field (by key, or the control or a node inside it) is showing a message now; pk-form asks before it re-checks while typing.
+    showsError(which) {
+        const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
+        return Boolean(r?.field.error);
+    }
     focusField(key) { this.$rows.get(key)?.control.focus(); }
     focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()][0])?.control.focus(options); }
     onReset() {
+        this.report(false);
         this.$vals = { ...this.$base };
         this.$own = true; this.values = { ...this.$base }; this.$own = false;
         this.reconcile();
-        this.report(false);
     }
     onRestore(state) {
         if (!(state instanceof FormData)) return;

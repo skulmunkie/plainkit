@@ -99,7 +99,7 @@ export const fieldGroupCases = [
         { let a = document.activeElement; const p = []; while (a) { p.push(a.localName); a = a.shadowRoot?.activeElement; } t.ok(insideFirst(el), 'the browser focused the first invalid field; active: ' + p.join('>')); }
         type(el.shadowRoot.querySelector('pk-input'), 'Acme'); await t.settle();
         t.eq(el.problems().map(p => p.key).join(','), 'qty', 'only the quantity is left'); t.ok(el.validationMessage.length > 0);
-        type(el.shadowRoot.querySelectorAll('pk-input')[1], '9'); await t.settle();
+        type(el.shadowRoot.querySelectorAll('pk-input')[1], '9'); await t.settle(); await t.settle();
         t.eq(form.checkValidity(), true, 'valid again');
     }],
 
@@ -126,9 +126,89 @@ export const fieldGroupCases = [
         t.eq(entries(form).join('&'), 'name=&qty=&status=open', 'reset goes back to the values last assigned'); t.eq(err('Name'), '', 'and clears the messages');
         t.eq(el.values.name, undefined);
     }],
+
+    // ---- pk-form looks through the group (step 3) ---------------------------------------------------------------------------------------
+    ['field-group in pk-form: a stopped submit lists every invalid field in the summary (one line each), shows each message in its own field, focuses the first, and pk-invalid carries every problem', async t => {
+        const host = await inPkForm(t, 'summary');
+        const sf = host.querySelector('pk-form'), el = host.querySelector('pk-field-group'), form = host.querySelector('form');
+        let invalid = 0, detail = null; sf.addEventListener('pk-invalid', e => { invalid++; detail = e.detail; });
+        form.requestSubmit(); await t.settle();
+        t.eq(invalid, 1, 'the submit was stopped');
+        const lines = [...sf.part('summary-list').children].map(li => li.textContent);
+        t.eq(lines.length, 3, 'one line per invalid field, then the plain control outside the group');
+        t.eq(lines[0], 'Title: Enter a title.'); t.ok(lines[1].startsWith('Quantity: '), lines[1]); t.ok(lines[2].startsWith('Plain: '), lines[2]);
+        t.eq(detail.count, 3); t.eq(detail.problems.map(p => p.label).join(','), 'Title,Quantity,Plain'); t.eq(detail.controls.length, 2, 'the group is listed once');
+        const err = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).error;
+        t.eq(err('Title'), 'Enter a title.'); t.ok(err('Quantity').length > 0);
+        t.ok(insideFirst(el), 'focus moved to the first invalid field in the group');
+        // A summary link focuses its own field, inside the group's shadow tree.
+        sf.part('summary-list').children[1].firstElementChild.click(); await t.settle();
+        let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
+        t.ok(el.shadowRoot.querySelectorAll('pk-input')[1].shadowRoot.contains(a), 'the second link focuses the quantity');
+    }],
+
+    ['field-group in pk-form: live validation re-checks one field of the group: on blur by default, while typing in input mode, and a field already showing an error as you type', async t => {
+        const host = await inPkForm(t, '');
+        const el = host.querySelector('pk-field-group');
+        const field = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k);
+        const title = el.shadowRoot.querySelector('pk-input'), inner = title.shadowRoot.querySelector('input');
+        inner.value = 'x'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
+        t.eq(field('Title').error, '', 'typing does not check in blur mode');
+        inner.value = ''; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.focus(); inner.blur(); await t.settle(); await t.settle();
+        t.eq(field('Title').error, 'Enter a title.', 'leaving the field checks it'); t.eq(field('Quantity').error, '', 'and only that field');
+        inner.value = 'Acme'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); await t.settle();
+        t.eq(field('Title').error, '', 'a field showing an error re-checks as you type, and clears when fixed');
+        const host2 = await inPkForm(t, 'validate="input"');
+        const el2 = host2.querySelector('pk-field-group'), q = el2.shadowRoot.querySelectorAll('pk-input')[1].shadowRoot.querySelector('input');
+        q.value = '1'; q.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); await t.settle();
+        t.ok([...el2.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === 'Quantity').error.length > 0, 'input mode checks while typing');
+    }],
+
+    ['field-group in pk-form: a valid group submits, and a form reset clears the messages and the summary', async t => {
+        const host = await inPkForm(t, 'summary');
+        const sf = host.querySelector('pk-form'), el = host.querySelector('pk-field-group'), form = host.querySelector('form');
+        host.querySelector('pk-input[name=plain]').remove();
+        form.requestSubmit(); await t.settle();
+        t.eq(sf.part('summary-list').children.length, 2, 'two problems in the group');
+        form.reset(); await t.settle(); await t.settle();
+        t.eq(sf.part('summary-list').children.length, 0, 'reset clears the summary'); t.eq([...el.shadowRoot.querySelectorAll('pk-field')].map(f => f.getAttribute('label') + '=' + f.error).join(';'), 'Title=;Quantity=', 'and every message');
+        el.values = { title: 'Acme', qty: '9' }; await t.settle(); await t.settle();
+        let valid = 0, submitted = 0; sf.addEventListener('pk-valid', () => valid++); form.addEventListener('submit', e => { submitted++; e.preventDefault(); });
+        form.requestSubmit(); await t.settle();
+        t.eq(valid, 1); t.eq(submitted, 1);
+    }],
+
+    ['field-group in pk-form: assigning valid values after a stopped submit lets the next submit through and clears the summary and every message', async t => {
+        const fields = [{ key: 'name', label: 'Name', required: true }, { key: 'qty', label: 'Quantity', kind: 'number', min: '5' }, { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] }, { key: 'note', label: 'Note', kind: 'textarea', required: true, when: { field: 'status', equals: 'closed' } }];
+        const host = t.stage('<pk-form summary><form><pk-field-group label="Order"></pk-field-group><pk-button type="submit">Save</pk-button></form></pk-form>');
+        const sf = host.firstElementChild, el = host.querySelector('pk-field-group'), form = host.querySelector('form');
+        el.fields = fields; el.values = { qty: '1', status: 'open' };
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        let valid = 0; sf.addEventListener('pk-valid', () => valid++); form.addEventListener('submit', e => e.preventDefault());
+        form.requestSubmit(); await t.settle();
+        t.eq(sf.part('summary-list').children.length, 2);
+        el.values = { qty: '1', status: 'closed' }; await t.settle(); await t.settle();
+        form.requestSubmit(); await t.settle();
+        t.eq(sf.part('summary-list').children.length, 3);
+        const err = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).error;
+        t.ok(err('Name').length > 0 && err('Note').length > 0, 'messages are showing');
+        el.values = { name: 'Acme', qty: '9', status: 'closed', note: 'Paid.' }; await t.settle(); await t.settle(); await t.settle();
+        t.eq(err('Name') + err('Quantity') + err('Note'), '', 'values from the host clear the messages they now satisfy');
+        host.querySelector('pk-button').click(); await t.settle();
+        t.eq(el.problems().map(p => p.key + ':' + p.message).join(','), '', 'no problems');
+        t.eq(sf.part('summary-list').children.length, 0, 'the summary is gone'); t.eq(valid, 1);
+    }],
 ];
 
 // The group in a real form, as the app puts it.
+async function inPkForm(t, attrs = '') {
+    const fields = JSON.stringify([{ key: 'title', label: 'Title', required: true, msg: { required: 'Enter a title.' } }, { key: 'qty', label: 'Quantity', kind: 'number', min: '5' }]);
+    const host = t.stage(`<pk-form ${attrs}><form><pk-field-group label="Order"></pk-field-group><pk-field label="Plain"><pk-input name="plain" required></pk-input></pk-field><pk-button type="submit">Save</pk-button></form></pk-form>`);
+    const el = host.querySelector('pk-field-group');
+    el.fields = JSON.parse(fields); el.values = { qty: '1' };
+    await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+    return host;
+}
 async function inForm(t, fields = FIELDS, values = { status: 'open' }, attrs = '') {
     const host = t.stage(`<form><pk-field-group name="order" label="Order" ${attrs}></pk-field-group></form>`);
     const el = host.querySelector('pk-field-group'), form = host.firstElementChild;
