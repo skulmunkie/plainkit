@@ -24,4 +24,4 @@ td { padding: 0; text-align: center; }
 @media (--above-phone) { :host { --_c: var(--pk-calendar-cell, var(--space-8)); } }
 /* Phone: seven columns cannot each reach 44px inside a narrow column (7 x 44 = 308px), so the month is never scrolled: every day stays a full-height (44px) tap
    area as wide as its column allows (about 41px in a 288px container, 44px from 308px), and the highlight is a rounded square, not an oval. */
-@media (--phone) { :host { padding-inline: 0; } .day { border-radius: var(--radius-md); } }
+@media (--phone) { :host { padding-inline: 0; border-inline-width: 0; border-radius: 0; max-inline-size: none; } [part="grid"] { max-inline-size: none; } .day { border-radius: var(--radius-md); } }
