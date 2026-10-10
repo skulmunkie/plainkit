@@ -267,6 +267,22 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: a multiselect filter is a checklist whose chosen values reach load(query).filters as an array, count once, and Clear filters unticks them (#1025)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"status","type":"multiselect","label":"Status","options":["Open","Paid",{"value":"void","label":"Void"}]}]'></pk-data-table>`);
+        const queries = [];
+        el.load = async q => { queries.push(q); return { rows: [{ id: 1, sku: 'A' }], total: 1 }; };
+        el.refresh();
+        const filters = el.part('filters'), boxes = () => [...filters.querySelectorAll('[data-key="status"] pk-checkbox')];
+        await until(() => boxes().length === 3 && boxes().every(b => typeof b.toggle === 'function'), 'the three checkboxes');
+        t.eq(boxes().map(b => b.label).join(), 'Open,Paid,Void');
+        boxes()[0].toggle(); await t.settle(); boxes()[2].toggle(); await t.settle();
+        await until(() => queries.at(-1).filters.status?.join() === 'Open,void', 'both values in one array');
+        t.eq(filters.filterCount, 1, 'one filter, however many values');
+        filters.shadowRoot.querySelector('[part="clear"]').click(); await t.settle();
+        await until(() => Object.keys(queries.at(-1).filters).length === 0, 'cleared');
+        t.ok(boxes().every(b => !b.checked), 'every box unticked'); t.eq(filters.filterCount, 0);
+    }],
+
     ['data-table: search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" search-debounce="20" search="SKU-3"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
@@ -628,6 +644,25 @@ export const dataDisplayCases = [
         };
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
+    }],
+
+    ['table and data-table (375px): a toolbar with long controls and an action wraps inside the width, the page does not scroll sideways and the action stays visible (#1016)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const tableHtml = `<pk-table cards label="T" columns='[{"key":"sku","label":"SKU"}]' rows='[{"id":1,"sku":"A"}]'><pk-cluster slot="toolbar"><select aria-label="Status"><option>All statuses of every kind</option></select><pk-button variant="ghost">Export the filtered rows</pk-button></pk-cluster><pk-button slot="toolbar" data-end variant="primary">Add a new product</pk-button></pk-table>`;
+        const dataHtml = `<pk-data-table label="D" add-label="Add a new product" columns='[{"key":"sku","label":"SKU"}]'><pk-button slot="actions" variant="ghost">Export the filtered rows</pk-button><pk-button slot="actions" variant="ghost">Import from a file</pk-button></pk-data-table>`;
+        for (const [name, html] of [['pk-table', tableHtml], ['pk-data-table', dataHtml]]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '375px'; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const W = () => f.contentWindow, D = () => f.contentDocument; await until(() => W().customElements.get(name) && D().querySelector(name)?.shadowRoot?.querySelector('[part="toolbar"]'), `the ${name}`); const w = W(), d = D();
+            await new Promise(r => setTimeout(r, 300));
+            t.eq(w.innerWidth, 375);
+            const root = d.documentElement; t.ok(root.scrollWidth <= root.clientWidth, `${name}: the page does not scroll sideways (scrollWidth ${root.scrollWidth}, clientWidth ${root.clientWidth})`);
+            const bar = d.querySelector(name).shadowRoot.querySelector('[part="toolbar"]').getBoundingClientRect();
+            t.ok(bar.right <= 375 + 1, `${name}: the toolbar ends inside the viewport (right ${Math.round(bar.right)})`);
+            const btns = [...d.querySelectorAll('pk-button')].concat([...d.querySelector(name).shadowRoot.querySelectorAll('pk-button')]).filter(b => b.getBoundingClientRect().width > 0);
+            t.ok(btns.length > 0 && btns.every(b => b.getBoundingClientRect().right <= 375 + 1), `${name}: every button is inside the viewport (${btns.map(b => Math.round(b.getBoundingClientRect().right)).join(', ')})`);
+        }
     }],
 
     ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
@@ -1149,5 +1184,29 @@ export const dataDisplayCases = [
             for (const td of tr.querySelectorAll('td')) t.ok(td.scrollWidth <= td.clientWidth + 1, `card ${i + 1}: the ${td.dataset.label} value is not cut off sideways`);
             if (i) t.ok(rects[i].top >= rects[i - 1].bottom - 1, `card ${i + 1} starts below card ${i}`);
         });
+    }],
+
+    // #1015: a slotted cell that cannot break (a long identifier in code, a button with a long label) must not push the other values of the card past its edge.
+    ['table (375px, #1015): cards with an unbreakable slotted cell keep every value inside the card', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const sku = 'some-long-sku-identifier-with-dashes-and-more-parts';
+        const table = cell => `<pk-table cards label="Orders" columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty"},{"key":"status","label":"Status"}]' rows='[{"id":"1","sku":"x","qty":"12","status":"Shipped"}]'>${cell}</pk-table>`;
+        const variants = [['code', `<code slot="cell-1-sku">${sku}</code>`], ['button', `<pk-button variant="plain" slot="cell-1-sku"><code>${sku}</code></pk-button>`]];
+        for (const [name, cell] of variants) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '375px'; f.style.height = '500px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(table(cell)); await loaded;
+            const tb = await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody tr td') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await wait(300);
+            t.eq(f.contentWindow.innerWidth, 375);
+            const tr = tb.shadowRoot.querySelector('tbody tr'), card = tr.getBoundingClientRect();
+            for (const td of tr.querySelectorAll('td')) {
+                t.ok(td.scrollWidth <= td.clientWidth + 1, `${name}: the ${td.dataset.label} cell does not overflow sideways`);
+                t.ok(td.getBoundingClientRect().right <= card.right + 1, `${name}: the ${td.dataset.label} cell ends inside the card`);
+            }
+            const v = tb.shadowRoot.querySelector('td[data-key="status"]').getBoundingClientRect();
+            t.ok(v.right <= card.right + 1 && v.right <= 376, `${name}: the Status value is inside the card and the viewport (right ${Math.round(v.right)}, card ${Math.round(card.right)})`);
+            t.ok(f.contentDocument.documentElement.scrollWidth <= 376, `${name}: the page does not scroll sideways`);
+        }
     }],
 ];
