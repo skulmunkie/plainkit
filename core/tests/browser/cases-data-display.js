@@ -1169,4 +1169,28 @@ export const dataDisplayCases = [
             if (i) t.ok(rects[i].top >= rects[i - 1].bottom - 1, `card ${i + 1} starts below card ${i}`);
         });
     }],
+
+    // #1015: a slotted cell that cannot break (a long identifier in code, a button with a long label) must not push the other values of the card past its edge.
+    ['table (375px, #1015): cards with an unbreakable slotted cell keep every value inside the card', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const sku = 'some-long-sku-identifier-with-dashes-and-more-parts';
+        const table = cell => `<pk-table cards label="Orders" columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty"},{"key":"status","label":"Status"}]' rows='[{"id":"1","sku":"x","qty":"12","status":"Shipped"}]'>${cell}</pk-table>`;
+        const variants = [['code', `<code slot="cell-1-sku">${sku}</code>`], ['button', `<pk-button variant="plain" slot="cell-1-sku"><code>${sku}</code></pk-button>`]];
+        for (const [name, cell] of variants) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '375px'; f.style.height = '500px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(table(cell)); await loaded;
+            const tb = await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody tr td') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await wait(300);
+            t.eq(f.contentWindow.innerWidth, 375);
+            const tr = tb.shadowRoot.querySelector('tbody tr'), card = tr.getBoundingClientRect();
+            for (const td of tr.querySelectorAll('td')) {
+                t.ok(td.scrollWidth <= td.clientWidth + 1, `${name}: the ${td.dataset.label} cell does not overflow sideways`);
+                t.ok(td.getBoundingClientRect().right <= card.right + 1, `${name}: the ${td.dataset.label} cell ends inside the card`);
+            }
+            const v = tb.shadowRoot.querySelector('td[data-key="status"]').getBoundingClientRect();
+            t.ok(v.right <= card.right + 1 && v.right <= 376, `${name}: the Status value is inside the card and the viewport (right ${Math.round(v.right)}, card ${Math.round(card.right)})`);
+            t.ok(f.contentDocument.documentElement.scrollWidth <= 376, `${name}: the page does not scroll sideways`);
+        }
+    }],
 ];
