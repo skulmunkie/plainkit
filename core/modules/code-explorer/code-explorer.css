@@ -4,7 +4,7 @@
 
 /* The <pk-code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
 pk-code-explorer {
-    --ce-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    --_ce-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     display: flex;
     flex-direction: column;
     height: var(--pk-code-explorer-height, 32rem);
@@ -19,7 +19,7 @@ pk-code-explorer pk-workspace { --pk-workspace-pad: 0; }
 pk-code-explorer pk-tree-item::part(label) { flex: 1 1 auto; min-inline-size: 0; }
 
 /* Main pane: the tab strip of open files over the viewer. */
-pk-code-explorer pk-tabs { flex: none; padding-inline: var(--space-2); border-bottom: var(--ce-border-w) solid var(--color-border); }
+pk-code-explorer pk-tabs { flex: none; padding-inline: var(--space-2); border-bottom: var(--_ce-border-w) solid var(--color-border); }
 pk-code-explorer pk-tabs::part(list) { margin-bottom: 0; border-bottom: 0; }
 pk-code-explorer pk-container pk-empty-state { margin: auto; }
 
@@ -29,18 +29,18 @@ pk-code-explorer pk-list-group mark { background: var(--csr-mark-bg); color: inh
 /* Code viewer: a code-editor pane. The palette is local to the viewer (dark by default, like the app; light when data-theme="light")
    so token colours keep their contrast on the editor background rather than on whatever surface the page uses. */
 .cv {
-    border: var(--ce-border-w) solid var(--cv-border); border-radius: var(--radius-md); background: var(--cv-bg); color: var(--cv-text);
+    border: var(--_ce-border-w) solid var(--cv-border); border-radius: var(--radius-md); background: var(--cv-bg); color: var(--cv-text);
     min-width: 0; overflow: hidden; box-shadow: var(--cv-shadow);
 }
 .cv-title {
     display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding: var(--space-2) var(--space-3);
-    background: var(--cv-bar); border-bottom: var(--ce-border-w) solid var(--cv-border); font-size: var(--text-read);
+    background: var(--cv-bar); border-bottom: var(--_ce-border-w) solid var(--cv-border); font-size: var(--text-read);
 }
-.cv-name { font-family: var(--ce-mono); font-weight: 600; overflow-wrap: anywhere; flex: 1 1 var(--ce-name-basis); }
+.cv-name { font-family: var(--_ce-mono); font-weight: 600; overflow-wrap: anywhere; flex: 1 1 var(--_ce-name-basis); }
 .cv-meta { display: inline-flex; gap: var(--space-3); color: var(--cv-muted); font-size: var(--text-read); }
-.cv-lang { padding: 0 var(--space-2); border: var(--ce-border-w) solid var(--cv-border); border-radius: var(--radius-pill); }
+.cv-lang { padding: 0 var(--space-2); border: var(--_ce-border-w) solid var(--cv-border); border-radius: var(--radius-pill); }
 .cv-count { white-space: nowrap; }
-.cv-notice { padding: var(--space-1) var(--space-3); font-size: var(--text-read); color: var(--cv-muted); background: var(--cv-bar); border-bottom: var(--ce-border-w) solid var(--cv-border); }
+.cv-notice { padding: var(--space-1) var(--space-3); font-size: var(--text-read); color: var(--cv-muted); background: var(--cv-bar); border-bottom: var(--_ce-border-w) solid var(--cv-border); }
 
 /* The listing is a <pk-code-view>: the box is the .cv frame, so it draws no border of its own. */
 .cv-scroll { border: 0; border-radius: 0; --pk-code-view-max-height: 70vh; }
