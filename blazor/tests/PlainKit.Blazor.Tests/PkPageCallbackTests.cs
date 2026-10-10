@@ -137,6 +137,21 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("A-1", clicked.Row!.Value.GetProperty("orderNo").GetString());
     }
 
+    [Fact]
+    public async Task ListPage_Cells_fill_the_cell_slots_of_the_loaded_rows()
+    {
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5), new("B-2", 7)], 2)))
+            .Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.Cells, new Dictionary<string, RenderFragment<Order>> { ["total"] = o => b => b.AddContent(0, $"EUR {o.Total}") }));
+        Assert.Empty(cut.FindAll("[slot^='cell-']"));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery()));
+
+        Assert.Equal(["cell-A-1-total", "cell-B-2-total"], cut.FindAll("[slot^='cell-']").Select(e => e.GetAttribute("slot")));
+        Assert.Equal("EUR 7", cut.Find("[slot='cell-B-2-total']").TextContent);
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]
