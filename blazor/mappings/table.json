@@ -197,6 +197,12 @@
       "type": "RenderFragment"
     },
     {
+      "name": "FootContent",
+      "slot": "foot",
+      "type": "RenderFragment",
+      "note": "Data-driven: a footer or summary row (one cell spanning every column; a trailing card on a phone). Raw mode (ChildContent set) renders it as the tfoot of the authored table instead."
+    },
+    {
       "name": "DetailTemplate",
       "slot": "detail-<rowId>",
       "type": "RenderFragment<TItem>",
