@@ -14,6 +14,9 @@ public sealed record PkListRequest(string? Search, string? SortKey, bool Descend
     /// <summary>The values of the filter fields a <see cref="Pages.PkListPage{TItem}"/> shows, keyed by filter key (text, as typed or chosen); null when none is set. Always null for a <see cref="Components.PkDataTable{TItem}"/>.</summary>
     public IReadOnlyDictionary<string, string>? Filters { get; init; }
 
+    /// <summary>The values of the <c>multiselect</c> filters (several chosen options), keyed by filter key; null when none is set. A filter holds its value in <see cref="Filters"/> (one text) or here (a list), never both.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>>? MultiFilters { get; init; }
+
     /// <summary>The number of items to skip: <c>(Page - 1) * PageSize</c>, for <c>Skip</c> in a query.</summary>
     public int Skip => (Math.Max(1, Page) - 1) * PageSize;
 }
@@ -31,17 +34,4 @@ public static class PkSelectQuery
 
     /// <summary>The search and sort (and page and size) the selection refers to, as the <see cref="PkListRequest"/> <c>Load</c> got; null when the event carries no query. For <c>Scope</c> <c>all</c> run the bulk action against it, ignoring <c>Page</c> and <c>PageSize</c>.</summary>
     public static PkListRequest? ToRequest(this PkSelectEventArgs e) => e.Query is { ValueKind: System.Text.Json.JsonValueKind.Object } q ? System.Text.Json.JsonSerializer.Deserialize<PkListPageQuery>(q, Web)?.ToRequest() : null;
-}
-
-/// <summary>What <c>pk-list-page</c> passes its <c>load</c> callback, read from JSON: <c>{ page, pageSize, sort, sortDir, search, filters }</c>.</summary>
-internal sealed record PkListPageQuery(int Page = 1, int PageSize = 25, string? Sort = null, string? SortDir = null, string? Search = null, Dictionary<string, string>? Filters = null)
-{
-    /// <summary>The <see cref="PkListRequest"/> a <c>PkListPage</c> <c>Load</c> gets: an empty search is null, a sort without a key is none.</summary>
-    public PkListRequest ToRequest() => new(
-        string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
-        string.IsNullOrEmpty(Sort) ? null : Sort,
-        string.Equals(SortDir, "descending", StringComparison.OrdinalIgnoreCase),
-        Math.Max(1, Page),
-        Math.Max(1, PageSize))
-    { Filters = Filters is { Count: > 0 } ? Filters : null };
 }

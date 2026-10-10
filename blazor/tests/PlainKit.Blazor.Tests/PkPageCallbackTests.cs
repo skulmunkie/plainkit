@@ -99,6 +99,44 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.True(saved["beta"].GetBoolean());
     }
 
+    [Fact]
+    public async Task RecordPage_load_gets_the_id_as_text_and_save_gets_the_values()
+    {
+        string? loadedId = null; IReadOnlyDictionary<string, JsonElement>? saved = null;
+        var cut = Render<PkRecordPage>(p => p
+            .Add(x => x.Load, id => { loadedId = id; return Task.FromResult<IReadOnlyDictionary<string, object?>?>(new Dictionary<string, object?> { ["name"] = "Ada" }); })
+            .Add(x => x.Save, v => { saved = v; return Task.CompletedTask; }));
+
+        var calls = _bridge.Invocations["setCallback"].ToList();
+        Assert.Equal(["load", "save"], calls.Select(c => c.Arguments[1]));
+        Assert.All(calls, c => Assert.Equal(true, c.Arguments[3]));   // the page connected before the callbacks existed: it loads again
+        var load = Assert.IsType<DotNetObjectReference<PkCallbackHost<JsonElement>>>(calls[0].Arguments[2]);
+        var asText = await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("\"o-7\"").RootElement));
+        Assert.Equal("o-7", loadedId);
+        Assert.Equal("Ada", JsonSerializer.SerializeToElement(asText).GetProperty("name").GetString());
+        await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("42").RootElement));
+        Assert.Equal("42", loadedId);
+
+        var save = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(calls[1].Arguments[2]);
+        Assert.Null(await cut.InvokeAsync(() => save.Value.Invoke(Values("{\"name\":\"Bo\"}"))));
+        Assert.Equal("Bo", saved!["name"].GetString());
+    }
+
+    [Fact]
+    public async Task ListPage_OnRowClick_makes_rows_clickable_and_receives_the_row()
+    {
+        PkRowClickEventArgs? clicked = null;
+        var without = Render<PkListPage<Order>>();
+        Assert.False(without.Find("pk-list-page").HasAttribute("clickable"));
+
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.OnRowClick, e => { clicked = e; }));
+        Assert.True(cut.Find("pk-list-page").HasAttribute("clickable"));
+        await cut.Find("pk-list-page").TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "A-1", Row = JsonDocument.Parse("{\"orderNo\":\"A-1\"}").RootElement.Clone() });
+
+        Assert.Equal("A-1", clicked!.Id);
+        Assert.Equal("A-1", clicked.Row!.Value.GetProperty("orderNo").GetString());
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]
@@ -122,6 +160,58 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var json = JsonSerializer.SerializeToElement(result);
         Assert.Equal(41, json.GetProperty("total").GetInt32());
         Assert.Equal("A-1", json.GetProperty("rows")[0].GetProperty("OrderNo").GetString());
+    }
+
+    [Fact]
+    public async Task ListPage_load_gets_a_multiselect_filter_as_a_list_and_a_text_filter_as_text()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":\"open\",\"region\":[\"north\",\"south\"],\"none\":[]}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("open", Assert.Single(seen!.Filters!).Value);
+        Assert.Equal(["north", "south"], seen.MultiFilters!["region"]);
+        Assert.Empty(seen.MultiFilters["none"]);
+    }
+
+    [Fact]
+    public async Task DataTable_load_gets_a_multiselect_filter_in_MultiFilters_and_a_text_filter_in_Filters()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkDataTable<Order>>(p => p.Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":[\"open\",\"paused\"],\"owner\":\"ada\",\"status\":\"closed\"}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("ada", seen!.Filters!["owner"]);
+        Assert.Equal("closed", seen.Filters["status"]);   // a key sent twice: the last value wins (JSON object), so it is in one dictionary only
+        Assert.Null(seen.MultiFilters);
+    }
+
+    [Fact]
+    public async Task DataTable_load_gets_an_array_filter_as_a_list()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkDataTable<Order>>(p => p.Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":[\"open\",\"paused\"],\"owner\":\"ada\"}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("ada", seen!.Filters!["owner"]);
+        Assert.Equal(["open", "paused"], seen.MultiFilters!["status"]);
+    }
+
+    [Fact]
+    public void A_query_with_only_array_filters_has_no_text_Filters()
+    {
+        var request = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"tag\":[\"a\"]}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!.ToRequest();
+
+        Assert.Null(request.Filters);
+        Assert.Equal(["a"], request.MultiFilters!["tag"]);
     }
 
     [Fact]

@@ -84,4 +84,30 @@ export const recordFormCases = [
         const pf = rf.part('form').getBoundingClientRect(), ps = rf.querySelector('[slot=sidebar]').getBoundingClientRect();
         t.ok(ps.top >= pf.bottom - 1, `on a phone the sidebar is below the form (${ps.top} vs ${pf.bottom})`); t.ok(pf.width > 300, 'and the form is the page width');
     }],
+
+    // #1000: what the Blazor wrapper relies on - a property set after the page connected, then refresh().
+    ['list-page: clickable without rowHref makes rows clickable and a click raises pk-row-click with the row id (#1000)', async t => {
+        const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        el.load = async () => ({ rows: [{ id: 'a1', sku: 'SKU-1' }, { id: 'a2', sku: 'SKU-2' }], total: 2 });
+        const rows = () => el.part('table').part('table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [];
+        el.part('table').refresh(); await until(() => rows().length === 2, 'two rows');
+        const seen = []; el.addEventListener('pk-row-click', e => seen.push(e.detail));
+        rows()[1].querySelector('td').click(); await t.settle();
+        t.eq(seen.length, 0, 'not clickable by default');
+        el.clickable = true; await t.settle(); await t.settle(); await wait(300);
+        rows()[1].querySelector('td').click(); await t.settle();
+        t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
+    }],
+
+    ['record-page: load set after connect is used only once refresh() is called, which loads the record and shows Edit when save is set (#1000)', async t => {
+        const el = await t.mount(`<pk-record-page config='{"id":"7","fields":[{"name":"name","label":"Name"}]}'></pk-record-page>`);
+        await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const asked = []; el.load = async id => { asked.push(id); return { name: 'Ada' }; }; el.save = async () => {};
+        await t.settle(); await t.settle();
+        t.eq(asked.length, 0, 'setting load alone does not load');
+        el.refresh(); await until(() => asked.length === 1, 'load called'); t.eq(asked[0], '7');
+        await until(() => el.part('edit') && !el.part('edit').hidden, 'Edit shows once save exists');
+        t.ok(el.shadowRoot.textContent.includes('Ada'), 'the loaded value is drawn');
+    }],
 ];

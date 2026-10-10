@@ -32,6 +32,8 @@ export default Base => class extends Base {
         else if (name === 'mode') this.draw();
     }
 
+    refresh() { if (this.$w && this.isConnected) this.fetch(); }
+
     // The record is loaded by id (config.id, the route's param) through the load(id) callback; no id means a new record (no load, edit mode).
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state'), id = this.config?.id ?? null;
