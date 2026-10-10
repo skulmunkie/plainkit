@@ -8,7 +8,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 
 export default Base => class extends Base {
     connected() {
-        this.$tabs ??= () => this.syncTabs_();
+        this.$tabs ??= e => { this.keepTab_(e); this.syncTabs_(); };
         this.addEventListener('pk-tab-change', this.$tabs);
         this.bindTabs_();
         if (this.$w) return this.syncTabs_();
@@ -34,11 +34,27 @@ export default Base => class extends Base {
     }
     /** Tabs apply at or below tabsFrom: a section tagged tab="x y" shows only while one of its tabs is chosen; otherwise every section shows and the strip is hidden. */
     syncTabs_() {
+        this.keepTab_();
         const strip = this.slotted('tabs').find(e => e.localName === 'pk-tabs');
         const on = !!strip && (this.tabsFrom === 'always' || !!this.$mq?.matches);
         const active = strip?.value || strip?.querySelector('pk-tab')?.getAttribute('value');
         this.part('tabs').hidden = !on;
         for (const s of this.querySelectorAll('[tab]')) s.hidden = on && !s.getAttribute('tab').split(/\s+/).includes(active);
+    }
+    /** tab-param: the chosen tab is kept in that query parameter (history.replaceState, other parameters and the hash kept), and a link carrying it opens on that tab. */
+    keepTab_(e) {
+        const key = this.tabParam, win = this.ownerDocument.defaultView;
+        if (!key || !win?.history || e?.detail?.fallback) return;
+        const url = new URL(win.location.href);
+        const strip = this.slotted('tabs').find(x => x.localName === 'pk-tabs');
+        if (e) url.searchParams.set(key, e.detail?.value ?? strip?.value ?? '');
+        else if (strip && this.$strip !== strip) {
+            this.$strip = strip;
+            const want = url.searchParams.get(key);
+            if (want && [...strip.querySelectorAll('pk-tab')].some(t => t.getAttribute('value') === want && !t.hasAttribute('disabled'))) strip.value = want;
+            return;
+        } else return;
+        win.history.replaceState(win.history.state, '', url);
     }
     form_() { return this.slotted().find(e => e.localName === 'form') ?? this.querySelector('form'); }
     /** Submits the consumer's form as its own submit button would: pk-form checks it, and a valid one raises pk-record-save. Call it from a button outside this element (the page header's). */

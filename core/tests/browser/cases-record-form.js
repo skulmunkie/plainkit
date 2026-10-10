@@ -101,6 +101,26 @@ export const recordFormCases = [
         t.eq(shown(wide), 'acd', 'changing tabs-from applies at once');
     }],
 
+    // #342: tab-param keeps the chosen tab in the query string and opens on it.
+    ['record-form: tab-param writes the chosen tab to the query (other parameters and hash kept, no history entry) and opens on the tab a link names; a bad value is ignored (#342)', async t => {
+        const tabs = '<pk-tabs slot="tabs" value="main"><pk-tab value="main">Main</pk-tab><pk-tab value="pricing">Pricing</pk-tab></pk-tabs>';
+        const body = '<form><pk-stack><pk-card id="a" tab="main">A</pk-card><pk-card id="b" tab="pricing">B</pk-card></pk-stack></form>';
+        const make = async () => { const el = await t.mount(`<pk-record-form tabs-from="always" tab-param="tab">${tabs}${body}</pk-record-form>`); await t.load(el.shadowRoot); await t.settle(); await t.settle(); return el; };
+        const before = location.href, len = history.length;
+        try {
+            history.replaceState(null, '', '?x=1#h');
+            const el = await make();
+            const strip = el.querySelector('pk-tabs');
+            t.eq(strip.value, 'main', 'no parameter: the first tab');
+            strip.value = 'pricing'; strip.dispatchEvent(new CustomEvent('pk-tab-change', { bubbles: true, detail: { value: 'pricing', previous: 'main' } })); await t.settle();
+            t.eq(location.search, '?x=1&tab=pricing', 'the chosen tab is written, other parameters kept'); t.eq(location.hash, '#h', 'the hash is kept'); t.eq(history.length, len, 'no history entry is added');
+            const again = await make();
+            t.eq(again.querySelector('pk-tabs').value, 'pricing', 'a link carrying the parameter opens on that tab'); t.ok(again.querySelector('#a').hidden && !again.querySelector('#b').hidden, 'and shows that tab\'s sections');
+            history.replaceState(null, '', '?tab=nope');
+            t.eq((await make()).querySelector('pk-tabs').value, 'main', 'a value matching no tab is ignored');
+        } finally { history.replaceState(null, '', before); }
+    }],
+
     // #1000: what the Blazor wrapper relies on - a property set after the page connected, then refresh().
     ['list-page: clickable without rowHref makes rows clickable and a click raises pk-row-click with the row id (#1000)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-list-page>`);
