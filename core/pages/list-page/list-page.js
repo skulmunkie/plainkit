@@ -10,6 +10,16 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot);
         this.sync();
+        // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
+        (this.$mo = new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        this.forwardSlots();
+    }
+    disconnected() { this.$mo?.disconnect(); this.$w = false; }
+    forwardSlots() {
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
+        if (names.join() === have.map(c => c.name).join()) return;
+        for (const c of have) c.remove();
+        for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
     }
     // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
     part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }

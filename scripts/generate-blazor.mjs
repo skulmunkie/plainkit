@@ -248,11 +248,20 @@ export function modelElement(el, mapping, reg) {
             out.callbacks.push({ name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true });
         } else if (map === 'cssProperty') {
             skip(p.name, `sets the ${p.cssProperty} custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper`);
+        } else if (map === 'cells') {
+            // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
+            declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
         } else if (map === 'wrapper') {
             if (p.name === 'ExtraClass') { declare({ name: 'ExtraClass', kind: 'param', cs: 'string?', doc: 'Extra CSS classes for the element.' }); out.usesClass = true; }
             else if (p.name === 'AdditionalAttributes') out.usesAttributes = true; // every component has it, from PkElementBase
             else skip(p.name, p.todo ? `${p.todo}` : `wrapper behaviour, not a property of the element (${p.note})`);
         }
+    }
+
+    // ---- 2a. `cells`: { load, doc }: typed per-column cell templates. Cells (column key -> template) and IdOf (the row key of an item) fill the element's
+    // `cell-<id>-<key>` slots for the rows the `load` callback just returned.
+    if (mapping.cells) {
+        out.cells = { load: mapping.cells.load };
     }
 
     // ---- 2b. `events`: a callback for each listed element event, named On<Event> ("pk-property-change" -> OnPropertyChange), typed from the meta's
@@ -474,7 +483,9 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // its slotted content (issue 211): Razor cannot put a slot attribute on multiple root elements from one RenderFragment independently, so
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
     const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
-    const children = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
+    const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
+    const cells = m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '';
+    const children = children0 + cells;
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);
@@ -493,12 +504,18 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     if (m.callbacks.length) {
         // Only set versus unset matters: the slot delegates to the current parameter, so a new delegate needs no new setup.
         L.push('', '    /// <inheritdoc />', '    protected override async Task OnAfterRenderAsync(bool firstRender)', '    {', '        await base.OnAfterRenderAsync(firstRender);');
-        for (const c of m.callbacks) {
+        for (let c of m.callbacks) {
             const call = `${c.name}!(${c.args}${c.abort ? ', ct' : ''})`;
+            if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
             L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call}; return null; }`}${c.refresh ? ', refresh: true' : ''});`);
         }
         L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
     }
+    if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
+        '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
+        '        if (Cells is null || IdOf is null) return null;',
+        '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
+        '        return null;', '    }');
     for (const x of m.methods) L.push('', doc(x.doc), `    public async Task ${x.name}() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("call", Element, ${lit(x.method)});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
