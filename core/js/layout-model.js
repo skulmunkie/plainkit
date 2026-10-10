@@ -71,7 +71,7 @@ export function createRegistry(api = []) {
 function attrInfo(entry, name) {
     const own = entry.props.get(name);
     if (own) return own;
-    if (name === 'id' || name === 'class' || name === 'title' || name === 'lang' || name === 'role') return { name, type: S, values: null };
+    if (name === 'id' || name === 'class' || name === 'title' || name === 'lang' || name === 'role' || name === 'tab') return { name, type: S, values: null };
     if (name === 'dir') return { name, type: 'enum', values: ['ltr', 'rtl', 'auto'] };
     if (name === 'hidden') return { name, type: B, values: null };
     if (name === 'tabindex') return { name, type: N, values: null };

@@ -162,7 +162,7 @@
     },
     {
       "title": "Sections tagged by tab: two columns on desktop, one tab at a time on a phone",
-      "html": "<pk-record-form tabs-from=\"phone\">\n  <pk-tabs slot=\"tabs\" value=\"details\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"pricing\">Pricing</pk-tab>\n  </pk-tabs>\n  <form>\n    <pk-stack>\n      <pk-card tab=\"details\" heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card>\n      <pk-card tab=\"pricing\" heading=\"Pricing\"><pk-field label=\"Price\"><pk-input name=\"price\"></pk-input></pk-field></pk-card>\n    </pk-stack>\n  </form>\n  <pk-card slot=\"sidebar\" tab=\"details\" heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card>\n</pk-record-form>"
+      "html": "<pk-record-form tabs-from=\"phone\">\n  <pk-tabs slot=\"tabs\" value=\"details\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"pricing\">Pricing</pk-tab>\n  </pk-tabs>\n  <form>\n    <pk-stack>\n      <div tab=\"details\"><pk-card heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card></div>\n      <div tab=\"pricing\"><pk-card heading=\"Pricing\"><pk-field label=\"Price\"><pk-input name=\"price\"></pk-input></pk-field></pk-card></div>\n    </pk-stack>\n  </form>\n  <div slot=\"sidebar\" tab=\"details\"><pk-card heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card></div>\n</pk-record-form>"
     }
   ],
   "methods": [
