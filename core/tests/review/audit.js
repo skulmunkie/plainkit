@@ -56,7 +56,10 @@ export function auditFacts(facts) {
         // A box hidden with the standard visually-hidden technique (pk-skip-link before focus, a u-sr-only live region) is clipped and undersized
         // on purpose: assistive tech still reaches it, so it is not a clipped-content or tap-target finding (issue 387).
         if ((b.clipX || b.clipY) && !b.hiddenVisually) add('clipped-content', 'warn', b, `${b.path} hides ${b.clipX ? 'width' : 'height'} (content larger than its box, overflow clipped)`, 'let the box grow, wrap, or truncate on purpose with text-overflow: ellipsis');
-        if (phone && b.interactive && !b.inlineLink && !b.hiddenVisually && (w < tap || h < tap)) add('tap-target', 'warn', b, `${b.path} is ${Math.round(w)}x${Math.round(h)}px on a phone; the touch target is ${tap}px`, 'use the touch-target token as min-height and min-width in the phone layout (see the page-header actions)');
+        // WCAG 2.2 SC 2.5.8 (Target Size Minimum): the activation area counts. A checkbox, radio or switch inside (or `for`-linked to) a clickable label is
+        // activated by the whole label, so that is the target we measure (hitRect, [w, h]). A bare input or link with no label keeps its own box (issue 1003).
+        const [tw, th] = b.hitRect ?? [w, h];
+        if (phone && b.interactive && !b.inlineLink && !b.hiddenVisually && (tw < tap || th < tap)) add('tap-target', 'warn', b, `${b.path} is ${Math.round(tw)}x${Math.round(th)}px on a phone; the touch target is ${tap}px`, 'use the touch-target token as min-height and min-width in the phone layout (see the page-header actions)');
         if (b.textColor && b.bg) {
             const ratio = contrastRatio(over(b.textColor, b.bg), b.bg);
             const need = b.fontSize >= 24 || (b.bold && b.fontSize >= 18.66) ? AA_LARGE : AA_TEXT;
