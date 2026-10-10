@@ -167,6 +167,9 @@
     "PkInputFormat.cs": {
       "category": "typed-generics"
     },
+    "PkListPageQuery.cs": {
+      "category": "typed-generics"
+    },
     "PkListTypes.cs": {
       "category": "typed-generics"
     },
@@ -216,6 +219,9 @@
       "category": "runtime"
     },
     "Testing/PkDataTableTesting.cs": {
+      "category": "callback-slot"
+    },
+    "Testing/PkFieldGroupTesting.cs": {
       "category": "callback-slot"
     }
   }

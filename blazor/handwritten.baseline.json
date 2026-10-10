@@ -50,7 +50,8 @@
     "PkGalleryImage.cs": 22,
     "PkHostEnvironment.cs": 41,
     "PkInputFormat.cs": 67,
-    "PkListTypes.cs": 47,
+    "PkListPageQuery.cs": 24,
+    "PkListTypes.cs": 37,
     "PkLogging.cs": 213,
     "PkNotifications.cs": 121,
     "PkOptions.cs": 26,
@@ -66,7 +67,8 @@
     "PkThemePreset.cs": 17,
     "PkTimeZone.cs": 161,
     "ServiceCollectionExtensions.cs": 39,
-    "Testing/PkDataTableTesting.cs": 44
+    "Testing/PkDataTableTesting.cs": 44,
+    "Testing/PkFieldGroupTesting.cs": 68
   },
   "debt": [
     {
