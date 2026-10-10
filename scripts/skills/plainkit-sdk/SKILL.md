@@ -181,6 +181,8 @@ await page.busy(() => fetchOrders(), 'Loading orders…');
 // pk-alert danger status, and rethrown so your own error handling still runs
 ```
 
+Where the reader is (nav row, trail, title) has ONE answer on a page that is not under `mountApp`: `import { createPageContext, bindPageContext } from './plainkit/js/page-context.js'`; `const ctx = createPageContext({ router, routes, nav })` (`nav`: `[{ id, title, route }]`, optional) gives `{ ids, section, current, crumbs, title }`, and `bindPageContext(ctx, { nav: sideNav, header, breadcrumb, title: true })` writes it as plain attributes (rows with `data-id` get `current`/`expanded`, the page header `crumbs` and `heading`, the breadcrumb its links, `document.title`) and returns the unsubscribe. A route node's `context` (object or `({ path, params, query }) => object`) and `ctx.set({ title })` (data loaded after render, forgotten at the next navigation) override field by field. No element reads the context; `pk-side-nav[current-path]` stays the zero-JS fallback.
+
 Busy is counted (overlapping calls never clear each other early), the overlay delays and debounces itself, and `page.destroy()` releases everything. Driving breadcrumbs from a route tree (`mountRouter`), a `pk-card` whose body the page fills with a loading, empty or error state (`showState`) and `pk-property-grid` (a live property inspector): `references/page.md`.
 
 ### Respond to screen size and change the theme
