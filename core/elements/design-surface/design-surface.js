@@ -65,9 +65,10 @@ export default Base => class extends Base {
         this.layout();
     }
 
-    // The page's nodes as { node, depth, rect } (rect in viewport pixels), in document order; slotted chip and empty content are not page nodes.
+    // The page's nodes as { node, depth, rect } (rect in viewport pixels), in document order: every descendant at any depth, including page nodes slotted
+    // into a container (a card's footer); only the surface's own slotted chip and empty content (its direct [slot] children and what is inside them) are not.
     nodes() {
-        return [...this.querySelectorAll('*')].filter(n => !n.closest('[slot]')).map(node => {
+        return [...this.querySelectorAll(':scope > :not([slot]), :scope > :not([slot]) *')].map(node => {
             return { node, depth: depthOf(node, this), rect: node.getBoundingClientRect() };
         });
     }

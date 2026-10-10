@@ -29,7 +29,7 @@ export const inspectorPanel = {
     id: 'inspector',
     title: 'Inspector',
     async mount(el, { doc, win, isTool }) {
-        const refresh = h(doc, 'pk-button', { size: 'mini', variant: 'ghost' }, 'Refresh');
+        const refresh = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'icon-name': 'refresh', collapse: 'phone' }, 'Refresh');
         const status = h(doc, 'span', { class: 'muted', role: 'status' });
         const table = h(doc, 'pk-table', {
             label: 'pk-* elements on this page', density: 'compact', stickyHeader: true, clickable: true, maxHeight: '18rem',

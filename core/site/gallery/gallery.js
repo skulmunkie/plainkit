@@ -294,7 +294,7 @@ function view() {
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {
         if (ELEMENTS.some(m => m.tag === a)) { out.append(elementSlot(a, true)); return out; }
-        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <span class="muted">${g.items.length}</span></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
+        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <pk-text inline tone="muted">${g.items.length}</pk-text></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
     return put(notFound('Not found'));

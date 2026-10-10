@@ -41,7 +41,7 @@ export async function mountQuality(container, options = {}) {
     const win = doc.defaultView;
     await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
-    const run = h(doc, 'pk-button', { size: 'mini', variant: 'primary' }, 'Check this page');
+    const run = h(doc, 'pk-button', { size: 'mini', variant: 'primary', 'icon-name': 'audit', collapse: 'phone' }, 'Check this page');
     const status = h(doc, 'span', { class: 'muted', role: 'status' }, 'Not run yet');
     const score = h(doc, 'pk-stat', { label: 'Page score', value: '-', tile: true, subtext: 'Accessibility, layout, spacing, touch targets and focus' });
     const table = h(doc, 'pk-table', {

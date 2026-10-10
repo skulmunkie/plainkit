@@ -387,17 +387,8 @@ export async function mountLayoutBuilder(container, options = {}) {
     }
     for (const type of EDIT_EVENTS) on(form, type, onControl);
 
-    // The page is inert, so a click lands on the canvas: the node is the smallest element under the pointer.
-    function hit(x, y) {
-        let best = null, area = Infinity;
-        for (const [id, el] of elements) {
-            const r = el.getBoundingClientRect();
-            if (r.width <= 0 || r.height <= 0 || x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
-            const a = r.width * r.height;
-            if (a <= area) { best = id; area = a; }
-        }
-        return best;
-    }
+    // The page is inert, so a click lands on the canvas: the node is the deepest element under the pointer (the surface's nodeAt).
+    const hit = (x, y) => canvas.nodeAt(x, y)?.closest('[data-lb-id]')?.getAttribute('data-lb-id') ?? null;
     on(canvas, 'click', e => { if (!e.target.closest?.('[slot=chip]')) selectNode(hit(e.clientX, e.clientY), { from: 'canvas' }); });
     // Hover tracking for the chip: moving over the chip itself (not over the underlying element) leaves the target alone, so the buttons don't vanish on the way to them.
     on(canvas, 'pointermove', e => {
