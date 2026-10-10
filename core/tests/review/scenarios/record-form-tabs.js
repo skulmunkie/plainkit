@@ -4,7 +4,7 @@ export default {
     name: 'record-form-tabs',
     issue: [342],
     elements: ['record-form', 'form', 'field', 'input', 'tabs', 'card', 'badge'],
-    html: `<div id="stage"><pk-record-form id="rf">
+    html: `<div id="stage"><pk-record-form id="rf" tab-param="tab">
 <pk-tabs slot="tabs" value="details" label="Record"><pk-tab value="details">Details</pk-tab><pk-tab value="pricing">Pricing</pk-tab></pk-tabs>
 <form id="form"><pk-stack>
 <pk-card id="details" tab="details" heading="Details"><pk-field label="Name"><pk-input name="name"></pk-input></pk-field></pk-card>
@@ -30,7 +30,7 @@ export default {
             t.ok(hidden('#pricing'), 'the Pricing section is hidden until its tab is chosen');
         } else if (t.shot === 'pricing') {
             t.visible('#pricing', 'the Pricing section after choosing its tab');
-            t.ok(hidden('#details') && hidden('#status'), 'the Details sections are hidden once Pricing is chosen');
+            t.ok(t.attr('#rf', 'tab-param') === 'tab', 'tab-param is set while the chosen tab is kept in the address bar'); t.ok(hidden('#details') && hidden('#status'), 'the Details sections are hidden once Pricing is chosen');
         }
     },
 };

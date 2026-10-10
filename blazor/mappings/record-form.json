@@ -8,6 +8,7 @@
     { "name": "Busy", "prop": "busy", "type": "bool" },
     { "name": "Error", "prop": "error", "type": "string" },
     { "name": "TabsFrom", "prop": "tabsFrom", "type": "string" },
+    { "name": "TabParam", "prop": "tabParam", "type": "string" },
     { "name": "ActionsInHeader", "prop": "actionsInHeader", "type": "bool" },
     { "name": "OnValid", "event": "pk-record-save" },
     { "name": "OnCancel", "event": "pk-record-cancel", "shows": "cancellable" },

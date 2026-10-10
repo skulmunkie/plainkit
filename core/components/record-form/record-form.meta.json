@@ -70,6 +70,13 @@
       "description": "Where the tabs in the tabs slot take effect. An element in the form or the sidebar with a tab attribute (a tab value, or several separated by spaces) belongs to those tabs: at or below the width named (phone, tablet), or always, only the chosen tab's sections show and the strip is visible; above it every section shows (the two-column layout) and the strip is hidden. Sections with no tab attribute always show. The element sets hidden on the tagged sections."
     },
     {
+      "name": "tabParam",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A query parameter name (\"tab\") that keeps the chosen tab in the address bar, so a reload or a shared link opens on it. Other parameters and the hash are kept and no history entry is added. Empty keeps nothing. A value that matches no enabled tab is ignored."
+    },
+    {
       "name": "actionsInHeader",
       "type": "boolean",
       "default": false,
