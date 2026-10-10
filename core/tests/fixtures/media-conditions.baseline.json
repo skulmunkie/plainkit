@@ -141,6 +141,11 @@
  "progress": [
   "(prefers-reduced-motion: reduce)"
  ],
+ "print-page": [
+  "print",
+  "(max-width: 640px)",
+  "print"
+ ],
  "radio-group": [
   "(max-width: 640px)"
  ],
@@ -192,7 +197,8 @@
  ],
  "table": [
   "(prefers-reduced-motion: reduce)",
-  "(max-width: 640px)"
+  "(max-width: 640px)",
+  "print"
  ],
  "table-filters": [
   "(max-width: 640px)"

@@ -33,7 +33,7 @@ import { ensureGenerated } from './generated.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
-import { combinations, expectationFinding, keyEvents, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
+import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 375, height: 812 }];
@@ -237,6 +237,7 @@ const WIDTH_FIX = 'the emulated viewport was not applied; re-run, and report it 
  */
 async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, phases }) {
     const tag = `scenario-${sc.name}`;
+    await cdp.send('Emulation.setEmulatedMedia', mediaParams('')); // a { media } step of the scenario before this one must not leak into it
     // Where the time goes (issue #750): open and ready, fixed waits, settles, measured audit, screenshot; the rest (input events, applying a step) is `steps`, see phasesOf.
     const timed = async (key, fn) => { const t = Date.now(); try { return await fn(); } finally { phases[key] = (phases[key] ?? 0) + Date.now() - t; } };
     const settle = () => timed('settle', () => evaluate(cdp, 'window.__rv.settle()'));
@@ -269,6 +270,9 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
         } else if ('resize' in step) {
             // A real viewport width (the frame's media queries answer to it); the height stays that of the combination.
             await cdp.send('Emulation.setDeviceMetricsOverride', { width: step.resize, height: vp.height, deviceScaleFactor: 1, mobile: false });
+            await settle();
+        } else if ('media' in step) {
+            await cdp.send('Emulation.setEmulatedMedia', mediaParams(step.media));
             await settle();
         } else if ('wait' in step) {
             if (step.wait === 'settle') await settle(); else await timed('wait', () => sleep(step.wait));

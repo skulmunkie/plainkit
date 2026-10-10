@@ -61,30 +61,22 @@ export default Base => class extends Base {
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
-        V.frame(this, tb, k.length + lead);
+        V.frame(this, tb, k.length + lead, r.length);
 
-        const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
-        box.checked = sel.checked; box.indeterminate = sel.mixed;
-        const head = [h('tr', {}, ...(this.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-            ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': ph(c), scope: 'col', 'aria-sort': c.sortable ? (this.sort === c.key ? this.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
-        if (this.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': ph(c) }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: this.filters[c.key] ?? '' })))));
-        this.part('head').replaceChildren(...head);
+        this.part('head').replaceChildren(...V.head(this, k, x, lead, sel, h));
 
         // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js). Never for an
         // expandable table (a detail row's height varies) or a host-supplied one (already returned above, at `if (own)`).
         const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: k.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, r, h) ?? r.flatMap((row, i) => {
             const id = rowId(row, i, this.rowKey), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
             pick.checked = s.has(id);
-            const tr = h('tr', { 'data-pk-context': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
+            const tr = h('tr', { 'data-pk-context': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, ...V.mark(row), 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
                 ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
                 ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
         this.$m?.after(this); this.$e?.after(this);
-        this.part('empty').hidden = this.loading || r.length > 0;
-        const n = idSet(this.selected).size;
-        this.part('bulk').hidden = n === 0; this.part('bulk-count').textContent = `${n} selected`;
         this.$s?.after(this, r.length, sel.checked);
     }
 };

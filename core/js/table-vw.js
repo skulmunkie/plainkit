@@ -46,23 +46,45 @@ function body(el, rowsAll, h) {
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
     const start = Math.max(0, Math.floor(s.scrollTop / rowH) - OVERSCAN);
     const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + OVERSCAN * 2);
-    const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
     const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.setProperty('padding', '0'); td.style.setProperty('border', '0'); td.style.setProperty('block-size', `${size}px`); return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
     const drawn = rowsAll.slice(start, end).flatMap((row, j) => {
-        const i = start + j, id = rowId(row, i, el.rowKey), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
-        pick.checked = sel.has(id);
-        return [h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
-            ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-            ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }))];
+        return [tr(el, row, rowId(row, start + j, el.rowKey), sel, h)];
     });
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }
 
-// The frame state of the table: busy flag, the scroll frame's max height, and the foot cell spanning all `span` columns (#1020). Lives here, not in table.js, to keep that module in its gzip budget.
-function frame(el, tb, span) {
+// The frame state of the table: busy flag, the empty state, the bulk bar count, the scroll frame's max height, and the foot cell spanning all `span` columns (#1020). Lives here, not in table.js, to keep that module in its gzip budget.
+function frame(el, tb, span, rows) {
     tb.setAttribute('aria-busy', String(el.loading));
     if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
     el.part('foot').colSpan = span;
+    el.part('empty').hidden = el.loading || rows > 0;
+    const n = idSet(el.selected).size;
+    el.part('bulk').hidden = n === 0; el.part('bulk-count').textContent = `${n} selected`;
 }
 
-export default { view, body, frame };
+
+// Issue 1019: a row object may carry tone (warning, positive, accent, critical) and indent (1 or 2); they become data-tone and data-indent on the <tr>.
+const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
+const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
+// One data row, shared by the plain render (table.js) and the windowed one above: a select box, then a td per column (a slotted cell where the host gave one).
+const al = c => c.align ?? (c.type === 'number' ? 'end' : null);
+function tr(el, row, id, sel, h) {
+    const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
+    pick.checked = sel.has(id);
+    return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
+        ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
+        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+}
+
+// The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
+function head(el, k, x, lead, sel, h) {
+    const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
+    box.checked = sel.checked; box.indeterminate = sel.mixed;
+    const head = [h('tr', {}, ...(el.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
+        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
+    if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
+    return head;
+}
+
+export default { view, body, frame, mark, head };

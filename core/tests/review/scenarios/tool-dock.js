@@ -42,6 +42,11 @@ export default {
         if (t.shot.startsWith('closed')) { t.hidden(P, 'the panel while closed'); return; }
         t.visible(P, 'the open panel'); t.inViewport(P);
         t.within(H, P); t.within(B, P); t.noOverlap(H, B);
+        if (v.width <= 480) { // phone: every header control fits the row and is a full touch target; Close is icon-only (#1029)
+            for (const c of ['[part=close]', 'pk-button[value=small]', 'pk-button[value=medium]', 'pk-button[value=large]']) { t.within(`#dock >>> ${c}`, H); t.atLeast(`#dock >>> ${c}`, 'width', 44); t.atLeast(`#dock >>> ${c}`, 'height', 44); }
+            const close = t.rect('#dock >>> [part=close]');
+            if (close) t.ok(close.width <= 48, `Close is ${Math.round(close.width)}px wide: it should be icon-only on a phone`);
+        }
         t.ok(t.attr(P, 'aria-label') === 'Dev tools', 'the panel is named');
         t.visible('#dock pk-tabs', 'the tab strip in the body'); // taller than the body when a tab has long content: the body scrolls it
         if (t.shot !== 'scrolled-end') t.inViewport('#dock pk-tab[value=console]'); // scrolled to the end, the strip has scrolled away with the content (as it did before the tray)        t.visible('#page-btn', 'the page behind');
