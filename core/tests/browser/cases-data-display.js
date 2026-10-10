@@ -630,6 +630,25 @@ export const dataDisplayCases = [
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
 
+    ['table and data-table (375px): a toolbar with long controls and an action wraps inside the width, the page does not scroll sideways and the action stays visible (#1016)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const tableHtml = `<pk-table cards label="T" columns='[{"key":"sku","label":"SKU"}]' rows='[{"id":1,"sku":"A"}]'><pk-cluster slot="toolbar"><select aria-label="Status"><option>All statuses of every kind</option></select><pk-button variant="ghost">Export the filtered rows</pk-button></pk-cluster><pk-button slot="toolbar" data-end variant="primary">Add a new product</pk-button></pk-table>`;
+        const dataHtml = `<pk-data-table label="D" add-label="Add a new product" columns='[{"key":"sku","label":"SKU"}]'><pk-button slot="actions" variant="ghost">Export the filtered rows</pk-button><pk-button slot="actions" variant="ghost">Import from a file</pk-button></pk-data-table>`;
+        for (const [name, html] of [['pk-table', tableHtml], ['pk-data-table', dataHtml]]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '375px'; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const W = () => f.contentWindow, D = () => f.contentDocument; await until(() => W().customElements.get(name) && D().querySelector(name)?.shadowRoot?.querySelector('[part="toolbar"]'), `the ${name}`); const w = W(), d = D();
+            await new Promise(r => setTimeout(r, 300));
+            t.eq(w.innerWidth, 375);
+            const root = d.documentElement; t.ok(root.scrollWidth <= root.clientWidth, `${name}: the page does not scroll sideways (scrollWidth ${root.scrollWidth}, clientWidth ${root.clientWidth})`);
+            const bar = d.querySelector(name).shadowRoot.querySelector('[part="toolbar"]').getBoundingClientRect();
+            t.ok(bar.right <= 375 + 1, `${name}: the toolbar ends inside the viewport (right ${Math.round(bar.right)})`);
+            const btns = [...d.querySelectorAll('pk-button')].concat([...d.querySelector(name).shadowRoot.querySelectorAll('pk-button')]).filter(b => b.getBoundingClientRect().width > 0);
+            t.ok(btns.length > 0 && btns.every(b => b.getBoundingClientRect().right <= 375 + 1), `${name}: every button is inside the viewport (${btns.map(b => Math.round(b.getBoundingClientRect().right)).join(', ')})`);
+        }
+    }],
+
     ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
         for (const width of ['40rem', '12rem']) {
             const host = t.stage('<pk-table-filters label="Search products" filter-count="1"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>');
