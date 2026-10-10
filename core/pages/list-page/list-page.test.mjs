@@ -61,6 +61,15 @@ test('load is handed down as it is now (an empty page without one) and rowHref o
     assert.deepEqual(seen, [{ page: 2 }, { id: 1 }]);
 });
 
+test('clickable is handed down to the table', () => {
+    const { el, parts } = make();
+    el.connected();
+    assert.equal(parts.table.clickable, false);
+    el.clickable = true;
+    el.changed('clickable');
+    assert.equal(parts.table.clickable, true);
+});
+
 test('selectable and rowKey are handed to the data table, and a bulk action raises pk-bulk with the table\'s selection', () => {
     const { el, parts } = make();
     const raised = [];

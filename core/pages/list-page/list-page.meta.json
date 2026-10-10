@@ -7,6 +7,13 @@
   "summary": "A filterable, sortable, paginated list of records: a pk-data-table (the one implementation of the query, load and states: a manual pk-table, a pk-table-filters search/filter panel and a pk-pagination footer) under an optional title bar, with optional toolbar actions. Set the load(query) callback as a property (business logic, never config data) - it receives { page, pageSize, sort, sortDir, search, filters } and returns (or resolves to) { rows, total } for that page; a rejection shows the built-in error state with Retry, and zero rows show the configured empty state. rowHref(row), also a callback property, makes rows clickable and is called instead of the element navigating itself, so the host wires it through its own router.",
   "props": [
     {
+      "name": "clickable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows raise pk-row-click when clicked (or Enter/Space on the focused row). Without it only rowHref makes rows clickable."
+    },
+    {
       "name": "config",
       "type": "json",
       "default": {},
@@ -21,6 +28,12 @@
       "detail": { "selected": "string[]", "scope": "'page' | 'all'", "query": "{ page, pageSize, sort, sortDir, search, filters }" },
       "description": "The selection changed (config.selectable), passed through from the pk-data-table. For scope 'all' run the bulk action against query on the server, never against the ids.",
       "detailProps": { "selected": "string[]", "scope": "string", "query": "object" }
+    },
+    {
+      "name": "pk-row-click",
+      "detail": { "id": "string", "row": "object" },
+      "description": "A row was activated (clickable): id is the rowKey value, row the row object from load(). The data table's own event, passed through.",
+      "detailProps": { "id": "string", "row": "object" }
     },
     {
       "name": "pk-bulk",
