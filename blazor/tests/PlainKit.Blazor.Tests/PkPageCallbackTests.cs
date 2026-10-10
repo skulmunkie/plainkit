@@ -139,6 +139,35 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task DataTable_load_gets_a_multiselect_filter_in_MultiFilters_and_a_text_filter_in_Filters()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkDataTable<Order>>(p => p.Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":[\"open\",\"paused\"],\"owner\":\"ada\",\"status\":\"closed\"}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("ada", seen!.Filters!["owner"]);
+        Assert.Equal("closed", seen.Filters["status"]);   // a key sent twice: the last value wins (JSON object), so it is in one dictionary only
+        Assert.Null(seen.MultiFilters);
+    }
+
+    [Fact]
+    public async Task DataTable_load_gets_an_array_filter_as_a_list()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkDataTable<Order>>(p => p.Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":[\"open\",\"paused\"],\"owner\":\"ada\"}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("ada", seen!.Filters!["owner"]);
+        Assert.Equal(["open", "paused"], seen.MultiFilters!["status"]);
+    }
+
+    [Fact]
     public void A_query_with_only_array_filters_has_no_text_Filters()
     {
         var request = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"tag\":[\"a\"]}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!.ToRequest();
