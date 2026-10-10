@@ -440,3 +440,33 @@ layoutCases.push(
         }
     }],
 );
+
+// Issue 1019: a data-driven row carries a tone (and an indent) from the row object; the tint and the leading rule show on the desktop row and on the phone card.
+layoutCases.push(
+    ['table row tone: a row with tone has a tint and a leading rule, and indent moves its first cell in, on desktop and as a phone card (issue 1019)', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `table row tone at ${width}px`; fr.style.cssText = `width:${width}px;height:600px;border:0;display:block`;
+            fr.src = new URL('./table-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await win.customElements.whenDefined('pk-table');
+            const tb = d.createElement('pk-table');
+            tb.setAttribute('cards', ''); tb.setAttribute('row-key', 'id');
+            tb.columns = [{ key: 'name', label: 'Name' }, { key: 'sku', label: 'SKU' }];
+            tb.rows = [{ id: 'a', name: 'Plain', sku: '1' }, { id: 'b', name: 'Late', sku: '2', tone: 'warning' }, { id: 'c', name: 'Child', sku: '3', tone: 'accent', indent: 1 }, { id: 'd', name: 'Done', sku: '4', tone: 'positive' }];
+            d.body.append(tb);
+            for (let i = 0; i < 100 && !tb.shadowRoot?.querySelector('tbody tr:nth-child(4)'); i++) await wait(40);
+            const trs = [...tb.shadowRoot.querySelectorAll('tbody tr')], at = `${width}px`, cs = el => win.getComputedStyle(el);
+            const alpha = c => { if (c.startsWith('color(')) return c.includes('/') ? Number(c.split('/')[1].replace(')', '')) : 1; const m = /rgba?\(([^)]+)\)/.exec(c)?.[1].split(/[ ,\/]+/).filter(Boolean); return m ? (m.length > 3 ? Number(m[3]) : 1) : 0; };
+            const rule = tr => cs(tr).boxShadow + ' ' + cs(tr.firstElementChild).boxShadow;
+            t.ok(trs.length === 4 && trs[1].dataset.tone === 'warning' && trs[0].dataset.tone === undefined, `${at}: tone reaches the row as data-tone`);
+            t.ok(alpha(cs(trs[0]).backgroundColor) === 0 && alpha(cs(trs[1]).backgroundColor) > 0, `${at}: a toned row is tinted, a plain one is not`);
+            t.ok(/inset/.test(rule(trs[1])) && !/inset/.test(rule(trs[0])), `${at}: only the toned row has the leading rule`);
+            t.ok(rule(trs[1]) !== rule(trs[3]), `${at}: tones differ in colour`);
+            const left = tr => { if (width < 640) return tr.getBoundingClientRect().left; const r = d.createRange(); r.selectNodeContents(tr.firstElementChild); return r.getBoundingClientRect().left; };
+            t.ok(left(trs[2]) - left(trs[0]) >= 8, `${at}: indent moves the row in (${Math.round(left(trs[2]) - left(trs[0]))}px)`);
+            fr.remove();
+        }
+    }],
+);

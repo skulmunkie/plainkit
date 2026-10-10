@@ -13,7 +13,7 @@
       "name": "Items",
       "prop": "rows",
       "type": "IReadOnlyList<TItem>",
-      "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf)."
+      "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf). An item property named Tone (warning, positive, accent or critical) or Indent (1 or 2) marks the row, tint and leading rule included, as in the element."
     },
     {
       "name": "IdOf",
