@@ -17,7 +17,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The filter fields beside the search box: [{ key, label, type?, options?, anyLabel? }] (type is a pk-input type, or 'select' with options). Each is a labelled control; its value goes to load(query) as query.filters[key]. The controls are rebuilt only when this array changes, so typed values survive every other change."
+      "description": "The filter fields beside the search box: [{ key, label, type?, options?, anyLabel? }] (type is a pk-input type, 'select' with options, or 'multiselect': a checklist of options whose chosen values arrive as an array, empty when none). Each is a labelled control; its value goes to load(query) as query.filters[key]. The controls are rebuilt only when this array changes, so typed values survive every other change."
     },
     {
       "name": "pageSize",

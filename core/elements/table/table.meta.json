@@ -18,7 +18,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>."
+      "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>. Two optional row fields mark a row: tone (warning, positive, accent or critical) tints it and draws a leading rule, and indent (1 or 2) steps it in, for rows that need attention or sit under a parent; both carry through to the phone card (issue 1019). Any other value is ignored."
     },
     {
       "name": "rowKey",
@@ -430,6 +430,10 @@
     {
       "title": "Expandable rows",
       "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
+    },
+    {
+      "title": "Row tone and indent (issue 1019)",
+      "html": "<pk-table label=\"Orders\" cards columns='[{\"key\":\"po\",\"label\":\"PO\"},{\"key\":\"state\",\"label\":\"State\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\",\"state\":\"Shipped\",\"tone\":\"positive\"},{\"id\":2,\"po\":\"PO 1043\",\"state\":\"Late: needs a call\",\"tone\":\"warning\"},{\"id\":3,\"po\":\"PO 1043-A\",\"state\":\"Split from 1043\",\"indent\":1},{\"id\":4,\"po\":\"PO 1044\",\"state\":\"Open\"}]'></pk-table>"
     },
     {
       "title": "Editable cells",
