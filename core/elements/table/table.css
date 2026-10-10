@@ -28,6 +28,16 @@ th[aria-sort="none"] button::after { content: " \2195"; opacity: 0.5; }
 th[aria-sort="ascending"] button::after { content: " \2191"; }
 th[aria-sort="descending"] button::after { content: " \2193"; }
 [data-check] { inline-size: var(--space-8); text-align: center; }
+/* Issue 1019: a row object's tone (warning, positive, accent, critical) tints the row and draws a leading rule; indent steps the first cell in. The selected and current states below win. */
+tr[data-tone] { --_tone: var(--color-accent); background: color-mix(in srgb, var(--_tone) 10%, transparent); }
+tr[data-tone="warning"] { --_tone: var(--color-warning); }
+tr[data-tone="positive"] { --_tone: var(--color-positive); }
+tr[data-tone="critical"] { --_tone: var(--color-critical); }
+tr[data-tone] td:first-child { box-shadow: inset 3px 0 0 var(--_tone); }
+:host([sticky-column]) tr[data-tone] td:first-child { background: color-mix(in srgb, var(--_tone) 10%, var(--color-panel)); }
+tr[data-indent] td:is(:first-child:not([data-check]), [data-check] + td) { text-indent: calc(var(--space-5) * var(--_indent)); }
+tr[data-indent="1"] { --_indent: 1; }
+tr[data-indent="2"] { --_indent: 2; }
 tr[data-selected], tr[aria-current] { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
 tr[aria-current] td:first-child { box-shadow: inset 3px 0 0 var(--color-accent); }
 tr[data-filters] th { padding-block: var(--space-1); text-transform: none; letter-spacing: 0; }
@@ -53,6 +63,11 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     :host([cards]) td { overflow-wrap: anywhere; }
     :host([cards]) td[data-hide-phone] { display: none; }
     :host([cards]) td[data-label]::before { content: attr(data-label); flex: none; color: var(--color-muted); font-size: var(--text-meta); text-align: start; }
+    /* A toned or indented row's card carries the rule on the card itself and steps the whole card in. */
+    :host([cards]) tr[data-tone] { box-shadow: inset 3px 0 0 var(--_tone); }
+    :host([cards]) tr[data-tone] td:first-child { box-shadow: none; }
+    :host([cards]) tr[data-indent] { margin-inline-start: calc(var(--space-5) * var(--_indent)); }
+    :host([cards]) tr[data-indent] td { text-indent: 0; }
     /* A slotted link is a flex item in the card row and shrinks to its line height; give it a real tap target. */
     /* An unbreakable slotted value (a long code or button label) may shrink to the card and is clipped there, so it cannot push the other values off the card (#1015). */
     :host([cards]) ::slotted(*) { min-inline-size: 0; max-inline-size: 100%; overflow-x: clip; }
