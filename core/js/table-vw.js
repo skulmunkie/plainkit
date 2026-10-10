@@ -51,11 +51,14 @@ function body(el, rowsAll, h) {
     const drawn = rowsAll.slice(start, end).flatMap((row, j) => {
         const i = start + j, id = rowId(row, i, el.rowKey), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
         pick.checked = sel.has(id);
-        return [h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
+        return [h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
             ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
             ...cols.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }))];
     });
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }
 
-export default { view, body };
+// Issue 1019: a row object may carry tone (warning, positive, accent, critical) and indent (1 or 2); they become data-tone and data-indent on the <tr>.
+const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
+const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
+export default { view, body, mark };
