@@ -61,8 +61,7 @@ export default Base => class extends Base {
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
         const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
-        tb.setAttribute('aria-busy', String(this.loading));
-        if (this.maxHeight) this.style.setProperty('--pk-table-max-height', this.maxHeight); else this.style.removeProperty('--pk-table-max-height');
+        V.frame(this, tb, k.length + lead);
 
         const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
         box.checked = sel.checked; box.indeterminate = sel.mixed;

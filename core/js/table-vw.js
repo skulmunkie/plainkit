@@ -58,4 +58,11 @@ function body(el, rowsAll, h) {
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }
 
-export default { view, body };
+// The frame state of the table: busy flag, the scroll frame's max height, and the foot cell spanning all `span` columns (#1020). Lives here, not in table.js, to keep that module in its gzip budget.
+function frame(el, tb, span) {
+    tb.setAttribute('aria-busy', String(el.loading));
+    if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
+    el.part('foot').colSpan = span;
+}
+
+export default { view, body, frame };
