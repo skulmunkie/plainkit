@@ -1,6 +1,6 @@
 /* Layout builder chrome (modules/layout-builder). Tokens only. */
 
-.lb { position: relative; display: flex; flex-direction: column; gap: var(--space-2); height: var(--lb-canvas-h); min-height: 0; min-width: 0; }
+.lb { position: relative; display: flex; flex-direction: column; gap: var(--space-2); height: var(--_lb-canvas-h); min-height: 0; min-width: 0; }
 
 .lb > pk-dock { flex: 1 1 auto; min-height: 0; block-size: auto; }
 
@@ -15,7 +15,7 @@
 
 .lb-canvas-menu { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
 
-.lb-canvas-menu > pk-design-surface { flex: 1 1 auto; --pk-design-surface-min-h: var(--lb-canvas-min-h); }
+.lb-canvas-menu > pk-design-surface { flex: 1 1 auto; --pk-design-surface-min-h: var(--_lb-canvas-min-h); }
 
 .lb-items { display: flex; flex-direction: column; gap: var(--space-1); }
 
