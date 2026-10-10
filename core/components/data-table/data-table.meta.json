@@ -186,7 +186,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader."
+      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader. Put the data table in a flex column of definite height (a pk-stack[fill], an app-shell body) and it fills that height with no maxHeight: the header stays pinned, only the rows scroll, and the pager (and the bulk bar) stay in view below them, at any width. Where the container has no definite height the table is as tall as its rows."
     },
     {
       "name": "selected",
