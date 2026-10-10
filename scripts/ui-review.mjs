@@ -9,6 +9,7 @@
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
 //   [--base <ref>] [--out <dir>] [--shard i/n] [--jobs N] [--skip-base] [--strict] [--port N] [--timeout <s>]
+//   --cache reuses the screenshots and findings of a unit (element or scenario x viewport x theme) whose inputs hash the same (scripts/ui-review-cache.mjs, folder review-cache/, git-ignored); --no-cache wins. Local only: CI never uses it
 //   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
@@ -31,6 +32,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
+import { createCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
@@ -115,13 +117,15 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1 };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
         if (a === '--all') o.all = true;
         else if (a === '--strict') o.strict = true;
         else if (a === '--skip-base') o.skipBase = true;
+        else if (a === '--cache') { if (o.cache !== 'off') o.cache = 'on'; }
+        else if (a === '--no-cache') o.cache = 'off';
         else if (a === '--scenarios' || a === '--scenarios-only') {
             // The names are optional: `--scenarios` alone means every scenario, `--scenarios-only` alone the ones for the changed elements.
             const next = argv[i + 1];
@@ -143,6 +147,7 @@ export function parseArgs(argv) {
     }
     if (o.all && o.elements.length) throw new Error('use either --all or --elements, not both');
     if (o.scenarios === null) o.scenarios = 'auto';
+    o.cache = o.cache === 'on';
     return o;
 }
 
@@ -304,6 +309,7 @@ export function mergeManifests(parts, { strict = false } = {}) {
         notSeen: parts.flatMap(p => p.notSeen ?? []),
         timings: Object.assign({}, ...parts.map(p => p.timings ?? {})),
         phases: Object.assign({}, ...parts.map(p => p.phases ?? {})),
+        ...(parts.some(p => p.cache) ? { cache: Object.fromEntries(['hits', 'misses', 'corrupt'].map(k => [k, parts.reduce((n, p) => n + (p.cache?.[k] ?? 0), 0)])) } : {}),
         findings,
         summary: summarize(findings, { strict }),
     };
@@ -422,13 +428,15 @@ async function main() {
         if (examples.length) console.log(`reviewing ${examples.length} element(s) (${why}): ${examples.map(n => `pk-${n}`).join(', ')}`);
         if (scenarios.length) console.log(`scenarios (${scenarios.length}): ${scenarios.map(s => s.name).join(', ')}`);
 
+        const cache = o.cache ? createCache({ root, dir: path.join(root, 'review-cache'), chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
+        const unit = (u, render) => cache ? cache.unit(u, { manifest, out }, render) : render();
         let t0 = Date.now();
-        for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) {
+        for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) await unit({ kind: 'example', name, vp, theme }, async () => {
             const tag = `pk-${name}`;
             await openReview(cdp, vp, `http://localhost:${port}/tests/review/?tag=${tag}&theme=${theme}`);
             const state = await waitReady(cdp, o.timeout);
-            if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${o.timeout} s` }); continue; }
-            if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); continue; }
+            if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${o.timeout} s` }); return; }
+            if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
             for (const [i, ex] of state.examples.entries()) {
                 const findings = auditFacts(ex.facts);
                 if (state.viewport.width !== vp.width) findings.push(pageError('viewport-width', `the page is ${state.viewport.width}px wide, expected ${vp.width}px: the capture is wrong, not the element`, WIDTH_FIX));
@@ -439,16 +447,17 @@ async function main() {
                 manifest.shots.push({ tag, example: i + 1, title: ex.title, viewport: vp.name, theme, width: vp.width, file, boxes: ex.facts.boxes.length, findings });
             }
             if (!state.examples.length) manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: 'the element has no gallery examples' });
-        }
+        });
         if (examples.length) manifest.timings.examples = Math.round((Date.now() - t0) / 100) / 10;
         for (const sc of scenarios) {
             t0 = Date.now();
             const phases = {};
-            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases });
+            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await unit({ kind: 'scenario', name: sc.name, sc, vp: viewport, theme }, () => playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases }));
             manifest.timings[sc.name] = Math.round((Date.now() - t0) / 100) / 10;
             manifest.phases[sc.name] = phasesOf(phases, Date.now() - t0);
         }
         const grouped = groupFindings(manifest.shots);
+        if (cache) { manifest.cache = cache.stats; console.log(`cache: ${cache.stats.hits} hit(s), ${cache.stats.misses} miss(es), ${cache.stats.corrupt} corrupt`); }
         manifest.findings = grouped;
         manifest.summary = summarize(grouped, { strict: o.strict });
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
