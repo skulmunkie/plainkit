@@ -75,5 +75,5 @@
       "html": "<pk-record-page id=\"product\"></pk-record-page>"
     }
   ],
-  "methods": []
+  "methods": [{ "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." }]
 }
