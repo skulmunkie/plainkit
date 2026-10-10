@@ -44,7 +44,6 @@
 
 .site-actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
 
-.gx-notice-file { margin: var(--space-4); }
 
 /* Top bar: a pk-navbar. Brand, search, settings menu and hamburger stay on ONE row at tablet and phone widths (the navbar's parts are reordered
    here), and the page links fold into a panel that overlays the content instead of pushing it down. The theme switch sits in the settings menu. */
