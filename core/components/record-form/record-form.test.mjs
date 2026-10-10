@@ -18,7 +18,7 @@ test('the meta file passes the API validator against its template and stylesheet
 
 test('every example is non-empty markup that uses only existing pk-* elements and their declared attributes', () => {
     assert.ok(meta.examples.length > 0);
-    const globals = new Set(['class', 'id', 'slot', 'hidden', 'title', 'role', 'name', 'type', 'value', 'placeholder', 'for', 'href']);
+    const globals = new Set(['class', 'id', 'slot', 'hidden', 'title', 'role', 'name', 'type', 'value', 'placeholder', 'for', 'href', 'tab']); // tab: the section tag pk-record-form reads (tabs-from)
     for (const ex of meta.examples) {
         assert.ok(ex.html.trim().length > 0, `${ex.title} is empty`);
         assert.doesNotMatch(ex.html, /\sstyle\s*=/, `${ex.title} uses a style attribute`);

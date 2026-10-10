@@ -4,10 +4,14 @@
 // under their own form, so form ownership, FormData and a form-associated pk-field-group all work with no change. The Save button submits that form from here (a button in
 // the shadow tree is outside it), the same way pk-record-page does.
 import { loadElements } from '../../js/loader.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 export default Base => class extends Base {
     connected() {
-        if (this.$w) return;
+        this.$tabs ??= () => this.syncTabs_();
+        this.addEventListener('pk-tab-change', this.$tabs);
+        this.bindTabs_();
+        if (this.$w) return this.syncTabs_();
         this.$w = true;
         loadElements(this.shadowRoot);
         const on = (name, fn) => this.part(name).addEventListener('click', fn);
@@ -18,6 +22,23 @@ export default Base => class extends Base {
         this.part('form').addEventListener('pk-valid', e => { e.stopPropagation(); this.emit('pk-record-save', null); });
         this.watchSlot('sidebar', () => this.part('layout').toggleAttribute('data-bare', this.slotted('sidebar').length === 0));
         this.part('layout').toggleAttribute('data-bare', this.slotted('sidebar').length === 0);
+        for (const n of ['tabs', '']) this.watchSlot(n, this.$tabs);
+        this.syncTabs_();
+    }
+    disconnected() { this.removeEventListener('pk-tab-change', this.$tabs); this.$mq?.removeEventListener('change', this.$tabs); this.$mq = null; }
+    updated() { if (this.$w && this.$from !== this.tabsFrom) { this.$mq?.removeEventListener('change', this.$tabs); this.bindTabs_(); this.syncTabs_(); } }
+    bindTabs_() {
+        this.$from = this.tabsFrom;
+        this.$mq = this.$from === 'always' ? null : mediaBelow(this.$from);
+        this.$mq?.addEventListener('change', this.$tabs);
+    }
+    /** Tabs apply at or below tabsFrom: a section tagged tab="x y" shows only while one of its tabs is chosen; otherwise every section shows and the strip is hidden. */
+    syncTabs_() {
+        const strip = this.slotted('tabs').find(e => e.localName === 'pk-tabs');
+        const on = !!strip && (this.tabsFrom === 'always' || !!this.$mq?.matches);
+        const active = strip?.value || strip?.querySelector('pk-tab')?.getAttribute('value');
+        this.part('tabs').hidden = !on;
+        for (const s of this.querySelectorAll('[tab]')) s.hidden = on && !s.getAttribute('tab').split(/\s+/).includes(active);
     }
     form_() { return this.slotted().find(e => e.localName === 'form') ?? this.querySelector('form'); }
     /** Submits the consumer's form as its own submit button would: pk-form checks it, and a valid one raises pk-record-save. Call it from a button outside this element (the page header's). */

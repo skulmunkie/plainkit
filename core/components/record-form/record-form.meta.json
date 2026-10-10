@@ -62,6 +62,14 @@
       "description": "Shows a Delete button (warn variant, disabled while busy) before Save (pk-record-delete)."
     },
     {
+      "name": "tabsFrom",
+      "type": "enum",
+      "default": "phone",
+      "values": ["phone", "tablet", "always"],
+      "reflect": true,
+      "description": "Where the tabs in the tabs slot take effect. An element in the form or the sidebar with a tab attribute (a tab value, or several separated by spaces) belongs to those tabs: at or below the width named (phone, tablet), or always, only the chosen tab's sections show and the strip is visible; above it every section shows (the two-column layout) and the strip is hidden. Sections with no tab attribute always show. The element sets hidden on the tagged sections."
+    },
+    {
       "name": "actionsInHeader",
       "type": "boolean",
       "default": false,
@@ -84,7 +92,7 @@
     },
     {
       "name": "tabs",
-      "description": "A pk-tabs strip for a record with more than one job, under the toolbar. Render the chosen tab's content into the default slot yourself."
+      "description": "A pk-tabs strip for a record with more than one job, under the toolbar. Tag sections with a tab attribute (see tabs-from) and the chosen tab shows its sections, or render the chosen tab's content yourself."
     }
   ],
   "events": [
@@ -126,6 +134,10 @@
       "description": "The Save button."
     },
     {
+      "name": "tabs",
+      "description": "The row holding the tabs slot; hidden when there are no tabs or tabs-from says they do not apply at this width."
+    },
+    {
       "name": "error",
       "description": "The error alert."
     },
@@ -138,12 +150,19 @@
       "description": "The pk-form around your form."
     }
   ],
+  "writes": [
+    { "target": "elements with a tab attribute in the form and the sidebar", "attributes": ["hidden"], "why": "A section tagged with a tab is hidden while another tab is chosen and tabs apply (tabs-from), and shown again when they stop applying." }
+  ],
   "cssProperties": [],
   "a11y": "The buttons are real pk-buttons with their own names; Save is the form's submit, so Enter in a field submits as usual. pk-form's summary (role=alert) lists every problem with links that focus the field, and focuses the first invalid control. The error alert uses pk-alert's own role. Without a sidebar the page is one column; the sidebar follows the form in reading order.",
   "examples": [
     {
       "title": "A record with a sidebar, Cancel and Delete (your own form in the default slot)",
       "html": "<pk-record-form cancellable deletable>\n  <form>\n    <pk-stack>\n      <pk-field label=\"Name\" required><pk-input name=\"name\" required></pk-input></pk-field>\n      <pk-field label=\"Notes\"><pk-textarea name=\"notes\"></pk-textarea></pk-field>\n    </pk-stack>\n  </form>\n  <pk-card slot=\"sidebar\" heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card>\n</pk-record-form>"
+    },
+    {
+      "title": "Sections tagged by tab: two columns on desktop, one tab at a time on a phone",
+      "html": "<pk-record-form tabs-from=\"phone\">\n  <pk-tabs slot=\"tabs\" value=\"details\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"pricing\">Pricing</pk-tab>\n  </pk-tabs>\n  <form>\n    <pk-stack>\n      <pk-card tab=\"details\" heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card>\n      <pk-card tab=\"pricing\" heading=\"Pricing\"><pk-field label=\"Price\"><pk-input name=\"price\"></pk-input></pk-field></pk-card>\n    </pk-stack>\n  </form>\n  <pk-card slot=\"sidebar\" tab=\"details\" heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card>\n</pk-record-form>"
     }
   ],
   "methods": [
