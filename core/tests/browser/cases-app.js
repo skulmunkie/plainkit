@@ -472,7 +472,9 @@ export const appCases = [
             const win = fr.contentWindow, d = win.document;
             const el = d.querySelector('pk-doc-page'); await until(() => win.customElements.get('pk-doc-page'), 'the doc page to upgrade');
             await until(() => el.querySelector('.doc-page-title')?.textContent && (query ? el.querySelector('pk-grid pk-card') : el.querySelector('h2#one') && el.querySelector('pk-pager')), 'the page to draw', 150);
-            await new Promise(r => setTimeout(r, 200));
+            // Readiness, not time: every pk-* the page drew is defined, fonts are loaded and two frames have laid it out.
+            await Promise.all([...new Set([el, ...el.querySelectorAll('*')].map(n => n.localName).filter(n => n.includes('-')))].map(n => win.customElements.whenDefined(n)));
+            await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
             const gaps = [];
             const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(), p = win.getComputedStyle(k).position; return r.width > 0 && r.height > 0 && p !== 'absolute' && p !== 'fixed'; });
             for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
