@@ -1129,7 +1129,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         console.log(`core/dist/skills matches its sources (${gen.size} files)`);
     } else {
         const n = write(gen);
-        build({ write: true }); // the SRI manifest lists the skills, so rebuild it now that they are on disk
+        if (!process.argv.includes('--no-manifest')) build({ write: true }); // the SRI manifest lists the skills, so rebuild it now that they are on disk (--no-manifest: the bootstrap rebuilds it once afterwards)
         console.log(`${n} skill files written to core/dist/skills; dist/manifest.json refreshed`);
     }
 }

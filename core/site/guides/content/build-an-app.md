@@ -74,6 +74,8 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Forms | `wizard` | `steps`, `review`, `submitLabel` | `validate(stepId, values, ctx)`, `submit(values, ctx)`, `load(ctx)` |
 | Content | `doc` | `items`, `search`, `home` | `loadItem(id, ctx)`, `href(id, anchor, ctx)` |
 | Content | `workspace` | `panes`, `labels`, `fill` | `mount(panes, ctx)` |
+| Content | `note` | `heading`, `body`, `cardHeading` | none |
+| Content | `print` | `heading`, `size`, `margin`, `toolbar` | `render(el, ctx)` |
 | Escape hatch | `custom` | none | `mount(host, ctx)` |
 | States | `states`, `not-found` | `state`, `heading`, `description`, `label` | `retry(ctx)`, `action(ctx)` |
 
