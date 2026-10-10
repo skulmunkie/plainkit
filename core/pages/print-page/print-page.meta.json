@@ -1,0 +1,46 @@
+{
+  "tag": "pk-print-page",
+  "title": "Print page",
+  "group": "Page types",
+  "tier": "page",
+  "pageType": "print",
+  "summary": "A page whose document is the only thing that prints: a statement, a sheet of labels, a count sheet. On screen it is a paper-like sheet under a toolbar (flat on a phone); in print the toolbar, anything marked data-screen-only and the app shell's header, footer and nav disappear, @page size and margins come from props, and pk-card, pk-field-list, pk-property-grid, pk-field-group and figure stay whole while a pk-table keeps whole rows and repeats its header on every page. While connected the element adopts one constructed stylesheet onto the document (CSP-safe) and removes it when it leaves.",
+  "props": [
+    {
+      "name": "size",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The CSS @page size: a paper name, optionally with an orientation (\"A4\", \"letter landscape\") or two lengths. Empty leaves the printer default. Only letters, digits, spaces, dots, percent signs and dashes are accepted."
+    },
+    {
+      "name": "margin",
+      "type": "string",
+      "default": "15mm",
+      "reflect": false,
+      "description": "The CSS @page margin (one to four lengths, for example \"15mm\" or \"20mm 15mm\")."
+    }
+  ],
+  "slots": [
+    { "name": "toolbar", "description": "Screen-only actions (print, back). Hidden when printing." },
+    { "name": "title", "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends, so the app can focus it after navigation. It prints as part of the page." },
+    { "name": "", "description": "The document: the only content that prints. Mark any part of it that should not print with the data-screen-only attribute." }
+  ],
+  "events": [],
+  "parts": [
+    { "name": "toolbar", "description": "Wraps the toolbar slot; not printed." },
+    { "name": "sheet", "description": "Wraps the document: a paper-like sheet on screen (a phone gets it flat and full width), bare in print." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-print-page-width", "description": "Width of the sheet on screen (default 48rem)." }
+  ],
+  "writes": [],
+  "a11y": "The toolbar comes before the document in reading order and keeps its own controls' names; nothing is added to the document's semantics. Print output uses the real DOM, so headings, tables and lists keep their structure.",
+  "examples": [
+    {
+      "title": "A statement with a screen-only toolbar",
+      "html": "<pk-print-page size=\"A4\" margin=\"15mm\">\n  <pk-button slot=\"toolbar\" icon-name=\"document\">Print</pk-button>\n  <pk-heading level=\"1\">Statement, October</pk-heading>\n  <pk-card heading=\"Acme Supply\"><p>Balance due 1,240.00</p></pk-card>\n  <p data-screen-only>Not printed: use the toolbar to print this page.</p>\n</pk-print-page>"
+    }
+  ],
+  "methods": []
+}

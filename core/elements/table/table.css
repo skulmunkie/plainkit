@@ -73,3 +73,7 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     :host([cards]) ::slotted(*) { min-inline-size: 0; max-inline-size: 100%; overflow-x: clip; }
     :host([cards]) ::slotted(a) { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
 }
+
+@media print {
+    tr { break-inside: avoid; }
+}

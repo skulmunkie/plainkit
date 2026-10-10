@@ -196,4 +196,15 @@ headerCases.push(
         const bad = await t.mount('<pk-page-header heading="T" crumbs="not json"></pk-page-header>');
         t.ok(bad.part('trail').hidden, 'no trail');
     }],
+    // The suite cannot switch to print media: what the rules do in print is measured by the print-page scenario (ui-review, { media: 'print' }); here the adopted stylesheet itself.
+    ['print-page: the adopted document stylesheet carries @page size and margin and the print block, and leaves with the page', async t => {
+        const p = await t.mount('<pk-print-page size="A4" margin="12mm"><button slot="toolbar">Print</button><pk-card heading="Acme"><p>Due</p></pk-card><p data-screen-only>Screen only</p><pk-table caption="Lines"></pk-table></pk-print-page>');
+        await t.settle();
+        const sheet = document.adoptedStyleSheets.at(-1), rules = [...sheet.cssRules];
+        t.ok(rules.some(r => r instanceof CSSPageRule && r.style.margin === '12mm'), '@page carries the margin prop');
+        t.ok(rules.some(r => r instanceof CSSPageRule && /size:\s*a4/i.test(r.cssText)), '@page carries the size prop');
+        p.remove();
+        t.ok(rules.some(r => r instanceof CSSMediaRule && r.media.mediaText === 'print' && /break-inside:\s*avoid/.test(r.cssText)), 'the print block keeps cards whole');
+        t.ok(!document.adoptedStyleSheets.includes(sheet), 'removing the page removes the document stylesheet');
+    }],
 );
