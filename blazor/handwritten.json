@@ -167,6 +167,9 @@
     "PkInputFormat.cs": {
       "category": "typed-generics"
     },
+    "PkListPageQuery.cs": {
+      "category": "typed-generics"
+    },
     "PkListTypes.cs": {
       "category": "typed-generics"
     },

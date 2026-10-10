@@ -125,6 +125,29 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task ListPage_load_gets_a_multiselect_filter_as_a_list_and_a_text_filter_as_text()
+    {
+        PkListRequest? seen = null;
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, r => { seen = r; return Task.FromResult(new PkListResult<Order>([], 0)); }));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"status\":\"open\",\"region\":[\"north\",\"south\"],\"none\":[]}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        await cut.InvokeAsync(() => host.Value.Invoke(query));
+
+        Assert.Equal("open", Assert.Single(seen!.Filters!).Value);
+        Assert.Equal(["north", "south"], seen.MultiFilters!["region"]);
+        Assert.Empty(seen.MultiFilters["none"]);
+    }
+
+    [Fact]
+    public void A_query_with_only_array_filters_has_no_text_Filters()
+    {
+        var request = JsonSerializer.Deserialize<PkListPageQuery>("{\"filters\":{\"tag\":[\"a\"]}}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!.ToRequest();
+
+        Assert.Null(request.Filters);
+        Assert.Equal(["a"], request.MultiFilters!["tag"]);
+    }
+
+    [Fact]
     public async Task ListPage_default_query_is_page_one_with_no_search_sort_or_filters()
     {
         PkListRequest? seen = null;
