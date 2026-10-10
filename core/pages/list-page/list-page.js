@@ -13,13 +13,14 @@ export default Base => class extends Base {
     }
     // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
     part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }
-    changed(name) { if (name === 'config' && this.$w) this.sync(); }
+    changed(name) { if ((name === 'config' || name === 'clickable') && this.$w) this.sync(); }
 
     sync() {
         const table = this.part('table');
         // The callbacks are handed down as they are now; a missing load shows the configured empty state, a missing rowHref leaves rows unclickable.
         table.load = q => (typeof this.load === 'function' ? this.load(q) : { rows: [] });
         table.rowHref = typeof this.rowHref === 'function' ? row => this.rowHref(row) : null;
+        table.clickable = !!this.clickable;
         // Selection is the table's: this page only switches it on (its pk-select is composed, so the host hears it as it is) and fills the bulk bar.
         table.selectable = !!this.config?.selectable;
         if (this.config?.rowKey) table.rowKey = this.config.rowKey;

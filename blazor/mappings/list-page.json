@@ -25,11 +25,18 @@
       "type": "EventCallback<PkSelectEventArgs>"
     },
     {
+      "name": "OnRowClick",
+      "event": "pk-row-click",
+      "shows": "clickable",
+      "type": "EventCallback<PkRowClickEventArgs>",
+      "note": "A row was clicked (or Enter or Space on the focused row): Id is the row key (config.rowKey, default id), Row the row as JsonElement. The usual handler navigates to the record page. Setting it makes the rows clickable."
+    },
+    {
       "name": "OnBulk",
       "event": "pk-bulk",
       "type": "EventCallback<PkBulkEventArgs>"
     }
   ],
-  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use Config actions or a row-click handler. Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use OnRowClick (the row click that navigates to a record) or Config actions. Per-column Cell templates and typed columns are not on this page (issue 1000): use PkDataTable for them. Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
   "typeparam": "TItem"
 }

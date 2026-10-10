@@ -47,7 +47,7 @@ else
           label="@Label"
           flow="@Flow"
           class="@Css()"
-          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@if (ChildContent is not null)
+          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@if (FootContent is not null && ChildContent is null) {<div slot="foot" class="u-contents">@FootContent</div>}@if (ChildContent is not null)
 {
     <table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>
 }
@@ -86,7 +86,7 @@ else foreach (var row in _items)
     [Parameter] public RenderFragment? ChildContent { get; set; }
     /// <summary>Raw mode: the thead, e.g. one tr of th cells. Left off, no header row.</summary>
     [Parameter] public RenderFragment? HeadContent { get; set; }
-    /// <summary>Raw mode: the tfoot (not <see cref="PkTableBase.FooterContent"/>, the slot below the table).</summary>
+    /// <summary>The tfoot (not <see cref="PkTableBase.FooterContent"/>, the slot below the table). Raw mode: the tfoot rows. Data-driven: a footer or summary row, one cell spanning every column (a trailing card on a phone).</summary>
     [Parameter] public RenderFragment? FootContent { get; set; }
     /// <summary>Raw mode: a class for the inner table (the frame takes <c>class</c> and other attributes).</summary>
     [Parameter] public string? TableClass { get; set; }

@@ -646,6 +646,24 @@ export const dataDisplayCases = [
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
 
+    ['table: the foot slot is a tfoot cell spanning every column after the rows on a desktop, and a full-width trailing card on a phone (#1020)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards selectable label="F" columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"}]' rows='[{"id":1,"sku":"A","qty":1},{"id":2,"sku":"B","qty":2}]'><span slot="foot">Total 3</span></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const tb = await until(() => f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await new Promise(r => setTimeout(r, 200));
+            const q = s => tb.shadowRoot.querySelector(s), rect = e => e.getBoundingClientRect(), foot = q('tfoot td'), rows = [...tb.shadowRoot.querySelectorAll('tbody tr')];
+            return { foot, rect: rect(foot), last: rect(rows.at(-1)), table: rect(q('table')), head: q('thead tr').children.length, span: foot.colSpan, label: foot.querySelector('slot').assignedNodes()[0]?.textContent };
+        };
+        const wide = await at(1000);
+        t.eq(wide.span, wide.head, 'the foot cell spans every column, the checkbox column included'); t.ok(wide.rect.top >= wide.last.bottom - 1, 'the foot sits after the last row'); t.ok(Math.abs(wide.rect.width - wide.table.width) < 2, 'the foot is as wide as the table'); t.eq(wide.label, 'Total 3');
+        const phone = await at(375);
+        t.ok(phone.rect.top >= phone.last.bottom - 1, 'the trailing card follows the last card'); t.ok(phone.rect.width >= phone.last.width - 24, `the trailing card is as wide as a row card (${phone.rect.width} vs ${phone.last.width})`);
+    }],
+
     ['table and data-table (375px): a toolbar with long controls and an action wraps inside the width, the page does not scroll sideways and the action stays visible (#1016)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const tableHtml = `<pk-table cards label="T" columns='[{"key":"sku","label":"SKU"}]' rows='[{"id":1,"sku":"A"}]'><pk-cluster slot="toolbar"><select aria-label="Status"><option>All statuses of every kind</option></select><pk-button variant="ghost">Export the filtered rows</pk-button></pk-cluster><pk-button slot="toolbar" data-end variant="primary">Add a new product</pk-button></pk-table>`;
