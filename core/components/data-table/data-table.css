@@ -1,6 +1,9 @@
-:host { display: block; inline-size: 100%; min-inline-size: 0; }
+/* A column, like pk-table: in a flex ancestor with a definite height (a pk-stack[fill], an app-shell body) the table claims the height left under the toolbar, so with stickyHeader the header stays pinned, the rows scroll and the pager (the table's footer) stays in view; anywhere else it is an ordinary block-height stack (issue 1006). */
+:host { display: flex; flex-direction: column; flex: 1 1 auto; inline-size: 100%; min-inline-size: 0; min-block-size: 0; }
+[part="toolbar"], [part="state"], [part="empty"] { flex: none; }
+[part="table"] { flex: 1 1 auto; min-block-size: 0; }
 /* The search, filters and actions sit above the table, not in its toolbar slot: a load or an empty result hides only the table, so the search box keeps its focus and stays clearable (issue 836). */
 [part="toolbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); margin-block-end: var(--space-3); }
-[part="actions"] { display: flex; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
+[part="actions"] { display: flex; flex-wrap: wrap; max-inline-size: 100%; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 [part="filters"][data-nosearch]::part(search) { display: none; }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }

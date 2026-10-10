@@ -378,6 +378,27 @@ export const dataDisplayCases = [
         t.ok(focused() === box(), 'still focused after clearing');
     }],
 
+    ['data-table: in a container of fixed height it fills it, the header row stays pinned and the footer (pager) stays in view while only the rows scroll (#1006)', async t => {
+        const box = await t.mount(`<div style="display:flex;flex-direction:column;block-size:400px;inline-size:100%"><pk-data-table sticky-header selectable columns='[{"key":"sku","label":"SKU"}]' page-size="100" page-size-options="[25,100]"></pk-data-table></div>`);
+        const el = box.firstElementChild;
+        await Promise.all(['pk-table', 'pk-pagination', 'pk-table-filters'].map(n => customElements.whenDefined(n)));
+        el.load = async () => ({ rows: Array.from({ length: 100 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), total: 100 });
+        el.refresh();
+        const table = el.part('table'), sr = table.shadowRoot;
+        await until(() => sr.querySelectorAll('tbody tr').length > 5, 'the rows');
+        await t.settle();
+        const scroll = sr.querySelector('[part="scroll"]'), pager = el.part('pagination'), head = () => sr.querySelector('thead th').getBoundingClientRect();
+        const within = () => { const b = box.getBoundingClientRect(), p = pager.getBoundingClientRect(); return p.bottom <= b.bottom + 1 && p.top >= b.top; };
+        t.ok(el.getBoundingClientRect().height <= 401, 'the data table fits its container instead of growing with 100 rows');
+        t.ok(scroll.scrollHeight > scroll.clientHeight + 100, 'the rows overflow the scroll region');
+        t.ok(within(), 'the pager is inside the container before scrolling');
+        const h0 = head().top, p0 = pager.getBoundingClientRect().top;
+        scroll.scrollTop = 600; await wait(50);
+        t.ok(scroll.scrollTop > 0, 'the rows scrolled');
+        t.ok(Math.abs(head().top - h0) <= 1, 'the header row stays where it was');
+        t.ok(Math.abs(pager.getBoundingClientRect().top - p0) <= 1 && within(), 'the pager stays where it was, in view');
+        t.ok(pager.getBoundingClientRect().top >= scroll.getBoundingClientRect().bottom - 1, 'the pager sits below the scrolling rows, not over them');
+    }],
     ['data-table: a page past the last one (rows deleted) settles on the last page with one more load, and total 0 still shows the empty state (#829)', async t => {
         const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5"></pk-data-table>`);
         let n = 12; const pages = [];
@@ -607,6 +628,25 @@ export const dataDisplayCases = [
         };
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
+    }],
+
+    ['table and data-table (375px): a toolbar with long controls and an action wraps inside the width, the page does not scroll sideways and the action stays visible (#1016)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const tableHtml = `<pk-table cards label="T" columns='[{"key":"sku","label":"SKU"}]' rows='[{"id":1,"sku":"A"}]'><pk-cluster slot="toolbar"><select aria-label="Status"><option>All statuses of every kind</option></select><pk-button variant="ghost">Export the filtered rows</pk-button></pk-cluster><pk-button slot="toolbar" data-end variant="primary">Add a new product</pk-button></pk-table>`;
+        const dataHtml = `<pk-data-table label="D" add-label="Add a new product" columns='[{"key":"sku","label":"SKU"}]'><pk-button slot="actions" variant="ghost">Export the filtered rows</pk-button><pk-button slot="actions" variant="ghost">Import from a file</pk-button></pk-data-table>`;
+        for (const [name, html] of [['pk-table', tableHtml], ['pk-data-table', dataHtml]]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '375px'; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const W = () => f.contentWindow, D = () => f.contentDocument; await until(() => W().customElements.get(name) && D().querySelector(name)?.shadowRoot?.querySelector('[part="toolbar"]'), `the ${name}`); const w = W(), d = D();
+            await new Promise(r => setTimeout(r, 300));
+            t.eq(w.innerWidth, 375);
+            const root = d.documentElement; t.ok(root.scrollWidth <= root.clientWidth, `${name}: the page does not scroll sideways (scrollWidth ${root.scrollWidth}, clientWidth ${root.clientWidth})`);
+            const bar = d.querySelector(name).shadowRoot.querySelector('[part="toolbar"]').getBoundingClientRect();
+            t.ok(bar.right <= 375 + 1, `${name}: the toolbar ends inside the viewport (right ${Math.round(bar.right)})`);
+            const btns = [...d.querySelectorAll('pk-button')].concat([...d.querySelector(name).shadowRoot.querySelectorAll('pk-button')]).filter(b => b.getBoundingClientRect().width > 0);
+            t.ok(btns.length > 0 && btns.every(b => b.getBoundingClientRect().right <= 375 + 1), `${name}: every button is inside the viewport (${btns.map(b => Math.round(b.getBoundingClientRect().right)).join(', ')})`);
+        }
     }],
 
     ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
