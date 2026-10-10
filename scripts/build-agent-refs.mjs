@@ -159,7 +159,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         console.log(`core/dist/{${OUT_NAMES.join(',')}} match their sources`);
     } else {
         const n = write(gen);
-        build({ write: true }); // the SRI manifest lists these files too, so rebuild it now that they are on disk
+        if (!process.argv.includes('--no-manifest')) build({ write: true }); // the SRI manifest lists these files too, so rebuild it now that they are on disk (--no-manifest: the bootstrap rebuilds it once afterwards)
         console.log(`${n} agent reference files written to core/dist; dist/manifest.json refreshed`);
     }
 }
