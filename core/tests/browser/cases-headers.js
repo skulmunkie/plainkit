@@ -196,4 +196,27 @@ headerCases.push(
         const bad = await t.mount('<pk-page-header heading="T" crumbs="not json"></pk-page-header>');
         t.ok(bad.part('trail').hidden, 'no trail');
     }],
+    // The suite cannot switch to print media, so the @media print block of the stylesheet pk-print-page adopts is re-applied as @media all while the case measures, then removed.
+    ['print-page: in print only the document stays (chrome and screen-only parts are hidden), and cards and rows are not split', async t => {
+        const p = await t.mount('<pk-print-page size="A4" margin="12mm"><button slot="toolbar">Print</button><pk-card heading="Acme"><p>Due</p></pk-card><p data-screen-only>Screen only</p><pk-table caption="Lines"></pk-table></pk-print-page>');
+        await t.settle();
+        const sheet = document.adoptedStyleSheets.at(-1), rules = [...sheet.cssRules];
+        t.ok(rules.some(r => r instanceof CSSPageRule && r.style.margin === '12mm'), '@page carries the margin prop');
+        t.ok(rules.some(r => r instanceof CSSPageRule && /size:\s*a4/i.test(r.cssText)), '@page carries the size prop');
+        const chrome = document.createElement('div'); chrome.textContent = 'chrome'; p.parentElement.before(chrome);
+        const on = new CSSStyleSheet(); on.replaceSync(rules.find(r => r instanceof CSSMediaRule).cssText.replace(/^@media print/, '@media all'));
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, on];
+        try {
+            t.eq(getComputedStyle(chrome).display, 'none', 'the shell chrome is hidden');
+            t.eq(getComputedStyle(p.querySelector('[data-screen-only]')).display, 'none', 'screen-only content is hidden');
+            t.ok(getComputedStyle(p).display !== 'none' && getComputedStyle(p.querySelector('pk-card')).display !== 'none', 'the document stays');
+            t.eq(getComputedStyle(p.querySelector('pk-card')).breakInside, 'avoid', 'a card is not split');
+            const table = p.querySelector('pk-table'); table.columns = [{ key: 'a', label: 'A' }]; table.rows = [{ a: '1' }]; await t.settle();
+            const printRule = [...table.shadowRoot.adoptedStyleSheets].flatMap(x => [...x.cssRules]).find(r => r instanceof CSSMediaRule && r.media.mediaText === 'print' && /tr/.test(r.cssText));
+            t.ok(printRule && /break-inside:\s*avoid/.test(printRule.cssText), 'the table styles its own rows not to split in print (its shadow rule is not re-applied here)');
+            t.eq(getComputedStyle(table.part('head')).display, 'table-header-group', 'the table header repeats on every page');
+        } finally { document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== on); chrome.remove(); }
+        p.remove();
+        t.ok(!document.adoptedStyleSheets.includes(sheet), 'removing the page removes the document stylesheet');
+    }],
 );

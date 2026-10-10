@@ -56,3 +56,7 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     /* A slotted link is a flex item in the card row and shrinks to its line height; give it a real tap target. */
     :host([cards]) ::slotted(a) { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
 }
+
+@media print {
+    tr { break-inside: avoid; }
+}
