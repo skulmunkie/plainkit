@@ -38,7 +38,6 @@
 
 .gx-pair { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: var(--space-3); align-items: start; }
 
-.gx-notice-file { margin: var(--space-4); }
 
 .gx-stage { height: calc(100dvh - var(--gx-stage-reserve)); min-height: var(--gx-stage-min-h); margin-inline: auto; }
 

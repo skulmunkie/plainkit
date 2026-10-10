@@ -368,11 +368,6 @@
     },
     {
       "rule": "S3",
-      "file": "core/site/gallery/embed.html",
-      "fingerprint": "3e5a29fc71028ab9"
-    },
-    {
-      "rule": "S3",
       "file": "core/site/gallery/embed.js",
       "fingerprint": "d229edc52ef1d9eb"
     },
@@ -997,16 +992,6 @@
       "fingerprint": "f2ae6596f2d78288"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
       "rule": "S1",
       "file": "core/site/gallery/preview.html",
       "fingerprint": "47161e0c9c4b8730"
@@ -1107,11 +1092,6 @@
       "fingerprint": "40466c9aed1de3cf"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/standalone.js",
-      "fingerprint": "ae5c3cee5a121840"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/standalone.js",
       "fingerprint": "c637d1cd4335064a"
@@ -1120,6 +1100,11 @@
       "rule": "S7",
       "file": "core/site/gallery/standalone.js",
       "fingerprint": "5b6be95d1fee83ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "c637d1cd4335064a"
     },
     {
       "rule": "S7",
@@ -1145,11 +1130,6 @@
       "rule": "S10",
       "file": "core/site/guides/index.html",
       "fingerprint": "58f516cbdc9659fa"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
     },
     {
       "rule": "S3",
@@ -1227,11 +1207,6 @@
       "fingerprint": "4f30525faf4db60b"
     },
     {
-      "rule": "S3",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "4f30525faf4db60b"
-    },
-    {
       "rule": "S1",
       "file": "core/site/layout-builder/layout-builder.css",
       "fingerprint": "3b6f988bf0e9f97a"
@@ -1242,9 +1217,9 @@
       "fingerprint": "bc15d03df9c5ade5"
     },
     {
-      "rule": "S3",
+      "rule": "S7",
       "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "8ead8e0fb3a6b712"
+      "fingerprint": "555acd59066b9972"
     },
     {
       "rule": "S7",
@@ -1297,11 +1272,6 @@
       "fingerprint": "e4d0449fb20aa2d2"
     },
     {
-      "rule": "S3",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "e4d0449fb20aa2d2"
-    },
-    {
       "rule": "S5",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "ccccf6cee72b3aa8"
@@ -1335,6 +1305,11 @@
       "rule": "S7",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "24f399cb407dc2c5"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/scorecard/scorecard.js",
+      "fingerprint": "3ec333c7f03f52cb"
     },
     {
       "rule": "S7",

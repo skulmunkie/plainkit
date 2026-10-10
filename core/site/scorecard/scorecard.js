@@ -80,8 +80,10 @@ async function main() {
 export const ready = main().catch(err => {
     const n = document.createElement('pk-alert');
     n.setAttribute('kind', 'danger');
-    n.className = 'gx-notice-file';
     n.textContent = `The scorecard could not start: ${err.message}. Serve the Plainkit folder with a static server.`;
-    document.body.append(n);
+    const pad = document.createElement('pk-container');
+    pad.setAttribute('size', 'full');
+    pad.append(n);
+    document.body.append(pad);
     return null;
 });
