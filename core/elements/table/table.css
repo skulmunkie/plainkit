@@ -34,6 +34,7 @@ tr[data-tone="warning"] { --_tone: var(--color-warning); }
 tr[data-tone="positive"] { --_tone: var(--color-positive); }
 tr[data-tone="critical"] { --_tone: var(--color-critical); }
 tr[data-tone] td:first-child { box-shadow: inset 3px 0 0 var(--_tone); }
+:host([sticky-column]) tr[data-tone] td:first-child { background: color-mix(in srgb, var(--_tone) 10%, var(--color-panel)); }
 tr[data-indent] td:is(:first-child:not([data-check]), [data-check] + td) { text-indent: calc(var(--space-5) * var(--_indent)); }
 tr[data-indent="1"] { --_indent: 1; }
 tr[data-indent="2"] { --_indent: 2; }
