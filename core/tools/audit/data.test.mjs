@@ -70,7 +70,7 @@ test('loadTokens: the repository token file parses to a non-empty, de-duplicated
 
 test('loadPageTypes: every built-in page type exports a well-formed PAGE_TYPE descriptor', async () => {
     const pageTypes = await loadPageTypes();
-    assert.equal(pageTypes.length, 13, 'expected all 13 built-in page types to export PAGE_TYPE');
+    assert.equal(pageTypes.length, 14, 'expected all 14 built-in page types to export PAGE_TYPE');
     const ids = new Set();
     for (const p of pageTypes) {
         for (const key of ['id', 'summary', 'useWhen']) assert.ok(typeof p[key] === 'string' && p[key].length > 0, `page type missing ${key}`);
