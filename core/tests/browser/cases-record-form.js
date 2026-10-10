@@ -85,6 +85,22 @@ export const recordFormCases = [
         t.ok(ps.top >= pf.bottom - 1, `on a phone the sidebar is below the form (${ps.top} vs ${pf.bottom})`); t.ok(pf.width > 300, 'and the form is the page width');
     }],
 
+    // #342: sections tagged by tab, shown by breakpoint with no per-page CSS.
+    ['record-form: tabs-from=always shows only the chosen tab\'s sections (form and sidebar, none-tagged always), follows the tab, and tabs-from=phone shows every section and hides the strip on desktop (#342)', async t => {
+        const tabs = '<pk-tabs slot="tabs" value="main"><pk-tab value="main">Main</pk-tab><pk-tab value="pricing">Pricing</pk-tab></pk-tabs>';
+        const body = '<form><pk-stack><pk-card id="a" tab="main">A</pk-card><pk-card id="b" tab="pricing">B</pk-card><pk-card id="c">C</pk-card></pk-stack></form><pk-card id="d" slot="sidebar" tab="pricing main">D</pk-card>';
+        const make = async attrs => { const el = await t.mount(`<pk-record-form ${attrs}>${tabs}${body}</pk-record-form>`); await t.load(el.shadowRoot); await t.settle(); await t.settle(); return el; };
+        const shown = el => ['a', 'b', 'c', 'd'].filter(id => !el.querySelector(`#${id}`).hidden).join('');
+        const el = await make('tabs-from="always"');
+        t.eq(shown(el), 'acd', 'the first tab\'s sections show'); t.ok(!el.part('tabs').hidden, 'the strip shows');
+        el.querySelector('pk-tabs').value = 'pricing'; el.querySelector('pk-tabs').dispatchEvent(new CustomEvent('pk-tab-change', { bubbles: true, detail: { value: 'pricing' } })); await t.settle();
+        t.eq(shown(el), 'bcd', 'choosing Pricing swaps the tagged sections');
+        const wide = await make('');
+        t.eq(shown(wide), 'abcd', 'above the phone width every section shows (the desktop layout)'); t.ok(wide.part('tabs').hidden, 'and the strip is hidden');
+        wide.tabsFrom = 'always'; await t.settle(); await t.settle();
+        t.eq(shown(wide), 'acd', 'changing tabs-from applies at once');
+    }],
+
     // #1000: what the Blazor wrapper relies on - a property set after the page connected, then refresh().
     ['list-page: clickable without rowHref makes rows clickable and a click raises pk-row-click with the row id (#1000)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-list-page>`);
