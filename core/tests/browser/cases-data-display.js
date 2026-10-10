@@ -267,6 +267,22 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: a multiselect filter is a checklist whose chosen values reach load(query).filters as an array, count once, and Clear filters unticks them (#1025)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"status","type":"multiselect","label":"Status","options":["Open","Paid",{"value":"void","label":"Void"}]}]'></pk-data-table>`);
+        const queries = [];
+        el.load = async q => { queries.push(q); return { rows: [{ id: 1, sku: 'A' }], total: 1 }; };
+        el.refresh();
+        const filters = el.part('filters'), boxes = () => [...filters.querySelectorAll('[data-key="status"] pk-checkbox')];
+        await until(() => boxes().length === 3 && boxes().every(b => typeof b.toggle === 'function'), 'the three checkboxes');
+        t.eq(boxes().map(b => b.label).join(), 'Open,Paid,Void');
+        boxes()[0].toggle(); await t.settle(); boxes()[2].toggle(); await t.settle();
+        await until(() => queries.at(-1).filters.status?.join() === 'Open,void', 'both values in one array');
+        t.eq(filters.filterCount, 1, 'one filter, however many values');
+        filters.shadowRoot.querySelector('[part="clear"]').click(); await t.settle();
+        await until(() => Object.keys(queries.at(-1).filters).length === 0, 'cleared');
+        t.ok(boxes().every(b => !b.checked), 'every box unticked'); t.eq(filters.filterCount, 0);
+    }],
+
     ['data-table: search presets the search box and the first load; typing replaces it; the host changing it later loads page 1 with the new term (#865)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" search-debounce="20" search="SKU-3"></pk-data-table>`);
         const all = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `SKU-${i + 1}` })), queries = [];
