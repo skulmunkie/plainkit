@@ -141,7 +141,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
     private void Open(PkTableRowClickArgs<Order> row) => Console.WriteLine(row.Item.Number);
 }
 ```
-Hand-written markup instead of `Columns` and `Items` (a static header and a `@foreach` body): set `ChildContent` (with `HeadContent`, `FootContent`) on `PkTable TItem="object"`; `references/table-raw-mode.md`.
+Hand-written markup instead of `Columns` and `Items` (a static header and a `@foreach` body): set `ChildContent` (with `HeadContent`, `FootContent`) on `PkTable TItem="object"`; `references/table-raw-mode.md`. A data-driven `PkTable` also takes `FootContent` for a totals or summary row (one cell spanning every column; a trailing card on a phone).
 
 ### Select all rows of a paged `PkTable`
 
