@@ -69,7 +69,7 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     :host([cards]) tr[data-indent] { margin-inline-start: calc(var(--space-5) * var(--_indent)); }
     :host([cards]) tr[data-indent] td { text-indent: 0; }
     /* A slotted link is a flex item in the card row and shrinks to its line height; give it a real tap target. */
-    /* An unbreakable slotted value (a long code or button label) may shrink to the card and is clipped there, so it cannot push the other values off the card (#1015). */
+    /* An unbreakable slotted value (a long code or button label) may shrink to the card and is clipped there, so it cannot push the other values off the card (issue 1015). */
     :host([cards]) ::slotted(*) { min-inline-size: 0; max-inline-size: 100%; overflow-x: clip; }
     :host([cards]) ::slotted(a) { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
 }
