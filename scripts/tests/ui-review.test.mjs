@@ -107,6 +107,13 @@ test('tap targets count on the phone only, and inline links are exempt', () => {
     assert.deepEqual(rules(facts([{ ...small, inlineLink: true }], phone)), []);
 });
 
+test('a small control inside a big enough label is not a tap-target finding; a bare small input still is (issue 1003, WCAG 2.2 SC 2.5.8)', () => {
+    const input = box({ interactive: true, name: 'Agree', rect: [0, 0, 16, 16] });
+    assert.deepEqual(rules(facts([{ ...input, hitRect: [200, 44] }], phone)), []);
+    assert.deepEqual(rules(facts([{ ...input, hitRect: [200, 20] }], phone)), ['tap-target'], 'a label that is itself too small does not help');
+    assert.deepEqual(rules(facts([input], phone)), ['tap-target']);
+});
+
 test('a standard visually-hidden element (pk-skip-link before focus, a u-sr-only live region) is not a clipped-content or tap-target finding', () => {
     const skipLink = box({ interactive: true, name: 'Skip to content', rect: [0, 0, 1, 1], clipX: true, hiddenVisually: true });
     assert.deepEqual(rules(facts([skipLink], phone)), []);
