@@ -1,0 +1,6 @@
+/* pk-page-shell: the page frame a page type composes. One column: the header (breadcrumb, title, actions, tabs), then either a whole-page state or the content. The spacing
+   between those is the shell's own, so a page type declares none. */
+:host { display: flex; flex-direction: column; gap: var(--pk-page-shell-gap, var(--space-4)); inline-size: 100%; min-inline-size: 0; }
+[part="content"] { flex: 1 1 auto; min-inline-size: 0; }
+[part="state"] { min-inline-size: 0; }
+@media (--phone) { :host { gap: var(--pk-page-shell-gap, var(--space-3)); } }

@@ -16,7 +16,7 @@ const CLOSE = '#history-tab >>> [part=close]';
 
 export default {
     name: 'page-header',
-    issue: [285, 300],
+    issue: [285, 300, 342],
     elements: ['page-header', 'badge-popover', 'breadcrumb', 'tabs', 'app-shell'],
     html: `<pk-app-shell>
 <pk-side-nav slot="nav" label="Main" collapsed><span slot="brand" class="u-contents"><a href="#">Acme</a></span><pk-nav-item href="#" current><pk-icon slot="icon" name="products"></pk-icon>Products</pk-nav-item></pk-side-nav>
@@ -33,10 +33,11 @@ export default {
 <pk-button slot="actions" size="mini" variant="ghost">Print</pk-button>
 <pk-tabs slot="tabs"><pk-tab value="details">Details</pk-tab><pk-tab id="history-tab" value="history" closable>History</pk-tab></pk-tabs>
 </pk-page-header>
+<pk-page-header id="ph2" heading="Strip from data" tabs-from="phone" tabs='[{"value":"details","label":"Details"},{"value":"orders","label":"Orders","count":3},{"value":"audit","label":"Audit","visible":false}]'></pk-page-header>
 <div id="rows">${paragraphs(70)}</div>
 </pk-app-shell>`,
     steps: [
-        { shot: 'record' },
+        { shot: 'record' }, { shot: 'strip-data' },
         { click: TRIGGER }, { wait: 300 }, { shot: 'popover-open' },
         { key: 'Escape' }, { wait: 200 },
         { focus: CLOSE }, { shot: 'tab-close-focus' },
@@ -59,6 +60,11 @@ export default {
             if (phone) t.atLeast('#save', 'height', 44);
             const crumbsRect = t.rect(CRUMBS);
             if (crumbsRect && chips) t.ok(chips.y >= crumbsRect.bottom + 1, `the chips (from y=${Math.round(chips.y)}) sit flush against the crumbs (to y=${Math.round(crumbsRect.bottom)}), no visible gap`);
+        }
+        if (t.shot === 'strip-data') {
+            // tabs-from=phone: the data strip docks under the title bar on a phone and is gone above it, where every section shows.
+            if (phone) { t.within('#ph2 >>> [part=strip]', '#ph2'); t.visible('#ph2 >>> [part=tabs]', 'the data strip'); t.atLeast('#ph2 >>> pk-tab', 'height', 44); }
+            else t.hidden('#ph2 >>> [part=tabs]', 'the data strip above phone width');
         }
         if (t.shot === 'tab-close-focus') {
             if (phone) { t.atLeast(CLOSE, 'height', 44); t.atLeast(CLOSE, 'width', 44); } // issue 551: the close button is a tap target on a phone

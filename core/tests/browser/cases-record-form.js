@@ -167,4 +167,21 @@ export const recordFormCases = [
         await until(() => el.part('edit') && !el.part('edit').hidden, 'Edit shows once save exists');
         t.ok(el.shadowRoot.textContent.includes('Ada'), 'the loaded value is drawn');
     }],
+
+    // #342: the page header draws the docked strip from data.
+    ['page-header: tabs draws a strip docked at the foot of the header (below the title bar, inside it), a visible:false tab is left out, tabs-from=phone hides it on desktop, and a slotted pk-tabs wins (#342)', async t => {
+        const data = [{ value: 'details', label: 'Details' }, { value: 'orders', label: 'Orders', count: 3 }, { value: 'audit', label: 'Audit', visible: false }];
+        const make = async attrs => { const el = await t.mount(`<pk-page-header heading="Mug" ${attrs}></pk-page-header>`); await t.load(el.shadowRoot); await t.settle(); await t.settle(); return el; };
+        const el = await make(`tabs='${JSON.stringify(data)}'`);
+        t.eq(el.part('strip').querySelectorAll('pk-tab').length, 2, 'two tabs are drawn, the hidden one left out');
+        t.ok(!el.part('tabs').hidden, 'the strip row shows');
+        const head = el.part('header').getBoundingClientRect(), tabs = el.part('tabs').getBoundingClientRect(), title = el.part('titlebar').getBoundingClientRect();
+        t.ok(tabs.height > 0 && tabs.top >= title.bottom - 1 && tabs.bottom <= head.bottom + 1, 'the strip sits under the title bar, inside the header');
+        const wide = await make(`tabs-from="phone" tabs='${JSON.stringify(data)}'`);
+        t.ok(wide.part('tabs').hidden, 'tabs-from=phone hides the strip at desktop width');
+        wide.tabsFrom = 'always'; await t.settle(); await t.settle();
+        t.ok(!wide.part('tabs').hidden, 'changing tabs-from applies at once');
+        const own = await t.mount(`<pk-page-header heading="Mug"><pk-tabs slot="tabs"><pk-tab value="x">X</pk-tab></pk-tabs></pk-page-header>`); await t.load(own.shadowRoot); own.tabs = data; await t.settle(); await t.settle();
+        t.eq(own.part('strip').children.length, 0, 'a slotted pk-tabs wins: nothing is drawn');
+    }],
 ];

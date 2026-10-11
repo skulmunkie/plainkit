@@ -1,0 +1,20 @@
+{
+  "component": "PkPageShell",
+  "params": [
+    { "name": "Title", "prop": "heading", "type": "string" },
+    { "name": "Level", "prop": "level", "type": "int", "default": 1 },
+    { "name": "Crumbs", "prop": "crumbs", "type": "IReadOnlyList<PkCrumb>?", "json": true, "note": "Typed list of PkCrumb: sent as the element's crumbs attribute, as on PkPageHeader." },
+    { "name": "BackLink", "prop": "backLink", "type": "bool" },
+    { "name": "Sticky", "prop": "sticky", "type": "bool" },
+    { "name": "State", "prop": "state", "type": "string" },
+    { "name": "StateHeading", "prop": "stateHeading", "type": "string" },
+    { "name": "StateDescription", "prop": "stateDescription", "type": "string" },
+    { "name": "OnRetry", "event": "pk-page-shell-retry" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment" },
+    { "name": "BreadcrumbContent", "slot": "breadcrumb", "type": "RenderFragment?", "unless": "Crumbs" },
+    { "name": "ActionsContent", "slot": "actions", "type": "RenderFragment?" },
+    { "name": "MetaContent", "slot": "meta", "type": "RenderFragment?" },
+    { "name": "TabsContent", "slot": "tabs", "type": "RenderFragment?" }
+  ],
+  "notes": "Generated. Title maps to heading (the header draws the title); Crumbs is the same typed list as PkPageHeader. State is ready, loading, empty, error or forbidden; OnRetry is pk-page-shell-retry, raised by Retry in the error state. ChildContent is the one content region."
+}
