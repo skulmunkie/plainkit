@@ -173,7 +173,7 @@ public sealed class PageBaseTests : BunitContext
     {
         var cut = Render<PageBaseHost>();
         Begin(cut, "A");
-        await cut.InvokeAsync(() => ((IDisposable)cut.Instance).Dispose());
+        await cut.InvokeAsync(async () => await ((IAsyncDisposable)cut.Instance).DisposeAsync());
         Assert.False(cut.Instance.IsBusy);
     }
 

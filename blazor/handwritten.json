@@ -173,6 +173,13 @@
     "PkListTypes.cs": {
       "category": "typed-generics"
     },
+    "PkLifecycle.cs": {
+      "category": "runtime",
+      "allows": [
+        "cancellation",
+        "sequence"
+      ]
+    },
     "PkLogging.cs": {
       "category": "runtime"
     },
