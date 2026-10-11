@@ -1,0 +1,14 @@
+{
+  "comment": "Shared by js/page-lifecycle.js and the C# page base (#1022). Each case is a list of steps on a fresh lifecycle; load/run steps name a deferred 'id'; resolve/reject settle it; dispose and refresh are as named. 'applied' lists load results delivered in order, 'rejected' load errors delivered, 'aborted' the ids whose signal was aborted, 'changes' the (busy, error) seen by onChange.",
+  "cases": [
+    { "name": "a single load delivers its result", "steps": [ {"op":"load","id":"a"}, {"op":"resolve","id":"a","value":1} ], "expect": { "applied": [["a",1]], "rejected": [], "aborted": [], "changes": [] } },
+    { "name": "a newer load aborts the older and the older result is dropped", "steps": [ {"op":"load","id":"a"}, {"op":"load","id":"b"}, {"op":"resolve","id":"a","value":1}, {"op":"resolve","id":"b","value":2} ], "expect": { "applied": [["b",2]], "rejected": [], "aborted": ["a"], "changes": [] } },
+    { "name": "a stale load error is dropped, the current one is delivered", "steps": [ {"op":"load","id":"a"}, {"op":"load","id":"b"}, {"op":"reject","id":"a","value":"x"}, {"op":"reject","id":"b","value":"y"} ], "expect": { "applied": [], "rejected": [["b","y"]], "aborted": ["a"], "changes": [] } },
+    { "name": "dispose aborts the load and drops its result", "steps": [ {"op":"load","id":"a"}, {"op":"dispose"}, {"op":"resolve","id":"a","value":1} ], "expect": { "applied": [], "rejected": [], "aborted": ["a"], "changes": [] } },
+    { "name": "run is busy while it runs and idle after success", "steps": [ {"op":"run","id":"a","label":"save"}, {"op":"resolve","id":"a","value":1} ], "expect": { "applied": [], "rejected": [], "aborted": [], "changes": [[1,null],[0,null]] } },
+    { "name": "run keeps the error with its label, the next run clears it", "steps": [ {"op":"run","id":"a","label":"save"}, {"op":"reject","id":"a","value":"boom"}, {"op":"run","id":"b","label":"save"}, {"op":"resolve","id":"b","value":1} ], "expect": { "applied": [], "rejected": [], "aborted": [], "changes": [[1,null],[0,"save: boom"],[1,null],[0,null]] } },
+    { "name": "overlapping runs stay busy until the last settles", "steps": [ {"op":"run","id":"a","label":"x"}, {"op":"run","id":"b","label":"y"}, {"op":"resolve","id":"a","value":1}, {"op":"resolve","id":"b","value":1} ], "expect": { "applied": [], "rejected": [], "aborted": [], "changes": [[1,null],[2,null],[1,null],[0,null]] } },
+    { "name": "refresh notifies, and nothing happens after dispose", "steps": [ {"op":"refresh"}, {"op":"dispose"}, {"op":"refresh"}, {"op":"run","id":"a","label":"x"} ], "expect": { "applied": [], "rejected": [], "aborted": [], "changes": [[0,null]] } },
+    { "name": "no change is reported after dispose while a run settles", "steps": [ {"op":"run","id":"a","label":"x"}, {"op":"dispose"}, {"op":"resolve","id":"a","value":1} ], "expect": { "applied": [], "rejected": [], "aborted": [], "changes": [[1,null]] } }
+  ]
+}
