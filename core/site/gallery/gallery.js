@@ -482,17 +482,17 @@ export async function mountGallery(container, options = {}) {
     on(view, 'submit', e => { e.preventDefault(); });
     on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
     on(view, 'input', e => {
-        const form = e.target.closest('.gx-find'); if (!form) return;
+        const form = e.target.closest('form[data-find]'); if (!form) return;
         form._cancel?.();
-        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
+        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
-    on(view, 'change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
+    on(view, 'change', e => { const form = e.target.closest('form[data-find]'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
     const handle = {
         destroy() {
             if (mounted !== handle) return;
             mounted = null;
             for (const off of offs) off();
-            for (const form of container.querySelectorAll('.gx-find')) form._cancel?.();
+            for (const form of container.querySelectorAll('form[data-find]')) form._cancel?.();
             router?.destroy(); router = null;
             lazy?.disconnect(); lazy = null;
             releaseFrames();
