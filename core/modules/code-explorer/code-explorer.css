@@ -26,31 +26,15 @@ pk-code-explorer pk-container pk-empty-state { margin: auto; }
 
 pk-code-explorer pk-list-group mark { background: var(--csr-mark-bg); color: inherit; padding: 0; }
 
-/* Code viewer: a code-editor pane. The palette is local to the viewer (dark by default, like the app; light when data-theme="light")
-   so token colours keep their contrast on the editor background rather than on whatever surface the page uses. */
-.cv {
-    border: var(--_ce-border-w) solid var(--cv-border); border-radius: var(--radius-md); background: var(--cv-bg); color: var(--cv-text);
-    min-width: 0; overflow: hidden; box-shadow: var(--cv-shadow);
-}
-.cv-title {
-    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding: var(--space-2) var(--space-3);
-    background: var(--cv-bar); border-bottom: var(--_ce-border-w) solid var(--cv-border); font-size: var(--text-read);
-}
-.cv-name { font-family: var(--_ce-mono); font-weight: 600; overflow-wrap: anywhere; flex: 1 1 var(--_ce-name-basis); }
-.cv-meta { display: inline-flex; gap: var(--space-3); color: var(--cv-muted); font-size: var(--text-read); }
-.cv-lang { padding: 0 var(--space-2); border: var(--_ce-border-w) solid var(--cv-border); border-radius: var(--radius-pill); }
-.cv-count { white-space: nowrap; }
-.cv-notice { padding: var(--space-1) var(--space-3); font-size: var(--text-read); color: var(--cv-muted); background: var(--cv-bar); border-bottom: var(--_ce-border-w) solid var(--cv-border); }
+/* Code viewer: a pk-stack (file header: pk-cluster of pk-text, pk-badge and buttons) over a pk-code-view, which draws its own frame and palette.
+   The stack fills the pane and the listing takes the rest, scrolling inside itself. */
+pk-code-explorer [data-ce-pane] > pk-stack { min-inline-size: 0; }
+pk-code-explorer [data-ce-pane] > pk-stack > pk-code-view { flex: 1; min-block-size: 0; --pk-code-view-max-height: none; }
+pk-code-explorer [data-ce-pane] > pk-stack > pk-cluster pk-text:first-child { overflow-wrap: anywhere; flex: 1 1 auto; text-align: start; }
 
-/* The listing is a <pk-code-view>: the box is the .cv frame, so it draws no border of its own. */
-.cv-scroll { border: 0; border-radius: 0; --pk-code-view-max-height: 70vh; }
-
-.cv--fill { display: flex; flex-direction: column; flex: 1; min-height: 0; block-size: 100%; box-sizing: border-box; }
-.cv--fill .cv-scroll { flex: 1; min-height: 0; --pk-code-view-max-height: none; }
-
+/* Phone: the file path takes its own row so a long path wraps instead of squeezing the language, count and buttons. */
 @media (--phone) {
-    .cv-scroll { --pk-code-view-max-height: 60vh; }
-    .cv--fill .cv-scroll { --pk-code-view-max-height: none; }
+    pk-code-explorer [data-ce-pane] > pk-stack > pk-cluster pk-text:first-child { flex-basis: 100%; }
 }
 
 /* The trail, which the explorer itself does not draw but other pages still use. */
