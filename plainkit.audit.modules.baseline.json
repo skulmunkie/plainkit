@@ -905,11 +905,6 @@
       "rule": "S10",
       "file": "core/site/site.css",
       "fingerprint": "8c5f2a83d749b3a1"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/spacing/index.html",
-      "fingerprint": "a131b36e8a95527c"
     }
   ]
 }

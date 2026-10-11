@@ -74,7 +74,6 @@ function siteViolations(site, { pub, htmlAllowed }) {
 // The site as it is today. Each entry is a step of the migration still to land; remove an entry when its violation is gone.
 const KNOWN = new Set([
     'site/gallery/index.html::extra-html-page', 'site/guides/index.html::extra-html-page',
-    'site/spacing/index.html::extra-html-page',
     'site/gallery/standalone.js::mount-shell', 'site/guides/page.js::mount-shell',
     'site/shell.js::mount-shell', 'site/shell.js::pages-array', 'site/shell.js::theme-observer',
     'site/guides/page.js::navigation-listener', 'site/guides/page.js::history-push',
