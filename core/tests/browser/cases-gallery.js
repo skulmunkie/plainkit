@@ -124,20 +124,36 @@ export const galleryCases = [
 
     ['gallery: the preview bar and the top bar keep their box while their elements upgrade, so the view does not jump on first load (#1076)', async t => {
         const p = await open(t, '#/overview');
-        await Promise.all(['pk-button-group', 'pk-select', 'pk-field', 'pk-navbar'].map(tag => p.win.customElements.whenDefined(tag)));
+        await Promise.all(['pk-toolbar', 'pk-dropdown', 'pk-button', 'pk-navbar'].map(tag => p.win.customElements.whenDefined(tag)));
         await wait(100);
-        const bar = p.doc.querySelector('.gx-bar-main'), top = p.doc.querySelector('pk-navbar');
+        const bar = p.doc.querySelector('#gx-bar'), top = p.doc.querySelector('pk-navbar');
         // The same markup with no script at all: every pk-* element stays undefined, which is the state a slow connection paints first.
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
         f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
             + `<body class="site"><div class="gx-mount site-body"><div class="gx-shell"><main class="gx-main">${bar.outerHTML}</main></div></div></body></html>`;
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
-        const raw = f.contentDocument.querySelector('.gx-bar-main');
+        const raw = f.contentDocument.querySelector('#gx-bar');
         t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
         const h = el =>Math.round(el.getBoundingClientRect().height * 2) / 2;
         t.eq(h(raw), h(bar), `the preview bar is ${h(raw)}px high before its elements upgrade and ${h(bar)}px after`);
         t.ok(top.getBoundingClientRect().height <= parseFloat(getComputedStyle(p.doc.documentElement).fontSize) * 3.5 + 1.5, 'the top bar is one row high');
+    }],
+    ['gallery: the preview bar and the slim page bar are pk-toolbar rows, their controls share one row and the Display menu holds the viewport and the text size (#682)', async t => {
+        const p = await open(t, '#/overview');
+        const main = p.doc.querySelector('#gx-bar'), page = p.doc.querySelector('#gx-pagebar');
+        t.eq(main?.localName, 'pk-toolbar', 'the preview bar is a pk-toolbar'); t.eq(page?.localName, 'pk-toolbar', 'the page bar is a pk-toolbar');
+        t.eq(main.querySelectorAll('[class]').length, 0, 'no hand-written class inside the preview bar');
+        const display = main.querySelector('pk-dropdown'), inspect = p.doc.querySelector('#gx-inspect');
+        t.eq([...display.querySelectorAll('pk-menu-item[data-set-width]')].map(i => i.dataset.setWidth).join(), 'desktop,phone', 'the Display menu switches the viewport');
+        t.eq(display.querySelectorAll('pk-menu-item[data-scale]').length, 4, 'and the text size');
+        inspect.hidden = false; await wait(100);
+        const a = display.getBoundingClientRect(), b = inspect.getBoundingClientRect();
+        t.ok(Math.abs((a.top + a.height / 2) - (b.top + b.height / 2)) < 2, 'Display and Details share one row');
+        t.ok(main.getBoundingClientRect().height <= 64, 'the preview bar is one slim row');
+        await p.go('#/samples/layouts/shell'); await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar');
+        const row = ['#gx-back', '#gx-title', '#gx-theme', '#gx-open'].map(s => p.doc.querySelector(s).getBoundingClientRect());
+        t.ok(row.every(r => Math.abs((r.top + r.height / 2) - (row[0].top + row[0].height / 2)) < 2), 'Back, the title, the theme switch and Open share one row');
     }],
     ['gallery: the overview, the page header and the side-nav titles keep their box while their elements upgrade (#1076)', async t => {
         const p = await open(t, '#/overview');
