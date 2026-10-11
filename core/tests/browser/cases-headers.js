@@ -145,6 +145,7 @@ export const headerCases = [
         const page = await t.mount('<pk-settings-page></pk-settings-page>');
         page.config = cfg;
         for (let i = 0; i < 30 && !page.shadowRoot.querySelectorAll('pk-tooltip').length; i++) await wait(100);
+        await t.load(page.shadowRoot);
         await t.settle();
         const tips = [...page.shadowRoot.querySelectorAll('pk-tooltip')];
         t.eq(tips.length, 3, 'one tip per hint, none for the plain field or action');
