@@ -16,8 +16,6 @@
 
 
 
-.gx-pair { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: var(--space-3); align-items: start; }
-
 
 .gx-stage { height: calc(100dvh - var(--_gx-stage-reserve)); min-height: var(--_gx-stage-min-h); margin-inline: auto; }
 
@@ -119,14 +117,13 @@ pk-stack#gx-shell[data-full] > #gx-pagebar { padding-block: var(--space-1); }
 
 @media (--tablet) {
     .gx-el-play { grid-template-columns: minmax(0, 1fr); }
-    .gx-pair { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (--phone) {
     #gx-inspector-body pk-table::part(table) { min-inline-size: 0; }
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
     #gx-view, #gx-view[data-inspecting] { padding: var(--space-3) var(--space-2); }
-    .gx-pair > div:first-child { display: none; }
+    [data-pair] > :first-child { display: none; }
 
     #gx-bar, #gx-pagebar { --ctl-h: var(--touch-target); }
     pk-stack#gx-shell > :is(#gx-bar, #gx-pagebar) { padding-inline: var(--space-2); }

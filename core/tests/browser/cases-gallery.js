@@ -328,4 +328,25 @@ export const galleryAppCases = [
             }
         }
     }],
+
+    ['gallery: a pattern drawn inline puts the desktop sample beside the phone sample on a wide window and keeps only the phone sample, inside the viewport, on a phone (pk-grid, no gx-pair class)', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'Gallery inline'; f.style.cssText = `width:${width}px;height:900px;border:0;position:fixed;left:0;top:0;z-index:10`;
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            f.src = new URL('../../site/gallery/embed.html?chrome=none#/samples/patterns/notifications', import.meta.url).href; host.append(f); await loaded;
+            const doc = f.contentDocument, win = f.contentWindow;
+            const halves = await until(() => { const h = [...doc.querySelectorAll('[data-pair] > pk-stack')]; return h.length === 2 && h; }, 'the desktop and phone halves');
+            t.eq(doc.querySelectorAll('.gx-pair').length, 0, 'no hand-written pair class is left');
+            await until(() => win.customElements.get('pk-grid'), 'pk-grid to load'); await t.settle();
+            const [d, ph] = halves.map(h => h.getBoundingClientRect());
+            if (width > 640) {
+                t.ok(ph.left >= d.right - 0.5, `the phone half (left ${ph.left}) starts at or after the desktop half's right edge (${d.right}) at ${width}px`);
+                t.ok(Math.abs(ph.top - d.top) < 2, `the halves share a top (${d.top} / ${ph.top}) at ${width}px`);
+            } else {
+                t.eq(win.getComputedStyle(halves[0]).display, 'none', 'the desktop half is dropped on a phone');
+                t.ok(ph.width > 0 && ph.right <= width + 0.5, `the phone half (${ph.left}-${ph.right}) fits the ${width}px window`);
+            }
+        }
+    }],
 ];
