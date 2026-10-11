@@ -87,7 +87,7 @@ export const themePanel = {
 
 // The Layout builder tab is a scratch instance of the module (an empty page): mounted once like every other panel, so it keeps whatever the
 // visitor built for as long as the dock stays in the page, but nothing is persisted (the module itself stores no page; a host that wants a
-// draft kept across reloads passes its own onchange, the way site/layout-builder/layout-builder.js does).
+// draft kept across reloads passes its own onchange, the way site/modules/layout-builder.js does).
 export const layoutBuilderPanel = {
     id: 'layout-builder',
     title: 'Layout builder',

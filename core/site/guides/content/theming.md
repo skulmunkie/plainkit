@@ -88,7 +88,7 @@ Prefer a token when you want to change something everywhere and a hook when you 
 
 ## Build a theme with the theme editor
 
-The [Theme editor](../theme/index.html) is the quickest way to a theme of your own. It lists every token with an input for it and applies your edits to the page live. On top of that it can:
+The [Theme editor](../../app.html#/theme) is the quickest way to a theme of your own. It lists every token with an input for it and applies your edits to the page live. On top of that it can:
 
 - **Generate a palette from one brand colour** (the Palette tab). Give it a colour, and optionally a neutral tint and a warn colour, and it writes the accent, fill, hover and link colours and the text and surface ramps of both themes so that every documented text pair is 4.5:1 or better. Each pair is shown as a swatch with its ratio. If your colour is too light or too dark to be text or a button fill it is moved, and the tab says how far. Apply turns the result into ordinary edits you can still change.
 - **Start from a preset or a saved theme** (the Presets tab): the default, a high-contrast theme, a compact and a roomy density, and themes you save by name in this browser.

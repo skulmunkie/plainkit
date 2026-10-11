@@ -163,7 +163,7 @@ and turns them into `pk-tabs` under 720px.
 | 1 | This document. | done |
 | 2 | Phase 1, no UI: `js/layout-model.js` (model, validation, `toHtml`/`fromHtml`, ids, operations, history) and its tests. | done |
 | 3 | Phase 2, smallest useful UI in `modules/layout-builder/`: palette from `api.json` with search, inert canvas, selection (click, arrows, tree), structure tree, properties form and element inspector, toolbar and keyboard operations (move, duplicate, wrap, delete, undo, redo), panes become tabs on a phone (`pk-workspace`), HTML export tab, `onchange`, `onsave`, `exporters`; shipped as `dist/modules/layout-builder/` with a page on the SDK site (`site/layout-builder/`). | done |
-| 4 | The dev-tools dock entry (a Layout builder panel in `modules/devtools/panels.js`, added to `BUILT_IN`) and the standalone site page (`site/layout-builder/`), reachable from the site's top nav. | done |
+| 4 | The dev-tools dock entry (a Layout builder panel in `modules/devtools/panels.js`, added to `BUILT_IN`) and the site module (`site/modules/layout-builder.js`), reachable from the site's top nav. | done |
 | 5a | `pk-sortable` and `pk-sortable-item` (#170): the pointer/touch/keyboard reorder primitive drag-and-drop needs, and a drop target for a palette-to-canvas insert. | done |
 | 5b | Full drag-and-drop, icon-only controls, mobile is 100% drag-and-drop (#174): the top-level canvas wired to `pk-sortable`, palette-to-canvas external drop (slot-aware onto a container), icon-only Undo/Redo, a per-element Edit/Delete chip, the toolbar row hidden at phone width. | done |
 | 5c | Phone-reachable Save (#181): a floating `.lb-save-fab` button shown only at phone width, calling the same `save()` as the toolbar button and Ctrl+S. | done, replaced by 5d |
