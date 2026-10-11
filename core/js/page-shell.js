@@ -36,7 +36,7 @@ export function mountTitled(host, el, text, opts) {
     if (text) el.append(titleHeading(doc, text, opts));
     if (!win) { host.append(el); return cleanup; }
     // Appended once the elements the title bar needs are defined (found in a detached tree), so the bar is drawn with the page and the content under it never shifts down.
-    const probe = doc.createElement('div'), tags = [el.localName, 'pk-heading'];
+    const probe = doc.createElement('div'), tags = text ? [el.localName, 'pk-heading'] : [el.localName];
     probe.append(el);
     if (text && !opts?.plain) { probe.append(doc.createElement('pk-page-header')); tags.push('pk-page-header'); }
     loadElements(probe);
