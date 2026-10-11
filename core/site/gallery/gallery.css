@@ -65,7 +65,8 @@ pk-app-shell:not(:defined) > .gx-nav { grid-column: 1; grid-row: 1 / span 6; }
 .gx-nav > pk-nav-item:not(:defined) { display: block; min-height: calc(var(--space-8) + var(--space-1)); }
 .gx-nav > pk-nav-item > pk-nav-item:not(:defined) { display: none; }
 .gx-tiles:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
-.gx-tile:not(:defined) { display: block; min-height: calc(var(--space-12) * 3 + var(--space-1)); }
+.gx-tile { min-block-size: calc(var(--space-12) * 3 + var(--space-3)); } /* one floor for both states, above the tallest platform font's content height, so the box does not depend on the font (130px vs 118px on Linux, #1176) */
+.gx-tile:not(:defined) { display: block; }
 .gx-head { line-height: 1.25; min-block-size: calc(var(--space-12) + var(--space-3)); } /* one box source in both states: a fixed line height (the platform font's "normal" gave 45px on Linux, 53px on Windows) and a floor the defined header honours too */
 .gx-head:not(:defined) { display: block; }
 
