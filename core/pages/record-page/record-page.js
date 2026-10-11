@@ -88,7 +88,11 @@ export default Base => class extends Base {
         for (const f of fields) {
             const dt = doc.createElement('dt'), dd = doc.createElement('dd'), v = text(vals[f.name]);
             dt.textContent = f.label ?? f.name;
-            dd.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
+            // A host child slot="field-<name>" replaces the value (#1000); without one the slot shows the text.
+            const slot = doc.createElement('slot');
+            slot.name = `field-${f.name}`;
+            slot.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
+            dd.append(slot);
             list.append(dt, dd);
         }
         return list;

@@ -49,8 +49,9 @@ test('load shows loading, then the field list with sidebar cards; a missing reco
     await tick();
     assert.equal(parts.state.children.length, 0);
     assert.equal(parts.main.children[0].localName, 'pk-field-list');
-    assert.equal(parts.main.children[0].children[1].textContent, 'Widget');
-    assert.equal(parts.side.children[0].children[0].children[1].textContent, 'Active', 'a select value shows its option label');
+    assert.equal(parts.main.children[0].children[1].children[0].textContent, 'Widget')
+    assert.equal(parts.main.children[0].children[1].children[0].name, 'field-name', 'the value is a field-<name> slot a host child can fill (#1000)');
+    assert.equal(parts.side.children[0].children[0].children[1].children[0].textContent, 'Active', 'a select value shows its option label');
     assert.equal(parts.edit.hidden, true, 'no save callback: not editable');
     el.load = async () => null;
     el.config = { ...el.config, id: '8' };

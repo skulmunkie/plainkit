@@ -248,6 +248,11 @@ export function modelElement(el, mapping, reg) {
             out.callbacks.push({ name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true });
         } else if (map === 'cssProperty') {
             skip(p.name, `sets the ${p.cssProperty} custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper`);
+        } else if (map === 'slotMap') {
+            // A dictionary of templates by name: each fills the element's `<prefix><key>` slot (the record page's field-<name> value slots, #1000).
+            if (!p.slotPrefix || !p.type || !p.doc) { skip(p.name, 'a slotMap needs slotPrefix, type and doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
+            (out.slotMaps ??= []).push({ name: p.name, prefix: p.slotPrefix });
         } else if (map === 'cells') {
             // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
@@ -485,7 +490,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
     const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
     const cells = m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '';
-    const children = children0 + cells;
+    const slotMaps = (m.slotMaps ?? []).map(s => `@if (${s.name} is not null) {foreach (var item in ${s.name}) {<span slot="@($"${s.prefix}{item.Key}")" class="u-contents" @key="@($"${s.prefix}{item.Key}")">@item.Value</span>}}`).join('');
+    const children = children0 + cells + slotMaps;
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);

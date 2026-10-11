@@ -100,6 +100,14 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void RecordPage_field_templates_fill_the_field_value_slots()
+    {
+        var cut = Render<PkRecordPage>(p => p.Add(x => x.Fields, new Dictionary<string, RenderFragment> { ["status"] = b => b.AddContent(0, "Shipped") }));
+
+        Assert.Equal("Shipped", cut.Find("[slot=field-status]").TextContent);
+    }
+
+    [Fact]
     public async Task RecordPage_load_gets_the_id_as_text_and_save_gets_the_values()
     {
         string? loadedId = null; IReadOnlyDictionary<string, JsonElement>? saved = null;
