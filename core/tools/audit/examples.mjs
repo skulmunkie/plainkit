@@ -117,4 +117,6 @@ export const EXAMPLES = [
     { id: 'B3', path: 'App.razor', wrong: '<PkButton Sizee="ButtonSize.Small"></PkButton>', right: '<PkButton Size="ButtonSize.Small"></PkButton>' },
     { id: 'B5', path: 'App.razor', wrong: 'await JS.InvokeVoidAsync("dialog.showModal", elementRef);', right: 'await dialogRef.ShowAsync();' },
     { id: 'B6', path: 'App.razor', wrong: '<div onclick="go()"></div>', right: '<PkButton OnClick="Go">Go</PkButton>' },
+    { id: 'B7', path: 'Orders.razor', wrong: '@implements IDisposable @code { CancellationTokenSource? _cts; }', right: '@inherits PageBase @code { protected override Task OnLoadAsync(CancellationToken ct) => Task.CompletedTask; }' },
+    { id: 'P10', path: 'page.js', wrong: 'let busy = false; const ac = new AbortController(); function destroy() { ac.abort(); }', right: "import { createLifecycle } from 'plainkit/page-lifecycle.js'; const life = createLifecycle({ page, signal });" },
 ];
