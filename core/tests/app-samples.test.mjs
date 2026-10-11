@@ -17,7 +17,7 @@ function fakeHost() {
 }
 
 test('every sample app config is a valid mountApp config and every module it lists is a valid module', async () => {
-    for (const name of ['app', 'top', 'pages']) {
+    for (const name of ['app', 'pages']) {
         const config = (await import(`../samples/app/${name}.config.js`)).default;
         const read = readConfig(config);
         for (const m of read.modules) assert.equal((await m.load()).default.id, m.id, `${name}: module ${m.id} exports its own definition`);

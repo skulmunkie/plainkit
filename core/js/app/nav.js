@@ -37,19 +37,13 @@ export function navOf(def, ctx) {
 // The module's nav with its links built: every route becomes an address through `hrefOf(route)` (module-relative to app-wide), the rest is kept. Pure.
 export const absolute = (items, hrefOf) => items.map(it => ({ id: it.id, title: it.title, icon: it.icon, badge: it.badge, href: it.route != null ? hrefOf(it.route) : it.href, children: absolute(it.children ?? [], hrefOf) }));
 
-// The ONE menu tree both layouts render: the modules, each { id, title, icon, module, href, active, children } where the active module holds its own entries (`shown`, see
-// absolute). The rendering layer decides what it looks like: paintNav (a pk-side-nav tree) and paintLinks (bar links) below.
-export const menuTree = (modules, hrefOf, active, shown) => modules.filter(m => !m.menu).map(m => ({
-    id: `module:${m.id}`, title: m.title, icon: m.icon, module: m.id, href: hrefOf(`/${m.id}`), active: m.id === active, children: m.id === active ? shown : [],
-}));
-
 // Renders groups of items into `into` (a pk-side-nav): [{ heading?, items }], a heading being a group title row. Returns the Map id -> row. An item is { id, title, href, icon?, badge?,
-// children?, module?, active? }; a module section that holds entries is a branch (no link, open), a module without is a link and current when active.
+// children?, module?, active? }; an item with children and no href is a branch (the drawer's module picker), one with an href a link, current when active.
 export function paintNav(doc, into, groups) {
     const rows = new Map();
     const build = (item, slot) => {
-        const kids = item.children ?? [], section = item.module && kids.length;
-        const row = h(doc, 'pk-nav-item', { href: (!section && safeHref(item.href)) || null, slot, 'data-module': item.module || null, expanded: !!section, current: !section && item.active });
+        const kids = item.children ?? [];
+        const row = h(doc, 'pk-nav-item', { href: safeHref(item.href) || null, slot, 'data-module': item.module || null, current: item.active });
         if (item.icon) row.append(h(doc, 'pk-icon', { slot: 'icon', name: item.icon }));
         row.append(doc.createTextNode(item.title));
         if (item.badge != null) row.append(h(doc, 'span', { slot: 'badge' }, String(item.badge)));
@@ -60,9 +54,6 @@ export function paintNav(doc, into, groups) {
     into.replaceChildren(...groups.flatMap(g => [...(g.heading ? [h(doc, 'pk-nav-item', { group: '' }, g.heading)] : []), ...g.items.map(item => build(item))]));
     return rows;
 }
-
-// Top layout: the modules as links in the bar (aria-current on the active one).
-export const paintLinks = (doc, tree) => tree.map(it => h(doc, 'a', { href: it.href, 'data-module': it.module, 'aria-current': it.active && 'page' }, it.title));
 
 // Where `path` is: `tree` is navRoutes(nav), built once per module. The module's route tree says which nav entry the page belongs to (the deepest route on the way to it
 // that is a nav entry: a record route sits under its list) and what comes after it in the trail (route labels). Returns the ids from the entry's top ancestor down to the

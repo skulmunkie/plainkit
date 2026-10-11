@@ -4,7 +4,6 @@
 const redirect = (id, title, href) => ({ id, title, load: () => import('./modules/redirect.js').then(m => m.redirectTo(id, title, href)) });
 export default {
     brand: { text: 'Plainkit' },
-    layout: 'top',
     home: 'devtools',
     search: false,
     storage: { legacy: { theme: 'pk-site-theme' } },

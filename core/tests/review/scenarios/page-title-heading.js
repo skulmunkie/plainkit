@@ -12,14 +12,14 @@ export default {
     setup(frame) {
         history.replaceState(null, '', '#/overview');
         globalThis.__app = mountApp(frame.querySelector('#app'), {
-            brand: { text: 'Tiny app' }, layout: 'top',
+            brand: { text: 'Tiny app' },
             modules: [{ id: 'overview', title: 'Overview', load: async () => note('overview', 'Overview') }, { id: 'about', title: 'About', load: async () => note('about', 'About') }],
         });
     },
     steps: [
         { wait: 'settle' }, { shot: 'idle' },
-        { click: 'pk-button[data-nav-toggle]', on: ['phone'] },
-        { click: 'pk-nav-item[data-module=about]', on: ['phone'] }, { click: 'pk-navbar a[data-module=about]', on: ['desktop'] },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] },
+        { click: 'pk-nav-item[data-module=about]', on: ['phone'] }, { click: 'pk-navbar pk-dropdown [slot=trigger]', on: ['desktop'] }, { click: 'pk-navbar pk-menu-item[data-module=about]', on: ['desktop'] },
         { wait: 'settle' }, { shot: 'navigated' },
     ],
     expect(t) {

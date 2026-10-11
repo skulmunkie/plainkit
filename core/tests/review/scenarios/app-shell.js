@@ -48,10 +48,12 @@ export default {
         { click: 'pk-app-bar-search >>> [part=expand]', on: ['phone'] }, 
         { click: 'pk-app-bar-search >>> [part=control]' }, { type: 'order' }, { shot: 'search-open' },
         { key: 'Escape' }, { key: 'Escape' }, 
-        { click: 'pk-dropdown pk-button' }, { shot: 'settings-menu' },
+        { click: 'pk-dropdown[slot=actions] pk-button' }, { shot: 'settings-menu' },
         { key: 'Escape' }, 
         { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, 
-        { click: 'pk-nav-item[data-module=overview]' }, { shot: 'module-chosen' },
+        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] }, { click: 'pk-nav-item[data-module=overview]', on: ['phone'] },
+        { click: 'pk-navbar pk-dropdown:not([slot=actions]) [slot=trigger]', on: ['desktop'] }, { wait: 300, on: ['desktop'] }, { shot: 'picker-open', on: ['desktop'] }, { click: 'pk-navbar pk-menu-item[data-module=overview]', on: ['desktop'] },
+        { shot: 'module-chosen' },
     ],
     expect(t) {
         const desktop = t.viewport.name === 'desktop';
@@ -76,20 +78,20 @@ export default {
             t.noOverlap(BAR, '#pk-main');
             t.inViewport('#pk-main');
             t.visible('pk-app-bar-search');
-            t.absent('pk-navbar a[data-module]'); // the default layout keeps the modules out of the bar
+            t.absent('pk-navbar a[data-module]'); // the modules are the picker's items, not bar links (#388)
             t.hidden('pk-navbar >>> [part=toggle]', "the bar's own hamburger (the shell has the one menu control)");
-            t.exists('pk-nav-item[data-module=overview][href="#/overview"]');
-            t.exists('pk-nav-item[data-module=orders][expanded]'); // the active module is a section holding its own entries
+            t.absent('#pk-nav > pk-nav-item[data-module]'); // the side nav is the module's own tree: no module rows, no wrapper row
+            t.exists('#pk-nav > pk-nav-item[href="#/orders"]');
             if (desktop) t.hidden('pk-button[data-nav-toggle]', 'the hamburger (the side nav has its own collapse chevron, #448)'); else t.visible('pk-button[data-nav-toggle]', 'the hamburger (opens the drawer)');
             if (desktop) t.visible('#pk-nav >>> [part=collapse]', 'the one collapse control');
-            if (desktop) { t.visible('#pk-nav'); t.atLeast('#pk-nav', 'width', 150); t.sameRow('pk-navbar a[slot=brand]', 'pk-app-bar-search'); t.visible('pk-nav-item[data-module=overview]'); }
+            if (desktop) { t.visible('#pk-nav'); t.atLeast('#pk-nav', 'width', 150); t.sameRow('pk-navbar a[slot=brand]', 'pk-app-bar-search'); t.visible('pk-navbar pk-dropdown [slot=trigger]', 'the module picker'); t.hasText('pk-navbar pk-dropdown [slot=trigger]', 'Orders'); }
             else t.hidden('#pk-nav', 'the nav (a drawer, closed)');
         }
         if (t.shot === 'nav-collapsed') { t.visible('#pk-nav'); t.ok(t.rect('#pk-nav')?.width < 100, 'the nav is an icon rail'); t.hidden('pk-button[data-nav-toggle]', 'no second collapse control'); t.visible('#pk-nav >>> [part=collapse]'); t.visible('#pk-main'); }
         if (t.shot === 'nav-open') {
             t.visible('#pk-nav', 'the drawer');
             t.inViewport('#pk-nav');
-            t.hasText('#pk-nav', 'Overview'); // every module is listed, the active one holds its own entries
+            t.exists('#pk-nav > pk-nav-item:first-child > pk-nav-item[data-module=overview]'); // the drawer's first row is the module picker
             t.hasText('#pk-nav', 'Orders');
             t.hasText('#pk-nav', 'All orders');
             t.exists('#pk-nav pk-nav-item[current][href="#/orders"]');
@@ -97,6 +99,7 @@ export default {
             const nav = t.rect('#pk-nav'), first = t.rect('#pk-nav pk-nav-item');
             if (nav && first) t.ok(first.y - nav.y <= 16, `the drawer's first row starts ${Math.round(first.y - nav.y)}px below its top (an empty band); expected within 16px`);
         }
+        if (t.shot === 'picker-open') { t.visible('pk-navbar pk-menu-item[data-module=overview]', 'the module list'); t.inViewport('pk-navbar pk-menu-item[data-module=overview]'); }
         if (t.shot === 'search-open') {
             t.visible('pk-app-bar-search >>> [part=popup]', 'the results');
             t.hasText('pk-app-bar-search >>> [part=popup]', 'Order 7');
@@ -104,7 +107,7 @@ export default {
         }
         if (t.shot === 'module-chosen') {
             t.hasText('#pk-main h1', 'Overview');
-            t.exists('pk-nav-item[current][data-module=overview]');
+            if (desktop) t.hasText('pk-navbar pk-dropdown [slot=trigger]', 'Overview');
             t.ok(document.title === 'Overview - Acme', `the document title is "${document.title}"`);
             if (!desktop) t.hidden('#pk-nav', 'the drawer (closed after choosing a module)');
         }
