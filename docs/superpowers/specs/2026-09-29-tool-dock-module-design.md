@@ -82,8 +82,8 @@ between them beyond the `BUILT_IN` constant.
 
 | Consumer | File | How it calls `mountDevTools` | Impact under the recommended approach |
 | --- | --- | --- | --- |
-| SDK site, docked dev tools on every page | `core/site/shell.js` and pages that mount the shell (confirm exact call site with `grep '../modules/devtools'` — the shell wires the dock globally; `core/site/devtools/page.js` is the inline instance below) | `mountDevTools(null, { mode: 'dock' })` (default options) | None. `mountDevTools`'s signature, options and returned handle are unchanged; it now builds its `panels` array from `BUILT_IN` and calls the new module internally. |
-| SDK site, `/devtools` page | `core/site/devtools/page.js` | `mountDevTools(document.getElementById('devtools'), { mode: 'inline' })` | None, same reason. |
+| SDK site, docked dev tools on every page | `core/site/shell.js` and pages that mount the shell (confirm exact call site with `grep '../modules/devtools'` — the shell wires the dock globally; the former devtools page script was the inline instance below) | `mountDevTools(null, { mode: 'dock' })` (default options) | None. `mountDevTools`'s signature, options and returned handle are unchanged; it now builds its `panels` array from `BUILT_IN` and calls the new module internally. |
+| SDK site, `/devtools` page | the former devtools page script (now a module) | `mountDevTools(document.getElementById('devtools'), { mode: 'inline' })` | None, same reason. |
 | Blazor `PkDevTools` component | `blazor/src/PlainKit.Blazor/Components/PkDevTools.razor` via the JS bridge (`blazor/src/PlainKit.Blazor/wwwroot/blazor-devtools.js`, `plainkit.blazor.js`'s `mountDevTools`/`openTools`/`closeTools`/`toggleTools`/`selectTool`/`destroy` bridge calls) | Calls the same `mountDevTools(container, { mode, hotkey, tab, open, size, theme })` signature by tag name through `InvokeVoidAsync` | None. The bridge calls the same exported function name with the same option keys; internal restructuring is invisible across the JS interop boundary. |
 | `scripts/tests/blazor-devtools.test.mjs`, `blazor/tests/PlainKit.Blazor.Tests/ToolComponentTests.cs`, `SecurityTests.cs` | test suites | assert on `mountDevTools`'s behavior/API | Re-run as-is; a test that reaches into `devtools.js` internals (none found — all go through the public `mountDevTools`/bridge surface) would need updating, but no such test exists today. |
 | `scripts/skills/plainkit-sdk/SKILL.md` | skill docs | documents `mountDevTools({ mode: 'dock' })` | Text describing `mountDevTools` stays correct; a new paragraph is added for `mountToolDock` (see "Docs and skills"). |
@@ -270,7 +270,7 @@ asks for, and doubles as the module's own UI-review surface if its CSS changes i
 
 - **CSS split risk.** `devtools.css` may have rules that look generic but were only ever exercised by devtools' own panels (for
   example a selector scoped to `.dt-panel-body pk-table`). The extraction must be verified by actually running `mountDevTools` in both
-  modes after the split (`node scripts/attest-browser.mjs` or a manual `core/site/devtools/page.js` load) before merging, not assumed
+  modes after the split (`node scripts/attest-browser.mjs` or a manual load of the devtools module) before merging, not assumed
   correct from reading the CSS alone.
 - **Accessible-name drift.** If `label`/`launcherLabel` defaults inside `mountToolDock` differ even slightly from the literal `'Dev
   tools'` text `mountDevTools` passes today, `aria-label` and the launcher button's text change for existing users — a real
