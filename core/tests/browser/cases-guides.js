@@ -31,7 +31,7 @@ const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort(
 export const guidesCases = [
     ['guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem', async t => {
         const p = await open(t, '#/getting-started');
-        t.eq(p.items.length, 9, 'one nav item per guide');
+        t.eq(p.items.length, 10, 'one nav item per guide');
         t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started', 'the open guide is current');
         t.ok(shown(p.nav), 'the nav is a column, not a hidden drawer');
         t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
@@ -143,7 +143,7 @@ export const guidesCases = [
     ['guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning', async t => {
         const list = await open(t, '#/', { toc: false });
         const cards = [...list.$('gd-body').querySelectorAll('pk-grid pk-card')];
-        t.eq(cards.length, 9); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/choosing-what-to-build-with,#/build-an-app,#/theming,#/responsive-design,#/logging,#/migrating-from-compat,#/conformance-audit');
+        t.eq(cards.length, 10); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/choosing-what-to-build-with,#/build-an-app,#/theming,#/responsive-design,#/logging,#/migrating-from-compat,#/conformance-audit,#/blazor-list-and-record');
         t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-toc').hidden, true, 'no toc on the list');
         const gone = await open(t, '#/no-such-guide', { toc: false });
         t.eq(gone.$('gd-title').textContent, 'Not found');
@@ -203,7 +203,7 @@ async function openApp(t, hash, width = 1280) {
 export const guidesAppCases = [
     ['guides module (app, 1280px): the guide list is the nav, a deep link opens a guide with crumbs, and a heading anchor in the address scrolls to it', async t => {
         const p = await openApp(t, '#/guides/theming');
-        t.eq(p.items().length, 9, 'one nav item per guide');
+        t.eq(p.items().length, 10, 'one nav item per guide');
         t.eq(p.items().filter(i => i.hasAttribute('current')).length, 1, 'the open guide is current');
         t.ok(p.items().every(i => /^#\/guides\/[a-z-]+$/.test(i.getAttribute('href'))), 'every nav link is a router address under #/guides');
         await until(() => p.d.querySelector('.doc-page-title')?.textContent, 'the title');
@@ -217,7 +217,7 @@ export const guidesAppCases = [
         const p = await openApp(t, '#/guides', 375);
         const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box above the article');
         t.ok(p.doc().querySelector('pk-side-nav').hidden && !p.doc().querySelector('pk-breadcrumb:not([hidden])'), 'the doc page draws neither its own nav nor a breadcrumb');
-        t.ok(p.doc().querySelectorAll('pk-card').length >= 9, 'a card per guide on the list');
+        t.ok(p.doc().querySelectorAll('pk-card').length >= 10, 'a card per guide on the list');
         input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400);
         const status = p.doc().querySelector(':scope > pk-container pk-text').textContent;
         t.ok(/mentioned in|titled/.test(status), `the status line names the guides that match: ${status}`);
@@ -227,16 +227,16 @@ export const guidesAppCases = [
             const p = await openApp(t, '#/guides/theming', width);
             const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box');
             const shown = () => p.items().filter(i => !i.hidden && /\/guides\/[a-z-]+$/.test(i.getAttribute('href') ?? '')).map(i => i.getAttribute('href').split('/').pop());
-            t.eq(shown().length, 9, `${width}: every guide in the nav`);
+            t.eq(shown().length, 10, `${width}: every guide in the nav`);
             const title = p.d.querySelector('.doc-page-title').getBoundingClientRect(), box = input.getBoundingClientRect();
             t.ok(box.top >= title.bottom - 1, `${width}: the search box sits under the title (${box.top} vs ${title.bottom})`);
             input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-            await until(() => shown().length > 0 && shown().length < 9, `${width}: the nav to filter`);
-            t.ok(shown().length < 9 && p.items().filter(i => i.hidden).length > 0, `${width}: only the matching guides stay (${shown().join()})`);
+            await until(() => shown().length > 0 && shown().length < 10, `${width}: the nav to filter`);
+            t.ok(shown().length < 10 && p.items().filter(i => i.hidden).length > 0, `${width}: only the matching guides stay (${shown().join()})`);
             t.ok(/logg/i.test(p.doc().querySelector(':scope > pk-container pk-text').textContent), `${width}: the status line still names them`);
             t.eq(p.win.location.hash, '#/guides/theming', `${width}: the deep link is untouched`);
             input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-            await until(() => shown().length === 9, `${width}: every guide again`);
+            await until(() => shown().length === 10, `${width}: every guide again`);
         }
     }],
     // The header search (#355): the active module's `search` answers; picking a result navigates.
