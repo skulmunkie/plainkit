@@ -37,14 +37,14 @@ export default {
     },
     steps: [
         { shot: 'resting' },
-        { click: '#b-select' }, { wait: 150 }, { shot: 'selected-chip' },
-        { click: '#b-flags' }, { wait: 150 }, { shot: 'hidden-empty' },
-        { click: '#b-drop' }, { wait: 150 }, { shot: 'drop-target' },
-        { set: S, attr: 'width', value: 'tablet' }, { wait: 150 }, { shot: 'tablet' },
-        { set: S, attr: 'width', value: 'phone' }, { wait: 150 }, { shot: 'phone-frame' },
-        { click: '#b-far' }, { wait: 250 }, { shot: 'revealed' },
-        { focus: F }, { wait: 100 }, { shot: 'focus' },
-        { set: S, attr: 'width', value: 'full' }, { set: '#stage', attr: 'dir', value: 'rtl' }, { click: '#b-select' }, { wait: 250 }, { shot: 'rtl' },
+        { click: '#b-select' }, { shot: 'selected-chip' },
+        { click: '#b-flags' }, { shot: 'hidden-empty' },
+        { click: '#b-drop' }, { shot: 'drop-target' },
+        { set: S, attr: 'width', value: 'tablet' }, { shot: 'tablet' },
+        { set: S, attr: 'width', value: 'phone' }, { shot: 'phone-frame' },
+        { click: '#b-far' }, { shot: 'revealed' },
+        { focus: F }, { shot: 'focus' },
+        { set: S, attr: 'width', value: 'full' }, { set: '#stage', attr: 'dir', value: 'rtl' }, { click: '#b-select' }, { shot: 'rtl' },
     ],
     expect(t) {
         t.visible(S, 'the surface'); t.within(F, G); t.fitsWidth(G);

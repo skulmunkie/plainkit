@@ -19,7 +19,7 @@ export default {
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
-        { scroll: SCROLL, to: 300 }, { wait: 300 }, { shot: 'scrolled' },
+        { scroll: SCROLL, to: 300 }, { shot: 'scrolled' },
         { focus: SCROLL }, { shot: 'frame-focus' },
     ],
     expect(t) {

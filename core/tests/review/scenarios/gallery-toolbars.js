@@ -16,7 +16,7 @@ export default {
     },
     steps: [
         { wait: 'settle' }, { wait: 2500 }, { shot: 'pagebar' },
-        { click: '#gx-pagebar pk-dropdown pk-button' }, { wait: 500 }, { shot: 'pagebar-menu' },
+        { click: '#gx-pagebar pk-dropdown pk-button' }, { shot: 'pagebar-menu' },
     ],
     expect(t) {
         t.visible('#gx-pagebar'); t.visible('#gx-title'); t.visible('#gx-open');

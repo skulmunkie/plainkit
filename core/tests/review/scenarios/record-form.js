@@ -20,10 +20,10 @@ export default {
     steps: [
         { wait: 700 }, { shot: 'resting' },
         { click: '#rf >>> [part=save]' }, { wait: 600 }, { shot: 'stopped' },
-        { set: '#rf', attr: 'error', value: 'The record could not be saved. Try again.' }, { wait: 300 }, { shot: 'error' },
-        { set: '#rf', attr: 'busy', value: '' }, { wait: 300 }, { shot: 'busy' },
-        { set: '#rf', attr: 'actions-in-header', value: '' }, { wait: 300 }, { shot: 'header' },
-        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 300 }, { shot: 'rtl' },
+        { set: '#rf', attr: 'error', value: 'The record could not be saved. Try again.' }, { shot: 'error' },
+        { set: '#rf', attr: 'busy', value: '' }, { shot: 'busy' },
+        { set: '#rf', attr: 'actions-in-header', value: '' }, { shot: 'header' },
+        { set: '#stage', attr: 'dir', value: 'rtl' }, { shot: 'rtl' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

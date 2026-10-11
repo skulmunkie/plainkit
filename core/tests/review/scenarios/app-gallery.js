@@ -17,7 +17,7 @@ export default {
     steps: [
         { wait: 'settle' }, { wait: 1500 }, { shot: 'overview' },
         { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 600, on: ['phone'] }, { shot: 'drawer', on: ['phone'] },
-        { key: 'Escape', on: ['phone'] }, { wait: 400, on: ['phone'] },
+        { key: 'Escape', on: ['phone'] }, 
         { click: '#gx-view [href="#/gallery/elements"]' }, { wait: 1200 },
         { click: '#gx-view [href="#/gallery/elements/pk-button"]' }, { wait: 2000 }, { shot: 'element' },
         { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 600, on: ['phone'] }, { shot: 'element-drawer', on: ['phone'] },

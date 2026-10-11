@@ -27,9 +27,9 @@ export default {
     },
     steps: [
         { wait: 'settle' }, { shot: 'invalid' },
-        { set: '#g', prop: 'values', value: { width: 0, height: 600, format: 'JPEG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc', margin: { value: 140, unit: '%' } } }, { wait: 300 }, { shot: 'jpeg-quality-visible' },
-        { focus: '#g >>> pk-input' }, { key: 'Control+ArrowDown' }, { wait: 200 }, { shot: 'ctrl-down-focus' },
-        { click: '#g >>> pk-accordion-item:last-child >>> summary' }, { wait: 300 }, { shot: 'group-open' },
+        { set: '#g', prop: 'values', value: { width: 0, height: 600, format: 'JPEG', transparent: true, note: 'Locked by the template', quality: 80, accent: '#3366cc', margin: { value: 140, unit: '%' } } }, { shot: 'jpeg-quality-visible' },
+        { focus: '#g >>> pk-input' }, { key: 'Control+ArrowDown' }, { shot: 'ctrl-down-focus' },
+        { click: '#g >>> pk-accordion-item:last-child >>> summary' }, { shot: 'group-open' },
     ],
     expect(t) {
         t.visible('#g >>> pk-accordion-item >>> [part=heading]', 'the group heading');

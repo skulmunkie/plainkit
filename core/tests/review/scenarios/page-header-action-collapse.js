@@ -5,7 +5,7 @@ export default {
     issue: [1009],
     elements: ['page-header'],
     html: `<pk-page-header id="ph" variant="record"><pk-badge>Open</pk-badge><pk-button slot="actions" variant="ghost" icon-name="document" collapse="phone">Print</pk-button><pk-button slot="actions" icon-name="save" collapse="phone">Save</pk-button></pk-page-header>`,
-    steps: [{ wait: 200 }, { shot: 'rest' }],
+    steps: [{ shot: 'rest' }],
     expect(t) {
         for (const s of BTNS) {
             t.visible(s, 'an action button');

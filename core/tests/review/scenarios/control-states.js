@@ -11,9 +11,9 @@ export default {
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
-        { hover: '#save >>> [part=control]' }, { wait: 300 }, { shot: 'button-hover' },
+        { hover: '#save >>> [part=control]' }, { shot: 'button-hover' },
         { focus: '#save >>> [part=control]' }, { shot: 'button-focus' },
-        { hover: '#link' }, { wait: 300 }, { shot: 'link-hover' },
+        { hover: '#link' }, { shot: 'link-hover' },
         { focus: '#link' }, { shot: 'link-focus' },
         { focus: '#name >>> input' }, { shot: 'input-focus' },
     ],

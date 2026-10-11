@@ -15,7 +15,7 @@ export default {
         el.config = { heading: 'Orders', columns: [{ key: 'po', label: 'PO' }, { key: 'customer', label: 'Customer' }], pageSize: 5, selectable: true, bulkActions: [{ id: 'archive', label: 'Archive' }] };
         el.load = () => ({ rows: ROWS, total: 112 });
     },
-    steps: [{ wait: 300 }, { shot: 'rows' }, { click: `${TABLE} >>> [data-select-all]` }, { wait: 300 }, { shot: 'selected' }],
+    steps: [{ shot: 'rows' }, { click: `${TABLE} >>> [data-select-all]` }, { shot: 'selected' }],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         if (t.shot === 'rows') t.hidden(BAR, 'the bulk bar with nothing selected');

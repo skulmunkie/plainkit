@@ -25,8 +25,8 @@ export default {
     },
     steps: [
         { wait: 1200 }, { shot: 'file' },
-        { click: `${HOST} [data-ce-outline]` }, { wait: 500 }, { shot: 'outline' },
-        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, { wait: 300, on: ['phone'] },
+        { click: `${HOST} [data-ce-outline]` }, { shot: 'outline' },
+        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, 
         { focus: `${HOST} pk-input[data-ce-query] >>> [part=control]` }, { type: 'return' }, { key: 'Enter' }, { wait: 800 }, { shot: 'results' },
         { click: `${HOST} [data-ce-reports]`, on: ['desktop'] }, { wait: 800, on: ['desktop'] }, { shot: 'reports', on: ['desktop'] },
     ],

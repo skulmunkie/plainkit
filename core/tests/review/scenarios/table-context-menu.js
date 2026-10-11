@@ -29,8 +29,8 @@ export default {
     },
     steps: [
         { shot: 'closed' },
-        { focus: '#t1 >>> tbody tr[data-pk-context="2"] [data-select]' }, { key: 'ContextMenu' }, { wait: 200 }, { shot: 'open-keyboard' },
-        { key: 'Escape' }, { wait: 100 },
+        { focus: '#t1 >>> tbody tr[data-pk-context="2"] [data-select]' }, { key: 'ContextMenu' }, { shot: 'open-keyboard' },
+        { key: 'Escape' }, 
     ],
     expect(t) {
         const menu = '#menu >>> [part=menu]';

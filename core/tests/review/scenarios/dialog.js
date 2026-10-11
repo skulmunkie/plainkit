@@ -18,9 +18,9 @@ export default {
 </div>`,
     steps: [
         { shot: 'closed' },
-        { click: '#open' }, { wait: 400 }, { shot: 'open' },
+        { click: '#open' }, { shot: 'open' },
         { focus: '#dlg >>> [part=close]' }, { shot: 'close-focus' },
-        { scroll: '#dlg >>> [part=body]', to: 2000 }, { wait: 200 }, { shot: 'scrolled' },
+        { scroll: '#dlg >>> [part=body]', to: 2000 }, { shot: 'scrolled' },
     ],
     expect(t) {
         if (t.shot === 'closed') { t.hidden(D, 'the dialog while closed'); return; }

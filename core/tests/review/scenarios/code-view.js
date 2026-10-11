@@ -16,7 +16,7 @@ beta();
 gamma();
 delta();</pk-code-view>
 </div>`,
-    steps: [{ wait: 200 }, { shot: 'highlight' }],
+    steps: [{ shot: 'highlight' }],
     expect(t) {
         t.visible(BODY, 'the scrolling body'); t.visible(HL, 'the highlighted line');
         t.ok(t.metric(BODY, 'scrollTop') > 0, 'the highlighted line was not scrolled into view: the body is still at the top');

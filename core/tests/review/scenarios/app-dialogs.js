@@ -24,11 +24,11 @@ export default {
         frame.querySelector('#rename').addEventListener('click', () => dialogs.prompt({ heading: 'Rename the list', message: 'Customers see this name on the storefront.', label: 'List name', value: '', required: true, maxLength: 80 }).then(done));
     },
     steps: [
-        { click: '#delete' }, { wait: 500 }, { shot: 'confirm' },
-        { key: 'Tab', times: 3 }, { wait: 100 }, { shot: 'confirm-trapped' },
-        { key: 'Escape' }, { wait: 400 }, { shot: 'confirm-cancelled' },
-        { click: '#rename' }, { wait: 500 }, { shot: 'prompt' },
-        { type: 'Spring sale' }, { key: 'Enter' }, { wait: 400 }, { shot: 'prompt-done' },
+        { click: '#delete' }, { shot: 'confirm' },
+        { key: 'Tab', times: 3 }, { shot: 'confirm-trapped' },
+        { key: 'Escape' }, { shot: 'confirm-cancelled' },
+        { click: '#rename' }, { shot: 'prompt' },
+        { type: 'Spring sale' }, { key: 'Enter' }, { shot: 'prompt-done' },
     ],
     expect(t) {
         const v = t.viewport, focus = t.attr('#probe', 'data-focus') ?? '', result = t.attr('#probe', 'data-result');

@@ -18,7 +18,7 @@ export default {
         Object.assign(el, { columns: [{ key: 'po', label: 'PO', sortable: true }, { key: 'customer', label: 'Customer', hidePhone: true }, { key: 'total', label: 'Total', type: 'number' }], pageSize: 100, pageSizeOptions: [25, 100], caption: 'Orders' });
         el.load = () => ({ rows: ROWS.slice(0, 100), total: 120 });
     },
-    steps: [{ wait: 400 }, { shot: 'top' }, { scroll: SCROLL, to: 1500 }, { wait: 200 }, { shot: 'scrolled' }],
+    steps: [{ shot: 'top' }, { scroll: SCROLL, to: 1500 }, { shot: 'scrolled' }],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         t.scrolls(SCROLL);
