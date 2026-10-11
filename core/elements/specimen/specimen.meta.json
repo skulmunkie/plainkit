@@ -1,0 +1,69 @@
+{
+  "tag": "pk-specimen",
+  "title": "Specimen",
+  "group": "Data display",
+  "tier": "element",
+  "summary": "A design-token sample for spacing, size, radius, shadow and layer tokens, drawn at its resolved value with the token name and value as text.",
+  "props": [
+    {
+      "name": "token",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A CSS custom property to sample, for example \"--space-4\", \"--radius-md\", \"--shadow-card\" or \"--z-sticky\"; resolved against this element's computed style, so it follows the theme and density in effect."
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "One of space, radius, shadow, size or layer. How to draw the token: a bar of the resolved length (space, size), a corner sample (radius), an elevated tile (shadow) or a chip with the number (layer). Inferred from the token prefix (--space-, --radius-, --shadow-, --z-, --touch-) when empty."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "Optional label shown instead of the token name."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "sample",
+      "description": "The box holding the drawing."
+    },
+    {
+      "name": "shape",
+      "description": "The drawing: the bar, the corner sample, the shadow tile or the layer chip."
+    },
+    {
+      "name": "info",
+      "description": "The wrapper around the name and the value."
+    },
+    {
+      "name": "name",
+      "description": "The token name, or the slotted label."
+    },
+    {
+      "name": "token",
+      "description": "The token name shown when no label is slotted."
+    },
+    {
+      "name": "value",
+      "description": "The resolved value, with the measured pixel length for a bar."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "The drawing is decorative (aria-hidden); the token name and the resolved value are text, so the result never depends on the picture alone.",
+  "examples": [
+    {
+      "title": "Spacing and size",
+      "html": "<pk-specimen token=\"--space-2\"></pk-specimen>\n<pk-specimen token=\"--space-4\"></pk-specimen>\n<pk-specimen token=\"--touch-target\"></pk-specimen>"
+    },
+    {
+      "title": "Radius, shadow and layer",
+      "html": "<pk-specimen token=\"--radius-md\"></pk-specimen>\n<pk-specimen token=\"--shadow-card\"></pk-specimen>\n<pk-specimen token=\"--z-sticky\">Sticky header</pk-specimen>"
+    }
+  ]
+}

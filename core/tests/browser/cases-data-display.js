@@ -1227,4 +1227,44 @@ export const dataDisplayCases = [
             t.ok(f.contentDocument.documentElement.scrollWidth <= 376, `${name}: the page does not scroll sideways`);
         }
     }],
+    // ---- pk-specimen draws non-colour tokens at their resolved value (#1088) ----------------------------------------------------------------
+    ['specimen: a space bar renders at the resolved token length in px, and the value text says so', async t => {
+        const host = t.stage('<pk-specimen token="--space-4"></pk-specimen><pk-specimen token="--space-12"></pk-specimen><pk-specimen token="--touch-target"></pk-specimen>');
+        await t.load(host); await t.settle();
+        for (const el of host.querySelectorAll('pk-specimen')) {
+            const token = el.getAttribute('token'), probe = document.createElement('span');
+            probe.style.display = 'block'; probe.style.inlineSize = `var(${token})`; host.append(probe);
+            const want = probe.getBoundingClientRect().width; probe.remove();
+            const got = el.part('shape').getBoundingClientRect().width;
+            t.ok(want > 0 && Math.abs(got - want) < 0.5, `${token}: bar ${got}px, token ${want}px`);
+            t.ok(el.part('value').textContent.includes('px'), `${token}: value text ${el.part('value').textContent}`);
+            t.eq(el.part('token').textContent, token);
+        }
+    }],
+    ['specimen: radius, shadow and layer render from the inferred kind, and an explicit kind wins', async t => {
+        const host = t.stage('<pk-specimen token="--radius-lg"></pk-specimen><pk-specimen token="--shadow-modal"></pk-specimen><pk-specimen token="--z-sticky"></pk-specimen><pk-specimen token="--space-2" kind="radius"></pk-specimen>');
+        await t.load(host); await t.settle();
+        const [r, s, z, k] = [...host.querySelectorAll('pk-specimen')].map(e => e.part('shape'));
+        t.eq(getComputedStyle(r).borderTopLeftRadius, '8px', 'radius sample');
+        t.ok(getComputedStyle(s).boxShadow !== 'none', 'shadow tile has a shadow');
+        t.eq(z.textContent, '10', 'layer chip shows the number');
+        const half = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) / 2;
+        t.eq(getComputedStyle(k).borderTopLeftRadius, `${half}px`, 'an explicit kind wins over the prefix (--space-2 is 0.5rem)');
+        t.ok(r.getBoundingClientRect().width >= 40 && s.getBoundingClientRect().height >= 40, 'samples have a visible size');
+    }],
+    ['specimen: the name and value are legible against the page in light and dark', async t => {
+        const colour = await import('../../js/colour.js');
+        const root = document.documentElement, was = root.getAttribute('data-theme');
+        try {
+            for (const theme of ['light', 'dark']) {
+                root.setAttribute('data-theme', theme);
+                const el = await t.mount('<pk-specimen token="--space-4"></pk-specimen>'); await t.settle();
+                const bg = colour.parseColour(getComputedStyle(document.body).backgroundColor);
+                for (const p of ['token', 'value']) {
+                    const fg = colour.parseColour(getComputedStyle(el.part(p)).color), ratio = colour.contrast(fg, bg);
+                    t.ok(ratio >= 4.5, `${theme}: ${p} text contrast ${ratio.toFixed(2)}`);
+                }
+            }
+        } finally { if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was); }
+    }],
 ];

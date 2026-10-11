@@ -1,0 +1,22 @@
+{
+  "component": "PkSpecimen",
+  "params": [
+    {
+      "name": "Token",
+      "prop": "token",
+      "type": "string"
+    },
+    {
+      "name": "Kind",
+      "prop": "kind",
+      "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    }
+  ],
+  "notes": "New component (issue #1088)."
+}
