@@ -87,12 +87,18 @@ export const themePanel = {
 
 // The Layout builder tab is a scratch instance of the module (an empty page): mounted once like every other panel, so it keeps whatever the
 // visitor built for as long as the dock stays in the page, but nothing is persisted (the module itself stores no page; a host that wants a
-// draft kept across reloads passes its own onchange, the way site/layout-builder/layout-builder.js does).
+// draft kept across reloads passes its own onchange, the way site/layout-builder/layout-builder.js does). It is built when its tab first opens, not at startup:
+// the builder reads the 120 KB elements/api.json to know the elements, and the dock mounts every panel up front (#1125).
 export const layoutBuilderPanel = {
     id: 'layout-builder',
     title: 'Layout builder',
-    async mount(el, { theme }) {
-        const builder = await mountLayoutBuilder(el, { height: '100%', theme });
-        return { destroy: () => builder.destroy() };
+    mount(el, { theme }) {
+        let builder = null;
+        let gone = false;
+        let starting = null;
+        return {
+            activate() { starting ??= mountLayoutBuilder(el, { height: '100%', theme }).then(b => { if (gone) b.destroy(); else builder = b; }, err => { starting = null; log.error('the layout builder could not start', err); }); },
+            destroy() { gone = true; builder?.destroy(); },
+        };
     },
 };

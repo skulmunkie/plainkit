@@ -44,6 +44,14 @@ export async function loadJson(value, fetchFn = globalThis.fetch) {
     return res.json();
 }
 
+// loadJson for a URL several tools read (elements/api.json, about 120 KB): fetched the first time anyone asks, then shared. A failure is not kept, so the next ask retries.
+const jsonOnce = new Map();
+export function loadJsonOnce(url, fetchFn = globalThis.fetch) {
+    if (typeof url !== 'string') return loadJson(url, fetchFn);
+    if (!jsonOnce.has(url)) jsonOnce.set(url, loadJson(url, fetchFn).catch(err => { jsonOnce.delete(url); throw err; }));
+    return jsonOnce.get(url);
+}
+
 // The small DOM builder the tool modules share: h(doc, 'div', { class: 'x', hidden: true }, ...children). A null, undefined or false attribute is skipped, true sets it empty; a null, undefined or false child is dropped.
 export function h(doc, tag, props = {}, ...children) {
     const el = doc.createElement(tag);

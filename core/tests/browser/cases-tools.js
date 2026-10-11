@@ -737,4 +737,26 @@ export const toolCases = [
         t.eq(win.__builder.toHtml({ compact: true }), '<p>Two</p><h2>One</h2>', 'the touch-style drag reordered the page');
         win.__builder.destroy();
     }],
+    ['devtools: the 120 KB elements/api.json is not fetched while the panels mount, and the tabs that need it get it when they first open (#1125)', async t => {
+        const { mountDevTools } = await dist('devtools');
+        const host = document.createElement('div'); t.stage('').append(host);
+        const apiFetches = () => performance.getEntriesByType('resource').filter(e => /elements\/api\.json/.test(e.name)).length;
+        const api = await (await fetch(new URL('../../dist/elements/api.json', import.meta.url))).json();
+        const fallback = ['pk-change', 'pk-value-change', 'pk-dismiss', 'pk-close', 'pk-tab-change', 'pk-tab-close', 'pk-select', 'pk-sort', 'pk-filter', 'pk-toggle', 'pk-activate', 'pk-search', 'pk-row-click', 'pk-copy', 'pk-remove', 'pk-page-change'];
+        const rare = api.flatMap(e => (e.events ?? []).map(x => x.name)).find(n => n.startsWith('pk-') && !fallback.includes(n));
+        t.ok(rare, 'the element API has an event the built-in list does not');
+        const before = apiFetches();
+        const tools = await mountDevTools(host, { mode: 'inline' });
+        try {
+            t.eq(apiFetches() - before, 0, 'mounting every devtools panel fetched no api.json');
+            t.eq(host.querySelectorAll('.lb-palette').length, 0, 'the layout builder has not been built yet');
+            tools.select('layout-builder');
+            await until(() => host.querySelector('.lb-palette'), 'the layout builder palette');
+            t.ok(host.querySelectorAll('.lb-palette *').length > 0, 'the palette is built from api.json');
+            tools.select('console');
+            const root = host.querySelector('section[aria-label="Dev console"]');
+            root.querySelector('pk-tab[value="events"]').click();
+            await until(() => { document.dispatchEvent(new CustomEvent(rare, { bubbles: true, composed: true, detail: 1 })); return (root.querySelectorAll('pk-table')[1]?.getAttribute('rows') ?? '').includes(rare); }, 'the Events tab to list ' + rare);
+        } finally { tools.destroy(); }
+    }],
 ];

@@ -13,7 +13,7 @@
 // destroy() puts console.* back exactly as it was found.
 
 import { LEVELS, formatArgs, makeEntry, pushEntry, filterEntries, countByLevel, exportEntries, elementInventory, formatArg } from '../../js/console-logic.js';
-import { ensureStyles, styleUrls, runtimeUrl, loadJson, h, on, later, every, addressOf } from '../../js/mount-support.js';
+import { ensureStyles, styleUrls, runtimeUrl, loadJsonOnce, h, on, later, every, addressOf } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
@@ -36,7 +36,7 @@ const clock = at => { const d = new Date(at); return `${d.toLocaleTimeString([],
 async function eventNames(win, given) {
     if (given?.length) return given;
     try {
-        const api = await loadJson(runtimeUrl('../../dist/elements/api.json', import.meta.url), win.fetch.bind(win)); // a missing file rejects and lands in the catch below
+        const api = await loadJsonOnce(runtimeUrl('../../dist/elements/api.json', import.meta.url), win.fetch.bind(win)); // a missing file rejects and lands in the catch below
         return [...new Set(api.flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
     } catch (err) { log.debug('no api.json next to this module: using the built-in event list', err); }
     return FALLBACK_EVENTS;
@@ -54,6 +54,7 @@ export async function mountConsole(container, options = {}) {
     let text = '';
     let active = TABS.some(([k]) => k === tab) ? tab : 'console';
     let inCapture = false;
+    let lazyEvents = null;
 
     // ---- the page shell: SDK tabs, each panel one SDK table (the console panel adds its toolbar) ------------------------------
     const tables = {};
@@ -136,10 +137,20 @@ export async function mountConsole(container, options = {}) {
         undo.push(() => { win.removeEventListener('error', onError); win.removeEventListener('unhandledrejection', onReject); });
     }
     if (capture.has('events')) {
-        const names = await eventNames(win, options.events);
+        // The element events come from elements/api.json (about 120 KB). Until the Events tab first opens the built-in list is recorded, so the page does not fetch the file at
+        // startup; opening the tab loads it once and adds the names the built-in list lacks (#1125). Events named in the `events` option are all there from the start.
+        const names = new Set(options.events?.length ? options.events : FALLBACK_EVENTS);
         const onEvent = e => { const t = e.composedPath?.()[0] ?? e.target; record('info', `${e.type} on <${t?.localName ?? '?'}${t?.id ? `#${t.id}` : ''}> ${e.detail === undefined || e.detail === null ? '' : formatArg(e.detail)}`.trim(), { source: 'event' }); };
         for (const n of names) on(doc, n, onEvent, true);
         undo.push(() => { for (const n of names) doc.removeEventListener(n, onEvent, true); });
+        if (!options.events?.length) {
+            let loaded = false;
+            lazyEvents = async () => {
+                if (loaded) return;
+                loaded = true;
+                for (const n of await eventNames(win)) if (!names.has(n)) { names.add(n); on(doc, n, onEvent, true); }
+            };
+        }
     }
     if (capture.has('network') && typeof win.PerformanceObserver === 'function') {
         try {
@@ -150,19 +161,21 @@ export async function mountConsole(container, options = {}) {
     }
 
     // ---- controls ---------------------------------------------------------------------------------------------------------
-    on(tabs, 'pk-tab-change', e => { active = e.detail.value; render(); });
+    const opened = () => { if (active === 'events') lazyEvents?.().catch(err => log.debug('the element event list could not be loaded', err)); };
+    on(tabs, 'pk-tab-change', e => { active = e.detail.value; opened(); render(); });
     on(search, 'pk-search', e => { text = e.detail.value ?? ''; render(); });
     on(levels, 'pk-toggle', e => { const b = e.target.closest('pk-button'); if (b?.getAttribute('value') && (e.detail?.pressed ?? true)) { level = b.getAttribute('value'); render(); } });
     on(clear, 'click', () => { entries = []; render(); });
     on(copy, 'click', () => win.navigator.clipboard?.writeText(exportEntries(filterEntries(entries, { minLevel: level, text }))).catch(err => { log.warn('the log could not be copied (clipboard blocked)', err); status.textContent = 'Copy was blocked by the browser'; }));
     const stopTimer = every(win, () => { if (active === 'elements' || active === 'environment') render(); }, 2000);
 
+    opened();
     render();
     return {
         log: (lvl, message) => record(LEVELS.includes(lvl) ? lvl : 'log', String(message)),
         clear: () => { entries = []; render(); },
         entries: () => entries.slice(),
-        select: key => { if (TABS.some(([k]) => k === key)) { active = key; tabs.setAttribute('value', key); render(); } },
+        select: key => { if (TABS.some(([k]) => k === key)) { active = key; tabs.setAttribute('value', key); opened(); render(); } },
         destroy() { stopTimer(); queued?.(); for (const u of undo.reverse()) u(); root.remove(); },
     };
 }
