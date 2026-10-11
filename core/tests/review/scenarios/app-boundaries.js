@@ -33,15 +33,15 @@ export default {
         on('go-missing', () => host.open('/ok/nothing-here'));
     },
     steps: [
-        { click: '#go-slow-a' }, { wait: 250 }, { shot: 'loading-first' },
-        { click: '#release-a' }, { wait: 400 }, { shot: 'loaded' },
-        { click: '#go-slow-b' }, { wait: 250 }, { shot: 'loading-over-module' },
-        { click: '#release-b' }, { wait: 400 },
-        { click: '#go-broken' }, { wait: 400 }, { shot: 'import-error' },
-        { click: '#heal' }, { click: '#app pk-alert pk-button' }, { wait: 500 }, { shot: 'retry-ok' },
-        { click: '#go-throws' }, { wait: 400 }, { shot: 'mount-error' },
-        { click: '#go-denied' }, { wait: 400 }, { shot: 'forbidden' },
-        { click: '#go-ok' }, { wait: 400 }, { click: '#go-missing' }, { wait: 400 }, { shot: 'not-found' },
+        { click: '#go-slow-a' }, { shot: 'loading-first' },
+        { click: '#release-a' }, { shot: 'loaded' },
+        { click: '#go-slow-b' }, { shot: 'loading-over-module' },
+        { click: '#release-b' }, 
+        { click: '#go-broken' }, { shot: 'import-error' },
+        { click: '#heal' }, { click: '#app pk-alert pk-button' }, { shot: 'retry-ok' },
+        { click: '#go-throws' }, { shot: 'mount-error' },
+        { click: '#go-denied' }, { shot: 'forbidden' },
+        { click: '#go-ok' }, { click: '#go-missing' }, { shot: 'not-found' },
     ],
     expect(t) {
         const phone = t.viewport.name === 'phone';

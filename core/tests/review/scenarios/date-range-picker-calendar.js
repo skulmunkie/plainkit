@@ -14,12 +14,12 @@ export default {
 <div dir="rtl"><pk-date-range-picker id="d2" calendar label="Reporting period" start="2026-09-08" end="2026-09-17" presets=""></pk-date-range-picker></div>
 </pk-stack></div>`,
     steps: [
-        { wait: 400 }, { shot: 'closed' },
-        { click: '#d1 >>> [part=opener]' }, { wait: 400 }, { shot: 'open' },
-        { click: day('d1', '2026-09-20') }, { hover: day('d1', '2026-09-25') }, { wait: 150 }, { shot: 'picking' },
-        { click: day('d1', '2026-09-25') }, { wait: 300 }, { shot: 'range-chosen' },
-        { click: '#d1 >>> [part=opener]' }, { wait: 300 }, { key: 'Escape' }, { wait: 300 }, { shot: 'escaped' },
-        { click: '#d2 >>> [part=opener]' }, { wait: 400 }, { shot: 'rtl-open' },
+        { shot: 'closed' },
+        { click: '#d1 >>> [part=opener]' }, { shot: 'open' },
+        { click: day('d1', '2026-09-20') }, { hover: day('d1', '2026-09-25') }, { shot: 'picking' },
+        { click: day('d1', '2026-09-25') }, { shot: 'range-chosen' },
+        { click: '#d1 >>> [part=opener]' }, { key: 'Escape' }, { shot: 'escaped' },
+        { click: '#d2 >>> [part=opener]' }, { shot: 'rtl-open' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways (the panel or the fields run out of the viewport)');

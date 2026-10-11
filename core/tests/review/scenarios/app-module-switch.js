@@ -24,8 +24,8 @@ const ALERT = 'pk-alert[kind=danger]';
 const STATE = '#pk-main pk-empty-state';
 // A module is chosen with the module picker (#388): the dropdown in the bar, or on a phone the drawer's first row, opened by the hamburger.
 const go = id => [
-    { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] },
-    { click: 'pk-navbar pk-dropdown [slot=trigger]', on: ['desktop'] }, { wait: 300, on: ['desktop'] }, { shot: `picker-${id}`, on: ['desktop'] },
+    { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, 
+    { click: 'pk-navbar pk-dropdown [slot=trigger]', on: ['desktop'] }, { shot: `picker-${id}`, on: ['desktop'] },
     { click: `pk-nav-item[data-module=${id}]`, on: ['phone'] }, { click: `pk-navbar pk-menu-item[data-module=${id}]`, on: ['desktop'] },
 ];
 
@@ -49,9 +49,9 @@ export default {
         });
     },
     steps: [
-        { wait: 'settle' }, { wait: 500 }, { shot: 'start' },
-        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] }, { shot: 'drawer-picker', on: ['phone'] },
-        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { key: 'Escape', on: ['phone'] }, { wait: 500, on: ['phone'] },
+        { wait: 'settle' }, { shot: 'start' },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { shot: 'drawer-picker', on: ['phone'] },
+        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { key: 'Escape', on: ['phone'] }, 
         ...go('reports'), { wait: 700 }, { shot: 'loading' },
         { key: 'r' }, { wait: 1500 }, { shot: 'switched' },
         ...go('broken'), { wait: 1500 }, { shot: 'error' },

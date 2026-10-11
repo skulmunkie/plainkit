@@ -22,7 +22,7 @@ export default {
         };
     },
     steps: [
-        { wait: 'settle' }, { wait: 500 }, { shot: 'resting' },
+        { wait: 'settle' }, { shot: 'resting' },
         { hover: FIELD_HELP }, { wait: 700 }, { shot: 'field-tip' },
         { hover: SAVE }, { wait: 700 }, { shot: 'action-tip' },
     ],

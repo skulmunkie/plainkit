@@ -126,7 +126,6 @@ export const META_TEXT = [
     [':not(pre) > code', 'inline code is 0.92em of its context'],
     ['th, kbd, time', 'column headers, key caps and timestamps are captions'],
     ['.u-text-xs, .u-text-sm', 'the utilities that set the meta size'],
-    ['.cv-meta, .cv-meta *, .cv-notice', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
 ];
 export const TEXT_TIERS = {
     readingPx: 14,

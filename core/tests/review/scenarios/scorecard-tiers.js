@@ -26,7 +26,7 @@ export default {
         const card = await mountScorecard(frame.querySelector('#mount'), { sections: ['tiers'], data: { tiers: FIXTURE } });
         await card.ready;
     },
-    steps: [{ wait: 'settle' }, { wait: 500 }, { shot: 'rest' }],
+    steps: [{ wait: 'settle' }, { shot: 'rest' }],
     expect(t) {
         t.exists('#mount pk-card', 'the section is a pk-card');
         t.exists('#mount pk-table', 'the tables are pk-table');

@@ -195,7 +195,42 @@ export const galleryCases = [
         const gap = (d, i) => box(d, '.gx-nav-title', i + 1).top - box(d, '.gx-nav-title', i).top;
         for (let i = 0; i < 2; i++) t.ok(Math.abs(gap(raw, i) - gap(p.doc, i)) <= 3, `the rows under nav title ${i} take ${Math.round(gap(raw, i))}px before upgrade and ${Math.round(gap(p.doc, i))}px after`);
     }],
+    ['gallery: the Details inspector draws its API tables on pk-table, no cell overlaps another, no Description is clipped inside its cell, the Name column stays put when the table scrolls, and the drawer never scrolls sideways (#1113)', async t => {
+        const p = await openInspector(t, 1280);
+        const body = p.doc.querySelector('#gx-inspector-body'), tb = p.tbl.shadowRoot.querySelector('table'), scroll = p.tbl.shadowRoot.querySelector('[part="scroll"]');
+        const overlap = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+        const rows = [...tb.querySelectorAll('tbody tr')], bad = [];
+        for (const tr of rows) { const cells = [...tr.children].map(c => c.getBoundingClientRect()); for (let i = 0; i < cells.length; i++) for (let j = i + 1; j < cells.length; j++) if (overlap(cells[i], cells[j])) bad.push(tr.textContent.slice(0, 40)); }
+        t.eq(bad.join(' | '), '', 'no cell overlaps another in any row');
+        const d = [...tb.querySelectorAll('thead th')].map(th => th.textContent.trim().toLowerCase()).indexOf('description');
+        t.ok(d > 0, 'the table has a Description column');
+        t.eq(rows.filter(tr => tr.children[d].scrollWidth > tr.children[d].clientWidth + 1).length, 0, 'no Description cell is clipped by its own box');
+        t.ok(Math.min(...rows.map(tr => tr.children[d].getBoundingClientRect().width)) >= 128, 'the Description column is at least 128px wide');
+        const drawer = p.doc.querySelector('#gx-inspector');
+        t.ok(body.scrollWidth <= body.clientWidth + 1 && drawer.scrollWidth <= drawer.clientWidth + 1, 'the drawer itself does not scroll sideways');
+        t.ok(scroll.scrollWidth > scroll.clientWidth, 'the wide table scrolls inside its own region (the intentional scroll)');
+        const first = rows[0].children[0], x0 = first.getBoundingClientRect().left; scroll.scrollLeft = 120; await wait(100);
+        t.ok(Math.abs(first.getBoundingClientRect().left - x0) < 2, 'the Name column stays put while the table scrolls sideways');
+    }],
+    ['gallery: on a phone the inspector API tables are cards, one labelled line per cell, none overlapping and nothing scrolling sideways (#1113)', async t => {
+        const p = await openInspector(t, 375);
+        const scroll = p.tbl.shadowRoot.querySelector('[part="scroll"]'), card = p.tbl.shadowRoot.querySelector('tbody tr');
+        t.eq(p.win.getComputedStyle(card).display, 'block', 'a row is a card (block), not a table row');
+        t.ok(scroll.scrollWidth <= scroll.clientWidth + 1, 'the cards do not scroll sideways');
+        const cells = [...card.children].map(c => c.getBoundingClientRect()), box = card.getBoundingClientRect();
+        t.ok(cells.length === 4 && cells.every((c, i) => c.left >= box.left - 1 && c.right <= box.right + 1 && (i === 0 || c.top >= cells[i - 1].bottom - 1)), 'the four cells stack inside the card without overlapping');
+        t.ok([...card.children].every(c => c.getAttribute('data-label')), 'every cell is labelled');
+    }],
 ];
+
+// The gallery on an element page with the Details drawer open and its first API table (Properties) drawn.
+async function openInspector(t, width) {
+    const p = await open(t, '#/elements/pk-button', '', width);
+    const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
+    if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
+    p.tbl = await until(() => { const e = p.doc.querySelector('#gx-inspector-body pk-table'); return e?.shadowRoot?.querySelectorAll('tbody tr').length > 3 && e; }, 'the Properties table');
+    await wait(300); return p;
+}
 
 async function openApp(t, hash, width = 1280) {
     const host = t.stage(''), f = document.createElement('iframe');
@@ -260,6 +295,18 @@ export const galleryAppCases = [
         t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
         t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
     }],
+    ['modules (app): a cold deep link to each lazy module leaves no pk-* element undefined once its view is drawn, and the gallery page header draws its heading (the view is drawn after the app scan)', async t => {
+        for (const hash of ['#/gallery/elements/pk-button', '#/gallery/foundations/typography', '#/guides', '#/files', '#/scorecard', '#/theme', '#/layout-builder', '#/settings', '#/devtools']) {
+            const { d, win } = await openApp(t, hash);
+            await until(() => d.querySelector('main')?.querySelector('*'), `${hash}: the page to draw`);
+            if (hash.includes('gallery')) await until(() => d.querySelector('#gx-view pk-page-header, #gx-view pk-card'), `${hash}: the gallery view`);
+            await wait(1200);
+            const tags = [...new Set([...d.body.querySelectorAll('*')].map(e => e.localName).filter(n => n.startsWith('pk-')))];
+            const undef = tags.filter(n => !win.customElements.get(n));
+            t.eq(undef.join(', '), '', `${hash}: every pk-* in the page is defined 1.2 s after the view drew`);
+            if (hash.includes('pk-button')) t.ok(d.querySelector('#gx-view pk-page-header')?.shadowRoot?.querySelector('[part="title"]')?.textContent.trim(), 'the page header drew its heading');
+        }
+    }],
     // Files and Scorecard as lazy modules of the site app (#355, step 6a)
     ['files module (app, 1280px and 375px): the explorer opens the file and line of the address, fills the content area under the bar and does not scroll the page', async t => {
         for (const width of [1280, 375]) {
@@ -290,6 +337,27 @@ export const galleryAppCases = [
             for (const p of notes) {
                 const above = [...p.previousElementSibling.children].reduce((r, e) => ({ top: Math.min(r.top, e.getBoundingClientRect().top), bottom: Math.max(r.bottom, e.getBoundingClientRect().bottom) }), p.previousElementSibling.getBoundingClientRect()), box = p.getBoundingClientRect();
                 t.ok(above.bottom <= box.top + 0.01, `the badge row (${above.top}-${above.bottom}) ends above the note (${box.top}) in '${p.textContent.slice(0, 30)}' at ${width}px`);
+            }
+        }
+    }],
+
+    ['gallery: a pattern drawn inline puts the desktop sample beside the phone sample on a wide window and keeps only the phone sample, inside the viewport, on a phone (pk-grid, no gx-pair class)', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'Gallery inline'; f.style.cssText = `width:${width}px;height:900px;border:0;position:fixed;left:0;top:0;z-index:10`;
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            f.src = new URL('../../site/gallery/embed.html?chrome=none#/samples/patterns/notifications', import.meta.url).href; host.append(f); await loaded;
+            const doc = f.contentDocument, win = f.contentWindow;
+            const halves = await until(() => { const h = [...doc.querySelectorAll('[data-pair] > pk-stack')]; return h.length === 2 && h; }, 'the desktop and phone halves');
+            t.eq(doc.querySelectorAll('.gx-pair').length, 0, 'no hand-written pair class is left');
+            await until(() => win.customElements.get('pk-grid'), 'pk-grid to load'); await t.settle();
+            const [d, ph] = halves.map(h => h.getBoundingClientRect());
+            if (width > 640) {
+                t.ok(ph.left >= d.right - 0.5, `the phone half (left ${ph.left}) starts at or after the desktop half's right edge (${d.right}) at ${width}px`);
+                t.ok(Math.abs(ph.top - d.top) < 2, `the halves share a top (${d.top} / ${ph.top}) at ${width}px`);
+            } else {
+                t.eq(win.getComputedStyle(halves[0]).display, 'none', 'the desktop half is dropped on a phone');
+                t.ok(ph.width > 0 && ph.right <= width + 0.5, `the phone half (${ph.left}-${ph.right}) fits the ${width}px window`);
             }
         }
     }],

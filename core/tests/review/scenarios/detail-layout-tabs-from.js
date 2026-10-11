@@ -13,8 +13,8 @@ export default {
 </div>
 </pk-detail-layout>`,
     steps: [
-        { wait: 500 }, { shot: 'details' },
-        { click: '#dl >>> pk-tab:nth-of-type(2)' }, { wait: 400 }, { shot: 'pricing' },
+        { shot: 'details' },
+        { click: '#dl >>> pk-tab:nth-of-type(2)' }, { shot: 'pricing' },
     ],
     expect(t) {
         const details = t.shot === 'details';

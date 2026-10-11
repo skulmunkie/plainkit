@@ -24,7 +24,7 @@ export default {
 </pk-app-shell>`,
     steps: [
         { shot: 'rail' },
-        { hover: '#products >>> [part=link]' }, { wait: 400 }, { shot: 'flyout' },
+        { hover: '#products >>> [part=link]' }, { shot: 'flyout' },
     ],
     expect(t) {
         // Issue 325: whatever the load order, the rows carry their reflected `rail` attribute (a property set before the upgrade is reflected).

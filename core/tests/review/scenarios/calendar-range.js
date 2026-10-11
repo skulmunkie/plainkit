@@ -16,13 +16,13 @@ export default {
 </pk-cluster></div>`,
     steps: [
         { shot: 'rest' },
-        { click: day('c1', '2026-09-10') }, { hover: day('c1', '2026-09-16') }, { wait: 100 }, { shot: 'pending' },
-        { key: 'Escape' }, { wait: 100 }, { shot: 'cancelled' },
-        { click: day('c1', '2026-09-18') }, { click: day('c1', '2026-09-12') }, { wait: 100 }, { shot: 'swapped' },
-        { focus: day('c3', '2026-09-07') }, { key: 'Enter' }, { key: 'ArrowRight', times: 2 }, { wait: 100 }, { shot: 'keyboard-min' },
-        { focus: day('c3', '2026-09-24') }, { key: 'ArrowRight', times: 3 }, { key: 'ArrowDown' }, { wait: 100 }, { shot: 'keyboard-max' },
-        { key: 'Home' }, { key: 'ArrowUp', times: 6 }, { key: 'ArrowLeft', times: 3 }, { wait: 100 }, { shot: 'keyboard-min-clamp' },
-        { click: day('c4', '2026-09-08') }, { hover: day('c4', '2026-09-11') }, { wait: 100 }, { shot: 'rtl-pending' },
+        { click: day('c1', '2026-09-10') }, { hover: day('c1', '2026-09-16') }, { shot: 'pending' },
+        { key: 'Escape' }, { shot: 'cancelled' },
+        { click: day('c1', '2026-09-18') }, { click: day('c1', '2026-09-12') }, { shot: 'swapped' },
+        { focus: day('c3', '2026-09-07') }, { key: 'Enter' }, { key: 'ArrowRight', times: 2 }, { shot: 'keyboard-min' },
+        { focus: day('c3', '2026-09-24') }, { key: 'ArrowRight', times: 3 }, { key: 'ArrowDown' }, { shot: 'keyboard-max' },
+        { key: 'Home' }, { key: 'ArrowUp', times: 6 }, { key: 'ArrowLeft', times: 3 }, { shot: 'keyboard-min-clamp' },
+        { click: day('c4', '2026-09-08') }, { hover: day('c4', '2026-09-11') }, { shot: 'rtl-pending' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways (a month runs out of its element)');

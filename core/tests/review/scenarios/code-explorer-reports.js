@@ -27,10 +27,10 @@ export default {
     },
     steps: [
         { wait: 1200 },
-        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, { wait: 300, on: ['phone'] },
+        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, 
         { click: `${HOST} [data-ce-reports]` }, { wait: 900 }, { shot: 'largest' },
-        { click: `${HOST} [data-kind="methods"]` }, { wait: 400 }, { shot: 'methods' },
-        { click: `${HOST} [data-kind="duplicates"]` }, { wait: 400 }, { shot: 'duplicates' },
+        { click: `${HOST} [data-kind="methods"]` }, { shot: 'methods' },
+        { click: `${HOST} [data-kind="duplicates"]` }, { shot: 'duplicates' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

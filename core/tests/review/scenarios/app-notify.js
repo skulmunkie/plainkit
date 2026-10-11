@@ -24,8 +24,8 @@ export default {
         on('error', () => notify.error('Sync failed', 'The server did not answer. Your changes are kept on this device.'));
     },
     steps: [
-        { click: '#info' }, { click: '#success' }, { click: '#warn' }, { click: '#error' }, { wait: 500 }, { shot: 'four-kinds' },
-        { click: '#warn' }, { wait: 300 }, { shot: 'deduped' },
+        { click: '#info' }, { click: '#success' }, { click: '#warn' }, { click: '#error' }, { shot: 'four-kinds' },
+        { click: '#warn' }, { shot: 'deduped' },
     ],
     expect(t) {
         const v = t.viewport;

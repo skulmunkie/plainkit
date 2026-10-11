@@ -645,6 +645,21 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table (375px): a slotted pk-card in a cell keeps a real width in the cards layout, and the row does not grow absurdly (#1146)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="C" columns='[{"key":"name","label":"Name"},{"key":"c","label":"Colour in the dark theme scope"}]' rows='[{"id":1,"name":"Primary"}]'><pk-card slot="cell-1-c" data-theme="dark"><span style="display:inline-block;width:2rem;height:1rem;background:red"></span> <code>#336699</code></pk-card></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '480px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentWindow.customElements.get('pk-card') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+            await new Promise(r => setTimeout(r, 300));
+            const d = f.contentDocument, card = d.querySelector('pk-card').getBoundingClientRect(), tr = d.querySelector('pk-table').shadowRoot.querySelector('tbody tr').getBoundingClientRect();
+            return { card: card.width, row: tr.height, rowW: tr.width };
+        };
+        const phone = await at(375); t.ok(phone.card >= phone.rowW / 2, `the card is not squeezed by the long label beside it (${phone.card}px of a ${phone.rowW}px row)`); t.ok(phone.row < 400, `the row stays a sensible height (${phone.row}px)`);
+        const wide = await at(1200); t.ok(wide.card > 40, `the card has a width on desktop (${wide.card}px)`);
+    }],
 
     ['table: the foot slot is a tfoot cell spanning every column after the rows on a desktop, and a full-width trailing card on a phone (#1020)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
@@ -1184,6 +1199,37 @@ export const dataDisplayCases = [
         probe.style.backgroundColor = 'var(--color-flyout)'; doc.body.append(probe);
         const r2 = ratio(rgb(cs(th, 'color')), rgb(cs(probe, 'backgroundColor')));
         t.ok(r2 >= 4.5, `a table header is ${r2.toFixed(2)}:1 on the flyout surface`);
+    }],
+
+    ['contrast (#1135): an inline code in muted pk-text clears 4.5:1 on its own chip in light and dark', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const rgb = c => (/rgba?\(([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)/.exec(c) || []).slice(1, 4).map(Number);
+        const lum = ([r, g, b]) => { const k = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * k(r) + 0.7152 * k(g) + 0.0722 * k(b); };
+        for (const theme of ['light', 'dark']) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '800px'; f.style.height = '120px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            host.append(f); f.srcdoc = sampleDoc('<pk-card><pk-text tone="muted">Set <code id="c">data-theme</code> on the root</pk-text></pk-card>', { theme }); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+            const w = f.contentWindow, doc = f.contentDocument;
+            await until(() => w.customElements.get('pk-text') && w.customElements.get('pk-card'), 'the elements'); await wait(200);
+            const cs = w.getComputedStyle(doc.getElementById('c')), [hi, lo] = [lum(rgb(cs.color)), lum(rgb(cs.backgroundColor))].sort((x, y) => y - x);
+            const ratio = (hi + 0.05) / (lo + 0.05);
+            t.ok(ratio >= 4.5, theme + ': the code is ' + ratio.toFixed(2) + ':1 on its chip');
+        }
+    }],
+
+    ['code-block (#1135, 375px): the focusable body of a one-line block keeps the touch target on a phone', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '200px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f); f.srcdoc = sampleDoc('<pk-code-block label="Markup">&lt;pk-button&gt;&lt;/pk-button&gt;</pk-code-block>'); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+        const w = f.contentWindow, doc = f.contentDocument;
+        await until(() => w.customElements.get('pk-code-block') && doc.querySelector('pk-code-block')?.shadowRoot?.querySelector('[part=body]'), 'the code block'); await wait(300);
+        t.eq(w.innerWidth, 375);
+        const touch = parseFloat(w.getComputedStyle(doc.documentElement).getPropertyValue('--touch-target')) || 44;
+        const r = doc.querySelector('pk-code-block').shadowRoot.querySelector('[part=body]').getBoundingClientRect();
+        t.ok(r.height >= touch - 0.5, 'the body is ' + Math.round(r.height) + 'px tall, at least ' + touch + 'px');
     }],
 
     ['step (375px): a clickable step keeps the touch target in both directions on a phone', async t => {

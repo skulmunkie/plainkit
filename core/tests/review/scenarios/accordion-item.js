@@ -21,10 +21,10 @@ export default {
 </div>`,
     steps: [
         { shot: 'ltr' },
-        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 200 }, { shot: 'rtl' },
+        { set: '#stage', attr: 'dir', value: 'rtl' }, { shot: 'rtl' },
         // Closed, then clicking an action leaves it closed (the actions sit outside the summary: #774); clicking the summary opens it.
-        { click: '#a1 >>> [part=summary]' }, { wait: 300 }, { shot: 'rtl-closed' },
-        { set: '#stage', attr: 'dir', value: 'ltr' }, { wait: 200 }, { shot: 'ltr-closed' },
+        { click: '#a1 >>> [part=summary]' }, { shot: 'rtl-closed' },
+        { set: '#stage', attr: 'dir', value: 'ltr' }, { shot: 'ltr-closed' },
     ],
     expect(t) {
         const rtl = t.shot.startsWith('rtl');

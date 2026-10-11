@@ -40,6 +40,24 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
+    ['code explorer module: the viewer is a pk-stack with the file header above a listing that fills the pane (issue 682, composed from pk-* elements, no cv-* classes)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { snapshot: SNAPSHOT, file: 'src/app.js', theme: 'light', height: '20rem' });
+        const el = handle.element;
+        const view = () => el.querySelector('[data-ce-pane] > pk-stack > pk-code-view');
+        await until(view, 'the viewer');
+        const pane = el.querySelector('[data-ce-pane]'), head = el.querySelector('[data-ce-pane] > pk-stack > pk-cluster');
+        t.ok(head, 'the file header is a pk-cluster');
+        t.ok(head.querySelector('pk-badge'), 'the language is a pk-badge');
+        t.ok(!el.querySelector('[class*="cv"]'), 'no cv-* classes');
+        const h = head.getBoundingClientRect(), v = view().getBoundingClientRect(), p = pane.getBoundingClientRect();
+        t.ok(h.bottom <= v.top + 1, 'the header sits above the listing');
+        t.ok(v.height > p.height * 0.5, 'the listing fills the rest of the pane, not a collapsed strip');
+        t.ok(v.bottom <= p.bottom + 1, 'the listing stays inside the pane');
+        handle.destroy();
+    }],
+
     ['code explorer module: LazyProvider (issue 196) fetches real files same-origin, not an object snapshot -- a real fetch(), unlike the SNAPSHOT case above, which never calls it', async t => {
         const { LazyProvider } = await import(new URL('../../dist/modules/code-explorer/providers.js', import.meta.url).href);
         // This test file (tests/browser/) sits two folders below core/, the same distance site/modules/files.js is: '../../' reaches

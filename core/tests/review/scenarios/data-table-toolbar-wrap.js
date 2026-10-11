@@ -10,7 +10,7 @@ export default {
 <pk-button slot="actions" variant="ghost">Import from a file</pk-button>
 </pk-data-table>
 </div>`,
-    steps: [{ wait: 400 }, { shot: 'toolbar' }],
+    steps: [{ shot: 'toolbar' }],
     expect(t) {
         t.visible('#dt >>> [part=add]', 'the add button');
         t.inViewport('#dt >>> [part=add]');

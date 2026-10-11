@@ -29,6 +29,7 @@ export default Base => class extends Base {
     describe() {
         const text = this.slotted('description').map(n => n.textContent.trim()).filter(Boolean).join(' ') || this.description.trim();
         this.part('description').hidden = !text;
+        this.shadowRoot.querySelector('.body').toggleAttribute('data-described', Boolean(text));
         this.aria({ ariaDescription: text || null });
     }
     // The one way the item opens or closes its submenu itself: it says so, so a host that mirrors `open` hears it.

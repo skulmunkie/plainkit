@@ -21,8 +21,8 @@ export default {
     steps: [
         { shot: 'rest' },
         { focus: '#r1 >>> [part=start] >>> [part=control]' }, { shot: 'focus' },
-        { click: '#r1 >>> [data-preset="30d"]' }, { wait: 200 }, { shot: 'preset-chosen' },
-        { set: '#r2', prop: 'end', value: '2026-09-01' }, { wait: 300 }, { shot: 'end-before-start' },
+        { click: '#r1 >>> [data-preset="30d"]' }, { shot: 'preset-chosen' },
+        { set: '#r2', prop: 'end', value: '2026-09-01' }, { shot: 'end-before-start' },
     ],
     expect(t) {
         const below = (a, b) => { const p = t.rect(a), q = t.rect(b); if (p && q) t.ok(p.y >= q.bottom - 1, `${a} starts at y=${Math.round(p.y)}, above the end of ${b} (y=${Math.round(q.bottom)})`); };

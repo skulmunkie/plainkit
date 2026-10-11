@@ -21,7 +21,7 @@ export default {
         const long = api.entries().find(e => e.message === LONG);
         if (long) api.select(long.id);
     },
-    steps: [{ wait: 500 }, { shot: 'detail' }],
+    steps: [{ shot: 'detail' }],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         t.visible(`${HOST} pk-table`, 'the entries table');

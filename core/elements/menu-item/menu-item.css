@@ -37,9 +37,14 @@
 
 [part="description"][hidden] { display: none; }
 
-:host(:has([slot="description"])), :host([description]:not([description=""])) { padding-block: var(--space-2); }
+.body[data-described] { padding-block: calc(var(--space-2) - var(--space-1)); }
 
 ::slotted([slot="suffix"]) { color: var(--color-muted); font-size: var(--text-meta); }
+
+::slotted([slot="prefix"]) { flex: none; display: inline-flex; width: 1.25rem; justify-content: center; }
+
+/* The same pill as pk-nav-item's badge slot. */
+::slotted([slot="badge"]) { margin-inline-start: auto; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--chip-bg); color: var(--chip-fg); font-size: var(--text-meta); }
 
 [part="chevron"] { display: none; color: var(--color-muted); }
 

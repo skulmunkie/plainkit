@@ -21,10 +21,10 @@ export default {
     },
     steps: [
         { wait: 600 }, { shot: 'resting' },
-        { set: '#g', prop: 'values', value: { name: 'Acme Hardware', qty: '12', status: 'closed', note: 'Shipped and paid.' } }, { wait: 400 }, { shot: 'conditional' },
-        { set: '#g', attr: 'columns', value: '2' }, { wait: 300 }, { shot: 'two-columns' },
-        { set: '#g', attr: 'disabled', value: '' }, { wait: 300 }, { shot: 'disabled' },
-        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 300 }, { shot: 'rtl' },
+        { set: '#g', prop: 'values', value: { name: 'Acme Hardware', qty: '12', status: 'closed', note: 'Shipped and paid.' } }, { shot: 'conditional' },
+        { set: '#g', attr: 'columns', value: '2' }, { shot: 'two-columns' },
+        { set: '#g', attr: 'disabled', value: '' }, { shot: 'disabled' },
+        { set: '#stage', attr: 'dir', value: 'rtl' }, { shot: 'rtl' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

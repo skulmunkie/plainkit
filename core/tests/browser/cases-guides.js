@@ -64,6 +64,18 @@ export const guidesCases = [
         t.eq(p.problems().join('; '), '');
     }],
 
+    ['guides: a heading permalink is its own history entry written through the router, and back returns to the guide top without a remount (#401)', async t => {
+        const p = await open(t, '#/getting-started');
+        const before = p.win.history.length, id = p.links()[1].getAttribute('href').slice(1);
+        p.links()[1].click();
+        await hashIs(p, new RegExp(`^#/getting-started/${id}$`), 'the permalink address');
+        t.eq(p.win.history.length, before + 1, 'one new history entry');
+        p.win.history.back();
+        await hashIs(p, /^#\/getting-started$/, 'back to the guide address');
+        t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
+        t.eq(p.problems().join('; '), '');
+    }],
+
     ['guides: a table of contents link scrolls the article and not the page shell, marks the heading in view, and makes the address one that reloads to the same place', async t => {
         const p = await open(t, '#/getting-started');
         const target = p.links()[1], id = target.getAttribute('href').slice(1);

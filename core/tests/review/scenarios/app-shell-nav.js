@@ -19,10 +19,10 @@ export default {
 </pk-app-shell>`,
     steps: [
         { shot: 'nav-shown' },
-        { click: '#menu' }, { wait: 400 }, { shot: 'toggled' },
+        { click: '#menu' }, { shot: 'toggled' },
         { scroll: BODY, to: 500, on: ['desktop'] }, { shot: 'scrolled', on: ['desktop'] },
         { scroll: BODY, to: 0, on: ['desktop'] },
-        { click: '#menu', on: ['desktop'] }, { wait: 400, on: ['desktop'] }, { shot: 'nav-back', on: ['desktop'] },
+        { click: '#menu', on: ['desktop'] }, { shot: 'nav-back', on: ['desktop'] },
     ],
     expect(t) {
         const desktop = t.viewport.name === 'desktop';

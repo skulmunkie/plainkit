@@ -10,8 +10,8 @@ export default {
         { wait: 'settle' }, { wait: 700 }, { shot: 'list' },
         { click: 'pk-list-page >>> pk-data-table >>> pk-table >>> tbody tr:nth-child(3)' }, { wait: 700 }, { shot: 'record' },
         // Delete asks first (the record page type's confirm dialog), then Escape keeps the record.
-        { click: 'pk-record-page >>> [part="delete"]' }, { wait: 600 }, { shot: 'delete-confirm' }, { key: 'Escape' }, { wait: 400 },
-        { click: 'pk-record-page >>> [part="edit"]' }, { wait: 300 }, { shot: 'record-edit' },
+        { click: 'pk-record-page >>> [part="delete"]' }, { wait: 600 }, { shot: 'delete-confirm' }, { key: 'Escape' }, 
+        { click: 'pk-record-page >>> [part="edit"]' }, { shot: 'record-edit' },
         // Save toasts "Saved" by default (#855) and returns to the list; the toast is in the bottom-end stack.
         { click: 'pk-record-page >>> [part="save"]' }, { wait: 700 }, { shot: 'saved-toast' },
     ],

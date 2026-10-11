@@ -9,7 +9,7 @@
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
 //   [--base <ref>] [--out <dir>] [--shard i/n] [--jobs N] [--skip-base] [--strict] [--port N] [--timeout <s>]
-//   --cache reuses the screenshots and findings of a unit (element or scenario x viewport x theme) whose inputs hash the same (scripts/ui-review-cache.mjs, folder review-cache/, git-ignored); --no-cache wins. Local only: CI never uses it
+//   --cache reuses the screenshots and findings of a unit (element or scenario x viewport x theme) whose inputs hash the same (scripts/ui-review-cache.mjs, folder review-cache/, git-ignored); --no-cache wins. Also used in CI (actions/cache, #749)
 //   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a

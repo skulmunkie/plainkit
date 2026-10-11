@@ -12,8 +12,8 @@ export default {
     steps: [
         { resize: 400 },
         { shot: 'rest' },
-        { focus: '#t1 >>> [part="more-trigger"]' }, { key: 'Enter' }, { wait: 200 }, { shot: 'menu-open' },
-        { key: 'ArrowDown' }, { wait: 'settle' }, { key: 'Enter' }, { wait: 200 }, { shot: 'menu-pick' },
+        { focus: '#t1 >>> [part="more-trigger"]' }, { key: 'Enter' }, { shot: 'menu-open' },
+        { key: 'ArrowDown' }, { wait: 'settle' }, { key: 'Enter' }, { shot: 'menu-pick' },
     ],
     expect(t) {
         const list = t.rect('#t1 >>> [part="list"]');
