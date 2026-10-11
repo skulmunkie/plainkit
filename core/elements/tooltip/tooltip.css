@@ -27,7 +27,7 @@
 
 [part="links"] { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 
-[part="links"]:not(:has(::slotted(*))) { display: none; }
+[part="links"][hidden] { display: none; }
 
 ::slotted([slot="links"]) { color: inherit; text-decoration: underline; }
 

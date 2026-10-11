@@ -70,7 +70,7 @@ export default Base => class extends Base {
     connected() {
         initInvokers(this.ownerDocument); // data-open / data-toggle / data-close work on a page that never calls initPlainkit (once per document)
         const dlg = this.part('dialog');
-        if (!this.$w) { this.$w = true; wireDialog(this, dlg); globalThis.PkDialog ??= this.constructor; }
+        if (!this.$w) { this.$w = true; wireDialog(this, dlg); this.watchSlot('footer', () => { this.part('footer').hidden = !this.slotted('footer').length; }); globalThis.PkDialog ??= this.constructor; }
         syncDialog(this, dlg);
         if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel');
     }

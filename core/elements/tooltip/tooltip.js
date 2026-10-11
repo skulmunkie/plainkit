@@ -30,6 +30,7 @@ export default Base => class extends Base {
             on('keydown', e => { if (e.key === 'Escape') this.hide(); });
             this.$hide = () => this.hide();
             this.watchSlot('', () => this.describe());
+            this.watchSlot('links', () => { this.part('links').hidden = !this.slotted('links').length; });
             this.watchSlot('content', () => { if (this.shown) place(this, this.part('tip'), { placement: this.placement, offset: 6 }); });
         }
         this.describe();

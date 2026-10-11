@@ -37,7 +37,7 @@
 
 [part="actions"] { display: flex; flex: none; flex-wrap: wrap; gap: var(--gap-control); }
 
-[part="actions"]:not(:has(::slotted(*))) { display: none; }
+[part="actions"][hidden] { display: none; }
 
 ::slotted(a) { color: var(--color-link); font-weight: 600; }
 

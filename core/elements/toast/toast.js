@@ -51,6 +51,7 @@ export default Base => class extends Base {
     connected() {
         if (!this.$w) {
             this.$w = true;
+            this.watchSlot('action', () => { this.part('actions').hidden = !this.slotted('action').length; });
             this.addEventListener('pointerenter', () => this.pause()); this.addEventListener('pointerleave', () => this.resume());
             this.addEventListener('focusin', () => this.pause()); this.addEventListener('focusout', () => this.resume());
             this.shadowRoot.addEventListener('click', e => { if (e.target.closest?.('[data-action="close"]')) this.dismiss('close'); });
