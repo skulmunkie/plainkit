@@ -7,7 +7,7 @@
 //       auth, can,       // optional: ctx.auth (opaque to the framework), and (entry, { auth, id, route }) => true | { allow: false, redirect } for the whole app
 //       store, settings, // optional: a createStore() (default: one of its own, prefix 'pk'), and the app settings facade given to ctx.settings
 //       services,        // optional: more members for every ctx (mountApp adds ctx.search); core's own members win over a service of the same name
-//       tasks,           // optional: the app's task manager, createTasks({ container, ... }) from js/tasks.js (the shell makes it); ctx.tasks.run(spec) then runs a task of the module (or page)
+//       tasks,           // optional: the app's task manager (createTasks, js/tasks.js); ctx.tasks.run(spec) runs a task of the module or page
 //       notify, dialogs, // optional: js/notify.js, js/dialogs.js; else ctx.notify, ctx.dialogs are null
 //   });
 //   const router = mountRouter(el, { mode: 'hash', routes: [...], guard: host.guard });   // access is checked BEFORE anything is imported...
@@ -138,7 +138,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         const base = {
             ...services, id, auth, log: lg, page, store: facade, settings: settings ?? null,
             get route() { return s.route; },
-            navigate: (p, o) => (router ? router.navigate(join(id, p), o) : (lg.warn('navigate: no router was given to the host'), false)),
+            navigate: (p, o) => (router ? router.navigate(join(id, p) + /\?[^#]*|$/.exec(p)[0], o) : (lg.warn('navigate: no router was given to the host'), false)),
             href: (p, params, query) => (router ? router.href(join(id, p), params, query) : null),
         };
         const mine = scope(lg, page.begin);

@@ -239,6 +239,34 @@ export const guidesAppCases = [
             await until(() => shown().length === 10, `${width}: every guide again`);
         }
     }],
+    // The behaviours the standalone page had that a module must keep (#357): the address says what is open, focus follows, an unknown guide is a not-found page that is logged, a heading anchor lands at the top of the app's own scroll box.
+    ['guides module (app): the pager walks guide to guide, the address, title and document title follow, focus lands in the new guide, and an unknown guide is a not-found page that names it and is logged', async t => {
+        const p = await openApp(t, '#/guides/getting-started');
+        const next = await until(() => p.doc().querySelector('pk-pager [slot="next"]'), 'the pager next link');
+        next.click();
+        await until(() => p.win.location.hash === '#/guides/getting-started-blazor', 'the second guide address');
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent === 'Getting started with Blazor', 'its title');
+        t.ok(/Getting started with Blazor/.test(p.d.title), `the document title names the guide (${p.d.title})`);
+        await until(() => p.d.activeElement?.closest?.('#pk-main'), 'focus inside the page');
+        await p.go('#/guides/no-such-guide');
+        await until(() => /Not found/i.test(p.d.querySelector('#pk-main')?.textContent ?? ''), 'the not-found page');
+        t.ok(/no-such-guide/.test(p.d.querySelector('#pk-main pk-empty-state')?.getAttribute('description') ?? ''), 'it names what is missing');
+        t.ok(p.win.PkLog.getLogBuffer().some(e => /no-such-guide/.test(e.message)), 'the mistake is logged, not silent');
+        t.eq(p.items().filter(i => i.hasAttribute('current')).length, 0, 'no guide is current');
+    }],
+    ['guides module (app, 1280px): a heading anchor in the address lands that heading near the top of the app scroll box, and a table of contents link writes an address that reloads to the same place', async t => {
+        const p = await openApp(t, '#/guides/theming');
+        const id = [...p.doc().querySelectorAll('h2')][2].id, body = p.d.querySelector('pk-app-shell').shadowRoot.querySelector('[part="body"]');
+        await p.go(`#/guides/theming?anchor=${id}`);
+        await until(() => body.scrollTop > 100, 'the scroll box to move');
+        await wait(600);
+        const h = p.doc().querySelector(`[id="${id}"]`), gap = h.getBoundingClientRect().top - body.getBoundingClientRect().top;
+        t.ok(gap > -4 && gap < 200, `the heading sits at the top of the scroll box (${Math.round(gap)}px)`);
+        t.ok(p.d.documentElement.scrollTop < 3, 'the page itself did not scroll (only the shell body did)');
+        const toc = p.doc().querySelector('pk-toc'), link = await until(() => [...(toc.shadowRoot?.querySelectorAll('a') ?? [])][1], 'a toc link');
+        link.click();
+        await until(() => /^#\/guides\/theming\?anchor=/.test(p.win.location.hash), `the toc link (${link.getAttribute('href')}) to write an anchored address, hash ${p.win.location.hash}`);
+    }],
     // The header search (#355): the active module's `search` answers; picking a result navigates.
     ['site app header search (1280px): a body word lists the Guides that mention it, the keyboard picks one and the address and page follow', async t => {
         const { p, el, input, type } = await headerSearch(t, 1280);
