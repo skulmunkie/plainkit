@@ -98,7 +98,7 @@ export const CHECKS = [
         fix: 'run `node scripts/attest-browser.mjs` and fix the element (never weaken the case); `core/tests/browser/report.json` is local-only scratch output, do not commit it' },
     { id: 'scorecard', group: 'scorecard', needs: ['bootstrap'], fast: false, cmd: scorecardCmd,
         cause: 'the SDK Scorecard quality run found an error-severity finding (layout, spacing, touch targets, focus or contrast) on some gallery example',
-        fix: 'run `node scripts/scorecard-sweep.mjs --only quality`, open the scorecard page it names (`site/scorecard/index.html`) to see every finding, and fix the element (never weaken or allow-list a finding); a genuinely pre-existing, already-tracked issue can stay a warning (severity `warn` never fails this check), but a new error does' },
+        fix: 'run `node scripts/scorecard-sweep.mjs --only quality`, open the scorecard page it names (`app.html#/scorecard`) to see every finding, and fix the element (never weaken or allow-list a finding); a genuinely pre-existing, already-tracked issue can stay a warning (severity `warn` never fails this check), but a new error does' },
     { id: 'pack', group: 'pack', needs: ['bootstrap'], after: ['dotnet'], fast: false, fn: packCheck,
         cause: 'the package has `content/` or `contentFiles/` entries, lacks the static web assets or skills, or has the wrong version',
         fix: 'run `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>` then `node scripts/check-package.mjs <dir>`, and change `PlainKit.Blazor.csproj` as the message says' },

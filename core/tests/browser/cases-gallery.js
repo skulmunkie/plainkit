@@ -223,4 +223,26 @@ export const galleryAppCases = [
         t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
         t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
     }],
+    // Files and Scorecard as lazy modules of the site app (#355, step 6a)
+    ['files module (app, 1280px and 375px): the explorer opens the file and line of the address, fills the content area under the bar and does not scroll the page', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/files?path=tokens/tokens.css&line=3', width);
+            const ex = await until(() => d.querySelector('#pk-main pk-code-explorer'), `the explorer at ${width}px`);
+            await until(() => /tokens\.css/.test(ex.textContent + (ex.shadowRoot?.textContent ?? '')), 'the opened file name in the explorer');
+            const main = d.querySelector('#pk-main').getBoundingClientRect(), box = ex.getBoundingClientRect();
+            t.ok(box.height >= main.height * 0.6, `the explorer is ${Math.round(box.height)}px high in a ${Math.round(main.height)}px content area at ${width}px`);
+            t.ok(box.right <= main.right + 1 && box.left >= main.left - 1, `the explorer stays inside the content area at ${width}px`);
+            t.ok(box.bottom <= Math.min(main.bottom, d.documentElement.clientHeight) + 1, `the explorer ends at ${Math.round(box.bottom)}px, inside the ${Math.round(Math.min(main.bottom, d.documentElement.clientHeight))}px window, so the page does not scroll behind it at ${width}px`);
+            t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
+        }
+    }],
+    ['scorecard module (app, 1280px and 375px): the card opens with its Run button and ranked section inside the content area, and a file link points into the Files module', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/scorecard', width);
+            const run = await until(() => d.querySelector('#pk-main [data-sc-run]'), `the Run button at ${width}px`);
+            const main = d.querySelector('#pk-main').getBoundingClientRect(), r = run.getBoundingClientRect();
+            t.ok(r.right <= main.right + 1 && r.left >= main.left - 1 && r.height > 0, `the Run button sits inside the content area at ${width}px`);
+            t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
+        }
+    }],
 ];

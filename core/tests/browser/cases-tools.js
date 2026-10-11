@@ -42,7 +42,7 @@ export const toolCases = [
 
     ['code explorer module: LazyProvider (issue 196) fetches real files same-origin, not an object snapshot -- a real fetch(), unlike the SNAPSHOT case above, which never calls it', async t => {
         const { LazyProvider } = await import(new URL('../../dist/modules/code-explorer/providers.js', import.meta.url).href);
-        // This test file (tests/browser/) sits two folders below core/, the same distance site/files/page.js is: '../../' reaches
+        // This test file (tests/browser/) sits two folders below core/, the same distance site/modules/files.js is: '../../' reaches
         // core/ from either, so real source files are fetchable the same same-origin way the live Files page reaches them.
         const raw = new URL('../../', import.meta.url);
         const p = new LazyProvider([{ path: 'plainkit.css', language: 'css', lines: 1 }], raw);

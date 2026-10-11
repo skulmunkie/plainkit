@@ -24,7 +24,7 @@
 //
 // Lazy (issue 196): the live site's own default. A lean file list (site/files/index.json: path, language, line count, no
 // content) fetched once up front, plus a same-origin `raw` base (the Pages deploy's own copy of the source tree, resolved with
-// a URL object against the calling page's own module in site/files/page.js) each file's real text is fetched from on demand
+// a URL object against the calling page's own module in site/modules/files.js) each file's real text is fetched from on demand
 // and cached -- STANDARDS.md, "Security (CSP)": no runtime request to another origin, so this only ever works same-origin,
 // unlike an ApiProvider pointed at someone else's host. search/outline/references need a file's content, so the first call to
 // any of them fetches whatever is not cached yet.
@@ -142,7 +142,7 @@ export class LazyProvider {
     }
 
     // list: the URL of the lean file list (site/files/index.json). raw: the same-origin base the real files sit under (the page's
-    // own core/ copy, resolved from the caller's own module URL; see site/files/page.js).
+    // own core/ copy, resolved from the caller's own module URL; see site/modules/files.js).
     static async connect(list, raw, options = {}) {
         const fetchFn = options.fetch ?? globalThis.fetch;
         const { files } = await loadJson(list, fetchFn); // a not-ok response rejects with the url and status
