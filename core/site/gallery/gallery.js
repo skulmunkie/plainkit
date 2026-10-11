@@ -249,7 +249,6 @@ function paintPagebar() {
     const label = KIND_LABEL[full.kind];
     $('#gx-title').textContent = full.title;
     const back = $('#gx-back'); back.href = `${B()}/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
-    $('#gx-back-label').textContent = label;
     $('#gx-open').href = pageUrl(full, { width: state.width });
     for (const n of document.querySelectorAll('#gx-pagebar [data-nav-scope]')) n.hidden = full.kind !== 'templates';
     for (const a of document.querySelectorAll('#gx-pagebar [data-nav]')) { a.dataset.goto = `${B()}/samples/templates/${full.id}?nav=${a.dataset.nav}`; setAttr(a, a.localName === 'pk-menu-item' ? 'checked' : 'pressed', a.dataset.nav === navVariant()); }
@@ -370,41 +369,35 @@ function initResize() {
 
 function paintToolbar() {
     document.querySelectorAll('[data-set-theme]').forEach(b => setAttr(b, 'pressed', b.dataset.setTheme === state.theme));
-    document.querySelectorAll('[data-set-width]').forEach(b => setAttr(b, 'pressed', b.dataset.setWidth === state.width));
-    document.querySelectorAll('pk-select.gx-scale').forEach(s => setAttr(s, 'value', String(state.scale)));
+    document.querySelectorAll('[data-set-width]').forEach(b => setAttr(b, 'checked', b.dataset.setWidth === state.width));
     document.querySelectorAll('pk-menu-item[data-scale]').forEach(m => setAttr(m, 'checked', Number(m.dataset.scale) === state.scale));
     paintPagebar();
 }
 
 function setScale(v) { state.scale = v; writeSetting('pk-gallery-scale', String(v)); refreshFrames({ scale: v }); paintToolbar(); }
 
-// The viewport switch and the text size are shared by the wide bar and the slim bar; a phone gets the text size in a Display menu.
+// The viewport and the text size live in one Display menu at every width, shared by the preview bar and the slim bar (no per-breakpoint variants).
 const SCALES = [['0.9', '90%'], ['1', '100%'], ['1.15', '115%'], ['1.3', '130%']];
-const viewportSwitch = () => '<pk-button-group label="Viewport" mode="single"><pk-button variant="ghost" toggle data-set-width="desktop" pressed>Desktop</pk-button><pk-button variant="ghost" toggle data-set-width="phone">Phone 375</pk-button></pk-button-group>';
-const scaleSelect = () => `<pk-field label="Text size" layout="inline" size="sm"><pk-select class="gx-scale" value="1">${SCALES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</pk-select></pk-field>`;
-const scaleItems = () => `<pk-menu-item type="header">Text size</pk-menu-item>${SCALES.map(([v, l]) => `<pk-menu-item type="radio" data-scale="${v}">${l}</pk-menu-item>`).join('')}`;
+const radios = (head, attr, rows, on, scope = '') => `<pk-menu-item type="header"${scope}>${head}</pk-menu-item>${rows.map(([v, l]) => `<pk-menu-item type="radio" data-${attr}="${v}"${v === on ? ' checked' : ''}${scope}>${l}</pk-menu-item>`).join('')}`;
+const displayItems = nav => `${nav ? radios('Navigation', 'nav', [['side', 'Side'], ['top', 'Top']], 'side', ' data-nav-scope hidden') : ''}${radios('Viewport', 'set-width', [['desktop', 'Desktop'], ['phone', 'Phone 375']], 'desktop')}${radios('Text size', 'scale', SCALES, '1')}`;
+const displayMenu = (nav, trigger) => `<pk-dropdown placement="bottom-end">${trigger}${displayItems(nav)}</pk-dropdown>`;
 
 const chromeHtml = () => `
     <div class="gx-shell" id="gx-shell">
         <pk-side-nav id="gx-nav" class="gx-nav" label="Gallery contents" filterable></pk-side-nav>
         <main class="gx-main">
-            <div class="gx-bar gx-bar-main" role="toolbar" aria-label="Preview settings">
-                <pk-button variant="ghost" toggle class="gx-contents" data-gx-contents>Contents</pk-button>
-                <div class="gx-group gx-desktop-only"><span class="gx-group-label">Viewport</span>${viewportSwitch()}</div>
-                <div class="gx-group gx-desktop-only">${scaleSelect()}</div>
-                <pk-dropdown placement="bottom-end" class="gx-phone-only gx-end"><pk-button slot="trigger" variant="ghost">Display</pk-button>${scaleItems()}</pk-dropdown>
-                <pk-button variant="ghost" toggle class="gx-inspect" id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
-            </div>
-            <div class="gx-bar gx-pagebar" id="gx-pagebar" role="toolbar" aria-label="Page preview">
-                <pk-button variant="ghost" class="gx-back" id="gx-back" href="${B()}/samples" icon-name="chevron-left"><span class="gx-wide-only" id="gx-back-label">Back</span></pk-button>
-                <strong class="gx-title" id="gx-title"></strong>
-                <div class="gx-group gx-wide-only" data-nav-scope hidden><pk-button-group label="Navigation variant" mode="single"><pk-button variant="ghost" toggle data-nav="side">Side</pk-button><pk-button variant="ghost" toggle data-nav="top">Top</pk-button></pk-button-group></div>
-                <div class="gx-group gx-desktop-only">${viewportSwitch()}</div>
-                <div class="gx-group gx-wide-only">${scaleSelect()}</div>
-                <pk-dropdown placement="bottom-end" class="gx-compact-only"><pk-button slot="trigger" variant="ghost" icon label="Display options"><pk-icon name="settings"></pk-icon></pk-button><pk-menu-item type="header" data-nav-scope hidden>Navigation</pk-menu-item><pk-menu-item type="radio" data-nav="side" data-nav-scope hidden>Side</pk-menu-item><pk-menu-item type="radio" data-nav="top" data-nav-scope hidden>Top</pk-menu-item>${scaleItems()}</pk-dropdown>
-                <pk-button variant="ghost" class="gx-theme" id="gx-theme" data-toggle-theme></pk-button>
-                <pk-button variant="ghost" class="gx-open" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></pk-button>
-            </div>
+            <pk-toolbar id="gx-bar" role="toolbar" aria-label="Preview settings">
+                <pk-button variant="ghost" toggle data-gx-contents>Contents</pk-button>
+                ${displayMenu(false, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+                <pk-button variant="ghost" toggle id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
+            </pk-toolbar>
+            <pk-toolbar id="gx-pagebar" role="toolbar" aria-label="Page preview">
+                <pk-button variant="ghost" icon id="gx-back" href="${B()}/samples" label="Back"><pk-icon name="chevron-left"></pk-icon></pk-button>
+                <strong id="gx-title"></strong>
+                ${displayMenu(true, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+                <pk-button variant="ghost" id="gx-theme" data-toggle-theme></pk-button>
+                <pk-button variant="ghost" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener" label="Open in a new page">Open</pk-button>
+            </pk-toolbar>
             <div class="gx-body">
                 <div class="gx-view" id="gx-view"></div>
                 <div class="gx-resize" id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
@@ -481,7 +474,6 @@ export async function mountGallery(container, options = {}) {
         const sc = e.target.closest('pk-menu-item[data-scale]');
         if (sc) setScale(Number(sc.dataset.scale));
     });
-    on($('#gx-shell'), 'change', e => { const s = e.target.closest?.('pk-select.gx-scale'); if (s) setScale(Number(s.value)); });
     // What outlives the container's own elements: the document's events, the router, the lazy frames; destroy() ends them (the elements and their listeners go with the container).
     const offs = [on(document, 'site-search', e => setFilter(e.detail)), on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); })];
     const view = $('#gx-view');

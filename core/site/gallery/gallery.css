@@ -1,7 +1,7 @@
 /* Gallery page chrome: the shell around the nav, the bars, the view and the inspector; entry cards, frames, foundation swatches. The chrome and the
    pages are pk-* elements (pk-side-nav, pk-button, pk-drawer, pk-card, pk-page-header ...); this file holds only what the gallery itself needs. Tokens only. */
 
-[hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, .gx-group) { display: none; }
+[hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer) { display: none; }
 
 /* ---- entries, frames, foundations ---- */
 .gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
@@ -43,7 +43,7 @@
 .gx-mount { display: flex; flex-direction: column; min-height: 0; }
 .gx-mount > .gx-shell { flex: 1; min-height: 0; }
 /* inside the site app (modules/gallery.js, data-gx-app) the app owns the nav: the gallery keeps its toolbar, views and Details drawer */
-[data-gx-app] .gx-shell > .gx-nav, [data-gx-app] .gx-bar .gx-contents { display: none; }
+[data-gx-app] .gx-shell > .gx-nav, [data-gx-app] [data-gx-contents] { display: none; }
 
 /* display+width apply before pk-side-nav is defined too (the FOUC guard only hides it, it does not reserve its box), so .gx-main does not
    start full width and then jump left once the nav renders (#135). Below the element's own off-canvas breakpoint (side-nav.css) an UNDEFINED
@@ -75,25 +75,13 @@
 .gx-tile:not(:defined) { display: block; min-height: calc(var(--space-12) * 3 + var(--space-1)); }
 .gx-head:not(:defined) { display: block; min-height: calc(var(--space-12) + var(--space-3)); }
 
-/* min-height reserves the row's height before its buttons are defined (a row of plain light-DOM text is shorter than a row of real controls: #135). */
-.gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--_gx-border-w) solid var(--color-border); }
-
-/* The main bar never wraps: before its buttons upgrade the row is wider than after, and a wrap pushes the whole view down once they do (#1076). */
-.gx-bar.gx-bar-main { flex-wrap: nowrap; }
-
-/* An undefined button group or field is a block that stacks its buttons: lay them out as the defined element does so the bar keeps one row's height. */
-.gx-group :is(pk-button-group, pk-field):not(:defined) { display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); }
-
-/* An undefined pk-select shows its option text as stacked lines; the defined select draws one control. */
-.gx-group pk-select:not(:defined) > option { display: none; }
-
-.gx-group { display: flex; align-items: center; gap: var(--space-2); }
-
-.gx-group-label { font-size: var(--text-md); color: var(--color-muted); }
-
-.gx-end, .gx-inspect { margin-inline-start: auto; }
-
-.gx-contents, .gx-phone-only { display: none; }
+/* The preview bar and the slim page bar are pk-toolbar rows. The row's box is reserved before pk-toolbar and its buttons are defined (#135, #1076):
+   an undefined toolbar is laid out as one nowrap row of the same minimum height, and the Display menu's items stay out of it. */
+#gx-bar, #gx-pagebar { --pk-toolbar-margin: 0; box-sizing: border-box; flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2 + var(--_gx-border-w)); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--_gx-border-w) solid var(--color-border); }
+#gx-bar:not(:defined), .gx-full #gx-pagebar:not(:defined) { display: flex; align-items: center; gap: var(--space-3); }
+:is(#gx-bar, #gx-pagebar):not(:defined) pk-menu-item { display: none; }
+:is(#gx-bar, #gx-pagebar)::part(lead) { flex: 1; flex-wrap: nowrap; align-items: center; }
+[data-gx-contents] { display: none; }
 
 .gx-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
@@ -106,28 +94,24 @@
 .gx-resize:hover, .gx-resize:focus-visible { background: var(--color-accent); }
 
 /* Full-page samples (a template, pattern or layout): the nav and the wide toolbar give way to one slim bar and the stage takes the whole main area. */
-.gx-bar.gx-pagebar { display: none; }
-.gx-full > .gx-nav, .gx-full .gx-bar-main { display: none; }
-.gx-full .gx-bar.gx-pagebar { display: flex; flex-wrap: nowrap; gap: var(--space-3); padding-block: var(--space-1); }
+#gx-pagebar { display: none; }
+.gx-full > .gx-nav, .gx-full #gx-bar { display: none; }
+.gx-full #gx-pagebar { display: block; padding-block: var(--space-1); }
 .gx-full > .gx-main .gx-body > .gx-view { padding: 0; overflow: hidden; }
 .gx-stagebox { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--color-surface-alt); }
 .gx-page-frame { flex: none; display: block; width: 100%; max-width: 100%; height: 100%; border: 0; background: var(--color-bg); }
 .gx-page-frame--phone { border-inline: var(--_gx-border-w) solid var(--color-border); }
-.gx-pagebar .gx-title { flex: 1; min-width: var(--_gx-title-min-w); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gx-pagebar { --ctl-h: var(--touch-target); }
+#gx-title { flex: 1; min-width: var(--_gx-title-min-w); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#gx-pagebar { --ctl-h: var(--touch-target); }
 
-/* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
-.gx-pagebar .gx-compact-only { display: none; }
-
+/* Below the wide breakpoint the slim bar's buttons keep a touch-sized width (Back is icon only). */
 @media (--wide) {
-    .gx-pagebar .gx-wide-only { display: none; }
-    .gx-pagebar .gx-compact-only { display: inline-flex; }
-    .gx-pagebar > pk-button { min-width: var(--touch-target); }
+    #gx-pagebar > pk-button { min-width: var(--touch-target); }
 }
 
 /* The nav becomes an off-canvas drawer (the element's own breakpoint): the Contents button opens it. */
 @media (--tablet) {
-    .gx-contents { display: inline-block; }
+    [data-gx-contents] { display: inline-block; }
 }
 
 @media (--tablet) {
@@ -140,19 +124,9 @@
     .gx-view, .gx-view.gx-view--inspecting { padding: var(--space-3) var(--space-2); }
     .gx-pair > div:first-child { display: none; }
 
-    /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
-    .gx-desktop-only { display: none; }
-
-    .gx-phone-only { display: inline-block; }
-
-    .gx-bar { flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-2); }
-
-    .gx-bar .gx-end { margin-inline-start: auto; }
-    .gx-bar .gx-end ~ .gx-inspect { margin-inline-start: 0; }
-
-    .gx-bar { --ctl-h: var(--touch-target); }
-    .gx-bar pk-button { --pk-button-padding: var(--space-2); }
-    .gx-bar > pk-button, .gx-bar pk-dropdown > pk-button { min-height: var(--touch-target); white-space: nowrap; }
+    #gx-bar, #gx-pagebar { --ctl-h: var(--touch-target); padding-inline: var(--space-2); }
+    :is(#gx-bar, #gx-pagebar) pk-button { --pk-button-padding: var(--space-2); white-space: nowrap; }
+    :is(#gx-bar, #gx-pagebar)::part(lead) { gap: var(--space-1); }
 
     /* The nav's section-title links: a 44px tap target on a phone, same as the slotted brand link (pk-side-nav's own ::slotted rule). */
     .gx-nav-title { display: flex; align-items: center; box-sizing: border-box; min-height: var(--touch-target); }
