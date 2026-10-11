@@ -254,4 +254,55 @@ export const dockCases = [
         t.eq(seen[0].reason, 'activate');
         t.ok(assets.getAttribute('selected') !== null, 'the plain click still selects the tab');
     }],
+
+    ['dock: a floating panel moves and resizes by arrow keys on its focused frame (Alt resizes, Shift takes a bigger step), is announced, and raises on focus', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const { floatPanel } = await import('../../js/dock-model.js');
+        const box = rect(root), bounds = { w: box.width, h: box.height };
+        let r = floatPanel(dock.$doc, { panel: 'tools', rect: { x: 40, y: 24, w: 220, h: 160 }, bounds });
+        r = floatPanel(r.doc, { panel: 'props', rect: { x: 120, y: 60, w: 220, h: 160 }, bounds });
+        dock.layout = r.doc; await t.settle(); await wait(60);
+        const frames = [...root.querySelectorAll('[data-floater]')];
+        t.eq(frames.length, 2, 'both panels float as frames inside the dock');
+        const [a, b] = frames, seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        a.focus(); await t.settle();
+        const z = n => Number(getComputedStyle(n).zIndex) || 0;
+        t.ok(z(a) > z(b), 'focus raised the first frame above the second');
+        const before = rect(a), press = (k, o = {}) => a.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...o }));
+        press('ArrowRight'); await t.settle();
+        t.ok(Math.abs(rect(a).left - before.left - 8) < 1.5 && Math.abs(rect(a).top - before.top) < 1.5, `ArrowRight moves 8px (moved ${rect(a).left - before.left})`);
+        press('ArrowDown', { shiftKey: true }); await t.settle();
+        t.ok(Math.abs(rect(a).top - before.top - 32) < 1.5, 'Shift+ArrowDown moves 32px');
+        const sized = rect(a);
+        press('ArrowRight', { altKey: true }); await t.settle();
+        t.ok(Math.abs(rect(a).width - sized.width - 8) < 1.5 && Math.abs(rect(a).left - sized.left) < 1.5, 'Alt+ArrowRight widens by 8px without moving');
+        t.ok(seen.some(s => s.reason === 'move') && seen.some(s => s.reason === 'resize'), 'pk-layout-change reports move and resize');
+        t.ok(/moved to|resized to/.test(dock.shadowRoot.querySelector('[part=status]').textContent), 'the change is announced');
+        for (let i = 0; i < 200; i++) press('ArrowLeft', { shiftKey: true });
+        await t.settle(); t.ok(rect(a).left >= box.left - 1, 'a floater cannot be moved out of the dock bounds');
+    }],
+
+    ['dock: a floating panel is dragged by its header with the pointer, stays inside the dock, and a click without movement leaves it where it was', async t => {
+        const { doc, win } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const { floatPanel } = await import('../../js/dock-model.js');
+        const box = rect(root);
+        dock.layout = floatPanel(dock.$doc, { panel: 'props', rect: { x: 60, y: 40, w: 240, h: 180 }, bounds: { w: box.width, h: box.height } }).doc;
+        await t.settle(); await wait(60);
+        const fl = root.querySelector('[data-floater]'), head = fl.querySelector('[part=header], pk-tab');
+        t.ok(fl && head, 'the floater has a header to grab');
+        const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
+        const ptr = (type, x, y) => head.dispatchEvent(new win.PointerEvent(type, { pointerId: 21, clientX: x, clientY: y, button: 0, bubbles: true, composed: true, cancelable: true }));
+        const h = rect(head), x0 = h.left + h.width / 2, y0 = h.top + h.height / 2, start = rect(fl);
+        ptr('pointerdown', x0, y0); ptr('pointerup', x0, y0); await t.settle();
+        t.ok(Math.abs(rect(fl).left - start.left) < 1, 'a click-sized gesture does not move it');
+        ptr('pointerdown', x0, y0); ptr('pointermove', x0 + 50, y0 + 30); ptr('pointermove', x0 + 90, y0 + 50); ptr('pointerup', x0 + 90, y0 + 50); await t.settle();
+        const end = rect(fl);
+        t.ok(Math.abs(end.left - start.left - 90) < 2 && Math.abs(end.top - start.top - 50) < 2, `dragged by the pointer delta (${end.left - start.left}, ${end.top - start.top})`);
+        t.ok(seen.some(s => s.reason === 'floater'), 'pk-layout-change reports the floater change on release');
+        ptr('pointerdown', x0 + 90, y0 + 50); ptr('pointermove', x0 + 5000, y0 + 5000); ptr('pointerup', x0 + 5000, y0 + 5000); await t.settle();
+        const out = rect(fl);
+        t.ok(out.right <= box.right + 1 && out.bottom <= box.bottom + 1, 'a drag far outside is clamped to the dock bounds');
+    }],
 ];
