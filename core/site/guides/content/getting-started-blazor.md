@@ -90,4 +90,4 @@ A standalone Blazor WebAssembly app needs no server and no extra package. It reg
 - The `plainkit-blazor` agent skill lists every component with its parameters: start with [components-index.md](../../dist/skills/plainkit-blazor/references/components-index.md).
 - [Logging](logging.md) shows how the SDK's log reaches `ILogger` and how to write your own entries with `IPkLog`.
 - [Theming and tokens](theming.md) works the same in Blazor: the tokens are CSS.
-- The [gallery](../gallery/index.html) shows every element; each `Pk` component has the element's props, slots and events.
+- The [gallery](../../app.html#/gallery) shows every element; each `Pk` component has the element's props, slots and events.

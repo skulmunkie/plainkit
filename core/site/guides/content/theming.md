@@ -76,7 +76,7 @@ Use them in your own CSS too, so your parts follow the theme: `padding: var(--sp
 
 ## Change one element
 
-Each element also exposes a few hooks of its own, named `--pk-<element>-<part>`. They are listed in the element's API in the [gallery](../gallery/index.html). Set them on the element or on a class, and only that element changes:
+Each element also exposes a few hooks of its own, named `--pk-<element>-<part>`. They are listed in the element's API in the [gallery](../../app.html#/gallery). Set them on the element or on a class, and only that element changes:
 
 ```css
 .square-button {
