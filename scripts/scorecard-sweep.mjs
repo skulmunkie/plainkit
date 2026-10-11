@@ -315,7 +315,7 @@ async function pagesStage(cdp, port, widths, deadline) {
     const shellPages = [
         { label: 'gallery', url: `http://localhost:${port}/site/gallery/index.html?theme=dark` },
         { label: 'scorecard', url: `http://localhost:${port}/app.html#/scorecard` },
-        { label: 'theme editor', url: `http://localhost:${port}/site/theme/index.html?theme=dark` },
+        { label: 'theme editor', url: `http://localhost:${port}/app.html?theme=dark#/theme` },
     ];
     const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }))];
     let n = 0;

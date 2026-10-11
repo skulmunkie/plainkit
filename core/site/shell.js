@@ -13,8 +13,8 @@ export const PAGES = [
     { key: 'gallery', title: 'Gallery', href: '../gallery/index.html' },
     { key: 'files', title: 'Files', href: '../../app.html#/files' },
     { key: 'scorecard', title: 'Scorecard', href: '../../app.html#/scorecard' },
-    { key: 'theme', title: 'Theme editor', href: '../theme/index.html' },
-    { key: 'layout-builder', title: 'Layout builder', href: '../layout-builder/index.html' },
+    { key: 'theme', title: 'Theme editor', href: '../../app.html#/theme' },
+    { key: 'layout-builder', title: 'Layout builder', href: '../../app.html#/layout-builder' },
     { key: 'guides', title: 'Guides', href: '../guides/index.html' },
     { key: 'devtools', title: 'Dev tools', href: '../../app.html#/devtools' },
 ];
