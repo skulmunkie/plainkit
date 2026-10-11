@@ -227,4 +227,30 @@ export const guidesAppCases = [
             await until(() => shown().length === 9, `${width}: every guide again`);
         }
     }],
+    // The header search (#355): the active module's `search` answers; picking a result navigates.
+    ['site app header search (1280px): a body word lists the Guides that mention it, the keyboard picks one and the address and page follow', async t => {
+        const { p, el, input, type } = await headerSearch(t, 1280);
+        await type('logger');
+        t.ok(el.items.every(i => i.label && i.sub), 'every result has a guide title and why it matched');
+        const first = el.items[0].label;
+        t.key(input, 'ArrowDown'); t.key(input, 'Enter');
+        await until(() => /^#\/guides\/[a-z-]+$/.test(p.win.location.hash), 'the address to become a guide');
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent === first, 'the picked guide to open');
+    }],
+    ['site app header search (375px): a pick opens the guide and the page does not scroll sideways', async t => {
+        const { p, el, type } = await headerSearch(t, 375);
+        await type('theming');
+        const rows = [...el.shadowRoot.querySelectorAll('[role="option"]')];
+        t.ok(rows.length >= 1, 'results are drawn');
+        rows[0].click();
+        await until(() => /^#\/guides\/[a-z-]+$/.test(p.win.location.hash), 'the address to become a guide');
+        t.ok(p.d.documentElement.scrollWidth <= 375, 'no sideways scroll');
+    }],
 ];
+async function headerSearch(t, width) {
+    const p = await openApp(t, '#/guides', width);
+    await p.win.customElements.whenDefined('pk-app-bar-search');
+    const el = p.d.querySelector('pk-app-bar-search'), input = await until(() => el.shadowRoot?.querySelector('[part="control"]'), 'the search input');
+    const type = async text => { input.value = text; input.dispatchEvent(new p.win.Event('input', { bubbles: true })); await until(() => el.items?.length, `results for ${text}`, 100); };
+    return { p, el, input, type };
+}
