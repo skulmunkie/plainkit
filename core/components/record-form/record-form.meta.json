@@ -77,6 +77,13 @@
       "description": "A query parameter name (\"tab\") that keeps the chosen tab in the address bar, so a reload or a shared link opens on it. Other parameters and the hash are kept and no history entry is added. Empty keeps nothing. A value that matches no enabled tab is ignored."
     },
     {
+      "name": "tabs",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The tabs as data: an array of { value, label, count?, visible? }. The element draws the strip (a pk-tabs in the tabs slot wins); count is the badge after the label, and a tab with visible false is left out (a chosen tab that went falls back to the first). Sections tag themselves with tab=\"value\" as with tabs-from. Empty draws nothing."
+    },
+    {
       "name": "actionsInHeader",
       "type": "boolean",
       "default": false,
@@ -141,6 +148,10 @@
       "description": "The Save button."
     },
     {
+      "name": "strip",
+      "description": "The pk-tabs the element draws from the tabs array (the tabs slot's fallback)."
+    },
+    {
       "name": "tabs",
       "description": "The row holding the tabs slot; hidden when there are no tabs or tabs-from says they do not apply at this width."
     },
@@ -170,6 +181,10 @@
     {
       "title": "Sections tagged by tab: two columns on desktop, one tab at a time on a phone",
       "html": "<pk-record-form tabs-from=\"phone\">\n  <pk-tabs slot=\"tabs\" value=\"details\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"pricing\">Pricing</pk-tab>\n  </pk-tabs>\n  <form>\n    <pk-stack>\n      <div tab=\"details\"><pk-card heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card></div>\n      <div tab=\"pricing\"><pk-card heading=\"Pricing\"><pk-field label=\"Price\"><pk-input name=\"price\"></pk-input></pk-field></pk-card></div>\n    </pk-stack>\n  </form>\n  <div slot=\"sidebar\" tab=\"details\"><pk-card heading=\"Status\"><pk-badge variant=\"ok\">Active</pk-badge></pk-card></div>\n</pk-record-form>"
+    },
+    {
+      "title": "Tabs as data: a count badge, and a tab left out",
+      "html": "<pk-record-form tabs-from=\"always\" tabs='[{\"value\":\"details\",\"label\":\"Details\"},{\"value\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"value\":\"audit\",\"label\":\"Audit\",\"visible\":false}]'>\n  <form>\n    <pk-stack>\n      <pk-card tab=\"details\" heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card>\n      <pk-card tab=\"orders\" heading=\"Orders\">Recent orders</pk-card>\n    </pk-stack>\n  </form>\n</pk-record-form>"
     }
   ],
   "methods": [

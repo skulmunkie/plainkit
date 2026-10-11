@@ -26,7 +26,29 @@ export default Base => class extends Base {
         this.syncTabs_();
     }
     disconnected() { this.removeEventListener('pk-tab-change', this.$tabs); this.$mq?.removeEventListener('change', this.$tabs); this.$mq = null; }
-    updated() { if (this.$w && this.$from !== this.tabsFrom) { this.$mq?.removeEventListener('change', this.$tabs); this.bindTabs_(); this.syncTabs_(); } }
+    updated() {
+        if (!this.$w) return;
+        const moved = this.$from !== this.tabsFrom;
+        if (moved) { this.$mq?.removeEventListener('change', this.$tabs); this.bindTabs_(); }
+        if (moved || this.$data !== this.tabs) this.syncTabs_();
+    }
+    /** The tabs strip: the slotted pk-tabs, else the one this element draws from the tabs array. */
+    strip_() { return this.slotted('tabs').find(e => e.localName === 'pk-tabs' && e.getRootNode() !== this.shadowRoot) ?? (this.tabs?.length ? this.part('strip') : null); }
+    /** tabs: [{ value, label, count?, visible? }] draws the strip (a slotted pk-tabs wins); a tab with visible false is left out, and a chosen tab that went falls back to the first. */
+    drawTabs_() {
+        if (this.$data === this.tabs) return;
+        this.$data = this.tabs;
+        if (this.slotted('tabs').some(e => e.localName === 'pk-tabs' && e.getRootNode() !== this.shadowRoot)) return;
+        const strip = this.part('strip'), keep = strip.value;
+        strip.replaceChildren(...(this.tabs ?? []).filter(d => d && d.visible !== false).map(d => {
+            const t = this.ownerDocument.createElement('pk-tab');
+            t.setAttribute('value', d.value); t.textContent = d.label ?? d.value;
+            if (d.count != null && d.count !== '') t.setAttribute('count', String(d.count));
+            return t;
+        }));
+        loadElements(strip);
+        strip.value = [...strip.children].some(t => t.getAttribute('value') === keep) ? keep : strip.firstElementChild?.getAttribute('value') ?? '';
+    }
     bindTabs_() {
         this.$from = this.tabsFrom;
         this.$mq = this.$from === 'always' ? null : mediaBelow(this.$from);
@@ -34,8 +56,9 @@ export default Base => class extends Base {
     }
     /** Tabs apply at or below tabsFrom: a section tagged tab="x y" shows only while one of its tabs is chosen; otherwise every section shows and the strip is hidden. */
     syncTabs_() {
+        this.drawTabs_();
         this.keepTab_();
-        const strip = this.slotted('tabs').find(e => e.localName === 'pk-tabs');
+        const strip = this.strip_();
         const on = !!strip && (this.tabsFrom === 'always' || !!this.$mq?.matches);
         const active = strip?.value || strip?.querySelector('pk-tab')?.getAttribute('value');
         this.part('tabs').hidden = !on;
@@ -46,7 +69,7 @@ export default Base => class extends Base {
         const key = this.tabParam, win = this.ownerDocument.defaultView;
         if (!key || !win?.history || e?.detail?.fallback) return;
         const url = new URL(win.location.href);
-        const strip = this.slotted('tabs').find(x => x.localName === 'pk-tabs');
+        const strip = this.strip_();
         if (e) url.searchParams.set(key, e.detail?.value ?? strip?.value ?? '');
         else if (strip && this.$strip !== strip) {
             this.$strip = strip;
