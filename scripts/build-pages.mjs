@@ -19,7 +19,7 @@ ensureGenerated(); // dist/ and the site's generated modules are not in git: boo
 
 // Folders and files the site loads at run time (source layout) plus dist. Test files beside a component or element are stripped here
 // (they are not part of what a page imports), but kept whole in FULL below: the code explorer browses the real source tree, tests included.
-const INCLUDE = ['index.html', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
+const INCLUDE = ['index.html', 'app.html', 'app.js', 'plainkit.css', 'icons.svg', 'tokens', 'base', 'elements', 'js', 'modules', 'layouts', 'samples', 'site', 'dist', 'LICENSE'];
 // elements/registry.js imports each element from its tier's folder (../components/<name>/<name>.element.js), so the tier folders that exist are served too (#767).
 INCLUDE.push(...TIER_FOLDERS.filter(f => f !== 'elements' && existingTierFolders(core).has(f)));
 const FULL = ['tests', 'tools', 'icons'];
