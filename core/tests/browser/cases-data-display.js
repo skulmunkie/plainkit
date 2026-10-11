@@ -645,6 +645,21 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table (375px): a slotted pk-card in a cell keeps a real width in the cards layout, and the row does not grow absurdly (#1146)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="C" columns='[{"key":"name","label":"Name"},{"key":"c","label":"Colour in the dark theme scope"}]' rows='[{"id":1,"name":"Primary"}]'><pk-card slot="cell-1-c" data-theme="dark"><span style="display:inline-block;width:2rem;height:1rem;background:red"></span> <code>#336699</code></pk-card></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '480px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentWindow.customElements.get('pk-card') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+            await new Promise(r => setTimeout(r, 300));
+            const d = f.contentDocument, card = d.querySelector('pk-card').getBoundingClientRect(), tr = d.querySelector('pk-table').shadowRoot.querySelector('tbody tr').getBoundingClientRect();
+            return { card: card.width, row: tr.height, rowW: tr.width };
+        };
+        const phone = await at(375); t.ok(phone.card >= phone.rowW / 2, `the card is not squeezed by the long label beside it (${phone.card}px of a ${phone.rowW}px row)`); t.ok(phone.row < 400, `the row stays a sensible height (${phone.row}px)`);
+        const wide = await at(1200); t.ok(wide.card > 40, `the card has a width on desktop (${wide.card}px)`);
+    }],
 
     ['table: the foot slot is a tfoot cell spanning every column after the rows on a desktop, and a full-width trailing card on a phone (#1020)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
