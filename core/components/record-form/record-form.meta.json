@@ -184,7 +184,7 @@
     },
     {
       "title": "Tabs as data: a count badge, and a tab left out",
-      "html": "<pk-record-form tabs-from=\"always\" tabs='[{\"value\":\"details\",\"label\":\"Details\"},{\"value\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"value\":\"audit\",\"label\":\"Audit\",\"visible\":false}]'>\n  <form>\n    <pk-stack>\n      <pk-card tab=\"details\" heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card>\n      <pk-card tab=\"orders\" heading=\"Orders\">Recent orders</pk-card>\n    </pk-stack>\n  </form>\n</pk-record-form>"
+      "html": "<pk-record-form tabs-from=\"always\" tabs='[{\"value\":\"details\",\"label\":\"Details\"},{\"value\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"value\":\"audit\",\"label\":\"Audit\",\"visible\":false}]'>\n  <form>\n    <pk-stack>\n      <div tab=\"details\"><pk-card heading=\"Details\"><pk-field label=\"Name\"><pk-input name=\"name\"></pk-input></pk-field></pk-card></div>\n      <div tab=\"orders\"><pk-card heading=\"Orders\">Recent orders</pk-card></div>\n    </pk-stack>\n  </form>\n</pk-record-form>"
     }
   ],
   "methods": [
