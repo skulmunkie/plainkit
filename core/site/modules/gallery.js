@@ -3,6 +3,7 @@
 // the current row (the branch opens, the row is marked), and the app owns the bar, the theme, the title and the side nav (the gallery's own nav column is hidden, gallery.css, [data-gx-app]).
 // The Elements branch holds 131 rows, over the nav's 40-entry advice: the one deliberate exception, a tree of collapsed groups; the header search still finds an element by name.
 import { defineModule } from '../../js/app.js';
+import { loadElements, observeElements } from '../../js/loader.js';
 import { mountGallery } from '../gallery/gallery.js';
 import { ELEMENTS } from '../gallery/gallery.data.js';
 import { FOUNDATIONS } from '../gallery/gallery-views.js';
@@ -21,8 +22,12 @@ const mount = (host, ctx) => {
     host.ownerDocument.head.append(css);
     // the gallery's sample frames follow the app's theme through the event the old site shell sent
     const stop = ctx.theme.subscribe(name => host.ownerDocument.dispatchEvent(new CustomEvent('site-theme', { detail: name })));
+    // (init: false: the app scanned the page before the views drew) so the first view stays hidden until its elements are defined, then the later views' elements load as they are added
+    host.hidden = true;
+    const watch = observeElements(host);
     const shown = mountGallery(host, { chrome: 'full', init: false, base: '/gallery', theme: ctx.theme.name });
-    return () => { stop(); shown.then(g => g.destroy()); css.remove(); };
+    shown.then(() => loadElements(host)).finally(() => { host.hidden = false; });
+    return () => { stop(); watch?.disconnect(); shown.then(g => g.destroy()); css.remove(); };
 };
 
 export default defineModule({
