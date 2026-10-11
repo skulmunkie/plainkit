@@ -3,6 +3,7 @@
 // DOM steps (focus, scroll, set), check(shot, ctx) runs the scenario's expect(t) and measures the frame for the audits. The pointer and key
 // events themselves are real ones sent by the runner over the DevTools protocol (so :hover, :focus-visible and the top layer behave as for a person).
 import { createExpectations } from './scenario.js';
+import { whenUpgraded } from './ready.js';
 
 /** One selector to its first element; `a >>> b` looks for b in the shadow tree of the first a. */
 export function findIn(frame, sel, all = false) {
@@ -62,7 +63,7 @@ export async function startScenario({ name, root, state, measure, settle, pendin
     applyDynamic(frame);
     if (scenario.setup) await scenario.setup(frame); // wires behaviour the markup cannot carry (CSP: no inline handlers), before the elements are loaded
     await loadElements(frame, { registry });
-    await Promise.all([...new Set([...frame.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
+    await whenUpgraded(frame, { load: n => loadElements(n, { registry }), log }); // shadow trees included (ready.js)
     const quiet = async () => {
         await settle(0); // the loop below is the wait for quiet
         let prev = signature(frame);
