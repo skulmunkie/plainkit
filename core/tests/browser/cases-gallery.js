@@ -159,3 +159,23 @@ export const galleryCases = [
         for (let i = 0; i < 2; i++) t.ok(Math.abs(gap(raw, i) - gap(p.doc, i)) <= 3, `the rows under nav title ${i} take ${Math.round(gap(raw, i))}px before upgrade and ${Math.round(gap(p.doc, i))}px after`);
     }],
 ];
+
+// The Gallery as a lazy module of the site app (#355, step 4): core/app.html#/gallery/..., the same views under one kept route, the app's own nav and row marking.
+export const galleryAppCases = [
+    ['gallery module (app): a deep link opens the element page, the nav marks the section and no gallery nav column is drawn, a click in the views keeps the app address, and the page is kept (not remounted) while the address changes', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'Site app'; f.style.cssText = 'width:1280px;height:900px;border:0;display:block';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        f.src = new URL('../../app.html#/gallery/elements/pk-button', import.meta.url).href; host.append(f); await loaded;
+        const win = f.contentWindow, d = f.contentDocument;
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        const shell = d.querySelector('#gx-shell');
+        t.ok(getComputedStyle(d.querySelector('#gx-nav')).display === 'none', 'the gallery draws no nav column of its own');
+        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.textContent.includes('Elements'), 'the Elements row to be current');
+        for (const a of d.querySelectorAll('#gx-view [href^="#/"]')) t.ok(a.getAttribute('href').startsWith('#/gallery/'), 'every link in the views is under #/gallery');
+        win.location.hash = '#/gallery/foundations/typography'; await wait(300);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Typography', 'the Typography page');
+        t.ok(d.querySelector('#gx-shell') === shell, 'the gallery was kept, not mounted again');
+        await until(() => /Typography/.test(d.querySelector('#pk-nav pk-nav-item[current]')?.textContent ?? ''), 'the Typography row to be current');
+    }],
+];

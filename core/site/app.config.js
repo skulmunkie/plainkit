@@ -8,7 +8,7 @@ export default {
     search: { placeholder: 'Search this section' },
     storage: { legacy: { theme: 'pk-site-theme' } },
     modules: [
-        redirect('gallery', 'Gallery', 'site/gallery/index.html'),
+        { id: 'gallery', title: 'Gallery', load: () => import('./modules/gallery.js') },
         redirect('files', 'Files', 'site/files/index.html'),
         redirect('scorecard', 'Scorecard', 'site/scorecard/index.html'),
         redirect('theme', 'Theme editor', 'site/theme/index.html'),

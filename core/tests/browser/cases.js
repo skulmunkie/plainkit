@@ -331,7 +331,7 @@ import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
 import { guidesCases, guidesAppCases } from './cases-guides.js'; cases.push(...guidesCases, ...guidesAppCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
-import { galleryCases } from './cases-gallery.js'; cases.push(...galleryCases);
+import { galleryCases, galleryAppCases } from './cases-gallery.js'; cases.push(...galleryCases, ...galleryAppCases);
 import { appShellCases } from './cases-app-shell.js'; cases.push(...appShellCases);
 
 // A property set on an element before its class is defined (the upgrade) is adopted, and reflects to its attribute like an assignment (#325).
