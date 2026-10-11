@@ -168,8 +168,8 @@ export function createViews(ctx) {
             if (!b) return put(heading('Patterns', 'Composed examples: several elements working together to do one job.', crumbs(['Samples', `${B()}/samples`], ['Patterns'])) + grid(PATTERNS.filter(p => keeps('samples', 'patterns', p.id)).map(p => cardLink(`${B()}/samples/patterns/${p.id}`, p.title, p.summary)).join('')));
             const p = PATTERNS.find(x => x.id === b);
             if (!p) return put(notFound('Not found', '', ['Back to patterns', `${B()}/samples/patterns`]));
-            put(`${heading(p.title, p.summary, groupCrumb('patterns', p.title))}<pk-card><pk-text tone="muted"><strong>Built from:</strong> ${esc(p.built)}</pk-text><pk-text tone="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</pk-text><pk-text tone="muted"><strong>Elements used:</strong> ${p.used.map(u => { const m = ELEMENTS.find(x => x.tag === `pk-${u}`); return m ? `<a href="${B()}/elements/${m.tag}">${esc(m.title)}</a>` : esc(u); }).join(', ')}</pk-text><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div><p><a href="${B()}/samples/patterns">Back to patterns</a></p></pk-card>`);
-            const [d, ph] = out.querySelectorAll('.gx-pair > div');
+            put(`${heading(p.title, p.summary, groupCrumb('patterns', p.title))}<pk-card><pk-text tone="muted"><strong>Built from:</strong> ${esc(p.built)}</pk-text><pk-text tone="muted"><strong>Mobile:</strong> ${esc(p.mobile)}</pk-text><pk-text tone="muted"><strong>Elements used:</strong> ${p.used.map(u => { const m = ELEMENTS.find(x => x.tag === `pk-${u}`); return m ? `<a href="${B()}/elements/${m.tag}">${esc(m.title)}</a>` : esc(u); }).join(', ')}</pk-text><pk-grid ratio="2:1" data-pair><pk-stack><pk-heading level="3">Desktop</pk-heading></pk-stack><pk-stack><pk-heading level="3">Phone (375px frame)</pk-heading></pk-stack></pk-grid><p><a href="${B()}/samples/patterns">Back to patterns</a></p></pk-card>`);
+            const [d, ph] = out.querySelectorAll('[data-pair] > pk-stack');
             // A pattern that ships a script runs it in each frame, on that frame's own markup (frame-boot.js).
             d.append(slot({ title: `${p.title} desktop`, html: p.html, pattern: p.script }, `pattern-${p.id}`, 'desktop')); ph.append(slot({ title: `${p.title} phone`, html: p.html, pattern: p.script }, `pattern-${p.id}`, 'phone'));
             return out;
@@ -180,8 +180,8 @@ export function createViews(ctx) {
             if (b === 'shell') { put(heading('App shell', 'A sidebar, a main column with the top bar, the page body and a footer strip. The header and footer strips share one height token each.', groupCrumb('layouts', 'App shell')) + '<pk-card><pk-grid min="20rem"></pk-grid></pk-card>'); const box = $('pk-grid', out); loadElement('pk-app-shell').then(m => { if (box.isConnected) box.append(slot({ title: 'App shell', html: m.examples[0].html }, 'app-shell')); }); return out; }
             const l = LAYOUTS.find(x => x.id === b);
             if (!l) return put(notFound('Not found', '', ['Back to layouts', `${B()}/samples/layouts`]));
-            put(`${heading(l.title, l.summary, groupCrumb('layouts', l.title))}<pk-card><pk-text tone="muted"><strong>Built from:</strong> ${esc(l.built)}</pk-text><pk-text tone="muted"><strong>Mobile:</strong> ${esc(l.mobile)}</pk-text><div class="gx-pair"><div><h3>Desktop</h3></div><div><h3>Phone (375px frame)</h3></div></div></pk-card>`);
-            const [d, ph] = out.querySelectorAll('.gx-pair > div');
+            put(`${heading(l.title, l.summary, groupCrumb('layouts', l.title))}<pk-card><pk-text tone="muted"><strong>Built from:</strong> ${esc(l.built)}</pk-text><pk-text tone="muted"><strong>Mobile:</strong> ${esc(l.mobile)}</pk-text><pk-grid ratio="2:1" data-pair><pk-stack><pk-heading level="3">Desktop</pk-heading></pk-stack><pk-stack><pk-heading level="3">Phone (375px frame)</pk-heading></pk-stack></pk-grid></pk-card>`);
+            const [d, ph] = out.querySelectorAll('[data-pair] > pk-stack');
             d.append(slot({ title: `${l.title} desktop`, html: l.html }, `layout-${l.id}`, 'desktop')); ph.append(slot({ title: `${l.title} phone`, html: l.html }, `layout-${l.id}`, 'phone'));
             return out;
         }
