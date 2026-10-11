@@ -5,7 +5,7 @@ const redirect = (id, title, href) => ({ id, title, load: () => import('./module
 export default {
     brand: { text: 'Plainkit' },
     home: 'devtools',
-    search: false,
+    search: { placeholder: 'Search this section' },
     storage: { legacy: { theme: 'pk-site-theme' } },
     modules: [
         redirect('gallery', 'Gallery', 'site/gallery/index.html'),
