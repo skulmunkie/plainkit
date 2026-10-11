@@ -1,0 +1,55 @@
+{
+  "tag": "pk-page-shell",
+  "title": "Page shell",
+  "group": "Layout & structure",
+  "tier": "component",
+  "summary": "The frame of one page: a pk-page-header (breadcrumb, title, actions, a docked tab strip) above one content region. A whole-page state (loading, empty, error, forbidden) replaces the content. The spacing between header and content is the shell's own, so a page declares none. Tabs: one content region, and the page swaps what it renders when the tab strip fires pk-tab-change.",
+  "props": [
+    { "name": "heading", "type": "string", "default": "", "reflect": true, "description": "The page title, drawn by the header." },
+    { "name": "level", "type": "number", "default": 1, "reflect": false, "description": "The heading level the title exposes to assistive technology. A page title is 1." },
+    { "name": "crumbs", "type": "string", "default": "", "reflect": false, "description": "The breadcrumb trail as a JSON array of { \"label\", \"href\" }, as on pk-page-header. Use it instead of the breadcrumb slot." },
+    { "name": "backLink", "type": "boolean", "default": false, "reflect": true, "description": "Draws a back link to the last crumb that has a usable href." },
+    { "name": "sticky", "type": "boolean", "default": false, "reflect": true, "description": "Pins the header (with its tabs) to the top of the scrolling page body." },
+    {
+      "name": "state",
+      "type": "enum",
+      "default": "ready",
+      "values": ["ready", "loading", "empty", "error", "forbidden"],
+      "reflect": true,
+      "description": "ready shows the content. Any other value shows that whole-page state in its place and hides the content (it stays in the DOM). The header and its tabs stay."
+    },
+    { "name": "stateHeading", "type": "string", "default": "", "reflect": true, "description": "The state's heading (the loading label for loading). Empty uses a default per state." },
+    { "name": "stateDescription", "type": "string", "default": "", "reflect": true, "description": "The line under the state's heading (the error message for error)." }
+  ],
+  "slots": [
+    { "name": "", "description": "The page content, one region. Hidden while a whole-page state shows." },
+    { "name": "breadcrumb", "description": "A pk-breadcrumb above the title, instead of crumbs." },
+    { "name": "title", "description": "A pk-heading for the title, in place of the built-in text." },
+    { "name": "actions", "description": "Buttons at the right of the title bar. Give each an icon-name and collapse=\"phone\"." },
+    { "name": "meta", "description": "A note line under the title bar." },
+    { "name": "tabs", "description": "A pk-tabs strip (tabs only) docked at the foot of the header." }
+  ],
+  "events": [
+    { "name": "pk-page-shell-retry", "detail": null, "description": "Retry was pressed in the error state: load again, then set state back to ready." }
+  ],
+  "parts": [
+    { "name": "header", "description": "The pk-page-header." },
+    { "name": "state", "description": "The whole-page state, drawn only while state is not ready." },
+    { "name": "content", "description": "The region holding the default slot." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-page-shell-gap", "description": "The space between the header, the state and the content.", "default": "var(--space-4), var(--space-3) on a phone" }
+  ],
+  "methods": [],
+  "a11y": "The title is the header's real heading at level (1 for a page). The state region is a status role, so a loading or error state is announced; the tab strip keeps its own tablist semantics.",
+  "examples": [
+    {
+      "title": "Header, tabs and content",
+      "html": "<pk-page-shell heading=\"PO 1042\" crumbs='[{\"label\":\"Stock\",\"href\":\"#\"},{\"label\":\"Purchase orders\",\"href\":\"#\"},{\"label\":\"PO 1042\"}]'>\n  <pk-button slot=\"actions\" icon-name=\"import\" collapse=\"phone\">Receive</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"lines\">Lines</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n  <pk-card heading=\"Lines\">Three lines, 412.00 in total.</pk-card>\n</pk-page-shell>"
+    },
+    {
+      "title": "A whole-page error state",
+      "html": "<pk-page-shell heading=\"Orders\" state=\"error\" state-heading=\"Could not load orders\" state-description=\"The request failed.\">\n  <pk-card heading=\"Orders\">Hidden while the error shows.</pk-card>\n</pk-page-shell>"
+    }
+  ]
+}

@@ -57,6 +57,8 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 </html>
 ```
 
+For a page with a header, tabs and states of its own, use `pk-page-shell` instead of assembling `pk-page-header`, `pk-tabs` and the state markup by hand: `<pk-page-shell heading="Orders" crumbs='[...]'>` with `slot="actions"` buttons, a `pk-tabs` in `slot="tabs"`, and your content as the default slot (one region: swap it on `pk-tab-change`). `state="loading|empty|error|forbidden"` (with `state-heading`, `state-description`) replaces the content and keeps the header; Retry in the error state raises `pk-page-shell-retry`. Blazor: `PkPageShell` (`Title`, `Crumbs`, `State`, `OnRetry`, `ActionsContent`, `TabsContent`).
+
 ```js
 // app.js
 import { initPlainkit } from './plainkit/js/init.js'; initPlainkit();
