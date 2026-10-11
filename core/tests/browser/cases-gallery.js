@@ -374,4 +374,20 @@ export const galleryAppCases = [
             }
         }
     }],
+
+    ['gallery: the embed page draws real content (not a blank frame) and reports its height to the embedder', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'Gallery embed'; f.style.cssText = 'width:1000px;height:600px;border:0';
+        const heights = [], listen = e => { if (e.data?.type === 'pk-gallery-height') heights.push(e.data.height); };
+        window.addEventListener('message', listen);
+        try {
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            f.src = new URL('../../site/gallery/embed.html?chrome=none', import.meta.url).href; host.append(f); await loaded;
+            const doc = f.contentDocument;
+            const box = await until(() => { const b = doc.getElementById('gx-host')?.getBoundingClientRect(); return b && b.height > 100 && b; }, 'the gallery host to draw content');
+            t.ok(doc.querySelector('#gx-host pk-alert') === null, 'the gallery started without an error alert');
+            await until(() => heights.length > 0, 'the frame to report its height');
+            t.ok(Math.abs(heights.at(-1) - box.height) < 400, `the reported height (${heights.at(-1)}) matches the content (${box.height})`);
+        } finally { window.removeEventListener('message', listen); }
+    }],
 ];

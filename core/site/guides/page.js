@@ -8,11 +8,12 @@ import { mountRouter } from '../../js/router.js';
 import { GUIDES } from './guides.data.js';
 import { routeHash, isAnchorHash } from './guides-logic.js';
 import { searchGuides } from './guides-search.js';
-import { on } from '../../js/mount-support.js';
+import { on, addressOf } from '../../js/mount-support.js';
 
 const log = createLogger('guides');
 const ids = GUIDES.map(g => g.id);
-const page = document.getElementById('guides'), scroller = document.getElementById('guides-scroll');
+const doc = document, win = doc.defaultView;
+const page = doc.getElementById('guides'), scroller = doc.getElementById('guides-scroll');
 
 // The guide's HTML was made and sanitised by the build (tools/markdown.mjs); pk-doc-page puts it in through js/sanitized-html.js.
 page.href = (id, anchor) => (id == null ? '#/' : routeHash(id, anchor));
@@ -45,10 +46,10 @@ let current = null;
 
 // A bare in-page anchor ('#install', a typed address) is not a route: this scrolls the article to it and rewrites the address to one that reloads to the same
 // place, and never reaches the router. It must run before the router's own hashchange listener (registered next).
-window.addEventListener('hashchange', e => {
-    if (!isAnchorHash(location.hash)) return;
+on(win, 'hashchange', e => {
+    if (!isAnchorHash(addressOf(win).hash)) return;
     const decode = s => { try { return decodeURIComponent(s); } catch { return s; } }; // a malformed %-escape is kept as typed, and then matches nothing
-    const id = decode(location.hash.slice(1));
+    const id = decode(addressOf(win).hash.slice(1));
     if (current) { page.config = { ...page.config, anchor: id }; router.navigate(routeHash(current, id).slice(1), { replace: true }); }
     e.stopImmediatePropagation();
 });
@@ -63,12 +64,12 @@ function route() {
     current = guideId;
     page.config = { ...base, id: guideId, anchor: frag };
     const guide = guideId && GUIDES.find(g => g.id === guideId);
-    document.title = !guideId ? 'Guides - Plainkit' : guide ? `${guide.title} - Guides - Plainkit` : 'Guide not found - Plainkit';
+    doc.title = !guideId ? 'Guides - Plainkit' : guide ? `${guide.title} - Guides - Plainkit` : 'Guide not found - Plainkit';
     if (changed) scroller.scrollTop = 0; // a new page starts at its top; the link to the guide you are already reading goes to its top
 }
 
-mountShell({ page: 'guides', title: null });
+mountShell({ page: 'guides', title: null }, doc);
 // A same-page link (the toc, a heading's permalink) scrolls the article and gets its own history entry: pk-doc-page scrolls and reports it, the address is the page's.
 on(page, 'pk-navigate', e => router.navigate(routeHash(e.detail.id, e.detail.anchor).slice(1)));
 router.subscribe(route);
-if (!isAnchorHash(location.hash)) route(); // a bare anchor on first load has no current guide to scroll within yet; the anchor listener above already no-ops on it
+if (!isAnchorHash(addressOf(win).hash)) route(); // a bare anchor on first load has no current guide to scroll within yet; the anchor listener above already no-ops on it
