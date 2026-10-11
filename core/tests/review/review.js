@@ -4,6 +4,7 @@
 // screenshots each rect. The rules that judge the facts are in audit.js (pure, tested in Node).
 import { loadElement } from '../../site/gallery/gallery.data.js';
 import { loadElements, observeElements } from '../../js/loader.js';
+import { whenUpgraded } from './ready.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 
@@ -190,7 +191,7 @@ try {
         root.append(title, stage);
         applyDynamic(stage);
         await loadElements(stage, { registry });
-        await Promise.all([...new Set([...stage.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
+        await whenUpgraded(stage, { load: n => loadElements(n, { registry }), log }); // shadow trees included (ready.js)
         await idle();
     }
     await idle();
