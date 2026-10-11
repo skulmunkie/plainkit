@@ -22,8 +22,12 @@ const reports = defineModule({
 });
 const ALERT = 'pk-alert[kind=danger]';
 const STATE = '#pk-main pk-empty-state';
-// A module is chosen in the side nav's module list; on a phone the hamburger opens it as the drawer first.
-const go = id => [{ click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: `pk-nav-item[data-module=${id}]` }];
+// A module is chosen with the module picker (#388): the dropdown in the bar, or on a phone the drawer's first row, opened by the hamburger.
+const go = id => [
+    { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] },
+    { click: 'pk-navbar pk-dropdown [slot=trigger]', on: ['desktop'] }, { wait: 300, on: ['desktop'] }, { shot: `picker-${id}`, on: ['desktop'] },
+    { click: `pk-nav-item[data-module=${id}]`, on: ['phone'] }, { click: `pk-navbar pk-menu-item[data-module=${id}]`, on: ['desktop'] },
+];
 
 export default {
     name: 'app-module-switch',
@@ -46,6 +50,8 @@ export default {
     },
     steps: [
         { wait: 'settle' }, { wait: 500 }, { shot: 'start' },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] }, { shot: 'drawer-picker', on: ['phone'] },
+        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { key: 'Escape', on: ['phone'] }, { wait: 500, on: ['phone'] },
         ...go('reports'), { wait: 700 }, { shot: 'loading' },
         { key: 'r' }, { wait: 1500 }, { shot: 'switched' },
         ...go('broken'), { wait: 1500 }, { shot: 'error' },
@@ -59,16 +65,22 @@ export default {
         t.inViewport('#pk-main');
         t.noOverlap('pk-navbar', '#pk-main');
         t.inViewport('pk-app-bar-search', 1);
-        if (t.shot === 'start') { t.exists('pk-nav-item[data-module=orders][expanded]'); t.hasText('#pk-main h1', 'All orders'); t.exists('pk-nav-item[current][href="#/orders"]'); }
+        if (t.shot === 'start') {
+            t.hasText('#pk-main h1', 'All orders'); t.exists('pk-nav-item[current][href="#/orders"]');
+            t.ok(document.querySelectorAll('pk-navbar pk-dropdown:not([slot=actions]):not([hidden])').length === (desktop ? 1 : 0), 'exactly one picker in the bar on desktop, none on a phone');
+            t.ok(document.querySelector('pk-navbar pk-dropdown [slot=trigger]')?.textContent.trim() === 'Orders', 'the picker shows the active module');
+            t.ok(document.querySelectorAll('#pk-nav > pk-nav-item[data-module]').length === 0, 'the side nav holds no module rows');
+        }
+        if (t.shot === 'drawer-picker') { t.exists('#pk-nav > pk-nav-item:first-child[expanded] > pk-nav-item[data-module=reports]'); t.inViewport('#pk-nav > pk-nav-item:first-child'); }
+        if (t.shot?.startsWith('picker-')) { t.visible('pk-navbar pk-menu-item[data-module=orders]', 'the list'); t.inViewport('pk-navbar pk-menu-item[data-module=payroll]'); }
         if (t.shot === 'loading') {
             t.exists('pk-loading-overlay[busy]');
             t.hasText('#pk-main h1', 'All orders'); // the previous module stays, covered
-            t.exists('pk-nav-item[data-module=orders][expanded]');
+            t.exists('pk-nav-item[href="#/orders/open"]');
         }
         if (t.shot === 'switched') {
             t.absent('pk-loading-overlay[busy]');
-            t.exists('pk-nav-item[data-module=reports][expanded]');
-            t.absent('pk-nav-item[data-module=orders][expanded]');
+            t.ok(document.querySelector('pk-navbar pk-dropdown [slot=trigger]')?.textContent.trim() === 'Reports' || !desktop, 'the picker shows Reports');
             t.hasText('#pk-main h1', 'Sales');
             t.hasText('pk-breadcrumb', 'Reports');
             t.absent('pk-nav-item[href="#/orders/open"]'); // the section swapped with the module
@@ -83,7 +95,7 @@ export default {
             t.hasText(ALERT, BOUNDARY_FAILED_TEXT); // a raw import error is not userFacing (#378): the generic text shows, not the fetch detail
             t.visible(`${ALERT} pk-button`, 'Retry');
             t.inViewport(ALERT);
-            t.exists('pk-nav-item[data-module=reports][expanded]'); // the previous module stays usable
+            t.exists('pk-nav-item[href="#/reports/audit"]'); // the previous module stays usable
             t.visible('#pk-main h1');
         }
         if (t.shot === 'forbidden') {

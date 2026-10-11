@@ -42,7 +42,7 @@ export default {
 };
 ```
 
-`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `layout`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](../../dist/skills/plainkit-sdk/references/app.md).
+`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](../../dist/skills/plainkit-sdk/references/app.md).
 
 ## Write a module
 
@@ -183,7 +183,7 @@ Route params and query values come from the address, so they are untrusted text:
 
 ## The nav is structure
 
-`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. With `layout: 'side'` (the default) the modules are the top-level sections of the side nav and the active one holds its own nav; `layout: 'top'` puts a tiny app's module links in the header. On a narrow screen both use one drawer.
+`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. The side nav is the active module's own nav and nothing else (a module without a `nav` leaves the column empty on a wide screen, so the page does not reflow, and shows no drawer body on a phone). Modules are switched with the module picker: a button in the header showing the active module's title, and on a narrow screen the first row of the one drawer. With one module there is no picker.
 
 ## State, settings and guards
 

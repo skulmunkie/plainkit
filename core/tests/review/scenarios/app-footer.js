@@ -7,7 +7,7 @@ const mod = (id, title, extra = {}) => defineModule({ id, title, routes: [{ path
 const orders = mod('orders', 'Orders');
 const billing = mod('billing', 'Billing', { footer: { text: 'Billing is run by Finance', links: [{ label: 'Invoice policy', href: '#/billing/policy' }] } });
 const kiosk = mod('kiosk', 'Kiosk', { footer: false });
-const go = id => [{ click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: `pk-nav-item[data-module=${id}]` }, { wait: 800 }];
+const go = id => [{ click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { click: `pk-nav-item[data-module=${id}]`, on: ['phone'] }, { click: 'pk-navbar pk-dropdown:not([slot=actions]) [slot=trigger]', on: ['desktop'] }, { click: `pk-navbar pk-menu-item[data-module=${id}]`, on: ['desktop'] }, { wait: 800 }];
 
 export default {
     name: 'app-footer',

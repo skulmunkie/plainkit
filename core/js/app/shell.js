@@ -3,9 +3,9 @@
 //
 //   <pk-skip-link href="#pk-main">, <pk-skip-link href="#pk-nav">                    first focusable; the second only while there is a menu
 //   <pk-app-shell>                                                                   landmarks: header (banner), footer, the one <main>
-//     <pk-side-nav slot="nav" id="pk-nav">                                           the menu (js/app/nav.js): the modules as sections (side layout) or the active module's own entries (top)
-//     <pk-button slot="header" data-nav-toggle>                                      the ONE menu control: opens the drawer (hidden on a wide side layout, where the side nav has its own rail chevron, #448)
-//     <pk-navbar slot="header" label="Main" no-fold>                                 the brand, the module links (top layout only), pk-app-bar-search and the settings menu
+//     <pk-side-nav slot="nav" id="pk-nav">                                           the menu (js/app/nav.js): the active module's own entries (the drawer's first row is the module picker)
+//     <pk-button slot="header" data-nav-toggle>                                      the ONE menu control: opens the drawer (hidden on a wide screen, where the side nav has its own rail chevron, #448)
+//     <pk-navbar slot="header" label="Main" no-fold>                                 the brand, the module picker (pk-dropdown; hidden narrow and with one module), pk-app-bar-search and the settings menu
 //     <main id="pk-main" tabindex="-1"><pk-stack><pk-breadcrumb/><div>the module host</div></pk-stack></main>
 //     <span slot="footer">...</span>                                                 only with config.footer
 //   <div role="status" aria-live="polite">                                           the route announcement (the framework's u-sr-only utility keeps it off the screen)
@@ -32,9 +32,12 @@ export function buildShell(doc, cfg, hrefOf) {
         ...settings.map(m => h(doc, 'pk-menu-item', { href: hrefOf(`/${m.id}`), 'data-module': m.id }, m.title)),
     );
     gear.firstChild.append(h(doc, 'pk-icon', { name: 'settings' }));
+    const picker = h(doc, 'pk-dropdown', { placement: 'bottom-start' });
+    picker.append(h(doc, 'pk-button', { slot: 'trigger', variant: 'ghost', label: 'Switch module' }), ...cfg.modules.filter(m => !m.menu).map(m => h(doc, 'pk-menu-item', { href: hrefOf(`/${m.id}`), 'data-module': m.id }, m.title)));
+    picker.firstChild.append(doc.createTextNode(''), h(doc, 'pk-icon', { name: 'chevron-down' }));
     const search = cfg.search && h(doc, 'pk-app-bar-search', { slot: 'actions', label: cfg.search.placeholder, placeholder: cfg.search.placeholder });
     const navbar = h(doc, 'pk-navbar', { slot: 'header', label: 'Main', 'no-fold': true });
-    navbar.append(h(doc, 'a', { slot: 'brand', href: hrefOf('/') }, cfg.brand.text), ...(search ? [search] : []), gear);
+    navbar.append(h(doc, 'a', { slot: 'brand', href: hrefOf('/') }, cfg.brand.text), picker, ...(search ? [search] : []), gear);
 
     const toggle = h(doc, 'pk-button', { slot: 'header', variant: 'ghost', size: 'mini', icon: true, 'data-nav-toggle': true, label: 'Toggle the menu' });
     toggle.append(h(doc, 'pk-icon', { name: 'menu' }));
@@ -51,5 +54,5 @@ export function buildShell(doc, cfg, hrefOf) {
     const live = h(doc, 'div', { role: 'status', 'aria-live': 'polite', class: 'u-sr-only' });
     const toasts = h(doc, 'pk-toast-stack', { position: 'bottom-end' });
     const dialogs = h(doc, 'div', { 'data-pk-dialogs': true });
-    return { nodes: [skip, shell, live, toasts, dialogs], skip, skipNav, shell, navbar, actions: search ?? gear, themeItem, search, toggle, sideNav, crumbs, host, main, live, toasts, dialogs };
+    return { nodes: [skip, shell, live, toasts, dialogs], skip, skipNav, shell, navbar, picker, themeItem, search, toggle, sideNav, crumbs, host, main, live, toasts, dialogs };
 }
