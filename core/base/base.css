@@ -136,3 +136,9 @@ a:not([class], [data-dresses-links] > a):hover {
     padding-inline: var(--space-1);
     color: var(--color-muted);
 }
+
+/* The app shell fills the screen before it upgrades, so the page does not jump when its module arrives (#1076). */
+pk-app-shell:not(:defined) {
+    display: block;
+    height: 100dvh;
+}

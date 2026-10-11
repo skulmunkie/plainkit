@@ -37,6 +37,9 @@
 @media (--above-tablet) {
     :host([nav-hidden]) { grid-template-columns: minmax(0, 1fr); }
     :host([nav-hidden]) slot[name="nav"] { display: none; }
+    /* While its pk-side-nav is still loading (it is invisible until defined) the nav column keeps its width: else the main column starts at the left edge and jumps right when the nav upgrades. */
+    ::slotted(pk-side-nav:not(:defined)) { display: block; box-sizing: border-box; width: var(--shell-nav-w); }
+    ::slotted(pk-side-nav[collapsed]:not(:defined)) { width: var(--shell-nav-w-collapsed); }
 }
 
 @media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } }
