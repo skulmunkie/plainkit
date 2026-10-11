@@ -1,0 +1,92 @@
+// Per-page bundle: node core/tools/bundle-page.mjs --elements pk-button,pk-input | --html page.html [--app] [--dist core/dist] --out dir
+// Bundles the SDK's shared core and exactly the element modules a page uses into ONE minified ES module (plainkit.bundle.js) and copies the
+// light-DOM stylesheet as ONE css file (plainkit.bundle.css: tokens, base and the elements' FOUC guards; each element's own CSS is inside its module).
+// A page then makes two requests instead of 20 to 27. Dev/build tool: it needs esbuild (a devDependency of this repository, not of the published
+// package), so run it from a checkout, or `npm i -D esbuild` next to your project and point --dist at node_modules/plainkit/dist.
+import fs from 'node:fs';
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+// The pk-* tag names opened in an HTML text. Pure.
+export function tagsInHtml(html) {
+    return [...new Set([...html.matchAll(/<(pk-[a-z0-9]+(?:-[a-z0-9]+)*)(?=[\s/>])/gi)].map(m => m[1].toLowerCase()))].sort();
+}
+
+export const sizes = data => ({ raw: Buffer.byteLength(data), gzip: zlib.gzipSync(data, { level: 9 }).length, brotli: zlib.brotliCompressSync(data).length });
+
+// The entry source for a module list: the page layer and loader re-exports, every element module, optionally the app framework.
+export function entrySource(modules, { app = false, full = false } = {}) {
+    return [`export * from "./js/${full ? "plainkit" : "init"}.js";`, ...(app ? ['export * from "./js/app.js";'] : []), ...modules.map(m => `import ${JSON.stringify('./elements/' + m)};`)].join('\n') + '\n';
+}
+
+const registryOf = async dist => (await import(pathToFileURL(path.join(dist, 'elements', 'registry.js')).href)).default;
+
+export async function bundlePage({ tags, dist, out, app = false, full = false }) {
+    let esbuild;
+    try { esbuild = await import('esbuild'); } catch (error) { throw new Error(`esbuild is not installed (${error.message}). FIX: run npm ci in the repository, or npm i -D esbuild in your project.`); }
+    const registry = await registryOf(dist);
+    const unknown = tags.filter(t => !registry[t]);
+    if (unknown.length) throw new Error(`not Plainkit elements: ${unknown.join(', ')}. FIX: check the spelling against dist/elements/registry.js.`);
+    const modules = [...new Set(tags.map(t => registry[t].replace(/^\.\//, '')))];
+    const res = await esbuild.build({
+        stdin: { contents: entrySource(modules, { app, full }), resolveDir: dist, sourcefile: 'plainkit-page.js' },
+        bundle: true, format: 'esm', minify: true, write: false, legalComments: 'none', target: 'es2022', treeShaking: true,
+    });
+    const js = res.outputFiles[0].text;
+    const css = fs.readFileSync(path.join(dist, 'plainkit.min.css'), 'utf8');
+    fs.mkdirSync(out, { recursive: true });
+    fs.writeFileSync(path.join(out, 'plainkit.bundle.js'), js);
+    fs.writeFileSync(path.join(out, 'plainkit.bundle.css'), css);
+    return { tags, modules, js: sizes(js), css: sizes(css), files: ['plainkit.bundle.js', 'plainkit.bundle.css'] };
+}
+
+// The unbundled cost: the static import graph of the same entry (files, summed per-file sizes), plus the registry the loader fetches.
+export async function unbundledGraph({ tags, dist, app = false, full = false }) {
+    const registry = await registryOf(dist);
+    const seen = new Set();
+    const walk = f => {
+        if (seen.has(f) || !fs.existsSync(f)) return;
+        seen.add(f);
+        for (const m of fs.readFileSync(f, 'utf8').matchAll(/(?:\bfrom\s*|\bimport\s*)["'](\.[^"']+)["']/g)) walk(path.resolve(path.dirname(f), m[1]));
+    };
+    walk(path.join(dist, 'js', full ? 'plainkit.js' : 'init.js'));
+    if (app) walk(path.join(dist, 'js', 'app.js'));
+    walk(path.join(dist, 'elements', 'registry.js'));
+    for (const t of tags) walk(path.join(dist, 'elements', registry[t]));
+    let raw = 0, gzip = 0, brotli = 0;
+    for (const f of seen) { const s = sizes(fs.readFileSync(f)); raw += s.raw; gzip += s.gzip; brotli += s.brotli; }
+    return { files: seen.size, raw, gzip, brotli };
+}
+
+function parse(argv) {
+    const o = { elements: [], html: [], app: false, full: false, dist: path.join(here, '..', 'dist'), out: null };
+    for (let i = 0; i < argv.length; i++) {
+        const a = argv[i], v = () => argv[++i];
+        if (a === '--elements') o.elements.push(...v().split(',').map(s => s.trim()).filter(Boolean));
+        else if (a === '--html') o.html.push(v());
+        else if (a === '--app') o.app = true;
+        else if (a === '--full') o.full = true;
+        else if (a === '--dist') o.dist = path.resolve(v());
+        else if (a === '--out') o.out = path.resolve(v());
+        else throw new Error(`unknown argument ${a}. Usage: bundle-page.mjs (--elements pk-a,pk-b | --html page.html) [--app] [--full] [--dist dir] --out dir`);
+    }
+    return o;
+}
+
+const kb = n => (n / 1024).toFixed(1) + ' KB';
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    try {
+        const o = parse(process.argv.slice(2));
+        const tags = [...new Set([...o.elements, ...o.html.flatMap(f => tagsInHtml(fs.readFileSync(f, 'utf8')))])].sort();
+        if (!o.out || !tags.length) throw new Error('give --out and at least one element (--elements pk-button, or --html page.html with pk-* tags).');
+        const r = await bundlePage({ tags, dist: o.dist, out: o.out, app: o.app, full: o.full });
+        const u = await unbundledGraph({ tags, dist: o.dist, app: o.app, full: o.full });
+        console.log(`bundled ${tags.join(', ')} -> ${path.join(o.out, 'plainkit.bundle.js')} + .css (2 requests; unbundled js is ${u.files} files)`);
+        console.log(`js   raw ${kb(r.js.raw)}  gzip ${kb(r.js.gzip)}  brotli ${kb(r.js.brotli)}   (unbundled: raw ${kb(u.raw)}, gzip ${kb(u.gzip)}, brotli ${kb(u.brotli)})`);
+        console.log(`css  raw ${kb(r.css.raw)}  gzip ${kb(r.css.gzip)}  brotli ${kb(r.css.brotli)}`);
+        console.log('Load it with <link rel="stylesheet" href="plainkit.bundle.css"> and <script type="module" src="plainkit.bundle.js"></script>');
+    } catch (error) { console.error(error.message); process.exit(1); }
+}
