@@ -130,6 +130,15 @@ export const overlaysCases = [
         let seen; el.addEventListener('pk-select', e => { seen = e.detail; }); b.click(); await t.settle(); t.eq(seen.value, 'Rebuild', 'the value is the label alone');
     }],
 
+    ['menu-item: a prefix icon and a badge lay out like a pk-nav-item row (fixed icon cell, pill pushed to the end)', async t => {
+        const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item><span slot="prefix">*</span>Inbox<span slot="badge">12</span></pk-menu-item><pk-menu-item>Plain</pk-menu-item></pk-dropdown>');
+        const [a] = el.querySelectorAll('pk-menu-item'); await t.settle();
+        const row = a.getBoundingClientRect(), badge = a.querySelector('[slot="badge"]'), pill = badge.getBoundingClientRect(), icon = a.querySelector('[slot="prefix"]').getBoundingClientRect();
+        t.ok(pill.width > 0 && row.right - pill.right <= parseFloat(getComputedStyle(a).paddingRight) + 1, 'the badge sits at the end of the row');
+        t.ok(getComputedStyle(badge).borderRadius !== '0px' && getComputedStyle(badge).backgroundColor !== 'rgba(0, 0, 0, 0)', 'and is a filled pill');
+        t.ok(icon.width >= 16 && icon.right < a.part('label').getBoundingClientRect().left, 'the icon is a cell before the label');
+    }],
+
     ['dropdown: a submenu opens with Right and closes with Left', async t => {
         const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item>More<pk-menu-item slot="submenu">One</pk-menu-item><pk-menu-item slot="submenu">Two</pk-menu-item></pk-menu-item></pk-dropdown>');
         const parent = el.querySelector('pk-menu-item'); const [one, two] = parent.querySelectorAll('pk-menu-item');
