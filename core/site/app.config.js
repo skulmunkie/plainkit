@@ -13,7 +13,7 @@ export default {
         redirect('scorecard', 'Scorecard', 'site/scorecard/index.html'),
         redirect('theme', 'Theme editor', 'site/theme/index.html'),
         redirect('layout-builder', 'Layout builder', 'site/layout-builder/index.html'),
-        redirect('guides', 'Guides', 'site/guides/index.html'),
+        { id: 'guides', title: 'Guides', load: () => import('./modules/guides.js') },
         { id: 'devtools', title: 'Dev tools', load: () => import('./modules/devtools.js') },
         { id: 'settings', title: 'Settings', menu: 'settings', load: () => import('./modules/settings.js') },
     ],

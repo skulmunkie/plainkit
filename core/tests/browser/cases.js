@@ -328,7 +328,7 @@ import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
-import { guidesCases } from './cases-guides.js'; cases.push(...guidesCases);
+import { guidesCases, guidesAppCases } from './cases-guides.js'; cases.push(...guidesCases, ...guidesAppCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
 import { galleryCases } from './cases-gallery.js'; cases.push(...galleryCases);

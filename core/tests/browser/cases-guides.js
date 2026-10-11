@@ -175,3 +175,38 @@ export const guidesCases = [
         }
     }],
 ];
+
+// The Guides as a lazy module of the site app (#355): core/app.html#/guides, the same content and search in the app's 'doc' page type.
+async function openApp(t, hash, width = 1280) {
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'Site app'; f.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+    const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+    f.src = new URL(`../../app.html${hash}`, import.meta.url).href; host.append(f); await loaded;
+    const win = f.contentWindow, d = f.contentDocument;
+    await until(() => d.querySelector('#pk-main pk-doc-page .doc-page-title, #pk-main pk-doc-page pk-card'), 'the guides page');
+    await t.settle(); await wait(300);
+    const go = async to => { win.location.hash = to; await wait(150); };
+    return { win, d, go, doc: () => d.querySelector('#pk-main pk-doc-page'), items: () => [...d.querySelectorAll('#pk-main pk-doc-page pk-side-nav pk-nav-item')] };
+}
+export const guidesAppCases = [
+    ['guides module (app, 1280px): the guide list is the nav, a deep link opens a guide with crumbs, and a heading anchor in the address scrolls to it', async t => {
+        const p = await openApp(t, '#/guides/theming');
+        t.eq(p.items().length, 9, 'one nav item per guide');
+        t.eq(p.items().filter(i => i.hasAttribute('current')).length, 1, 'the open guide is current');
+        t.ok(p.items().every(i => /^#\/guides\/[a-z-]+$/.test(i.getAttribute('href'))), 'every nav link is a router address under #/guides');
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent, 'the title');
+        t.ok(/theming/i.test(p.d.querySelector('.doc-page-title').textContent), 'the deep link opened Theming');
+        const h = [...p.doc().querySelectorAll('h2')][1];
+        await p.go(`#/guides/theming?anchor=${h.id}`);
+        await until(() => Math.abs(h.getBoundingClientRect().top) < 700, 'the heading to be scrolled into view');
+        t.ok(/anchor=/.test(p.win.location.hash), 'the address keeps the anchor');
+    }],
+    ['guides module (app, 375px): the list route draws the guide cards and a body word finds the guides that mention it', async t => {
+        const p = await openApp(t, '#/guides', 375);
+        const input = await until(() => p.doc().querySelector('pk-side-nav pk-input'), 'the search box');
+        t.ok(p.doc().querySelectorAll('pk-card').length >= 9, 'a card per guide on the list');
+        input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400);
+        const shownItems = p.items().filter(i => !i.hidden);
+        t.ok(shownItems.length >= 1 && shownItems.length < 9, 'the nav keeps only the guides that match');
+    }],
+];
