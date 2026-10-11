@@ -37,7 +37,7 @@
 
 [part="description"][hidden] { display: none; }
 
-:host(:has([slot="description"])), :host([description]:not([description=""])) { padding-block: var(--space-2); }
+.body[data-described] { padding-block: calc(var(--space-2) - var(--space-1)); }
 
 ::slotted([slot="suffix"]) { color: var(--color-muted); font-size: var(--text-meta); }
 
