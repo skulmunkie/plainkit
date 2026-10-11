@@ -1,0 +1,20 @@
+@* A concrete PkComponentBase (issue 1022) that records its loads and runs so the tests can drive OnLoadAsync, RunAsync and dispose. *@
+@inherits PkComponentBase
+
+<p>@(IsLoading ? "loading" : LoadError is not null ? "error:" + LoadError.Message : "ready")@(IsBusy ? " busy:" + BusyLabel : "")</p>
+
+@code {
+    [Parameter] public int Key { get; set; }
+    [Parameter] public Func<CancellationToken, Task>? Load { get; set; }
+    public int Loads { get; private set; }
+    public List<CancellationToken> Tokens { get; } = [];
+    public Task<string?> Run(Func<CancellationToken, Task<string>> action) => RunAsync(action, "Saving");
+    public Task CallInvokeStateChanged() => InvokeStateChanged();
+
+    protected override async Task OnLoadAsync(CancellationToken cancel)
+    {
+        Loads++;
+        Tokens.Add(cancel);
+        if (Load is not null) await Load(cancel);
+    }
+}
