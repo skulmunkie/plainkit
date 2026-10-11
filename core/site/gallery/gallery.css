@@ -90,6 +90,11 @@ pk-stack#gx-shell[data-full] > #gx-pagebar { padding-block: var(--space-1); }
 /* The docked inspector sits over the pane's right edge: keep the page gutter as well as the inspector's width. */
 #gx-view[data-inspecting] { padding-inline-end: calc(var(--inspector-w) + var(--pad-page)); }
 
+/* The inspector's API tables are wider than the drawer: the table keeps room for its Description and scrolls inside its own region with the Name column fixed (a phone lays rows out as cards instead). Muted text takes the stronger token on the drawer surface, and code inside it the text colour, so both clear 4.5:1 (#1113). */
+#gx-inspector-body pk-table::part(table) { min-inline-size: var(--_gx-api-table-min-w); }
+#gx-inspector-body .muted { color: var(--color-muted-strong); }
+.muted code { color: var(--color-text); }
+
 #gx-resize { position: absolute; top: 0; bottom: 0; inset-inline-end: var(--inspector-w); width: var(--space-2); cursor: ew-resize; z-index: var(--z-sticky); }
 #gx-resize:hover, #gx-resize:focus-visible { background: var(--color-accent); }
 
@@ -118,6 +123,7 @@ pk-stack#gx-shell[data-full] > #gx-pagebar { padding-block: var(--space-1); }
 }
 
 @media (--phone) {
+    #gx-inspector-body pk-table::part(table) { min-inline-size: 0; }
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
     #gx-view, #gx-view[data-inspecting] { padding: var(--space-3) var(--space-2); }
     .gx-pair > div:first-child { display: none; }
