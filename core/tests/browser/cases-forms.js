@@ -461,6 +461,21 @@ export const formCases = [
         await new Promise(r => setTimeout(r, 200)); t.eq(f.contentWindow.innerWidth, 375);
         for (const b of buttons) { const r = b.part('control').getBoundingClientRect(); t.ok(r.width >= 43.5 && r.height >= 43.5, `${b.getAttribute('size') ?? 'link'} is ${r.width}x${r.height}, not under 44px`); if (!b.querySelector('pk-icon')) t.eq(b.shadowRoot.querySelector('.lbl').getBoundingClientRect().width, 0, 'the text takes no room'); }
     }],
+    ['checkbox and filter-panel close (375px): the bare checkbox label and the close button are 44px wide as well as tall (#1003)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '300px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc('<pk-checkbox aria-label="Pick"></pk-checkbox><pk-table-filters><pk-input label="Name"></pk-input></pk-table-filters>'); await loaded;
+        const until = async fn => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await new Promise(r => setTimeout(r, 50)); } throw new Error('the elements did not upgrade'); };
+        const d = () => f.contentDocument, cb = await until(() => d().querySelector('pk-checkbox')?.shadowRoot?.querySelector('label.chk') && d().querySelector('pk-checkbox'));
+        const tf = await until(() => d().querySelector('pk-table-filters')?.shadowRoot?.querySelector('[part="close"]') && d().querySelector('pk-table-filters'));
+        t.eq(f.contentWindow.innerWidth, 375);
+        const lab = cb.shadowRoot.querySelector('label.chk').getBoundingClientRect();
+        t.ok(lab.width >= 43.5 && lab.height >= 43.5, `the checkbox label is ${lab.width}x${lab.height}, not under 44px`);
+        tf.toggle(true); await new Promise(r => setTimeout(r, 100));
+        const c = tf.shadowRoot.querySelector('[part="close"]').getBoundingClientRect();
+        t.ok(c.width >= 43.5 && c.height >= 43.5, `the close button is ${c.width}x${c.height}, not under 44px`);
+    }],
     ['property-grid unit: the unit picker shares the row of the number input, changing it emits { value, unit }, and an out-of-range value shows its message', async t => {
         const host = t.stage('<div style="inline-size:480px"><pk-property-grid></pk-property-grid></div>'); await t.load(host);
         const g = host.querySelector('pk-property-grid');
