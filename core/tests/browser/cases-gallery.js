@@ -131,7 +131,7 @@ export const galleryCases = [
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
         f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
-            + `<body class="site"><div class="gx-mount site-body"><div class="gx-shell"><main class="gx-main">${bar.outerHTML}</main></div></div></body></html>`;
+            + `<body class="site"><div class="site-body" data-gx-mount><pk-app-shell flush>${bar.outerHTML}</pk-app-shell></div></body></html>`;
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
         const raw = f.contentDocument.querySelector('#gx-bar');
         t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
@@ -155,21 +155,41 @@ export const galleryCases = [
         const row = ['#gx-back', '#gx-title', '#gx-theme', '#gx-open'].map(s => p.doc.querySelector(s).getBoundingClientRect());
         t.ok(row.every(r => Math.abs((r.top + r.height / 2) - (row[0].top + row[0].height / 2)) < 2), 'Back, the title, the theme switch and Open share one row');
     }],
+    ['gallery: the page frame is a pk-app-shell, the nav is its nav column, both bars are its header, the view is the one scroller and the Details drawer docks over the end edge (#682)', async t => {
+        const p = await open(t, '#/elements/pk-button');
+        const shell = p.doc.querySelector('#gx-shell'), nav = p.doc.querySelector('#gx-nav'), bar = p.doc.querySelector('#gx-bar'), view = p.view();
+        t.eq(shell.localName, 'pk-app-shell', 'the frame is a pk-app-shell'); t.eq(nav.getAttribute('slot'), 'nav', 'the nav is in its nav slot');
+        t.eq(p.doc.querySelectorAll('#gx-shell > [class]:not(.gx-nav)').length, 0, 'no hand-written class on the frame parts (the nav keeps one for its width before it upgrades)');
+        await until(() => view.querySelector('pk-page-header'), 'the element page');
+        const n = nav.getBoundingClientRect(), b = bar.getBoundingClientRect(), v = view.getBoundingClientRect();
+        t.ok(n.right <= b.left + 1 && n.right <= v.left + 1, 'the nav column lies before the bar and the view');
+        t.ok(b.bottom <= v.top + 1, 'the header (the bar) lies above the view');
+        t.ok(Math.abs(v.bottom - shell.getBoundingClientRect().bottom) < 2, 'the view reaches the bottom of the frame');
+        t.ok(shell.getBoundingClientRect().height <= p.win.innerHeight + 1, 'the frame fits the window, only the view scrolls');
+        const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
+        if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
+        await until(() => p.doc.querySelector('#gx-inspector').hasAttribute('open'), 'the Details drawer to open'); await wait(300);
+        const d = p.doc.querySelector('#gx-inspector').shadowRoot.querySelector('[part="panel"]').getBoundingClientRect();
+        t.ok(Math.abs(d.right - v.right) < 2 && d.top >= b.bottom - 1, 'the drawer docks to the end edge of the body, under the header');
+        t.ok(parseFloat(p.win.getComputedStyle(view).paddingInlineEnd) >= d.width, 'the view keeps clear of the drawer');
+        p.go('#/samples/layouts/shell'); await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar');
+        t.ok(p.win.getComputedStyle(nav).display === 'none' && bar.hidden && !p.doc.querySelector('#gx-pagebar').hidden, 'a full-page sample hides the nav and the wide bar and shows the slim bar');
+    }],
     ['gallery: the overview, the page header and the side-nav titles keep their box while their elements upgrade (#1076)', async t => {
         const p = await open(t, '#/overview');
         await Promise.all(['pk-page-header', 'pk-card', 'pk-grid', 'pk-side-nav', 'pk-nav-item'].map(tag => p.win.customElements.whenDefined(tag)));
         await wait(100);
-        const shell = p.doc.querySelector('.gx-shell');
+        const shell = p.doc.querySelector('#gx-shell');
         // The same markup with no script: every pk-* element stays undefined, the state a slow connection paints first.
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
         f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
-            + `<body class="site"><div class="gx-mount site-body">${shell.outerHTML}</div></body></html>`;
+            + `<body class="site"><div class="site-body" data-gx-mount>${shell.outerHTML}</div></body></html>`;
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
         const raw = f.contentDocument;
         const box = (d, sel, i = 0) => d.querySelectorAll(sel)[i].getBoundingClientRect();
         const near = (sel, what, i = 0) => t.ok(Math.abs(box(raw, sel, i).height - box(p.doc, sel, i).height) <= 3, `${what} is ${Math.round(box(raw, sel, i).height)}px high before upgrade and ${Math.round(box(p.doc, sel, i).height)}px after`);
-        near('.gx-head', 'the page header'); near('.gx-tile', 'an overview tile'); near('main pk-grid', 'the overview grid');
+        near('.gx-head', 'the page header'); near('.gx-tile', 'an overview tile'); near('#gx-view pk-grid', 'the overview grid');
         // Titles sit between nav rows. The nav's own header is hidden until its element is defined, so compare the distance between two titles (the rows
         // between them are what must keep their height while pk-nav-item is undefined: the 0.0015 shift), not the position of the first.
         const gap = (d, i) => box(d, '.gx-nav-title', i + 1).top - box(d, '.gx-nav-title', i).top;
