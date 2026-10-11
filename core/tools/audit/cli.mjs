@@ -18,7 +18,7 @@ import { collectFiles } from './glob.mjs';
 import { formatText, formatJson, formatSarif, formatRuleList, formatExplain } from './format.mjs';
 import { DEFAULT_BASELINE_NAME, loadBaseline, writeBaseline, applyBaseline, BaselineError } from './baseline.mjs';
 
-const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.css', '.razor', '.cshtml'];
+const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.css', '.razor', '.cshtml', '.cs'];
 const MAX_FILE_BYTES = 1024 * 1024;
 
 function packageVersion() {
