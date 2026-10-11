@@ -10,7 +10,7 @@ Status: proposal for the owner. Read-only research; no code changed. Date 2026-1
 - **Framework** (`core/js/app/`): `app.js` (mountApp), `config.js` (readConfig; `layout` is 'side'|'top'), `host.js` (routes, `persist: true` routes, lazy import behind the allow-list), `module.js` (defineModule; route `context`), `nav.js` (`navOf`, `absolute`, `menuTree` merging the module list into the nav tree, `paintNav`, `paintLinks`, `pageContext`, `routeContext`), `shell.js`, `lazy.js`, `boundary.js`. `core/js/page-context.js` (#670) reuses `pageContext`/`routeContext` for pages outside mountApp and is not in the app entry.
 - **Chrome parts**: `core/shells/app-shell`, `pk-side-nav`, `pk-nav-item`, the settings menu popover.
 - **Budget**: `appEntryGzKb` limit 22 (hard cap, #514), measured 21.78, so 0.22 KB of room. Anything that adds code to the entry graph must be offset in the same PR. Module chunks (Gallery, Guides) are not in the entry graph when loaded lazily; `appPageTypeGzKb` (3) applies per page-type chunk.
-- **Tests**: `core/tests/retired-urls.test.mjs` lists retired addresses (`settings/index.html`, `devtools/index.html`, `site/settings/page.js`, `site/devtools/page.js`) and fails if any tracked file refers to them (owner decision: no redirect stubs). Browser cases live in `core/tests/browser/cases-app.js` and `cases-app-shell.js`.
+- **Tests**: `core/tests/retired-urls.test.mjs` lists the retired addresses of the old settings and devtools pages and fails if any tracked file refers to them (owner decision: no redirect stubs). Browser cases live in `core/tests/browser/cases-app.js` and `cases-app-shell.js`.
 
 ## 2. Target
 
