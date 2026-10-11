@@ -6,7 +6,7 @@
 import { initPlainkit } from '../js/plainkit.js';
 import { toggleTheme, setTheme, currentTheme } from '../js/theme.js';
 import { readSetting as read, writeSetting as write } from './gallery/settings.js';
-import { on } from '../js/mount-support.js';
+import { on, addressOf, h } from '../js/mount-support.js';
 
 const PK_ROOT = new URL('../', import.meta.url).href;
 export const PAGES = [
@@ -21,43 +21,37 @@ export const PAGES = [
 
 const THEME_KEY = 'pk-site-theme';
 
-function h(tag, props = {}, ...children) {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(props)) if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? '' : v);
-    el.append(...children);
-    return el;
-}
 
 // The search field is the SDK's one reusable header search, pk-app-bar-search, (a pill on a desktop bar; on a phone an icon button that expands over
 // the bar, Escape or its close button puts it back). It dispatches "site-search" (detail: the text) on document as the reader types. The site
 // filters its own page, so the results panel is hidden (site.css).
-function searchField(placeholder) {
-    const field = h('pk-app-bar-search', { label: placeholder, placeholder, debounce: '0' });
-    on(field, 'pk-query', e => document.dispatchEvent(new CustomEvent('site-search', { detail: e.detail.query })));
+function searchField(doc, placeholder) {
+    const field = h(doc, 'pk-app-bar-search', { label: placeholder, placeholder, debounce: '0' });
+    on(field, 'pk-query', e => doc.dispatchEvent(new CustomEvent('site-search', { detail: e.detail.query })));
     return field;
 }
 // The theme switch lives in the settings (profile) menu at the end of the bar, next to a link to the Settings page.
 // options: { page, title, search: { placeholder } | null }. Dispatches "site-search" (detail: string) and "site-theme" (detail: name) on document.
 // Returns { root, destroy() }.
-export function mountShell({ page, title, search = null }) {
-    const root = document.documentElement;
-    setTheme(root, new URLSearchParams(location.search).get('theme') ?? read(THEME_KEY) ?? 'dark');
-    document.body.classList.add('site');
-    const themeItem = h('pk-menu-item', { id: 'site-theme' }, currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme');
-    const header = h('pk-navbar', { label: 'Site' },
-        h('a', { slot: 'brand', href: `${PK_ROOT}index.html` }, 'Plainkit'),
-        ...PAGES.map(p => h('a', { href: p.href, 'aria-current': p.key === page ? 'page' : false }, p.title)),
-        h('div', { slot: 'actions', class: 'site-actions' },
-            ...(search ? [searchField(search.placeholder)] : []),
-            h('pk-dropdown', { placement: 'bottom-end' },
-                h('pk-button', { slot: 'trigger', variant: 'ghost', icon: true, label: 'Settings menu' }, h('pk-icon', { name: 'settings' })),
+export function mountShell({ page, title, search = null }, doc = document) {
+    const root = doc.documentElement;
+    setTheme(root, new URL(addressOf(doc.defaultView).href).searchParams.get('theme') ?? read(THEME_KEY) ?? 'dark');
+    doc.body.classList.add('site');
+    const themeItem = h(doc, 'pk-menu-item', { id: 'site-theme' }, currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme');
+    const header = h(doc, 'pk-navbar', { label: 'Site' },
+        h(doc, 'a', { slot: 'brand', href: `${PK_ROOT}index.html` }, 'Plainkit'),
+        ...PAGES.map(p => h(doc, 'a', { href: p.href, 'aria-current': p.key === page ? 'page' : false }, p.title)),
+        h(doc, 'div', { slot: 'actions', class: 'site-actions' },
+            ...(search ? [searchField(doc, search.placeholder)] : []),
+            h(doc, 'pk-dropdown', { placement: 'bottom-end' },
+                h(doc, 'pk-button', { slot: 'trigger', variant: 'ghost', icon: true, label: 'Settings menu' }, h(doc, 'pk-icon', { name: 'settings' })),
                 themeItem,
-                h('pk-menu-item', { href: '../../app.html#/settings', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
+                h(doc, 'pk-menu-item', { href: '../../app.html#/settings', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
     // A page that reserves the bar's space with a .site-boot-bar placeholder (site.css) gets it swapped in place, so the swap itself never
     // shifts anything (#135); a page without one falls back to the old prepend.
-    const bootBar = document.querySelector('.site-boot-bar');
-    if (bootBar) bootBar.replaceWith(header); else document.body.prepend(header);
-    if (title) { const h1 = h('h1', { class: 'u-sr-only' }, title); header.after(h1); }
+    const bootBar = doc.querySelector('.site-boot-bar');
+    if (bootBar) bootBar.replaceWith(header); else doc.body.prepend(header);
+    if (title) { const h1 = h(doc, 'h1', { class: 'u-sr-only' }, title); header.after(h1); }
     // The label follows the theme attribute on <html>, whoever changes it (this item, the Settings page, the theme editor's own switch): one
     // MutationObserver, no polling. destroy() disconnects it for a host that unmounts the shell.
     const paintTheme = () => { const label = currentTheme(root) === 'dark' ? 'Light theme' : 'Dark theme'; if (themeItem.textContent !== label) themeItem.textContent = label; };
@@ -65,9 +59,9 @@ export function mountShell({ page, title, search = null }) {
     themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
     on(themeItem, 'pk-select', () => {
         write(THEME_KEY, toggleTheme(root));
-        document.dispatchEvent(new CustomEvent('site-theme', { detail: currentTheme(root) }));
+        doc.dispatchEvent(new CustomEvent('site-theme', { detail: currentTheme(root) }));
     });
-    initPlainkit(document);
+    initPlainkit(doc);
     return { root, destroy: () => themeWatch.disconnect() };
 }
 
