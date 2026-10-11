@@ -8,7 +8,15 @@
       "map": "prop",
       "prop": "config",
       "note": "Sent as a JSON attribute: { tabs?: [{ id, label }], widgets: [{ key, tab?, label, kind?: 'stat'|'chart', empty? }], sections?: [{ heading?, tab?, widgets: string[] }], filters?: [{ key, type, label, options? }], empty? }. Breaking: this replaces the earlier { tiles } shape."
+    },
+    {
+      "name": "Load",
+      "callback": "load",
+      "type": "Func<string, Task<object?>>?",
+      "arg": "string",
+      "refresh": true,
+      "doc": "Loads one widget by its key (config.widgets[].key), independently of the others, and returns what the widget draws: for a stat an object with value (and delta, trend...), for a chart the chart properties. Throwing shows that card's error state with Retry; the other widgets are unaffected."
     }
   ],
-  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load is a callback property (business logic), not a Blazor parameter mapped here yet - it needs JS interop from the component (Func<string, Task<object>> or similar, called once per widget key, independently, with the current filter selections available as the page's context); left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and RowHref, PkToolPage's Run and PkSettingsPage's Save callbacks."
+  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load(key) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter once per widget key (issue #366). The current filter selections are not passed to it yet."
 }

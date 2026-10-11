@@ -123,7 +123,7 @@ export default Base => class extends Base {
         pf.append(form);
         return pf;
     }
-    controls() { return [...this.part('main').querySelectorAll('[name]')]; }
+    controls() { return [...this.part('main').querySelectorAll('[name]:not(slot)')]; }
     collect() {
         const out = { ...this.$values };
         for (const c of this.controls()) {
