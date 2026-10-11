@@ -20,4 +20,5 @@
 @media (--phone) {
     [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
+    [part="close"] { min-inline-size: var(--touch-target); }
 }
