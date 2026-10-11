@@ -139,7 +139,7 @@
     .gx-pair > div:first-child { display: none; }
 
     /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
-                        .gx-desktop-only { display: none; }
+    .gx-desktop-only { display: none; }
 
     .gx-phone-only { display: inline-block; }
 
