@@ -664,6 +664,24 @@ export const dataDisplayCases = [
         t.ok(phone.rect.top >= phone.last.bottom - 1, 'the trailing card follows the last card'); t.ok(phone.rect.width >= phone.last.width - 24, `the trailing card is as wide as a row card (${phone.rect.width} vs ${phone.last.width})`);
     }],
 
+    ['table (data mode): with no foot there is no trailing tfoot row or card, with a foot slotted it shows (#1103)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const rows = '[{"id":1,"sku":"A"},{"id":2,"sku":"B"}]', cols = '[{"key":"sku","label":"SKU"}]';
+        const at = async (width, html) => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const tb = await until(() => f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await new Promise(r => setTimeout(r, 200));
+            const foot = tb.shadowRoot.querySelector('tfoot'), r = foot.getBoundingClientRect();
+            return { shown: getComputedStyle(foot).display !== 'none' && r.height > 0 };
+        };
+        for (const width of [1280, 375]) {
+            t.ok(!(await at(width, `<pk-table cards label="F" columns='${cols}' rows='${rows}'></pk-table>`)).shown, `no foot, no trailing tfoot at ${width}px`);
+            t.ok((await at(width, `<pk-table cards label="F" columns='${cols}' rows='${rows}'><span slot="foot">Total</span></pk-table>`)).shown, `a slotted foot shows at ${width}px`);
+        }
+    }],
+
     ['table and data-table (375px): a toolbar with long controls and an action wraps inside the width, the page does not scroll sideways and the action stays visible (#1016)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const tableHtml = `<pk-table cards label="T" columns='[{"key":"sku","label":"SKU"}]' rows='[{"id":1,"sku":"A"}]'><pk-cluster slot="toolbar"><select aria-label="Status"><option>All statuses of every kind</option></select><pk-button variant="ghost">Export the filtered rows</pk-button></pk-cluster><pk-button slot="toolbar" data-end variant="primary">Add a new product</pk-button></pk-table>`;

@@ -16,7 +16,7 @@ export default Base => class extends Base {
         r.addEventListener('click', e => this.click(e));
         r.addEventListener('change', e => this.input(e));
         r.addEventListener('input', e => this.input(e));
-        for (const s of ['', 'toolbar', 'bulk', 'empty', 'footer']) this.watchSlot(s, () => this.requestUpdate());
+        for (const s of ['', 'toolbar', 'bulk', 'empty', 'footer', 'foot']) this.watchSlot(s, () => this.requestUpdate());
     }
     // columns / rows as arrays: json that parsed to something else (an object, a number) is a mistake, said once, and the table shows none.
     list(n) { const v = this[n]; return Array.isArray(v) ? v : (this.warnOnce(n, n + ' is not an array'), []); }

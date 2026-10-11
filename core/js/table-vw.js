@@ -57,7 +57,7 @@ function body(el, rowsAll, h) {
 function frame(el, tb, span, rows) {
     tb.setAttribute('aria-busy', String(el.loading));
     if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
-    el.part('foot').colSpan = span;
+    const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot="foot"]');
     el.part('empty').hidden = el.loading || rows > 0;
     const n = idSet(el.selected).size;
     el.part('bulk').hidden = n === 0; el.part('bulk-count').textContent = `${n} selected`;
