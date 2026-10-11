@@ -295,6 +295,18 @@ export const galleryAppCases = [
         t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
         t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
     }],
+    ['modules (app): a cold deep link to each lazy module leaves no pk-* element undefined once its view is drawn, and the gallery page header draws its heading (the view is drawn after the app scan)', async t => {
+        for (const hash of ['#/gallery/elements/pk-button', '#/gallery/foundations/typography', '#/guides', '#/files', '#/scorecard', '#/theme', '#/layout-builder', '#/settings', '#/devtools']) {
+            const { d, win } = await openApp(t, hash);
+            await until(() => d.querySelector('main')?.querySelector('*'), `${hash}: the page to draw`);
+            if (hash.includes('gallery')) await until(() => d.querySelector('#gx-view pk-page-header, #gx-view pk-card'), `${hash}: the gallery view`);
+            await wait(1200);
+            const tags = [...new Set([...d.body.querySelectorAll('*')].map(e => e.localName).filter(n => n.startsWith('pk-')))];
+            const undef = tags.filter(n => !win.customElements.get(n));
+            t.eq(undef.join(', '), '', `${hash}: every pk-* in the page is defined 1.2 s after the view drew`);
+            if (hash.includes('pk-button')) t.ok(d.querySelector('#gx-view pk-page-header')?.shadowRoot?.querySelector('[part="title"]')?.textContent.trim(), 'the page header drew its heading');
+        }
+    }],
     // Files and Scorecard as lazy modules of the site app (#355, step 6a)
     ['files module (app, 1280px and 375px): the explorer opens the file and line of the address, fills the content area under the bar and does not scroll the page', async t => {
         for (const width of [1280, 375]) {
