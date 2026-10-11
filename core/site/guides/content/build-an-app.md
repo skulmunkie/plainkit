@@ -79,7 +79,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Escape hatch | `custom` | none | `mount(host, ctx)` |
 | States | `states`, `not-found` | `state`, `heading`, `description`, `label` | `retry(ctx)`, `action(ctx)` |
 
-A validation callback or a save rejects, or returns, `{ errors: { field: message } }` to show inline errors. A `load` that rejects shows the built-in error state with Retry; you write neither. Reach for `custom` only when no other type fits: it is the counted escape hatch, and everything the framework tracks (listeners, timers, the abort signal) still applies to it through `ctx`.
+A validation callback or a save rejects, or returns, `{ errors: { field: message } }` to show inline errors. A `load` that rejects shows the built-in error state with Retry; you write neither. The `list` and `record` types run `load`, `save`, `delete` and `onBulk` through the page lifecycle (`js/page-lifecycle.js`): a newer load aborts the older one, whose result is never drawn (your `load` gets an `AbortSignal` as its last argument, pass it to `fetch`), the page is busy while a save or delete runs, and everything in flight is aborted and silenced when the page is left. Write no `AbortController`, busy flag or disposed check of your own. Reach for `custom` only when no other type fits: it is the counted escape hatch, and everything the framework tracks (listeners, timers, the abort signal) still applies to it through `ctx`.
 
 ### Data pages
 

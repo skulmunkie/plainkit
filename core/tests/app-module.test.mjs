@@ -258,7 +258,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     const el2 = host2.children[0];
     assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10, selectable: undefined, rowKey: undefined, bulkActions: undefined });
     const query = { page: 1, pageSize: 10, sort: null, sortDir: 'ascending', search: '', filters: {} };
-    assert.deepEqual(el2.load(query), { rows: [{ id: 1 }], total: 1 });
+    assert.deepEqual(await el2.load(query), { rows: [{ id: 1 }], total: 1 });
     assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
     el2.rowHref({ id: 42 });
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
@@ -872,7 +872,7 @@ test("'record' (step 7, #353) creates a pk-record-page, takes the id from the ro
     assert.equal(el.localName, 'pk-record-page');
     assert.deepEqual(el.config, { fields: [{ name: 'a' }], id: '42' }, 'load, save and mode are not config data');
     assert.equal(el.mode, 'edit');
-    assert.equal(el.load('42'), 'rec'); el.save({ a: 1 });
+    assert.equal(await el.load('42'), 'rec'); el.save({ a: 1 });
     assert.deepEqual(seen, [['load', '42', 'x'], ['save', { a: 1 }, 'x']]);
     cleanup();
     assert.deepEqual(host.children, []);

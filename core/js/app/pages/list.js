@@ -1,6 +1,7 @@
 // Built-in page type factory, loaded on demand by js/app/module.js (#346): a route pays only for the types it uses.
 // 'list' (#352): <pk-list-page> (filterable, sortable, paginated pk-table). config: { columns, filters, actions, empty, pageSize,
 // load(query)->{rows,total}, rowHref(row), selectable, rowKey, bulkActions, onSelect(detail, ctx), onBulk(detail, ctx) } - load/rowHref are callback properties; rowHref is routed through ctx.navigate, not the element.
+// A newer load aborts the older one (load gets the AbortSignal as its third argument; js/page-lifecycle.js, #1022).
 // With selectable, onSelect gets the pk-select detail { selected, scope, query } and each bulkActions entry ({ id, label, variant? }) calls onBulk with { action, selected, scope, query } (return a promise: the list reloads, selection cleared, when it settles).
 // PAGE_TYPE: read at build time by core/tools/audit/data.mjs (design section 3.2); not used at runtime.
 export const PAGE_TYPE = {
@@ -12,13 +13,14 @@ export const PAGE_TYPE = {
 };
 import { mountTitled } from '../../page-shell.js';
 import { toaster } from './svc-page-toasts.js';
+import { createLifecycle, disposeWith } from '../../page-lifecycle.js';
 export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-list-page'), toast = toaster(config, ctx);
+    const el = host.ownerDocument.createElement('pk-list-page'), toast = toaster(config, ctx), life = createLifecycle({ signal: ctx?.signal });
     el.config = { heading: config.heading, breadcrumb: config.breadcrumb, columns: config.columns, filters: config.filters, actions: config.actions, empty: config.empty, pageSize: config.pageSize, selectable: config.selectable, rowKey: config.rowKey, bulkActions: config.bulkActions };
-    if (config.load) el.load = query => config.load(query, ctx);
+    if (config.load) el.load = query => life.load(query, signal => config.load(query, ctx, signal));
     if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
     if (config.onSelect) el.addEventListener('pk-select', e => config.onSelect(e.detail, ctx));
     // The bulk action may return a promise; when it settles the selection is cleared and the list reloads, so the result shows.
-    if (config.onBulk) el.addEventListener('pk-bulk', async e => { try { await config.onBulk(e.detail, ctx); toast('done', e.detail); } catch (err) { toast('bulkFailed', err); throw err; } const table = el.part?.('table'); if (table) { table.selected = []; table.selectScope = 'page'; table.refresh(); } });
-    return mountTitled(host, el, config.heading);
+    if (config.onBulk) el.addEventListener('pk-bulk', async e => { try { await life.run('bulk', () => config.onBulk(e.detail, ctx)); toast('done', e.detail); } catch (err) { toast('bulkFailed', err); throw err; } const table = el.part?.('table'); if (table) { table.selected = []; table.selectScope = 'page'; table.refresh(); } });
+    return disposeWith(mountTitled(host, el, config.heading), () => life.destroy());
 };
