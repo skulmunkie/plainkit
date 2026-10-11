@@ -104,14 +104,15 @@ export const galleryCases = [
     ['gallery: the query inside the hash drives a list: ?q filters the utilities, ?p pages them, and going back restores the earlier list', async t => {
         const p = await open(t, '#/foundations/utilities');
         await p.shows('Utilities');
-        const rows = () => [...p.view().querySelectorAll('pk-table tbody tr')];
+        const rows = () => [...(p.view().querySelector('pk-table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [])];
+        const name = r => r.cells[0].querySelector('slot')?.assignedNodes()[0]?.textContent ?? r.cells[0].textContent;
         await until(() => rows().length >= 30, 'the first page of utilities');
         const all = rows().length;
         await p.go('#/foundations/utilities?q=flex');
-        await until(() => rows().length > 0 && rows().length < all && rows().every(r => /flex/.test(r.cells[0].textContent)), 'only the matching utilities');
+        await until(() => rows().length > 0 && rows().length < all && rows().every(r => /flex/.test(name(r))), 'only the matching utilities');
         await p.go('#/foundations/utilities?p=2');
         await until(() => p.view().querySelector('pk-pagination')?.getAttribute('page') === '2', 'the second page');
-        p.win.history.back(); await until(() => rows().length > 0 && rows().every(r => /flex/.test(r.cells[0].textContent)), 'back to the filtered list');
+        p.win.history.back(); await until(() => rows().length > 0 && rows().every(r => /flex/.test(name(r))), 'back to the filtered list');
     }],
 
     ['gallery: a scoped mount with no address opens its first view, and one with an address opens that', async t => {
