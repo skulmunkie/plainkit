@@ -91,6 +91,12 @@
       "slot": "suffix"
     },
     {
+      "name": "BadgeContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "badge"
+    },
+    {
       "name": "DescriptionContent",
       "type": "RenderFragment?",
       "map": "slot",
