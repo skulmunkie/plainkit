@@ -157,6 +157,36 @@ export const recordFormCases = [
         t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
     }],
 
+    // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
+    ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
+        const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';
+        delete window.__pkXss;
+        const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}],"searchDebounce":0}'></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        const asked = []; el.load = async q => { asked.push(q.search); return { rows: [{ id: 'a', sku: q.search }], total: 1 }; };
+        const table = el.part('table'); table.refresh(); await until(() => asked.length >= 1, 'first load');
+        table.part('filters').dispatchEvent(new CustomEvent('pk-search', { bubbles: true, composed: true, detail: { query: evil } }));
+        await until(() => asked.includes(evil), 'load called with the search string');
+        const inner = () => table.part('table')?.shadowRoot;
+        await until(() => inner()?.textContent.includes('onerror'), 'the string drawn as text'); await t.settle();
+        t.eq(asked.at(-1), evil, 'load received the string unchanged');
+        for (const root of [inner(), table.shadowRoot, el.shadowRoot, el]) t.ok(!root.querySelector('img, script'), 'no img or script element was created from it');
+        t.ok(window.__pkXss === undefined, 'no handler ran');
+    }],
+
+    ['list-page: a 10,000-row load() result paints its first page in 100 ms or less (#436)', async t => {
+        const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"},{"key":"name","label":"Name"}]}'></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        const all = Array.from({ length: 10000 }, (_, i) => ({ id: 'r' + i, sku: 'SKU-' + i, name: 'Item ' + i }));
+        el.load = async q => ({ rows: all.slice((q.page - 1) * q.pageSize, q.page * q.pageSize), total: all.length });
+        const rows = () => el.part('table').part('table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [];
+        const t0 = performance.now(); el.part('table').refresh();
+        await until(() => rows().length > 0, 'first rows'); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const ms = performance.now() - t0;
+        t.ok(rows()[0].textContent.includes('SKU-0'), 'the first page shows the first row');
+        t.ok(ms <= 100, 'first paint of a 10,000-row result took ' + Math.round(ms) + ' ms (limit 100)');
+    }],
+
     ['record-page: load set after connect is used only once refresh() is called, which loads the record and shows Edit when save is set (#1000)', async t => {
         const el = await t.mount(`<pk-record-page config='{"id":"7","fields":[{"name":"name","label":"Name"}]}'></pk-record-page>`);
         await t.load(el.shadowRoot); await t.settle(); await t.settle();
