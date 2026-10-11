@@ -37,6 +37,7 @@ const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 const state = { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() };
 let opts = {};
 let bare = false;
+let prefix = ''; // inside the site app the gallery lives at #/gallery/...: every address it writes or follows carries this path prefix
 let baseTitle = 'Plainkit Gallery'; // the host page's own title, so a mounted gallery adds the section to it instead of replacing it
 const frames = new Set();
 let css = null;
@@ -304,6 +305,19 @@ function view() {
     return put(notFound('Not found'));
 }
 
+// Inside the site app the gallery's own addresses (#/elements/pk-button, in links, data-goto, data-find and data-base) are written without the app's path; a MutationObserver
+// gives each one the prefix as it appears, so the views keep writing the addresses they always did. Returns the stop function.
+const ADDRESS_ATTRS = ['href', 'data-goto', 'data-find', 'data-base'];
+function addressPrefixer(root, path) {
+    const head = `#${path}/`, found = ADDRESS_ATTRS.map(a => `[${a}^="#/"]`).join();
+    const fix = n => { for (const a of ADDRESS_ATTRS) { const v = n.getAttribute?.(a); if (v?.startsWith('#/') && !v.startsWith(head)) n.setAttribute(a, `#${path}${v.slice(1)}`); } };
+    const all = n => { fix(n); n.querySelectorAll?.(found).forEach(fix); };
+    const mo = new MutationObserver(list => { for (const r of list) { if (r.type === 'attributes') fix(r.target); else r.addedNodes.forEach(all); } });
+    mo.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ADDRESS_ATTRS });
+    all(root);
+    return () => mo.disconnect();
+}
+
 // ---- assembly ------------------------------------------------------------------------------------------------------------
 function render() {
     const body = $('#gx-view');
@@ -429,6 +443,7 @@ export async function mountGallery(container, options = {}) {
     hostSections = normalizeSections(options.sections);
     baseTitle = document.title || baseTitle;
     bare = opts.chrome === 'none';
+    prefix = options.base ?? '';
     state.theme = opts.theme ?? currentTheme(document.documentElement);
     state.width = opts.width ?? (readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
     state.scale = bare ? 1 : Number(readSetting('pk-gallery-scale')) || 1;
@@ -440,9 +455,10 @@ export async function mountGallery(container, options = {}) {
     const first = !location.hash && isScoped(opts) && !collection() ? initialHash(tree()) : '';
     if (first) history.replaceState(null, '', first);
     router?.destroy();
-    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES });
+    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
     fillSanitizedHtml(container, bare ? BARE_HTML : CHROME_HTML);
     if (!bare) container.classList.add('gx-mount');
+    container.toggleAttribute('data-gx-app', Boolean(prefix)); // hosted by the site app: it owns the nav (gallery.css)
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
     if (!bare) buildNav();
     paintToolbar();
@@ -490,17 +506,19 @@ export async function mountGallery(container, options = {}) {
         form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     on(view, 'change', e => { const form = e.target.closest('form[data-find]'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
+    const unprefix = prefix ? addressPrefixer(container, prefix) : null;
     const handle = {
         destroy() {
             if (mounted !== handle) return;
             mounted = null;
+            unprefix?.();
             for (const off of offs) off();
             for (const form of container.querySelectorAll('form[data-find]')) form._cancel?.();
             router?.destroy(); router = null;
             lazy?.disconnect(); lazy = null;
             releaseFrames();
             full = stage = inspecting = inspector = null;
-            container.replaceChildren(); container.classList.remove('gx-mount');
+            container.replaceChildren(); container.classList.remove('gx-mount'); container.removeAttribute('data-gx-app');
         },
     };
     mounted = handle;
