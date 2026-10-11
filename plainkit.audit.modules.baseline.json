@@ -192,51 +192,6 @@
       "fingerprint": "34350429c4ab6cc0"
     },
     {
-      "rule": "S1",
-      "file": "core/site/files/index.html",
-      "fingerprint": "15a015bc43329c1d"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/files/index.html",
-      "fingerprint": "15a015bc43329c1d"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/files/index.html",
-      "fingerprint": "17092d7a55931de3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "1abdc410f76e75f5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/boots/code-explorer.js",
       "fingerprint": "77456563fe943378"
@@ -1070,31 +1025,6 @@
       "rule": "S7",
       "file": "core/site/layout-builder/layout-builder.js",
       "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "a22efeff1024cbb1"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "a22efeff1024cbb1"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "d5723be2f7bd111e"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
     },
     {
       "rule": "S3",

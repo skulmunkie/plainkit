@@ -142,8 +142,8 @@ export function createViews(ctx) {
             [`${B()}/samples`, 'Samples', `${TEMPLATE_PAGES.length} page templates, ${PATTERNS.length} patterns and ${LAYOUTS.length + 2} layouts, all built only from the SDK.`],
             ...(HAS_SITE && !narrowed ? [
                 ['../theme/index.html', 'Theme editor', 'Edit every token live and export the override block.'],
-                ['../scorecard/index.html', 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
-                ['../files/index.html', 'Files', 'Browse the SDK source in the code explorer.'],
+                [`${where.prefix ? '' : '../../app.html'}#/scorecard`, 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
+                [`${where.prefix ? '' : '../../app.html'}#/files`, 'Files', 'Browse the SDK source in the code explorer.'],
             ] : []),
         ];
         return heading('Plainkit', 'Plain HTML, CSS and JS: no framework, no build step to use it, no runtime dependencies.')

@@ -212,8 +212,8 @@ const IN_PAGE = {
     // One tab's share of the sweep (options and shard are JSON); progress is read from window.__pk while it runs.
     sweep: options => `(async () => { const m = await import(location.origin + '/site/scorecard/sweep.js'); window.__pk = { done: 0, total: 0 };
         const r = await m.sweep({ ...${JSON.stringify(options)}, progress: (d, n) => { window.__pk = { done: d, total: n }; } }); return { checked: r.checked, failures: r.failures }; })()`,
-    // The scorecard page's own host module exports the mounted card; a second import of the same URL returns the instance the page's script tag made.
-    quality: `(async () => { const { ready } = await import(location.origin + '/site/scorecard/scorecard.js'); const card = await ready; if (!card) throw new Error('the scorecard did not mount');
+    // The scorecard module exports the mounted card; the app's lazy import of the same URL made the instance.
+    quality: `(async () => { let m = null; for (let i = 0; i < 40 && !m; i++) { m = (await import(location.origin + '/site/modules/scorecard.js')).mounted; if (!m) await new Promise(r => setTimeout(r, 250)); } const card = await m; if (!card) throw new Error('the scorecard did not mount');
         await new Promise(r => setTimeout(r, 1500));
         const poll = setInterval(() => { const p = document.querySelector('[data-sc-progress]'); window.__pk = { text: p ? p.textContent : '' }; }, 500);
         await card.run(); clearInterval(poll); const rep = card.report(); if (!rep) throw new Error('the run produced no report');
@@ -314,7 +314,7 @@ async function pagesStage(cdp, port, widths, deadline) {
     // here instead of only in the ad hoc node scripts/bench/pages.mjs run (#135).
     const shellPages = [
         { label: 'gallery', url: `http://localhost:${port}/site/gallery/index.html?theme=dark` },
-        { label: 'scorecard', url: `http://localhost:${port}/site/scorecard/index.html?theme=dark` },
+        { label: 'scorecard', url: `http://localhost:${port}/app.html#/scorecard` },
         { label: 'theme editor', url: `http://localhost:${port}/site/theme/index.html?theme=dark` },
     ];
     const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }))];
@@ -373,7 +373,7 @@ async function main() {
             setTimeout(() => reject(new Error('the server did not start within 10 s')), 10000);
         });
         server.removeAllListeners('exit');
-        const start = `http://localhost:${options.port}/site/scorecard/index.html${options.concurrency ? '?concurrency=' + options.concurrency : ''}`;
+        const start = `http://localhost:${options.port}/app.html#/scorecard${options.concurrency ? '?concurrency=' + options.concurrency : ''}`;
         const extra = `--remote-debugging-port=${debugPort} --remote-allow-origins=* ${process.env.PK_CHROME_FLAGS ?? ''}`;
         browser = spawn(chrome, chromeArgs({ profile, url: 'about:blank', width: 1280, height: 900, extra }), { stdio: 'ignore', detached: process.platform !== 'win32' });
         let target = null;

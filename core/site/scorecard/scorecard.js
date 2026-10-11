@@ -3,7 +3,6 @@
 // gallery elements as targets, the stylesheets and scripts to weigh, the budgets, the reports the tools write, and the one check that
 // belongs to the site's page templates (a workspace must fill the viewport).
 
-import { mountShell } from '../shell.js';
 import { SCORING, TEXT_PAIRS, PRIMARY_CSS, BUDGETS } from './scoring.data.js';
 import { loadAllElements } from '../gallery/gallery.data.js';
 import { sampleDoc } from '../gallery/frame.js';
@@ -41,9 +40,8 @@ async function sizeFiles() {
     ];
 }
 
-async function main() {
-    mountShell({ page: 'scorecard', title: 'Scorecard' });
-    const root = document.querySelector('#sc-root');
+// Mounts the card into `root` (the site app's scorecard module, modules/scorecard.js, calls this); resolves to { run, results, report, ready, destroy }.
+export async function startScorecard(root, concurrency) {
     const intro = document.createElement('p');
     intro.className = 'muted';
     intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
@@ -54,10 +52,10 @@ async function main() {
         targets: elementTargets(),
         historyKey: SCORING.historyKey,
         historyMax: SCORING.historyMax,
-        concurrency: Number(new URLSearchParams(location.search).get('concurrency')) || undefined, // ?concurrency=2 renders fewer frames at once on a slow machine
-        link: i => `../gallery/index.html#/elements/${i.id}`,
+        concurrency, // #/scorecard?concurrency=2 renders fewer frames at once on a slow machine
+        link: i => `#/gallery/elements/${i.id}`,
         rankedLabel: 'Element',
-        fileLink: (file, line) => `../files/index.html#path=${encodeURIComponent(file)}&line=${line}`,
+        fileLink: (file, line) => `#/files?path=${encodeURIComponent(file)}&line=${line}`,
         data: {
             scoring: SCORING,
             budgets: BUDGETS,
@@ -75,15 +73,3 @@ async function main() {
         },
     });
 }
-
-// The mounted card ({ run, results, report, ready }) is exported so a headless runner (scripts/scorecard-sweep.mjs) can drive the same run the button does.
-export const ready = main().catch(err => {
-    const n = document.createElement('pk-alert');
-    n.setAttribute('kind', 'danger');
-    n.textContent = `The scorecard could not start: ${err.message}. Serve the Plainkit folder with a static server.`;
-    const pad = document.createElement('pk-container');
-    pad.setAttribute('size', 'full');
-    pad.append(n);
-    document.body.append(pad);
-    return null;
-});

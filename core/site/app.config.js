@@ -9,8 +9,8 @@ export default {
     storage: { legacy: { theme: 'pk-site-theme' } },
     modules: [
         { id: 'gallery', title: 'Gallery', load: () => import('./modules/gallery.js') },
-        redirect('files', 'Files', 'site/files/index.html'),
-        redirect('scorecard', 'Scorecard', 'site/scorecard/index.html'),
+        { id: 'files', title: 'Files', load: () => import('./modules/files.js') },
+        { id: 'scorecard', title: 'Scorecard', load: () => import('./modules/scorecard.js') },
         redirect('theme', 'Theme editor', 'site/theme/index.html'),
         redirect('layout-builder', 'Layout builder', 'site/layout-builder/index.html'),
         { id: 'guides', title: 'Guides', load: () => import('./modules/guides.js') },

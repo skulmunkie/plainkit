@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const RETIRED = ['settings/index.html', 'devtools/index.html', 'site/settings/page.js', 'site/devtools/page.js'];
+const RETIRED = ['site/files/index.html', 'site/files/page.js', 'site/scorecard/index.html', 'settings/index.html', 'devtools/index.html', 'site/settings/page.js', 'site/devtools/page.js'];
 const SKIP = /(^|\/)(index\.json|snapshot\.json|CHANGELOG\.md|changelog\/)|\.test\.mjs$|\.(png|zip|woff2?)$/;
 
 test('no source file refers to a retired site page address', () => {

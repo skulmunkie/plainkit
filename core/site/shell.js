@@ -11,8 +11,8 @@ import { on } from '../js/mount-support.js';
 const PK_ROOT = new URL('../', import.meta.url).href;
 export const PAGES = [
     { key: 'gallery', title: 'Gallery', href: '../gallery/index.html' },
-    { key: 'files', title: 'Files', href: '../files/index.html' },
-    { key: 'scorecard', title: 'Scorecard', href: '../scorecard/index.html' },
+    { key: 'files', title: 'Files', href: '../../app.html#/files' },
+    { key: 'scorecard', title: 'Scorecard', href: '../../app.html#/scorecard' },
     { key: 'theme', title: 'Theme editor', href: '../theme/index.html' },
     { key: 'layout-builder', title: 'Layout builder', href: '../layout-builder/index.html' },
     { key: 'guides', title: 'Guides', href: '../guides/index.html' },
