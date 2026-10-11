@@ -20,7 +20,7 @@ const observers = `(() => {
 
 const PAGES = () => {
     const tpl = fs.readdirSync(path.join(coreDir, 'samples', 'templates'), { withFileTypes: true }).filter(d => d.isDirectory()).map(d => `/samples/templates/${d.name}/${d.name}.html`).filter(f => fs.existsSync(path.join(coreDir, f)));
-    return [['gallery', '/site/gallery/index.html'], ['gallery #/elements', '/site/gallery/index.html#/elements'], ['scorecard', '/app.html#/scorecard'], ['theme editor', '/site/theme/index.html'], ...tpl.map(f => [f.split('/').at(-1).replace('.html', ' (template)'), f])];
+    return [['gallery', '/site/gallery/index.html'], ['gallery #/elements', '/site/gallery/index.html#/elements'], ['scorecard', '/app.html#/scorecard'], ['theme editor', '/app.html#/theme'], ...tpl.map(f => [f.split('/').at(-1).replace('.html', ' (template)'), f])];
 };
 
 async function pagesCase(server, browser, { runs }) {

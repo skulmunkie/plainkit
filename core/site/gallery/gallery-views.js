@@ -141,7 +141,7 @@ export function createViews(ctx) {
             [`${B()}/elements`, 'Elements', `${ELEMENTS.length} custom elements generated from their API data, each with a live playground.`],
             [`${B()}/samples`, 'Samples', `${TEMPLATE_PAGES.length} page templates, ${PATTERNS.length} patterns and ${LAYOUTS.length + 2} layouts, all built only from the SDK.`],
             ...(HAS_SITE && !narrowed ? [
-                ['../theme/index.html', 'Theme editor', 'Edit every token live and export the override block.'],
+                [`${where.prefix ? '' : '../../app.html'}#/theme`, 'Theme editor', 'Edit every token live and export the override block.'],
                 [`${where.prefix ? '' : '../../app.html'}#/scorecard`, 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
                 [`${where.prefix ? '' : '../../app.html'}#/files`, 'Files', 'Browse the SDK source in the code explorer.'],
             ] : []),

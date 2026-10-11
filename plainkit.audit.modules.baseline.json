@@ -862,66 +862,6 @@
       "fingerprint": "63558c176d70bc1e"
     },
     {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "c7138068dd9125d1"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "4f30525faf4db60b"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/layout-builder.css",
-      "fingerprint": "3b6f988bf0e9f97a"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/layout-builder/layout-builder.css",
-      "fingerprint": "bc15d03df9c5ade5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
       "rule": "S3",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "e4d0449fb20aa2d2"
@@ -940,31 +880,6 @@
       "rule": "S7",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "923d66571f54d38c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "24f399cb407dc2c5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
     },
     {
       "rule": "S7",
@@ -1055,71 +970,6 @@
       "rule": "S10",
       "file": "core/site/spacing/index.html",
       "fingerprint": "a131b36e8a95527c"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "c127dd54a2a0c2ed"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "c127dd54a2a0c2ed"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "dc77d3ccbb33af2f"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
     }
   ]
 }
