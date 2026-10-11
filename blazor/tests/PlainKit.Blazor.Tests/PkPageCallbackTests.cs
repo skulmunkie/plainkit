@@ -286,6 +286,59 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task DashboardPage_load_gets_the_widget_key_and_returns_what_the_widget_draws()
+    {
+        string? key = null;
+        var cut = Render<PkDashboardPage>(p => p.Add(x => x.Load, k => { key = k; return Task.FromResult<object?>(new { value = 12 }); }));
+
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("load", call.Arguments[1]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(call.Arguments[2]);
+        var result = await cut.InvokeAsync(() => host.Value.Invoke("revenue"));
+
+        Assert.Equal("revenue", key);
+        Assert.Equal(12, JsonSerializer.SerializeToElement(result).GetProperty("value").GetInt32());
+    }
+
+    [Fact]
+    public async Task DashboardPage_load_that_throws_faults_only_that_call()
+    {
+        var cut = Render<PkDashboardPage>(p => p.Add(x => x.Load, k => k == "bad" ? throw new InvalidOperationException("no data") : Task.FromResult<object?>("ok")));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke("bad")));
+        Assert.Equal("ok", await cut.InvokeAsync(() => host.Value.Invoke("good")));
+    }
+
+    [Fact]
+    public async Task DocPage_loadItem_gets_the_id_and_null_means_not_found()
+    {
+        string? id = null;
+        var cut = Render<PkDocPage>(p => p.Add(x => x.LoadItem, i => { id = i; return Task.FromResult<object?>(i == "gone" ? null : new { title = "Intro", html = "<p>Hi</p>" }); }));
+
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("loadItem", call.Arguments[1]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(call.Arguments[2]);
+        var item = await cut.InvokeAsync(() => host.Value.Invoke("intro"));
+        Assert.Equal("intro", id);
+        Assert.Equal("Intro", JsonSerializer.SerializeToElement(item).GetProperty("title").GetString());
+        Assert.Null(await cut.InvokeAsync(() => host.Value.Invoke("gone")));
+    }
+
+    [Fact]
+    public async Task DocPage_and_DashboardPage_set_no_callback_without_a_delegate_and_release_it_on_dispose()
+    {
+        Render<PkDocPage>();
+        Render<PkDashboardPage>();
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
+
+        var cut = Render<PkDocPage>(p => p.Add(x => x.LoadItem, _ => Task.FromResult<object?>(null)));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        await DisposeComponentsAsync();
+        Assert.Throws<ObjectDisposedException>(() => host.Value);
+    }
+
+    [Fact]
     public async Task ListPage_passes_selection_and_bulk_actions_to_OnSelect_and_OnBulk()
     {
         PkSelectEventArgs? selected = null; PkBulkEventArgs? bulk = null;
