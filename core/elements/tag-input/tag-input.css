@@ -16,9 +16,9 @@ input, textarea, select { flex: 1; align-self: stretch; min-width: 0; padding: v
 .tags { display: contents; }
 .field { flex: 1 1 6rem; min-width: 6rem; padding: var(--space-1); }
 .pill { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0.1rem 0.2rem 0.1rem var(--space-2); border-radius: var(--radius-pill); background: var(--pk-tag-bg, var(--color-accent-fill)); color: var(--btn-primary-fg); font-size: var(--text-meta); line-height: 1.4; white-space: nowrap; }
-.pill[data-locked] { padding-inline-end: var(--space-2); background: var(--color-surface-alt); color: var(--color-muted); }
+.pill[data-locked] { padding-inline-end: var(--space-2); background: var(--color-surface-alt); color: var(--color-muted-strong); }
 .pl { min-width: 0; }
-.px { display: inline-flex; align-items: center; justify-content: center; width: 1.05rem; height: 1.05rem; padding: 0; border: 0; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--btn-primary-fg) 25%, transparent); color: var(--btn-primary-fg); font-size: var(--text-read); line-height: 1; cursor: pointer; }
-.px:hover { background: color-mix(in srgb, var(--btn-primary-fg) 45%, transparent); }
+.px { display: inline-flex; align-items: center; justify-content: center; width: 1.05rem; height: 1.05rem; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--btn-primary-fg); font-size: var(--text-read); line-height: 1; cursor: pointer; }
+.px:hover { background: color-mix(in srgb, var(--btn-primary-fg) 25%, transparent); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (--phone) { .box { min-height: var(--touch-target); } input, textarea, select { min-height: var(--touch-target); font-size: 16px; } .px { width: var(--touch-target); height: var(--touch-target); margin-block: calc((1.05rem - var(--touch-target)) / 2); background: radial-gradient(circle, color-mix(in srgb, var(--btn-primary-fg) 25%, transparent) 0.52rem, transparent 0.54rem); } .px:hover { background: radial-gradient(circle, color-mix(in srgb, var(--btn-primary-fg) 45%, transparent) 0.52rem, transparent 0.54rem); } }
+@media (--phone) { .box { min-height: var(--touch-target); } input, textarea, select { min-height: var(--touch-target); font-size: 16px; } .px { width: var(--touch-target); height: var(--touch-target); margin-block: calc((1.05rem - var(--touch-target)) / 2); background: transparent; } .px:hover { background: radial-gradient(circle, color-mix(in srgb, var(--btn-primary-fg) 30%, transparent) 0.52rem, transparent 0.54rem); } }
