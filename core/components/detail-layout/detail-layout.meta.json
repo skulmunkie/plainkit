@@ -93,6 +93,11 @@
       "default": "20rem"
     },
     {
+      "name": "--pk-detail-layout-gap",
+      "description": "Gap between the main column and the sidebar in the two-column layout.",
+      "default": "var(--space-6)"
+    },
+    {
       "name": "--pk-detail-layout-main-max",
       "description": "Maximum width of the main column. The sidebar stays flush right in the content area, so a capped main column does not pull it inward.",
       "default": "none"

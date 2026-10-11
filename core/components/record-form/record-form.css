@@ -2,4 +2,4 @@
 :host([hidden]) { display: none; }
 [part="tabs"][hidden] { display: none; }
 /* Without a sidebar the layout is the main column alone: the sidebar column closes up, and so does the gap that spaced it. */
-[part="layout"][data-bare] { --pk-detail-layout-sidebar: 0px; inline-size: calc(100% + var(--space-6)); }
+[part="layout"][data-bare] { --pk-detail-layout-sidebar: 0px; --pk-detail-layout-gap: 0px; }

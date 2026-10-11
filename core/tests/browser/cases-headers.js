@@ -208,4 +208,11 @@ headerCases.push(
         t.ok(rules.some(r => r instanceof CSSMediaRule && r.media.mediaText === 'print' && /break-inside:\s*avoid/.test(r.cssText)), 'the print block keeps cards whole');
         t.ok(!document.adoptedStyleSheets.includes(sheet), 'removing the page removes the document stylesheet');
     }],
+    ['print-page: blocks inside the sheet are spaced by the element, never touching (the gallery example)', async t => {
+        const p = await t.mount('<pk-print-page size="A4" margin="15mm"><pk-button slot="toolbar">Print</pk-button><pk-heading level="1">Statement</pk-heading><pk-card heading="Acme"><p>Balance due</p></pk-card><p data-screen-only>Not printed</p></pk-print-page>');
+        await t.settle(); await t.settle();
+        const kids = [...p.children].filter(c => c.slot !== 'toolbar'), r = kids.map(k => k.getBoundingClientRect());
+        for (let i = 1; i < r.length; i++) t.ok(r[i].top - r[i - 1].bottom >= 8, `block ${i} sits at least 8px below the one before (${r[i].top - r[i - 1].bottom}px)`);
+        p.remove();
+    }],
 );
