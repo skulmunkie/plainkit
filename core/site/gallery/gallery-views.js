@@ -58,13 +58,11 @@ function paged(items, page, render, hashBase) {
     return { html: render(slice), nav, p, pages };
 }
 
-const query = () => new URLSearchParams(location.hash.split('?')[1] ?? '');
-
 // ---- foundations views ---------------------------------------------------------------------------------------------------
 
-// ctx: opts() the mount's options, css() the stylesheets read at mount (tokens, utilities, spacing, icons), scope(id) what the scope and filter leave of a section (scopeGroup(section, group) and keeps(section, group, id) likewise), slot(sample, control, fixed) a lazy sample frame, state the gallery's theme and width.
+// ctx: opts() the mount's options, query() the route's query, css() the stylesheets read at mount (tokens, utilities, spacing, icons), scope(id) what the scope and filter leave of a section (scopeGroup(section, group) and keeps(section, group, id) likewise), slot(sample, control, fixed) a lazy sample frame, state the gallery's theme and width.
 export function createViews(ctx) {
-    const { scope, scopeGroup, keeps, slot, state } = ctx;
+    const { scope, scopeGroup, keeps, slot, state, query } = ctx; // query(): the route's query object, from the router
     function viewFoundation(id) {
         const tokens = parseTokenBlocks(ctx.css().tokens);
         const val = (node, name) => getComputedStyle(node).getPropertyValue(name).trim();
@@ -100,9 +98,9 @@ export function createViews(ctx) {
                         + section('Steps', dataTable('Breakpoints', ['Name', 'max-width', 'What changes'], BREAKPOINTS.map(b => [b.name, `<code>${b.px}px</code>`, esc(b.meaning)]), [1]));
                 case 'utilities': {
                     const all = [...ctx.css().utilities.matchAll(/\.(u-[\w-]+)\s*\{([^}]*)\}/g)].map(m => ({ name: m[1], decl: m[2].trim().replace(/\s*!important/g, '') })).concat([...ctx.css().spacing.matchAll(/^\.([a-z]+-[\w]+) \{ ([^}]*)\}/gm)].map(m => ({ name: m[1], decl: m[2].trim() })));
-                    const q = query(); const f = (q.get('q') ?? '').toLowerCase();
+                    const q = query(); const f = (q.q ?? '').toLowerCase();
                     const list = all.filter(u => u.name.includes(f));
-                    const pg = paged(list, Number(q.get('p')) || 1, rows => dataTable('Utility classes', ['Class', 'Declaration', 'Effect'], rows.map(u => [`<code>${u.name}</code>`, `<code>${esc(u.decl)}</code>`, `<div class="gx-effect"><span class="${u.name}">Sample</span></div>`])), `#/foundations/utilities${f ? `?q=${encodeURIComponent(f)}` : ''}`);
+                    const pg = paged(list, Number(q.p) || 1, rows => dataTable('Utility classes', ['Class', 'Declaration', 'Effect'], rows.map(u => [`<code>${u.name}</code>`, `<code>${esc(u.decl)}</code>`, `<div class="gx-effect"><span class="${u.name}">Sample</span></div>`])), `#/foundations/utilities${f ? `?q=${encodeURIComponent(f)}` : ''}`);
                     return heading('Utilities', `${all.length} utility classes (u-*, and spacing p-* m-* gap-* mapped to tokens), ${list.length} shown.`)
                         + section('Find a class', `<form class="gx-find" data-find="#/foundations/utilities"><pk-field label="Filter"><pk-input type="search" name="q" value="${esc(f)}" placeholder="e.g. mt, text, gap"></pk-input></pk-field></form>${pg.html}${pg.nav}`);
                 }
@@ -112,11 +110,11 @@ export function createViews(ctx) {
                         + section(`${ids.length} icons`, `<div class="gx-icons">${ids.map(i => `<div class="gx-icon"><pk-icon name="${i}" size="lg"></pk-icon><code>${i}</code></div>`).join('')}</div>`);
                 }
                 default: {
-                    const q = query(); const f = (q.get('q') ?? '').toLowerCase(); const kind = q.get('kind') ?? 'all';
+                    const q = query(); const f = (q.q ?? '').toLowerCase(); const kind = q.kind ?? 'all';
                     const all = [...new Set([...Object.keys(tokens.dark), ...Object.keys(tokens.light), ...Object.keys(tokens.root)])].sort();
                     const list = all.filter(n => n.includes(f) && (kind === 'all' || tokenKind(n, tokens.dark[n] ?? tokens.root[n] ?? '') === kind));
                     const params = new URLSearchParams({ ...(f ? { q: f } : {}), ...(kind !== 'all' ? { kind } : {}) }).toString();
-                    const pg = paged(list, Number(q.get('p')) || 1, rows => dataTable('Design tokens', ['Token', 'Kind', 'Dark / shared', 'Light'], rows.map(n => [`<code>${n}</code>`, tokenKind(n, tokens.dark[n] ?? tokens.root[n] ?? ''), `<code>${esc(tokens.dark[n] ?? tokens.root[n] ?? '')}</code>`, `<code>${esc(tokens.light[n] ?? '')}</code>`])), `#/foundations/tokens${params ? `?${params}` : ''}`);
+                    const pg = paged(list, Number(q.p) || 1, rows => dataTable('Design tokens', ['Token', 'Kind', 'Dark / shared', 'Light'], rows.map(n => [`<code>${n}</code>`, tokenKind(n, tokens.dark[n] ?? tokens.root[n] ?? ''), `<code>${esc(tokens.dark[n] ?? tokens.root[n] ?? '')}</code>`, `<code>${esc(tokens.light[n] ?? '')}</code>`])), `#/foundations/tokens${params ? `?${params}` : ''}`);
                     return heading('Every token', `${list.length} of ${all.length} custom properties declared in tokens.css. Edit them in the theme editor.`)
                         + section('Find a token', `<form class="gx-find" data-find="#/foundations/tokens"><pk-cluster align="end"><pk-field label="Filter"><pk-input type="search" name="q" value="${esc(f)}" placeholder="e.g. accent, radius"></pk-input></pk-field><pk-field label="Kind"><pk-select name="kind" value="${esc(kind)}">${['all', 'colour', 'font', 'size', 'shadow', 'layer', 'other'].map(k => `<option>${k}</option>`).join('')}</pk-select></pk-field></pk-cluster></form>${pg.html}${pg.nav}`);
                 }
@@ -151,7 +149,7 @@ export function createViews(ctx) {
             if (!b) return put(heading('Templates', 'Full-page templates, each a runnable example with a slot contract: preview one in the side-nav or top-nav variant, light or dark.', crumbs(['Samples', '#/samples'], ['Templates'])) + grid(TEMPLATE_PAGES.filter(([id]) => keeps('samples', 'templates', id)).map(([id, tt, , d]) => cardLink(`#/samples/templates/${id}`, tt, d)).join('')));
             const tp = TEMPLATE_PAGES.find(x => x[0] === b);
             if (!tp) return put(notFound('Not found', '', ['Back to templates', '#/samples/templates']));
-            const q = new URLSearchParams(location.hash.split('?')[1] ?? ''); const nav = q.get('nav') === 'top' ? 'top' : 'side'; const th = q.get('theme') ?? state.theme;
+            const q = query(); const nav = q.nav === 'top' ? 'top' : 'side'; const th = q.theme ?? state.theme;
             const link = (k, v, l) => { const p = new URLSearchParams({ nav, theme: th, [k]: v }); return `<pk-button variant="ghost" size="mini" toggle${(k === 'nav' ? nav : th) === v ? ' pressed' : ''} data-goto="#/samples/templates/${b}?${p}">${l}</pk-button>`; };
             put(heading(tp[1], tp[3], groupCrumb('templates', tp[1])) + `<pk-cluster gap="sm"><a href="#/samples/templates">Back to templates</a><pk-button-group label="Navigation variant" mode="single">${link('nav', 'side', 'Side nav')}${link('nav', 'top', 'Top nav')}</pk-button-group><pk-button-group label="Theme" mode="single">${link('theme', 'dark', 'Dark')}${link('theme', 'light', 'Light')}</pk-button-group><a href="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" target="_blank" rel="noopener">Open full page</a></pk-cluster><pk-text tone="muted"><strong>Slots:</strong> ${esc(tp[4])}</pk-text><iframe class="gx-frame gx-stage" title="${esc(tp[1])} template" src="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" data-dyn="width:${state.width === 'phone' ? PHONE_WIDTH + 'px' : '100%'}"></iframe>`);
             return out;
