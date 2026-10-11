@@ -11,6 +11,13 @@ name: CI
 # says so (scripts/ci-changes.mjs has the rules). It is done inside each job, not in a first job, because a required check that is skipped counts
 # as passed only when the job exists in the run, and because no job then waits for a runner just to be told what to do.
 #
+# Tiers (work lands on main through pull requests, no integration branch): an ordinary pull request runs only what `node scripts/verify.mjs --changed` would
+# (the "node" and "dotnet" jobs run `--changed --only <group>`: the node tests that cover the changed files, a filtered dotnet test), and the heavy jobs (package,
+# scorecard, UI review) only when the changed files touch what they check. The FULL suite runs when the pull request has the label `full-ci` or is a release
+# pull request (head branch release/*), on every push to main, nightly on main (nightly-full.yml, browser-nightly.yml, ui-review-sweep.yml) and on the version
+# tag (release.yml, which publishes nothing unless the full verify passed). Every job still exists in every run and reports success when it has nothing to do,
+# so a required check never hangs pending.
+#
 # Required checks (see .github/REPO-SETTINGS.md): "Changelog (fragments)", "Toolkit (node)", "Blazor (dotnet)". The package and scorecard jobs
 # run but are not required yet. "CI summary" writes the single sticky pull request comment with the FIX lines of whatever failed.
 #
@@ -25,12 +32,14 @@ on:
   pull_request:
     branches: [main]
     # labeled/unlabeled: the `no-changelog` label is read by the Changelog job, so adding it must re-run the checks.
+    # (and `full-ci`: adding it re-runs the pull request with the full suite)
     types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
 
+# A newer push to a pull request cancels the older run; a run on main is never cancelled (each merge keeps its own result).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -81,6 +90,8 @@ jobs:
 
       - name: Anything to check?
         id: gate
+        env:
+          CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs node
 
       # The runner's own Node is older than the 22 the scripts are written for (node --test with globs needs 21+).
@@ -98,10 +109,15 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: npm ci
 
-      - name: Bootstrap, version, tree, node tests (node scripts/verify.mjs --only node)
+      # Full (push, label full-ci, release pull request): node scripts/verify.mjs --only node. Otherwise the targeted plan for the changed files.
+      - name: Bootstrap, version, tree, node tests (node scripts/verify.mjs --only node, or --changed --only node)
         id: verify
         if: steps.gate.outputs.run == 'true'
-        run: node scripts/verify.mjs --only node
+        env:
+          PK_FULL: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: |
+          if [ "$PK_FULL" = "true" ]; then node scripts/verify.mjs --only node
+          else node scripts/verify.mjs --changed --only node --base "origin/${GITHUB_BASE_REF}"; fi
 
       - name: Time budget
         if: always() && steps.gate.outputs.run == 'true'
@@ -124,6 +140,8 @@ jobs:
 
       - name: Anything to check?
         id: gate
+        env:
+          CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs dotnet
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -146,10 +164,19 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: npm ci
 
-      - name: Bootstrap, build and test (node scripts/verify.mjs --only dotnet)
+      # The targeted plan compares with the base branch: fetch just its tip.
+      - name: Fetch the base branch
+        if: steps.gate.outputs.run == 'true' && github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+
+      - name: Bootstrap, build and test (node scripts/verify.mjs --only dotnet, or --changed --only dotnet)
         id: verify
         if: steps.gate.outputs.run == 'true'
-        run: node scripts/verify.mjs --only dotnet
+        env:
+          PK_FULL: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: |
+          if [ "$PK_FULL" = "true" ]; then node scripts/verify.mjs --only dotnet
+          else node scripts/verify.mjs --changed --only dotnet --base "origin/${GITHUB_BASE_REF}"; fi
 
       - name: Time budget
         if: always() && steps.gate.outputs.run == 'true'
@@ -179,7 +206,7 @@ jobs:
       - name: Anything to check?
         id: gate
         env:
-          UI_REVIEW_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'ui-review-full') }}
+          UI_REVIEW_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'ui-review-full') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs ui-review
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -208,7 +235,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           SHARD: ${{ matrix.shard }}
-          UI_REVIEW_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'ui-review-full') }}
+          UI_REVIEW_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'ui-review-full') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: |
           if [ "$UI_REVIEW_FULL" = "true" ]; then SKIP=""; else SKIP="--skip-base"; fi
           node scripts/ui-review.mjs --cache --base HEAD^1 --shard "$SHARD/4" $SKIP
@@ -239,6 +266,8 @@ jobs:
 
       - name: Anything to check?
         id: gate
+        env:
+          CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs pack
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -288,6 +317,8 @@ jobs:
 
       - name: Anything to check?
         id: gate
+        env:
+          CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs browser
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

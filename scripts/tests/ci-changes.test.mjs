@@ -54,3 +54,9 @@ test('push and manual runs', () => {
     assert.throws(() => decide('nope', { event: 'push' }), /unknown area/);
     assert.equal(isDocsOnly('docs/x.md'), false, 'markdown in a folder is not root documentation');
 });
+
+test('the label full-ci (or a release pull request) makes every area run; the UI review keeps its own rule', () => {
+    for (const a of ['node', 'dotnet', 'browser', 'pack']) assert.equal(decide(a, { event: 'pull_request', files: ['docs/x.md'], fullCi: true }).run, true, a);
+    assert.equal(decide('ui-review', { event: 'pull_request', files: ['docs/x.md'], fullCi: true }).run, false);
+    assert.equal(decide('pack', { event: 'pull_request', files: ['docs/x.md'] }).run, false);
+});

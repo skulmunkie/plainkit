@@ -47,7 +47,7 @@ test('required check names in REPO-SETTINGS.md are the job names', () => {
 });
 
 test('concurrency cancels superseded runs; permissions are minimal and only the summary job writes', () => {
-    assert.match(ci, /^concurrency:\n  group: ci-\$\{\{ github\.ref \}\}\n  cancel-in-progress: true$/m);
+    assert.match(ci, /^concurrency:\n  group: ci-\$\{\{ github\.ref \}\}\n  cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}$/m);
     assert.match(ci, /^permissions:\n  contents: read\n/m);
     assert.equal((ci.match(/pull-requests: write/g) || []).length, 1, 'exactly one job writes to pull requests');
     assert.ok(job('ci-summary').includes('pull-requests: write'));
@@ -113,5 +113,84 @@ test('the UI review jobs restore a content-addressed render cache and pass --cac
         assert.match(text, /path: review-cache\n/, `${name} caches review-cache`);
         assert.match(text, /restore-keys:/, `${name} has restore keys`);
         assert.match(text, /node scripts\/ui-review\.mjs --cache /, `${name} runs ui-review with --cache`);
+    }
+});
+
+
+// ---- tiered CI for a repository whose work lands on main through pull requests (no integration branch) ----
+
+const wf = f => read(`.github/workflows/${f}`);
+const jobOf = (text, id) => {
+    const m = new RegExp(`^  ${id}:\\n([\\s\\S]*?)(?=^  [a-z-]+:\\n|(?![\\s\\S]))`, 'm').exec(text);
+    assert.ok(m, `a job ${id}`);
+    return m[1];
+};
+
+test('every workflow pins every action to a commit SHA with a version comment (no unpinned actions)', () => {
+    for (const f of fs.readdirSync(path.join(root, '.github/workflows')).filter(n => n.endsWith('.yml'))) {
+        const lines = wf(f).split('\n').filter(l => /^\s*(- )?uses: /.test(l));
+        for (const l of lines) assert.match(l, /uses: [\w.-]+\/[\w./-]+@[0-9a-f]{40} # v?\d+(\.\d+)*\s*$/, `${f}: ${l.trim()}`);
+    }
+});
+
+test('PR concurrency cancels superseded pull request runs only; the tag, nightly and release runs are never cancelled by a newer one', () => {
+    assert.match(ci, /cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+    assert.doesNotMatch(wf('release.yml'), /cancel-in-progress: true/);
+    assert.doesNotMatch(wf('release.yml'), /^concurrency:/m);
+    assert.match(wf('nightly-full.yml'), /^concurrency:\n  group: nightly-full\n  cancel-in-progress: false$/m);
+    assert.match(wf('browser-nightly.yml') + wf('nightly-full.yml'), /schedule:/);
+});
+
+test('ordinary pull requests run the targeted plan; full only for push, the label full-ci or a release pull request', () => {
+    for (const id of ['node', 'dotnet']) {
+        const j = job(id);
+        assert.ok(j.includes(`node scripts/verify.mjs --only ${id}`), `${id}: the full command stays`);
+        assert.ok(j.includes(`node scripts/verify.mjs --changed --only ${id} --base`), `${id}: the targeted command`);
+        assert.match(j, /PK_FULL: \$\{\{ github\.event_name != 'pull_request' \|\| startsWith\(github\.head_ref, 'release\/'\) \|\| contains\(github\.event\.pull_request\.labels\.\*\.name, 'full-ci'\) \}\}/, `${id}: full conditions`);
+        assert.ok(j.includes('git fetch --no-tags --depth=1 origin'), `${id}: fetches the base for --changed`);
+    }
+});
+
+test('the heavy jobs are gated by changed files (or the full-ci label) and still exist in every run, so required checks never hang', () => {
+    for (const id of ['node', 'dotnet', 'pack', 'scorecard']) {
+        const j = job(id);
+        assert.match(j, /ci-changes\.mjs (node|dotnet|pack|browser)/, `${id}: gate step`);
+        assert.ok(j.includes('CI_FULL:') && j.includes("'full-ci'"), `${id}: the gate sees the full-ci label`);
+        assert.ok(!/^    if: .*(paths|changed)/m.test(j), `${id}: no job-level skip that would leave a required check pending`);
+    }
+    assert.ok(job('ui-review').includes('ci-changes.mjs ui-review'));
+    assert.ok(job('ui-review').includes("'full-ci'"), 'the label full-ci also means the full UI review');
+    assert.match(job('browser-release'), /if: github\.event_name == 'pull_request' && startsWith\(github\.head_ref, 'release\/'\)/);
+    assert.ok(!/paths:/.test(ci), 'no workflow-level paths filter (a required check would stay pending)');
+});
+
+test('the nightly workflows exist: full verify, browser suite, UI review sweep; each files or updates a tracking issue or fails red', () => {
+    const full = wf('nightly-full.yml');
+    assert.match(full, /cron: '/);
+    assert.ok(full.includes('node scripts/verify.mjs --pack --scorecard'));
+    assert.ok(full.includes('Full verify failing on main') && full.includes('issues: write'));
+    assert.ok(full.includes("github.ref == 'refs/heads/main'"));
+    assert.ok(full.includes('Fail the run when the full verify failed'));
+    assert.ok(wf('browser-nightly.yml').includes('In-browser suite') || wf('browser-nightly.yml').includes('reportToIssue'));
+    assert.match(wf('ui-review-sweep.yml'), /schedule:[\s\S]*--all/);
+});
+
+test('release.yml runs the full verify first; build and publish both need it, so nothing is published when it fails', () => {
+    const rel = wf('release.yml');
+    const v = jobOf(rel, 'verify');
+    assert.ok(v.includes('node scripts/verify.mjs --pack --browser'));
+    assert.ok(!/continue-on-error/.test(v), 'a verify failure must fail the run');
+    assert.match(jobOf(rel, 'build'), /^    needs: verify$/m);
+    assert.match(jobOf(rel, 'publish'), /^    needs: \[verify, build\]$/m);
+    assert.ok(rel.indexOf('  verify:\n') < rel.indexOf('  build:\n'), 'verify is the first job');
+    assert.doesNotMatch(v, /secrets\.|id-token|contents: write/, 'the verify job holds no publishing rights');
+});
+
+test('the docs describe the main-based flow: verify --changed compares with origin/main, no integration batch', () => {
+    for (const f of ['AGENTS.md', 'CONTRIBUTING.md']) {
+        const t = read(f);
+        assert.ok(!t.includes('origin/next-0.13'), `${f}: no integration branch`);
+        assert.ok(!t.includes('integration batch'), `${f}: no integration batch`);
+        assert.ok(t.includes('full-ci'), `${f}: names the label full-ci`);
     }
 });

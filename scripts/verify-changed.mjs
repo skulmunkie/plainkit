@@ -3,7 +3,7 @@
 // plan turned into runnable checks in buildChecks. verify.mjs prints the plan (what was chosen and why) and runs it.
 //
 // The rule that matters: a file this table does not know falls back to the FULL node job (never skips when unsure). The full verify, the whole browser suite and
-// the Node 22 job stay for the integration batch and CI.
+// the Node 22 job stay for the nightly run, release pull requests, the version tag and the `full-ci` label.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -154,10 +154,10 @@ export function planSteps(plan, { browser = false } = {}) {
 
 const git = (args, cwd) => spawnSync('git', args, { cwd, encoding: 'utf8' });
 
-/** The base to compare to: --base, else origin/next-0.13, else origin/main; null when none exists. */
+/** The base to compare to: --base, else origin/main (work lands on main through pull requests), else origin/next-0.13 (an old integration branch); null when none exists. */
 export function defaultBase(explicit, cwd) {
     if (explicit) return explicit;
-    for (const ref of ['origin/next-0.13', 'origin/main']) if (git(['rev-parse', '--verify', '--quiet', ref], cwd).status === 0) return ref;
+    for (const ref of ['origin/main', 'origin/next-0.13']) if (git(['rev-parse', '--verify', '--quiet', ref], cwd).status === 0) return ref;
     return null;
 }
 
@@ -216,6 +216,6 @@ export function describePlan(plan, { base, browser }) {
     for (const s of planSteps(plan, { browser })) out.push(`  -> ${s.id}: ${s.why}`);
     if (!browser && (plan.browserFull || plan.browserElements.size || plan.uiElements.size)) out.push('  (browser cases and UI review not selected: add --browser)');
     for (const n of plan.notes) out.push(`  note: ${n}`);
-    out.push('  The full verify --pack, the whole browser suite and the Node 22 job stay for the integration batch and CI.');
+    out.push('  The full verify --pack, the whole browser suite and the Node 22 job stay for the nightly run, release pull requests, the version tag and the full-ci label.');
     return out.join('\n');
 }
