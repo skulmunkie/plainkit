@@ -107,7 +107,7 @@
     --color-surface-alt: #f1f5f9;     /* matches the prior surface-alt light fallback */
     --color-text: #1f2328;
     --color-muted: #6c747e;
-    --color-muted-strong: var(--color-muted);  /* already clears 4.5:1 here */
+    --color-muted-strong: #636b75;  /* muted text on surface-alt chips: --color-muted reads 4.3:1 there */
     --color-accent: #1d4ed8;          /* deep blue — high contrast on white */
     --color-accent-hover: #1e40af;
     --color-accent-fill: #1d4ed8;
