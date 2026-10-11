@@ -8,7 +8,7 @@ import { createLogger } from '../../js/log.js';
 import { parseReviewManifest, reviewRows, filterReview, describeReview, reviewDetail, REVIEW_COMMAND } from './review-logic.js';
 
 const log = createLogger('audit-dashboard');
-const COLUMNS = [{ key: 'severity', label: 'Severity' }, { key: 'rule', label: 'Rule' }, { key: 'element', label: 'Element' }, { key: 'where', label: 'Where' }];
+const COLUMNS = [{ key: 'severity', label: 'Severity' }, { key: 'rule', label: 'Rule' }, { key: 'element', label: 'Element' }, { key: 'where', label: 'Where' }, { key: 'seen', label: 'Seen in' }];
 
 // Returns { panel, load(), detail }. `onSelect(finding|null)` is called when a row is chosen or the data is reloaded.
 export function createReviewPanel(doc, { reviewUrl, onSelect }) {
