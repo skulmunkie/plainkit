@@ -1,0 +1,15 @@
+@page "/routed/orders"
+@inject NavigationManager Nav
+
+@* The list half of the routed pair (guide "A routed list and record page"): a row click navigates to the record page. *@
+<PkListPage TItem="Order"
+            Config="@_config"
+            Load="RoutedOrderStore.PageAsync"
+            IdOf="o => o.Id"
+            OnRowClick="Open" />
+
+@code {
+    private const string _config = """{"label":"Orders","pageSize":10,"columns":[{"key":"orderNo","label":"Order","sortable":true},{"key":"customer","label":"Customer"}]}""";
+
+    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo($"/routed/orders/{Uri.EscapeDataString(e.Id!)}");
+}
