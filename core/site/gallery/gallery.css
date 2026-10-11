@@ -16,16 +16,6 @@
 
 .gx-swatch { flex: none; width: var(--_gx-swatch-size); height: var(--_gx-swatch-size); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
 
-.gx-space-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-1); }
-
-.gx-space-row code { min-width: var(--_gx-space-code-min-w); }
-
-.gx-space-bar { display: block; height: var(--_gx-space-bar-h); background: var(--color-accent); border-radius: var(--radius-xs); }
-
-.gx-box { display: inline-flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); background: var(--color-panel); border: var(--_gx-border-w) solid var(--color-border); }
-
-.gx-z { display: inline-block; padding: var(--space-1) var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
-
 .gx-effect { padding: var(--space-1); }
 
 
