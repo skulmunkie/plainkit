@@ -1,11 +1,13 @@
 import { loadElements } from '../../js/loader.js';
 import { safeHref } from '../../js/safe-url.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 // True when a slot has an element or non-blank text assigned.
 const filled = (el, name) => el.slotted(name).length > 0 || [...el.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])').assignedNodes({ flatten: true })].some(n => n.textContent.trim() !== '');
 
 export default Base => class extends Base {
     connected() { for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); }
+    disconnected() { this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; }
     // The crumbs prop: a JSON array of { label, href }. A bad value is reported once and draws no trail.
     list() {
         if (!this.crumbs) return [];
@@ -36,6 +38,30 @@ export default Base => class extends Base {
         nav.hidden = !nav.childElementCount;
         back.hidden = !(this.backLink && back.href);
     }
+    /** tabs: [{ value, label, count?, visible? }] draws the docked strip (a slotted pk-tabs wins); tabsFrom limits it to phone or tablet width and below. A chosen tab that went falls back to the first. */
+    dock() {
+        const own = this.slotted('tabs').some(e => e.getRootNode() !== this.shadowRoot), strip = this.part('strip'), data = own ? null : this.tabs;
+        if (this.$data !== data) {
+            this.$data = data;
+            const keep = strip.value;
+            strip.replaceChildren(...(data ?? []).filter(d => d && d.visible !== false).map(d => {
+                const t = this.ownerDocument.createElement('pk-tab');
+                t.setAttribute('value', d.value); t.textContent = d.label ?? d.value;
+                if (d.count != null && d.count !== '') t.setAttribute('count', String(d.count));
+                return t;
+            }));
+            loadElements(strip);
+            strip.value = [...strip.children].some(t => t.getAttribute('value') === keep) ? keep : strip.firstElementChild?.getAttribute('value') ?? '';
+        }
+        if (this.$from !== this.tabsFrom) {
+            this.$sync ??= () => this.requestUpdate();
+            this.$mq?.removeEventListener('change', this.$sync);
+            this.$from = this.tabsFrom;
+            this.$mq = this.$from === 'always' ? null : mediaBelow(this.$from);
+            this.$mq?.addEventListener('change', this.$sync);
+        }
+        return (own || !!strip.childElementCount) && (this.$from === 'always' || !!this.$mq?.matches);
+    }
     updated() {
         const title = this.part('title');
         if (title) title.hidden = filled(this, 'title'); // a slotted title (a pk-heading) is the heading; the built-in text steps aside
@@ -43,7 +69,7 @@ export default Base => class extends Base {
         this.part('crumbs').hidden = !filled(this, 'breadcrumb') && this.part('trail').hidden;
         this.part('actions').hidden = !filled(this, 'actions');
         this.part('meta').hidden = !filled(this, 'meta');
-        this.part('tabs').hidden = !filled(this, 'tabs');
+        this.part('tabs').hidden = !this.dock();
         this.part('chips').hidden = !filled(this, '');
         this.part('titlebar').hidden = !this.heading && !filled(this, '') && !filled(this, 'actions');
     }

@@ -59,6 +59,16 @@
       "type": "RenderFragment?"
     },
     {
+      "name": "TabsFrom",
+      "type": "string",
+      "prop": "tabsFrom"
+    },
+    {
+      "name": "TabItems",
+      "prop": "tabs",
+      "type": "IReadOnlyList<PkRecordTab>"
+    },
+    {
       "name": "TabsContent",
       "slot": "tabs",
       "type": "RenderFragment?"

@@ -34,7 +34,7 @@ test('it stacks by its own width and keeps actions touch-sized, with tokens only
 });
 
 test('the tabs slot is docked inside the header, after the note, and the default slot sits in a chips wrapper', () => {
-    assert.match(html, /<div part="meta"><slot name="meta"><\/slot><\/div><div part="tabs"><slot name="tabs"><\/slot><\/div><\/header>/);
+    assert.match(html, /<div part="meta"><slot name="meta"><\/slot><\/div><div part="tabs"><slot name="tabs"><pk-tabs part="strip" label="Sections"><\/pk-tabs><\/slot><\/div><\/header>/);
     assert.match(html, /<div part="chips"><slot><\/slot><\/div>/);
     assert.ok(meta.slots.some(s => s.name === 'tabs'));
     assert.ok(meta.examples.some(e => /slot="tabs"/.test(e.html) && /aria-label=/.test(e.html)), 'an example shows tabs and a home crumb');
@@ -67,4 +67,10 @@ test('crumbs, home crumb and back link are the element\'s own (issue 801): props
     const js = read('./page-header.js');
     assert.match(js, /safeHref/);
     assert.doesNotMatch(js, /innerHTML/);
+});
+
+test('the tabs slot has a drawn fallback strip fed by the tabs array and tabs-from (#342)', () => {
+    assert.match(html, /<slot name="tabs"><pk-tabs part="strip"/);
+    for (const n of ['tabs', 'tabsFrom']) assert.ok(meta.props.some(p => p.name === n), n);
+    assert.ok(meta.parts.some(p => p.name === 'strip'));
 });
