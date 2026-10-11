@@ -36,7 +36,7 @@ export const crumbs = (...parts) => `<pk-breadcrumb slot="breadcrumb" label="Bre
 export const heading = (title, lead, crumb = '') => `<pk-page-header class="gx-head" level="1" heading="${esc(title)}">${crumb}${lead ? `<pk-text tone="muted" slot="meta">${esc(lead)}</pk-text>` : ''}</pk-page-header>`;
 export const section = (title, body) => `<pk-card class="gx-entry" heading="${esc(title)}">${body}</pk-card>`;
 export const cardLink = (href, title, text, extra = '') => `<pk-card class="gx-tile" href="${href}" heading="${esc(title)}"><pk-text inline tone="muted">${esc(text)}</pk-text>${extra}</pk-card>`;
-export const grid = html => `<pk-grid min="14rem">${html}</pk-grid>`;
+export const grid = html => `<pk-grid class="gx-tiles" min="14rem">${html}</pk-grid>`;
 export const notFound = (title, lead, back) => `<pk-empty-state heading="${esc(title)}"${lead ? ` description="${esc(lead)}"` : ''}>${back ? `<a slot="actions" href="${back[1]}">${esc(back[0])}</a>` : ''}</pk-empty-state>`;
 export const nothing = () => '<pk-empty-state tone="compact" heading="Nothing in the gallery matches."></pk-empty-state>';
 // A data table: the raw table goes inside pk-table (frame, scrolling), each cell labelled so a phone can lay a row out as a card (gallery.css).
