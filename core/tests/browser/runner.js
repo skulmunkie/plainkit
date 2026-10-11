@@ -50,7 +50,11 @@ const CASE_TIMEOUT_MS = 60000;
 const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
 const filterList = parseList(params.get('filter')); const elementList = parseList(params.get('elements'));
 const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : selectCases(cases, { filter: filterList, elements: elementList });
+// Case isolation (#1127): every case starts from, and leaves, empty storage. The demo apps and theme cases write to the harness origin's
+// localStorage (pk.app, saved themes), so a case outcome used to depend on which cases ran before it.
+const resetStorage = () => { localStorage.clear(); sessionStorage.clear(); };
 for (const [name, fn] of chosen) {
+    resetStorage();
     const started = performance.now();
     const li = document.createElement('li');
     // A case that never settles must fail by name, not stall the whole run (and the report) forever.
@@ -59,6 +63,7 @@ for (const [name, fn] of chosen) {
     try { await Promise.race([fn(t), stalled]); clearTimeout(timer); li.className = 'tb-pass'; li.textContent = name; results.push({ name, ok: true, ms: Math.round(performance.now() - started) }); }
     catch (e) { li.className = 'tb-fail'; li.textContent = `${name}: ${e.message}`; results.push({ name, ok: false, ms: Math.round(performance.now() - started), error: String(e.message ?? e) }); }
     list.append(li);
+    resetStorage();
 }
 stageEl.replaceChildren();
 
