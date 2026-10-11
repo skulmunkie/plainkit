@@ -24,7 +24,8 @@ public sealed class PkLifecycleTests : BunitContext
 
     private static string Text(JsonElement v) => v.ValueKind == JsonValueKind.Null ? "undefined" : v.ToString();
 
-    private static Task Settle() => Task.Delay(15);
+    // No timing: every continuation runs inline (see Def) and a run starts on the calling thread, so a step has finished when it returns.
+    private static Task Settle() => Task.CompletedTask;
 
     [Theory]
     [MemberData(nameof(Cases))]
@@ -38,7 +39,7 @@ public sealed class PkLifecycleTests : BunitContext
         using var external = new CancellationTokenSource();
         using var life = new PkLifecycle(() => { }, external.Token);
         Task Fail(Exception _) { pageErrors++; return Task.CompletedTask; }
-        TaskCompletionSource<string> Def(string id) => defs[id] = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<string> Def(string id) => defs[id] = new();
         Task<string> Load(string id, CancellationToken token)
         {
             token.Register(() => aborted.Add(id));
@@ -57,11 +58,11 @@ public sealed class PkLifecycleTests : BunitContext
                 case "refresh": Def(id); if (!life.Disposed && loaded) StartLoad(id); break;
                 case "run":
                     var d = Def(id);
-                    _ = Task.Run(async () =>
+                    _ = ((Func<Task>)(async () =>
                     {
                         try { var r = await life.RunAsync<string>(s.GetProperty("label").GetString(), _ => d.Task, Fail); runs.Add($"{id}:ok:{r ?? "undefined"}"); }
                         catch (Exception e) { runs.Add($"{id}:err:{e.Message}"); }
-                    });
+                    }))();
                     break;
                 case "resolve": defs[id].SetResult(value); break;
                 case "reject": defs[id].SetException(value == "AbortError" ? new OperationCanceledException() : new InvalidOperationException(value)); break;
