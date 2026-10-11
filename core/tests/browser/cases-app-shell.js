@@ -78,7 +78,7 @@ export const appShellCases = [
         const deep = await demo(t, 1280, { hash: '#/reports' });
         t.eq(deep.d.querySelector('pk-navbar pk-dropdown [slot="trigger"]').textContent.trim(), 'Reports', 'a deep link restores the picker');
         const none = await demo(t, 1280, { hash: '#/overview' });
-        t.ok(!none.d.querySelector('#pk-nav'), 'a module with no nav shows no side nav');
+        t.ok(none.d.querySelector('#pk-nav') && !none.d.querySelector('#pk-nav pk-nav-item'), 'a module with no nav keeps an empty side-nav column (no reflow) with no items');
         t.ok(!none.d.querySelector('pk-navbar pk-dropdown').hidden, 'and the picker still shows');
     }],
 
@@ -188,8 +188,7 @@ export const appShellCases = [
         const po = new s.win.PerformanceObserver(list => shifts.push(...list.getEntries()));
         po.observe({ type: 'layout-shift', buffered: true });
         await wait(600);
-        // Modules that both have a nav: a module with none shows no side nav at all (#388), a deliberate change of the column, not a shift.
-        for (const to of ['#/reports', '#/orders/7', '#/reports/exports', '#/orders', '#/reports']) await s.go(to);
+        for (const to of ['#/reports', '#/overview', '#/orders/7', '#/reports/exports', '#/orders']) await s.go(to);
        
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.

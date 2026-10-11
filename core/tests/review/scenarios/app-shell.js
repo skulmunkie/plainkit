@@ -20,7 +20,7 @@ const orders = defineModule({
         { path: '/archive', label: 'Archive', page: 'custom', config: { mount: page('Archive', 'Old orders.') } },
     ],
 });
-const overview = defineModule({ id: 'overview', title: 'Overview', routes: [{ path: '/', page: 'custom', config: { mount: page('Overview', 'No menu here: the page has the full width.') } }] });
+const overview = defineModule({ id: 'overview', title: 'Overview', routes: [{ path: '/', page: 'custom', config: { mount: page('Overview', 'No menu here: the nav column stays, empty.') } }] });
 
 const BAR = 'pk-navbar';
 const HEADER = 'pk-app-shell >>> [part=header]';
@@ -107,7 +107,7 @@ export default {
         }
         if (t.shot === 'module-chosen') {
             t.hasText('#pk-main h1', 'Overview');
-            if (desktop) t.hasText('pk-navbar pk-dropdown [slot=trigger]', 'Overview');
+            if (desktop) { t.hasText('pk-navbar pk-dropdown [slot=trigger]', 'Overview'); t.visible('#pk-nav'); t.absent('#pk-nav pk-nav-item'); t.atLeast('#pk-nav', 'width', 150); }
             t.ok(document.title === 'Overview - Acme', `the document title is "${document.title}"`);
             if (!desktop) t.hidden('#pk-nav', 'the drawer (closed after choosing a module)');
         }

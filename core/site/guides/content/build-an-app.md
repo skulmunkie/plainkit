@@ -183,7 +183,7 @@ Route params and query values come from the address, so they are untrusted text:
 
 ## The nav is structure
 
-`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. The side nav is the active module's own nav and nothing else (a module without a `nav` shows no side nav). Modules are switched with the module picker: a button in the header showing the active module's title, and on a narrow screen the first row of the one drawer. With one module there is no picker.
+`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. The side nav is the active module's own nav and nothing else (a module without a `nav` leaves the column empty on a wide screen, so the page does not reflow, and shows no drawer body on a phone). Modules are switched with the module picker: a button in the header showing the active module's title, and on a narrow screen the first row of the one drawer. With one module there is no picker.
 
 ## State, settings and guards
 
