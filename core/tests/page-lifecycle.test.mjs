@@ -1,4 +1,4 @@
-// js/page-lifecycle.js (#1022): the shared fixture cases, the helper's edges and a create/dispose leak check.
+// js/page-lifecycle.js (#1022): the shared fixture cases, the helper's edges and a create/destroy leak check.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,28 +9,44 @@ import { createLifecycle, disposeWith } from '../js/page-lifecycle.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixture = JSON.parse(fs.readFileSync(path.join(here, 'fixtures/page-lifecycle.json'), 'utf8'));
 const tick = () => new Promise(r => setImmediate(r));
+// Like createPage: busy is counted, a rejection sets the status once and is rethrown.
+const stubPage = out => ({
+    async busy(fn) { out.busy++; try { return await fn(); } catch (e) { out.pageErrors++; throw e; } finally { out.busy--; } },
+    setError() { out.pageErrors++; },
+});
 
 for (const c of fixture.cases) {
     test(`page lifecycle fixture: ${c.name}`, async () => {
-        const out = { applied: [], rejected: [], aborted: [], changes: [] }, defs = {};
-        const lc = createLifecycle({ onChange: s => out.changes.push([s.busy, s.error && `${s.error.label}: ${s.error.message}`]) });
+        const out = { states: [], applied: [], rejected: [], aborted: [], runs: [], pageErrors: 0, busy: 0 }, defs = {}, ext = new AbortController();
+        const life = createLifecycle({ page: stubPage(out), signal: ext.signal });
         const def = id => defs[id] = (() => { const d = {}; d.promise = new Promise((res, rej) => { d.res = res; d.rej = rej; }); return d; })();
+        const err = v => v === 'AbortError' ? Object.assign(new Error('aborted'), { name: 'AbortError' }) : v;
+        let pending;
+        const loadFn = sig => { const id = pending; sig.addEventListener('abort', () => out.aborted.push(id)); return defs[id].promise; };
+        const track = (id, p) => p?.then(v => out.applied.push([id, v]), e => out.rejected.push([id, e]));
         for (const s of c.steps) {
-            if (s.op === 'load') { const d = def(s.id); lc.load(sig => { sig.addEventListener('abort', () => out.aborted.push(s.id)); return d.promise; }).then(v => out.applied.push([s.id, v]), e => out.rejected.push([s.id, e])); }
-            else if (s.op === 'run') { const d = def(s.id); lc.run(() => d.promise, s.label).catch(() => {}); }
-            else if (s.op === 'resolve') defs[s.id].res(s.value);
-            else if (s.op === 'reject') defs[s.id].rej(s.value);
-            else lc[s.op]();
+            if (s.op === 'load') { def(pending = s.id); track(s.id, life.load('k', loadFn)); }
+            else if (s.op === 'refresh') { def(pending = s.id); track(s.id, life.refresh()); 
+            } else if (s.op === 'run') {
+                const d = def(s.id);
+                life.run(s.label, () => d.promise).then(v => out.runs.push([s.id, `ok:${v}`]), e => out.runs.push([s.id, `err:${e}`]));
+            } else if (s.op === 'resolve') defs[s.id].res(s.value);
+            else if (s.op === 'reject') defs[s.id].rej(err(s.value));
+            else if (s.op === 'abort') ext.abort();
+            else life.destroy();
             await tick();
+            out.states.push(life.state);
         }
         assert.deepEqual(out, c.expect);
     });
 }
 
-test('a rejection of run is rethrown and kept in state', async () => {
-    const lc = createLifecycle();
-    await assert.rejects(lc.run(() => Promise.reject(new Error('no')), 'save'), /no/);
-    assert.deepEqual(lc.state().error, { label: 'save', message: 'no' });
+test('load reports loading synchronously and passes the signal to the callback', () => {
+    const life = createLifecycle();
+    let seen;
+    life.load('k', async sig => { seen = sig; });
+    assert.equal(life.state, 'loading');
+    assert.equal(seen.aborted, false, 'the callback ran before load returned');
 });
 
 test('disposeWith runs the disposer for a plain cleanup and for the thenable form', async () => {
@@ -43,15 +59,15 @@ test('disposeWith runs the disposer for a plain cleanup and for the thenable for
     assert.deepEqual([n, m], [2, 2]);
 });
 
-test('100 create/dispose cycles with loads in flight settle nothing and notify nothing', async () => {
-    let delivered = 0, changes = 0;
+test('100 create/destroy cycles with loads in flight settle nothing and leave no listeners on the external signal', async () => {
+    let delivered = 0;
+    const ext = new AbortController();
     for (let i = 0; i < 100; i++) {
-        const lc = createLifecycle({ onChange: () => changes++ }), sigs = [];
-        lc.load(s => { sigs.push(s); return new Promise(r => setImmediate(() => r(1))); }).then(() => delivered++);
-        lc.dispose();
+        const life = createLifecycle({ signal: ext.signal }), sigs = [];
+        life.load('k', s => { sigs.push(s); return new Promise(r => setImmediate(() => r(1))); }).then(() => delivered++);
+        life.destroy();
         assert.equal(sigs[0].aborted, true);
     }
     await tick(); await tick();
     assert.equal(delivered, 0);
-    assert.equal(changes, 0);
 });

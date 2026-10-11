@@ -1,32 +1,42 @@
-// The page lifecycle (#1022, step 1): the plumbing every page repeats by hand, written once. Not in the app entry graph: the page-type chunks that use it import it.
-//   const lc = createLifecycle({ onChange: s => ... });   // s = { busy, error, disposed }
-//   el.load = id => lc.load(signal => fetchRecord(id, signal));   // a newer load (or dispose) aborts the signal; a superseded load never settles, so its result cannot be drawn
-//   await lc.run(() => save(values), 'save');                      // busy while it runs, error kept ({ label, message }) when it rejects (and rethrown), cleared by the next run
-//   lc.refresh();                                                   // onChange again, a no-op after dispose
-//   lc.dispose();                                                   // aborts in-flight work, silences every later callback
-// The same rules, as data, are in core/tests/fixtures/page-lifecycle.json; the C# page base (a later step) must satisfy that file too.
-export function createLifecycle({ onChange } = {}) {
-    let ctl = null, disposed = false, busy = 0, error = null;
-    const state = () => ({ busy, error, disposed }), notify = () => { if (!disposed) onChange?.(state()); };
-    return {
-        state,
-        load(fn) {
-            ctl?.abort();
-            const mine = ctl = new AbortController(), live = () => !disposed && ctl === mine;
-            return new Promise((resolve, reject) => {
-                let p;
-                try { p = Promise.resolve(fn(mine.signal)); } catch (e) { p = Promise.reject(e); }
-                p.then(v => live() && resolve(v), e => live() && reject(e));
-            });
-        },
-        async run(fn, label) {
-            if (disposed) return;
-            busy++; error = null; notify();
-            try { return await fn(); } catch (e) { error = { label, message: e?.message ?? String(e) }; throw e; } finally { busy--; notify(); }
-        },
-        refresh: notify,
-        dispose() { if (disposed) return; ctl?.abort(); disposed = true; },
+// The page lifecycle (#1022, design docs/superpowers/specs/2026-10-11-page-base-design.md section 3.1): the plumbing every page repeats by hand, written once.
+// Not in the app entry graph: the page-type chunks that use it import it (app-budgets guards this).
+//   const life = createLifecycle({ page, signal });   // page: createPage(...) or anything with busy(fn, label) (and setError(err)); signal: ctx.signal, aborting it destroys
+//   life.load(key, async signal => data);              // state 'loading' synchronously; a later load aborts the earlier signal and its result is never applied
+//   life.run(label, async signal => value);            // counted busy through page.busy (which sets the page status once); rejects to the caller too
+//   life.refresh();  life.destroy();                   // refresh re-runs the last load; destroy aborts, is idempotent and makes every later call a no-op
+//   life.state ('idle' | 'loading' | 'ready' | 'error'), life.error
+// load() resolves with the data only when it is still current. A superseded or destroyed load never settles (nothing to apply, nothing to report);
+// an aborted call is never an error. No timers. The rules are also data, in core/tests/fixtures/page-lifecycle.json (the C# suite reads the same file).
+export function createLifecycle({ page = null, signal } = {}) {
+    let gen = 0, dead = false, last = null, current = null;
+    const root = new AbortController(), life = { state: 'idle', error: null };
+    const aborted = (s, e) => s.aborted || e?.name === 'AbortError';
+    const destroy = () => { if (dead) return; dead = true; signal?.removeEventListener('abort', destroy); gen++; life.state = 'idle'; root.abort(); };
+    signal?.aborted ? destroy() : signal?.addEventListener('abort', destroy, { once: true });
+    life.load = (key, fn) => {
+        if (dead) return new Promise(() => {});
+        last = [key, fn];
+        const mine = ++gen, own = new AbortController();
+        current?.abort(); current = own;
+        root.signal.addEventListener('abort', () => own.abort(), { once: true });
+        life.state = 'loading'; life.error = null;
+        return new Promise((resolve, reject) => {
+            const live = () => mine === gen && !dead;
+            let p;
+            try { p = Promise.resolve(fn(own.signal)); } catch (e) { p = Promise.reject(e); }
+            p.then(
+                data => { if (live()) { life.state = 'ready'; resolve(data); } },
+                err => { if (!live() || aborted(own.signal, err)) return; life.state = 'error'; life.error = err; page?.setError?.(err); reject(err); });
+        });
     };
+    life.run = async (label, fn) => {
+        if (dead) return undefined;
+        const call = async () => { try { return await fn(root.signal); } catch (e) { if (aborted(root.signal, e)) return undefined; throw e; } };
+        try { return await (page?.busy ? page.busy(call, label) : call()); } catch (e) { if (!dead) life.error = e; throw e; }
+    };
+    life.refresh = () => (last && !dead ? life.load(...last) : undefined);
+    life.destroy = destroy;
+    return life;
 }
 
 /** A mount cleanup (also a thenable, as mountTitled returns) that runs `fn` first: the lifecycle disposes with the page, whichever form the caller holds. */
