@@ -76,7 +76,7 @@ const KNOWN = new Set([
     'site/gallery/index.html::extra-html-page', 'site/guides/index.html::extra-html-page',
     'site/gallery/standalone.js::mount-shell', 'site/guides/page.js::mount-shell',
     'site/shell.js::mount-shell', 'site/shell.js::pages-array', 'site/shell.js::theme-observer',
-    'site/guides/page.js::navigation-listener', 'site/guides/page.js::history-push',
+    'site/guides/page.js::navigation-listener',
 ]);
 // Internal files the site still reaches into (ledgered by pattern so the list needs no per-file entry); also only shrinks.
 const KNOWN_IMPORTS = /::non-public-import:(modules\/code-explorer\/providers\.js)$/;

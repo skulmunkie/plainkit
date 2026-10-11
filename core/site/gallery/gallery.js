@@ -91,6 +91,9 @@ let router = null;
 const query = () => router?.current()?.query ?? {}; // the address's query (#/path?q=..&nav=..), from the router
 let mounted = null; // the gallery on show: { destroy() }, so a second mount ends the first instead of stacking on it
 
+// Every address the gallery writes goes through the router (hash form '#<prefix>/path?query'; the router adds the prefix back). The same address again is not a new entry.
+const goTo = (hash, replace = false) => { const to = hash.slice(B().length); if (location.hash !== hash) router?.navigate(to, { replace }); };
+
 // Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
 function route() {
     const [section = 'overview', a, b] = (router?.current()?.url ?? '/').split('/').filter(Boolean);
@@ -437,9 +440,9 @@ export async function mountGallery(container, options = {}) {
     document.documentElement.dataset.width = state.width;
     // A scoped mount with no address of its own opens the first view of its scope (the address says so from then on).
     const first = !location.hash && isScoped(opts) && !collection() ? initialHash(tree()) : '';
-    if (first) history.replaceState(null, '', first);
     router?.destroy();
     router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
+    if (first) goTo(first, true);
     fillSanitizedHtml(container, bare ? BARE_HTML : chromeHtml());
     container.toggleAttribute('data-gx-mount', !bare); // the frame fills the host's box (gallery.css)
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
@@ -471,7 +474,7 @@ export async function mountGallery(container, options = {}) {
         const w = e.target.closest('[data-set-width]');
         if (w) { state.width = w.dataset.setWidth; document.documentElement.dataset.width = state.width; writeSetting('pk-gallery-width', state.width); refreshFrames({ width: state.width }); paintToolbar(); }
         const go = e.target.closest('[data-goto]');
-        if (go) location.hash = go.dataset.goto;
+        if (go) goTo(go.dataset.goto);
         const sc = e.target.closest('pk-menu-item[data-scale]');
         if (sc) setScale(Number(sc.dataset.scale));
     });
@@ -479,11 +482,11 @@ export async function mountGallery(container, options = {}) {
     const offs = [on(document, 'site-search', e => setFilter(e.detail)), on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); })];
     const view = $('#gx-view');
     on(view, 'submit', e => { e.preventDefault(); });
-    on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
+    on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) goTo(`${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`); });
     on(view, 'input', e => {
         const form = e.target.closest('form[data-find]'); if (!form) return;
         form._cancel?.();
-        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
+        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); goTo(`${form.dataset.find}${p.toString() ? '?' + p : ''}`); later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     on(view, 'change', e => { const form = e.target.closest('form[data-find]'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
     const handle = {
