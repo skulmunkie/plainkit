@@ -60,3 +60,23 @@ async function sweep(t, mod, name, v) {
 export const moduleMountCases = MODULES.map(mod => [`module mount sweep: ${mod.name} mounts and tears down with its defaults, a theme, no network and blocked storage without a thrown or logged error`, async t => {
     for (const [name, v] of Object.entries(VARIANTS)) await sweep(t, mod, name, v);
 }]);
+
+// Zero-gap (#1161): the scorecard's section hosts and the theme editor's token rows are stacks of blocks; none may touch the next with no gap (the quality probe's rule),
+// at a phone and a desktop width.
+const gapsOf = async (t, mod, fn, opts, width) => {
+    const { spacingMeasures, DEFAULTS } = await import('../../js/quality.js');
+    const host = t.stage(''); host.style.inlineSize = `${width}px`;
+    const m = await load(mod); const handle = await m[fn](host, opts); await wait(900);
+    const found = spacingMeasures(host, window, DEFAULTS).filter(s => s.kind === 'zero-gap').map(s => s.selector);
+    handle?.destroy?.();
+    return [...new Set(found)].map(s => `${s} x${found.filter(f => f === s).length}`).join(' | ');
+};
+export const zeroGapCases = [375, 1280].flatMap(w => [
+    [`zero gap: the scorecard sections have no touching sibling blocks at ${w}px`, async t => {
+        const sections = ['size', 'api', 'tiers', 'sweep', 'security', 'history'];
+        t.eq(await gapsOf(t, 'scorecard', 'mountScorecard', { sections, historyKey: 'zg', targets: [{ name: 'Card', html: '<p>Fine</p>' }] }, w), '', 'zero-gap findings');
+    }],
+    [`zero gap: the theme editor token rows have no touching sibling blocks at ${w}px`, async t => {
+        t.eq(await gapsOf(t, 'theme-editor', 'mountThemeEditor', { storageKey: false }, w), '', 'zero-gap findings');
+    }],
+]);
