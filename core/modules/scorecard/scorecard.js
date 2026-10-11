@@ -227,7 +227,7 @@ export async function mountScorecard(container, options = {}) {
     // afterwards.
     const hosts = {};
     const heading = { size: 'Size and budgets', api: 'API surface', tiers: 'Composition by tier', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
-    for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'div', {});
+    for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'pk-stack', { gap: 'sm' });
     const settled = get => Promise.resolve().then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
     const loadHistoryData = () => {
         if (!historyKey) return { history: [], scoring: undefined, noKey: true };
