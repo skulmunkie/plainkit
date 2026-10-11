@@ -241,7 +241,9 @@ export const pagebarTitleAttrs = isFull => (isFull ? { role: 'heading', 'aria-le
 function paintPagebar() {
     const shell = $('#gx-shell');
     if (!shell || !$('#gx-pagebar')) return;
-    shell.classList.toggle('gx-full', Boolean(full));
+    shell.toggleAttribute('data-full', Boolean(full));
+    $('#gx-bar').hidden = Boolean(full); $('#gx-pagebar').hidden = !full;
+    navEl().hidden = Boolean(prefix) || Boolean(full); // the site app owns the nav when it hosts the gallery
     const titleEl = $('#gx-title');
     const attrs = pagebarTitleAttrs(Boolean(full));
     for (const name of ['role', 'aria-level']) { if (attrs[name] !== undefined) titleEl.setAttribute(name, attrs[name]); else titleEl.removeAttribute(name); }
@@ -325,7 +327,7 @@ function renderInspector() {
     if (!box) return;
     // A full-page sample owns the whole area; every other view has the Details drawer: an element page fills it, the rest show its empty state.
     toggle.hidden = Boolean(full);
-    if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').classList.remove('gx-view--inspecting'); return; }
+    if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').removeAttribute('data-inspecting'); return; }
     box.setAttribute('heading', inspecting ? `${inspecting.meta.title}: details` : 'Inspector');
     inspector ??= createElementInspector($('#gx-inspector-body'));
     inspector.show(inspecting && { meta: inspecting.meta, element: inspecting.element, extraSections: sectionsFor(hostSections, inspecting.meta.tag).map(sectionFromData) });
@@ -338,7 +340,7 @@ function setInspector(open, remember = true) {
     setAttr($('#gx-inspector'), 'open', open);
     setAttr($('#gx-inspect'), 'pressed', open);
     $('#gx-resize').hidden = !open;
-    $('#gx-view').classList.toggle('gx-view--inspecting', open);
+    $('#gx-view').toggleAttribute('data-inspecting', open);
     if (remember) writeSetting('pk-gallery-inspector', open ? '1' : '0');
 }
 
@@ -348,7 +350,7 @@ function setInspector(open, remember = true) {
 // where the handle is hidden anyway, so this stays a plain handle that reports a width in pixels (unit: 'px'), with the box's end edge
 // standing in for pk-splitter's "start" via rtl: true (see #391).
 function initResize() {
-    const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('.gx-body');
+    const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('#gx-body');
     const bounds = () => ({ min: 320, max: Math.round(innerWidth * 0.7) });
     const width = () => parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0;
     const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.dataset.dyn = `--inspector-w:${w}px`; applyDynamic(shell); return w; };
@@ -382,31 +384,33 @@ const radios = (head, attr, rows, on, scope = '') => `<pk-menu-item type="header
 const displayItems = nav => `${nav ? radios('Navigation', 'nav', [['side', 'Side'], ['top', 'Top']], 'side', ' data-nav-scope hidden') : ''}${radios('Viewport', 'set-width', [['desktop', 'Desktop'], ['phone', 'Phone 375']], 'desktop')}${radios('Text size', 'scale', SCALES, '1')}`;
 const displayMenu = (nav, trigger) => `<pk-dropdown placement="bottom-end">${trigger}${displayItems(nav)}</pk-dropdown>`;
 
-const chromeHtml = () => `
-    <div class="gx-shell" id="gx-shell">
-        <pk-side-nav id="gx-nav" class="gx-nav" label="Gallery contents" filterable></pk-side-nav>
-        <main class="gx-main">
-            <pk-toolbar id="gx-bar" role="toolbar" aria-label="Preview settings">
-                <pk-button variant="ghost" toggle data-gx-contents>Contents</pk-button>
-                ${displayMenu(false, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
-                <pk-button variant="ghost" toggle id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
-            </pk-toolbar>
-            <pk-toolbar id="gx-pagebar" role="toolbar" aria-label="Page preview">
-                <pk-button variant="ghost" icon id="gx-back" href="${B()}/samples" label="Back"><pk-icon name="chevron-left"></pk-icon></pk-button>
-                <strong id="gx-title"></strong>
-                ${displayMenu(true, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
-                <pk-button variant="ghost" id="gx-theme" data-toggle-theme></pk-button>
-                <pk-button variant="ghost" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener" label="Open in a new page">Open</pk-button>
-            </pk-toolbar>
-            <div class="gx-body">
-                <div class="gx-view" id="gx-view"></div>
-                <div class="gx-resize" id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
-                <pk-drawer docked id="gx-inspector" heading="Inspector" aria-label="Inspector"><div id="gx-inspector-body"></div></pk-drawer>
-            </div>
-        </main>
-    </div>`;
+// The frame: pk-app-shell (nav, header, body) in a page of its own; under the site app, which owns the nav and the header, a plain stack of the
+// same parts. Either way the preview bar and the slim page bar are the header content, and the body holds the view with the docked Details drawer.
+const chromeHtml = () => {
+    const hosted = Boolean(prefix), at = name => (hosted ? '' : ` slot="${name}"`); // the stack has no slots
+    const parts = `
+        <pk-side-nav${at('nav')} id="gx-nav" class="gx-nav" label="Gallery contents" filterable${hosted ? ' hidden' : ''}></pk-side-nav>
+        ${hosted ? '' : '<pk-button slot="header" variant="ghost" toggle data-nav-toggle>Contents</pk-button>'}
+        <pk-toolbar${at('header')} id="gx-bar" role="toolbar" aria-label="Preview settings">
+            ${displayMenu(false, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+            <pk-button variant="ghost" toggle id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
+        </pk-toolbar>
+        <pk-toolbar${at('header')} id="gx-pagebar" role="toolbar" aria-label="Page preview" hidden>
+            <pk-button variant="ghost" icon id="gx-back" href="${B()}/samples" label="Back"><pk-icon name="chevron-left"></pk-icon></pk-button>
+            <strong id="gx-title"></strong>
+            ${displayMenu(true, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+            <pk-button variant="ghost" id="gx-theme" data-toggle-theme></pk-button>
+            <pk-button variant="ghost" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener" label="Open in a new page">Open</pk-button>
+        </pk-toolbar>
+        <pk-stack fill gap="none" id="gx-body">
+            <div id="gx-view"></div>
+            <div id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
+            <pk-drawer docked id="gx-inspector" heading="Inspector" aria-label="Inspector"><div id="gx-inspector-body"></div></pk-drawer>
+        </pk-stack>`;
+    return hosted ? `<pk-stack fill gap="none" id="gx-shell">${parts}</pk-stack>` : `<pk-app-shell flush id="gx-shell">${parts}</pk-app-shell>`;
+};
 
-const BARE_HTML = '<div class="gx-flow" id="gx-shell"><div class="gx-view" id="gx-view"></div></div>';
+const BARE_HTML = '<pk-stack gap="none" id="gx-shell"><div id="gx-view"></div></pk-stack>';
 
 // Replace the sections a host adds to the Details drawer (see the header); they are cleaned first, and the open drawer redraws.
 export function setGallerySections(sections) {
@@ -437,8 +441,7 @@ export async function mountGallery(container, options = {}) {
     router?.destroy();
     router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
     fillSanitizedHtml(container, bare ? BARE_HTML : chromeHtml());
-    if (!bare) container.classList.add('gx-mount');
-    container.toggleAttribute('data-gx-app', Boolean(prefix)); // hosted by the site app: it owns the nav (gallery.css)
+    container.toggleAttribute('data-gx-mount', !bare); // the frame fills the host's box (gallery.css)
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
     if (!bare) buildNav();
     paintToolbar();
@@ -455,13 +458,11 @@ export async function mountGallery(container, options = {}) {
         // A branch the reader opens or folds is remembered (the element also opens matches while a filter is typed: that does not emit).
         on(navEl(), 'pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); });
         // Escape or a tap on the backdrop closes the phone Contents drawer; the element hands focus back to its button.
-        on(navEl(), 'pk-close', () => { const btn = $('[data-gx-contents]'); if (btn) setAttr(btn, 'pressed', false); });
+        on(navEl(), 'pk-close', () => { const btn = $('[data-nav-toggle]'); if (btn) setAttr(btn, 'pressed', false); });
         on($('#gx-inspector'), 'pk-close', () => setInspector(false));
     }
     router.subscribe(render);
     on($('#gx-shell'), 'click', e => {
-        const contents = e.target.closest('[data-gx-contents]');
-        if (contents) { const on = !navEl().hasAttribute('open'); setAttr(navEl(), 'open', on); setAttr(contents, 'pressed', on); }
         if (e.target.closest('#gx-inspect')) setInspector(!$('#gx-inspector').hasAttribute('open'));
         const t = e.target.closest('[data-set-theme]');
         const tt = e.target.closest('[data-toggle-theme]');
@@ -495,7 +496,7 @@ export async function mountGallery(container, options = {}) {
             lazy?.disconnect(); lazy = null;
             releaseFrames();
             full = stage = inspecting = inspector = null;
-            where.prefix = ''; container.replaceChildren(); container.classList.remove('gx-mount'); container.removeAttribute('data-gx-app');
+            where.prefix = ''; container.replaceChildren(); container.removeAttribute('data-gx-mount');
         },
     };
     mounted = handle;
